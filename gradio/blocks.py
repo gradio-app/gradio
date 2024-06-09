@@ -2672,15 +2672,18 @@ Received outputs:
                     isinstance(component, components.Component)
                     and component.load_event_to_attach
                 ):
-                    load_fn, every = component.load_event_to_attach
+                    load_fn, every, trigger, inputs = component.load_event_to_attach
+                    target = trigger is not None
+                    if not target:
+                        trigger = (self, "load")
                     # Use set_event_trigger to avoid ambiguity between load class/instance method
 
                     dep = self.default_config.set_event_trigger(
-                        [EventListenerMethod(self, "load")],
+                        [EventListenerMethod(*trigger)],
                         load_fn,
-                        None,
+                        inputs,
                         component,
-                        no_target=True,
+                        no_target=not target,
                         # If every is None, for sure skip the queue
                         # else, let the enable_queue parameter take precedence
                         # this will raise a nice error message is every is used

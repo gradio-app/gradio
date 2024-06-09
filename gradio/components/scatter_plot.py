@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document
 
+from gradio.components.base import Component
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 
 if TYPE_CHECKING:
@@ -85,6 +86,7 @@ class ScatterPlot(Plot):
         interactive: bool | None = True,
         label: str | None = None,
         every: float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -160,6 +162,7 @@ class ScatterPlot(Plot):
             value=value,
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,

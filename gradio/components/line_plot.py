@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document
 
+from gradio.components import Component
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 
 if TYPE_CHECKING:
@@ -76,6 +77,7 @@ class LinePlot(Plot):
         scale: int | None = None,
         min_width: int = 160,
         every: float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -109,7 +111,7 @@ class LinePlot(Plot):
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
             show_label: Whether the label should be displayed.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Deprecated, use gr.Timer() instead. If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -152,6 +154,7 @@ class LinePlot(Plot):
             render=render,
             key=key,
             every=every,
+            inputs=inputs,
         )
 
     def get_block_name(self) -> str:

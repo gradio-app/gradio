@@ -28,6 +28,10 @@ class TextArea(components.Textbox):
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
+        inputs: components.Component
+        | list[components.Component]
+        | set[components.Component]
+        | None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -53,6 +57,7 @@ class TextArea(components.Textbox):
             label=label,
             info=info,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -92,6 +97,10 @@ class Sketchpad(components.ImageEditor):
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
+        inputs: components.Component
+        | list[components.Component]
+        | set[components.Component]
+        | None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -125,6 +134,7 @@ class Sketchpad(components.ImageEditor):
             type=type,
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             show_download_button=show_download_button,
             container=container,
@@ -169,6 +179,10 @@ class Paint(components.ImageEditor):
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
+        inputs: components.Component
+        | list[components.Component]
+        | set[components.Component]
+        | None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -200,6 +214,7 @@ class Paint(components.ImageEditor):
             type=type,
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             show_download_button=show_download_button,
             container=container,
@@ -248,6 +263,10 @@ class ImageMask(components.ImageEditor):
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
+        inputs: components.Component
+        | list[components.Component]
+        | set[components.Component]
+        | None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -281,6 +300,7 @@ class ImageMask(components.ImageEditor):
             type=type,
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             show_download_button=show_download_button,
             container=container,
@@ -324,6 +344,10 @@ class PlayableVideo(components.Video):
         width: int | str | None = None,
         label: str | None = None,
         every: float | None = None,
+        inputs: components.Component
+        | list[components.Component]
+        | set[components.Component]
+        | None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -351,6 +375,7 @@ class PlayableVideo(components.Video):
             width=width,
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -386,6 +411,10 @@ class Microphone(components.Audio):
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
+        inputs: components.Component
+        | list[components.Component]
+        | set[components.Component]
+        | None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -413,6 +442,7 @@ class Microphone(components.Audio):
             type=type,
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -451,6 +481,10 @@ class Files(components.File):
         type: Literal["filepath", "binary"] = "filepath",
         label: str | None = None,
         every: float | None = None,
+        inputs: components.Component
+        | list[components.Component]
+        | set[components.Component]
+        | None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -470,6 +504,7 @@ class Files(components.File):
             type=type,
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -504,6 +539,10 @@ class Numpy(components.Dataframe):
         label: str | None = None,
         show_label: bool | None = None,
         every: float | None = None,
+        inputs: components.Component
+        | list[components.Component]
+        | set[components.Component]
+        | None,
         height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
@@ -536,6 +575,7 @@ class Numpy(components.Dataframe):
             line_breaks=line_breaks,
             column_widths=column_widths,
             every=every,
+            inputs=inputs,
             height=height,
             scale=scale,
             latex_delimiters=latex_delimiters,
@@ -563,6 +603,10 @@ class Matrix(components.Dataframe):
         label: str | None = None,
         show_label: bool | None = None,
         every: float | None = None,
+        inputs: components.Component
+        | list[components.Component]
+        | set[components.Component]
+        | None,
         height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
@@ -595,6 +639,7 @@ class Matrix(components.Dataframe):
             line_breaks=line_breaks,
             column_widths=column_widths,
             every=every,
+            inputs=inputs,
             height=height,
             scale=scale,
             latex_delimiters=latex_delimiters,
@@ -622,6 +667,10 @@ class List(components.Dataframe):
         label: str | None = None,
         show_label: bool | None = None,
         every: float | None = None,
+        inputs: components.Component
+        | list[components.Component]
+        | set[components.Component]
+        | None,
         height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
@@ -654,6 +703,7 @@ class List(components.Dataframe):
             line_breaks=line_breaks,
             column_widths=column_widths,
             every=every,
+            inputs=inputs,
             height=height,
             scale=scale,
             latex_delimiters=latex_delimiters,

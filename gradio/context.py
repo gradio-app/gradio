@@ -6,7 +6,7 @@ from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.blocks import BlockContext, Blocks, BlocksConfig
+    from gradio.blocks import Block, BlockContext, Blocks, BlocksConfig
     from gradio.helpers import Progress
     from gradio.renderable import Renderable
     from gradio.routes import Request
@@ -18,6 +18,9 @@ class Context:
     id: int = 0  # Running id to uniquely refer to any block that gets defined
     ip_address: str | None = None  # The IP address of the user.
     hf_token: str | None = None  # The token provided when loading private HF repos
+    function_value_trigger: tuple[Block, str] | None = (
+        None  # The event listener that triggers any component that has a function value.
+    )
 
 
 class LocalContext:

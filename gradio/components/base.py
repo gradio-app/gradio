@@ -19,6 +19,7 @@ import gradio_client.utils as client_utils
 from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
+from gradio.context import Context
 from gradio.data_classes import GradioDataModel, JsonData
 from gradio.events import EventListener
 from gradio.layouts import Form
@@ -146,6 +147,7 @@ class Component(ComponentBase, Block):
         key: int | str | None = None,
         load_fn: Callable | None = None,
         every: float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
     ):
         self.server_fns = [
             getattr(self, value)
@@ -153,6 +155,10 @@ class Component(ComponentBase, Block):
             if callable(getattr(self, value))
             and getattr(getattr(self, value), "_is_server_fn", False)
         ]
+        if every is not None:
+            warnings.warn(
+                "The 'every' parameter will be deprecated. Please use gr.Timer() instead."
+            )
 
         # Svelte components expect elem_classes to be a list
         # If we don't do this, returning a new component for an
@@ -196,8 +202,10 @@ class Component(ComponentBase, Block):
 
         # load_event is set in the Blocks.attach_load_events method
         self.load_event: None | dict[str, Any] = None
-        self.load_event_to_attach: None | tuple[Callable, float | None] = None
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.load_event_to_attach: (
+            None | tuple[Callable, float | None, tuple[Block, str] | None]
+        ) = None
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value, inputs)
         initial_value = self.postprocess(initial_value)
         self.value = move_files_to_cache(
             initial_value,
@@ -209,7 +217,7 @@ class Component(ComponentBase, Block):
             self.keep_in_cache.add(self.value["path"])
 
         if callable(load_fn):
-            self.attach_load_event(load_fn, every)
+            self.attach_load_event(load_fn, every, inputs)
 
         self.component_class_id = self.__class__.get_component_class_id()
 
@@ -230,18 +238,30 @@ class Component(ComponentBase, Block):
         return False
 
     @staticmethod
-    def get_load_fn_and_initial_value(value):
+    def get_load_fn_and_initial_value(value, inputs=None):
+        initial_value = None
         if callable(value):
-            initial_value = value()
+            if not inputs:
+                initial_value = value()
             load_fn = value
         else:
             initial_value = value
             load_fn = None
         return load_fn, initial_value
 
-    def attach_load_event(self, callable: Callable, every: float | None):
+    def attach_load_event(
+        self,
+        callable: Callable,
+        every: float | None,
+        inputs: list[Component] | None = None,
+    ):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
-        self.load_event_to_attach = (callable, every)
+        self.load_event_to_attach = (
+            callable,
+            every,
+            Context.function_value_trigger,
+            inputs,
+        )
 
     def process_example(self, value):
         """

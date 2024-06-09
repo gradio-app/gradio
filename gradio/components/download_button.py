@@ -30,6 +30,7 @@ class DownloadButton(Component):
         value: str | Path | Callable | None = None,
         *,
         every: float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
         size: Literal["sm", "lg"] | None = None,
@@ -46,7 +47,7 @@ class DownloadButton(Component):
         Parameters:
             label: Text to display on the button. Defaults to "Download".
             value: A str or pathlib.Path filepath or URL to download, or a Callable that returns a str or pathlib.Path filepath or URL to download.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Deprecated, use gr.Timer() instead. If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
@@ -66,6 +67,7 @@ class DownloadButton(Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,

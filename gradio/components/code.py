@@ -84,6 +84,7 @@ class Code(Component):
         | None = None,
         *,
         every: float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         lines: int = 5,
         label: str | None = None,
         interactive: bool | None = None,
@@ -101,7 +102,7 @@ class Code(Component):
         Parameters:
             value: Default value to show in the code editor. If callable, the function will be called whenever the app loads to set the initial value of the component.
             language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Deprecated, use gr.Timer() instead. If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             interactive: Whether user should be able to enter code or only view it.
             show_label: if True, will display label.
@@ -122,6 +123,7 @@ class Code(Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             interactive=interactive,
             show_label=show_label,
             container=container,

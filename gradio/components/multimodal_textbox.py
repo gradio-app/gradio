@@ -10,7 +10,7 @@ from gradio_client.documentation import document
 from pydantic import Field
 from typing_extensions import NotRequired
 
-from gradio.components.base import FormComponent
+from gradio.components.base import Component, FormComponent
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 
@@ -61,6 +61,7 @@ class MultimodalTextbox(FormComponent):
         label: str | None = None,
         info: str | None = None,
         every: float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -86,7 +87,7 @@ class MultimodalTextbox(FormComponent):
             placeholder: placeholder hint to provide behind textarea.
             label: The label for this component. Appears above the component and is also used as the header if there is a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Deprecated, use gr.Timer() instead. If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
@@ -121,6 +122,7 @@ class MultimodalTextbox(FormComponent):
             label=label,
             info=info,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,

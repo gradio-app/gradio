@@ -7,7 +7,7 @@ from typing import Literal
 
 from gradio_client.documentation import document
 
-from gradio.components import Button
+from gradio.components import Button, Component
 
 
 @document()
@@ -26,6 +26,7 @@ class LogoutButton(Button):
         value: str = "Logout",
         *,
         every: float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str
@@ -47,6 +48,7 @@ class LogoutButton(Button):
         super().__init__(
             value,
             every=every,
+            inputs=inputs,
             variant=variant,
             size=size,
             icon=icon,
