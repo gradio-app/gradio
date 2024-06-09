@@ -173,6 +173,7 @@ export interface Config {
 	path: string;
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
 	max_file_size?: number;
+	theme_hash?: number;
 }
 
 // todo: DRY up types

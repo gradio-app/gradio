@@ -29,6 +29,7 @@
 		path: string;
 		app_id?: string;
 		fill_height?: boolean;
+		theme_hash?: number;
 	}
 
 	let id = -1;
@@ -131,7 +132,10 @@
 				css_text_stylesheet || undefined
 			);
 		}
-		await mount_css(config.root + "/theme.css", document.head);
+		await mount_css(
+			config.root + "/theme.css?v=" + config.theme_hash,
+			document.head
+		);
 		if (!config.stylesheets) return;
 
 		await Promise.all(

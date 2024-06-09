@@ -38,4 +38,5 @@ export interface Config {
 	show_error: boolean;
 	is_space: boolean;
 	protocol: "ws" | "sse" | "sse_v1" | "sse_v2" | "sse_v2.1" | "sse_v3";
+	theme_hash?: number;
 }
