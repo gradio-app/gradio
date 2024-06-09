@@ -263,3 +263,15 @@ def test_live_interface_sets_always_last():
             assert dep["trigger_mode"] == "always_last"
             return
     raise AssertionError("No change dependency found")
+
+
+def test_tabbed_interface_predictions(connect):
+    hello_world = gradio.Interface(lambda name: "Hello " + name, "text", "text")
+    bye_world = gradio.Interface(lambda name: "Bye " + name, "text", "text")
+
+    demo = gradio.TabbedInterface(
+        [hello_world, bye_world], ["Hello World", "Bye World"]
+    )
+    with connect(demo) as client:
+        assert client.predict("Emily", api_name="/predict") == "Hello Emily"
+        assert client.predict("Hannah", api_name="/predict") == "Hello Hannah"
