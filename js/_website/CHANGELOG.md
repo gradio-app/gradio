@@ -1,5 +1,16 @@
 # website
 
+## 0.31.5
+
+### Features
+
+- [#8491](https://github.com/gradio-app/gradio/pull/8491) [`ffd53fa`](https://github.com/gradio-app/gradio/commit/ffd53fa2dcb13d564fd07aa441d4016df8d2f155) - Remove broken guide redirect.  Thanks @aliabd!
+- [#8487](https://github.com/gradio-app/gradio/pull/8487) [`3a5d56e`](https://github.com/gradio-app/gradio/commit/3a5d56ea7bdbfc24357eaf8174f9275cb15fcf97) - Add Client Release Notes to Docs.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/code@0.6.11
+
 ## 0.31.4
 
 ### Dependency updates
