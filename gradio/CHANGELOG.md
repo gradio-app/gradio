@@ -1,5 +1,16 @@
 # gradio
 
+## 4.36.1
+
+### Features
+
+- [#8491](https://github.com/gradio-app/gradio/pull/8491) [`ffd53fa`](https://github.com/gradio-app/gradio/commit/ffd53fa2dcb13d564fd07aa441d4016df8d2f155) - Remove broken guide redirect.  Thanks @aliabd!
+- [#8499](https://github.com/gradio-app/gradio/pull/8499) [`c5f6e77`](https://github.com/gradio-app/gradio/commit/c5f6e7722a197d4706419ade14276ddecf3196f8) - Cache break themes on change.  Thanks @aliabid94!
+
+### Fixes
+
+- [#8504](https://github.com/gradio-app/gradio/pull/8504) [`2a59bab`](https://github.com/gradio-app/gradio/commit/2a59bab3bb537373e2823b2416e42b7a8370d7ec) - Fixes TabbedInterface bug where only first interface events get triggered.  Thanks @freddyaboulton!
+
 ## 4.36.0
 
 ### Features
