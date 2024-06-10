@@ -70,6 +70,7 @@ class Eraser:
 
     default_size: int | Literal["auto"] = "auto"
 
+
 @document()
 @dataclasses.dataclass
 class Brush(Eraser):
