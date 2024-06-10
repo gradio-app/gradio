@@ -27,22 +27,35 @@ class Timer(Component):
         self,
         value: float = 1,
         *,
-        render: bool = True,
         active: bool = True,
+        render: bool = True,
     ):
         """
         Parameters:
-            value (float): Interval in seconds between each tick.
-            active (bool): Whether the timer is active.
+            value: Interval in seconds between each tick.
+            active: Whether the timer is active.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
         self.active = active
         self._previous_function_value_trigger: EventListenerCallable | None = None
         super().__init__(value=value, render=render)
 
     def preprocess(self, payload: float | None) -> float | None:
+        """
+        Parameters:
+            payload: The interval of the timer.
+        Returns:
+            The interval of the timer.
+        """
         return payload
 
     def postprocess(self, payload: float | None) -> float | None:
+        """
+        Parameters:
+            payload: The interval of the timer.
+        Returns:
+            The interval of the timer.
+        """
         return payload
 
     def api_info(self) -> dict:
