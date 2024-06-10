@@ -19,13 +19,13 @@
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any; constructor_args: any }
+			| { component: string; value: any; constructor_args: any; props: any }
 			| null
 		),
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any; constructor_args: any }
+			| { component: string; value: any; constructor_args: any; props: any }
 			| null
 		)
 	][] = [];
@@ -63,13 +63,13 @@
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any; constructor_args: any }
+			| { component: string; value: any; constructor_args: any; props: any }
 			| null
 		),
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any; constructor_args: any }
+			| { component: string; value: any; constructor_args: any; props: any }
 			| null
 		)
 	][];
@@ -113,6 +113,7 @@
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 	export let placeholder: string | null = null;
+	export let theme_mode: "system" | "light" | "dark";
 </script>
 
 <Block
@@ -153,6 +154,7 @@
 			value={_value}
 			{latex_delimiters}
 			{render_markdown}
+			{theme_mode}
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
 			{show_copy_button}

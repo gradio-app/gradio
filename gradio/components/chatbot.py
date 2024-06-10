@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import inspect
-import json
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
@@ -43,7 +42,8 @@ class FileMessage(GradioModel):
 class ComponentMessage(GradioModel):
     component: str
     value: Any
-    constructor_args: List[Dict[str, Any]]
+    constructor_args: Dict[str, Any]
+    props: Dict[str, Any]
 
 
 class ChatbotData(GradioRootModel):
@@ -182,7 +182,7 @@ class Chatbot(Component):
                 return (chat_message.file.path, chat_message.alt_text)
             else:
                 return (chat_message.file.path,)
-        elif isinstance(chat_message, (str)):
+        elif isinstance(chat_message, str):
             return chat_message
         elif isinstance(chat_message, ComponentMessage):
             component = import_component_and_data(chat_message.component.capitalize())
@@ -192,13 +192,10 @@ class Chatbot(Component):
                     payload = instance.data_model(**chat_message.value)
                 elif issubclass(instance.data_model, GradioRootModel):
                     payload = instance.data_model(root=chat_message.value)
+                else:
+                    payload = chat_message.value
                 value = instance.preprocess(payload)
-                args = {
-                    k: v
-                    for k, v in chat_message.constructor_args[0].items()
-                    if k != "value"
-                }
-                return component(value=value, **args)  # type: ignore
+                return component(value=value, **chat_message.constructor_args)  # type: ignore
             else:
                 raise ValueError(
                     f"Invalid component for Chatbot component: {chat_message.component}"
@@ -252,37 +249,16 @@ class Chatbot(Component):
         if chat_message is None:
             return None
         elif isinstance(chat_message, GradioComponent):
-
-            def is_json_encodable(obj):
-                try:
-                    json.dumps(obj)
-                    return True
-                except TypeError:
-                    return False
-
-            def extract_serializable_dict(obj):
-                if isinstance(obj, dict):
-                    result = {}
-                    for k, v in obj.items():
-                        if is_json_encodable(v):
-                            result[k] = v
-                    return result
-                return {}
-
             component = import_component_and_data(type(chat_message).__name__)
             if component:
-                extracted_args = []
-                for arg in chat_message._constructor_args:
-                    if isinstance(arg, dict):
-                        serializable_arg = extract_serializable_dict(arg)
-                        extracted_args.append(serializable_arg)
+                component = chat_message.__class__(**chat_message.constructor_args)
+                chat_message.constructor_args.pop("value", None)
+                config = component.get_config()
                 return ComponentMessage(
                     component=type(chat_message).__name__.lower(),
-                    value=component.postprocess(  # type: ignore
-                        chat_message,
-                        chat_message._constructor_args[1]["value"], # type: ignore
-                    ),
-                    constructor_args=extracted_args,
+                    value=config.get("value", None),
+                    constructor_args=chat_message.constructor_args,
+                    props=config,
                 )
         elif isinstance(chat_message, (tuple, list)):
             filepath = str(chat_message[0])

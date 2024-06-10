@@ -30,13 +30,13 @@
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { component: string; value: any; constructor_args: any }
+					| { component: string; value: any; constructor_args: any; props: any }
 					| null
 				),
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { component: string; value: any; constructor_args: any }
+					| { component: string; value: any; constructor_args: any; props: any }
 					| null
 				)
 		  ][]
@@ -46,7 +46,7 @@
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { component: string; value: any; constructor_args: any }
+					| { component: string; value: any; constructor_args: any; props: any }
 					| null
 				),
 				(
@@ -56,6 +56,7 @@
 							component: string | SvelteComponent;
 							value: any;
 							constructor_args: any;
+							props: any;
 					  }
 					| null
 				)
@@ -77,6 +78,7 @@
 	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let theme_mode: "system" | "light" | "dark";
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let placeholder: string | null = null;
@@ -170,7 +172,7 @@
 		message:
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any; constructor_args: any }
+			| { component: string; value: any; constructor_args: any; props: any }
 			| null
 	): void {
 		dispatch("select", {
@@ -185,7 +187,7 @@
 		message:
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any; constructor_args: any }
+			| { component: string; value: any; constructor_args: any; props: any }
 			| null,
 		selected: string | null
 	): void {
@@ -307,10 +309,11 @@
 										{:else if message.component == "plot"}
 											<BasePlot
 												value={message.value}
-												show_label={false}
 												{target}
-												{i18n}
-												label=""
+												{theme_mode}
+												bokeh_version={message.props.bokeh_version}
+												caption=""
+												show_actions_button={true}
 											/>
 										{:else if message.component == "audio"}
 											<BaseStaticAudio
