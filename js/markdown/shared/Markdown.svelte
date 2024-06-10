@@ -17,6 +17,7 @@
 		display: boolean;
 	}[];
 	export let header_links = false;
+	export let height: string;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -30,6 +31,7 @@
 	data-testid="markdown"
 	dir={rtl ? "rtl" : "ltr"}
 	use:copy
+	style="max-height: {height}; overflow-y: auto;"
 >
 	<MarkdownCode
 		message={value}
@@ -38,6 +40,7 @@
 		{line_breaks}
 		chatbot={false}
 		{header_links}
+		{height}
 	/>
 </div>
 

@@ -40,6 +40,7 @@ class Markdown(Component):
         sanitize_html: bool = True,
         line_breaks: bool = False,
         header_links: bool = False,
+        height: str | None = None,
     ):
         """
         Parameters:
@@ -57,6 +58,7 @@ class Markdown(Component):
             sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
             line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
             header_links: If True, will automatically create anchors for headings, displaying a link icon on hover.
+            height: An optional string that specifies the maximum height of this component in CSS units (e.g., '200px'), beyond which a scrollbar is added. Can be used for controlling the display size of this component.
         """
         self.rtl = rtl
         if latex_delimiters is None:
@@ -65,6 +67,7 @@ class Markdown(Component):
         self.sanitize_html = sanitize_html
         self.line_breaks = line_breaks
         self.header_links = header_links
+        self.height = height
 
         super().__init__(
             label=label,

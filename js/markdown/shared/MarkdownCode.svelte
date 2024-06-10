@@ -18,6 +18,7 @@
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let header_links = false;
+	export let height: string;
 
 	let el: HTMLSpanElement;
 	let html: string;
@@ -76,7 +77,13 @@
 	afterUpdate(() => render_html(message));
 </script>
 
-<span class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
+<span
+	class:chatbot
+	bind:this={el}
+	class="md"
+	class:prose={render_markdown}
+	style="max-height: {height}; overflow-y: auto;"
+>
 	{#if render_markdown}
 		{@html html}
 	{:else}
