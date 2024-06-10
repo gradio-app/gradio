@@ -1171,9 +1171,8 @@ class App(FastAPI):
         async def analytics_login():
             from rich import print as rich_print
 
-            rich_print(
-                f"[orange_red1]Monitoring URL: {app.get_blocks().local_url}monitoring/{app.analytics_key}[/orange_red1]"
-            )
+            url = f"[b][u]{app.get_blocks().local_url}monitoring/{app.analytics_key}[/b][/u]"
+            rich_print(f"* Monitoring URL: {url} *")
             return HTMLResponse("See console for monitoring URL.")
 
         @app.get("/monitoring/{key}")
