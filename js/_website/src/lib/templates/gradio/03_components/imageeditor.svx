@@ -10,7 +10,8 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("imageeditor");
-    let helper_classes = [get_object("brush"), get_object("eraser")];
+    let brush_obj = get_object("brush");
+    let eraser_obj = get_object("eraser");
 </script>
 
 <!--- Title -->
@@ -74,39 +75,44 @@ def predict(···) -> EditorValue | ImageType | None
 
 <!-- Helper Classes -->
 ### Helper Classes 
-{#each helper_classes as helper_obj, i}
 <div style="margin-left: 3rem">
 
-{#if !i}
+<!-- BRUSH -->
 <!--- Title -->
 ### Brush
-{:else }
-<!--- Title -->
-### Eraser
-{/if}
 
-{#if !i}
 <!--- Usage -->
 ```python
 gradio.Brush(···)
 ```
-{:else }
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(brush_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={brush_obj.parameters} />
+
+<!-- ERASER -->
+<!--- Title -->
+### Eraser
+
 <!--- Usage -->
 ```python
 gradio.Eraser(···)
 ```
-{/if}
 
 <!--- Description -->
 #### Description
-## {@html style_formatted_text(helper_obj.description)}
+## {@html style_formatted_text(eraser_obj.description)}
 
 <!--- Initialization -->
 #### Initialization
-<ParamTable parameters={helper_obj.parameters} />
+<ParamTable parameters={eraser_obj.parameters} />
+
 
 </div>
-{/each}
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
