@@ -57,6 +57,9 @@ export async function create_server({
 					allow: [root_dir, component_dir]
 				}
 			},
+			build: {
+				target: config.build.target
+			},
 			plugins: [
 				...plugins(config),
 				make_gradio_plugin({
@@ -116,6 +119,9 @@ export interface ComponentConfig {
 		preprocess: PreprocessorGroup[];
 		extensions?: string[];
 	};
+	build: {
+		target: string | string[];
+	};
 }
 
 async function generate_imports(
@@ -134,10 +140,13 @@ async function generate_imports(
 		);
 	}
 
-	let component_config = {
+	let component_config: ComponentConfig = {
 		plugins: [],
 		svelte: {
 			preprocess: []
+		},
+		build: {
+			target: []
 		}
 	};
 
@@ -153,6 +162,7 @@ async function generate_imports(
 
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
+				component_config.build.target = m.default.build?.target || "modules";
 			} else {
 			}
 		})
