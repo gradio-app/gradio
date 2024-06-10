@@ -84,10 +84,18 @@ def predict(···) -> EditorValue | ImageType | None
 <!--- Title -->
 ### Eraser
 {/if}
+
+{#if !i}
 <!--- Usage -->
 ```python
-gradio.ImageEditor(···)
+gradio.Brush(···)
 ```
+{:else }
+<!--- Usage -->
+```python
+gradio.Eraser(···)
+```
+{/if}
 
 <!--- Description -->
 #### Description
