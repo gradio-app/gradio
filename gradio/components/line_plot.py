@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document
 
-from gradio.components import Component
+from gradio.components.base import Component
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 
 if TYPE_CHECKING:

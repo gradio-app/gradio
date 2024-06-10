@@ -19,7 +19,7 @@ import numpy as np
 import semantic_version
 from gradio_client.documentation import document
 
-from gradio.components import Component
+from gradio.components.base import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
 
