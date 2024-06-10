@@ -339,3 +339,110 @@ const app = await Client.duplicate("user/space-name", {
 	hardware: "a10g-small"
 });
 ```
+
+### `handle_file(file_or_url: File | string | Blob | Buffer)`
+
+This utility function is used to simplify the process of handling file inputs for the client.
+
+Gradio APIs expect a special file datastructure that references a location on the server. These files can be manually uploaded but figuring what to do with different file types can be difficult depending on your environment.
+
+This function will handle files regardless of whether or not they are local files (node only), URLs, Blobs, or Buffers. It will take in a reference and handle it accordingly,uploading the file where appropriate and generating the correct data structure for the client.
+
+The return value of this function can be used anywhere in the input data where a file is expected:
+
+```ts
+import { handle_file } from "@gradio/client";
+
+const app = await Client.connect("user/space-name");
+const result = await app.predict("/predict", {
+	single: handle_file(file),
+	flat: [handle_file(url), handle_file(buffer)],
+	nested: {
+		image: handle_file(url),
+		layers: [handle_file(buffer)]
+	},
+	deeply_nested: {
+		image: handle_file(url),
+		layers: [{
+			layer1: handle_file(buffer),
+			layer2: handle_file(buffer)
+		}]
+	}
+});
+```
+
+#### filepaths
+
+`handle_file` can be passed a local filepath which it will upload to the client server and return a reference that the client can understand. 
+
+This only works in a node environment.
+
+Filepaths are resolved relative to the current working directory, not the location of the file that calls `handle_file`.
+
+```ts
+import { handle_file } from "@gradio/client";
+
+// not uploaded yet
+const file_ref = handle_file("path/to/file");
+
+const app = await Client.connect("user/space-name");
+
+// upload happens here
+const result = await app.predict("/predict", {
+	file: file_ref,
+});
+```
+
+#### URLs
+
+`handle_file` can be passed a URL which it will convert into a reference that the client can understand.
+
+```ts
+import { handle_file } from "@gradio/client";
+
+const url_ref = handle_file("https://example.com/file.png");
+
+const app = await Client.connect("user/space-name");
+const result = await app.predict("/predict", {
+	url: url_ref,
+});
+```
+
+#### Blobs
+
+`handle_file` can be passed a Blob which it will upload to the client server and return a reference that the client can understand.
+
+The upload is not initiated until predict or submit are called.
+
+```ts
+import { handle_file } from "@gradio/client";
+
+// not uploaded yet
+const blob_ref = handle_file(new Blob(["Hello, world!"]));
+
+const app = await Client.connect("user/space-name");
+
+// upload happens here
+const result = await app.predict("/predict", {
+	blob: blob_ref,
+});
+```
+
+#### Buffers
+
+`handle_file` can be passed a Buffer which it will upload to the client server and return a reference that the client can understand.
+
+```ts
+import { handle_file } from "@gradio/client";
+import { readFileSync } from "fs";
+
+// not uploaded yet
+const buffer_ref = handle_file(readFileSync("file.png"));
+
+const app = await Client.connect("user/space-name");
+
+// upload happens here
+const result = await app.predict("/predict", {
+	buffer: buffer_ref,
+});
+```
