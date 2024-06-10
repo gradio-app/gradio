@@ -59,6 +59,7 @@ class AcceptBlobs(GradioModel):
     files: List[Tuple[str, bytes]]
 
 
+@document()
 @dataclasses.dataclass
 class Eraser:
     """
@@ -70,6 +71,7 @@ class Eraser:
     default_size: int | Literal["auto"] = "auto"
 
 
+@document()
 @dataclasses.dataclass
 class Brush(Eraser):
     """
@@ -188,8 +190,8 @@ class ImageEditor(Component):
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             crop_size: The size of the crop box in pixels. If a tuple, the first value is the width and the second value is the height. If a string, the value must be a ratio in the form `width:height` (e.g. "16:9").
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
-            eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool.
-            brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool.
+            eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool. [See `gr.Eraser` docs](#eraser).
+            brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool. [See `gr.Brush` docs](#brush).
             format: Format to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
             layers: If True, will allow users to add layers to the image. If False, the layers option will be hidden.
             canvas_size: The size of the default canvas in pixels. If a tuple, the first value is the width and the second value is the height. If None, the canvas size will be the same as the background image or 800 x 600 if no background image is provided.

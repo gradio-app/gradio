@@ -10,6 +10,7 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("audio");
+    let waveform_obj = get_object("waveformoptions");
 </script>
 
 <!--- Title -->
@@ -70,6 +71,30 @@ def predict(···) -> str | Path | bytes | tuple[int, np.ndarray] | None
 ### Event Listeners 
 <FunctionsSection fns={obj.fns} event_listeners={true} />
 {/if}
+
+<!-- Helper Classes -->
+### Helper Classes 
+<div style="margin-left: 3rem">
+
+<!--- Title -->
+### WaveformOptions
+
+
+<!--- Usage -->
+```python
+gradio.WaveformOptions(···)
+```
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(waveform_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={waveform_obj.parameters} />
+
+</div>
+
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
