@@ -2,6 +2,9 @@
     import dataflow from "$lib/assets/img/dataflow.svg"
     import {get_object} from "../../process_json.ts";
     let components = get_object("components");
+    delete components["brush"]; 
+    delete components["eraser"]; 
+    delete components["waveformoptions"];
     let events = get_object("events");
     let events_matrix = get_object("events_matrix");
 </script>
