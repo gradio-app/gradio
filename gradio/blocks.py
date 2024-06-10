@@ -988,6 +988,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.theme: Theme = theme
         self.theme_css = theme._get_theme_css()
         self.stylesheets = theme._stylesheets
+        theme_hasher = hashlib.sha256()
+        theme_hasher.update(self.theme_css.encode("utf-8"))
+        self.theme_hash = theme_hasher.hexdigest()
+
         self.encrypt = False
         self.share = False
         self.enable_queue = True
@@ -1355,6 +1359,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns.values():
+                dependency._id += dependency_offset
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -2039,6 +2044,7 @@ Received outputs:
                 ),
             },
             "fill_height": self.fill_height,
+            "theme_hash": self.theme_hash,
         }
         config.update(self.default_config.get_config())
         config["connect_heartbeat"] = utils.connect_heartbeat(

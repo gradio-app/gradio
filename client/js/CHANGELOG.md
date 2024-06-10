@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.1.1
+
+### Features
+
+- [#8499](https://github.com/gradio-app/gradio/pull/8499) [`c5f6e77`](https://github.com/gradio-app/gradio/commit/c5f6e7722a197d4706419ade14276ddecf3196f8) - Cache break themes on change.  Thanks @aliabid94!
+
 ## 1.1.0
 
 ### Features

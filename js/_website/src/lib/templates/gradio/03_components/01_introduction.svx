@@ -2,6 +2,11 @@
     import dataflow from "$lib/assets/img/dataflow.svg"
     import {get_object} from "../../process_json.ts";
     let components = get_object("components");
+    let components_no_dataclasses = {...components};
+    delete components_no_dataclasses["brush"];
+    delete components_no_dataclasses["eraser"];
+    delete components_no_dataclasses["waveformoptions"];
+
     let events = get_object("events");
     let events_matrix = get_object("events_matrix");
 </script>
@@ -36,7 +41,7 @@
         <tbody
             class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y"
         >
-            {#each Object.entries(components) as [name, obj] (name)}
+            {#each Object.entries(components_no_dataclasses) as [name, obj] (name)}
                 <tr class="group hover:bg-gray-200/60">
                     <th
                         class="p-3 w-1/5 bg-white sticky z-2 left-0 font-normal"
