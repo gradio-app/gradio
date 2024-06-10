@@ -7,6 +7,7 @@ import warnings
 from collections import defaultdict
 from functools import lru_cache
 from typing import Callable
+import dataclasses
 
 classes_to_document = defaultdict(list)
 classes_inherit_documentation = {}
@@ -247,7 +248,7 @@ def generate_documentation():
     for mode, class_list in classes_to_document.items():
         documentation[mode] = []
         for cls, fns in class_list:
-            fn_to_document = cls if inspect.isfunction(cls) else cls.__init__
+            fn_to_document = cls if inspect.isfunction(cls) or dataclasses.is_dataclass(cls) else cls.__init__
             _, parameter_doc, return_doc, _ = document_fn(fn_to_document, cls)
             if (
                 hasattr(cls, "preprocess")

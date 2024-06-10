@@ -132,6 +132,9 @@
 .obj h3 {
 	@apply mt-8 text-xl text-orange-500 font-light;
 }
+.obj h4 {
+	@apply mt-8 text-xl text-orange-500 font-light;
+}
 /* playground */
 
 .current-playground-demo {

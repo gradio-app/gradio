@@ -10,6 +10,7 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("imageeditor");
+    let helper_classes = [get_object("brush"), get_object("eraser")];
 </script>
 
 <!--- Title -->
@@ -70,6 +71,34 @@ def predict(···) -> EditorValue | ImageType | None
 ### Event Listeners 
 <FunctionsSection fns={obj.fns} event_listeners={true} />
 {/if}
+
+<!-- Helper Classes -->
+### Helper Classes 
+{#each helper_classes as helper_obj, i}
+<div style="margin-left: 3rem">
+
+{#if !i}
+<!--- Title -->
+### Brush
+{:else }
+<!--- Title -->
+### Eraser
+{/if}
+<!--- Usage -->
+```python
+gradio.ImageEditor(···)
+```
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(helper_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={helper_obj.parameters} />
+
+</div>
+{/each}
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
