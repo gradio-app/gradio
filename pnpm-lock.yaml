@@ -1504,7 +1504,11 @@ importers:
         specifier: ^3.28.0
         version: 3.28.0
 
-  js/preview/test/test/frontend: {}
+  js/preview/test/test/frontend:
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:*
+        version: link:../../..
 
   js/radio:
     dependencies:
