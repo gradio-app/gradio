@@ -1320,3 +1320,19 @@ def test_max_file_size_used_in_upload_route(connect):
     with open("test/test_files/alphabet.txt", "rb") as f:
         r = test_client.post("/upload", files={"files": f})
         assert r.status_code == 200
+
+
+def test_docs_url():
+    with gr.Blocks() as demo:
+        num = gr.Number(value=0)
+        button = gr.Button()
+        button.click(lambda n: n + 1, [num], [num])
+
+    app, _, _ = demo.launch(app_kwargs={"docs_url": "/docs"}, prevent_thread_lock=True)
+    try:
+        test_client = TestClient(app)
+        with test_client:
+            r = test_client.get("/docs")
+            assert r.status_code == 200
+    finally:
+        demo.close()
