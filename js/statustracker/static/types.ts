@@ -22,4 +22,5 @@ export interface ToastMessage {
 	message: string;
 	id: number;
 	duration: number | null;
+	visible: boolean;
 }

@@ -32,6 +32,7 @@ class LogMessage(BaseMessage):
     log: str
     level: Literal["info", "warning"]
     duration: Optional[int] = 10
+    visible: bool = True
 
 
 class EstimationMessage(BaseMessage):

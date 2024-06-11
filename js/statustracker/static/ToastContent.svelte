@@ -7,9 +7,11 @@
 	export let message = "";
 	export let type: ToastMessage["type"];
 	export let id: number;
-	export let duration: number | null = 10; // Add duration prop
+	export let duration: number | null = 10;
+	export let visible = true;
 
-	$: display = duration ? duration > 0 : true;
+	$: display = visible;
+	$: duration = duration || null;
 
 	const dispatch = createEventDispatcher();
 

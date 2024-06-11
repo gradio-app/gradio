@@ -142,14 +142,16 @@
 		message: string,
 		fn_index: number,
 		type: ToastMessage["type"],
-		duration: number | null = 10
+		duration: number | null = 10,
+		visible = true
 	): ToastMessage & { fn_index: number } {
 		return {
 			message,
 			fn_index,
 			type,
 			id: ++_error_id,
-			duration
+			duration,
+			visible
 		};
 	}
 
@@ -346,8 +348,11 @@
 			}
 
 			function handle_log(msg: LogMessage): void {
-				const { log, fn_index, level, duration } = msg;
-				messages = [new_message(log, fn_index, level, duration), ...messages];
+				const { log, fn_index, level, duration, visible } = msg;
+				messages = [
+					new_message(log, fn_index, level, duration, visible),
+					...messages
+				];
 			}
 
 			function handle_status_update(message: StatusMessage): void {
@@ -419,7 +424,13 @@
 							(_, b) => b
 						);
 						messages = [
-							new_message(_message, fn_index, "error", status.duration),
+							new_message(
+								_message,
+								fn_index,
+								"error",
+								status.duration,
+								status.visible
+							),
 							...messages
 						];
 					}

@@ -381,7 +381,8 @@ class Queue:
         event_id: str,
         log: str,
         level: Literal["info", "warning"],
-        duration: int | None = 10000,
+        duration: int | None = 10,
+        visible: bool = True,
     ):
         events = [
             evt for job in self.active_jobs if job is not None for evt in job
@@ -392,6 +393,7 @@ class Queue:
                     log=log,
                     level=level,
                     duration=duration,
+                    visible=visible,
                 )
                 self.send_message(event, log_message)
 

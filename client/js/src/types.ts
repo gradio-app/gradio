@@ -330,7 +330,7 @@ export interface Status {
 	success?: boolean;
 	stage: "pending" | "error" | "complete" | "generating";
 	duration?: number;
-	display?: boolean;
+	visible?: boolean;
 	broken?: boolean;
 	size?: number;
 	position?: number;
@@ -364,6 +364,7 @@ export interface LogMessage extends Log {
 	endpoint: string;
 	fn_index: number;
 	duration: number | null;
+	visible: boolean;
 }
 
 export interface RenderMessage extends Render {
