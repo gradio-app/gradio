@@ -184,13 +184,13 @@ async function generate_imports(
 			);
 
 		const example = exports.example
-			? `example: () => import("${to_posix(
+			? `example: () => import("/@fs/${to_posix(
 					join(component.frontend_dir, exports.example)
 				)}"),\n`
 			: "";
 		return `${acc}"${component.component_class_id}": {
 			${example}
-			component: () => import("${to_posix(
+			component: () => import("/@fs/${to_posix(
 				join(component.frontend_dir, exports.component)
 			)}")
 			},\n`;
