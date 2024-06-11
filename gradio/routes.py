@@ -165,7 +165,7 @@ class App(FastAPI):
         self.tokens = {}
         self.auth = None
         self.analytics_key = secrets.token_urlsafe(16)
-        self.analytics_enabled = False
+        self.monitoring_enabled = False
         self.blocks: gradio.Blocks | None = None
         self.state_holder = StateHolder()
         self.iterators: dict[str, AsyncIterator] = {}
@@ -1169,25 +1169,26 @@ class App(FastAPI):
 
         @app.get("/monitoring", dependencies=[Depends(login_check)])
         async def analytics_login(request: fastapi.Request):
-            root = route_utils.get_root_url(
+            root_url = route_utils.get_root_url(
                 request=request, route_path="/monitoring", root_path=app.root_path
             )
-            print(f"Monitoring URL: {root}/monitoring/{app.analytics_key}")
+            monitoring_url = f"{root_url}/monitoring/{app.analytics_key}"
+            print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
         @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if key == app.analytics_key:
                 analytics_url = f"/monitoring/{app.analytics_key}/dashboard"
-                if not app.analytics_enabled:
-                    from gradio.analytics_dashboard import data
-                    from gradio.analytics_dashboard import demo as dashboard
+                if not app.monitoring_enabled:
+                    from gradio.monitoring_dashboard import data
+                    from gradio.monitoring_dashboard import demo as dashboard
 
                     mount_gradio_app(app, dashboard, path=analytics_url)
                     dashboard._queue.start()
                     analytics = app.get_blocks()._queue.event_analytics
                     data["data"] = analytics
-                    app.analytics_enabled = True
+                    app.monitoring_enabled = True
                 return RedirectResponse(
                     url=analytics_url, status_code=status.HTTP_302_FOUND
                 )
