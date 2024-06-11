@@ -17,7 +17,7 @@
 
 <!--- Usage -->
 ```python
-gradio.Info(···)
+gradio.Info("Helpful info message ℹ️", duration=5)
 ```
 
 <!--- Description -->

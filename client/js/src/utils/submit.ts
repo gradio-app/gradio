@@ -343,6 +343,8 @@ export function submit(
 								log: data.log,
 								level: data.level,
 								endpoint: _endpoint,
+								duration: data.duration,
+								visible: data.visible,
 								fn_index
 							});
 						} else if (type === "generating") {
@@ -474,6 +476,8 @@ export function submit(
 								log: data.log,
 								level: data.level,
 								endpoint: _endpoint,
+								duration: data.duration,
+								visible: data.visible,
 								fn_index
 							});
 						} else if (type === "generating") {
@@ -630,6 +634,8 @@ export function submit(
 											log: data.log,
 											level: data.level,
 											endpoint: _endpoint,
+											duration: data.duration,
+											visible: data.visible,
 											fn_index
 										});
 										return;

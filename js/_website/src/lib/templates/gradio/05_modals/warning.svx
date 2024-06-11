@@ -17,7 +17,7 @@
 
 <!--- Usage -->
 ```python
-gradio.Warning(···)
+gradio.Warning("A warning occured ⛔️!", duration=5)
 ```
 
 <!--- Description -->

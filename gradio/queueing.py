@@ -18,7 +18,6 @@ from gradio import route_utils, routes
 from gradio.data_classes import (
     PredictBody,
 )
-from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
 from gradio.server_messages import (
     EstimationMessage,
@@ -30,7 +29,13 @@ from gradio.server_messages import (
     ProgressMessage,
     ProgressUnit,
 )
-from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name
+from gradio.utils import (
+    LRUCache,
+    error_payload,
+    run_coro_in_background,
+    safe_get_lock,
+    set_task_name,
+)
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
@@ -376,6 +381,8 @@ class Queue:
         event_id: str,
         log: str,
         level: Literal["info", "warning"],
+        duration: float | None = 10,
+        visible: bool = True,
     ):
         events = [
             evt for job in self.active_jobs if job is not None for evt in job
@@ -385,6 +392,8 @@ class Queue:
                 log_message = LogMessage(
                     log=log,
                     level=level,
+                    duration=duration,
+                    visible=visible,
                 )
                 self.send_message(event, log_message)
 
@@ -538,15 +547,15 @@ class Queue:
                 )
                 err = None
             except Exception as e:
-                show_error = app.get_blocks().show_error or isinstance(e, Error)
                 traceback.print_exc()
                 response = None
                 err = e
                 for event in awake_events:
+                    content = error_payload(err, app.get_blocks().show_error)
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
-                            output={"error": str(e) if show_error else None},
+                            output=content,
                             success=False,
                         ),
                     )
@@ -586,8 +595,7 @@ class Queue:
                 else:
                     success = False
                     error = err or old_err
-                    show_error = app.get_blocks().show_error or isinstance(error, Error)
-                    output = {"error": str(error) if show_error else None}
+                    output = error_payload(error, app.get_blocks().show_error)
                 for event in awake_events:
                     self.send_message(
                         event, ProcessCompletedMessage(output=output, success=success)

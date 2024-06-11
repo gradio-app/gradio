@@ -318,6 +318,8 @@ export function handle_message(
 					status: {
 						queue,
 						message: data.output.error as string,
+						visible: data.output.visible as boolean,
+						duration: data.output.duration as number,
 						stage: "error",
 						code: data.code,
 						success: data.success
