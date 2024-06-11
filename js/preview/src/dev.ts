@@ -157,7 +157,7 @@ async function generate_imports(
 				fs.existsSync(join(component.frontend_dir, "gradio.config.js"))
 			) {
 				const m = await import(
-					join(component.frontend_dir, "gradio.config.js")
+					join("file://" + component.frontend_dir, "gradio.config.js")
 				);
 
 				component_config.plugins = m.default.plugins || [];
