@@ -1,5 +1,15 @@
 # @gradio/upload
 
+## 0.11.2
+
+### Features
+
+- [#8491](https://github.com/gradio-app/gradio/pull/8491) [`ffd53fa`](https://github.com/gradio-app/gradio/commit/ffd53fa2dcb13d564fd07aa441d4016df8d2f155) - Remove broken guide redirect.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/client@1.1.1
+
 ## 0.11.1
 
 ### Dependency updates

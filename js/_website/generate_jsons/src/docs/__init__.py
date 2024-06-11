@@ -64,12 +64,13 @@ def create_events_matrix():
     component_events = {}
     for component in docs["component"]:
         component_event_list = []
-        for event in component["class"].EVENTS:
-            events.add(event)
-            for fn in component["fns"]:
-                if event == fn["name"]:
-                    component_event_list.append(event)
-        component_events[component["name"]] = component_event_list
+        if hasattr(component["class"], 'EVENTS'):
+            for event in component["class"].EVENTS:
+                events.add(event)
+                for fn in component["fns"]:
+                    if event == fn["name"]:
+                        component_event_list.append(event)
+            component_events[component["name"]] = component_event_list
     
     
     return list(events), component_events

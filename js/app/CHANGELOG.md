@@ -1,5 +1,34 @@
 # @gradio/app
 
+## 1.36.2
+
+### Features
+
+- [#8499](https://github.com/gradio-app/gradio/pull/8499) [`c5f6e77`](https://github.com/gradio-app/gradio/commit/c5f6e7722a197d4706419ade14276ddecf3196f8) - Cache break themes on change.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.6.11
+- @gradio/client@1.1.1
+- @gradio/upload@0.11.2
+- @gradio/annotatedimage@0.6.10
+- @gradio/audio@0.11.10
+- @gradio/button@0.2.43
+- @gradio/chatbot@0.10.11
+- @gradio/dataframe@0.8.10
+- @gradio/dataset@0.1.43
+- @gradio/file@0.8.2
+- @gradio/fileexplorer@0.4.11
+- @gradio/gallery@0.10.10
+- @gradio/image@0.11.10
+- @gradio/imageeditor@0.7.10
+- @gradio/model3d@0.10.10
+- @gradio/multimodaltextbox@0.4.11
+- @gradio/simpleimage@0.5.10
+- @gradio/uploadbutton@0.6.11
+- @gradio/video@0.8.10
+- @gradio/downloadbutton@0.1.20
+
 ## 1.36.1
 
 ### Dependency updates
