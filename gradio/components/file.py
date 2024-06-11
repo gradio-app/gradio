@@ -69,11 +69,7 @@ class File(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
-        file_count_valid_types = [
-            "single",
-            "multiple",
-            "directory"
-        ]
+        file_count_valid_types = ["single", "multiple", "directory"]
         self.file_count = file_count
 
         if self.file_count not in file_count_valid_types:
