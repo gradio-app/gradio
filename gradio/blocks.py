@@ -988,6 +988,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.theme: Theme = theme
         self.theme_css = theme._get_theme_css()
         self.stylesheets = theme._stylesheets
+        theme_hasher = hashlib.sha256()
+        theme_hasher.update(self.theme_css.encode("utf-8"))
+        self.theme_hash = theme_hasher.hexdigest()
+
         self.encrypt = False
         self.share = False
         self.enable_queue = True
@@ -1348,13 +1352,14 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
 
             root_context.blocks.update(self.blocks)
-            dependency_offset = len(root_context.fns)
+            dependency_offset = max(root_context.fns.keys(), default=-1) + 1
             existing_api_names = [
                 dep.api_name
                 for dep in root_context.fns.values()
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns.values():
+                dependency._id += dependency_offset
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -1374,8 +1379,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         root_context.fns[i].get_config() for i in dependency.cancels
                     ]
                     dependency.cancels = get_cancelled_fn_indices(updated_cancels)
-                root_context.fns[root_context.fn_id] = dependency
-                root_context.fn_id += 1
+                root_context.fns[dependency._id] = dependency
+            root_context.fn_id = max(root_context.fns.keys(), default=-1) + 1
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
             Context.root_block.proxy_urls.update(self.proxy_urls)
 
@@ -2039,6 +2044,7 @@ Received outputs:
                 ),
             },
             "fill_height": self.fill_height,
+            "theme_hash": self.theme_hash,
         }
         config.update(self.default_config.get_config())
         config["connect_heartbeat"] = utils.connect_heartbeat(
