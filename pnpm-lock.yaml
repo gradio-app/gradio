@@ -1504,25 +1504,6 @@ importers:
         specifier: ^3.28.0
         version: 3.28.0
 
-  js/preview/test/mytextbox/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../../../../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-    devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../../..
-
   js/preview/test/test/frontend: {}
 
   js/radio:
