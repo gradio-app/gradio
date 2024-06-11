@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gradio_client.documentation import document
 
 
@@ -73,12 +75,21 @@ class Error(Exception):
     Demos: calculator, blocks_chained_events
     """
 
-    def __init__(self, message: str = "Error raised."):
+    def __init__(
+        self,
+        message: str = "Error raised.",
+        duration: float | None = 10,
+        visible: bool = True,
+    ):
         """
         Parameters:
             message: The error message to be displayed to the user.
+            duration: The duration in seconds to display the error message. If None or 0, the error message will be displayed until the user closes it.
+            visible: Whether the error message should be displayed in the UI.
         """
         self.message = message
+        self.duration = duration
+        self.visible = visible
         super().__init__(self.message)
 
     def __str__(self):
