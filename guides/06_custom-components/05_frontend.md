@@ -267,6 +267,7 @@ Vite options:
 Svelte options:
 - `preprocess`: A list of svelte preprocessors to use.
 - `extensions`: A list of file extensions to compile to `.svelte` files.
+- `build.target`: The target to build for, this may be necessary to support newer javascript features. See the [esbuild docs](https://esbuild.github.io/api/#target) for more information.
 
 The `gradio.config.js` file should be placed in the root of your component's `frontend` directory. A default config file is created for you when you create a new component. But you can also create your own config file, if one doesn't exist, and use it to customize your component's build process.
 

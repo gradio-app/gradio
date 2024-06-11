@@ -1167,12 +1167,15 @@ class App(FastAPI):
             else:
                 return "User-agent: *\nDisallow: "
 
-        @app.get("/monitoring")
+        @app.get("/monitoring", dependencies=[Depends(login_check)])
         async def analytics_login():
             from rich import print as rich_print
-
-            url = f"[b][u]{app.get_blocks().local_url}monitoring/{app.analytics_key}[/b][/u]"
-            rich_print(f"* Monitoring URL: {url} *")
+        
+            root_url = route_utils.get_root_url(
+                request=request, route_path="/monitoring", root_path=app.root_path
+            )
+            monitoring_url = f"[b][u]{root_url}/monitoring/{app.analytics_key}[/b][/u]"
+            rich_print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
         @app.get("/monitoring/{key}")
