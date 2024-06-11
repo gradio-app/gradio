@@ -1168,9 +1168,9 @@ class App(FastAPI):
                 return "User-agent: *\nDisallow: "
 
         @app.get("/monitoring", dependencies=[Depends(login_check)])
-        async def analytics_login():
+        async def analytics_login(request: fastapi.Request):
             from rich import print as rich_print
-        
+
             root_url = route_utils.get_root_url(
                 request=request, route_path="/monitoring", root_path=app.root_path
             )
