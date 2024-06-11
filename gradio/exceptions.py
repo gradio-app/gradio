@@ -78,7 +78,7 @@ class Error(Exception):
     def __init__(
         self,
         message: str = "Error raised.",
-        duration: int | None = 10,
+        duration: float | None = 10,
         visible: bool = True,
     ):
         """

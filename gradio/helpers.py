@@ -1229,7 +1229,7 @@ def make_waveform(
 def log_message(
     message: str,
     level: Literal["info", "warning"] = "info",
-    duration: int | None = 10,
+    duration: float | None = 10,
     visible: bool = True,
 ):
     from gradio.context import LocalContext
@@ -1251,7 +1251,7 @@ def log_message(
 
 @document(documentation_group="modals")
 def Warning(  # noqa: N802
-    message: str = "Warning issued.", duration: int | None = 10, visible: bool = True
+    message: str = "Warning issued.", duration: float | None = 10, visible: bool = True
 ):
     """
     This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
@@ -1276,7 +1276,7 @@ def Warning(  # noqa: N802
 @document(documentation_group="modals")
 def Info(  # noqa: N802
     message: str = "Info issued.",
-    duration: int | None = 10,
+    duration: float | None = 10,
     visible: bool = True,
 ):
     """

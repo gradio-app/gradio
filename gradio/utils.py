@@ -1422,8 +1422,8 @@ def deep_hash(obj):
 
 def error_payload(
     error: BaseException | None, show_error: bool
-) -> dict[str, bool | str | int | None]:
-    content: dict[str, bool | str | int | None] = {"error": None}
+) -> dict[str, bool | str | float | None]:
+    content: dict[str, bool | str | float | None] = {"error": None}
     show_error = show_error or isinstance(error, Error)
     if show_error:
         content["error"] = str(error)

@@ -31,7 +31,7 @@ class LogMessage(BaseMessage):
     msg: Literal[ServerMessage.log] = ServerMessage.log
     log: str
     level: Literal["info", "warning"]
-    duration: Optional[int] = 10
+    duration: Optional[float] = 10
     visible: bool = True
 
 

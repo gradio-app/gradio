@@ -381,7 +381,7 @@ class Queue:
         event_id: str,
         log: str,
         level: Literal["info", "warning"],
-        duration: int | None = 10,
+        duration: float | None = 10,
         visible: bool = True,
     ):
         events = [
