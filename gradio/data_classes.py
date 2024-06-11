@@ -110,7 +110,8 @@ class PredictBody(BaseModel):
         None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
     )
 
-    def __get_pydantic_json_schema__(self, source_type: Any, handler):
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
         return {
             "title": "PredictBody",
             "type": "object",
