@@ -634,6 +634,30 @@ class TestAuthenticatedRoutes:
         )
         assert response.status_code == 401
 
+    def test_monitoring_route(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
+
+        response = client.get(
+            "/monitoring",
+        )
+        assert response.status_code == 200
+
+        response = client.get("/logout")
+
+        response = client.get(
+            "/monitoring",
+        )
+        assert response.status_code == 401
+
 
 class TestQueueRoutes:
     @pytest.mark.asyncio
