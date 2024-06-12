@@ -489,7 +489,7 @@ class BlockFunction:
         api_name: str | Literal[False] = False,
         js: str | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
-        every: None = None,
+        every: float | None = None,
         cancels: list[int] | None = None,
         collects_event_data: bool = False,
         trigger_after: int | None = None,
@@ -673,7 +673,7 @@ class BlocksConfig:
         batch: bool = False,
         max_batch_size: int = 4,
         cancels: list[int] | None = None,
-        every: None = None,
+        every: float | None = None,
         collects_event_data: bool | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
@@ -2685,8 +2685,9 @@ Received outputs:
                     load_fn, every_interval, trigger, inputs = (
                         component.load_event_to_attach
                     )
-                    target = trigger is not None
-                    if not target:
+                    has_target = True
+                    if trigger is None:
+                        has_target = False
                         trigger = (self, "load")
                     # Use set_event_trigger to avoid ambiguity between load class/instance method
 
@@ -2695,7 +2696,7 @@ Received outputs:
                         load_fn,
                         inputs,
                         component,
-                        no_target=not target,
+                        no_target=not has_target,
                         # If every is None, for sure skip the queue
                         # else, let the enable_queue parameter take precedence
                         # this will raise a nice error message is every is used
