@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import httpx
 import numpy as np
@@ -17,6 +17,9 @@ from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.data_classes import FileData
 from gradio.events import Events
 from gradio.exceptions import Error
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -78,7 +81,7 @@ class Audio(
         sources: list[Literal["upload", "microphone"]] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
@@ -106,7 +109,7 @@ class Audio(
             sources: A list of sources permitted for audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input. The first element in the list will be used as the default source. If None, defaults to ["upload", "microphone"], or ["microphone"] if `streaming` is True.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: Deprecated, use gr.Timer() instead. If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function every time the provided Timer ticks. Has no effect otherwise.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.

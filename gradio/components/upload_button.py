@@ -5,7 +5,7 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import gradio_client.utils as client_utils
 from gradio_client import handle_file
@@ -16,6 +16,9 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.utils import NamedString
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -33,7 +36,7 @@ class UploadButton(Component):
         label: str = "Upload a File",
         value: str | list[str] | Callable | None = None,
         *,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
@@ -54,7 +57,7 @@ class UploadButton(Component):
         Parameters:
             label: Text to display on the button. Defaults to "Upload a File".
             value: File or list of files to upload by default.
-            every: Deprecated, use gr.Timer() instead. If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function every time the provided Timer ticks. Has no effect otherwise.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".

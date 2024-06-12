@@ -6,12 +6,15 @@ import fnmatch
 import os
 import warnings
 from pathlib import Path
-from typing import Any, Callable, List, Literal
+from typing import TYPE_CHECKING, Any, Callable, List, Literal
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, server
 from gradio.data_classes import GradioRootModel
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 class FileExplorerData(GradioRootModel):
@@ -39,7 +42,7 @@ class FileExplorer(Component):
         root_dir: str | Path = ".",
         ignore_glob: str | None = None,
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,

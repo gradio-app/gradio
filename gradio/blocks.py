@@ -489,7 +489,7 @@ class BlockFunction:
         api_name: str | Literal[False] = False,
         js: str | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
-        every: float | None = None,
+        every: None = None,
         cancels: list[int] | None = None,
         collects_event_data: bool = False,
         trigger_after: int | None = None,
@@ -673,7 +673,7 @@ class BlocksConfig:
         batch: bool = False,
         max_batch_size: int = 4,
         cancels: list[int] | None = None,
-        every: float | None = None,
+        every: None = None,
         collects_event_data: bool | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
@@ -702,7 +702,7 @@ class BlocksConfig:
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
+            every: Deprecated, use gr.Timer() instead. Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
             collects_event_data: whether to collect event data for this event
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
@@ -740,6 +740,10 @@ class BlocksConfig:
 
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
+        if every:
+            warnings.warn(
+                "The 'every' parameter is deprecated. Use gr.Timer() instead.",
+            )
         if every is not None and every <= 0:
             raise ValueError("Parameter every must be positive or None")
         if every and batch:
@@ -2678,7 +2682,9 @@ Received outputs:
                     isinstance(component, components.Component)
                     and component.load_event_to_attach
                 ):
-                    load_fn, every, trigger, inputs = component.load_event_to_attach
+                    load_fn, every_interval, trigger, inputs = (
+                        component.load_event_to_attach
+                    )
                     target = trigger is not None
                     if not target:
                         trigger = (self, "load")
@@ -2694,8 +2700,8 @@ Received outputs:
                         # else, let the enable_queue parameter take precedence
                         # this will raise a nice error message is every is used
                         # without queue
-                        queue=every is not None,
-                        every=every,
+                        queue=every_interval is not None,
+                        every=every_interval,
                     )[0]
                     component.load_event = dep.get_config()
 

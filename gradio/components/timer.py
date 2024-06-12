@@ -10,7 +10,7 @@ from gradio.components.base import Component
 from gradio.events import Events
 
 if TYPE_CHECKING:
-    from gradio.events import EventListenerCallable
+    pass
 
 
 @document()
@@ -37,7 +37,6 @@ class Timer(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
         self.active = active
-        self._previous_function_value_trigger: EventListenerCallable | None = None
         super().__init__(value=value, render=render)
 
     def preprocess(self, payload: float | None) -> float | None:
@@ -66,15 +65,3 @@ class Timer(Component):
 
     def example_value(self):
         return 1
-
-    def __enter__(self) -> Timer:
-        from gradio.context import Context
-
-        self._previous_function_value_trigger = Context.function_value_trigger
-        Context.function_value_trigger = (self, "tick")
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        from gradio.context import Context
-
-        Context.function_value_trigger = self._previous_function_value_trigger

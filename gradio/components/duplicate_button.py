@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
 
 from gradio.components import Button, Component
 from gradio.context import get_blocks_context
 from gradio.utils import get_space
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -23,7 +26,7 @@ class DuplicateButton(Button):
         self,
         value: str = "Duplicate Space",
         *,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = "sm",
@@ -42,7 +45,7 @@ class DuplicateButton(Button):
         """
         Parameters:
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            every: Deprecated, use gr.Timer() instead. If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function every time the provided Timer ticks. Has no effect otherwise.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             size: Size of the button. Can be "sm" or "lg".
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.

@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -26,7 +29,7 @@ class HTML(Component):
         value: str | Callable | None = None,
         *,
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         visible: bool = True,
@@ -39,7 +42,7 @@ class HTML(Component):
         Parameters:
             value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: Deprecated, use gr.Timer() instead. If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function every time the provided Timer ticks. Has no effect otherwise.
             show_label: This parameter has no effect.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.

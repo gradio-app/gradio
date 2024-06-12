@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -12,6 +12,9 @@ from gradio.components.base import (
     get_component_instance,
 )
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    pass
 
 
 @document()

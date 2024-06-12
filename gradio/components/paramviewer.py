@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import Literal, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 class Parameter(TypedDict):
@@ -33,7 +36,7 @@ class ParamViewer(Component):
         value: dict[str, Parameter] | None = None,
         language: Literal["python", "typescript"] = "python",
         linkify: list[str] | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         render: bool = True,
         key: int | str | None = None,

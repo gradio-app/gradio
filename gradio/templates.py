@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Iterable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
 
 import numpy as np
 import PIL.Image
@@ -9,6 +9,9 @@ import PIL.Image
 from gradio import components
 from gradio.components.audio import WaveformOptions
 from gradio.components.image_editor import Brush, Eraser
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 class TextArea(components.Textbox):
@@ -27,7 +30,7 @@ class TextArea(components.Textbox):
         placeholder: str | None = None,
         label: str | None = None,
         info: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -96,7 +99,7 @@ class Sketchpad(components.ImageEditor):
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -178,7 +181,7 @@ class Paint(components.ImageEditor):
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -262,7 +265,7 @@ class ImageMask(components.ImageEditor):
         ),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -343,7 +346,7 @@ class PlayableVideo(components.Video):
         height: int | str | None = None,
         width: int | str | None = None,
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -410,7 +413,7 @@ class Microphone(components.Audio):
         sources: list[Literal["upload", "microphone"]] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -480,7 +483,7 @@ class Files(components.File):
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -538,7 +541,7 @@ class Numpy(components.Dataframe):
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -602,7 +605,7 @@ class Matrix(components.Dataframe):
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -666,7 +669,7 @@ class List(components.Dataframe):
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]

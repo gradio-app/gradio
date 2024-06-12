@@ -5,7 +5,7 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import gradio_client.utils as client_utils
 from gradio_client import handle_file
@@ -16,6 +16,9 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.utils import NamedString
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -36,7 +39,7 @@ class File(Component):
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,

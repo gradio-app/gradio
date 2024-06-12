@@ -12,6 +12,8 @@ from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 if TYPE_CHECKING:
     import pandas as pd
 
+    from gradio.components import Timer
+
 
 @document()
 class BarPlot(Plot):
@@ -63,7 +65,7 @@ class BarPlot(Plot):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -97,7 +99,7 @@ class BarPlot(Plot):
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
             show_label: Whether the label should be displayed.
-            every: Deprecated, use gr.Timer() instead. If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function every time the provided Timer ticks. Has no effect otherwise.
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.

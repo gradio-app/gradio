@@ -19,7 +19,6 @@ import gradio_client.utils as client_utils
 from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.context import Context
 from gradio.data_classes import GradioDataModel, JsonData
 from gradio.events import EventListener
 from gradio.layouts import Form
@@ -31,6 +30,8 @@ if TYPE_CHECKING:
     class DataframeData(TypedDict):
         headers: list[str]
         data: list[list[str | int | bool]]
+
+    from gradio.components import Timer
 
 
 class _Keywords(Enum):
@@ -146,7 +147,7 @@ class Component(ComponentBase, Block):
         render: bool = True,
         key: int | str | None = None,
         load_fn: Callable | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
     ):
         self.server_fns = [
@@ -155,9 +156,9 @@ class Component(ComponentBase, Block):
             if callable(getattr(self, value))
             and getattr(getattr(self, value), "_is_server_fn", False)
         ]
-        if every is not None:
+        if isinstance(every, float):
             warnings.warn(
-                "The 'every' parameter will be deprecated. Please use gr.Timer() instead."
+                "The 'every' parameter as a float will be deprecated. Please use gr.Timer() instead."
             )
 
         # Svelte components expect elem_classes to be a list
@@ -252,16 +253,24 @@ class Component(ComponentBase, Block):
     def attach_load_event(
         self,
         callable: Callable,
-        every: float | None,
+        every: Timer | float | None,
         inputs: list[Component] | None = None,
     ):
-        """Add a load event that runs `callable`, optionally every `every` seconds."""
-        self.load_event_to_attach = (
-            callable,
-            every,
-            Context.function_value_trigger,
-            inputs,
-        )
+        """Add an event that runs `callable`, optionally at interval specified by `every`."""
+        if isinstance(every, float) or every is None:
+            self.load_event_to_attach = (
+                callable,
+                every,
+                None,
+                inputs,
+            )
+        else:
+            self.load_event_to_attach = (
+                callable,
+                None,
+                (every, "tick"),
+                inputs,
+            )
 
     def process_example(self, value):
         """

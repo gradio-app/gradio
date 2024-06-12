@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -27,7 +30,7 @@ class CheckboxGroup(FormComponent):
         type: Literal["value", "index"] = "value",
         label: str | None = None,
         info: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,

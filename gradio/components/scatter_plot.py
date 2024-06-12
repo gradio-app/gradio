@@ -12,6 +12,8 @@ from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 if TYPE_CHECKING:
     import pandas as pd
 
+    from gradio.components import Timer
+
 
 @document()
 class ScatterPlot(Plot):
@@ -85,7 +87,7 @@ class ScatterPlot(Plot):
         caption: str | None = None,
         interactive: bool | None = True,
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,

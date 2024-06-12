@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from gradio_client import handle_file
 from gradio_client.documentation import document
@@ -11,6 +11,9 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.data_classes import FileData
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -32,7 +35,7 @@ class SimpleImage(Component):
         value: str | None = None,
         *,
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         show_download_button: bool = True,

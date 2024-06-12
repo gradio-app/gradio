@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import warnings
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
 
 from gradio.components import Button, Component
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -25,7 +28,7 @@ class LogoutButton(Button):
         self,
         value: str = "Logout",
         *,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,

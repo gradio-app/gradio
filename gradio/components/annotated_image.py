@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, List
+from typing import TYPE_CHECKING, Any, List
 
 import gradio_client.utils as client_utils
 import numpy as np
@@ -14,6 +14,9 @@ from gradio import processing_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
@@ -57,7 +60,7 @@ class AnnotatedImage(Component):
         width: int | str | None = None,
         color_map: dict[str, str] | None = None,
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
@@ -78,7 +81,7 @@ class AnnotatedImage(Component):
             width: The width of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             color_map: A dictionary mapping labels to colors. The colors must be specified as hex codes.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: Deprecated, use gr.Timer() instead. If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function every time the provided Timer ticks. Has no effect otherwise.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
