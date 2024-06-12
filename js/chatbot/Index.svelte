@@ -15,7 +15,7 @@
 	import {
 		type messages,
 		type NormalisedMessage,
-		normalise_messages,
+		normalise_messages
 	} from "./shared/utils";
 
 	export let elem_id = "";

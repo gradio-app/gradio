@@ -66,7 +66,7 @@
 		autoscroll,
 		max_file_size,
 		formatter,
-		client,
+		client
 	);
 </script>
 
