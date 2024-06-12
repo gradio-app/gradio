@@ -107,7 +107,9 @@
 								<code class="block">
 									{param["name"]}
 								</code>
-								<p class="text-gray-500 italic">{param["annotation"]}</p>
+								<p class="text-gray-500 italic">
+									{param["annotation"].replace("Sequence[", "list[")}
+								</p>
 								{#if "default" in param}
 									<p class="text-gray-500 font-semibold">
 										default: {param["default"]}
