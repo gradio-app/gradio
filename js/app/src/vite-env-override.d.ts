@@ -10,7 +10,7 @@ declare module "virtual:component-loader" {
 	interface Args {
 		api_url: string;
 		name: string;
-		id: string;
+		id?: string;
 		variant: "component" | "example";
 	}
 	export function load_component(args: Args): {

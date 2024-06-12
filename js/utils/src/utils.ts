@@ -1,5 +1,7 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
+import { load_component } from "virtual:component-loader";
+
 export interface SelectData {
 	index: number | [number, number];
 	value: any;
@@ -173,7 +175,10 @@ export const format_time = (seconds: number): string => {
 };
 
 export type I18nFormatter = any;
-export class Gradio<T extends Record<string, any> = Record<string, any>> {
+export class Gradio<
+	T extends Record<string, any> = Record<string, any>,
+	U extends string = string
+> {
 	#id: number;
 	theme: string;
 	version: string;
@@ -213,5 +218,16 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 			detail: { data, id: this.#id, event: event_name }
 		});
 		this.#el.dispatchEvent(e);
+	}
+
+	load_component(
+		name: U,
+		variant: "component" | "example" = "component"
+	): ReturnType<typeof load_component> {
+		return load_component({
+			name,
+			api_url: this.client.config?.root!,
+			variant
+		});
 	}
 }
