@@ -260,7 +260,7 @@ class Component(ComponentBase, Block):
         self,
         callable: Callable,
         every: Timer | float | None,
-        inputs: list[Component] | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
     ):
         """Add an event that runs `callable`, optionally at interval specified by `every`."""
         if isinstance(every, float) or every is None:
