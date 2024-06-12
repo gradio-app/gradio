@@ -57,7 +57,7 @@
 		}
 	}
 
-	$: gradio_class = new Gradio<Record<string, any>, "textbox" | "number">(
+	$: gradio_class = new Gradio<Record<string, any>>(
 		node.id,
 		target,
 		theme_mode,

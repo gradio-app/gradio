@@ -171,6 +171,15 @@ importers:
         specifier: ^1.5.3
         version: 1.5.3(@types/node@20.12.8)(happy-dom@14.7.1)(jsdom@24.0.0(bufferutil@4.0.7))(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))
     devDependencies:
+      '@gradio/audio':
+        specifier: workspace:^
+        version: link:js/audio
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:js/image
+      '@gradio/video':
+        specifier: workspace:^
+        version: link:js/video
       '@storybook/addon-a11y':
         specifier: ^8.0.9
         version: 8.0.9
@@ -639,9 +648,6 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
-      '@gradio/audio':
-        specifier: workspace:^
-        version: link:../audio
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
@@ -651,9 +657,6 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
-      '@gradio/image':
-        specifier: workspace:^
-        version: link:../image
       '@gradio/markdown':
         specifier: workspace:^
         version: link:../markdown
@@ -672,9 +675,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/video':
-        specifier: workspace:^
-        version: link:../video
       '@types/dompurify':
         specifier: ^3.0.2
         version: 3.0.2
@@ -688,9 +688,18 @@ importers:
         specifier: ^2.0.2
         version: 2.0.2
     devDependencies:
+      '@gradio/audio':
+        specifier: workspace:^
+        version: link:../audio
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../image
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
+      '@gradio/video':
+        specifier: workspace:^
+        version: link:../video
 
   js/checkbox:
     dependencies:

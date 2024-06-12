@@ -11,8 +11,6 @@ export function load_component({ api_url, name, id, variant }) {
 		...(!comps ? {} : comps)
 	};
 
-	console.log(_component_map, variant, id, name);
-
 	let _id = id || name;
 
 	if (request_map[`${_id}-${variant}`]) {

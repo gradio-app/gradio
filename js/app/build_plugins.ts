@@ -258,8 +258,6 @@ function generate_component_imports(): string {
 			},\n`;
 	}, "");
 
-	console.log({ imports: JSON.stringify(imports, null, 2) });
-
 	return imports;
 }
 
@@ -277,7 +275,26 @@ function load_virtual_component_loader(mode: string): string {
 			"dataset": {
 				component: () => import("@gradio-test/test-two"),
 				example: () => import("@gradio-test/test-two/example")
-			}
+			},
+			"image": {
+				component: () => import("@gradio/image"),
+				example: () => import("@gradio/image/example"),
+				base: () => import("@gradio/image/base")
+			},
+			"audio": {
+				component: () => import("@gradio/audio"),
+				example: () => import("@gradio/audio/example"),
+				base: () => import("@gradio/audio/base")
+			},
+			"video": {
+				component: () => import("@gradio/video"),
+				example: () => import("@gradio/video/example"),
+				base: () => import("@gradio/video/base")
+			},
+			// "test-component-one": {
+			// 	component: () => import("@gradio-test/test-one"),
+			// 	example: () => import("@gradio-test/test-one/example")
+			// },
 		};
 		`;
 	} else {

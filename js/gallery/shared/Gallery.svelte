@@ -38,8 +38,6 @@
 		select: SelectData;
 	}>();
 
-	$: console.log({ gal_val: value });
-
 	// tracks whether the value of the gallery was reset
 	let was_reset = true;
 
