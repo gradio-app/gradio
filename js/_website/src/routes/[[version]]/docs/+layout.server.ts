@@ -6,7 +6,6 @@ export const prerender = true;
 
 const DOCS_BUCKET = "https://gradio-docs-json.s3.us-west-2.amazonaws.com";
 const VERSION = version.version;
-const WHEEL = wheel.wheel;
 
 async function load_release_docs(
 	version: string
@@ -34,7 +33,6 @@ export async function load({ params, url }) {
 	let js_pages = docs_json.js_pages || [];
 	let js_client = docs_json.js_client;
 	let on_main = params.version === "main";
-	let wheel: string = WHEEL;
 	let pages: any = docs_json.pages;
 
 	let url_version = params?.version || VERSION;

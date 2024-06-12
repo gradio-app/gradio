@@ -128,6 +128,6 @@ if __name__ == "__main__":
     if args.AUTH_TOKEN is not None:
         hello_world_version = str(huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"])
         for demo in demos:
-            # if hello_world_version != args.GRADIO_VERSION:
-            upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=args.AUTH_TOKEN, gradio_version=args.GRADIO_VERSION)
+            if hello_world_version != args.GRADIO_VERSION:
+                upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=args.AUTH_TOKEN, gradio_version=args.GRADIO_VERSION)
             upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo + "_main", hf_token=args.AUTH_TOKEN, gradio_version=args.GRADIO_VERSION, gradio_wheel_url=gradio_wheel_url, gradio_client_url=args.CLIENT_URL)

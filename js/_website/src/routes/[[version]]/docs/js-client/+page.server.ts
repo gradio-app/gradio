@@ -121,6 +121,7 @@ export async function load({ parent }) {
 		helpers,
 		modals,
 		routes,
-		py_client
+		py_client,
+		wheel
 	};
 }

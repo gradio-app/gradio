@@ -9,6 +9,7 @@ from src import changelog, demos, docs, guides
 
 WEBSITE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 GRADIO_DIR = os.path.abspath(os.path.join(WEBSITE_DIR, "..", "..", "gradio"))
+ROOT_DIR = os.path.abspath(os.path.join(WEBSITE_DIR, "..", ".."))
 
 def make_dir(root, path):
     return os.path.abspath(os.path.join(root, path))
@@ -26,6 +27,8 @@ def download_from_s3(bucket_name, s3_folder, local_dir):
 
    
 def get_latest_release():
+    with open(make_dir(ROOT_DIR, "client/js/package.json")) as f:
+        js_client_version = json.load(f)["version"]
     with open(make_dir(GRADIO_DIR, "package.json")) as f:
         version = json.load(f)["version"]
         with open(make_dir(WEBSITE_DIR, "src/lib/json/version.json"), "w+") as j:
@@ -35,7 +38,9 @@ def get_latest_release():
         with open(make_dir(WEBSITE_DIR, "src/lib/json/wheel.json"), "w+") as j:
             sha = run(["git", "log", "-1", "--format='%H'"], capture_output=True).stdout.decode("utf-8").strip("'\n")
             json.dump({
-                        "wheel": f"https://gradio-builds.s3.amazonaws.com/{sha}/gradio-{version}-py3-none-any.whl"
+                        "gradio_install": f"pip install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-{version}-py3-none-any.whl",
+                        "gradio_py_client_install": f"pip install 'gradio-client @ git+https://github.com/gradio-app/gradio@{sha}#subdirectory=client/python'",
+                        "gradio_js_client_install": f"npm install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-client-{js_client_version}.tgz",
                         }, j)
         if not os.path.exists(make_dir(WEBSITE_DIR, f"src/lib/templates_{version.replace('.', '-')}")):
             download_from_s3("gradio-docs-json", f"{version}/templates/", make_dir(WEBSITE_DIR, f"src/lib/templates_{version.replace('.', '-')}"))

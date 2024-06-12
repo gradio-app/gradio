@@ -3,9 +3,7 @@
 	import { clickOutside } from "./clickOutside.js";
 
 	export let library_pages: any;
-
 	export let current_nav_link = "";
-	let docs_type = "python";
 
 	let show_nav = false;
 	let searchTerm = "";
