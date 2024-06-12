@@ -227,12 +227,15 @@ function generate_component_imports(): string {
 					package_json
 				);
 
+				const base = get_export_path("./base", package_json_path, package_json);
+
 				if (!component && !example) return undefined;
 
 				return {
 					name: package_json.name,
 					component,
-					example
+					example,
+					base
 				};
 			}
 			return undefined;
@@ -245,11 +248,17 @@ function generate_component_imports(): string {
 		const example = _export.example
 			? `example: () => import("${_export.name}/example"),\n`
 			: "";
+		const base = _export.base
+			? `base: () => import("${_export.name}/base"),\n`
+			: "";
 		return `${acc}"${_export.name.replace("@gradio/", "")}": {
+			${base}
 			${example}
 			component: () => import("${_export.name}")
 			},\n`;
 	}, "");
+
+	console.log({ imports: JSON.stringify(imports, null, 2) });
 
 	return imports;
 }

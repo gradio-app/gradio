@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { format_chat_for_sharing, dynamicImportComponent } from "./utils";
+	import { format_chat_for_sharing, type NormalisedMessage } from "./utils";
 	import { Gradio, copy } from "@gradio/utils";
 
 	import { dequal } from "dequal/lite";
@@ -7,15 +7,12 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		SvelteComponent
+		type SvelteComponent,
+		type ComponentType,
 	} from "svelte";
 	import { ShareButton } from "@gradio/atoms";
-	import { BaseStaticAudio } from "@gradio/audio";
-	import { BaseGallery } from "@gradio/gallery";
 	import { Image } from "@gradio/image/shared";
-	import { BaseStaticImage } from "@gradio/image";
-	import { BaseStaticVideo } from "@gradio/video";
-	import { BasePlot } from "@gradio/plot";
+
 	import { Clear } from "@gradio/icons";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
@@ -24,44 +21,55 @@
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
+
 	export let _fetch: typeof fetch;
-	export let value:
-		| [
-				(
-					| string
-					| { file: FileData | FileData[]; alt_text: string | null }
-					| { component: string; value: any; constructor_args: any; props: any }
-					| null
-				),
-				(
-					| string
-					| { file: FileData | FileData[]; alt_text: string | null }
-					| { component: string; value: any; constructor_args: any; props: any }
-					| null
-				)
-		  ][]
-		| null;
-	let old_value:
-		| [
-				(
-					| string
-					| { file: FileData | FileData[]; alt_text: string | null }
-					| { component: string; value: any; constructor_args: any; props: any }
-					| null
-				),
-				(
-					| string
-					| { file: FileData | FileData[]; alt_text: string | null }
-					| {
-							component: string | SvelteComponent;
-							value: any;
-							constructor_args: any;
-							props: any;
-					  }
-					| null
-				)
-		  ][]
-		| null = null;
+	export let load_component: Gradio["load_component"];
+
+	let _components: Record<string, ComponentType<SvelteComponent>> = {};
+
+	async function load_components(component_names: string[]): Promise<void> {
+		let names: string[] = [];
+		let components: ReturnType<typeof load_component>["component"][] = [];
+		component_names.forEach((component_name) => {
+			if (_components[component_name] || component_name === "file") {
+				return;
+			}
+
+			const { name, component } = load_component(component_name, "base");
+			names.push(name);
+			components.push(component);
+			component_name;
+		});
+
+		const loaded_components = await Promise.all(components);
+		loaded_components.forEach((component, i) => {
+			_components[names[i]] = component.default;
+		});
+	}
+
+	$: load_components(get_components_from_messages(value));
+
+	function get_components_from_messages(messages: typeof value): string[] {
+		if (!messages) return [];
+		let components: Set<string> = new Set();
+		messages.forEach((message_pair) => {
+			message_pair.forEach((message) => {
+				if (
+					typeof message === "object" &&
+					message !== null &&
+					"component" in message
+				) {
+					components.add(message.component);
+				}
+			});
+		});
+
+		return Array.from(components);
+	}
+
+	export let value: [NormalisedMessage, NormalisedMessage][] | null = [];
+	let old_value: [NormalisedMessage, NormalisedMessage][] | null = null;
+
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -110,7 +118,7 @@
 
 		document.body.style.setProperty(
 			"--chatbot-body-text-size",
-			updated_text_size + "px"
+			updated_text_size + "px",
 		);
 	};
 
@@ -139,7 +147,7 @@
 	let image_preview_close_button: HTMLButtonElement;
 
 	afterUpdate(() => {
-		if (autoscroll) {
+		if (autoscroll || _components) {
 			scroll();
 			div.querySelectorAll("img").forEach((n) => {
 				n.addEventListener("load", () => {
@@ -169,32 +177,24 @@
 	function handle_select(
 		i: number,
 		j: number,
-		message:
-			| string
-			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any; constructor_args: any; props: any }
-			| null
+		message: NormalisedMessage,
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message
+			value: message,
 		});
 	}
 
 	function handle_like(
 		i: number,
 		j: number,
-		message:
-			| string
-			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any; constructor_args: any; props: any }
-			| null,
-		selected: string | null
+		message: NormalisedMessage,
+		selected: string | null,
 	): void {
 		dispatch("like", {
 			index: [i, j],
 			value: message,
-			liked: selected === "like"
+			liked: selected === "like",
 		});
 	}
 </script>
@@ -223,7 +223,7 @@
 		{#if value !== null && value.length > 0}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					{#if message !== null}
+					{#if message.type !== "empty"}
 						{#if is_image_preview_open}
 							<div class="image-preview">
 								<img
@@ -257,6 +257,9 @@
 								class:message-bubble-border={layout === "bubble"}
 								class:message-markdown-disabled={!render_markdown}
 								style:text-align={rtl && j == 0 ? "left" : "right"}
+								class:component={typeof message === "object" &&
+									message !== null &&
+									"component" in message}
 							>
 								<button
 									data-testid={j == 0 ? "user" : "bot"}
@@ -286,18 +289,19 @@
 													}`
 												: "")}
 								>
-									{#if typeof message === "string"}
+									{#if message.type === "text"}
 										<Markdown
-											{message}
+											message={message.value}
 											{latex_delimiters}
 											{sanitize_html}
 											{render_markdown}
 											{line_breaks}
 											on:load={scroll}
 										/>
-									{:else if message !== null && "component" in message}
-										{#if message.component == "gallery"}
-											<BaseGallery
+									{:else if message.type === "component" && message.component in _components}
+										{#if message.component === "gallery"}
+											<svelte:component
+												this={_components[message.component]}
 												value={message.value}
 												show_label={false}
 												{i18n}
@@ -306,8 +310,9 @@
 												preview={true}
 												interactive={true}
 											/>
-										{:else if message.component == "plot"}
-											<BasePlot
+										{:else if message.component === "plot"}
+											<svelte:component
+												this={_components[message.component]}
 												value={message.value}
 												{target}
 												{theme_mode}
@@ -315,8 +320,9 @@
 												caption=""
 												show_actions_button={true}
 											/>
-										{:else if message.component == "audio"}
-											<BaseStaticAudio
+										{:else if message.component === "audio"}
+											<svelte:component
+												this={_components[message.component]}
 												value={message.value}
 												show_label={false}
 												show_share_button={true}
@@ -325,66 +331,40 @@
 												waveform_settings={{}}
 												waveform_options={{}}
 											/>
-										{:else if message.component == "video"}
-											<BaseStaticVideo
+										{:else if message.component === "video"}
+											<svelte:component
+												this={_components[message.component]}
 												autoplay={true}
-												value={message.value.video}
+												value={message.value.video || message.value}
 												show_label={false}
 												show_share_button={true}
 												{i18n}
 												{upload}
 											>
 												<track kind="captions" />
-											</BaseStaticVideo>
-										{:else if message.component == "image"}
-											<BaseStaticImage
+											</svelte:component>
+										{:else if message.component === "image"}
+											<svelte:component
+												this={_components[message.component]}
 												value={message.value}
 												show_label={false}
+												label="chatbot-image"
 												show_share_button={true}
 												{i18n}
 											/>
 										{/if}
-									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && message.file.url !== undefined && message.file.url !== null}
-										{#if message.file?.mime_type?.includes("audio")}
-											<BaseStaticAudio
-												value={message.file}
-												show_label={false}
-												show_share_button={true}
-												{i18n}
-												label=""
-												waveform_settings={{}}
-												waveform_options={{}}
-											/>
-										{:else if message.file?.mime_type?.includes("video")}
-											<BaseStaticVideo
-												autoplay={true}
-												value={message.file}
-												show_label={false}
-												show_share_button={true}
-												{i18n}
-												{upload}
-											>
-												<track kind="captions" />
-											</BaseStaticVideo>
-										{:else if message.file?.mime_type?.includes("image")}
-											<BaseStaticImage
-												value={message.file}
-												show_label={false}
-												show_share_button={true}
-												{i18n}
-											/>
-										{:else}
-											<a
-												data-testid="chatbot-file"
-												href={message.file?.url}
-												target="_blank"
-												download={window.__is_colab__
-													? null
-													: message.file?.orig_name || message.file?.path}
-											>
-												{message.file?.orig_name || message.file?.path}
-											</a>
-										{/if}
+									{:else if message.type === "component" && message.component === "file"}
+										<a
+											data-testid="chatbot-file"
+											class="file-pil"
+											href={message.value.url}
+											target="_blank"
+											download={window.__is_colab__
+												? null
+												: message.value?.orig_name || message.value?.path}
+										>
+											{message.value?.orig_name || message.value?.path}
+										</a>
 									{/if}
 								</button>
 							</div>
@@ -742,5 +722,20 @@
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--button-secondary-border-color);
 		border-radius: var(--radius-lg);
+	}
+
+	.component {
+		padding: 0;
+		border-radius: var(--radius-md);
+	}
+
+	.file-pil {
+		display: inline-block;
+		padding: var(--spacing-sm) var(--spacing-md);
+		border-radius: var(--radius-md);
+		background: var(--background-fill-secondary);
+		color: var(--body-text-color);
+		text-decoration: none;
+		margin: var(--spacing-md);
 	}
 </style>

@@ -175,10 +175,7 @@ export const format_time = (seconds: number): string => {
 };
 
 export type I18nFormatter = any;
-export class Gradio<
-	T extends Record<string, any> = Record<string, any>,
-	U extends string = string
-> {
+export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;
 	theme: string;
 	version: string;
@@ -188,6 +185,7 @@ export class Gradio<
 	autoscroll: boolean;
 	max_file_size: number | null;
 	client: Client;
+	load_component = _load_component.bind(this);
 
 	constructor(
 		id: number,
@@ -219,15 +217,16 @@ export class Gradio<
 		});
 		this.#el.dispatchEvent(e);
 	}
+}
 
-	load_component(
-		name: U,
-		variant: "component" | "example" = "component"
-	): ReturnType<typeof load_component> {
-		return load_component({
-			name,
-			api_url: this.client.config?.root!,
-			variant
-		});
-	}
+function _load_component(
+	this: Gradio,
+	name: string,
+	variant: "component" | "example" | "base" = "component"
+): ReturnType<typeof load_component> {
+	return load_component({
+		name,
+		api_url: this.client.config?.root!,
+		variant
+	});
 }

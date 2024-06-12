@@ -26,6 +26,7 @@
 		".": "./index.ts",
 		"./example": "./Example.svelte",
 		"./shared": "./shared/index.ts",
+		"./base": "./shared/VideoPreview.svelte",
 		"./package.json": "./package.json"
 	},
 	"main": "index.ts",

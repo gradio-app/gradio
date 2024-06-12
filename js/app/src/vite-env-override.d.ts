@@ -11,7 +11,7 @@ declare module "virtual:component-loader" {
 		api_url: string;
 		name: string;
 		id?: string;
-		variant: "component" | "example";
+		variant: "component" | "example" | "base";
 	}
 	export function load_component(args: Args): {
 		name: ComponentMeta["type"];
