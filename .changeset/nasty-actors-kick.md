@@ -1,6 +1,6 @@
 ---
-"@gradio/statustracker": minor
-"gradio": minor
+"@gradio/statustracker": patch
+"gradio": patch
 ---
 
-feat:Ability to disable orange progress animation for generators
+fix:Ability to disable orange progress animation for generators
