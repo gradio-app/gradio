@@ -1,38 +1,5 @@
 import type { FileData } from "@gradio/client";
 import { uploadToHuggingFace } from "@gradio/utils";
-import exp from "constants";
-import type { SvelteComponent } from "svelte";
-
-export async function dynamicImportComponent(
-	componentName: string
-): Promise<typeof SvelteComponent> {
-	const basePath = "@gradio/";
-	const baseComponentName =
-		componentName.charAt(0).toUpperCase() + componentName.slice(1);
-
-	const importPaths = [
-		`${basePath}${componentName.toLowerCase()}`,
-		`${basePath}${componentName.toLowerCase()}`
-	];
-
-	const componentNames = [
-		`BaseStatic${baseComponentName}`,
-		`Base${baseComponentName}`
-	];
-
-	for (let i = 0; i < importPaths.length; i++) {
-		const path = importPaths[i];
-		const componentName = componentNames[i];
-		try {
-			const module = await import(path);
-			return module[componentName];
-		} catch (error) {}
-	}
-
-	throw new Error(
-		`Component ${componentName} not found as BaseStatic${baseComponentName} or Base${baseComponentName}`
-	);
-}
 
 export const format_chat_for_sharing = async (
 	chat: [string | FileData | null, string | FileData | null][]
