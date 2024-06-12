@@ -740,9 +740,9 @@ class BlocksConfig:
 
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
-        if every:
+        if isinstance(every, float):
             warnings.warn(
-                "The 'every' parameter is deprecated. Use gr.Timer() instead.",
+                "The 'every' parameter as a float is deprecated. Use gr.Timer() instead.",
             )
         if every is not None and every <= 0:
             raise ValueError("Parameter every must be positive or None")

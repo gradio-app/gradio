@@ -30,7 +30,6 @@ INTERFACE_TEMPLATE = '''
         postprocess: bool = True,
         cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
         every: float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
         trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
         js: str | None = None,
         concurrency_limit: int | None | Literal["default"] = "default",
