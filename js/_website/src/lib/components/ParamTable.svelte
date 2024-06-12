@@ -22,7 +22,7 @@
 								{param["name"]}
 							</code>
 							<p class="text-gray-500 italic">
-								{param["annotation"]}
+								{param["annotation"].replace("Sequence[", "list[")}
 							</p>
 							{#if "default" in param}
 								<p class="text-gray-500 font-semibold">
