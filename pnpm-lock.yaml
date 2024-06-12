@@ -876,8 +876,8 @@ importers:
         specifier: ^0.16.7
         version: 0.16.10
       marked:
-        specifier: ^12.0.0
-        version: 12.0.0
+        specifier: ^13.0.0
+        version: 13.0.0
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1272,14 +1272,14 @@ importers:
         specifier: ^0.16.7
         version: 0.16.10
       marked:
-        specifier: ^12.0.0
-        version: 12.0.0
+        specifier: ^13.0.0
+        version: 13.0.0
       marked-gfm-heading-id:
         specifier: ^3.1.2
-        version: 3.1.2(marked@12.0.0)
+        version: 3.1.2(marked@13.0.0)
       marked-highlight:
         specifier: ^2.0.1
-        version: 2.0.1(marked@12.0.0)
+        version: 2.0.1(marked@13.0.0)
       prismjs:
         specifier: 1.29.0
         version: 1.29.0
@@ -3112,10 +3112,12 @@ packages:
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/config-array@0.9.5':
     resolution: {integrity: sha512-ObyMyWxZiCu/yTisA7uzx81s40xR2fD5Cg/2Kq7G02ajkNubJf6BopgDTmDyc3U7sXpNKM8cYOw7s7Tyr+DnCw==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -3123,9 +3125,11 @@ packages:
 
   '@humanwhocodes/object-schema@1.2.1':
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
+    deprecated: Use @eslint/object-schema instead
 
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
+    deprecated: Use @eslint/object-schema instead
 
   '@humanwhocodes/retry@0.2.3':
     resolution: {integrity: sha512-X38nUbachlb01YMlvPFojKoiXq+LzZvuSce70KPMPdeM1Rj03k4dR7lDslhbqXn3Ang4EU3+EAmwEAsbrjHW3g==}
@@ -6941,8 +6945,8 @@ packages:
     peerDependencies:
       marked: ^4 || ^5
 
-  marked@12.0.0:
-    resolution: {integrity: sha512-Vkwtq9rLqXryZnWaQc86+FHLC6tr/fycMfYAhiOIXkrNmeGAyhSxjqu0Rs1i0bBqw5u0S7+lV9fdH2ZSVaoa0w==}
+  marked@13.0.0:
+    resolution: {integrity: sha512-VTeDCd9txf4KLLljUZ0nljE/Incb9SrWuueE44QVuU0pkOdh4sfCeW1Z6lPcxyDRSVY6rm8db/0OPaN75RNUmw==}
     engines: {node: '>= 18'}
     hasBin: true
 
@@ -15242,16 +15246,16 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  marked-gfm-heading-id@3.1.2(marked@12.0.0):
+  marked-gfm-heading-id@3.1.2(marked@13.0.0):
     dependencies:
       github-slugger: 2.0.0
-      marked: 12.0.0
+      marked: 13.0.0
 
-  marked-highlight@2.0.1(marked@12.0.0):
+  marked-highlight@2.0.1(marked@13.0.0):
     dependencies:
-      marked: 12.0.0
+      marked: 13.0.0
 
-  marked@12.0.0: {}
+  marked@13.0.0: {}
 
   mdn-data@2.0.30: {}
 
