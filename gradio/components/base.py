@@ -204,7 +204,13 @@ class Component(ComponentBase, Block):
         # load_event is set in the Blocks.attach_load_events method
         self.load_event: None | dict[str, Any] = None
         self.load_event_to_attach: (
-            None | tuple[Callable, float | None, tuple[Block, str] | None]
+            None
+            | tuple[
+                Callable,
+                float | None,
+                tuple[Block, str] | None,
+                Component | list[Component] | set[Component] | None,
+            ]
         ) = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value, inputs)
         initial_value = self.postprocess(initial_value)
