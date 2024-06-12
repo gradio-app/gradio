@@ -56,18 +56,18 @@
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
 			</div>
-				<div
-					class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10"
-				>
-					<p class="my-2">
-						To install the Gradio JS Client from main, run the following command:
-					</p>
-					<div class="codeblock mb-2">
-						<pre class="language-bash" style="padding-right: 50px;"><code
-								class="language-bash">{install_command}</code
-							></pre>
-					</div>
+			<div
+				class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10"
+			>
+				<p class="my-2">
+					To install the Gradio JS Client from main, run the following command:
+				</p>
+				<div class="codeblock mb-2">
+					<pre class="language-bash" style="padding-right: 50px;"><code
+							class="language-bash">{install_command}</code
+						></pre>
 				</div>
+			</div>
 
 			<div class="lg:ml-10 flex justify-between mt-4"></div>
 			<div class="flex flex-row">
