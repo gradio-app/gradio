@@ -329,6 +329,8 @@ export interface Status {
 	code?: string;
 	success?: boolean;
 	stage: "pending" | "error" | "complete" | "generating";
+	duration?: number;
+	visible?: boolean;
 	broken?: boolean;
 	size?: number;
 	position?: number;
@@ -361,6 +363,8 @@ export interface LogMessage extends Log {
 	type: "log";
 	endpoint: string;
 	fn_index: number;
+	duration: number | null;
+	visible: boolean;
 }
 
 export interface RenderMessage extends Render {

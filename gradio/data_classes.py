@@ -110,6 +110,25 @@ class PredictBody(BaseModel):
         None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
     )
 
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
+        return {
+            "title": "PredictBody",
+            "type": "object",
+            "properties": {
+                "session_hash": {"type": "string"},
+                "event_id": {"type": "string"},
+                "data": {"type": "array", "items": {"type": "object"}},
+                "event_data": {"type": "object"},
+                "fn_index": {"type": "integer"},
+                "trigger_id": {"type": "integer"},
+                "simple_format": {"type": "boolean"},
+                "batched": {"type": "boolean"},
+                "request": {"type": "object"},
+            },
+            "required": ["data"],
+        }
+
 
 class ResetBody(BaseModel):
     event_id: str

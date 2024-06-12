@@ -198,7 +198,7 @@
 		(status === "pending" || status === "error")) ||
 		translucent ||
 		show_progress === "minimal"}
-	class:generating={status === "generating"}
+	class:generating={status === "generating" && show_progress === "full"}
 	class:border
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
