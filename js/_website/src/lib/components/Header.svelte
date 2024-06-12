@@ -12,26 +12,22 @@
 <!-- 4.0 Launch BANNER  -->
 <div class="main-header flex-row">
 	<div
-		class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gradient-to-r from-white via-yellow-200 to-white px-6 py-2 sm:px-3.5 sm:before:flex-1"
+		class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gradient-to-r from-white via-yellow-200 to-white px-6 py-2 sm:px-3.5 sm:before:flex-1 mx-auto"
 	>
-		<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 flex-grow">
 			<div class="flex flex-wrap items-center gap-x-4 gap-y-2 mx-auto">
-				<p class="text-md leading-6 text-gray-700 text-center">
-					<strong class="font-semibold">Introducing Gradio Clients</strong><svg
-						viewBox="0 0 2 2"
-						class="mx-2 inline h-0.5 w-0.5 fill-current"
-						aria-hidden="true"><circle cx="1" cy="1" r="1" /></svg
-					>Join us on Thursday, 9am PST
+				<p class="text-md leading-6 text-gray-700 text-center mx-auto">
+					<strong class="font-semibold">Introducing Gradio Clients</strong>
 				</p>
 				<a
 					href="https://www.youtube.com/watch?v=44vi31hehw4"
 					target="_blank"
 					class="mx-auto flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md"
-					>Livestream <span aria-hidden="true">&rarr;</span></a
+					>Watch <span aria-hidden="true">&rarr;</span></a
 				>
 			</div>
 		</div>
-		<div class="flex flex-1 justify-end"></div>
+		<div class="hidden justify-end flex-grow sm:flex"></div>
 	</div>
 	<div
 		class="container mx-auto flex flex-wrap justify-between flex-row relative items-center px-4 py-5 gap-6 text-lg z-50"
