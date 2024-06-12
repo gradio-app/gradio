@@ -147,8 +147,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(svelte@4.2.15)
       svelte-preprocess:
-        specifier: ^5.1.4
-        version: 5.1.4(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.4.5)
+        specifier: ^6.0.0
+        version: 6.0.0(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.4.5)
       tailwindcss:
         specifier: ^3.4.3
         version: 3.4.3
@@ -1473,8 +1473,8 @@ importers:
         specifier: ^0.16.0
         version: 0.16.0(svelte@4.2.15)
       svelte-preprocess:
-        specifier: ^5.0.4
-        version: 5.1.3(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.4.3)
+        specifier: ^6.0.0
+        version: 6.0.0(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.4.3)
       typescript:
         specifier: ^5.0.0
         version: 5.4.3
@@ -3112,10 +3112,12 @@ packages:
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/config-array@0.9.5':
     resolution: {integrity: sha512-ObyMyWxZiCu/yTisA7uzx81s40xR2fD5Cg/2Kq7G02ajkNubJf6BopgDTmDyc3U7sXpNKM8cYOw7s7Tyr+DnCw==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -3123,9 +3125,11 @@ packages:
 
   '@humanwhocodes/object-schema@1.2.1':
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
+    deprecated: Use @eslint/object-schema instead
 
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
+    deprecated: Use @eslint/object-schema instead
 
   '@humanwhocodes/retry@0.2.3':
     resolution: {integrity: sha512-X38nUbachlb01YMlvPFojKoiXq+LzZvuSce70KPMPdeM1Rj03k4dR7lDslhbqXn3Ang4EU3+EAmwEAsbrjHW3g==}
@@ -4214,9 +4218,6 @@ packages:
 
   '@types/pug@2.0.10':
     resolution: {integrity: sha512-Sk/uYFOBAB7mb74XcpizmH0KOR2Pv3D2Hmrh1Dmy5BmK3MpdSa5kqZcg6EKBdklU0bFXX9gCfzvpnyUehrPIuA==}
-
-  '@types/pug@2.0.9':
-    resolution: {integrity: sha512-Yg4LkgFYvn1faISbDNWmcAC1XoDT8IoMUFspp5mnagKk+UvD2N0IWt5A7GRdMubsNWqgCLmrkf8rXkzNqb4szA==}
 
   '@types/qs@6.9.15':
     resolution: {integrity: sha512-uXHQKES6DQKKCLh441Xv/dwxOq1TVS3JPUMlEqoEglvlhR6Mxnlew/Xq/LRVHpLyk7iK3zODe1qYHIMltO7XGg==}
@@ -8316,9 +8317,9 @@ packages:
     peerDependencies:
       svelte: ^3 || ^4
 
-  svelte-preprocess@5.1.3:
-    resolution: {integrity: sha512-xxAkmxGHT+J/GourS5mVJeOXZzne1FR5ljeOUAMXUkfEhkLEllRreXpbl3dIYJlcJRfL1LO1uIAPpBpBfiqGPw==}
-    engines: {node: '>= 16.0.0', pnpm: ^8.0.0}
+  svelte-preprocess@5.1.4:
+    resolution: {integrity: sha512-IvnbQ6D6Ao3Gg6ftiM5tdbR6aAETwjhHV+UKGf5bHGYR69RQvF1ho0JKPcbUON4vy4R7zom13jPjgdOWCQ5hDA==}
+    engines: {node: '>= 16.0.0'}
     peerDependencies:
       '@babel/core': ^7.10.2
       coffeescript: ^2.5.1
@@ -8353,21 +8354,21 @@ packages:
       typescript:
         optional: true
 
-  svelte-preprocess@5.1.4:
-    resolution: {integrity: sha512-IvnbQ6D6Ao3Gg6ftiM5tdbR6aAETwjhHV+UKGf5bHGYR69RQvF1ho0JKPcbUON4vy4R7zom13jPjgdOWCQ5hDA==}
-    engines: {node: '>= 16.0.0'}
+  svelte-preprocess@6.0.0:
+    resolution: {integrity: sha512-sbyHnWBwIphuaJWC7hnJd6ZoW/VN0va3jVb/8dDfeT2+0hVmo1DCx+zBK0/JfUKQmzg/FOEtcsGKRnbt8pRRkw==}
+    engines: {node: '>= 18.0.0'}
     peerDependencies:
       '@babel/core': ^7.10.2
       coffeescript: ^2.5.1
       less: ^3.11.3 || ^4.0.0
       postcss: ^7 || ^8
-      postcss-load-config: ^2.1.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
+      postcss-load-config: '>=3'
       pug: ^3.0.0
       sass: ^1.26.8
-      stylus: ^0.55.0
+      stylus: '>=0.55'
       sugarss: ^2.0.0 || ^3.0.0 || ^4.0.0
-      svelte: ^3.23.0 || ^4.0.0-next.0 || ^4.0.0 || ^5.0.0-next.0
-      typescript: '>=3.9.5 || ^4.0.0 || ^5.0.0'
+      svelte: ^4.0.0 || ^5.0.0-next.100 || ^5.0.0
+      typescript: ^5.0.0
     peerDependenciesMeta:
       '@babel/core':
         optional: true
@@ -12239,8 +12240,6 @@ snapshots:
   '@types/prop-types@15.7.12': {}
 
   '@types/pug@2.0.10': {}
-
-  '@types/pug@2.0.9': {}
 
   '@types/qs@6.9.15': {}
 
@@ -16819,12 +16818,27 @@ snapshots:
       svelte: 4.2.15
       tiny-glob: 0.2.9
 
-  svelte-preprocess@5.1.3(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.4.3):
+  svelte-preprocess@5.1.4(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.4.5):
     dependencies:
-      '@types/pug': 2.0.9
+      '@types/pug': 2.0.10
       detect-indent: 6.1.0
       magic-string: 0.30.10
       sorcery: 0.11.0
+      strip-indent: 3.0.0
+      svelte: 4.2.15
+    optionalDependencies:
+      '@babel/core': 7.24.5
+      coffeescript: 2.7.0
+      postcss: 8.4.38
+      postcss-load-config: 4.0.2(postcss@8.4.38)
+      pug: 3.0.2
+      sass: 1.66.1
+      sugarss: 4.0.1(postcss@8.4.38)
+      typescript: 5.4.5
+
+  svelte-preprocess@6.0.0(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.4.3):
+    dependencies:
+      detect-indent: 6.1.0
       strip-indent: 3.0.0
       svelte: 4.2.15
     optionalDependencies:
@@ -16838,12 +16852,9 @@ snapshots:
       sugarss: 4.0.1(postcss@8.4.38)
       typescript: 5.4.3
 
-  svelte-preprocess@5.1.4(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.4.5):
+  svelte-preprocess@6.0.0(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.4.5):
     dependencies:
-      '@types/pug': 2.0.10
       detect-indent: 6.1.0
-      magic-string: 0.30.10
-      sorcery: 0.11.0
       strip-indent: 3.0.0
       svelte: 4.2.15
     optionalDependencies:
