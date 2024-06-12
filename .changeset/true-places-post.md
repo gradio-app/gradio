@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"website": minor
+"gradio": patch
+"website": patch
 ---
 
-feat:Many small fixes to website and docs
+fix:Many small fixes to website and docs
