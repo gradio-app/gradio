@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:Fix reload mode by implementing `close` on the client
+fix:Fix reload mode by implementing `close` on the client
