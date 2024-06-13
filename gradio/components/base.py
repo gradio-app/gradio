@@ -265,7 +265,7 @@ class Component(ComponentBase, Block):
         """Add an event that runs `callable`, optionally at interval specified by `every`."""
         if isinstance(inputs, Component):
             inputs = [inputs]
-        changeable_events = (
+        changeable_events: list[tuple[Block, str]] = (
             [(i, "change") for i in inputs if hasattr(i, "change")] if inputs else []
         )
         if isinstance(every, (int, float)):
@@ -277,7 +277,7 @@ class Component(ComponentBase, Block):
             )
         else:
             if every is not None:
-                changeable_events += [(every, "tick")]
+                changeable_events.append((every, "tick"))
             self.load_event_to_attach = (
                 callable,
                 None,
