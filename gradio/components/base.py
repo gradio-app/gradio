@@ -156,7 +156,7 @@ class Component(ComponentBase, Block):
             if callable(getattr(self, value))
             and getattr(getattr(self, value), "_is_server_fn", False)
         ]
-        if isinstance(every, float):
+        if isinstance(every, (float, int)):
             warnings.warn(
                 "The 'every' parameter as a float will be deprecated. Please use gr.Timer() instead."
             )
@@ -208,7 +208,7 @@ class Component(ComponentBase, Block):
             | tuple[
                 Callable,
                 float | None,
-                tuple[Block, str] | None,
+                list[tuple[Block, str]],
                 Component | list[Component] | set[Component] | None,
             ]
         ) = None
@@ -263,18 +263,25 @@ class Component(ComponentBase, Block):
         inputs: Component | list[Component] | set[Component] | None = None,
     ):
         """Add an event that runs `callable`, optionally at interval specified by `every`."""
-        if isinstance(every, (int, float)) or every is None:
+        if isinstance(inputs, Component):
+            inputs = [inputs]
+        changeable_events = (
+            [(i, "change") for i in inputs if hasattr(i, "change")] if inputs else []
+        )
+        if isinstance(every, (int, float)):
             self.load_event_to_attach = (
                 callable,
                 every,
-                None,
+                [],
                 inputs,
             )
         else:
+            if every is not None:
+                changeable_events += [(every, "tick")]
             self.load_event_to_attach = (
                 callable,
                 None,
-                (every, "tick"),
+                changeable_events,
                 inputs,
             )
 

@@ -2682,17 +2682,15 @@ Received outputs:
                     isinstance(component, components.Component)
                     and component.load_event_to_attach
                 ):
-                    load_fn, every_interval, trigger, inputs = (
+                    load_fn, every_interval, triggers, inputs = (
                         component.load_event_to_attach
                     )
-                    has_target = True
-                    if trigger is None:
-                        has_target = False
-                        trigger = (self, "load")
+                    has_target = len(triggers) > 0
+                    triggers += [(self, "load")]
                     # Use set_event_trigger to avoid ambiguity between load class/instance method
 
                     dep = self.default_config.set_event_trigger(
-                        [EventListenerMethod(*trigger)],
+                        [EventListenerMethod(*trigger) for trigger in triggers],
                         load_fn,
                         inputs,
                         component,
