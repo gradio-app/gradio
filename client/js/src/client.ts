@@ -31,7 +31,7 @@ import {
 	parse_and_set_cookies
 } from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
-import { open_stream, readable_stream } from "./utils/stream";
+import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
 
 export class Client {
@@ -209,7 +209,7 @@ export class Client {
 	}
 
 	close(): void {
-		this.heartbeat_event?.close();
+		close_stream(this.stream_status, this.abort_controller);
 	}
 
 	static async duplicate(
