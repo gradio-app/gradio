@@ -64,7 +64,7 @@ def _build(
         package_name = get_deep(pyproject_toml, ["project", "name"])
 
         python_path = _get_executable_path(
-            "python", None, "--python-path", check_3=True
+            "python", python_path, "--python-path", check_3=True
         )
 
         if not isinstance(package_name, str):
