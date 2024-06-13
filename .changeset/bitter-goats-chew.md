@@ -7,6 +7,7 @@
 "@gradio/multimodaltextbox": minor
 "@gradio/plot": minor
 "@gradio/simpleimage": minor
+"@gradio/storybook": minor
 "@gradio/utils": minor
 "@gradio/video": minor
 "gradio": minor
