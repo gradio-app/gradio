@@ -34,7 +34,7 @@ class TextArea(components.Textbox):
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
-        | None,
+        | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -103,7 +103,7 @@ class Sketchpad(components.ImageEditor):
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
-        | None,
+        | None = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -185,7 +185,7 @@ class Paint(components.ImageEditor):
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
-        | None,
+        | None = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -269,7 +269,7 @@ class ImageMask(components.ImageEditor):
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
-        | None,
+        | None = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -350,7 +350,7 @@ class PlayableVideo(components.Video):
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
-        | None,
+        | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -417,7 +417,7 @@ class Microphone(components.Audio):
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
-        | None,
+        | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -487,7 +487,7 @@ class Files(components.File):
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
-        | None,
+        | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -545,7 +545,7 @@ class Numpy(components.Dataframe):
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
-        | None,
+        | None = None,
         height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
@@ -609,7 +609,7 @@ class Matrix(components.Dataframe):
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
-        | None,
+        | None = None,
         height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
@@ -673,7 +673,7 @@ class List(components.Dataframe):
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
-        | None,
+        | None = None,
         height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
