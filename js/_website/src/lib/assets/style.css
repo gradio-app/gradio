@@ -278,6 +278,12 @@ strong {
 	font-weight: 600;
 }
 
+.obj a {
+	color: var(--tw-prose-links);
+	text-decoration: underline;
+	font-weight: 500;
+}
+
 .codeblock > pre {
 	font-size: 1em;
 }

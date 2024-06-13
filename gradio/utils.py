@@ -53,6 +53,7 @@ from typing_extensions import ParamSpec
 import gradio
 from gradio.context import get_blocks_context
 from gradio.data_classes import FileData
+from gradio.exceptions import Error
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -1417,3 +1418,16 @@ def deep_hash(obj):
         items = str(id(obj)).encode("utf-8")
     hasher.update(repr(items).encode("utf-8"))
     return hasher.hexdigest()
+
+
+def error_payload(
+    error: BaseException | None, show_error: bool
+) -> dict[str, bool | str | float | None]:
+    content: dict[str, bool | str | float | None] = {"error": None}
+    show_error = show_error or isinstance(error, Error)
+    if show_error:
+        content["error"] = str(error)
+    if isinstance(error, Error):
+        content["duration"] = error.duration
+        content["visible"] = error.visible
+    return content

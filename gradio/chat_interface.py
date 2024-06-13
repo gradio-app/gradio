@@ -80,6 +80,7 @@ class ChatInterface(Blocks):
         concurrency_limit: int | None | Literal["default"] = "default",
         fill_height: bool = True,
         delete_cache: tuple[int, int] | None = None,
+        show_progress: Literal["full", "minimal", "hidden"] = "minimal",
     ):
         """
         Parameters:
@@ -109,6 +110,7 @@ class ChatInterface(Blocks):
             concurrency_limit: If set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: If True, the chat interface will expand to the height of window.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            show_progress: whether to show progress animation while running.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -308,7 +310,7 @@ class ChatInterface(Blocks):
             self.chatbot_state = (
                 State(self.chatbot.value) if self.chatbot.value else State([])
             )
-
+            self.show_progress = show_progress
             self._setup_events()
             self._setup_api()
 
@@ -343,6 +345,9 @@ class ChatInterface(Blocks):
                 concurrency_limit=cast(
                     Union[int, Literal["default"], None], self.concurrency_limit
                 ),
+                show_progress=cast(
+                    Literal["full", "minimal", "hidden"], self.show_progress
+                ),
             )
         )
         self._setup_stop_events(submit_triggers, submit_event)
@@ -370,6 +375,9 @@ class ChatInterface(Blocks):
                     show_api=False,
                     concurrency_limit=cast(
                         Union[int, Literal["default"], None], self.concurrency_limit
+                    ),
+                    show_progress=cast(
+                        Literal["full", "minimal", "hidden"], self.show_progress
                     ),
                 )
             )
