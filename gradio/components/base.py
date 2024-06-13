@@ -263,7 +263,7 @@ class Component(ComponentBase, Block):
         inputs: Component | list[Component] | set[Component] | None = None,
     ):
         """Add an event that runs `callable`, optionally at interval specified by `every`."""
-        if isinstance(every, float) or every is None:
+        if isinstance(every, (int, float)) or every is None:
             self.load_event_to_attach = (
                 callable,
                 every,
