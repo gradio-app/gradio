@@ -17,6 +17,7 @@
 	},
 	"exports": {
 		".": "./Index.svelte",
+		"./base": "./Index.svelte",
 		"./example": "./Example.svelte",
 		"./package.json": "./package.json"
 	}
