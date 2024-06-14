@@ -124,6 +124,8 @@ class Plot(Component):
 
         if value is None:
             return None
+        if isinstance(value, PlotData):
+            return value
         if isinstance(value, (ModuleType, matplotlib.figure.Figure)):  # type: ignore
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(value, self.format)
