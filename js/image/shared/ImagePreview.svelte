@@ -36,7 +36,7 @@
 <BlockLabel
 	{show_label}
 	Icon={ImageIcon}
-	label={label || i18n("image.image")}
+	label={!show_label ? "" : label || i18n("image.image")}
 />
 {#if value === null || !value.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
