@@ -218,7 +218,7 @@ export function create_components(): {
 		const instance = instance_map[node.id];
 
 		instance.component = (await constructor_map.get(
-			instance.component_class_id
+			instance.component_class_id || instance.type
 		))!?.default;
 		instance.parent = parent;
 
@@ -576,7 +576,7 @@ export function preload_all_components(
 			components
 		);
 
-		constructor_map.set(c.component_class_id, component);
+		constructor_map.set(c.component_class_id || c.type, component);
 
 		if (example_components) {
 			for (const [name, example_component] of example_components) {
