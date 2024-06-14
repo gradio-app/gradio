@@ -31,7 +31,7 @@
 	data-testid="markdown"
 	dir={rtl ? "rtl" : "ltr"}
 	use:copy
-	style="max-height: {height}; overflow-y: auto;"
+	style={height ? `max-height: ${height}; overflow-y: auto;` : ''}
 >
 	<MarkdownCode
 		message={value}
