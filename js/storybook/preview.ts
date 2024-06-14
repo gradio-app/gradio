@@ -26,6 +26,7 @@ const preview: Preview = {
 			{ client: { fetch() {}, upload() {} } }
 		)
 	},
+
 	argTypes: {
 		gradio: {
 			table: {
@@ -33,6 +34,7 @@ const preview: Preview = {
 			}
 		}
 	},
+
 	parameters: {
 		controls: {
 			matchers: {
@@ -55,7 +57,9 @@ const preview: Preview = {
 				}
 			}
 		}
-	}
+	},
+
+	tags: ["autodocs"]
 };
 
 export default preview;

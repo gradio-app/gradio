@@ -27,6 +27,7 @@
 		".": "./Index.svelte",
 		"./shared": "./shared/index.ts",
 		"./example": "./Example.svelte",
+		"./base": "./shared/ImagePreview.svelte",
 		"./package.json": "./package.json"
 	}
 }

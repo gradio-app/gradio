@@ -8,23 +8,25 @@
 	"private": false,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
-		"@gradio/audio": "workspace:^",
 		"@gradio/client": "workspace:^",
+		"@gradio/gallery": "workspace:^",
 		"@gradio/icons": "workspace:^",
-		"@gradio/image": "workspace:^",
 		"@gradio/markdown": "workspace:^",
+		"@gradio/plot": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/theme": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/video": "workspace:^",
 		"@types/dompurify": "^3.0.2",
 		"@types/katex": "^0.16.0",
 		"@types/prismjs": "1.26.4",
 		"dequal": "^2.0.2"
 	},
 	"devDependencies": {
-		"@gradio/preview": "workspace:^"
+		"@gradio/audio": "workspace:^",
+		"@gradio/image": "workspace:^",
+		"@gradio/preview": "workspace:^",
+		"@gradio/video": "workspace:^"
 	},
 	"main_changeset": true,
 	"main": "./Index.svelte",

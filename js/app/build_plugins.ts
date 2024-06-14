@@ -227,12 +227,15 @@ function generate_component_imports(): string {
 					package_json
 				);
 
+				const base = get_export_path("./base", package_json_path, package_json);
+
 				if (!component && !example) return undefined;
 
 				return {
 					name: package_json.name,
 					component,
-					example
+					example,
+					base
 				};
 			}
 			return undefined;
@@ -245,7 +248,11 @@ function generate_component_imports(): string {
 		const example = _export.example
 			? `example: () => import("${_export.name}/example"),\n`
 			: "";
+		const base = _export.base
+			? `base: () => import("${_export.name}/base"),\n`
+			: "";
 		return `${acc}"${_export.name.replace("@gradio/", "")}": {
+			${base}
 			${example}
 			component: () => import("${_export.name}")
 			},\n`;
@@ -268,7 +275,26 @@ function load_virtual_component_loader(mode: string): string {
 			"dataset": {
 				component: () => import("@gradio-test/test-two"),
 				example: () => import("@gradio-test/test-two/example")
-			}
+			},
+			"image": {
+				component: () => import("@gradio/image"),
+				example: () => import("@gradio/image/example"),
+				base: () => import("@gradio/image/base")
+			},
+			"audio": {
+				component: () => import("@gradio/audio"),
+				example: () => import("@gradio/audio/example"),
+				base: () => import("@gradio/audio/base")
+			},
+			"video": {
+				component: () => import("@gradio/video"),
+				example: () => import("@gradio/video/example"),
+				base: () => import("@gradio/video/base")
+			},
+			// "test-component-one": {
+			// 	component: () => import("@gradio-test/test-one"),
+			// 	example: () => import("@gradio-test/test-one/example")
+			// },
 		};
 		`;
 	} else {

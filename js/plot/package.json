@@ -21,9 +21,11 @@
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
 	},
+	"main": "./Index.svelte",
 	"main_changeset": true,
 	"exports": {
 		".": "./Index.svelte",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./base": "./shared/Plot.svelte"
 	}
 }

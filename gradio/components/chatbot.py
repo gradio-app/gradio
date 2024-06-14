@@ -4,15 +4,34 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import utils
+from gradio.component_meta import ComponentMeta
+from gradio.components import (
+    Component as GradioComponent,
+)
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
+
+
+def import_component_and_data(
+    component_name: str,
+) -> GradioComponent | ComponentMeta | Any | None:
+    try:
+        for component in utils.get_all_components():
+            if component_name == component.__name__ and isinstance(
+                component, ComponentMeta
+            ):
+                return component
+    except ModuleNotFoundError as e:
+        raise ValueError(f"Error importing {component_name}: {e}") from e
+    except AttributeError:
+        pass
 
 
 class FileMessage(GradioModel):
@@ -20,8 +39,20 @@ class FileMessage(GradioModel):
     alt_text: Optional[str] = None
 
 
+class ComponentMessage(GradioModel):
+    component: str
+    value: Any
+    constructor_args: Dict[str, Any]
+    props: Dict[str, Any]
+
+
 class ChatbotData(GradioRootModel):
-    root: List[Tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]]
+    root: List[
+        Tuple[
+            Union[str, FileMessage, ComponentMessage, None],
+            Union[str, FileMessage, ComponentMessage, None],
+        ]
+    ]
 
 
 @document()
@@ -40,7 +71,9 @@ class Chatbot(Component):
 
     def __init__(
         self,
-        value: list[list[str | tuple[str] | tuple[str | Path, str] | None]]
+        value: list[
+            list[str | GradioComponent | tuple[str] | tuple[str | Path, str] | None]
+        ]
         | Callable
         | None = None,
         *,
@@ -139,8 +172,9 @@ class Chatbot(Component):
         self.placeholder = placeholder
 
     def _preprocess_chat_messages(
-        self, chat_message: str | FileMessage | None
-    ) -> str | tuple[str | None] | tuple[str | None, str] | None:
+        self,
+        chat_message: str | FileMessage | ComponentMessage | None,
+    ) -> str | GradioComponent | tuple[str | None] | tuple[str | None, str] | None:
         if chat_message is None:
             return None
         elif isinstance(chat_message, FileMessage):
@@ -150,13 +184,29 @@ class Chatbot(Component):
                 return (chat_message.file.path,)
         elif isinstance(chat_message, str):
             return chat_message
+        elif isinstance(chat_message, ComponentMessage):
+            component = import_component_and_data(chat_message.component.capitalize())
+            if component is not None:
+                instance = component()  # type: ignore
+                if issubclass(instance.data_model, GradioModel):
+                    payload = instance.data_model(**chat_message.value)
+                elif issubclass(instance.data_model, GradioRootModel):
+                    payload = instance.data_model(root=chat_message.value)
+                else:
+                    payload = chat_message.value
+                value = instance.preprocess(payload)
+                return component(value=value, **chat_message.constructor_args)  # type: ignore
+            else:
+                raise ValueError(
+                    f"Invalid component for Chatbot component: {chat_message.component}"
+                )
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
     def preprocess(
         self,
         payload: ChatbotData | None,
-    ) -> list[list[str | tuple[str] | tuple[str, str] | None]] | None:
+    ) -> list[list[str | GradioComponent | tuple[str] | tuple[str, str] | None]] | None:
         """
         Parameters:
             payload: data as a ChatbotData object
@@ -184,18 +234,35 @@ class Chatbot(Component):
         return processed_messages
 
     def _postprocess_chat_messages(
-        self, chat_message: str | tuple | list | None
-    ) -> str | FileMessage | None:
-        if chat_message is None:
-            return None
-        elif isinstance(chat_message, (tuple, list)):
-            filepath = str(chat_message[0])
-
+        self, chat_message: str | tuple | list | GradioComponent | None
+    ) -> str | FileMessage | ComponentMessage | None:
+        def create_file_message(chat_message, filepath):
             mime_type = client_utils.get_mimetype(filepath)
             return FileMessage(
                 file=FileData(path=filepath, mime_type=mime_type),
-                alt_text=chat_message[1] if len(chat_message) > 1 else None,
+                alt_text=chat_message[1]
+                if not isinstance(chat_message, GradioComponent)
+                and len(chat_message) > 1
+                else None,
             )
+
+        if chat_message is None:
+            return None
+        elif isinstance(chat_message, GradioComponent):
+            component = import_component_and_data(type(chat_message).__name__)
+            if component:
+                component = chat_message.__class__(**chat_message.constructor_args)
+                chat_message.constructor_args.pop("value", None)
+                config = component.get_config()
+                return ComponentMessage(
+                    component=type(chat_message).__name__.lower(),
+                    value=config.get("value", None),
+                    constructor_args=chat_message.constructor_args,
+                    props=config,
+                )
+        elif isinstance(chat_message, (tuple, list)):
+            filepath = str(chat_message[0])
+            return create_file_message(chat_message, filepath)
         elif isinstance(chat_message, str):
             chat_message = inspect.cleandoc(chat_message)
             return chat_message
@@ -204,7 +271,10 @@ class Chatbot(Component):
 
     def postprocess(
         self,
-        value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple] | None,
+        value: list[
+            list[str | GradioComponent | tuple[str] | tuple[str, str] | None] | tuple
+        ]
+        | None,
     ) -> ChatbotData:
         """
         Parameters:
@@ -214,6 +284,7 @@ class Chatbot(Component):
         """
         if value is None:
             return ChatbotData(root=[])
+
         processed_messages = []
         for message_pair in value:
             if not isinstance(message_pair, (tuple, list)):

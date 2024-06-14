@@ -11,41 +11,44 @@ export function load_component({ api_url, name, id, variant }) {
 		...(!comps ? {} : comps)
 	};
 
-	if (request_map[`${id}-${variant}`]) {
-		return { component: request_map[`${id}-${variant}`], name };
+	let _id = id || name;
+
+	if (request_map[`${_id}-${variant}`]) {
+		return { component: request_map[`${_id}-${variant}`], name };
 	}
 	try {
-		if (!_component_map?.[id]?.[variant] && !_component_map?.[name]?.[variant])
+		if (!_component_map?.[_id]?.[variant] && !_component_map?.[name]?.[variant])
 			throw new Error();
 
-		request_map[`${id}-${variant}`] = (
-			_component_map?.[id]?.[variant] || // for dev mode custom components
+		request_map[`${_id}-${variant}`] = (
+			_component_map?.[_id]?.[variant] || // for dev mode custom components
 			_component_map?.[name]?.[variant]
 		)();
 
 		return {
 			name,
-			component: request_map[`${id}-${variant}`]
+			component: request_map[`${_id}-${variant}`]
 		};
 	} catch (e) {
+		if (!_id) throw new Error(`Component not found: ${name}`);
 		try {
-			request_map[`${id}-${variant}`] = get_component_with_css(
+			request_map[`${_id}-${variant}`] = get_component_with_css(
 				api_url,
-				id,
+				_id,
 				variant
 			);
 
 			return {
 				name,
-				component: request_map[`${id}-${variant}`]
+				component: request_map[`${_id}-${variant}`]
 			};
 		} catch (e) {
 			if (variant === "example") {
-				request_map[`${id}-${variant}`] = import("@gradio/fallback/example");
+				request_map[`${_id}-${variant}`] = import("@gradio/fallback/example");
 
 				return {
 					name,
-					component: request_map[`${id}-${variant}`]
+					component: request_map[`${_id}-${variant}`]
 				};
 			}
 			console.error(`failed to load: ${name}`);

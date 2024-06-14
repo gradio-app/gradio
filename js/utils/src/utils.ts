@@ -1,5 +1,6 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
+
 export interface SelectData {
 	index: number | [number, number];
 	value: any;
@@ -172,6 +173,10 @@ export const format_time = (seconds: number): string => {
 	return `${minutes}:${padded_seconds}`;
 };
 
+type component_loader =
+	typeof import("virtual:component-loader").load_component;
+
+let virtual_component_loader: component_loader | null = null;
 export type I18nFormatter = any;
 export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;
@@ -183,6 +188,8 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	autoscroll: boolean;
 	max_file_size: number | null;
 	client: Client;
+	_load_component: component_loader | null = null;
+	load_component = _load_component.bind(this);
 
 	constructor(
 		id: number,
@@ -205,6 +212,15 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		this.root = root;
 		this.autoscroll = autoscroll;
 		this.client = client;
+
+		if (!virtual_component_loader) {
+			import("virtual:component-loader").then((module) => {
+				this._load_component = module.load_component;
+				virtual_component_loader = module.load_component;
+			});
+		} else {
+			this._load_component = virtual_component_loader;
+		}
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
@@ -214,4 +230,16 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		});
 		this.#el.dispatchEvent(e);
 	}
+}
+
+function _load_component(
+	this: Gradio,
+	name: string,
+	variant: "component" | "example" | "base" = "component"
+): ReturnType<component_loader> {
+	return this._load_component!({
+		name,
+		api_url: this.client.config?.root!,
+		variant
+	});
 }
