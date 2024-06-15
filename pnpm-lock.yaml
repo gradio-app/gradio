@@ -20,6 +20,9 @@ importers:
       '@csstools/postcss-global-data':
         specifier: ^2.1.1
         version: 2.1.1(postcss@8.4.38)
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:client/js
       '@gradio/tootils':
         specifier: workspace:^
         version: link:js/tootils
