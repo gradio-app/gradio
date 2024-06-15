@@ -20,6 +20,21 @@
 gradio.Dataframe(···)
 ```
 
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+with gr.Blocks() as demo:
+    gr.Dataframe(value=
+    [
+        [0, 1, True],
+        [1, 0, False]
+    ]
+    , interactive=True)
+demo.launch()
+</gradio-lite>
+</div>
+
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}
