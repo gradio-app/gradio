@@ -64,6 +64,8 @@ jobs:
         with:
           always_install_pnpm: true
           skip_build: true
+      - name: build client
+        run: pnpm --filter @gradio/client build
       - name: deploy json to aws
         if: needs.changes.outputs.source_branch == 'changeset-release/main' && needs.changes.outputs.source_repo == 'gradio-app/gradio'
         run: |

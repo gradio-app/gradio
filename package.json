@@ -38,6 +38,7 @@
 		"@changesets/cli": "^2.27.1",
 		"@changesets/get-github-info": "^0.6.0",
 		"@csstools/postcss-global-data": "^2.1.1",
+		"@gradio/client": "workspace:^",
 		"@gradio/tootils": "workspace:^",
 		"@manypkg/get-packages": "^2.2.1",
 		"@playwright/experimental-ct-svelte": "^1.44.1",
