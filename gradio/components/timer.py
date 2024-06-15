@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 class Timer(Component):
     """
     Create a timer that ticks at regular intervals when active.
-    Demos: timer
     """
 
     EVENTS = [
@@ -52,9 +51,9 @@ class Timer(Component):
     def postprocess(self, payload: float | None) -> float | None:
         """
         Parameters:
-            payload: The interval of the timer as a float or None..
+            payload: The interval of the timer as a float or None.
         Returns:
-            The interval of the timer as a float .
+            The interval of the timer as a float.
         """
         return payload
 
