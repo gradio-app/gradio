@@ -1,34 +1,75 @@
 <script lang="ts">
-	import { format_chat_for_sharing } from "./utils";
-	import { copy } from "@gradio/utils";
+	import { format_chat_for_sharing, type NormalisedMessage } from "./utils";
+	import { Gradio, copy } from "@gradio/utils";
 
 	import { dequal } from "dequal/lite";
-	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
+	import {
+		beforeUpdate,
+		afterUpdate,
+		createEventDispatcher,
+		type SvelteComponent,
+		type ComponentType
+	} from "svelte";
 	import { ShareButton } from "@gradio/atoms";
-	import { Audio } from "@gradio/audio/shared";
 	import { Image } from "@gradio/image/shared";
-	import { Video } from "@gradio/video/shared";
+
 	import { Clear } from "@gradio/icons";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
-	import { type FileData } from "@gradio/client";
+	import { type FileData, type Client } from "@gradio/client";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
 
-	export let value:
-		| [
-				string | { file: FileData; alt_text: string | null } | null,
-				string | { file: FileData; alt_text: string | null } | null
-		  ][]
-		| null;
-	let old_value:
-		| [
-				string | { file: FileData; alt_text: string | null } | null,
-				string | { file: FileData; alt_text: string | null } | null
-		  ][]
-		| null = null;
+	export let _fetch: typeof fetch;
+	export let load_component: Gradio["load_component"];
+
+	let _components: Record<string, ComponentType<SvelteComponent>> = {};
+
+	async function load_components(component_names: string[]): Promise<void> {
+		let names: string[] = [];
+		let components: ReturnType<typeof load_component>["component"][] = [];
+		component_names.forEach((component_name) => {
+			if (_components[component_name] || component_name === "file") {
+				return;
+			}
+
+			const { name, component } = load_component(component_name, "base");
+			names.push(name);
+			components.push(component);
+			component_name;
+		});
+
+		const loaded_components = await Promise.all(components);
+		loaded_components.forEach((component, i) => {
+			_components[names[i]] = component.default;
+		});
+	}
+
+	$: load_components(get_components_from_messages(value));
+
+	function get_components_from_messages(messages: typeof value): string[] {
+		if (!messages) return [];
+		let components: Set<string> = new Set();
+		messages.forEach((message_pair) => {
+			message_pair.forEach((message) => {
+				if (
+					typeof message === "object" &&
+					message !== null &&
+					"component" in message
+				) {
+					components.add(message.component);
+				}
+			});
+		});
+
+		return Array.from(components);
+	}
+
+	export let value: [NormalisedMessage, NormalisedMessage][] | null = [];
+	let old_value: [NormalisedMessage, NormalisedMessage][] | null = null;
+
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -45,9 +86,12 @@
 	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let theme_mode: "system" | "light" | "dark";
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let placeholder: string | null = null;
+	export let upload: Client["upload"];
+	let target = document.querySelector("div.gradio-container");
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -103,7 +147,7 @@
 	let image_preview_close_button: HTMLButtonElement;
 
 	afterUpdate(() => {
-		if (autoscroll) {
+		if (autoscroll || _components) {
 			scroll();
 			div.querySelectorAll("img").forEach((n) => {
 				n.addEventListener("load", () => {
@@ -133,7 +177,7 @@
 	function handle_select(
 		i: number,
 		j: number,
-		message: string | { file: FileData; alt_text: string | null } | null
+		message: NormalisedMessage
 	): void {
 		dispatch("select", {
 			index: [i, j],
@@ -144,7 +188,7 @@
 	function handle_like(
 		i: number,
 		j: number,
-		message: string | { file: FileData; alt_text: string | null } | null,
+		message: NormalisedMessage,
 		selected: string | null
 	): void {
 		dispatch("like", {
@@ -179,7 +223,7 @@
 		{#if value !== null && value.length > 0}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					{#if message !== null}
+					{#if message.type !== "empty"}
 						{#if is_image_preview_open}
 							<div class="image-preview">
 								<img
@@ -213,6 +257,9 @@
 								class:message-bubble-border={layout === "bubble"}
 								class:message-markdown-disabled={!render_markdown}
 								style:text-align={rtl && j == 0 ? "left" : "right"}
+								class:component={typeof message === "object" &&
+									message !== null &&
+									"component" in message}
 							>
 								<button
 									data-testid={j == 0 ? "user" : "bot"}
@@ -232,61 +279,91 @@
 										"'s message: " +
 										(typeof message === "string"
 											? message
-											: `a file of type ${message.file?.mime_type}, ${
-													message.file?.alt_text ??
-													message.file?.orig_name ??
-													""
-												}`)}
+											: "file" in message &&
+												  message.file !== undefined &&
+												  !Array.isArray(message.file)
+												? `a file of type ${message.file?.mime_type}, ${
+														message.file?.alt_text ??
+														message.file?.orig_name ??
+														""
+													}`
+												: "")}
 								>
-									{#if typeof message === "string"}
+									{#if message.type === "text"}
 										<Markdown
-											{message}
+											message={message.value}
 											{latex_delimiters}
 											{sanitize_html}
 											{render_markdown}
 											{line_breaks}
 											on:load={scroll}
 										/>
-									{:else if message !== null && message.file?.mime_type?.includes("audio")}
-										<Audio
-											data-testid="chatbot-audio"
-											controls
-											preload="metadata"
-											src={message.file?.url}
-											title={message.alt_text}
-											on:play
-											on:pause
-											on:ended
-										/>
-									{:else if message !== null && message.file?.mime_type?.includes("video")}
-										<Video
-											data-testid="chatbot-video"
-											controls
-											src={message.file?.url}
-											title={message.alt_text}
-											preload="auto"
-											on:play
-											on:pause
-											on:ended
-										>
-											<track kind="captions" />
-										</Video>
-									{:else if message !== null && message.file?.mime_type?.includes("image")}
-										<Image
-											data-testid="chatbot-image"
-											src={message.file?.url}
-											alt={message.alt_text}
-										/>
-									{:else if message !== null && message.file?.url !== null}
+									{:else if message.type === "component" && message.component in _components}
+										{#if message.component === "gallery"}
+											<svelte:component
+												this={_components[message.component]}
+												value={message.value}
+												show_label={false}
+												{i18n}
+												label=""
+												{_fetch}
+												preview={true}
+												interactive={true}
+											/>
+										{:else if message.component === "plot"}
+											<svelte:component
+												this={_components[message.component]}
+												value={message.value}
+												{target}
+												{theme_mode}
+												bokeh_version={message.props.bokeh_version}
+												caption=""
+												show_actions_button={true}
+											/>
+										{:else if message.component === "audio"}
+											<svelte:component
+												this={_components[message.component]}
+												value={message.value}
+												show_label={false}
+												show_share_button={true}
+												{i18n}
+												label=""
+												waveform_settings={{}}
+												waveform_options={{}}
+											/>
+										{:else if message.component === "video"}
+											<svelte:component
+												this={_components[message.component]}
+												autoplay={true}
+												value={message.value.video || message.value}
+												show_label={false}
+												show_share_button={true}
+												{i18n}
+												{upload}
+											>
+												<track kind="captions" />
+											</svelte:component>
+										{:else if message.component === "image"}
+											<svelte:component
+												this={_components[message.component]}
+												value={message.value}
+												show_label={false}
+												label="chatbot-image"
+												show_share_button={true}
+												{i18n}
+											/>
+										{/if}
+									{:else if message.type === "component" && message.component === "file"}
 										<a
 											data-testid="chatbot-file"
-											href={message.file?.url}
+											class="file-pil"
+											href={message.value.url}
 											target="_blank"
 											download={window.__is_colab__
 												? null
-												: message.file?.orig_name || message.file?.path}
+												: message.value?.orig_name || message.value?.path}
 										>
-											{message.file?.orig_name || message.file?.path}
+											{message.value?.orig_name || message.value?.path}
 										</a>
 									{/if}
 								</button>
@@ -355,7 +432,12 @@
 		gap: calc(var(--spacing-xxl) + var(--spacing-lg));
 	}
 
-	.message-wrap > div :not(.avatar-container) :global(img) {
+	.message-wrap
+		> div
+		:not(.avatar-container)
+		div
+		:not(.image-button)
+		:global(img) {
 		border-radius: 13px;
 		margin: var(--size-2);
 		width: 400px;
@@ -484,7 +566,7 @@
 		align-self: center;
 	}
 
-	.avatar-container :global(img) {
+	.avatar-container :not(.thumbnail-item) :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
@@ -551,6 +633,10 @@
 			opacity: 0.8;
 		}
 	}
+	.message-wrap > .message :not(.image-button) :global(img) {
+		margin: var(--size-2);
+		max-height: 200px;
+	}
 
 	/* Copy button */
 	.message-wrap :global(div[class*="code_wrap"] > button) {
@@ -585,6 +671,16 @@
 		width: 100%;
 		height: 100%;
 		color: var(--body-text-color);
+	}
+
+	.message-wrap :global(pre) {
+		position: relative;
+	}
+
+	.message-wrap :global(.grid-wrap) {
+		max-height: 80% !important;
+		max-width: 600px;
+		object-fit: contain;
 	}
 
 	/* Image preview */
@@ -626,5 +722,20 @@
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--button-secondary-border-color);
 		border-radius: var(--radius-lg);
+	}
+
+	.component {
+		padding: 0;
+		border-radius: var(--radius-md);
+	}
+
+	.file-pil {
+		display: inline-block;
+		padding: var(--spacing-sm) var(--spacing-md);
+		border-radius: var(--radius-md);
+		background: var(--background-fill-secondary);
+		color: var(--body-text-color);
+		text-decoration: none;
+		margin: var(--spacing-md);
 	}
 </style>

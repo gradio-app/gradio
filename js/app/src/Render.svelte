@@ -56,6 +56,18 @@
 			}
 		}
 	}
+
+	$: gradio_class = new Gradio<Record<string, any>>(
+		node.id,
+		target,
+		theme_mode,
+		version,
+		root,
+		autoscroll,
+		max_file_size,
+		formatter,
+		client
+	);
 </script>
 
 <RenderComponent
@@ -70,17 +82,7 @@
 	{...node.props}
 	{theme_mode}
 	{root}
-	gradio={new Gradio(
-		node.id,
-		target,
-		theme_mode,
-		version,
-		root,
-		autoscroll,
-		max_file_size,
-		formatter,
-		client
-	)}
+	gradio={gradio_class}
 >
 	{#if node.children && node.children.length}
 		{#each node.children as _node (_node.id)}
