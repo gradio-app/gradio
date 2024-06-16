@@ -381,7 +381,7 @@ class App(FastAPI):
                 request=request, route_path="/", root_path=app.root_path
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
-                config = app.get_blocks().config
+                config = blocks.config
                 config = route_utils.update_root_in_config(config, root)
             elif app.auth_dependency:
                 raise HTTPException(
@@ -391,7 +391,7 @@ class App(FastAPI):
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
-                    "space_id": app.get_blocks().space_id,
+                    "space_id": blocks.space_id,
                     "root": root,
                 }
 
