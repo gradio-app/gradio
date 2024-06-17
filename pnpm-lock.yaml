@@ -1943,8 +1943,8 @@ importers:
         version: 1.0.1
     devDependencies:
       pyodide:
-        specifier: 0.26.0
-        version: 0.26.0(bufferutil@4.0.7)
+        specifier: 0.26.1
+        version: 0.26.1(bufferutil@4.0.7)
 
 packages:
 
@@ -8049,8 +8049,8 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  pyodide@0.26.0:
-    resolution: {integrity: sha512-6thkjsvbvebqNlb2mtkVF5ODcWUYT0lVuOgww4cfEJFVM0J3MtTNPznVahVDzKOdCwSWvCfAqeEqP0wR6jj5uQ==}
+  pyodide@0.26.1:
+    resolution: {integrity: sha512-P+Gm88nwZqY7uBgjbQH8CqqU6Ei/rDn7pS1t02sNZsbyLJMyE2OVXjgNuqVT3KqYWnyGREUN0DbBUCJqk8R0ew==}
     engines: {node: '>=18.0.0'}
 
   qs@6.11.0:
@@ -16638,7 +16638,7 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  pyodide@0.26.0(bufferutil@4.0.7):
+  pyodide@0.26.1(bufferutil@4.0.7):
     dependencies:
       ws: 8.17.0(bufferutil@4.0.7)
     transitivePeerDependencies:
