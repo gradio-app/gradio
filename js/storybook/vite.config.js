@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
 import autoprefixer from "autoprefixer";
-
+import { inject_component_loader } from "../app/build_plugins";
 export default defineConfig({
 	base: "",
 	server: {
@@ -23,6 +23,7 @@ export default defineConfig({
 					plugins: [autoprefixer()]
 				}
 			})
-		})
+		}),
+		inject_component_loader({ mode: "storybook" })
 	]
 });
