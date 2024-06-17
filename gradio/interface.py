@@ -9,7 +9,7 @@ import json
 import os
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, cast
 
 from gradio_client.documentation import document
 
@@ -131,6 +131,7 @@ class Interface(Blocks):
         stop_btn: str | Button = "Stop",
         clear_btn: str | Button | None = "Clear",
         delete_cache: tuple[int, int] | None = None,
+        show_progress: Literal["full", "minimal", "hidden"] = "full",
         **kwargs,
     ):
         """
@@ -166,6 +167,7 @@ class Interface(Blocks):
             stop_btn: The button to use for stopping the interface. Defaults to a `gr.Button("Stop", variant="stop", visible=False)`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
             clear_btn: The button to use for clearing the inputs. Defaults to a `gr.Button("Clear", variant="secondary")`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization). Can be set to None, which hides the button.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            show_progress: whether to show progress animation while running. Has no effect if the interface is `live`.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -415,6 +417,7 @@ class Interface(Blocks):
 
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
+        self.show_progress = show_progress
 
         self.batch = batch
         self.max_batch_size = max_batch_size
@@ -732,6 +735,9 @@ class Interface(Blocks):
                     batch=self.batch,
                     max_batch_size=self.max_batch_size,
                     concurrency_limit=self.concurrency_limit,
+                    show_progress=cast(
+                        Literal["full", "minimal", "hidden"], self.show_progress
+                    ),
                 )
 
                 final_event = predict_event.then(

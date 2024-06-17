@@ -24,6 +24,7 @@
 	"main_changeset": true,
 	"exports": {
 		".": "./Index.svelte",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./base": "./shared/Gallery.svelte"
 	}
 }

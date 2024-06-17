@@ -35,7 +35,7 @@ Consider an example demo with three input components (`gr.Textbox`, `gr.Number`,
 In this image, the following preprocessing steps happen to send the data from the browser to your function:
 
 * The text in the textbox is converted to a Python `str` (essentially no preprocessing)
-* The number in the number input in converted to a Python `float` (essentially no preprocessing)
+* The number in the number input is converted to a Python `int` (essentially no preprocessing)
 * Most importantly, ihe image supplied by the user is converted to a `numpy.array` representation of the RGB values in the image
 
 Images are converted to NumPy arrays because they are a common format for machine learning workflows. You can control the _preprocessing_ using the component's parameters when constructing the component. For example, if you instantiate the `Image` component with the following parameters, it will preprocess the image to the `PIL` format instead:
