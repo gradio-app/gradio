@@ -1943,8 +1943,8 @@ importers:
         version: 1.0.1
     devDependencies:
       pyodide:
-        specifier: ^0.25.0
-        version: 0.25.0(bufferutil@4.0.7)
+        specifier: 0.26.1
+        version: 0.26.1(bufferutil@4.0.7)
 
 packages:
 
@@ -4941,9 +4941,6 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
-
-  base-64@1.0.0:
-    resolution: {integrity: sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==}
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
@@ -8052,8 +8049,9 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  pyodide@0.25.0:
-    resolution: {integrity: sha512-RagtX3TfV2M0QAfThG2SMvwE31ikqAFDUXc5/4xhppEoVf4VbL7L0kbKOIdSNg7MbVsHELVxftk66WvT926GpA==}
+  pyodide@0.26.1:
+    resolution: {integrity: sha512-P+Gm88nwZqY7uBgjbQH8CqqU6Ei/rDn7pS1t02sNZsbyLJMyE2OVXjgNuqVT3KqYWnyGREUN0DbBUCJqk8R0ew==}
+    engines: {node: '>=18.0.0'}
 
   qs@6.11.0:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
@@ -9529,18 +9527,6 @@ packages:
 
   ws@8.13.0:
     resolution: {integrity: sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
-  ws@8.16.0:
-    resolution: {integrity: sha512-HS0c//TP7Ina87TfiPUz1rQzMhHrl/SG2guqRcTOIUYD2q8uhUdNHZYJUaQ8aTGPzCh+c6oawMKW35nFl1dxyQ==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -13280,8 +13266,6 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
-  base-64@1.0.0: {}
-
   base64-js@1.5.1: {}
 
   better-opn@3.0.2:
@@ -16654,10 +16638,9 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  pyodide@0.25.0(bufferutil@4.0.7):
+  pyodide@0.26.1(bufferutil@4.0.7):
     dependencies:
-      base-64: 1.0.0
-      ws: 8.16.0(bufferutil@4.0.7)
+      ws: 8.17.0(bufferutil@4.0.7)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -18484,10 +18467,6 @@ snapshots:
       signal-exit: 3.0.7
 
   ws@8.13.0(bufferutil@4.0.7):
-    optionalDependencies:
-      bufferutil: 4.0.7
-
-  ws@8.16.0(bufferutil@4.0.7):
     optionalDependencies:
       bufferutil: 4.0.7
 
