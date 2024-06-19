@@ -20,6 +20,31 @@
 gradio.AnnotatedImage(···)
 ```
 
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+import numpy as np 
+import requests 
+from io import BytesIO
+from PIL import Image
+base_image = "https://gradio-builds.s3.amazonaws.com/demo-files/base.png"
+building_image = requests.get("https://gradio-builds.s3.amazonaws.com/demo-files/buildings.png")
+building_image = np.asarray(Image.open(BytesIO(building_image.content)))[:, :, -1] > 0
+with gr.Blocks() as demo:
+    gr.AnnotatedImage(
+        value=(base_image, [(building_image, "buildings")]),
+        height=500,
+    )
+demo.launch()
+<gradio-requirements>
+requests
+pillow
+</gradio-requirements>
+</gradio-lite>
+</div>
+
+
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}

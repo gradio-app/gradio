@@ -19,6 +19,16 @@
 ```python
 gradio.Video(···)
 ```
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr 
+with gr.Blocks() as demo:
+    gr.Video()
+demo.launch()
+</gradio-lite>
+</div>
+
 
 <!--- Description -->
 ### Description

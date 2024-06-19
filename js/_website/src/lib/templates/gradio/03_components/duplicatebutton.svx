@@ -20,6 +20,16 @@
 gradio.DuplicateButton(···)
 ```
 
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr 
+with gr.Blocks() as demo:
+    gr.DuplicateButton()
+demo.launch()
+</gradio-lite>
+</div>
+
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}

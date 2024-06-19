@@ -295,3 +295,10 @@ strong {
 .obj ul {
 	padding-inline-start: 40px;
 }
+
+.embedded-component .gradio-container {
+	padding: var(--size-4) 0 0 0 !important;
+}
+.embedded-component .gradio-container footer {
+	display: none !important;
+}

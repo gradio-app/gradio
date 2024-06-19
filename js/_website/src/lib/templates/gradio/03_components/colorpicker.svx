@@ -20,6 +20,21 @@
 gradio.ColorPicker(···)
 ```
 
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+with gr.Blocks() as demo: 
+    with gr.Column():
+        input = gr.ColorPicker(interactive=True)
+        output = gr.Markdown("You picked: **#000000**")
+    def pick(color):
+        return "You picked: **" + color + "**"
+    input.change(pick, input, output)
+demo.launch()
+</gradio-lite>
+</div>
+
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}
