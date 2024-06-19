@@ -31,6 +31,7 @@
 		display: boolean;
 	}[];
 	export let header_links = false;
+	export let height: number | string | undefined = undefined;
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -61,6 +62,7 @@
 			{sanitize_html}
 			{line_breaks}
 			{header_links}
+			{height}
 		/>
 	</div>
 </Block>
