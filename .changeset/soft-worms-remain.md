@@ -1,6 +1,6 @@
 ---
-"@gradio/dataset": minor
-"gradio": minor
+"@gradio/dataset": patch
+"gradio": patch
 ---
 
-feat:fix dataset update
+fix:fix dataset update
