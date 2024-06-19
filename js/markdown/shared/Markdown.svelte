@@ -17,7 +17,7 @@
 		display: boolean;
 	}[];
 	export let header_links = false;
-	export let height: string;
+	export let height: number | string | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -40,7 +40,6 @@
 		{line_breaks}
 		chatbot={false}
 		{header_links}
-		{height}
 	/>
 </div>
 

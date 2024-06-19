@@ -18,7 +18,6 @@
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let header_links = false;
-	export let height: string;
 
 	let el: HTMLSpanElement;
 	let html: string;
