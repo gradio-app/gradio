@@ -150,7 +150,7 @@ class Dataset(Component):
     def postprocess(self, sample: int | list | None) -> int | None:
         """
         Parameters:
-            samples: Expects an `int` index or `list` of sample data. Returns the index of the sample in the dataset or `None` if the sample is not found.
+            sample: Expects an `int` index or `list` of sample data. Returns the index of the sample in the dataset or `None` if the sample is not found.
         Returns:
             Returns the index of the sample in the dataset.
         """
