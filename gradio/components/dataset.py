@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Literal
 
 from gradio_client.documentation import document
@@ -131,29 +132,39 @@ class Dataset(Component):
 
         return config
 
-    def preprocess(self, payload: int) -> int | list | None:
+    def preprocess(self, payload: int | None) -> int | list | None:
         """
         Parameters:
             payload: the index of the selected example in the dataset
         Returns:
             Passes the selected sample either as a `list` of data corresponding to each input component (if `type` is "value") or as an `int` index (if `type` is "index")
         """
+        if payload is None:
+            return None
         if self.type == "index":
             return payload
         elif self.type == "values":
             return self.samples[payload]
 
-    def postprocess(self, samples: list[list]) -> dict:
+    def postprocess(self, sample: int | list | None) -> int | None:
         """
         Parameters:
-            samples: Expects a `list[list]` corresponding to the dataset data, can be used to update the dataset.
+            samples: Expects an `int` index or `list` of sample data. Returns the index of the sample in the dataset or `None` if the sample is not found.
         Returns:
-            Returns the updated dataset data as a `dict` with the key "samples".
+            Returns the index of the sample in the dataset.
         """
-        return {
-            "samples": samples,
-            "__type__": "update",
-        }
+        if sample is None or isinstance(sample, int):
+            return sample
+        if isinstance(sample, list):
+            try:
+                index = self.samples.index(sample)
+            except ValueError:
+                index = None
+                warnings.warn(
+                    "The `Dataset` component does not support updating the dataset data by providing "
+                    "a set of list values. Instead, you should return a new Dataset(samples=...) object."
+                )
+            return index
 
     def example_payload(self) -> Any:
         return 0
