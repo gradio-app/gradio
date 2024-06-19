@@ -35,11 +35,8 @@ def scatter_plot_fn(dataset):
 
 
 with gr.Blocks() as scatter_plot:
-    with gr.Row():
-        with gr.Column():
-            dataset = gr.Dropdown(choices=["cars", "iris"], value="cars")
-        with gr.Column():
-            plot = gr.ScatterPlot(show_label=False)
+    dataset = gr.Dropdown(choices=["cars", "iris"], value="cars")
+    plot = gr.ScatterPlot(show_label=False)
     dataset.change(scatter_plot_fn, inputs=dataset, outputs=plot)
     scatter_plot.load(fn=scatter_plot_fn, inputs=dataset, outputs=plot)
 

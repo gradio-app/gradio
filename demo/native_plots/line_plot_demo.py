@@ -78,14 +78,11 @@ def line_plot_fn(dataset):
 
 
 with gr.Blocks() as line_plot:
-    with gr.Row():
-        with gr.Column():
-            dataset = gr.Dropdown(
-                choices=["stocks", "climate", "seattle_weather", "gapminder"],
-                value="stocks",
-            )
-        with gr.Column():
-            plot = gr.LinePlot()
+    dataset = gr.Dropdown(
+        choices=["stocks", "climate", "seattle_weather", "gapminder"],
+        value="stocks",
+    )
+    plot = gr.LinePlot()
     dataset.change(line_plot_fn, inputs=dataset, outputs=plot)
     line_plot.load(fn=line_plot_fn, inputs=dataset, outputs=plot)
 

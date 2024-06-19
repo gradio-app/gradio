@@ -156,6 +156,8 @@ class ScatterPlot(Plot):
         self.x_lim = x_lim
         self.y_lim = y_lim
         self.show_actions_button = show_actions_button
+        if label is None and show_label is None:
+            show_label = False
         super().__init__(
             value=value,
             label=label,
@@ -273,11 +275,12 @@ class ScatterPlot(Plot):
                 range_ = list(range(len(domain)))
                 type_ = "nominal"
 
+            color_legend_position = color_legend_position or "bottom"
             encodings["color"] = {
                 "field": color,
                 "type": type_,
                 "legend": AltairPlot.create_legend(
-                    position=color_legend_position, title=color_legend_title or color
+                    position=color_legend_position, title=color_legend_title
                 ),
                 "scale": {"domain": domain, "range": range_},
             }

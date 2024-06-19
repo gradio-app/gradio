@@ -139,6 +139,8 @@ class LinePlot(Plot):
         self.width = width
         self.height = height
         self.show_actions_button = show_actions_button
+        if label is None and show_label is None:
+            show_label = False
         super().__init__(
             value=value,
             label=label,
@@ -234,6 +236,7 @@ class LinePlot(Plot):
             properties["width"] = width
 
         if color:
+            color_legend_position = color_legend_position or "bottom"
             domain = value[color].unique().tolist()
             range_ = list(range(len(domain)))
             encodings["color"] = {
@@ -241,7 +244,7 @@ class LinePlot(Plot):
                 "type": "nominal",
                 "scale": {"domain": domain, "range": range_},
                 "legend": AltairPlot.create_legend(
-                    position=color_legend_position, title=color_legend_title or color
+                    position=color_legend_position, title=color_legend_title
                 ),
             }
 
