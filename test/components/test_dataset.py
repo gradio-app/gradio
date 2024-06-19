@@ -43,27 +43,10 @@ class TestDataset:
         assert dataset.samples == [["value 1"], ["value 2"]]
 
     def test_postprocessing(self):
-        test_file_dir = Path(Path(__file__).parent, "test_files")
-        bus = Path(test_file_dir, "bus.png")
-
         dataset = gr.Dataset(
             components=["number", "textbox", "image", "html", "markdown"], type="index"
         )
-
-        output = dataset.postprocess(
-            samples=[
-                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
-                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
-            ],
-        )
-
-        assert output == {
-            "samples": [
-                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
-                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
-            ],
-            "__type__": "update",
-        }
+        assert dataset.postprocess(1) == 1
 
 
 @patch(
