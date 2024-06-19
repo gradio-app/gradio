@@ -164,7 +164,7 @@ class CSVLogger(FlaggingCallback):
             ) / client_utils.strip_invalid_filename_characters(
                 getattr(component, "label", None) or f"component {idx}"
             )
-            if utils.is_update(sample):
+            if utils.is_prop_update(sample):
                 csv_data.append(str(sample))
             else:
                 data = (

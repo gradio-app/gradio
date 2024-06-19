@@ -544,7 +544,7 @@ class Examples:
                     component, components.File
                 ):
                     value_to_use = value_as_dict
-                if not utils.is_update(value_as_dict):
+                if not utils.is_prop_update(value_as_dict):
                     raise TypeError("value wasn't an update")  # caught below
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError):
