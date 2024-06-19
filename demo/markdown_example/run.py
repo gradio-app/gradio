@@ -214,6 +214,6 @@ MIT
 
 """
 with gr.Blocks() as demo:
-    gr.Markdown(value=md, header_links=True, height='400px')
+    gr.Markdown(value=md, header_links=True, height=400)
 
 demo.launch()

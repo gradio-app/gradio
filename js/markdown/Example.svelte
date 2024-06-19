@@ -11,8 +11,6 @@
 		right: string;
 		display: boolean;
 	}[];
-
-	export let height: string;
 </script>
 
 <div
@@ -27,7 +25,6 @@
 		{sanitize_html}
 		{line_breaks}
 		chatbot={false}
-		{height}
 	/>
 </div>
 
