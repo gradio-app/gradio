@@ -1,9 +1,5 @@
 import gradio as gr
 
-css = (
-    "footer {display: none !important;} .gradio-container {min-height: 0px !important;}"
-)
-
 # sample md stolen from https://dillinger.io/
 
 md = """# Dillinger
@@ -217,7 +213,7 @@ MIT
    [PlGa]: <https://github.com/RahulHP/dillinger/blob/master/plugins/googleanalytics/README.md>
 
 """
-with gr.Blocks(css=css) as demo:
-    gr.Markdown(value=md, header_links=True)
+with gr.Blocks() as demo:
+    gr.Markdown(value=md, header_links=True, height=400)
 
 demo.launch()
