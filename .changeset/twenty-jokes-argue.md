@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:changes
+feat:Improved plot rendering
