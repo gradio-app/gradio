@@ -81,7 +81,7 @@
 	bind:this={el}
 	class="md"
 	class:prose={render_markdown}
-	style="max-height: {height}; overflow-y: auto;"
+	style="overflow-y: auto;"
 >
 	{#if render_markdown}
 		{@html html}
