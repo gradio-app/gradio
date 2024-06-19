@@ -26,7 +26,7 @@ class Dataset(Component):
         self,
         *,
         label: str | None = None,
-        components: list[Component] | list[str],
+        components: list[Component] | list[str] | None = None,
         component_props: list[dict[str, Any]] | None = None,
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
@@ -70,7 +70,7 @@ class Dataset(Component):
         self.container = container
         self.scale = scale
         self.min_width = min_width
-        self._components = [get_component_instance(c) for c in components]
+        self._components = [get_component_instance(c) for c in components or []]
         if component_props is None:
             self.component_props = [
                 component.recover_kwargs(
