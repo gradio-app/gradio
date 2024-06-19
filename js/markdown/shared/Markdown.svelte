@@ -21,6 +21,12 @@
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
+	const css_units = (dimension_value: string | number): string => {
+		return typeof dimension_value === "number"
+			? dimension_value + "px"
+			: dimension_value;
+	};
+
 	$: value, dispatch("change");
 </script>
 
@@ -31,7 +37,7 @@
 	data-testid="markdown"
 	dir={rtl ? "rtl" : "ltr"}
 	use:copy
-	style={height ? `max-height: ${height}; overflow-y: auto;` : ""}
+	style={height ? `max-height: ${css_units(height)}; overflow-y: auto;` : ""}
 >
 	<MarkdownCode
 		message={value}
