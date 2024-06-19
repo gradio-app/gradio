@@ -7,6 +7,7 @@ import asyncio
 import contextlib
 import math
 import sys
+import warnings
 
 if sys.version_info >= (3, 9):
     from importlib.resources import files
@@ -381,7 +382,7 @@ class App(FastAPI):
                 request=request, route_path="/", root_path=app.root_path
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
-                config = app.get_blocks().config
+                config = blocks.config
                 config = route_utils.update_root_in_config(config, root)
             elif app.auth_dependency:
                 raise HTTPException(
@@ -391,7 +392,7 @@ class App(FastAPI):
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
-                    "space_id": app.get_blocks().space_id,
+                    "space_id": blocks.space_id,
                     "root": root,
                 }
 
@@ -1287,6 +1288,12 @@ def mount_gradio_app(
         app = gr.mount_gradio_app(app, io, path="/gradio")
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
+    if favicon_path is not None and path != "/":
+        warnings.warn(
+            "The 'favicon_path' parameter is set but will be ignored because 'path' is not '/'. "
+            "Please add the favicon directly to your FastAPI app."
+        )
+
     blocks.dev_mode = False
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()

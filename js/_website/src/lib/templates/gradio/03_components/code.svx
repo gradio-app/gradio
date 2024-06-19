@@ -20,6 +20,22 @@
 gradio.Code(···)
 ```
 
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+with gr.Blocks() as demo: 
+    gr.Code(language="python", value="""
+import gradio as gr
+def hello(name): 
+    return "hello " + name
+interface = gr.Interface(hello, "text", "text")
+interface.launch()
+    """, interactive=True, lines=6)
+demo.launch()
+</gradio-lite>
+</div>
+
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}

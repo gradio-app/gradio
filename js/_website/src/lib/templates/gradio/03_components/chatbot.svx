@@ -20,6 +20,16 @@
 gradio.Chatbot(···)
 ```
 
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+with gr.Blocks() as demo:
+    gr.Chatbot(value=[["Hello World","Hey Gradio!"],["❤️","😍"],["🔥","🤗"]])
+demo.launch()
+</gradio-lite>
+</div>
+
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}
