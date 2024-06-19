@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Allow `gr.load` to work inside `gr.Blocks` automatically
+fix:Allow `gr.load` to work inside `gr.Blocks` automatically
