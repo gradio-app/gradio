@@ -18,7 +18,8 @@ from gradio.events import Events
 @document()
 class Dataset(Component):
     """
-    Creates a gallery or table to display data samples. This component is designed for internal use to display examples.
+    Creates a gallery or table to display data samples. This component is primarily designed for internal use to display examples.
+    However, it can also be used directly to display a dataset and let users select examples.
     """
 
     EVENTS = [Events.click, Events.select]
