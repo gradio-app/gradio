@@ -244,7 +244,7 @@ class Block:
             if to_add:
                 config = {**to_add, **config}
         config.pop("render", None)
-        config = {**config,  "name": self.get_block_class()}
+        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
         if self.rendered_in is not None:
             config["rendered_in"] = self.rendered_in._id
         if (_selectable := getattr(self, "_selectable", None)) is not None:
