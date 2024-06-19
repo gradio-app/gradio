@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Added an optional scrollbar for the Markdown Component
+feat:Added an optional `height` and overflow scrollbar for the Markdown Component
