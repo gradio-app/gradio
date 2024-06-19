@@ -1723,12 +1723,12 @@ Received outputs:
                 ) from err
 
             if block.stateful:
-                if not utils.is_update(predictions[i]):
+                if not utils.is_prop_update(predictions[i]):
                     state[block._id] = predictions[i]
                 output.append(None)
             else:
                 prediction_value = predictions[i]
-                if utils.is_update(
+                if utils.is_prop_update(
                     prediction_value
                 ):  # if update is passed directly (deprecated), remove Nones
                     prediction_value = utils.delete_none(
@@ -1738,7 +1738,7 @@ Received outputs:
                 if isinstance(prediction_value, Block):
                     prediction_value = prediction_value.constructor_args.copy()
                     prediction_value["__type__"] = "update"
-                if utils.is_update(prediction_value):
+                if utils.is_prop_update(prediction_value):
                     kwargs = state[block._id].constructor_args.copy()
                     kwargs.update(prediction_value)
                     kwargs.pop("value", None)
