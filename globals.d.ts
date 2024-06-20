@@ -1,3 +1,4 @@
+import { ApiData, ApiInfo } from "client/js/src/types";
 declare global {
 	interface Window {
 		__gradio_mode__: "app" | "website";
@@ -40,43 +41,4 @@ export interface Config {
 	is_space: boolean;
 	protocol: "ws" | "sse" | "sse_v1" | "sse_v2" | "sse_v2.1" | "sse_v3";
 	theme_hash?: number;
-}
-
-export interface ApiData {
-	label: string;
-	parameter_name: string;
-	parameter_default?: any;
-	parameter_has_default?: boolean;
-	type: {
-		type: any;
-		description: string;
-	};
-	component: string;
-	example_input?: any;
-	python_type: { type: string; description: string };
-	serializer: string;
-}
-
-export interface JsApiData {
-	label: string;
-	parameter_name: string;
-	parameter_default?: any;
-	parameter_has_default?: boolean;
-	type: string;
-	description: string;
-	component: string;
-	example_input?: any;
-	serializer: string;
-	python_type: { type: string; description: string };
-}
-
-export interface EndpointInfo<T extends ApiData | JsApiData> {
-	parameters: T[];
-	returns: T[];
-	type?: DependencyTypes;
-}
-
-export interface ApiInfo<T extends ApiData | JsApiData> {
-	named_endpoints: Record<string, EndpointInfo<T>>;
-	unnamed_endpoints: Record<string, EndpointInfo<T>>;
 }
