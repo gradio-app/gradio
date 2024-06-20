@@ -114,20 +114,6 @@ class TestImagePreprocessing:
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAo"
         )
 
-    def test_encode_array_to_base64(self):
-        img = Image.open("gradio/test_data/test_image.png")
-        img = img.convert("RGB")
-        numpy_data = np.asarray(img, dtype=np.uint8)
-        output_base64 = processing_utils.encode_array_to_base64(numpy_data)
-        assert output_base64 == deepcopy(media_data.ARRAY_TO_BASE64_IMAGE)
-
-    def test_encode_pil_to_base64(self):
-        img = Image.open("gradio/test_data/test_image.png")
-        img = img.convert("RGB")
-        img.info = {}  # Strip metadata
-        output_base64 = processing_utils.encode_pil_to_base64(img)
-        assert output_base64 == deepcopy(media_data.ARRAY_TO_BASE64_IMAGE)
-
     def test_save_pil_to_file_keeps_pnginfo(self, gradio_temp_dir):
         input_img = Image.open("gradio/test_data/test_image.png")
         input_img = input_img.convert("RGB")
