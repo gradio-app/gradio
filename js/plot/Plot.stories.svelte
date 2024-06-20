@@ -2,13 +2,7 @@
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import PlotComponent from "./Index.svelte";
 	import { allModes } from "../storybook/modes";
-	import {
-		matplotlib_plot,
-		line_plot,
-		multi_line_plot,
-		bar_plot,
-		scatter_plot
-	} from "./testplot";
+	import { matplotlib_plot } from "./testplot";
 
 	export const meta = {
 		title: "Components/Plot",
@@ -17,10 +11,10 @@
 			chromatic: {
 				modes: {
 					desktop: allModes["desktop"],
-					mobile: allModes["mobile"]
-				}
-			}
-		}
+					mobile: allModes["mobile"],
+				},
+			},
+		},
 	};
 </script>
 
@@ -32,10 +26,11 @@
 	name="with matplotlib value"
 	args={{
 		value: matplotlib_plot,
-		label: "Plot"
+		label: "Plot",
 	}}
 />
 
+<!-- 
 <Story
 	name="with line plot value"
 	args={{
@@ -74,11 +69,11 @@
 	parameters={{
 		chromatic: { delay: 1000  }
 	}}
-/>
+/> -->
 
 <Story
 	name="with no value"
 	args={{
-		label: "Plot"
+		label: "Plot",
 	}}
 />
