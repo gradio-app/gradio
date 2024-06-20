@@ -737,7 +737,7 @@ def validate_url(possible_url: str) -> bool:
         return False
 
 
-def is_update(val):
+def is_prop_update(val):
     return isinstance(val, dict) and "update" in val.get("__type__", "")
 
 

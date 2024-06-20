@@ -505,3 +505,9 @@ def test_load_custom_component():
         "test/test_files/sample_file.pdf", "What does this say?", api_name="predict"
     )
     assert isinstance(output, str)
+
+
+def test_load_inside_blocks():
+    demo = gr.load("spaces/abidlabs/en2fr")
+    output = demo("Hello")
+    assert isinstance(output, str)
