@@ -20,10 +20,8 @@
 	$: plot = value?.plot;
 	$: spec = JSON.parse(plot) as Spec;
 	$: if (old_spec !== spec) {
-		console.log("spec changed");
 		old_spec = spec;
 		spec_width = spec.width;
-		console.log(spec_width);
 	}
 
 	$: if (value.chart) {
