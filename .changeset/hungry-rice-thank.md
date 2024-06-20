@@ -1,8 +1,8 @@
 ---
-"@gradio/app": patch
-"@gradio/timer": patch
-"gradio": patch
-"website": patch
+"@gradio/app": minor
+"@gradio/timer": minor
+"gradio": minor
+"website": minor
 ---
 
 fix:Add Timer component
