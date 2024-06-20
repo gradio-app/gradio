@@ -62,7 +62,6 @@ export function set_config(
 		}
 	};
 	spec.config = config;
-	console.log("spec", spec);
 	switch (chart_type) {
 		case "scatter":
 			spec.config.mark = { stroke: accentColor };
