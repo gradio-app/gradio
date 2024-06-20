@@ -12,13 +12,14 @@ def scatter_plot_fn(dataset):
             value=iris,
             x="petalWidth",
             y="petalLength",
-            color="species",
+            color=None,
             title="Iris Dataset",
-            color_legend_title="Species",
             x_title="Petal Width",
             y_title="Petal Length",
             tooltip=["petalWidth", "petalLength", "species"],
             caption="",
+            height=600,
+            width=600,
         )
     else:
         return gr.ScatterPlot(
@@ -29,17 +30,15 @@ def scatter_plot_fn(dataset):
             tooltip="Name",
             title="Car Data",
             y_title="Miles per Gallon",
-            color_legend_title="Origin of Car",
             caption="MPG vs Horsepower of various cars",
+            height=None,
+            width=None,
         )
 
 
 with gr.Blocks() as scatter_plot:
-    with gr.Row():
-        with gr.Column():
-            dataset = gr.Dropdown(choices=["cars", "iris"], value="cars")
-        with gr.Column():
-            plot = gr.ScatterPlot(show_label=False)
+    dataset = gr.Dropdown(choices=["cars", "iris"], value="cars")
+    plot = gr.ScatterPlot(show_label=False)
     dataset.change(scatter_plot_fn, inputs=dataset, outputs=plot)
     scatter_plot.load(fn=scatter_plot_fn, inputs=dataset, outputs=plot)
 

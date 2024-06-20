@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document
@@ -52,8 +53,8 @@ class BarPlot(Plot):
             "none",
         ]
         | None = None,
-        height: int | str | None = None,
-        width: int | str | None = None,
+        height: int | None = None,
+        width: int | None = None,
         y_lim: list[int] | None = None,
         caption: str | None = None,
         interactive: bool | None = True,
@@ -88,8 +89,8 @@ class BarPlot(Plot):
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             group_title: The label displayed on top of the subplot columns (or rows if vertical=True). Use an empty string to omit.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
-            height: The height of the plot, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the plot, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels. If None, expands to fit.
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
@@ -122,10 +123,22 @@ class BarPlot(Plot):
         self.y_lim = y_lim
         self.caption = caption
         self.interactive_chart = interactive
+        if isinstance(width, str):
+            width = None
+            warnings.warn(
+                "Width should be an integer, not a string. Setting width to None."
+            )
+        if isinstance(height, str):
+            warnings.warn(
+                "Height should be an integer, not a string. Setting height to None."
+            )
+            height = None
         self.width = width
         self.height = height
         self.sort = sort
         self.show_actions_button = show_actions_button
+        if label is None and show_label is None:
+            show_label = False
         super().__init__(
             value=value,
             label=label,
@@ -172,8 +185,8 @@ class BarPlot(Plot):
             "none",
         ]
         | None = None,
-        height: int | str | None = None,
-        width: int | str | None = None,
+        height: int | None = None,
+        width: int | None = None,
         y_lim: list[int] | None = None,
         interactive: bool | None = True,
         sort: Literal["x", "y", "-x", "-y"] | None = None,
@@ -182,11 +195,7 @@ class BarPlot(Plot):
         import altair as alt
 
         interactive = True if interactive is None else interactive
-        orientation = (
-            {"field": group, "title": group_title if group_title is not None else group}
-            if group
-            else {}
-        )
+        orientation = {"field": group, "title": group_title} if group else {}
 
         x_title = x_title or x
         y_title = y_title or y
@@ -234,6 +243,7 @@ class BarPlot(Plot):
             properties["width"] = width
 
         if color:
+            color_legend_position = color_legend_position or "bottom"
             domain = value[color].unique().tolist()
             range_ = list(range(len(domain)))
             encodings["color"] = {
@@ -241,7 +251,7 @@ class BarPlot(Plot):
                 "type": "nominal",
                 "scale": {"domain": domain, "range": range_},
                 "legend": AltairPlot.create_legend(
-                    position=color_legend_position, title=color_legend_title or color
+                    position=color_legend_position, title=color_legend_title
                 ),
             }
 
