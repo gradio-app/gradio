@@ -17,7 +17,7 @@ import aiofiles
 import httpx
 import numpy as np
 from gradio_client import utils as client_utils
-from PIL import Image, ImageOps, PngImagePlugin
+from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
 from gradio import utils, wasm_utils
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
@@ -138,7 +138,7 @@ def encode_plot_to_base64(plt, format: str = "png"):
         plt.savefig(output_bytes, format=fmt)
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return output_base64(base64_str, fmt)
+    return f"data:image/{format or 'png'};base64,{base64_str}"
 
 
 def get_pil_exif_bytes(pil_image):
@@ -158,32 +158,23 @@ def get_pil_metadata(pil_image):
 
 def encode_pil_to_bytes(pil_image, format="png"):
     with BytesIO() as output_bytes:
-        if format == "png":
-            params = {"pnginfo": get_pil_metadata(pil_image)}
+        if format.lower() == "gif":
+            frames = [frame.copy() for frame in ImageSequence.Iterator(pil_image)]
+            frames[0].save(
+                output_bytes,
+                format=format,
+                save_all=True,
+                append_images=frames[1:],
+                loop=0,
+            )
         else:
-            exif = get_pil_exif_bytes(pil_image)
-            params = {"exif": exif} if exif else {}
-        pil_image.save(output_bytes, format, **params)
+            if format.lower() == "png":
+                params = {"pnginfo": get_pil_metadata(pil_image)}
+            else:
+                exif = get_pil_exif_bytes(pil_image)
+                params = {"exif": exif} if exif else {}
+            pil_image.save(output_bytes, format, **params)
         return output_bytes.getvalue()
-
-
-def encode_pil_to_base64(pil_image, format="png"):
-    bytes_data = encode_pil_to_bytes(pil_image, format)
-    base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return output_base64(base64_str, format)
-
-
-def encode_array_to_base64(image_array, format="png"):
-    with BytesIO() as output_bytes:
-        pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
-        pil_image.save(output_bytes, format)
-        bytes_data = output_bytes.getvalue()
-    base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return output_base64(base64_str, format)
-
-
-def output_base64(data, format=None) -> str:
-    return f"data:image/{format or 'png'};base64,{data}"
 
 
 def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
