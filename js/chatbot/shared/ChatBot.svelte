@@ -8,7 +8,7 @@
 		afterUpdate,
 		createEventDispatcher,
 		type SvelteComponent,
-		type ComponentType
+		type ComponentType,
 	} from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import { Image } from "@gradio/image/shared";
@@ -19,8 +19,9 @@
 	import { type FileData, type Client } from "@gradio/client";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
-	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
+	import Component from "./Component.svelte";
+	import LikeButtons from "./LikeButtons.svelte";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
@@ -118,7 +119,7 @@
 
 		document.body.style.setProperty(
 			"--chatbot-body-text-size",
-			updated_text_size + "px"
+			updated_text_size + "px",
 		);
 	};
 
@@ -177,11 +178,11 @@
 	function handle_select(
 		i: number,
 		j: number,
-		message: NormalisedMessage
+		message: NormalisedMessage,
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message
+			value: message,
 		});
 	}
 
@@ -189,12 +190,12 @@
 		i: number,
 		j: number,
 		message: NormalisedMessage,
-		selected: string | null
+		selected: string | null,
 	): void {
 		dispatch("like", {
 			index: [i, j],
 			value: message,
-			liked: selected === "like"
+			liked: selected === "like",
 		});
 	}
 </script>
@@ -299,60 +300,17 @@
 											on:load={scroll}
 										/>
 									{:else if message.type === "component" && message.component in _components}
-										{#if message.component === "gallery"}
-											<svelte:component
-												this={_components[message.component]}
-												value={message.value}
-												show_label={false}
-												{i18n}
-												label=""
-												{_fetch}
-												preview={true}
-												interactive={true}
-											/>
-										{:else if message.component === "plot"}
-											<svelte:component
-												this={_components[message.component]}
-												value={message.value}
-												{target}
-												{theme_mode}
-												bokeh_version={message.props.bokeh_version}
-												caption=""
-												show_actions_button={true}
-											/>
-										{:else if message.component === "audio"}
-											<svelte:component
-												this={_components[message.component]}
-												value={message.value}
-												show_label={false}
-												show_share_button={true}
-												{i18n}
-												label=""
-												waveform_settings={{}}
-												waveform_options={{}}
-											/>
-										{:else if message.component === "video"}
-											<svelte:component
-												this={_components[message.component]}
-												autoplay={true}
-												value={message.value.video || message.value}
-												show_label={false}
-												show_share_button={true}
-												{i18n}
-												{upload}
-											>
-												<track kind="captions" />
-											</svelte:component>
-										{:else if message.component === "image"}
-											<svelte:component
-												this={_components[message.component]}
-												value={message.value}
-												show_label={false}
-												label="chatbot-image"
-												show_share_button={true}
-												{i18n}
-											/>
-										{/if}
+										<Component
+											{target}
+											{theme_mode}
+											props={message.props}
+											type={message.component}
+											components={_components}
+											value={message.value}
+											{i18n}
+											{upload}
+											{_fetch}
+										/>
 									{:else if message.type === "component" && message.component === "file"}
 										<a
 											data-testid="chatbot-file"
@@ -368,27 +326,19 @@
 									{/if}
 								</button>
 							</div>
-							{#if (likeable && j !== 0) || (show_copy_button && message && typeof message === "string")}
-								<div
-									class="message-buttons-{j == 0
-										? 'user'
-										: 'bot'} message-buttons-{layout} {avatar_images[j] !==
-										null && 'with-avatar'}"
-									class:message-buttons-fit={layout === "bubble" &&
-										!bubble_full_width}
-									class:bubble-buttons-user={layout === "bubble"}
-								>
-									{#if likeable && j == 1}
-										<LikeDislike
-											handle_action={(selected) =>
-												handle_like(i, j, message, selected)}
-										/>
-									{/if}
-									{#if show_copy_button && message && typeof message === "string"}
-										<Copy value={message} />
-									{/if}
-								</div>
-							{/if}
+							<LikeButtons
+								show={(likeable && j === 1) ||
+									(show_copy_button && message && typeof message === "string")}
+								handle_action={(selected) =>
+									handle_like(i, j, message, selected)}
+								{likeable}
+								{show_copy_button}
+								{message}
+								position={j === 0 ? "right" : "left"}
+								{layout}
+								avatar={avatar_images[j]}
+								{bubble_full_width}
+							/>
 						</div>
 					{/if}
 				{/each}
@@ -484,12 +434,6 @@
 		white-space: pre-line;
 	}
 
-	@media (max-width: 480px) {
-		.panel-full-width {
-			padding: calc(var(--spacing-xxl) * 2);
-		}
-	}
-
 	.user {
 		align-self: flex-start;
 		border-bottom-right-radius: 0;
@@ -543,7 +487,12 @@
 		.message {
 			width: auto;
 		}
+
+		.panel-full-width {
+			padding: calc(var(--spacing-xxl) * 2);
+		}
 	}
+
 	.avatar-container {
 		align-self: flex-end;
 		position: relative;
@@ -571,45 +520,6 @@
 		height: 100%;
 		object-fit: cover;
 		border-radius: 50%;
-	}
-
-	.message-buttons-user,
-	.message-buttons-bot {
-		border-radius: var(--radius-md);
-		display: flex;
-		align-items: center;
-		bottom: 0;
-		height: var(--size-7);
-		align-self: self-end;
-		position: absolute;
-		bottom: -15px;
-		margin: 2px;
-		padding-left: 5px;
-		z-index: 1;
-	}
-	.message-buttons-bot {
-		left: 10px;
-	}
-	.message-buttons-user {
-		right: 5px;
-	}
-
-	.message-buttons-bot.message-buttons-bubble.with-avatar {
-		left: 50px;
-	}
-	.message-buttons-user.message-buttons-bubble.with-avatar {
-		right: 50px;
-	}
-
-	.message-buttons-bubble {
-		border: 1px solid var(--border-color-accent);
-		background: var(--background-fill-secondary);
-	}
-
-	.message-buttons-panel {
-		left: unset;
-		right: 0px;
-		top: 0px;
 	}
 
 	.share-button {
@@ -737,5 +647,11 @@
 		color: var(--body-text-color);
 		text-decoration: none;
 		margin: var(--spacing-md);
+	}
+
+	@media (max-width: 600px) or (max-width: 480px) {
+		.component {
+			width: 100% !important;
+		}
 	}
 </style>
