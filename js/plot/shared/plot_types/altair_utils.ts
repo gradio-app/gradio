@@ -18,7 +18,7 @@ export function set_config(
 	let titleWeight = computed_style.getPropertyValue(
 		"--block-title-text-weight"
 	) as "bold" | "normal" | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
-	const fontToPxVal = (font: string) => {
+	const fontToPxVal = (font: string): number => {
 		return font.endsWith("px") ? parseFloat(font.slice(0, -2)) : 12;
 	};
 	let textSizeMd = fontToPxVal(computed_style.getPropertyValue("--text-md"));

@@ -23,7 +23,7 @@
 	$: fit_width_to_parent =
 		spec.encoding?.column?.field || spec.encoding?.row?.field ? false : true; // vega seems to glitch with width when orientation is set
 
-	const renderPlot = () => {
+	const renderPlot = (): void => {
 		if (fit_width_to_parent) spec.width = parent_element.offsetWidth;
 		vegaEmbed(element, spec, { actions: show_actions_button });
 	};
