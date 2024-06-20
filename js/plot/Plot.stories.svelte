@@ -11,10 +11,10 @@
 			chromatic: {
 				modes: {
 					desktop: allModes["desktop"],
-					mobile: allModes["mobile"],
-				},
-			},
-		},
+					mobile: allModes["mobile"]
+				}
+			}
+		}
 	};
 </script>
 
@@ -26,7 +26,7 @@
 	name="with matplotlib value"
 	args={{
 		value: matplotlib_plot,
-		label: "Plot",
+		label: "Plot"
 	}}
 />
 
@@ -74,6 +74,6 @@
 <Story
 	name="with no value"
 	args={{
-		label: "Plot",
+		label: "Plot"
 	}}
 />
