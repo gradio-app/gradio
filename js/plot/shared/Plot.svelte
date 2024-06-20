@@ -9,7 +9,7 @@
 	import type { ThemeMode } from "js/app/src/components/types";
 
 	export let value;
-	export let target: HTMLDivElement;
+	export let target: HTMLElement;
 	export let colors: string[] = [];
 	export let theme_mode: ThemeMode;
 	export let caption: string;

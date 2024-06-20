@@ -1,7 +1,7 @@
 import type { Config as VegaConfig } from "vega";
 import { colors as color_palette } from "@gradio/theme";
 import { get_next_color } from "@gradio/utils";
-import type { Spec } from "vega-lite";
+import type { Spec } from "vega";
 
 export function set_config(
 	spec: Spec,
@@ -56,17 +56,19 @@ export function set_config(
 			fontWeight: titleWeight,
 			anchor: "middle"
 		},
+		// @ts-ignore
 		view: {
 			stroke: borderColorPrimary
 		}
 	};
 	spec.config = config;
+	console.log("spec", spec);
 	switch (chart_type) {
 		case "scatter":
 			spec.config.mark = { stroke: accentColor };
 			if (spec.encoding.color && spec.encoding.color.type == "nominal") {
 				spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
-					(e, i) => get_color(colors, i)
+					(_, i) => get_color(colors, i)
 				);
 			} else if (
 				spec.encoding.color &&
@@ -81,7 +83,7 @@ export function set_config(
 			spec.layer.forEach((d) => {
 				if (d.encoding.color) {
 					d.encoding.color.scale.range = d.encoding.color.scale.range.map(
-						(e, i) => get_color(colors, i)
+						(_, i) => get_color(colors, i)
 					);
 				}
 			});
@@ -90,7 +92,7 @@ export function set_config(
 			spec.config.mark = { opacity: 0.8, fill: accentColor };
 			if (spec.encoding.color) {
 				spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
-					(e, i) => get_color(colors, i)
+					(_, i) => get_color(colors, i)
 				);
 			}
 			break;
