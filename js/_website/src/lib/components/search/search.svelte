@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition'
 	import Search_Worker from './search-worker?worker'
 	import Search_Icon from "./search-icon.svelte"
 	import { onNavigate } from '$app/navigation'
@@ -11,7 +10,7 @@
 	let search_worker: Worker;
 
 	function initialize() {
-		open = !open;
+		open = true;
 		if (search === 'ready') return
 		search = 'load';
 		search_worker = new Search_Worker();
@@ -36,6 +35,14 @@
 	$: if (search_term && !open) {
 		search_term = '';
 	}
+
+	let content_elem: HTMLElement;
+	let search_button_elem: HTMLElement;
+
+	function focus_input(el){
+    	el.focus()
+  	}
+	
 </script>
 
 <svelte:window
@@ -49,10 +56,22 @@
 		if (e.key === 'Escape') {
 			open = false;
 		}
+		
+	}}
+	on:click={(e) => {
+		if (content_elem) { 
+			if (!content_elem.contains(e.target) && open) {
+				open = false;
+			}
+		} else {
+			if (search_button_elem.contains(e.target)) {
+				initialize()
+			}
+		}
 	}}
 />
 
-<button on:click={initialize} class="search-button">
+<button class="search-button" bind:this={search_button_elem}>
 	<Search_Icon />
 	<span class="pl-1 pr-5">Search</span>
 	<div class="shortcut">
@@ -63,34 +82,95 @@
 </button>
 
 {#if open}
-		<div in:fade={{ duration: 200 }} class="overlay" />
-		<div class="content">
-			<input
-				bind:value={search_term}
-				placeholder="Search"
-				autocomplete="off"
-				spellcheck="false"
-				type="search"
-			/>
+		<div class="overlay" />
+		<div class="content" bind:this={content_elem}>
+			<div class="search-bar">
+				<Search_Icon />
+				<input
+					bind:value={search_term}
+					placeholder="What are you searching for?"
+					autocomplete="off"
+					autocorrect="off"
+					autocapitalize="off" 
+					enterkeyhint="go" 
+					maxlength="64"
+					spellcheck="false"
+					type="search"
+					use:focus_input
+				/>
+				<button 
+				on:click={()=>{
+					open = false;
+				}}
+				class="text-xs font-semibold rounded-md p-1 border-gray-300 border ">
+					ESC
+				</button>
+			</div>
 			<div class="results">
 				{#if search === 'load'}
 					<p>Loading...</p>
 				{/if}
 
-				{#if results}
+				{#if results.length}
 					<ul>
 						{#each results as result}
 							{#if result.content.length > 0}
 								<li>
-									<a href="/{result.slug}">{@html result.title}</a>
+									
+									<a 
+									class="res-block"
+									href="{result.slug}">
+									<p 
+									class:text-green-700={result.type == "DOCS"}
+									class:bg-green-100={result.type == "DOCS"}
+									class:text-orange-700={result.type == "GUIDE"}
+									class:bg-orange-100={result.type == "GUIDE"}
+									class="float-right text-xs font-semibold rounded-md p-1 px-2">{result.type}</p>
+									<p>{@html result.title}</p>
 									<ol>
 										{#each result.content as content}
-											<li>{@html content}</li>
+											<li class="res-content">{@html content}</li>
 										{/each}
 									</ol>
+									
+									</a>
 								</li>
 							{/if}
 						{/each}
+					</ul>
+				{:else}
+					{#if search_term}
+						<p class="mx-auto w-fit text-gray-500">No results found. Try using a different term.</p>
+					{/if}
+					<ul>
+							<p class="">Suggestions</p>
+							<li>
+								<a 
+									class="res-block"
+									href="/quickstart">
+									<p class="float-right text-xs font-semibold text-orange-700 bg-orange-100 rounded-md p-1 px-2">GUIDE</p>
+									<p>Quickstart</p>						
+								</a>
+
+							</li>
+							<li>
+								<a 
+									class="res-block"
+									href="/docs/gradio/interface">
+									<p class="float-right text-xs font-semibold text-green-700 bg-green-100 rounded-md p-1 px-2">DOCS</p>
+									<p>Interface</p>						
+								</a>
+
+							</li>
+							<li>
+								<a 
+									class="res-block"
+									href="/docs/gradio/blocks">
+									<p class="float-right text-xs font-semibold text-green-700 bg-green-100 rounded-md p-1 px-2">DOCS</p>
+									<p>Blocks</p>						
+								</a>
+
+							</li>
 					</ul>
 				{/if}
 			</div>
@@ -99,66 +179,90 @@
 
 <style>
 	.overlay {
-		position: fixed;
-		inset: 0px;
-		background-color: hsl(0 0% 0% / 80%);
-		backdrop-filter: blur(4px);
-		z-index: 30;
+		@apply fixed inset-0 z-30 backdrop-blur-sm bg-black/20;
 	}
 
+	.search-bar {
+		@apply font-sans text-lg;
+		z-index: 1;
+		padding: 0 1rem;
+		position: relative;
+		display: flex;
+		flex: none;
+		align-items: center;
+		border-bottom-width: 1px;
+		--tw-border-opacity: 1;
+		border-color: rgb(241 245 249 / var(--tw-border-opacity));
+		color: #475469;
+	}
+
+	.search-bar input {
+		@apply text-lg;
+		appearance: none;
+		background: #0000;
+		height: 3.5rem;
+		color: #0f172a;
+		margin-left: .25rem;
+		margin-right: .25rem;
+		flex: auto;
+		min-width: 0;
+		border: none;
+		outline: none;
+		box-shadow: none;
+		cursor: text;
+	} 
+
+
 	.content {
-		width: 90vw;
-		max-width: 600px;
 		position: fixed;
 		left: 50%;
 		top: 20%;
 		translate: -50% -0%;
-		border-radius: var(--rounded-4);
-		box-shadow: 0px 0px 20px hsl(0 0% 0% / 40%);
-		overflow: hidden;
+		margin: 0 auto;
+		width: 90vw;
+		max-width: 47.375rem;
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		border-radius: .5rem;
+		box-shadow: 0 10px 15px -3px #0000001a, 0 4px 6px -4px #0000001a;
+		background: #fff;
 		z-index: 40;
-
-		& input {
-			width: 100%;
-			padding: var(--spacing-16);
-			color: var(--clr-search-input-txt);
-			background-color: var(--clr-search-input-bg);
-
-			&:focus {
-				box-shadow: none;
-				border-radius: 0px;
-			}
-		}
 	}
 
 	.results {
+		@apply p-5;
 		max-height: 60vh;
-		padding: var(--spacing-16);
-		background-color: var(--clr-search-results-bg);
 		overflow-y: auto;
 		scrollbar-width: thin;
 
 		& ol {
-			margin-block-start: var(--spacing-8);
+			margin-block-start: 2px;
 		}
 
 		& li:not(:last-child) {
-			margin-block-end: var(--spacing-16);
-			padding-block-end: var(--spacing-16);
-			border-bottom: 1px solid var(--clr-results-border);
+			margin-block-end: 4px;
+			padding-block-end: 4px;
 		}
 
 		& a {
 			display: block;
-			font-size: var(--font-24);
 		}
 
-		& mark {
-			background-color: var(--clr-primary);
-		}
 	}
 
 	.search-button {
 		@apply flex flex-row rounded-full items-center cursor-pointer px-2 text-gray-400 border-gray-300 border text-lg outline-none font-sans;
+	}
+
+	:global(.res-content .mark) {
+		color: #ff7c00;
+		text-decoration: underline;
+	}
+	:global(.res-content) {
+		@apply text-gray-500
+	}
+	:global(.res-block) {
+		@apply m-2 p-2 border border-gray-100 rounded-md bg-gray-50 hover:bg-gray-100 hover:scale-[1.01]
 	}
 </style>

@@ -4,6 +4,7 @@ export type Page = {
 	content: string
 	slug: string
 	title: string
+	type: string
 }
 
 export type Result = {
@@ -31,18 +32,19 @@ export function search_pages_index(search_term: string) {
 	const results = pages_index.search(match)
 	return results
 		.map((index) => pages[index as number])
-		.map(({ slug, title, content }) => {
+		.map(({ slug, title, content, type }) => {
 			return {
 				slug,
 				title: replace_text_with_marker(title, match),
 				content: get_matches(content, match),
+				type
 			}
 		})
 }
 
 function replace_text_with_marker(text: string, match: string) {
 	const regex = new RegExp(match, 'gi')
-	return text.replaceAll(regex, (match) => `<mark>${match}</mark>`)
+	return text.replaceAll(regex, (match) => `<span class='mark'>${match}</span>`)
 }
 
 function get_matches(text: string, search_term: string, limit = 1) {
