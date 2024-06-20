@@ -1,7 +1,6 @@
-import type { Config as VegaConfig } from "vega";
 import { colors as color_palette } from "@gradio/theme";
 import { get_next_color } from "@gradio/utils";
-import type { Spec } from "vega";
+import type { Config, TopLevelSpec as Spec } from "vega-lite";
 
 export function set_config(
 	spec: Spec,
@@ -23,7 +22,7 @@ export function set_config(
 	};
 	let textSizeMd = fontToPxVal(computed_style.getPropertyValue("--text-md"));
 	let textSizeSm = fontToPxVal(computed_style.getPropertyValue("--text-sm"));
-	let config: VegaConfig = {
+	let config: Config = {
 		autosize: { type: "fit", contains: "padding" },
 		axis: {
 			labelFont: fontFamily,
@@ -56,42 +55,42 @@ export function set_config(
 			fontWeight: titleWeight,
 			anchor: "middle"
 		},
-		// @ts-ignore
 		view: {
 			stroke: borderColorPrimary
 		}
 	};
 	spec.config = config;
+	// @ts-ignore (unsure why the following are not typed in Spec)
+	let encoding: any = spec.encoding;
+	// @ts-ignore
+	let layer: any = spec.layer;
 	switch (chart_type) {
 		case "scatter":
 			spec.config.mark = { stroke: accentColor };
-			if (spec.encoding.color && spec.encoding.color.type == "nominal") {
-				spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
-					(_, i) => get_color(colors, i)
+			if (encoding.color && encoding.color.type == "nominal") {
+				encoding.color.scale.range = encoding.color.scale.range.map(
+					(_: string, i: number) => get_color(colors, i)
 				);
-			} else if (
-				spec.encoding.color &&
-				spec.encoding.color.type == "quantitative"
-			) {
-				spec.encoding.color.scale.range = ["#eff6ff", "#1e3a8a"];
-				spec.encoding.color.scale.range.interpolate = "hsl";
+			} else if (encoding.color && encoding.color.type == "quantitative") {
+				encoding.color.scale.range = ["#eff6ff", "#1e3a8a"];
+				encoding.color.scale.range.interpolate = "hsl";
 			}
 			break;
 		case "line":
 			spec.config.mark = { stroke: accentColor };
-			spec.layer.forEach((d) => {
+			layer.forEach((d: any) => {
 				if (d.encoding.color) {
 					d.encoding.color.scale.range = d.encoding.color.scale.range.map(
-						(_, i) => get_color(colors, i)
+						(_: any, i: any) => get_color(colors, i)
 					);
 				}
 			});
 			break;
 		case "bar":
 			spec.config.mark = { opacity: 0.8, fill: accentColor };
-			if (spec.encoding.color) {
-				spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
-					(_, i) => get_color(colors, i)
+			if (encoding.color) {
+				encoding.color.scale.range = encoding.color.scale.range.map(
+					(_: any, i: any) => get_color(colors, i)
 				);
 			}
 			break;

@@ -2,7 +2,7 @@
 	//@ts-nocheck
 	import { set_config } from "./altair_utils";
 	import { afterUpdate } from "svelte";
-	import type { Spec } from "vega-lite";
+	import type { TopLevelSpec as Spec } from "vega-lite";
 	import vegaEmbed from "vega-embed";
 
 	export let value;
