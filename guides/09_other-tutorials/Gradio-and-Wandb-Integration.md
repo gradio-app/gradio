@@ -50,7 +50,6 @@ Let's get started!
    Install Gradio and Wandb at the top:
 
    ```sh
-   
    pip install gradio wandb
    ```
 
@@ -185,8 +184,6 @@ Let's get started!
    
    plt.rcParams['figure.dpi'] = 150
    
-   
-   
    transform = transforms.Compose(
        [
            transforms.Resize((1024, 1024)),
@@ -194,7 +191,6 @@ Let's get started!
            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
        ]
    )
-   
    
    def inference(img):
        img.save('out.jpg')
@@ -204,7 +200,6 @@ Let's get started!
        with torch.no_grad():
            my_sample = generator(my_w, input_is_latent=True)
    
-   
        npimage = my_sample[0].cpu().permute(1, 2, 0).detach().numpy()
        imageio.imwrite('filename.jpeg', npimage)
        return 'filename.jpeg'
@@ -213,7 +208,6 @@ Let's get started!
 5. Build a Gradio Demo
 
    ```python
-   
    import gradio as gr
    
    title = "JoJoGAN"
@@ -254,7 +248,6 @@ Let's get started!
    The Report will need to be public and you will need to wrap the URL within an iFrame like this:
 
    ```python
-   
    import gradio as gr
    
    def wandb_report(url):
