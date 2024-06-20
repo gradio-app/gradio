@@ -1,6 +1,14 @@
 import type { Config as VegaConfig } from "vega";
+import { colors as color_palette } from "@gradio/theme";
+import { get_next_color } from "@gradio/utils";
+import type { Spec } from "vega-lite";
 
-export function create_config(computed_style: CSSStyleDeclaration): VegaConfig {
+export function set_config(
+	spec: Spec,
+	computed_style: CSSStyleDeclaration,
+	chart_type: string,
+	colors: string[]
+): Spec {
 	let accentColor = computed_style.getPropertyValue("--color-accent");
 	let bodyTextColor = computed_style.getPropertyValue("--body-text-color");
 	let borderColorPrimary = computed_style.getPropertyValue(
@@ -15,13 +23,8 @@ export function create_config(computed_style: CSSStyleDeclaration): VegaConfig {
 	};
 	let textSizeMd = fontToPxVal(computed_style.getPropertyValue("--text-md"));
 	let textSizeSm = fontToPxVal(computed_style.getPropertyValue("--text-sm"));
-	return {
+	let config: VegaConfig = {
 		autosize: { type: "fit", contains: "padding" },
-		mark: {
-			color: accentColor,
-			fillOpacity: 0.8,
-
-		},
 		axis: {
 			labelFont: fontFamily,
 			labelColor: bodyTextColor,
@@ -57,4 +60,52 @@ export function create_config(computed_style: CSSStyleDeclaration): VegaConfig {
 			stroke: borderColorPrimary
 		}
 	};
+	spec.config = config;
+	switch (chart_type) {
+		case "scatter":
+			spec.config.mark = { stroke: accentColor };
+			if (spec.encoding.color && spec.encoding.color.type == "nominal") {
+				spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
+					(e, i) => get_color(colors, i)
+				);
+			} else if (
+				spec.encoding.color &&
+				spec.encoding.color.type == "quantitative"
+			) {
+				spec.encoding.color.scale.range = ["#eff6ff", "#1e3a8a"];
+				spec.encoding.color.scale.range.interpolate = "hsl";
+			}
+			break;
+		case "line":
+			spec.config.mark = { stroke: accentColor };
+			spec.layer.forEach((d) => {
+				if (d.encoding.color) {
+					d.encoding.color.scale.range = d.encoding.color.scale.range.map(
+						(e, i) => get_color(colors, i)
+					);
+				}
+			});
+			break;
+		case "bar":
+			spec.config.mark = { opacity: 0.8, fill: accentColor };
+			if (spec.encoding.color) {
+				spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
+					(e, i) => get_color(colors, i)
+				);
+			}
+			break;
+	}
+	return spec;
+}
+
+function get_color(colors: string[], index: number): string {
+	let current_color = colors[index % colors.length];
+
+	if (current_color && current_color in color_palette) {
+		return color_palette[current_color as keyof typeof color_palette]?.primary;
+	} else if (!current_color) {
+		return color_palette[get_next_color(index) as keyof typeof color_palette]
+			.primary;
+	}
+	return current_color;
 }

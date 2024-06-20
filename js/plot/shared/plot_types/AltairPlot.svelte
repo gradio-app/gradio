@@ -1,8 +1,6 @@
 <script lang="ts">
 	//@ts-nocheck
-	import { colors as color_palette } from "@gradio/theme";
-	import { get_next_color } from "@gradio/utils";
-	import { create_config } from "./altair_utils";
+	import { set_config } from "./altair_utils";
 	import { afterUpdate } from "svelte";
 	import type { Spec } from "vega-lite";
 	import vegaEmbed from "vega-embed";
@@ -15,56 +13,12 @@
 	let element: HTMLElement;
 	let parent_element: HTMLElement;
 
-	function get_color(index: number): string {
-		let current_color = colors[index % colors.length];
-
-		if (current_color && current_color in color_palette) {
-			return color_palette[current_color as keyof typeof color_palette]
-				?.primary;
-		} else if (!current_color) {
-			return color_palette[get_next_color(index) as keyof typeof color_palette]
-				.primary;
-		}
-		return current_color;
-	}
 	let computed_style = window.getComputedStyle(target);
 
 	$: plot = value?.plot;
 	$: spec = JSON.parse(plot) as Spec;
 	$: if (value.chart) {
-		const config = create_config(computed_style);
-		spec.config = config;
-	}
-	$: switch (value.chart) {
-		case "scatter":
-			if (spec.encoding.color && spec.encoding.color.type == "nominal") {
-				spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
-					(e, i) => get_color(i)
-				);
-			} else if (
-				spec.encoding.color &&
-				spec.encoding.color.type == "quantitative"
-			) {
-				spec.encoding.color.scale.range = ["#eff6ff", "#1e3a8a"];
-				spec.encoding.color.scale.range.interpolate = "hsl";
-			}
-			break;
-		case "line":
-			spec.layer.forEach((d) => {
-				if (d.encoding.color) {
-					d.encoding.color.scale.range = d.encoding.color.scale.range.map(
-						(e, i) => get_color(i)
-					);
-				}
-			});
-			break;
-		case "bar":
-			if (spec.encoding.color) {
-				spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
-					(e, i) => get_color(i)
-				);
-			}
-			break;
+		spec = set_config(spec, computed_style, value.chart as string, colors);
 	}
 	$: fit_width_to_parent =
 		spec.encoding?.column?.field || spec.encoding?.row?.field ? false : true; // vega seems to glitch with width when orientation is set
