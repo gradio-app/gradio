@@ -24,8 +24,6 @@ def line_plot_fn(dataset):
             overlay_point=False,
             title="Stock Prices",
             stroke_dash_legend_title=None,
-            height=300,
-            width=500
         )
     elif dataset == "climate":
         return gr.LinePlot(
@@ -40,8 +38,6 @@ def line_plot_fn(dataset):
             overlay_point=False,
             title="Climate",
             stroke_dash_legend_title=None,
-            height=300,
-            width=500
         )
     elif dataset == "seattle_weather":
         return gr.LinePlot(
@@ -56,8 +52,6 @@ def line_plot_fn(dataset):
             overlay_point=True,
             title="Seattle Weather",
             stroke_dash_legend_title=None,
-            height=300,
-            width=500
         )
     elif dataset == "gapminder":
         return gr.LinePlot(
@@ -72,8 +66,6 @@ def line_plot_fn(dataset):
             overlay_point=False,
             title="Life expectancy for countries",
             stroke_dash_legend_title="Country Cluster",
-            height=300,
-            width=500
         )
 
 

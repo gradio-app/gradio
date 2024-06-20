@@ -18,6 +18,8 @@ def scatter_plot_fn(dataset):
             y_title="Petal Length",
             tooltip=["petalWidth", "petalLength", "species"],
             caption="",
+            height=600,
+            width=600,
         )
     else:
         return gr.ScatterPlot(
@@ -29,6 +31,8 @@ def scatter_plot_fn(dataset):
             title="Car Data",
             y_title="Miles per Gallon",
             caption="MPG vs Horsepower of various cars",
+            height=None,
+            width=None,
         )
 
 

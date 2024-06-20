@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document
@@ -77,8 +78,8 @@ class ScatterPlot(Plot):
             "none",
         ]
         | None = None,
-        height: int | str | None = None,
-        width: int | str | None = None,
+        height: int | None = None,
+        width: int | None = None,
         x_lim: list[int | float] | None = None,
         y_lim: list[int | float] | None = None,
         caption: str | None = None,
@@ -116,8 +117,8 @@ class ScatterPlot(Plot):
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             size_legend_position: The position of the size legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             shape_legend_position: The position of the shape legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
-            height: The height of the plot, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the plot, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels. If None, expands to fit.
             x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
@@ -151,6 +152,16 @@ class ScatterPlot(Plot):
         self.shape_legend_position = shape_legend_position
         self.caption = caption
         self.interactive_chart = interactive
+        if isinstance(width, str):
+            width = None
+            warnings.warn(
+                "Width should be an integer, not a string. Setting width to None."
+            )
+        if isinstance(height, str):
+            warnings.warn(
+                "Height should be an integer, not a string. Setting height to None."
+            )
+            height = None
         self.width = width
         self.height = height
         self.x_lim = x_lim

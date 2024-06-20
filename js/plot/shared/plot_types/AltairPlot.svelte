@@ -15,8 +15,17 @@
 
 	let computed_style = window.getComputedStyle(target);
 
+	let old_spec: Spec;
+	let spec_width: number;
 	$: plot = value?.plot;
 	$: spec = JSON.parse(plot) as Spec;
+	$: if (old_spec !== spec) {
+		console.log("spec changed");
+		old_spec = spec;
+		spec_width = spec.width;
+		console.log(spec_width);
+	}
+
 	$: if (value.chart) {
 		spec = set_config(spec, computed_style, value.chart as string, colors);
 	}
@@ -24,7 +33,12 @@
 		spec.encoding?.column?.field || spec.encoding?.row?.field ? false : true; // vega seems to glitch with width when orientation is set
 
 	const renderPlot = (): void => {
-		if (fit_width_to_parent) spec.width = parent_element.offsetWidth;
+		if (fit_width_to_parent) {
+			spec.width = Math.min(
+				parent_element.offsetWidth,
+				spec_width || parent_element.offsetWidth
+			);
+		}
 		vegaEmbed(element, spec, { actions: show_actions_button });
 	};
 	let resizeObserver = new ResizeObserver(() => {
