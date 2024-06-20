@@ -168,7 +168,7 @@ class Image(StreamingInput, Component):
             name = "image"
             suffix = "webp"
 
-        if suffix.lower() in "svg":
+        if suffix.lower() != "svg":
             return str(file_path)
 
         im = PIL.Image.open(file_path)
