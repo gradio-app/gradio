@@ -1,6 +1,7 @@
 import type { Config as VegaConfig } from "vega";
 
 export function create_config(computed_style: CSSStyleDeclaration): VegaConfig {
+	let accentColor = computed_style.getPropertyValue("--color-accent");
 	let bodyTextColor = computed_style.getPropertyValue("--body-text-color");
 	let borderColorPrimary = computed_style.getPropertyValue(
 		"--border-color-primary"
@@ -16,6 +17,11 @@ export function create_config(computed_style: CSSStyleDeclaration): VegaConfig {
 	let textSizeSm = fontToPxVal(computed_style.getPropertyValue("--text-sm"));
 	return {
 		autosize: { type: "fit", contains: "padding" },
+		mark: {
+			color: accentColor,
+			fillOpacity: 0.8,
+
+		},
 		axis: {
 			labelFont: fontFamily,
 			labelColor: bodyTextColor,
@@ -49,7 +55,6 @@ export function create_config(computed_style: CSSStyleDeclaration): VegaConfig {
 		},
 		view: {
 			stroke: borderColorPrimary
-		},
-		header: { labelFont: computed_style.fontFamily, labelColor: bodyTextColor }
+		}
 	};
 }

@@ -184,11 +184,7 @@ class BarPlot(Plot):
         import altair as alt
 
         interactive = True if interactive is None else interactive
-        orientation = (
-            {"field": group, "title": group_title if group_title is not None else group}
-            if group
-            else {}
-        )
+        orientation = {"field": group, "title": group_title} if group else {}
 
         x_title = x_title or x
         y_title = y_title or y

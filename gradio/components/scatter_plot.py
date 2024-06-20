@@ -291,7 +291,7 @@ class ScatterPlot(Plot):
                 "field": size,
                 "type": "quantitative" if is_numeric_dtype(value[size]) else "nominal",
                 "legend": AltairPlot.create_legend(
-                    position=size_legend_position, title=size_legend_title or size
+                    position=size_legend_position, title=size_legend_title
                 ),
             }
         if shape:
@@ -299,7 +299,7 @@ class ScatterPlot(Plot):
                 "field": shape,
                 "type": "quantitative" if is_numeric_dtype(value[shape]) else "nominal",
                 "legend": AltairPlot.create_legend(
-                    position=shape_legend_position, title=shape_legend_title or shape
+                    position=shape_legend_position, title=shape_legend_title
                 ),
             }
         chart = (
