@@ -20,6 +20,27 @@
 gradio.Dataset(···)
 ```
 
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+with gr.Blocks() as demo:
+    gr.Dataset(components=[gr.Textbox(visible=False)],
+        label="Text Dataset",
+        samples=[
+            ["The quick brown fox jumps over the lazy dog"],
+            ["Build & share delightful machine learning apps"],
+            ["She sells seashells by the seashore"],
+            ["Supercalifragilisticexpialidocious"],
+            ["Lorem ipsum"],
+            ["That's all folks!"]
+        ],
+    )
+demo.launch()
+</gradio-lite>
+</div>
+
+
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}
@@ -65,6 +86,40 @@ def predict(···) -> list[list]
 <DemosSection demos={obj.demos} />
 {/if}
 
+### Examples
+
+**Updating a Dataset**
+
+In this example, we display a text dataset using `gr.Dataset` and then update it when the user clicks a button:
+
+```py
+import gradio as gr
+
+philosophy_quotes = [
+    ["I think therefore I am."],
+    ["The unexamined life is not worth living."]
+]
+
+startup_quotes = [
+    ["Ideas are easy. Implementation is hard"],
+    ["Make mistakes faster."]
+]
+
+def show_startup_quotes():
+    return gr.Dataset(samples=startup_quotes)
+
+with gr.Blocks() as demo:
+    textbox = gr.Textbox()
+    dataset = gr.Dataset(components=[textbox], samples=philosophy_quotes)
+    button = gr.Button()
+
+    button.click(show_startup_quotes, None, dataset)
+
+demo.launch()
+```
+
+
+
 {#if obj.fns && obj.fns.length > 0}
 <!--- Event Listeners -->
 ### Event Listeners 
@@ -76,3 +131,4 @@ def predict(···) -> list[list]
 ### Guides
 <GuidesSection guides={obj.guides}/>
 {/if}
+

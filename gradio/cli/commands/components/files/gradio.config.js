@@ -3,4 +3,7 @@ export default {
   svelte: {
     preprocess: [],
   },
+  build: {
+    target: "modules",
+  },
 };

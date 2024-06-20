@@ -7,6 +7,7 @@ import asyncio
 import contextlib
 import math
 import sys
+import warnings
 
 if sys.version_info >= (3, 9):
     from importlib.resources import files
@@ -76,7 +77,6 @@ from gradio.data_classes import (
     ResetBody,
     SimplePredictBody,
 )
-from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.route_utils import (  # noqa: F401
     CustomCORSMiddleware,
@@ -165,7 +165,7 @@ class App(FastAPI):
         self.tokens = {}
         self.auth = None
         self.analytics_key = secrets.token_urlsafe(16)
-        self.analytics_enabled = False
+        self.monitoring_enabled = False
         self.blocks: gradio.Blocks | None = None
         self.state_holder = StateHolder()
         self.iterators: dict[str, AsyncIterator] = {}
@@ -382,7 +382,7 @@ class App(FastAPI):
                 request=request, route_path="/", root_path=app.root_path
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
-                config = app.get_blocks().config
+                config = blocks.config
                 config = route_utils.update_root_in_config(config, root)
             elif app.auth_dependency:
                 raise HTTPException(
@@ -392,7 +392,7 @@ class App(FastAPI):
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
-                    "space_id": app.get_blocks().space_id,
+                    "space_id": blocks.space_id,
                     "root": root,
                 }
 
@@ -400,9 +400,14 @@ class App(FastAPI):
                 template = (
                     "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
+                gradio_api_info = api_info(False)
                 return templates.TemplateResponse(
                     template,
-                    {"request": request, "config": config},
+                    {
+                        "request": request,
+                        "config": config,
+                        "gradio_api_info": gradio_api_info,
+                    },
                 )
             except TemplateNotFound as err:
                 if blocks.share:
@@ -737,10 +742,10 @@ class App(FastAPI):
                     root_path=root_path,
                 )
             except BaseException as error:
-                show_error = app.get_blocks().show_error or isinstance(error, Error)
+                content = utils.error_payload(error, app.get_blocks().show_error)
                 traceback.print_exc()
                 return JSONResponse(
-                    content={"error": str(error) if show_error else None},
+                    content=content,
                     status_code=500,
                 )
             return output
@@ -1167,26 +1172,28 @@ class App(FastAPI):
             else:
                 return "User-agent: *\nDisallow: "
 
-        @app.get("/monitoring")
-        async def analytics_login():
-            print(
-                f"Monitoring URL: {app.get_blocks().local_url}monitoring/{app.analytics_key}"
+        @app.get("/monitoring", dependencies=[Depends(login_check)])
+        async def analytics_login(request: fastapi.Request):
+            root_url = route_utils.get_root_url(
+                request=request, route_path="/monitoring", root_path=app.root_path
             )
+            monitoring_url = f"{root_url}/monitoring/{app.analytics_key}"
+            print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
         @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if key == app.analytics_key:
                 analytics_url = f"/monitoring/{app.analytics_key}/dashboard"
-                if not app.analytics_enabled:
-                    from gradio.analytics_dashboard import data
-                    from gradio.analytics_dashboard import demo as dashboard
+                if not app.monitoring_enabled:
+                    from gradio.monitoring_dashboard import data
+                    from gradio.monitoring_dashboard import demo as dashboard
 
                     mount_gradio_app(app, dashboard, path=analytics_url)
                     dashboard._queue.start()
                     analytics = app.get_blocks()._queue.event_analytics
                     data["data"] = analytics
-                    app.analytics_enabled = True
+                    app.monitoring_enabled = True
                 return RedirectResponse(
                     url=analytics_url, status_code=status.HTTP_302_FOUND
                 )
@@ -1286,6 +1293,12 @@ def mount_gradio_app(
         app = gr.mount_gradio_app(app, io, path="/gradio")
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
+    if favicon_path is not None and path != "/":
+        warnings.warn(
+            "The 'favicon_path' parameter is set but will be ignored because 'path' is not '/'. "
+            "Please add the favicon directly to your FastAPI app."
+        )
+
     blocks.dev_mode = False
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()

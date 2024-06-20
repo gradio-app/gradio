@@ -64,12 +64,13 @@ def create_events_matrix():
     component_events = {}
     for component in docs["component"]:
         component_event_list = []
-        for event in component["class"].EVENTS:
-            events.add(event)
-            for fn in component["fns"]:
-                if event == fn["name"]:
-                    component_event_list.append(event)
-        component_events[component["name"]] = component_event_list
+        if hasattr(component["class"], 'EVENTS'):
+            for event in component["class"].EVENTS:
+                events.add(event)
+                for fn in component["fns"]:
+                    if event == fn["name"]:
+                        component_event_list.append(event)
+            component_events[component["name"]] = component_event_list
     
     
     return list(events), component_events
@@ -182,6 +183,12 @@ def organize_docs(d):
         if page_name.lower().endswith(".svx"):
             page_name = page_name[:-4]
         pretty_page_name = " ".join([word[0].upper() + word[1:] for word in page_name.split("-")])
+        for library in organized:
+            for category in organized[library]:
+                if page_name in organized[library][category]:
+                    return index, page_name, organized[library][category][page_name]["name"], page_path
+        if page_name == "chatinterface": 
+            pretty_page_name =  "ChatInterface"              
         return index, page_name, pretty_page_name, page_path
     
     

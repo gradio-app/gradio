@@ -1352,7 +1352,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
 
             root_context.blocks.update(self.blocks)
-            dependency_offset = len(root_context.fns)
+            dependency_offset = max(root_context.fns.keys(), default=-1) + 1
             existing_api_names = [
                 dep.api_name
                 for dep in root_context.fns.values()
@@ -1379,8 +1379,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         root_context.fns[i].get_config() for i in dependency.cancels
                     ]
                     dependency.cancels = get_cancelled_fn_indices(updated_cancels)
-                root_context.fns[root_context.fn_id] = dependency
-                root_context.fn_id += 1
+                root_context.fns[dependency._id] = dependency
+            root_context.fn_id = max(root_context.fns.keys(), default=-1) + 1
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
             Context.root_block.proxy_urls.update(self.proxy_urls)
 
@@ -1723,12 +1723,12 @@ Received outputs:
                 ) from err
 
             if block.stateful:
-                if not utils.is_update(predictions[i]):
+                if not utils.is_prop_update(predictions[i]):
                     state[block._id] = predictions[i]
                 output.append(None)
             else:
                 prediction_value = predictions[i]
-                if utils.is_update(
+                if utils.is_prop_update(
                     prediction_value
                 ):  # if update is passed directly (deprecated), remove Nones
                     prediction_value = utils.delete_none(
@@ -1738,7 +1738,7 @@ Received outputs:
                 if isinstance(prediction_value, Block):
                     prediction_value = prediction_value.constructor_args.copy()
                     prediction_value["__type__"] = "update"
-                if utils.is_update(prediction_value):
+                if utils.is_prop_update(prediction_value):
                     kwargs = state[block._id].constructor_args.copy()
                     kwargs.update(prediction_value)
                     kwargs.pop("value", None)
