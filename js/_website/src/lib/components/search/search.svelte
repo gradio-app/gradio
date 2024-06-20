@@ -3,6 +3,7 @@
 	import Search_Icon from "./search-icon.svelte"
 	import { onNavigate } from '$app/navigation'
 	import type { Result } from './search'
+	import { browser } from '$app/environment';
 
 	let search: 'idle' | 'load' | 'ready' = 'idle';
 	let search_term = '';
@@ -40,9 +41,23 @@
 	let search_button_elem: HTMLElement;
 
 	function focus_input(el){
-    	el.focus()
+    	el.focus();
   	}
+
 	
+	function get_os() { 
+		if (navigator.userAgentData && navigator.userAgentData.platform) {
+			return navigator.userAgentData.platform;
+		} else {
+			return navigator.userAgent;
+		}
+	}
+	let meta_key = "⌘";
+
+	$: if (browser && navigator) {
+		let os = get_os();
+		meta_key = os.includes("Mac") || os.includes("mac") ? '⌘' : 'CTRL+';
+	}
 </script>
 
 <svelte:window
@@ -94,7 +109,7 @@
 	<span class="pl-1 pr-5">Search</span>
 	<div class="shortcut">
 		<div class="text-sm">
-			⌘K
+			{meta_key}K
 		</div>
 	</div>
 </button>
@@ -103,7 +118,11 @@
 		<div class="overlay" />
 		<div class="content" bind:this={content_elem}>
 			<div class="search-bar">
-				<Search_Icon />
+				{#if search === 'load'}
+					<div class="loader"></div>
+				{:else}
+					<Search_Icon />
+				{/if}
 				<input
 					bind:value={search_term}
 					placeholder="What are you searching for?"
@@ -125,9 +144,6 @@
 				</button>
 			</div>
 			<div class="results">
-				{#if search === 'load'}
-					<p>Loading...</p>
-				{/if}
 
 				{#if results.length}
 					<ul>
@@ -158,7 +174,11 @@
 					</ul>
 				{:else}
 					{#if search_term}
-						<p class="mx-auto w-fit text-gray-500">No results found. Try using a different term.</p>
+						{#if search === 'load'}
+							<p class="mx-auto w-fit text-gray-500">Searching for results...</p>
+						{:else}
+							<p class="mx-auto w-fit text-gray-500">No results found. Try using a different term.</p>
+						{/if}
 					{/if}
 					<ul>
 							<p class="">Suggestions</p>
@@ -282,6 +302,20 @@
 	}
 	:global(.res-block) {
 		@apply m-2 p-2 border border-gray-100 rounded-md bg-gray-50 hover:bg-gray-100 hover:scale-[1.01] focus:bg-gray-100 focus:scale-[1.01] focus:outline-none
+	}
+
+	.loader {
+		border: 1px solid #d0cfcf;
+		border-top: 2px solid #475469;
+		border-radius: 50%;
+		width: 15px;
+		height: 15px;
+		animation: s-lcTayn5ERs17-spin 1.2s linear infinite;
+	}
+
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
 	}
 
 </style>
