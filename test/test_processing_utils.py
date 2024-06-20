@@ -126,6 +126,14 @@ class TestImagePreprocessing:
 
         assert output_img.info == input_img.info
 
+    def test_save_pil_to_file_keeps_all_gif_frames(self, gradio_temp_dir):
+        input_img = Image.open("gradio/test_data/rectangles.gif")
+        file_obj = processing_utils.save_pil_to_cache(
+            input_img, cache_dir=gradio_temp_dir, format="gif"
+        )
+        output_img = Image.open(file_obj)
+        assert output_img.n_frames == input_img.n_frames == 3
+
     def test_np_pil_encode_to_the_same(self, gradio_temp_dir):
         arr = np.random.randint(0, 255, size=(100, 100, 3), dtype=np.uint8)
         pil = Image.fromarray(arr)
