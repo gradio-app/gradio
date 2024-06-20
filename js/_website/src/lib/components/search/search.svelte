@@ -56,6 +56,24 @@
 		if (e.key === 'Escape') {
 			open = false;
 		}
+		if ((e.key === "ArrowUp" || e.key === "ArrowDown") && open) {
+			e.preventDefault();
+			const current = document.activeElement
+			const items =  [...document.getElementsByClassName('res-block')]
+			const current_index = items.indexOf(current)
+			let new_index
+			if (current_index === -1) {
+            new_index = 0
+			} else {
+				if (e.key === "ArrowUp") {
+					new_index = (current_index + items.length - 1) % items.length
+				} else {
+					new_index = (current_index + 1) % items.length
+				}
+			}
+			current.blur()
+			items[new_index].focus()
+		}
 		
 	}}
 	on:click={(e) => {
@@ -263,6 +281,7 @@
 		@apply text-gray-500
 	}
 	:global(.res-block) {
-		@apply m-2 p-2 border border-gray-100 rounded-md bg-gray-50 hover:bg-gray-100 hover:scale-[1.01]
+		@apply m-2 p-2 border border-gray-100 rounded-md bg-gray-50 hover:bg-gray-100 hover:scale-[1.01] focus:bg-gray-100 focus:scale-[1.01] focus:outline-none
 	}
+
 </style>
