@@ -3,7 +3,6 @@
 	import { Plot as PlotIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 	import type { ThemeMode } from "js/app/src/components/types";
-	import { beforeUpdate } from "svelte";
 
 	export let value;
 	export let target: HTMLElement;
@@ -14,6 +13,7 @@
 	export let show_actions_button: bool;
 
 	let PlotComponent: any = null;
+	let _type = value?.type;
 
 	const plotTypeMapping = {
 		plotly: () => import("./plot_types/PlotlyPlot.svelte"),
@@ -22,13 +22,17 @@
 		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte")
 	};
 
-	beforeUpdate(async () => {
+	$: {
 		let type = value?.type;
-		if (type && type in plotTypeMapping) {
-			const module = await plotTypeMapping[type]();
-			PlotComponent = module.default;
+		if (type !== _type) {
+			PlotComponent = null;
 		}
-	});
+		if (type && type in plotTypeMapping) {
+			plotTypeMapping[type]().then((module) => {
+				PlotComponent = module.default;
+			});
+		}
+	}
 </script>
 
 {#if value && PlotComponent}
