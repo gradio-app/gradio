@@ -41,6 +41,9 @@
 	args={{
 		value: line_plot
 	}}
+	parameters={{
+		chromatic: { delay: 1000  }
+	}}
 />
 
 <Story
@@ -48,12 +51,28 @@
 	args={{
 		value: multi_line_plot
 	}}
+	parameters={{
+		chromatic: { delay: 1000  }
+	}}
 />
 
 <Story
 	name="with scatter plot value"
 	args={{
 		value: scatter_plot
+	}}
+	parameters={{
+		chromatic: { delay: 1000  }
+	}}
+/>
+
+<Story
+	name="with bar plot value"
+	args={{
+		value: bar_plot
+	}}
+	parameters={{
+		chromatic: { delay: 1000  }
 	}}
 />
 
