@@ -493,6 +493,7 @@
 	.message-row.panel.bot-row {
 		align-self: flex-start;
 		background: var(--background-fill-secondary);
+		width: calc(100% - var(--spacing-xl) * 4);
 	}
 
 	.message-row:last-of-type {
@@ -513,7 +514,7 @@
 			align-self: flex-start;
 		}
 		.message {
-			width: auto;
+			width: 100%;
 		}
 
 		.panel-full-width {
@@ -636,6 +637,9 @@
 		height: 100%;
 		overflow: auto;
 		background-color: rgba(0, 0, 0, 0.9);
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 
 	.image-preview :global(svg) {
@@ -684,11 +688,16 @@
 
 	@media (max-width: 600px) or (max-width: 480px) {
 		.component {
-			width: 100% !important;
+			max-width: calc(100% - var(--spacing-xl) * 3);
+			width: 100%;
 		}
 	}
 
 	:global(.prose.chatbot.md) {
 		opacity: 0.8;
+	}
+
+	.message > button {
+		width: 100%;
 	}
 </style>

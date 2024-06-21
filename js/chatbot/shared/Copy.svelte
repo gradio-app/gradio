@@ -73,7 +73,7 @@
 	}
 
 	.action {
-		width: 15px;
-		height: 14px;
+		width: 12px;
+		height: 12px;
 	}
 </style>

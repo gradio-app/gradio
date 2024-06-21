@@ -3,7 +3,7 @@
 	import Copy from "./Copy.svelte";
 	import type { FileData } from "@gradio/client";
 	import { IconButton } from "@gradio/atoms";
-	import DownloadIcon from "./DownloadIcon.svelte";
+	import DownloadIcon from "./Download.svelte";
 	import { DownloadLink } from "@gradio/wasm/svelte";
 	// import DownloadIcon from "./DownloadIcon.svelte";
 
@@ -53,8 +53,8 @@
 
 <style>
 	.icon-wrap {
-		width: 16px;
-		height: 16px;
+		width: 12px;
+		height: 12px;
 		display: block;
 		color: var(--body-text-color-subdued);
 	}
@@ -107,6 +107,10 @@
 		display: flex;
 		justify-content: flex-start;
 		align-items: center;
-		gap: 5px;
+		gap: 0px;
+	}
+
+	.message-buttons-panel :global(> *) {
+		margin-right: 7px;
 	}
 </style>

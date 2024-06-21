@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { Like } from "@gradio/icons";
 	import { Dislike } from "@gradio/icons";
-	import ThumbDownIcon from "./ThumbDownIcon.svelte";
-	import ThumbUpIcon from "./ThumbUpIcon.svelte";
+	import ThumbDownActive from "./ThumbDownActive.svelte";
+	import ThumbDownDefault from "./ThumbDownDefault.svelte";
+	import ThumbUpActive from "./ThumbUpActive.svelte";
+	import ThumbUpDefault from "./ThumbUpDefault.svelte";
 
 	export let handle_action: (selected: string | null) => void;
 	export let padded = false;
@@ -18,9 +20,15 @@
 	aria-label={selected === "dislike" ? "clicked dislike" : "dislike"}
 	class:padded
 	class:selected={selected === "dislike"}
+	class="dislike-button"
 >
 	<span>
-		<ThumbDownIcon />
+		{#if selected === "dislike"}
+			<ThumbDownActive />
+		{:else}
+			<ThumbDownDefault />
+		{/if}
+		<!-- <ThumbDownDefault /> -->
 	</span>
 </button>
 
@@ -35,7 +43,12 @@
 	class:selected={selected === "like"}
 >
 	<span>
-		<ThumbUpIcon />
+		{#if selected === "like"}
+			<ThumbUpActive />
+		{:else}
+			<ThumbUpDefault />
+		{/if}
+		<!-- <ThumbUpDefault /> -->
 	</span>
 </button>
 
@@ -47,12 +60,13 @@
 		align-items: center;
 		justify-content: center;
 		/* transform: translateX(-10px); */
+		margin-right: 7px !important;
 	}
 
 	span {
 		display: inline-block;
-		width: 15px;
-		height: 15px;
+		/* width: 15px;
+		height: 15px; */
 	}
 
 	button:hover,
@@ -64,5 +78,13 @@
 	.selected:focus,
 	.selected:hover {
 		color: var(--color-accent);
+	}
+
+	.like-button {
+		transform: translateY(0px);
+	}
+
+	.dislike-button {
+		/* transform: translateY(1px); */
 	}
 </style>
