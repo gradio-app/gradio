@@ -1181,7 +1181,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         with Blocks(theme=theme) as blocks:
             # ID 0 should be the root Blocks component
-            original_mapping[0] = Context.root_block or blocks
+            original_mapping[0] = root_block = Context.root_block or blocks
 
             iterate_over_children(config["layout"]["children"])
 
@@ -1256,7 +1256,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         )
                         for t in targets
                     ]
-                dependency = blocks.default_config.set_event_trigger(
+                dependency = root_block.default_config.set_event_trigger(
                     targets=targets, fn=fn, **dependency
                 )[0]
                 if first_dependency is None:

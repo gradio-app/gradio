@@ -58,14 +58,12 @@ Let's get started!
    This next step will open a W&B dashboard to track your experiments and a gradio panel showing pretrained models to choose from a drop down menu from a Gradio Demo hosted on Huggingface Spaces. Here's the code you need for that:
 
    ```python
-
    alpha =  1.0
    alpha = 1-alpha
 
    preserve_color = True
    num_iter = 100
    log_interval = 50
-
 
    samples = []
    column_names = ["Reference (y)", "Style Code(w)", "Real Face Image(x)"]
@@ -107,7 +105,6 @@ Let's get started!
        fake_feat = discriminator(img)
 
        loss = sum([F.l1_loss(a, b) for a, b in zip(fake_feat, real_feat)])/len(fake_feat)
-
 
        wandb.log({"loss": loss}, step=idx)
        if idx % log_interval == 0:

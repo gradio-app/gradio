@@ -370,6 +370,7 @@ export function process_frontend_fn(
 		return new AsyncFunction(
 			"__fn_args",
 			`  let result = await (${source})(...__fn_args);
+  if (typeof result === "undefined") return [];
   return (${wrap} && !Array.isArray(result)) ? [result] : result;`
 		);
 	} catch (e) {

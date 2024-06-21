@@ -265,6 +265,10 @@
 								class:component={typeof message === "object" &&
 									message !== null &&
 									"component" in message}
+								class:html={typeof message === "object" &&
+									message !== null &&
+									"component" in message &&
+									message.component === "html"}
 							>
 								<button
 									data-testid={j == 0 ? "user" : "bot"}
@@ -418,7 +422,6 @@
 		color: var(--body-text-color);
 		font-size: var(--chatbot-body-text-size);
 		overflow-wrap: break-word;
-		overflow-x: hidden;
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		padding: var(--spacing-md) var(--spacing-xxl);
 	}
@@ -699,5 +702,10 @@
 
 	.message > button {
 		width: 100%;
+	}
+	.html {
+		padding: 0;
+		border: none;
+		background: none;
 	}
 </style>
