@@ -305,6 +305,7 @@
 	}
 
 	textarea {
+		flex-grow: 1;
 		outline: none !important;
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
@@ -347,6 +348,7 @@
 		border-radius: 50%;
 		width: 30px;
 		height: 30px;
+		flex-shrink: 0;
 	}
 
 	.upload-button:hover,
