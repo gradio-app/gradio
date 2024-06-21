@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { Like } from "@gradio/icons";
-	import { Dislike } from "@gradio/icons";
 	import ThumbDownActive from "./ThumbDownActive.svelte";
 	import ThumbDownDefault from "./ThumbDownDefault.svelte";
 	import ThumbUpActive from "./ThumbUpActive.svelte";

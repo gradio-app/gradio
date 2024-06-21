@@ -19,7 +19,7 @@
 		plotly: () => import("./plot_types/PlotlyPlot.svelte"),
 		bokeh: () => import("./plot_types/BokehPlot.svelte"),
 		altair: () => import("./plot_types/AltairPlot.svelte"),
-		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte")
+		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte"),
 	};
 
 	$: {
@@ -45,6 +45,7 @@
 		{caption}
 		{bokeh_version}
 		{show_actions_button}
+		on:load
 	/>
 {:else}
 	<Empty unpadded_box={true} size="large"><PlotIcon /></Empty>

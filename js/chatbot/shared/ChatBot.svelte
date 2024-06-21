@@ -8,7 +8,8 @@
 		afterUpdate,
 		createEventDispatcher,
 		type SvelteComponent,
-		type ComponentType
+		type ComponentType,
+		tick,
 	} from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import { Image } from "@gradio/image/shared";
@@ -118,7 +119,7 @@
 
 		document.body.style.setProperty(
 			"--chatbot-body-text-size",
-			updated_text_size + "px"
+			updated_text_size + "px",
 		);
 	};
 
@@ -135,25 +136,22 @@
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
 	});
 
-	const scroll = (): void => {
-		if (autoscroll) {
-			div.scrollTo(0, div.scrollHeight);
-		}
-	};
+	async function scroll(): Promise<void> {
+		await tick();
+		requestAnimationFrame(() => {
+			if (autoscroll) {
+				div.scrollTo(0, div.scrollHeight);
+			}
+		});
+	}
 
 	let image_preview_source: string;
 	let image_preview_source_alt: string;
 	let is_image_preview_open = false;
-	let image_preview_close_button: HTMLButtonElement;
 
 	afterUpdate(() => {
 		if (autoscroll || _components) {
 			scroll();
-			div.querySelectorAll("img").forEach((n) => {
-				n.addEventListener("load", () => {
-					scroll();
-				});
-			});
 		}
 		div.querySelectorAll("img").forEach((n) => {
 			n.addEventListener("click", (e) => {
@@ -177,11 +175,11 @@
 	function handle_select(
 		i: number,
 		j: number,
-		message: NormalisedMessage
+		message: NormalisedMessage,
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message
+			value: message,
 		});
 	}
 
@@ -189,12 +187,12 @@
 		i: number,
 		j: number,
 		message: NormalisedMessage,
-		selected: string | null
+		selected: string | null,
 	): void {
 		dispatch("like", {
 			index: [i, j],
 			value: message,
-			liked: selected === "like"
+			liked: selected === "like",
 		});
 	}
 </script>
@@ -231,7 +229,6 @@
 									alt={image_preview_source_alt}
 								/>
 								<button
-									bind:this={image_preview_close_button}
 									class="image-preview-close-button"
 									on:click={() => {
 										is_image_preview_open = false;
@@ -318,6 +315,7 @@
 											{i18n}
 											{upload}
 											{_fetch}
+											on:load={scroll}
 										/>
 									{:else if message.type === "component" && message.component === "file"}
 										<a

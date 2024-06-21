@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { Music } from "@gradio/icons";
 	import { format_time, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
@@ -17,7 +17,7 @@
 	export let i18n: I18nFormatter;
 	export let dispatch_blob: (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording"
+		event: "stream" | "change" | "stop_recording",
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
 	export let editable = true;
@@ -45,12 +45,13 @@
 		pause: undefined;
 		edit: undefined;
 		end: undefined;
+		load: undefined;
 	}>();
 
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
-			...waveform_settings
+			...waveform_settings,
 		});
 		resolve_wasm_src(value?.url).then((resolved_src) => {
 			if (resolved_src && waveform) {
@@ -74,7 +75,7 @@
 	$: waveform?.on(
 		"timeupdate",
 		(currentTime: any) =>
-			timeRef && (timeRef.textContent = format_time(currentTime))
+			timeRef && (timeRef.textContent = format_time(currentTime)),
 	);
 
 	$: waveform?.on("ready", () => {
@@ -98,9 +99,13 @@
 		dispatch("play");
 	});
 
+	$: waveform?.on("load", () => {
+		dispatch("load");
+	});
+
 	const handle_trim_audio = async (
 		start: number,
-		end: number
+		end: number,
 	): Promise<void> => {
 		mode = "";
 		const decodedData = waveform?.getDecodedData();
@@ -109,7 +114,7 @@
 				decodedData,
 				start,
 				end,
-				waveform_settings.sampleRate
+				waveform_settings.sampleRate,
 			).then(async (trimmedBlob: Uint8Array) => {
 				await dispatch_blob([trimmedBlob], "change");
 				waveform?.destroy();
@@ -149,6 +154,7 @@
 		src={value.url}
 		controls
 		autoplay={waveform_settings.autoplay}
+		on:load
 	/>
 {:else}
 	<div

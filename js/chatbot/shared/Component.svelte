@@ -22,6 +22,7 @@
 		interactive={false}
 		mode="minimal"
 		fixed_height={1}
+		on:load
 	/>
 {:else if type === "plot"}
 	<svelte:component
@@ -32,6 +33,7 @@
 		bokeh_version={props.bokeh_version}
 		caption=""
 		show_actions_button={true}
+		on:load
 	/>
 {:else if type === "audio"}
 	<svelte:component
@@ -44,6 +46,7 @@
 		waveform_settings={{}}
 		waveform_options={{}}
 		show_download_button={false}
+		on:load
 	/>
 {:else if type === "video"}
 	<svelte:component
@@ -55,6 +58,7 @@
 		{i18n}
 		{upload}
 		show_download_button={false}
+		on:load
 	>
 		<track kind="captions" />
 	</svelte:component>
@@ -65,6 +69,7 @@
 		show_label={false}
 		label="chatbot-image"
 		show_download_button={false}
+		on:load
 		{i18n}
 	/>
 {:else if type === "html"}
@@ -76,5 +81,6 @@
 		show_share_button={true}
 		{i18n}
 		gradio={{ dispatch: () => {} }}
+		on:load
 	/>
 {/if}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
-	import { afterUpdate, tick } from "svelte";
+	import { afterUpdate, onMount, createEventDispatcher } from "svelte";
 
 	export let value;
 	export let target;
@@ -10,6 +10,8 @@
 
 	let plot_div;
 	let plotly_global_style;
+
+	const dispatch = createEventDispatcher<{ load: undefined }>();
 
 	function load_plotly_css(): void {
 		if (!plotly_global_style) {
@@ -36,10 +38,21 @@
 		plotObj.layout.title
 			? (plotObj.layout.margin = { autoexpand: true })
 			: (plotObj.layout.margin = { l: 0, r: 0, b: 0, t: 0 });
-		Plotly.react(plot_div, plotObj.data, plotObj.layout, plotObj.config);
+		const _plot = Plotly.react(
+			plot_div,
+			plotObj.data,
+			plotObj.layout,
+			plotObj.config,
+		);
 
 		Plotly.Plots.resize(plot_div);
+
+		plot_div.on("plotly_afterplot", () => {
+			dispatch("load");
+		});
 	});
+
+	onMount(() => {});
 </script>
 
 <div data-testid={"plotly"} bind:this={plot_div} />
