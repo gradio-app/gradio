@@ -1,6 +1,7 @@
 import { getWorkerProxyContext } from "./context";
 import { is_self_host } from "../network/host";
 import { getHeaderValue } from "../src/http";
+import type { WorkerProxy } from "../dist";
 
 type MediaSrc = string | undefined | null;
 
@@ -22,7 +23,7 @@ export function should_proxy_wasm_src(src: MediaSrc): boolean {
 	return true;
 }
 
-let maybeWorkerProxy: any;
+let maybeWorkerProxy: WorkerProxy | undefined;
 
 export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
 	if (src == null || !should_proxy_wasm_src(src)) {
