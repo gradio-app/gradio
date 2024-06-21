@@ -50,7 +50,7 @@
 			? null
 			: value.map((data) => ({
 					image: data.image as FileData,
-					caption: data.caption,
+					caption: data.caption
 				}));
 
 	let prev_value: GalleryData | null = value;
@@ -120,7 +120,7 @@
 			if (selected_index !== null) {
 				dispatch("select", {
 					index: selected_index,
-					value: resolved_value?.[selected_index],
+					value: resolved_value?.[selected_index]
 				});
 			}
 		}
@@ -156,7 +156,7 @@
 		if (container_element && typeof container_element.scrollTo === "function") {
 			container_element.scrollTo({
 				left: pos < 0 ? 0 : pos,
-				behavior: "smooth",
+				behavior: "smooth"
 			});
 		}
 	}
