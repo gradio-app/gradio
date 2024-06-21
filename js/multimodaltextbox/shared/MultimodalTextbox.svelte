@@ -204,6 +204,42 @@
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	{#if value.files.length > 0 || uploading}
+		<div
+			class="thumbnails scroll-hide"
+			data-testid="container_el"
+			style="display: {value.files.length > 0 || uploading ? 'flex' : 'none'};"
+		>
+			{#each value.files as file, index}
+				<button class="thumbnail-item thumbnail-small">
+					<button
+						class:disabled
+						class="delete-button"
+						on:click={(event) => remove_thumbnail(event, index)}
+						><Clear /></button
+					>
+					{#if file.mime_type && file.mime_type.includes("image")}
+						<Image
+							src={file.url}
+							title={null}
+							alt=""
+							loading="lazy"
+							class={"thumbnail-image"}
+						/>
+					{:else if file.mime_type && file.mime_type.includes("audio")}
+						<Music />
+					{:else if file.mime_type && file.mime_type.includes("video")}
+						<Video />
+					{:else}
+						<File />
+					{/if}
+				</button>
+			{/each}
+			{#if uploading}
+				<div class="loader"></div>
+			{/if}
+		</div>
+	{/if}
 	<div class="input-container">
 		<Upload
 			bind:this={upload_component}
@@ -217,99 +253,58 @@
 			disable_click={true}
 			bind:hidden_upload
 			on:error
+			hidden={true}
 			{upload}
 			{stream_handler}
+		></Upload>
+		<button
+			data-testid="upload-button"
+			class="upload-button"
+			on:click={handle_upload_click}><Paperclip /></button
 		>
-			{#if submit_btn !== null}
-				<button class:disabled class="submit-button" on:click={handle_submit}
-					>{submit_btn}</button
-				>
-			{:else}
-				<button class:disabled class="submit-button" on:click={handle_submit}
-					><Send /></button
-				>
-			{/if}
-			<button
-				data-testid="upload-button"
-				class="upload-button"
-				on:click={handle_upload_click}><Paperclip /></button
+		<textarea
+			data-testid="textbox"
+			use:text_area_resize={{
+				text: value.text,
+				lines: lines,
+				max_lines: max_lines
+			}}
+			class="scroll-hide"
+			dir={rtl ? "rtl" : "ltr"}
+			bind:value={value.text}
+			bind:this={el}
+			{placeholder}
+			rows={lines}
+			{disabled}
+			{autofocus}
+			on:keypress={handle_keypress}
+			on:blur
+			on:select={handle_select}
+			on:focus
+			on:scroll={handle_scroll}
+			on:paste={handle_paste}
+			style={text_align ? "text-align: " + text_align : ""}
+		/>
+		{#if submit_btn !== null}
+			<button class:disabled class="submit-button" on:click={handle_submit}
+				>{submit_btn}</button
 			>
-			{#if value.files.length > 0 || uploading}
-				<div
-					class="thumbnails scroll-hide"
-					data-testid="container_el"
-					style="display: {value.files.length > 0 || uploading
-						? 'flex'
-						: 'none'};"
-				>
-					{#each value.files as file, index}
-						<button class="thumbnail-item thumbnail-small">
-							<button
-								class:disabled
-								class="delete-button"
-								on:click={(event) => remove_thumbnail(event, index)}
-								><Clear /></button
-							>
-							{#if file.mime_type && file.mime_type.includes("image")}
-								<Image
-									src={file.url}
-									title={null}
-									alt=""
-									loading="lazy"
-									class={"thumbnail-image"}
-								/>
-							{:else if file.mime_type && file.mime_type.includes("audio")}
-								<Music />
-							{:else if file.mime_type && file.mime_type.includes("video")}
-								<Video />
-							{:else}
-								<File />
-							{/if}
-						</button>
-					{/each}
-					{#if uploading}
-						<div class="loader"></div>
-					{/if}
-				</div>
-			{/if}
-			<textarea
-				data-testid="textbox"
-				use:text_area_resize={{
-					text: value.text,
-					lines: lines,
-					max_lines: max_lines
-				}}
-				class="scroll-hide"
-				dir={rtl ? "rtl" : "ltr"}
-				bind:value={value.text}
-				bind:this={el}
-				{placeholder}
-				rows={lines}
-				{disabled}
-				{autofocus}
-				on:keypress={handle_keypress}
-				on:blur
-				on:select={handle_select}
-				on:focus
-				on:scroll={handle_scroll}
-				on:paste={handle_paste}
-				style={text_align ? "text-align: " + text_align : ""}
-			/>
-		</Upload>
+		{:else}
+			<button class:disabled class="submit-button" on:click={handle_submit}
+				><Send /></button
+			>
+		{/if}
 	</div>
 </label>
 
 <style>
 	.input-container {
 		display: flex;
-		flex-direction: column;
-		justify-content: flex-end;
-		align-items: center;
 		position: relative;
+		align-items: center;
 	}
 
 	textarea {
-		align-self: flex-start;
 		outline: none !important;
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
@@ -324,7 +319,6 @@
 		border: none;
 		margin-top: 0px;
 		margin-bottom: 0px;
-		margin-left: 5%;
 		padding-top: 12px;
 		resize: none;
 	}
@@ -343,7 +337,6 @@
 
 	.upload-button,
 	.submit-button {
-		position: absolute;
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
 		border: none;
@@ -354,7 +347,6 @@
 		border-radius: 50%;
 		width: 30px;
 		height: 30px;
-		bottom: 5px;
 	}
 
 	.upload-button:hover,
