@@ -260,6 +260,10 @@
 								class:component={typeof message === "object" &&
 									message !== null &&
 									"component" in message}
+								class:html={typeof message === "object" &&
+									message !== null &&
+									"component" in message &&
+									message.component === "html"}
 							>
 								<button
 									data-testid={j == 0 ? "user" : "bot"}
@@ -351,6 +355,16 @@
 												label="chatbot-image"
 												show_share_button={true}
 												{i18n}
+											/>
+										{:else if message.component === "html"}
+											<svelte:component
+												this={_components[message.component]}
+												value={message.value}
+												show_label={false}
+												label="chatbot-image"
+												show_share_button={true}
+												{i18n}
+												gradio={{ dispatch: () => {} }}
 											/>
 										{/if}
 									{:else if message.type === "component" && message.component === "file"}
@@ -459,7 +473,6 @@
 		color: var(--body-text-color);
 		font-size: var(--chatbot-body-text-size);
 		overflow-wrap: break-word;
-		overflow-x: hidden;
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
 	}
@@ -737,5 +750,11 @@
 		color: var(--body-text-color);
 		text-decoration: none;
 		margin: var(--spacing-md);
+	}
+
+	.html {
+		padding: 0;
+		border: none;
+		background: none;
 	}
 </style>
