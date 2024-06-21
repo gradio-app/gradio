@@ -32,6 +32,7 @@
 	export let selected_index: number | null = null;
 	export let interactive: boolean;
 	export let _fetch: typeof fetch;
+	export let mode: "normal" | "minimal" = "normal";
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -49,7 +50,7 @@
 			? null
 			: value.map((data) => ({
 					image: data.image as FileData,
-					caption: data.caption
+					caption: data.caption,
 				}));
 
 	let prev_value: GalleryData | null = value;
@@ -119,7 +120,7 @@
 			if (selected_index !== null) {
 				dispatch("select", {
 					index: selected_index,
-					value: resolved_value?.[selected_index]
+					value: resolved_value?.[selected_index],
 				});
 			}
 		}
@@ -155,7 +156,7 @@
 		if (container_element && typeof container_element.scrollTo === "function") {
 			container_element.scrollTo({
 				left: pos < 0 ? 0 : pos,
-				behavior: "smooth"
+				behavior: "smooth",
 			});
 		}
 	}
@@ -262,7 +263,7 @@
 						bind:this={el[i]}
 						on:click={() => (selected_index = i)}
 						class="thumbnail-item thumbnail-small"
-						class:selected={selected_index === i}
+						class:selected={selected_index === i && mode !== "minimal"}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
 						<Image
@@ -278,7 +279,11 @@
 		</button>
 	{/if}
 
-	<div class="grid-wrap" class:fixed-height={!height || height == "auto"}>
+	<div
+		class="grid-wrap"
+		class:minimal={mode === "minimal"}
+		class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
+	>
 		<div
 			class="grid-container"
 			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
@@ -338,8 +343,8 @@
 		border-radius: calc(var(--block-radius) - var(--block-border-width));
 		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
-		width: var(--size-full);
-		height: var(--size-full);
+		width: fit-content;
+		height: fit-content;
 	}
 
 	.preview::before {
@@ -379,7 +384,7 @@
 		height: var(--size-full);
 	}
 	.preview :global(img.with-caption) {
-		height: var(--size-full);
+		height: auto;
 	}
 
 	.caption {
@@ -409,7 +414,7 @@
 		--ring-color: transparent;
 		position: relative;
 		box-shadow:
-			0 0 0 2px var(--ring-color),
+			inset 0 0 0 1px var(--ring-color),
 			var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--button-small-radius);
@@ -422,11 +427,13 @@
 
 	.thumbnail-item:hover {
 		--ring-color: var(--color-accent);
+		border-color: var(--color-accent);
 		filter: brightness(1.1);
 	}
 
 	.thumbnail-item.selected {
 		--ring-color: var(--color-accent);
+		border-color: var(--color-accent);
 	}
 
 	.thumbnail-small {
@@ -510,5 +517,9 @@
 
 	.icon-buttons .download-button-container {
 		margin: var(--size-1) 0;
+	}
+
+	.grid-wrap.minimal {
+		padding: 0;
 	}
 </style>

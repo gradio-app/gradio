@@ -18,8 +18,10 @@
 		{i18n}
 		label=""
 		{_fetch}
-		preview={true}
-		interactive={true}
+		allow_preview={false}
+		interactive={false}
+		mode="minimal"
+		fixed_height={1}
 	/>
 {:else if type === "plot"}
 	<svelte:component
@@ -41,6 +43,7 @@
 		label=""
 		waveform_settings={{}}
 		waveform_options={{}}
+		show_download_button={false}
 	/>
 {:else if type === "video"}
 	<svelte:component
@@ -51,6 +54,7 @@
 		show_share_button={true}
 		{i18n}
 		{upload}
+		show_download_button={false}
 	>
 		<track kind="captions" />
 	</svelte:component>
@@ -60,7 +64,7 @@
 		{value}
 		show_label={false}
 		label="chatbot-image"
-		show_share_button={true}
+		show_download_button={false}
 		{i18n}
 	/>
 {/if}

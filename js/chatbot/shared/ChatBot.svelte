@@ -17,11 +17,10 @@
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import { type FileData, type Client } from "@gradio/client";
-	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import Pending from "./Pending.svelte";
 	import Component from "./Component.svelte";
-	import LikeButtons from "./LikeButtons.svelte";
+	import LikeButtons from "./ButtonPanel.svelte";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
@@ -252,7 +251,12 @@
 							{/if}
 
 							<div
-								class="message {j == 0 ? 'user' : 'bot'}"
+								class="message {j == 0 ? 'user' : 'bot'} {typeof message ===
+									'object' &&
+								message !== null &&
+								'component' in message
+									? message?.component
+									: ''}"
 								class:message-fit={layout === "bubble" && !bubble_full_width}
 								class:panel-full-width={layout === "panel"}
 								class:message-bubble-border={layout === "bubble"}
@@ -338,6 +342,7 @@
 								{layout}
 								avatar={avatar_images[j]}
 								{bubble_full_width}
+								show_download={true}
 							/>
 						</div>
 					{/if}
@@ -370,12 +375,16 @@
 	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;
+		background: var(--background-fill-secondary);
+		height: 100%;
+		padding-top: var(--spacing-xxl);
 	}
 
 	.message-wrap {
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
+		margin-bottom: var(--spacing-xxl);
 	}
 
 	.bubble-gap {
@@ -411,7 +420,7 @@
 		overflow-wrap: break-word;
 		overflow-x: hidden;
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
-		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
+		padding: var(--spacing-md) var(--spacing-xxl);
 	}
 	.message :global(.prose) {
 		font-size: var(--chatbot-body-text-size);
@@ -422,12 +431,20 @@
 		border-radius: var(--radius-xxl);
 	}
 
+	.user {
+		border-width: 1px;
+		border-radius: var(--radius-xl);
+		align-self: flex-start;
+		border-bottom-right-radius: 0;
+		text-align: right;
+		box-shadow: var(--shadow-drop-lg);
+	}
+
 	.message-fit {
 		width: fit-content !important;
 	}
 
 	.panel-full-width {
-		padding: calc(var(--spacing-xxl) * 2);
 		width: 100%;
 	}
 	.message-markdown-disabled {
@@ -442,6 +459,11 @@
 	.bot {
 		border-bottom-left-radius: 0;
 		text-align: left;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
+		align-self: flex-start;
 	}
 
 	/* Colors */
@@ -456,23 +478,29 @@
 	}
 	.message-row {
 		display: flex;
-		flex-direction: row;
+		flex-direction: column;
 		position: relative;
 	}
 
 	.message-row.panel.user-row {
-		background: var(--color-accent-soft);
+		/* background: var(--color-accent-soft); */
+		align-self: flex-end;
+	}
+	.message-row.panel {
+		margin: calc(var(--spacing-xl) * 2);
 	}
 
 	.message-row.panel.bot-row {
+		align-self: flex-start;
 		background: var(--background-fill-secondary);
 	}
 
 	.message-row:last-of-type {
-		margin-bottom: var(--spacing-xxl);
+		margin-bottom: calc(var(--spacing-xxl) * 2);
 	}
 
-	.user-row.bubble {
+	.user-row.bubble,
+	.user-row.panel {
 		flex-direction: row;
 		justify-content: flex-end;
 	}
@@ -489,7 +517,7 @@
 		}
 
 		.panel-full-width {
-			padding: calc(var(--spacing-xxl) * 2);
+			/* padding: calc(var(--spacing-xxl) * 2); */
 		}
 	}
 
@@ -556,7 +584,7 @@
 		z-index: 1;
 		cursor: pointer;
 		border-bottom-left-radius: var(--radius-sm);
-		padding: 5px;
+
 		padding: var(--spacing-md);
 		width: 25px;
 		height: 25px;
@@ -609,11 +637,7 @@
 		overflow: auto;
 		background-color: rgba(0, 0, 0, 0.9);
 	}
-	.image-preview :global(img) {
-		width: 100%;
-		height: 100%;
-		object-fit: contain;
-	}
+
 	.image-preview :global(svg) {
 		stroke: white;
 	}
@@ -637,6 +661,15 @@
 	.component {
 		padding: 0;
 		border-radius: var(--radius-md);
+		width: fit-content;
+		max-width: 80%;
+		max-height: 80%;
+		border: 1px solid var(--border-color-primary);
+		margin: var(--spacing-md) var(--spacing-xxl);
+	}
+
+	.component.gallery {
+		border: none;
 	}
 
 	.file-pil {
@@ -653,5 +686,9 @@
 		.component {
 			width: 100% !important;
 		}
+	}
+
+	:global(.prose.chatbot.md) {
+		opacity: 0.8;
 	}
 </style>
