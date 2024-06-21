@@ -1,7 +1,10 @@
 ---
+"@gradio/audio": patch
 "@gradio/chatbot": patch
 "@gradio/gallery": patch
+"@gradio/image": patch
 "@gradio/plot": patch
+"@gradio/video": patch
 "@gradio/wasm": patch
 "gradio": patch
 ---
