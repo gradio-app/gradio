@@ -70,7 +70,7 @@ color_map = {
 
 def html_src(harm_level):
     return f"""
-<div style="display: flex; gap: 5px;padding: 2px 4px;margin-top: -40px">
+<div style="display: flex; gap: 5px;">
   <div style="background-color: {color_map[harm_level]}; padding: 2px; border-radius: 5px;">
   {harm_level}
   </div>
