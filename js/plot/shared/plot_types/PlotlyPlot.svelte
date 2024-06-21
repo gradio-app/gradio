@@ -24,7 +24,7 @@
 
 	afterUpdate(async () => {
 		load_plotly_css();
-		await tick();
+
 		let plotObj = JSON.parse(plot);
 
 		// the docs aren't very good but this works
@@ -37,6 +37,8 @@
 			? (plotObj.layout.margin = { autoexpand: true })
 			: (plotObj.layout.margin = { l: 0, r: 0, b: 0, t: 0 });
 		Plotly.react(plot_div, plotObj.data, plotObj.layout, plotObj.config);
+
+		Plotly.Plots.resize(plot_div);
 	});
 </script>
 

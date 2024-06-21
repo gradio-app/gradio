@@ -8,7 +8,7 @@
 		afterUpdate,
 		createEventDispatcher,
 		type SvelteComponent,
-		type ComponentType
+		type ComponentType,
 	} from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import { Image } from "@gradio/image/shared";
@@ -118,7 +118,7 @@
 
 		document.body.style.setProperty(
 			"--chatbot-body-text-size",
-			updated_text_size + "px"
+			updated_text_size + "px",
 		);
 	};
 
@@ -177,11 +177,11 @@
 	function handle_select(
 		i: number,
 		j: number,
-		message: NormalisedMessage
+		message: NormalisedMessage,
 	): void {
 		dispatch("select", {
 			index: [i, j],
-			value: message
+			value: message,
 		});
 	}
 
@@ -189,12 +189,12 @@
 		i: number,
 		j: number,
 		message: NormalisedMessage,
-		selected: string | null
+		selected: string | null,
 	): void {
 		dispatch("like", {
 			index: [i, j],
 			value: message,
-			liked: selected === "like"
+			liked: selected === "like",
 		});
 	}
 </script>
@@ -673,6 +673,7 @@
 		max-height: 80%;
 		border: 1px solid var(--border-color-primary);
 		margin: var(--spacing-md) var(--spacing-xxl);
+		overflow: hidden;
 	}
 
 	.component.gallery {
