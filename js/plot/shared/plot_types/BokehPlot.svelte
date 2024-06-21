@@ -21,7 +21,7 @@
 		}
 	}
 
-	$: embed_bokeh(plot);
+	$: loaded && embed_bokeh(plot);
 
 	const main_src = `https://cdn.bokeh.org/bokeh/release/bokeh-${bokeh_version}.min.js`;
 
@@ -29,17 +29,24 @@
 		`https://cdn.pydata.org/bokeh/release/bokeh-widgets-${bokeh_version}.min.js`,
 		`https://cdn.pydata.org/bokeh/release/bokeh-tables-${bokeh_version}.min.js`,
 		`https://cdn.pydata.org/bokeh/release/bokeh-gl-${bokeh_version}.min.js`,
-		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`
+		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`,
 	];
 
-	function load_plugins(): HTMLScriptElement[] {
-		return plugins_src.map((src, i) => {
-			const script = document.createElement("script");
-			script.src = src;
-			document.head.appendChild(script);
+	let loaded = false;
+	async function load_plugins(): HTMLScriptElement[] {
+		await Promise.all(
+			plugins_src.map((src, i) => {
+				return new Promise((resolve) => {
+					const script = document.createElement("script");
+					script.onload = resolve;
+					script.src = src;
+					document.head.appendChild(script);
+					return script;
+				});
+			}),
+		);
 
-			return script;
-		});
+		loaded = true;
 	}
 
 	function load_bokeh(): HTMLScriptElement {
@@ -47,7 +54,7 @@
 		script.onload = handle_bokeh_loaded;
 		script.src = main_src;
 		const is_bokeh_script_present = document.head.querySelector(
-			`script[src="${main_src}"]`
+			`script[src="${main_src}"]`,
 		);
 		if (!is_bokeh_script_present) {
 			document.head.appendChild(script);

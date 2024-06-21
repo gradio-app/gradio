@@ -67,4 +67,14 @@
 		show_download_button={false}
 		{i18n}
 	/>
+{:else if type === "html"}
+	<svelte:component
+		this={components[type]}
+		{value}
+		show_label={false}
+		label="chatbot-image"
+		show_share_button={true}
+		{i18n}
+		gradio={{ dispatch: () => {} }}
+	/>
 {/if}
