@@ -486,7 +486,6 @@
 	}
 
 	.message-row.panel.user-row {
-		/* background: var(--color-accent-soft); */
 		align-self: flex-end;
 	}
 	.message-row.panel {
@@ -518,10 +517,6 @@
 		}
 		.message {
 			width: 100%;
-		}
-
-		.panel-full-width {
-			/* padding: calc(var(--spacing-xxl) * 2); */
 		}
 	}
 

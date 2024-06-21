@@ -28,7 +28,6 @@
 		{:else}
 			<ThumbDownDefault />
 		{/if}
-		<!-- <ThumbDownDefault /> -->
 	</span>
 </button>
 
@@ -48,7 +47,6 @@
 		{:else}
 			<ThumbUpDefault />
 		{/if}
-		<!-- <ThumbUpDefault /> -->
 	</span>
 </button>
 
@@ -59,14 +57,11 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		/* transform: translateX(-10px); */
 		margin-right: 7px !important;
 	}
 
 	span {
 		display: inline-block;
-		/* width: 15px;
-		height: 15px; */
 	}
 
 	button:hover,
@@ -82,9 +77,5 @@
 
 	.like-button {
 		transform: translateY(0px);
-	}
-
-	.dislike-button {
-		/* transform: translateY(1px); */
 	}
 </style>

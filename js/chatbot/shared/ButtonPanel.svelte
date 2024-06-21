@@ -2,10 +2,8 @@
 	import LikeDislike from "./LikeDislike.svelte";
 	import Copy from "./Copy.svelte";
 	import type { FileData } from "@gradio/client";
-	import { IconButton } from "@gradio/atoms";
 	import DownloadIcon from "./Download.svelte";
 	import { DownloadLink } from "@gradio/wasm/svelte";
-	// import DownloadIcon from "./DownloadIcon.svelte";
 
 	export let likeable: boolean;
 	export let show_copy_button: boolean;
