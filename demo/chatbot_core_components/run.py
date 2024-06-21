@@ -1,6 +1,7 @@
 import gradio as gr
 import os
 import plotly.express as px
+import random
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
@@ -16,6 +17,23 @@ def random_plot():
         hover_data=["petal_width"],
     )
     return fig
+
+
+color_map = {
+    "harmful": "crimson",
+    "neutral": "gray",
+    "beneficial": "green",
+}
+
+
+def html_src(harm_level):
+    return f"""
+<div style="display: flex; gap: 5px;padding: 2px 4px;margin-top: -40px">
+  <div style="background-color: {color_map[harm_level]}; padding: 2px; border-radius: 5px;">
+  {harm_level}
+  </div>
+</div>
+"""
 
 
 def print_like_dislike(x: gr.LikeData):
@@ -126,6 +144,10 @@ def bot(history, response_type):
         history[-1][1] = (os.path.join("files", "world.mp4"), "description")
     elif response_type == "txt_file":
         history[-1][1] = (os.path.join("files", "sample.txt"), "description")
+    elif response_type == "html":
+        history[-1][1] = gr.HTML(
+            html_src(random.choice(["harmful", "neutral", "beneficial"]))
+        )
     else:
         history[-1][1] = "Cool!"
     return history
@@ -153,6 +175,7 @@ with gr.Blocks(fill_height=True) as demo:
             "gallery",
             "video",
             "audio",
+            "html",
         ],
         value="text",
         label="Response Type",
