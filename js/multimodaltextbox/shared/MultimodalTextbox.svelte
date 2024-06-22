@@ -338,7 +338,7 @@
 
 	.upload-button,
 	.submit-button {
-		background: var(--button-secondary-background-fill);
+		background: red !important;
 		color: var(--button-secondary-text-color);
 		border: none;
 		text-align: center;
