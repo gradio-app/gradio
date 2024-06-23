@@ -10,11 +10,10 @@
 	export let show: boolean;
 	export let message: Record<string, any>;
 	export let position: "right" | "left";
-	export let layout: string;
-	export let bubble_full_width: boolean;
 	export let avatar: FileData | null;
 	export let show_download = false;
 	export let handle_action: (selected: string | null) => void;
+	export let layout: "bubble" | "panel";
 
 	$: show_copy = show_copy_button && message && message?.type === "text";
 	$: show_download =
@@ -23,10 +22,8 @@
 
 {#if show}
 	<div
-		class="message-buttons-{position} message-buttons-{layout} {avatar !==
+		class="message-buttons-{position} {layout}  message-buttons {avatar !==
 			null && 'with-avatar'}"
-		class:message-buttons-fit={layout === "bubble" && !bubble_full_width}
-		class:bubble-buttons-right={layout === "bubble"}
 	>
 		{#if show_copy}
 			<Copy value={message.value} />
@@ -74,8 +71,7 @@
 		padding-left: 5px;
 		z-index: 1;
 		padding-bottom: var(--spacing-xl);
-		padding: var(--spacing-md) var(--spacing-xxl);
-		/* margin-bottom: var(--size-14); */
+		padding: var(--spacing-md) 2px;
 	}
 	.message-buttons-left {
 		align-self: start;
@@ -85,19 +81,12 @@
 		right: 5px;
 	}
 
-	.message-buttons-left.message-buttons-bubble.with-avatar {
-		left: 50px;
-	}
-	.message-buttons-right.message-buttons-bubble.with-avatar {
-		right: 50px;
+	.panel.message-buttons-left,
+	.panel.message-buttons-right {
+		margin: 10px 0 2px 0;
 	}
 
-	.message-buttons-bubble {
-		border: 1px solid var(--border-color-accent);
-		background: var(--background-fill-secondary);
-	}
-
-	.message-buttons-panel {
+	.message-buttons {
 		left: 0px;
 		right: 0px;
 		top: unset;
@@ -108,7 +97,7 @@
 		gap: 0px;
 	}
 
-	.message-buttons-panel :global(> *) {
+	.message-buttons :global(> *) {
 		margin-right: 7px;
 	}
 </style>

@@ -203,6 +203,11 @@ with gr.Blocks(fill_height=True) as demo:
         bubble_full_width=False,
         scale=1,
         show_copy_button=True,
+        avatar_images=(
+            None,  # os.path.join("files", "avatar.png"),
+            os.path.join("files", "avatar.png"),
+        ),
+        # layout="panel",
     )
     response_type = gr.Radio(
         [

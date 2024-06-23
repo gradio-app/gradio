@@ -9,6 +9,7 @@
 	$: plot = value?.plot;
 
 	async function embed_bokeh(_plot: Record<string, any>): void {
+		console.log("Embedding Bokeh");
 		if (document) {
 			if (document.getElementById(div_id)) {
 				document.getElementById(div_id).innerHTML = "";
@@ -54,6 +55,12 @@
 		loaded = true;
 	}
 
+	let plugin_scripts = [];
+
+	function handle_bokeh_loaded(): void {
+		plugin_scripts = load_plugins();
+	}
+
 	function load_bokeh(): HTMLScriptElement {
 		const script = document.createElement("script");
 		script.onload = handle_bokeh_loaded;
@@ -63,17 +70,13 @@
 		);
 		if (!is_bokeh_script_present) {
 			document.head.appendChild(script);
+		} else {
+			handle_bokeh_loaded();
 		}
 		return script;
 	}
 
 	const main_script = bokeh_version ? load_bokeh() : null;
-
-	let plugin_scripts = [];
-
-	function handle_bokeh_loaded(): void {
-		plugin_scripts = load_plugins();
-	}
 
 	onDestroy(() => {
 		if (main_script in document.children) {

@@ -15,7 +15,7 @@
 	import {
 		type messages,
 		type NormalisedMessage,
-		normalise_messages
+		normalise_messages,
 	} from "./shared/utils";
 
 	export let elem_id = "";
@@ -34,7 +34,7 @@
 	export let show_copy_button = true;
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
-	export let layout: "bubble" | "panel" = "panel";
+	export let layout: "bubble" | "panel" = "bubble";
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let latex_delimiters: {
