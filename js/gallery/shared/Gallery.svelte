@@ -206,7 +206,11 @@
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	{#if selected_image && allow_preview}
-		<button on:keydown={on_keydown} class="preview">
+		<button
+			on:keydown={on_keydown}
+			class="preview"
+			class:minimal={mode === "minimal"}
+		>
 			<div class="icon-buttons">
 				{#if show_download_button}
 					<div class="download-button-container">
@@ -343,6 +347,13 @@
 		border-radius: calc(var(--block-radius) - var(--block-border-width));
 		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
+		/* width: fit-content;
+		height: fit-content; */
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.preview.minimal {
 		width: fit-content;
 		height: fit-content;
 	}
@@ -384,6 +395,10 @@
 		height: var(--size-full);
 	}
 	.preview :global(img.with-caption) {
+		height: var(--size-full);
+	}
+
+	.preview.minimal :global(img.with-caption) {
 		height: auto;
 	}
 
