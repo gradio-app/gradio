@@ -33,7 +33,7 @@
 		`https://cdn.pydata.org/bokeh/release/bokeh-widgets-${bokeh_version}.min.js`,
 		`https://cdn.pydata.org/bokeh/release/bokeh-tables-${bokeh_version}.min.js`,
 		`https://cdn.pydata.org/bokeh/release/bokeh-gl-${bokeh_version}.min.js`,
-		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`,
+		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`
 	];
 
 	let loaded = false;
@@ -47,7 +47,7 @@
 					document.head.appendChild(script);
 					return script;
 				});
-			}),
+			})
 		);
 
 		loaded = true;
@@ -64,7 +64,7 @@
 		script.onload = handle_bokeh_loaded;
 		script.src = main_src;
 		const is_bokeh_script_present = document.head.querySelector(
-			`script[src="${main_src}"]`,
+			`script[src="${main_src}"]`
 		);
 		if (!is_bokeh_script_present) {
 			document.head.appendChild(script);
