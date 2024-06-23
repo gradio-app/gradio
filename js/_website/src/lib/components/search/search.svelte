@@ -1,6 +1,8 @@
+
 <script lang="ts">
+	// @ts-nocheck
 	import Search_Worker from './search-worker?worker'
-	import Search_Icon from "./search-icon.svelte"
+	import SearchIcon from "./SearchIcon.svelte"
 	import { onNavigate } from '$app/navigation'
 	import type { Result } from './search'
 	import { browser } from '$app/environment';
@@ -40,13 +42,12 @@
 	let content_elem: HTMLElement;
 	let search_button_elem: HTMLElement;
 
-	function focus_input(el){
+	function focus_input(el: HTMLInputElement){
     	el.focus();
   	}
 
-	
 	function get_os() { 
-		if (navigator.userAgentData && navigator.userAgentData.platform) {
+		if ('userAgentData' in navigator.userAgentData && 'platform' in navigator.userAgentData) {
 			return navigator.userAgentData.platform;
 		} else {
 			return navigator.userAgent;
@@ -73,21 +74,23 @@
 		}
 		if ((e.key === "ArrowUp" || e.key === "ArrowDown") && open) {
 			e.preventDefault();
-			const current = document.activeElement
-			const items =  [...document.getElementsByClassName('res-block')]
-			const current_index = items.indexOf(current)
-			let new_index
+			const current = document.activeElement;
+			const items =  [...document.getElementsByClassName('res-block')];
+
+			const current_index = current ? items.indexOf(current) : -1;
+			let new_index;
 			if (current_index === -1) {
-            new_index = 0
+            	new_index = 0;
 			} else {
 				if (e.key === "ArrowUp") {
-					new_index = (current_index + items.length - 1) % items.length
+					new_index = (current_index + items.length - 1) % items.length;
 				} else {
-					new_index = (current_index + 1) % items.length
+					new_index = (current_index + 1) % items.length;
 				}
 			}
-			current.blur()
-			items[new_index].focus()
+			
+			current.blur();
+			items[new_index].focus();
 		}
 		
 	}}
@@ -105,7 +108,7 @@
 />
 
 <button class="search-button" bind:this={search_button_elem}>
-	<Search_Icon />
+	<SearchIcon />
 	<span class="pl-1 pr-5">Search</span>
 	<div class="shortcut">
 		<div class="text-sm">
@@ -121,7 +124,7 @@
 				{#if search === 'load'}
 					<div class="loader"></div>
 				{:else}
-					<Search_Icon />
+					<SearchIcon />
 				{/if}
 				<input
 					bind:value={search_term}
@@ -134,6 +137,7 @@
 					spellcheck="false"
 					type="search"
 					use:focus_input
+					id="search-input"
 				/>
 				<button 
 				on:click={()=>{
@@ -221,57 +225,22 @@
 	}
 
 	.search-bar {
-		@apply font-sans text-lg;
-		z-index: 1;
-		padding: 0 1rem;
-		position: relative;
-		display: flex;
-		flex: none;
-		align-items: center;
-		border-bottom-width: 1px;
-		--tw-border-opacity: 1;
-		border-color: rgb(241 245 249 / var(--tw-border-opacity));
-		color: #475469;
+		@apply font-sans text-lg z-10 px-4 relative flex flex-none items-center border-b border-gray-100 text-gray-500;
 	}
 
 	.search-bar input {
-		@apply text-lg;
-		appearance: none;
-		background: #0000;
-		height: 3.5rem;
-		color: #0f172a;
-		margin-left: .25rem;
-		margin-right: .25rem;
-		flex: auto;
-		min-width: 0;
-		border: none;
+		@apply text-lg appearance-none h-14 text-black mx-1	flex-auto min-w-0 border-none cursor-text;
 		outline: none;
 		box-shadow: none;
-		cursor: text;
 	} 
 
-
 	.content {
-		position: fixed;
-		left: 50%;
-		top: 20%;
-		translate: -50% -0%;
-		margin: 0 auto;
-		width: 90vw;
-		max-width: 47.375rem;
-		display: flex;
-		flex-direction: column;
-		min-height: 0;
-		border-radius: .5rem;
-		box-shadow: 0 10px 15px -3px #0000001a, 0 4px 6px -4px #0000001a;
-		background: #fff;
-		z-index: 40;
+		@apply fixed left-1/2 top-1/4 -translate-x-1/2 mx-auto w-screen max-w-3xl flex flex-col min-h-0 rounded-lg shadow-2xl bg-white z-40;
 	}
 
 	.results {
-		@apply p-5;
+		@apply p-5 overflow-y-auto;
 		max-height: 60vh;
-		overflow-y: auto;
 		scrollbar-width: thin;
 
 		& ol {
