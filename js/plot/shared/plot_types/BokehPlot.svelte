@@ -9,7 +9,6 @@
 	$: plot = value?.plot;
 
 	async function embed_bokeh(_plot: Record<string, any>): void {
-		console.log("Embedding Bokeh");
 		if (document) {
 			if (document.getElementById(div_id)) {
 				document.getElementById(div_id).innerHTML = "";
@@ -20,7 +19,6 @@
 			let plotObj = JSON.parse(_plot);
 			const y = await window.Bokeh.embed.embed_item(plotObj, div_id);
 			y._roots.forEach(async (p) => {
-				console.log(p);
 				await p.ready;
 				dispatch("load");
 			});

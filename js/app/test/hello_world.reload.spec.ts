@@ -26,6 +26,8 @@ if __name__ == "__main__":
 			PYTHONUNBUFFERED: "true"
 		}
 	});
+
+	console.log("Wrote run.py", join(process.cwd(), "run.py"));
 });
 
 test.afterAll(() => {

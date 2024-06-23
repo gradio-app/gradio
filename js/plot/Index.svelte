@@ -33,8 +33,6 @@
 		clear_status: LoadingStatus;
 	}>;
 	export let show_actions_button = false;
-
-	$: console.log({ bokeh_version });
 </script>
 
 <Block

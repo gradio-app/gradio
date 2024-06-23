@@ -140,7 +140,7 @@
 		await tick();
 		requestAnimationFrame(() => {
 			if (autoscroll) {
-				div.scrollTo(0, div.scrollHeight);
+				div?.scrollTo(0, div.scrollHeight);
 			}
 		});
 	}
