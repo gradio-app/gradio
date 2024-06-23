@@ -310,7 +310,7 @@
 		border-radius: 50%;
 		width: 15px;
 		height: 15px;
-		animation: s-lcTayn5ERs17-spin 1.2s linear infinite;
+		animation: spin 1.2s linear infinite;
 	}
 
 	@keyframes spin {
