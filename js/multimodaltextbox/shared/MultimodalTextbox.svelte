@@ -309,10 +309,6 @@
 		outline: none !important;
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
-		width: 90%;
-		max-width: 95%;
-		max-height: 100%;
-		height: 25px;
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
@@ -320,16 +316,12 @@
 		border: none;
 		margin-top: 0px;
 		margin-bottom: 0px;
-		padding-top: 12px;
 		resize: none;
 	}
 
 	textarea:disabled {
 		-webkit-opacity: 1;
 		opacity: 1;
-		width: 90%;
-		max-width: 95%;
-		margin-left: 35px;
 	}
 
 	textarea::placeholder {
@@ -338,7 +330,7 @@
 
 	.upload-button,
 	.submit-button {
-		background: red !important;
+		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
 		border: none;
 		text-align: center;
