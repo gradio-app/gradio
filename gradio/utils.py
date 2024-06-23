@@ -265,9 +265,6 @@ def watchfn(reloader: SourceFileReloader):
                 if changed.suffix == ".py":
                     changed_in_copy = _remove_no_reload_codeblocks(str(changed))
                     if changed != reloader.demo_file:
-                        print(
-                            f"Reloading {changed}, reloader.demo_file: {reloader.demo_file}"
-                        )
                         changed_module = _find_module(changed)
                         exec(changed_in_copy, changed_module.__dict__)
                         top_level_parent = sys.modules[
