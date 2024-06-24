@@ -38,12 +38,6 @@
 		plotObj.layout.title
 			? (plotObj.layout.margin = { autoexpand: true })
 			: (plotObj.layout.margin = { l: 0, r: 0, b: 0, t: 0 });
-		const _plot = Plotly.react(
-			plot_div,
-			plotObj.data,
-			plotObj.layout,
-			plotObj.config
-		);
 
 		Plotly.Plots.resize(plot_div);
 
