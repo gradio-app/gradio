@@ -1,7 +1,7 @@
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
-	import { afterUpdate, onMount, createEventDispatcher } from "svelte";
+	import { afterUpdate, createEventDispatcher } from "svelte";
 
 	export let value;
 	export let target;
@@ -42,7 +42,7 @@
 			plot_div,
 			plotObj.data,
 			plotObj.layout,
-			plotObj.config
+			plotObj.config,
 		);
 
 		Plotly.Plots.resize(plot_div);
