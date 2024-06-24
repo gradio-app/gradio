@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Literal
 
 from gradio_client.documentation import document
@@ -17,7 +18,8 @@ from gradio.events import Events
 @document()
 class Dataset(Component):
     """
-    Creates a gallery or table to display data samples. This component is designed for internal use to display examples.
+    Creates a gallery or table to display data samples. This component is primarily designed for internal use to display examples.
+    However, it can also be used directly to display a dataset and let users select examples.
     """
 
     EVENTS = [Events.click, Events.select]
@@ -26,7 +28,7 @@ class Dataset(Component):
         self,
         *,
         label: str | None = None,
-        components: list[Component] | list[str],
+        components: list[Component] | list[str] | None = None,
         component_props: list[dict[str, Any]] | None = None,
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
@@ -70,7 +72,7 @@ class Dataset(Component):
         self.container = container
         self.scale = scale
         self.min_width = min_width
-        self._components = [get_component_instance(c) for c in components]
+        self._components = [get_component_instance(c) for c in components or []]
         if component_props is None:
             self.component_props = [
                 component.recover_kwargs(
@@ -131,29 +133,39 @@ class Dataset(Component):
 
         return config
 
-    def preprocess(self, payload: int) -> int | list | None:
+    def preprocess(self, payload: int | None) -> int | list | None:
         """
         Parameters:
             payload: the index of the selected example in the dataset
         Returns:
             Passes the selected sample either as a `list` of data corresponding to each input component (if `type` is "value") or as an `int` index (if `type` is "index")
         """
+        if payload is None:
+            return None
         if self.type == "index":
             return payload
         elif self.type == "values":
             return self.samples[payload]
 
-    def postprocess(self, samples: list[list]) -> dict:
+    def postprocess(self, sample: int | list | None) -> int | None:
         """
         Parameters:
-            samples: Expects a `list[list]` corresponding to the dataset data, can be used to update the dataset.
+            sample: Expects an `int` index or `list` of sample data. Returns the index of the sample in the dataset or `None` if the sample is not found.
         Returns:
-            Returns the updated dataset data as a `dict` with the key "samples".
+            Returns the index of the sample in the dataset.
         """
-        return {
-            "samples": samples,
-            "__type__": "update",
-        }
+        if sample is None or isinstance(sample, int):
+            return sample
+        if isinstance(sample, list):
+            try:
+                index = self.samples.index(sample)
+            except ValueError:
+                index = None
+                warnings.warn(
+                    "The `Dataset` component does not support updating the dataset data by providing "
+                    "a set of list values. Instead, you should return a new Dataset(samples=...) object."
+                )
+            return index
 
     def example_payload(self) -> Any:
         return 0

@@ -732,6 +732,33 @@ class TestBlocksPostprocessing:
         ):
             await demo.postprocess_data(demo.fns[0], predictions=(1, 2), state=None)
 
+    @pytest.mark.asyncio
+    async def test_dataset_is_updated(self):
+        def update(value):
+            return value, gr.Dataset(samples=[["New A"], ["New B"]])
+
+        with gr.Blocks() as demo:
+            with gr.Row():
+                textbox = gr.Textbox()
+                dataset = gr.Dataset(
+                    components=["text"], samples=[["Original"]], label="Saved Prompts"
+                )
+                dataset.click(update, inputs=[dataset], outputs=[textbox, dataset])
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+
+        client = TestClient(app)
+
+        session_1 = client.post(
+            "/api/predict/",
+            json={"data": [0], "session_hash": "1", "fn_index": 0},
+        )
+        assert "Original" in session_1.json()["data"][0]
+        session_2 = client.post(
+            "/api/predict/",
+            json={"data": [0], "session_hash": "1", "fn_index": 0},
+        )
+        assert "New" in session_2.json()["data"][0]
+
 
 class TestStateHolder:
     @pytest.mark.asyncio

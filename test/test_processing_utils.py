@@ -1,7 +1,6 @@
 import os
 import shutil
 import tempfile
-from copy import deepcopy
 from pathlib import Path
 from unittest.mock import patch
 
@@ -114,20 +113,6 @@ class TestImagePreprocessing:
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAo"
         )
 
-    def test_encode_array_to_base64(self):
-        img = Image.open("gradio/test_data/test_image.png")
-        img = img.convert("RGB")
-        numpy_data = np.asarray(img, dtype=np.uint8)
-        output_base64 = processing_utils.encode_array_to_base64(numpy_data)
-        assert output_base64 == deepcopy(media_data.ARRAY_TO_BASE64_IMAGE)
-
-    def test_encode_pil_to_base64(self):
-        img = Image.open("gradio/test_data/test_image.png")
-        img = img.convert("RGB")
-        img.info = {}  # Strip metadata
-        output_base64 = processing_utils.encode_pil_to_base64(img)
-        assert output_base64 == deepcopy(media_data.ARRAY_TO_BASE64_IMAGE)
-
     def test_save_pil_to_file_keeps_pnginfo(self, gradio_temp_dir):
         input_img = Image.open("gradio/test_data/test_image.png")
         input_img = input_img.convert("RGB")
@@ -140,6 +125,14 @@ class TestImagePreprocessing:
         output_img = Image.open(file_obj)
 
         assert output_img.info == input_img.info
+
+    def test_save_pil_to_file_keeps_all_gif_frames(self, gradio_temp_dir):
+        input_img = Image.open("gradio/test_data/rectangles.gif")
+        file_obj = processing_utils.save_pil_to_cache(
+            input_img, cache_dir=gradio_temp_dir, format="gif"
+        )
+        output_img = Image.open(file_obj)
+        assert output_img.n_frames == input_img.n_frames == 3
 
     def test_np_pil_encode_to_the_same(self, gradio_temp_dir):
         arr = np.random.randint(0, 255, size=(100, 100, 3), dtype=np.uint8)

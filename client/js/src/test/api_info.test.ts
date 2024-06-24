@@ -580,6 +580,20 @@ describe("map_data_params", () => {
 		expect(result).toEqual(data);
 	});
 
+	it("should return an empty array when data is an empty array", () => {
+		const data = [];
+
+		const result = map_data_to_params(data, transformed_api_info);
+		expect(result).toEqual(data);
+	});
+
+	it("should return an empty array when data is not defined", () => {
+		const data = undefined;
+
+		const result = map_data_to_params(data, transformed_api_info);
+		expect(result).toEqual([]);
+	});
+
 	it("should return the data when too many arguments are provided for the endpoint", () => {
 		const data = [1, 2, 3, 4];
 

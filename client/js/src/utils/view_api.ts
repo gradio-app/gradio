@@ -26,32 +26,33 @@ export async function view_api(this: Client): Promise<any> {
 
 	try {
 		let response: Response;
-
-		if (semiver(config?.version || "2.0.0", "3.30") < 0) {
-			response = await this.fetch(SPACE_FETCHER_URL, {
-				method: "POST",
-				body: JSON.stringify({
-					serialize: false,
-					config: JSON.stringify(config)
-				}),
-				headers,
-				credentials: "include"
-			});
+		let api_info: ApiInfo<ApiData> | { api: ApiInfo<ApiData> };
+		if (typeof window !== "undefined" && window.gradio_api_info) {
+			api_info = window.gradio_api_info;
 		} else {
-			const url = join_urls(config.root, API_INFO_URL);
-			response = await this.fetch(url, {
-				headers,
-				credentials: "include"
-			});
-		}
+			if (semiver(config?.version || "2.0.0", "3.30") < 0) {
+				response = await this.fetch(SPACE_FETCHER_URL, {
+					method: "POST",
+					body: JSON.stringify({
+						serialize: false,
+						config: JSON.stringify(config)
+					}),
+					headers,
+					credentials: "include"
+				});
+			} else {
+				const url = join_urls(config.root, API_INFO_URL);
+				response = await this.fetch(url, {
+					headers,
+					credentials: "include"
+				});
+			}
 
-		if (!response.ok) {
-			throw new Error(BROKEN_CONNECTION_MSG);
+			if (!response.ok) {
+				throw new Error(BROKEN_CONNECTION_MSG);
+			}
+			api_info = await response.json();
 		}
-
-		let api_info = (await response.json()) as
-			| ApiInfo<ApiData>
-			| { api: ApiInfo<ApiData> };
 		if ("api" in api_info) {
 			api_info = api_info.api;
 		}
