@@ -51,8 +51,6 @@
 			dispatch("load");
 		});
 	});
-
-	onMount(() => {});
 </script>
 
 <div data-testid={"plotly"} bind:this={plot_div} />

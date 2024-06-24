@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
+	import { onMount } from "svelte";
 	import { Music } from "@gradio/icons";
 	import { format_time, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
