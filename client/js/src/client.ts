@@ -67,9 +67,16 @@ export class Client {
 	}
 
 	stream(url: URL): EventSource {
+		const headers = new Headers();
+		if (this && this.cookies) {
+			headers.append("Cookie", this.cookies);
+		}
+
 		this.abort_controller = new AbortController();
 
 		this.stream_instance = readable_stream(url.toString(), {
+			credentials: "include",
+			headers: headers,
 			signal: this.abort_controller.signal
 		});
 
