@@ -27,7 +27,7 @@
 	export let show_label = true;
 	export let container = true;
 	export let max_lines: number;
-	export let submit_btn: string | null = null;
+	export let submit_btn: string | boolean | null = null;
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
@@ -285,14 +285,18 @@
 			on:paste={handle_paste}
 			style={text_align ? "text-align: " + text_align : ""}
 		/>
-		{#if submit_btn !== null}
-			<button class:disabled class="submit-button" on:click={handle_submit}
-				>{submit_btn}</button
+		{#if submit_btn}
+			<button
+				class="submit-button"
+				class:padded-button={submit_btn !== true}
+				on:click={handle_submit}
 			>
-		{:else}
-			<button class:disabled class="submit-button" on:click={handle_submit}
-				><Send /></button
-			>
+				{#if submit_btn === true}
+					<Send />
+				{:else}
+					Hello World
+				{/if}
+			</button>
 		{/if}
 	</div>
 </label>
@@ -335,12 +339,18 @@
 		border: none;
 		text-align: center;
 		text-decoration: none;
-		font-size: 20px;
+		font-size: 14px;
 		cursor: pointer;
-		border-radius: 50%;
-		width: 30px;
+		border-radius: 15px;
+		min-width: 30px;
 		height: 30px;
 		flex-shrink: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.padded-button {
+		padding: 0 10px;
 	}
 
 	.upload-button:hover,
@@ -353,29 +363,13 @@
 		box-shadow: var(--button-shadow-active);
 	}
 
-	.submit-button {
-		right: 0px;
-		margin-left: 5px;
-		padding-bottom: 5px;
-		padding-left: 2px;
-	}
-
 	.submit-button :global(svg) {
-		height: 23px;
-		width: 23px;
-		padding-left: 4px;
-		padding-top: 2px;
+		height: 22px;
+		width: 22px;
 	}
-
-	.upload-button {
-		left: 0px;
-		margin-right: 5px;
-	}
-
 	.upload-button :global(svg) {
-		height: 23px;
-		width: 23px;
-		padding-left: 7px;
+		height: 17px;
+		width: 17px;
 	}
 
 	.loader {
