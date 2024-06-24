@@ -1,5 +1,8 @@
 <script lang="ts">
 	import type { HTMLImgAttributes } from "svelte/elements";
+	import { createEventDispatcher } from "svelte";
+
+	const dispatch = createEventDispatcher<{ load?: void }>();
 	interface Props extends HTMLImgAttributes {
 		"data-testid"?: string;
 	}
@@ -34,7 +37,7 @@
 </script>
 
 <!-- svelte-ignore a11y-missing-attribute -->
-<img src={resolved_src} {...$$restProps} />
+<img src={resolved_src} {...$$restProps} on:load={() => dispatch("load")} />
 
 <style>
 	img {

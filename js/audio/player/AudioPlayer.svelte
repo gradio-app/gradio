@@ -45,6 +45,7 @@
 		pause: undefined;
 		edit: undefined;
 		end: undefined;
+		load: undefined;
 	}>();
 
 	const create_waveform = (): void => {
@@ -98,6 +99,10 @@
 		dispatch("play");
 	});
 
+	$: waveform?.on("load", () => {
+		dispatch("load");
+	});
+
 	const handle_trim_audio = async (
 		start: number,
 		end: number
@@ -149,6 +154,7 @@
 		src={value.url}
 		controls
 		autoplay={waveform_settings.autoplay}
+		on:load
 	/>
 {:else}
 	<div

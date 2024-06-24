@@ -45,6 +45,7 @@
 		{caption}
 		{bokeh_version}
 		{show_actions_button}
+		on:load
 	/>
 {:else}
 	<Empty unpadded_box={true} size="large"><PlotIcon /></Empty>

@@ -32,6 +32,7 @@
 	export let selected_index: number | null = null;
 	export let interactive: boolean;
 	export let _fetch: typeof fetch;
+	export let mode: "normal" | "minimal" = "normal";
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -205,7 +206,11 @@
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	{#if selected_image && allow_preview}
-		<button on:keydown={on_keydown} class="preview">
+		<button
+			on:keydown={on_keydown}
+			class="preview"
+			class:minimal={mode === "minimal"}
+		>
 			<div class="icon-buttons">
 				{#if show_download_button}
 					<div class="download-button-container">
@@ -262,7 +267,7 @@
 						bind:this={el[i]}
 						on:click={() => (selected_index = i)}
 						class="thumbnail-item thumbnail-small"
-						class:selected={selected_index === i}
+						class:selected={selected_index === i && mode !== "minimal"}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
 						<Image
@@ -278,7 +283,11 @@
 		</button>
 	{/if}
 
-	<div class="grid-wrap" class:fixed-height={!height || height == "auto"}>
+	<div
+		class="grid-wrap"
+		class:minimal={mode === "minimal"}
+		class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
+	>
 		<div
 			class="grid-container"
 			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
@@ -342,6 +351,11 @@
 		height: var(--size-full);
 	}
 
+	.preview.minimal {
+		width: fit-content;
+		height: fit-content;
+	}
+
 	.preview::before {
 		content: "";
 		position: absolute;
@@ -382,6 +396,10 @@
 		height: var(--size-full);
 	}
 
+	.preview.minimal :global(img.with-caption) {
+		height: auto;
+	}
+
 	.caption {
 		padding: var(--size-2) var(--size-3);
 		overflow: hidden;
@@ -409,7 +427,7 @@
 		--ring-color: transparent;
 		position: relative;
 		box-shadow:
-			0 0 0 2px var(--ring-color),
+			inset 0 0 0 1px var(--ring-color),
 			var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--button-small-radius);
@@ -422,11 +440,13 @@
 
 	.thumbnail-item:hover {
 		--ring-color: var(--color-accent);
+		border-color: var(--color-accent);
 		filter: brightness(1.1);
 	}
 
 	.thumbnail-item.selected {
 		--ring-color: var(--color-accent);
+		border-color: var(--color-accent);
 	}
 
 	.thumbnail-small {
@@ -510,5 +530,9 @@
 
 	.icon-buttons .download-button-container {
 		margin: var(--size-1) 0;
+	}
+
+	.grid-wrap.minimal {
+		padding: 0;
 	}
 </style>

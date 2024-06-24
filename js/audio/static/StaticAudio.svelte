@@ -70,6 +70,7 @@
 		on:pause
 		on:play
 		on:stop
+		on:load
 	/>
 {:else}
 	<Empty size="small">
