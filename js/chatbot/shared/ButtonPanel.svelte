@@ -48,8 +48,6 @@
 
 <style>
 	.icon-wrap {
-		width: 12px;
-		height: 12px;
 		display: block;
 		color: var(--body-text-color-subdued);
 	}

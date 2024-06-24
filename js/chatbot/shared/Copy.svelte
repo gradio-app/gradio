@@ -73,7 +73,7 @@
 	}
 
 	.action {
-		width: 12px;
-		height: 12px;
+		width: var(--size-4);
+		height: var(--size-4);
 	}
 </style>
