@@ -42,7 +42,7 @@
 			plot_div,
 			plotObj.data,
 			plotObj.layout,
-			plotObj.config,
+			plotObj.config
 		);
 
 		Plotly.Plots.resize(plot_div);
