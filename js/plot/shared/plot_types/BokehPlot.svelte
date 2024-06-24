@@ -1,14 +1,14 @@
 <script lang="ts">
 	//@ts-nocheck
-	import { onDestroy } from "svelte";
+	import { onDestroy, createEventDispatcher } from "svelte";
 
 	export let value;
 	export let bokeh_version: string | null;
 	const div_id = `bokehDiv-${Math.random().toString(5).substring(2)}`;
-
+	const dispatch = createEventDispatcher<{ load: undefined }>();
 	$: plot = value?.plot;
 
-	function embed_bokeh(_plot: Record<string, any>): void {
+	async function embed_bokeh(_plot: Record<string, any>): void {
 		if (document) {
 			if (document.getElementById(div_id)) {
 				document.getElementById(div_id).innerHTML = "";
@@ -17,11 +17,15 @@
 		if (window.Bokeh) {
 			load_bokeh();
 			let plotObj = JSON.parse(_plot);
-			window.Bokeh.embed.embed_item(plotObj, div_id);
+			const y = await window.Bokeh.embed.embed_item(plotObj, div_id);
+			y._roots.forEach(async (p) => {
+				await p.ready;
+				dispatch("load");
+			});
 		}
 	}
 
-	$: embed_bokeh(plot);
+	$: loaded && embed_bokeh(plot);
 
 	const main_src = `https://cdn.bokeh.org/bokeh/release/bokeh-${bokeh_version}.min.js`;
 
@@ -32,14 +36,27 @@
 		`https://cdn.pydata.org/bokeh/release/bokeh-api-${bokeh_version}.min.js`
 	];
 
-	function load_plugins(): HTMLScriptElement[] {
-		return plugins_src.map((src, i) => {
-			const script = document.createElement("script");
-			script.src = src;
-			document.head.appendChild(script);
+	let loaded = false;
+	async function load_plugins(): HTMLScriptElement[] {
+		await Promise.all(
+			plugins_src.map((src, i) => {
+				return new Promise((resolve) => {
+					const script = document.createElement("script");
+					script.onload = resolve;
+					script.src = src;
+					document.head.appendChild(script);
+					return script;
+				});
+			})
+		);
 
-			return script;
-		});
+		loaded = true;
+	}
+
+	let plugin_scripts = [];
+
+	function handle_bokeh_loaded(): void {
+		plugin_scripts = load_plugins();
 	}
 
 	function load_bokeh(): HTMLScriptElement {
@@ -51,17 +68,13 @@
 		);
 		if (!is_bokeh_script_present) {
 			document.head.appendChild(script);
+		} else {
+			handle_bokeh_loaded();
 		}
 		return script;
 	}
 
 	const main_script = bokeh_version ? load_bokeh() : null;
-
-	let plugin_scripts = [];
-
-	function handle_bokeh_loaded(): void {
-		plugin_scripts = load_plugins();
-	}
 
 	onDestroy(() => {
 		if (main_script in document.children) {

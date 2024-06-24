@@ -5,7 +5,11 @@
 </script>
 
 <div data-testid={"matplotlib"} class="matplotlib layout">
-	<img src={plot} alt={`${value.chart} plot visualising provided data`} />
+	<img
+		src={plot}
+		alt={`${value.chart} plot visualising provided data`}
+		on:load
+	/>
 </div>
 
 <style>

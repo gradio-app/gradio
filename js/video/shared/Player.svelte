@@ -106,6 +106,7 @@
 			bind:node={video}
 			data-testid={`${label}-player`}
 			{processingVideo}
+			on:load
 		>
 			<track kind="captions" src={subtitle} default />
 		</Video>

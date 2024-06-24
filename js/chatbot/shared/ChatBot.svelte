@@ -8,7 +8,8 @@
 		afterUpdate,
 		createEventDispatcher,
 		type SvelteComponent,
-		type ComponentType
+		type ComponentType,
+		tick
 	} from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import { Image } from "@gradio/image/shared";
@@ -17,10 +18,10 @@
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import { type FileData, type Client } from "@gradio/client";
-	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
-	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
+	import Component from "./Component.svelte";
+	import LikeButtons from "./ButtonPanel.svelte";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
@@ -135,25 +136,22 @@
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
 	});
 
-	const scroll = (): void => {
-		if (autoscroll) {
-			div.scrollTo(0, div.scrollHeight);
-		}
-	};
+	async function scroll(): Promise<void> {
+		await tick();
+		requestAnimationFrame(() => {
+			if (autoscroll) {
+				div?.scrollTo(0, div.scrollHeight);
+			}
+		});
+	}
 
 	let image_preview_source: string;
 	let image_preview_source_alt: string;
 	let is_image_preview_open = false;
-	let image_preview_close_button: HTMLButtonElement;
 
 	afterUpdate(() => {
 		if (autoscroll || _components) {
 			scroll();
-			div.querySelectorAll("img").forEach((n) => {
-				n.addEventListener("load", () => {
-					scroll();
-				});
-			});
 		}
 		div.querySelectorAll("img").forEach((n) => {
 			n.addEventListener("click", (e) => {
@@ -219,7 +217,7 @@
 	aria-label="chatbot conversation"
 	aria-live="polite"
 >
-	<div class="message-wrap" class:bubble-gap={layout === "bubble"} use:copy>
+	<div class="message-wrap" use:copy>
 		{#if value !== null && value.length > 0}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
@@ -231,7 +229,6 @@
 									alt={image_preview_source_alt}
 								/>
 								<button
-									bind:this={image_preview_close_button}
 									class="image-preview-close-button"
 									on:click={() => {
 										is_image_preview_open = false;
@@ -239,7 +236,12 @@
 								>
 							</div>
 						{/if}
-						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
+						<div
+							class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}"
+							class:with_avatar={avatar_images[j] !== null}
+							class:with_opposite_avatar={avatar_images[j === 0 ? 1 : 0] !==
+								null}
+						>
 							{#if avatar_images[j] !== null}
 								<div class="avatar-container">
 									<Image
@@ -249,160 +251,111 @@
 									/>
 								</div>
 							{/if}
-
-							<div
-								class="message {j == 0 ? 'user' : 'bot'}"
-								class:message-fit={layout === "bubble" && !bubble_full_width}
-								class:panel-full-width={layout === "panel"}
-								class:message-bubble-border={layout === "bubble"}
-								class:message-markdown-disabled={!render_markdown}
-								style:text-align={rtl && j == 0 ? "left" : "right"}
-								class:component={typeof message === "object" &&
+							<div class="flex-wrap">
+								<div
+									class="message {j == 0 ? 'user' : 'bot'} {typeof message ===
+										'object' &&
 									message !== null &&
-									"component" in message}
-								class:html={typeof message === "object" &&
-									message !== null &&
-									"component" in message &&
-									message.component === "html"}
-							>
-								<button
-									data-testid={j == 0 ? "user" : "bot"}
-									class:latest={i === value.length - 1}
+									'component' in message
+										? message?.component
+										: ''}"
+									class:message-fit={!bubble_full_width}
+									class:panel-full-width={true}
 									class:message-markdown-disabled={!render_markdown}
-									style:user-select="text"
-									class:selectable
-									style:text-align={rtl ? "right" : "left"}
-									on:click={() => handle_select(i, j, message)}
-									on:keydown={(e) => {
-										if (e.key === "Enter") {
-											handle_select(i, j, message);
-										}
-									}}
-									dir={rtl ? "rtl" : "ltr"}
-									aria-label={(j == 0 ? "user" : "bot") +
-										"'s message: " +
-										(typeof message === "string"
-											? message
-											: "file" in message &&
-												  message.file !== undefined &&
-												  !Array.isArray(message.file)
-												? `a file of type ${message.file?.mime_type}, ${
-														message.file?.alt_text ??
-														message.file?.orig_name ??
-														""
-													}`
-												: "")}
+									style:text-align={rtl && j == 0 ? "left" : "right"}
+									class:component={typeof message === "object" &&
+										message !== null &&
+										"component" in message}
+									class:html={typeof message === "object" &&
+										message !== null &&
+										"component" in message &&
+										message.component === "html"}
 								>
-									{#if message.type === "text"}
-										<Markdown
-											message={message.value}
-											{latex_delimiters}
-											{sanitize_html}
-											{render_markdown}
-											{line_breaks}
-											on:load={scroll}
-										/>
-									{:else if message.type === "component" && message.component in _components}
-										{#if message.component === "gallery"}
-											<svelte:component
-												this={_components[message.component]}
-												value={message.value}
-												show_label={false}
-												{i18n}
-												label=""
-												{_fetch}
-												preview={true}
-												interactive={true}
+									<button
+										data-testid={j == 0 ? "user" : "bot"}
+										class:latest={i === value.length - 1}
+										class:message-markdown-disabled={!render_markdown}
+										style:user-select="text"
+										class:selectable
+										style:text-align={rtl ? "right" : "left"}
+										on:click={() => handle_select(i, j, message)}
+										on:keydown={(e) => {
+											if (e.key === "Enter") {
+												handle_select(i, j, message);
+											}
+										}}
+										dir={rtl ? "rtl" : "ltr"}
+										aria-label={(j == 0 ? "user" : "bot") +
+											"'s message: " +
+											(typeof message === "string"
+												? message
+												: "file" in message &&
+													  message.file !== undefined &&
+													  !Array.isArray(message.file)
+													? `a file of type ${message.file?.mime_type}, ${
+															message.file?.alt_text ??
+															message.file?.orig_name ??
+															""
+														}`
+													: "")}
+									>
+										{#if message.type === "text"}
+											<Markdown
+												message={message.value}
+												{latex_delimiters}
+												{sanitize_html}
+												{render_markdown}
+												{line_breaks}
+												on:load={scroll}
 											/>
-										{:else if message.component === "plot"}
-											<svelte:component
-												this={_components[message.component]}
-												value={message.value}
+										{:else if message.type === "component" && message.component in _components}
+											<Component
 												{target}
 												{theme_mode}
-												bokeh_version={message.props.bokeh_version}
-												caption=""
-												show_actions_button={true}
-											/>
-										{:else if message.component === "audio"}
-											<svelte:component
-												this={_components[message.component]}
+												props={message.props}
+												type={message.component}
+												components={_components}
 												value={message.value}
-												show_label={false}
-												show_share_button={true}
-												{i18n}
-												label=""
-												waveform_settings={{}}
-												waveform_options={{}}
-											/>
-										{:else if message.component === "video"}
-											<svelte:component
-												this={_components[message.component]}
-												autoplay={true}
-												value={message.value.video || message.value}
-												show_label={false}
-												show_share_button={true}
 												{i18n}
 												{upload}
+												{_fetch}
+												on:load={scroll}
+											/>
+										{:else if message.type === "component" && message.component === "file"}
+											<a
+												data-testid="chatbot-file"
+												class="file-pil"
+												href={message.value.url}
+												target="_blank"
+												download={window.__is_colab__
+													? null
+													: message.value?.orig_name ||
+														message.value?.path.split("/").pop() ||
+														"file"}
 											>
-												<track kind="captions" />
-											</svelte:component>
-										{:else if message.component === "image"}
-											<svelte:component
-												this={_components[message.component]}
-												value={message.value}
-												show_label={false}
-												label="chatbot-image"
-												show_share_button={true}
-												{i18n}
-											/>
-										{:else if message.component === "html"}
-											<svelte:component
-												this={_components[message.component]}
-												value={message.value}
-												show_label={false}
-												label="chatbot-image"
-												show_share_button={true}
-												{i18n}
-												gradio={{ dispatch: () => {} }}
-											/>
+												{message.value?.orig_name ||
+													message.value?.path.split("/").pop() ||
+													"file"}
+											</a>
 										{/if}
-									{:else if message.type === "component" && message.component === "file"}
-										<a
-											data-testid="chatbot-file"
-											class="file-pil"
-											href={message.value.url}
-											target="_blank"
-											download={window.__is_colab__
-												? null
-												: message.value?.orig_name || message.value?.path}
-										>
-											{message.value?.orig_name || message.value?.path}
-										</a>
-									{/if}
-								</button>
-							</div>
-							{#if (likeable && j !== 0) || (show_copy_button && message && typeof message === "string")}
-								<div
-									class="message-buttons-{j == 0
-										? 'user'
-										: 'bot'} message-buttons-{layout} {avatar_images[j] !==
-										null && 'with-avatar'}"
-									class:message-buttons-fit={layout === "bubble" &&
-										!bubble_full_width}
-									class:bubble-buttons-user={layout === "bubble"}
-								>
-									{#if likeable && j == 1}
-										<LikeDislike
-											handle_action={(selected) =>
-												handle_like(i, j, message, selected)}
-										/>
-									{/if}
-									{#if show_copy_button && message && typeof message === "string"}
-										<Copy value={message} />
-									{/if}
+									</button>
 								</div>
-							{/if}
+								<LikeButtons
+									show={(likeable && j === 1) ||
+										(show_copy_button &&
+											message &&
+											typeof message === "string")}
+									handle_action={(selected) =>
+										handle_like(i, j, message, selected)}
+									{likeable}
+									{show_copy_button}
+									{message}
+									position={j === 0 ? "right" : "left"}
+									avatar={avatar_images[j]}
+									show_download={true}
+									{layout}
+								/>
+							</div>
 						</div>
 					{/if}
 				{/each}
@@ -425,38 +378,33 @@
 		align-items: center;
 		height: 100%;
 	}
-	.bubble-wrap {
-		padding: var(--block-padding);
+	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;
 	}
 
-	.panel-wrap {
+	.flex-wrap {
+		width: 100%;
+		height: 100%;
+	}
+
+	.bubble-wrap {
 		width: 100%;
 		overflow-y: auto;
+		background: var(--background-fill-secondary);
+		height: 100%;
+		padding-top: var(--spacing-xxl);
 	}
 
 	.message-wrap {
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
+		margin-bottom: var(--spacing-xxl);
 	}
 
 	.bubble-gap {
 		gap: calc(var(--spacing-xxl) + var(--spacing-lg));
-	}
-
-	.message-wrap
-		> div
-		:not(.avatar-container)
-		div
-		:not(.image-button)
-		:global(img) {
-		border-radius: 13px;
-		margin: var(--size-2);
-		width: 400px;
-		max-width: 30vw;
-		max-height: auto;
 	}
 
 	.message-wrap > div :global(p:not(:first-child)) {
@@ -467,22 +415,33 @@
 		position: relative;
 		display: flex;
 		flex-direction: column;
-		align-self: flex-end;
-		background: var(--background-fill-secondary);
+
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
 		font-size: var(--chatbot-body-text-size);
 		overflow-wrap: break-word;
-		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
-		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
 	}
+
 	.message :global(.prose) {
 		font-size: var(--chatbot-body-text-size);
 	}
 
 	.message-bubble-border {
 		border-width: 1px;
-		border-radius: var(--radius-xxl);
+		border-radius: var(--radius-lg);
+	}
+
+	.bubble .user {
+		border-width: 1px;
+		border-radius: var(--radius-xl);
+		align-self: flex-start;
+		border-bottom-right-radius: 0;
+
+		box-shadow: var(--shadow-drop-lg);
+	}
+
+	.user {
+		align-self: flex-end;
 	}
 
 	.message-fit {
@@ -490,55 +449,85 @@
 	}
 
 	.panel-full-width {
-		padding: calc(var(--spacing-xxl) * 2);
 		width: 100%;
 	}
 	.message-markdown-disabled {
 		white-space: pre-line;
 	}
 
-	@media (max-width: 480px) {
-		.panel-full-width {
-			padding: calc(var(--spacing-xxl) * 2);
-		}
-	}
-
-	.user {
+	.bubble .user {
 		align-self: flex-start;
 		border-bottom-right-radius: 0;
 		text-align: right;
+		padding: var(--spacing-sm) var(--spacing-xl);
 	}
-	.bot {
-		border-bottom-left-radius: 0;
-		text-align: left;
+
+	.panel .user :global(*) {
+		text-align: right;
 	}
 
 	/* Colors */
-	.bot {
+	.bubble .bot {
 		border-color: var(--border-color-primary);
 		background: var(--background-fill-secondary);
 	}
 
-	.user {
+	.bubble .user {
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}
+
 	.message-row {
 		display: flex;
-		flex-direction: row;
+		/* flex-direction: column; */
 		position: relative;
 	}
 
-	.message-row.panel.user-row {
-		background: var(--color-accent-soft);
+	.message-row.user-row {
+		align-self: flex-end;
+	}
+	.message-row.bubble {
+		margin: calc(var(--spacing-xl) * 3);
+	}
+
+	.with_avatar.message-row.panel {
+		padding-left: calc(var(--spacing-xl) * 2) !important;
+		padding-right: calc(var(--spacing-xl) * 2) !important;
+	}
+
+	.with_avatar.message-row.bubble.user-row {
+		margin-right: calc(var(--spacing-xl) * 2) !important;
+	}
+
+	.with_avatar.message-row.bubble.bot-row {
+		margin-left: calc(var(--spacing-xl) * 2) !important;
+	}
+
+	.with_opposite_avatar.message-row.bubble.user-row {
+		margin-left: calc(var(--spacing-xxl) + 35px + var(--spacing-xxl));
+	}
+
+	.message-row.panel {
+		margin: 0;
+		padding: calc(var(--spacing-xl) * 3) calc(var(--spacing-xxl) * 2);
 	}
 
 	.message-row.panel.bot-row {
 		background: var(--background-fill-secondary);
 	}
 
+	.message-row.panel.user-row {
+		align-self: flex-end;
+	}
+
+	.message-row.bubble.bot-row {
+		align-self: flex-start;
+		background: var(--background-fill-secondary);
+		width: calc(100% - var(--spacing-xl) * 6);
+	}
+
 	.message-row:last-of-type {
-		margin-bottom: var(--spacing-xxl);
+		margin-bottom: calc(var(--spacing-xxl) * 2);
 	}
 
 	.user-row.bubble {
@@ -554,75 +543,39 @@
 			align-self: flex-start;
 		}
 		.message {
-			width: auto;
+			width: 100%;
 		}
 	}
+
 	.avatar-container {
-		align-self: flex-end;
+		align-self: flex-start;
 		position: relative;
-		justify-content: center;
+		display: flex;
+		justify-content: flex-start;
+		align-items: flex-start;
 		width: 35px;
 		height: 35px;
 		flex-shrink: 0;
 		bottom: 0;
+		border-radius: 50%;
+		border: 1px solid var(--border-color-primary);
 	}
-	.user-row.bubble > .avatar-container {
+	.user-row > .avatar-container {
 		order: 2;
-		margin-left: 10px;
+		margin-left: var(--spacing-xxl);
 	}
-	.bot-row.bubble > .avatar-container {
-		margin-right: 10px;
-	}
-
-	.panel > .avatar-container {
-		margin-left: 25px;
-		align-self: center;
+	.bot-row > .avatar-container {
+		margin-right: var(--spacing-xxl);
+		margin-left: 0;
+		margin-top: -5px;
 	}
 
-	.avatar-container :not(.thumbnail-item) :global(img) {
+	.avatar-container:not(.thumbnail-item) :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 		border-radius: 50%;
-	}
-
-	.message-buttons-user,
-	.message-buttons-bot {
-		border-radius: var(--radius-md);
-		display: flex;
-		align-items: center;
-		bottom: 0;
-		height: var(--size-7);
-		align-self: self-end;
-		position: absolute;
-		bottom: -15px;
-		margin: 2px;
-		padding-left: 5px;
-		z-index: 1;
-	}
-	.message-buttons-bot {
-		left: 10px;
-	}
-	.message-buttons-user {
-		right: 5px;
-	}
-
-	.message-buttons-bot.message-buttons-bubble.with-avatar {
-		left: 50px;
-	}
-	.message-buttons-user.message-buttons-bubble.with-avatar {
-		right: 50px;
-	}
-
-	.message-buttons-bubble {
-		border: 1px solid var(--border-color-accent);
-		background: var(--background-fill-secondary);
-	}
-
-	.message-buttons-panel {
-		left: unset;
-		right: 0px;
-		top: 0px;
+		padding: 6px;
 	}
 
 	.share-button {
@@ -659,7 +612,6 @@
 		z-index: 1;
 		cursor: pointer;
 		border-bottom-left-radius: var(--radius-sm);
-		padding: 5px;
 		padding: var(--spacing-md);
 		width: 25px;
 		height: 25px;
@@ -711,11 +663,9 @@
 		height: 100%;
 		overflow: auto;
 		background-color: rgba(0, 0, 0, 0.9);
-	}
-	.image-preview :global(img) {
-		width: 100%;
-		height: 100%;
-		object-fit: contain;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 	.image-preview :global(svg) {
 		stroke: white;
@@ -740,18 +690,49 @@
 	.component {
 		padding: 0;
 		border-radius: var(--radius-md);
+		width: fit-content;
+		max-width: 80%;
+		max-height: 80%;
+		border: 1px solid var(--border-color-primary);
+		overflow: hidden;
+	}
+
+	.component.gallery {
+		border: none;
 	}
 
 	.file-pil {
-		display: inline-block;
-		padding: var(--spacing-sm) var(--spacing-md);
+		display: block;
+		width: fit-content;
+		padding: var(--spacing-sm) var(--spacing-lg);
 		border-radius: var(--radius-md);
 		background: var(--background-fill-secondary);
 		color: var(--body-text-color);
 		text-decoration: none;
-		margin: var(--spacing-md);
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-sm);
 	}
 
+	.file {
+		width: auto !important;
+		max-width: fit-content !important;
+	}
+
+	@media (max-width: 600px) or (max-width: 480px) {
+		.component {
+			max-width: calc(100% - var(--spacing-xl) * 3);
+			width: 100%;
+		}
+	}
+
+	:global(.prose.chatbot.md) {
+		opacity: 0.8;
+	}
+
+	.message > button {
+		width: 100%;
+	}
 	.html {
 		padding: 0;
 		border: none;
