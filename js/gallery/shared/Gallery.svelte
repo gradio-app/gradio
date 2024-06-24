@@ -347,8 +347,6 @@
 		border-radius: calc(var(--block-radius) - var(--block-border-width));
 		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
-		/* width: fit-content;
-		height: fit-content; */
 		width: var(--size-full);
 		height: var(--size-full);
 	}
