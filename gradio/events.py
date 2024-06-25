@@ -44,10 +44,12 @@ def set_cancel_events(
     if not isinstance(cancels, list):
         cancels = [cancels]
 
-    regular_cancels, timers_to_cancel = [], []
+    regular_cancels: list[dict[str, Any]] = []
+    timers_to_cancel: list[Timer] = []
     for cancel in cancels:
-        if cancel.associated_timer:
-            timers_to_cancel.append(cancel.associated_timer)
+        associated_timer = getattr(cancel, "associated_timer", None)
+        if associated_timer:
+            timers_to_cancel.append(associated_timer)
         else:
             regular_cancels.append(cancel)
 
