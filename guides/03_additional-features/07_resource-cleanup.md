@@ -39,8 +39,8 @@ You can think of the `unload` event as the opposite of the `load` event.
 
 ## Putting it all together
 
-The following demo uses all of these features. When a user logs in, a special unique directory is created for that user.
-As the user interacts with the page, images are saved to disk in that special directory.
+The following demo uses all of these features. When a user visits the page, a special unique directory is created for that user.
+As the user interacts with the app, images are saved to disk in that special directory.
 When the user closes the page, the images created in that session are deleted via the `unload` event.
 The state and files in the cache are cleaned up automatically as well.
 
