@@ -446,6 +446,7 @@ def on(
                 inputs=[input],
                 outputs=[output]
             )
+        demo.launch()
     """
     from gradio.components.base import Component
 
