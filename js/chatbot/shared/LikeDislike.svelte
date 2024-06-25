@@ -1,21 +1,14 @@
 <script lang="ts">
-	import { Like } from "@gradio/icons";
-	import { Dislike } from "@gradio/icons";
+	import ThumbDownActive from "./ThumbDownActive.svelte";
+	import ThumbDownDefault from "./ThumbDownDefault.svelte";
+	import ThumbUpActive from "./ThumbUpActive.svelte";
+	import ThumbUpDefault from "./ThumbUpDefault.svelte";
 
 	export let handle_action: (selected: string | null) => void;
+	export let padded = false;
 
 	let selected: "like" | "dislike" | null = null;
 </script>
-
-<button
-	on:click={() => {
-		selected = "like";
-		handle_action(selected);
-	}}
-	aria-label={selected === "like" ? "clicked like" : "like"}
->
-	<Like selected={selected === "like"} />
-</button>
 
 <button
 	on:click={() => {
@@ -23,24 +16,64 @@
 		handle_action(selected);
 	}}
 	aria-label={selected === "dislike" ? "clicked dislike" : "dislike"}
+	class:padded
+	class:selected={selected === "dislike"}
+	class="dislike-button"
 >
-	<Dislike selected={selected === "dislike"} />
+	<span>
+		{#if selected === "dislike"}
+			<ThumbDownActive />
+		{:else}
+			<ThumbDownDefault />
+		{/if}
+	</span>
+</button>
+
+<button
+	class="like-button"
+	class:padded
+	on:click={() => {
+		selected = "like";
+		handle_action(selected);
+	}}
+	aria-label={selected === "like" ? "clicked like" : "like"}
+	class:selected={selected === "like"}
+>
+	<span>
+		{#if selected === "like"}
+			<ThumbUpActive />
+		{:else}
+			<ThumbUpDefault />
+		{/if}
+	</span>
 </button>
 
 <style>
 	button {
-		position: relative;
-		top: 0;
-		right: 0;
 		cursor: pointer;
 		color: var(--body-text-color-subdued);
-		width: 17px;
-		height: 17px;
-		margin-right: 5px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 7px !important;
+	}
+
+	span {
+		display: inline-block;
 	}
 
 	button:hover,
 	button:focus {
 		color: var(--body-text-color);
+	}
+
+	.selected,
+	.selected:focus,
+	.selected:hover {
+		color: var(--color-accent);
+	}
+
+	.like-button {
+		transform: translateY(0px);
 	}
 </style>

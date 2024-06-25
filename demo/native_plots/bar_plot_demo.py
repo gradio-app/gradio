@@ -98,14 +98,14 @@ def bar_plot_fn(display):
 
 
 with gr.Blocks() as bar_plot:
-    with gr.Row():
-        with gr.Column():
-            display = gr.Dropdown(
-                choices=["simple", "stacked", "grouped", "simple-horizontal", "stacked-horizontal", "grouped-horizontal"],
-                value="simple",
-                label="Type of Bar Plot"
-            )
-        with gr.Column():
-            plot = gr.BarPlot(show_label=False, show_actions_button=True)
+    display = gr.Dropdown(
+        choices=["simple", "stacked", "grouped", "simple-horizontal", "stacked-horizontal", "grouped-horizontal"],
+        value="simple",
+        label="Type of Bar Plot"
+    )
+    plot = gr.BarPlot(show_label=False)
     display.change(bar_plot_fn, inputs=display, outputs=plot)
     bar_plot.load(fn=bar_plot_fn, inputs=display, outputs=plot)
+
+if __name__ == "__main__":
+    bar_plot.launch()
