@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:param table
+feat:Style parameter tables in the docs
