@@ -9,7 +9,7 @@ import json
 import os
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Literal, cast
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, cast
 
 from gradio_client.documentation import document
 
@@ -70,7 +70,7 @@ class Interface(Blocks):
 
     @classmethod
     def from_pipeline(
-        cls, pipeline: Pipeline | DiffusionPipeline, **kwargs
+        cls, pipeline: Pipeline | DiffusionPipeline, dataset_id: Optional[str] = None, **kwargs
     ) -> Interface:
         """
         Class method that constructs an Interface from a Hugging Face transformers.Pipeline or diffusers.DiffusionPipeline object.
@@ -86,9 +86,9 @@ class Interface(Blocks):
             gr.Interface.from_pipeline(pipe).launch()
         """
         if wasm_utils.IS_WASM:
-            interface_info = load_from_js_pipeline(pipeline)
+            interface_info = load_from_js_pipeline(pipeline, dataset_id)
         else:
-            interface_info = load_from_pipeline(pipeline)
+            interface_info = load_from_pipeline(pipeline, dataset_id)
         kwargs = dict(interface_info, **kwargs)
         interface = cls(**kwargs)
         return interface

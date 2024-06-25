@@ -3,7 +3,9 @@ please use the `gr.Interface.from_pipeline()` function."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+
+from datasets import Dataset, load_dataset
 
 from gradio.pipelines_utils import (
     handle_diffusers_pipeline,
@@ -18,6 +20,7 @@ if TYPE_CHECKING:
 
 def load_from_pipeline(
     pipeline: transformers.Pipeline | diffusers.DiffusionPipeline,  # type: ignore
+    dataset_id: Optional[str]
 ) -> dict:
     """
     Gets the appropriate Interface kwargs for a given Hugging Face transformers.Pipeline or diffusers.DiffusionPipeline.
@@ -25,7 +28,6 @@ def load_from_pipeline(
     Returns:
     (dict): a dictionary of kwargs that can be used to construct an Interface object
     """
-
     if str(type(pipeline).__module__).startswith("transformers.pipelines."):
         pipeline_info = handle_transformers_pipeline(pipeline)
     elif str(type(pipeline).__module__).startswith("diffusers.pipelines."):
@@ -35,8 +37,14 @@ def load_from_pipeline(
             "pipeline must be a transformers.pipeline or diffusers.pipeline"
         )
 
-    def fn(*params):
+
+
+    def fn(input_columns, output_columns, *params):
         if pipeline_info:
+            dataset = load_dataset(dataset_id)["train"]
+            item = {}
+            for key, value in zip(input_columns, params):
+                item[key] = value
             data = pipeline_info["preprocess"](*params)
             if str(type(pipeline).__module__).startswith("transformers.pipelines"):
                 from transformers import pipelines
@@ -62,12 +70,37 @@ def load_from_pipeline(
                     output = pipeline_info["postprocess"](data, params[0])
                 else:
                     output = pipeline_info["postprocess"](data)
+                for key, value in zip(output_columns, output):
+                    item[key] = value
+                dataset = dataset.add_item(item)
+                dataset.push_to_hub(dataset_id)
                 return output
-
             elif str(type(pipeline).__module__).startswith("diffusers.pipelines"):
                 data = pipeline(**data)  # type: ignore
                 output = pipeline_info["postprocess"](data)
                 return output
+        else:
+            raise ValueError("pipeline_info can not be None.")
+
+    if dataset_id:
+        if pipeline_info:
+            from functools import partial
+
+
+            if isinstance(pipeline_info["inputs"], list):
+                input_columns = [comp.label for comp in pipeline_info["inputs"]]
+            else:
+                input_columns = [pipeline_info["inputs"].label]
+            if isinstance(pipeline_info["outputs"], list):
+                output_columns = [comp.label for comp in pipeline_info["outputs"]]
+            else:
+                output_columns = [pipeline_info["outputs"].label]
+            try:
+                load_dataset(dataset_id)
+            except Exception:
+                dataset = Dataset.from_dict(dict.fromkeys(input_columns+output_columns, []))
+                dataset.push_to_hub(repo_id=dataset_id)
+            fn = partial(fn, input_columns, output_columns)
         else:
             raise ValueError("pipeline_info can not be None.")
 
@@ -86,7 +119,7 @@ def load_from_pipeline(
     return interface_info
 
 
-def load_from_js_pipeline(pipeline) -> dict:
+def load_from_js_pipeline(pipeline, dataset_id: Optional[str]) -> dict:
     if str(type(pipeline).__module__).startswith("transformers_js_py."):
         pipeline_info = handle_transformers_js_pipeline(pipeline)
     else:
