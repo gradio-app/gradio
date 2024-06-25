@@ -1,5 +1,24 @@
 # @gradio/plot
 
+## 0.5.0
+
+### Features
+
+- [#8131](https://github.com/gradio-app/gradio/pull/8131) [`bb504b4`](https://github.com/gradio-app/gradio/commit/bb504b494947a287d6386e0e7ead3860c0f15223) - Gradio components in `gr.Chatbot()`.  Thanks @dawoodkhan82!
+- [#8603](https://github.com/gradio-app/gradio/pull/8603) [`affce4c`](https://github.com/gradio-app/gradio/commit/affce4cbd9e2df14175c79da27408ccce57a74e9) - Fix resizer on altair.  Thanks @aliabid94!
+- [#8580](https://github.com/gradio-app/gradio/pull/8580) [`797621b`](https://github.com/gradio-app/gradio/commit/797621b81a0ab9b794e6872f8d43bf6d19a68b78) - Improved plot rendering to thematically match.  Thanks @aliabid94!/n  highlight:Expect visual changes in gr.Plot, gr.BarPlot, gr.LinePlot, gr.ScatterPlot, including changes to color and width sizing.
+
+### Fixes
+
+- [#8594](https://github.com/gradio-app/gradio/pull/8594) [`530f8a0`](https://github.com/gradio-app/gradio/commit/530f8a0b056b35dabe9bdd148e1ab7c4577f017d) - chatbot component tweaks.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/icons@0.5.0
+- @gradio/statustracker@0.7.0
+
 ## 0.4.6
 
 ### Dependency updates
