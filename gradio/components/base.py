@@ -156,10 +156,6 @@ class Component(ComponentBase, Block):
             if callable(getattr(self, value))
             and getattr(getattr(self, value), "_is_server_fn", False)
         ]
-        if isinstance(every, (float, int)):
-            warnings.warn(
-                "The 'every' parameter as a float will be deprecated. Please use gr.Timer() instead."
-            )
 
         # Svelte components expect elem_classes to be a list
         # If we don't do this, returning a new component for an

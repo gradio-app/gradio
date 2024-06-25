@@ -34,32 +34,46 @@ def set_cancel_events(
     triggers: Sequence[EventListenerMethod],
     cancels: None | dict[str, Any] | list[dict[str, Any]],
 ):
-    if cancels:
-        if not isinstance(cancels, list):
-            cancels = [cancels]
-        fn_indices_to_cancel = get_cancelled_fn_indices(cancels)
+    if not cancels:
+        return
+    
+    if not isinstance(cancels, list):
+        cancels = [cancels]
+    fn_indices_to_cancel = get_cancelled_fn_indices(cancels)
 
-        root_block = get_blocks_context()
-        if root_block is None:
-            raise AttributeError("Cannot cancel outside of a gradio.Blocks context.")
-
+    root_block = get_blocks_context()
+    if root_block is None:
+        raise AttributeError("Cannot cancel outside of a gradio.Blocks context.")
+            
+    timers_to_cancel = [cancel.associated_timer for cancel in cancels if cancel.associated_timer]
+    if timers_to_cancel:
+        from gradio.components import Timer
         root_block.set_event_trigger(
             triggers,
-            fn=None,
+            fn=lambda: [Timer(active=False) for _ in timers_to_cancel] if len(timers_to_cancel) > 1 else Timer(active=False),
             inputs=None,
-            outputs=None,
-            queue=False,
-            preprocess=False,
-            show_api=False,
-            cancels=fn_indices_to_cancel,
-            is_cancel_function=True,
+            outputs=timers_to_cancel,
+            show_api=False
         )
+
+    root_block.set_event_trigger(
+        triggers,
+        fn=None,
+        inputs=None,
+        outputs=None,
+        queue=False,
+        preprocess=False,
+        show_api=False,
+        cancels=fn_indices_to_cancel,
+        is_cancel_function=True,
+    )
 
 
 class Dependency(dict):
-    def __init__(self, trigger, key_vals, dep_index, fn):
+    def __init__(self, trigger, key_vals, dep_index, fn, associated_timer: Timer | None = None):
         super().__init__(key_vals)
         self.fn = fn
+        self.associated_timer = associated_timer
         self.then = partial(
             EventListener(
                 "then",
@@ -268,6 +282,7 @@ class EventListener(str):
             preprocess: bool = True,
             postprocess: bool = True,
             cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
+            every: float | None = None,
             trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
             js: str | None = None,
             concurrency_limit: int | None | Literal["default"] = "default",
@@ -288,6 +303,7 @@ class EventListener(str):
                 preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
                 postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
                 cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
+                every: Will be deprecated in favor of gr.Timer. Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
                 trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
                 js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
                 concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
@@ -340,8 +356,20 @@ class EventListener(str):
                     f"Cannot call {_event_name} outside of a gradio.Blocks context."
                 )
 
+            event_target = EventListenerMethod(block if _has_trigger else None, _event_name)
+
+            # Handle every as a float (to be deprecated in favor of gr.Timer)
+            timer = None
+            if every is not None:
+                from gradio.components import Timer
+                timer = Timer(every, active=False)
+                root_block.set_event_trigger([event_target], lambda: Timer(active=True), None, timer, show_api=False)
+                target = EventListenerMethod(timer, "tick")
+            else:
+                target = event_target
+
             dep, dep_index = root_block.set_event_trigger(
-                [EventListenerMethod(block if _has_trigger else None, _event_name)],
+                [target],
                 fn,
                 inputs,
                 outputs,
@@ -362,12 +390,12 @@ class EventListener(str):
                 show_api=show_api,
             )
             set_cancel_events(
-                [EventListenerMethod(block if _has_trigger else None, _event_name)],
+                [event_target],
                 cancels,
             )
             if _callback:
                 _callback(block)
-            return Dependency(block, dep.get_config(), dep_index, fn)
+            return Dependency(block, dep.get_config(), dep_index, fn, timer)
 
         event_trigger.event_name = _event_name
         event_trigger.has_trigger = _has_trigger

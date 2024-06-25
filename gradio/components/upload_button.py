@@ -58,6 +58,7 @@ class UploadButton(Component):
             label: Text to display on the button. Defaults to "Upload a File".
             value: File or list of files to upload by default.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer. 
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
