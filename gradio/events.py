@@ -54,8 +54,12 @@ def set_cancel_events(
             is_cancel_function=True,
         )
 
-
+@document()
 class Dependency(dict):
+    """
+    The Dependency object is returned when an event listener is set up. It contains the configuration data for the event listener,
+    and can be used to set up additional event listeners that depend on the completion of the current event listener.
+    """
     def __init__(self, trigger, key_vals, dep_index, fn):
         super().__init__(key_vals)
         self.fn = fn
@@ -376,7 +380,7 @@ class EventListener(str):
         event_trigger.has_trigger = _has_trigger
         return event_trigger
 
-
+@document()
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
