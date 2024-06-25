@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Add `.on()`, `.then()`, and `.success()` to docs, expands `gr.EventData`
+feat:Add docs for `.on()`, `.then()`, and `.success()`, as well as the subclasses of `gr.EventData`
