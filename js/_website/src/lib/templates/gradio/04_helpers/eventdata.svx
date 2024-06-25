@@ -29,23 +29,27 @@ gradio.EventData(···)
 {#if obj.example}
 ### Example Usage
 ```python
-table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
-gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
-textbox = gr.Textbox("Hello World!")
+import gradio as gr
 
-statement = gr.Textbox()
+with gr.Blocks() as demo:
+    table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
+    gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
+    textbox = gr.Textbox("Hello World!")
+    statement = gr.Textbox()
 
-def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-    return f"You selected {evt.value} at {evt.index} from {evt.target}"
+    def on_select(value, evt: gr.EventData):
+        return f"The {evt.target} component was selected, and its value was {value}."
 
-table.select(on_select, None, statement)
-gallery.select(on_select, None, statement)
-textbox.select(on_select, None, statement)
+    table.select(on_select, table, statement)
+    gallery.select(on_select, gallery, statement)
+    textbox.select(on_select, textbox, statement)
+
+demo.launch()
 ```
 {/if}
 
 <!--- Initialization -->
-### Initialization
+### Attributes
 <ParamTable parameters={obj.parameters} />
 
 

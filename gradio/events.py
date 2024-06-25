@@ -132,6 +132,21 @@ class SelectData(EventData):
     The gr.SelectData class is a subclass of gr.EventData that specifically carries information about the `.select()` event. When gr.SelectData
     is added as a type hint to an argument of an event listener method, a gr.SelectData object will automatically be passed as the value of that argument.
     The attributes of this object contains information about the event that triggered the listener.
+
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
+            gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
+            textbox = gr.Textbox("Hello World!")
+            statement = gr.Textbox()
+            def on_select(value, evt: gr.EventData):
+                return f"The {evt.target} component was selected, and its value was {value}."
+            table.select(on_select, table, statement)
+            gallery.select(on_select, gallery, statement)
+            textbox.select(on_select, textbox, statement)
+        demo.launch()
+    Demos: gallery_selections, tictactoe
     """
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
@@ -155,6 +170,21 @@ class KeyUpData(EventData):
     The gr.KeyUpData class is a subclass of gr.EventData that specifically carries information about the `.key_up()` event. When gr.KeyUpData
     is added as a type hint to an argument of an event listener method, a gr.KeyUpData object will automatically be passed as the value of that argument.
     The attributes of this object contains information about the event that triggered the listener.
+
+    Example:
+        import gradio as gr
+        def test(value, key_up_data: gr.KeyUpData):
+            return {
+                "component value": value,
+                "input value": key_up_data.input_value,
+                "key": key_up_data.key
+            }
+        with gr.Blocks() as demo:
+            d = gr.Dropdown(["abc", "def"], allow_custom_value=True)
+            t = gr.JSON()
+            d.key_up(test, d, t)
+        demo.launch()
+    Demos: dropdown_key_up
     """
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
@@ -176,12 +206,22 @@ class DeletedFileData(EventData):
     The gr.DeletedFileData class is a subclass of gr.EventData that specifically carries information about the `.delete()` event. When gr.DeletedFileData
     is added as a type hint to an argument of an event listener method, a gr.DeletedFileData object will automatically be passed as the value of that argument.
     The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def test(delete_data: gr.DeletedFileData):
+            return delete_data.file.path
+        with gr.Blocks() as demo:
+            files = gr.File(file_count="multiple")
+            deleted_file = gr.File()
+            files.delete(test, None, deleted_file)
+        demo.launch()
+    Demos: file_component_events
     """
     def __init__(self, target: Block | None, data: FileDataDict):
         super().__init__(target, data)
         self.file: FileData = FileData(**data)
         """
-        The file that was deleted.
+        The file that was deleted, as a FileData object.
         """
 
 
@@ -190,6 +230,21 @@ class LikeData(EventData):
     The gr.LikeData class is a subclass of gr.EventData that specifically carries information about the `.like()` event. When gr.LikeData
     is added as a type hint to an argument of an event listener method, a gr.LikeData object will automatically be passed as the value of that argument.
     The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def test(value, like_data: gr.LikeData):
+            return {
+                "chatbot_value": value,
+                "liked_message": like_data.value,
+                "liked_index": like_data.index,
+                "liked_or_disliked_as_bool": like_data.liked
+            }
+        with gr.Blocks() as demo:
+            c = gr.Chatbot([("abc", "def")])
+            t = gr.JSON()
+            c.like(test, c, t)
+        demo.launch()
+    Demos: chatbot_multimodal
     """
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
