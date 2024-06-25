@@ -161,6 +161,7 @@
 			for (let file of detail) {
 				value.files.push(file);
 			}
+			value = value;
 		} else {
 			value.files.push(detail);
 			value = value;
@@ -244,7 +245,7 @@
 		<Upload
 			bind:this={upload_component}
 			on:load={handle_upload}
-			filetype={accept_file_types}
+			file_count={"multiple"}
 			{root}
 			{max_file_size}
 			bind:dragging
