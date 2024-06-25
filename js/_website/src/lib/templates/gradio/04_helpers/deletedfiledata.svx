@@ -1,0 +1,76 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("deletedfiledata");
+
+    obj["attributes"] = [
+            {
+                name: "file",
+                annotation: "FileData",
+                doc: "The file that was deleted, as a FileData object. The str path to the file can be retrieved with the .path attribute.",
+                kwargs: null
+            }
+        ]    
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.DeletedFileData(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+{#if obj.example}
+### Example Usage
+```python
+import gradio as gr
+
+def test(delete_data: gr.DeletedFileData):
+    return delete_data.file.path
+
+with gr.Blocks() as demo:
+    files = gr.File(file_count="multiple")
+    deleted_file = gr.File()
+    files.delete(test, None, deleted_file)
+
+demo.launch()
+```
+{/if}
+
+<!--- Initialization -->
+### Attributes
+<ParamTable parameters={obj.attributes} />
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}
