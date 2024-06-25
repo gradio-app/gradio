@@ -146,18 +146,18 @@
 						style="max-width: 12rem"
 						href="..{guide.url}">{guide.pretty_name}</a
 					>
-					
+
 					{#if guide_slug.length > 0}
-					<div
-						class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2"
-					>
-						{#each guide_slug as heading}
-							<a
-								class="subheading block thin-link -indent-2 ml-4 mr-2"
-								href={heading.href}>{heading.text}</a
-							>
-						{/each}
-					</div>
+						<div
+							class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2"
+						>
+							{#each guide_slug as heading}
+								<a
+									class="subheading block thin-link -indent-2 ml-4 mr-2"
+									href={heading.href}>{heading.text}</a
+								>
+							{/each}
+						</div>
 					{/if}
 				{:else}
 					<a
