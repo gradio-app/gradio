@@ -98,8 +98,8 @@ class Dependency(dict):
 @document()
 class EventData:
     """
-    When gr.EventData or one of its subclasses is added as a type hint to an argument of an event listener method, an object of this class will automatically be passed as that argument.
-    The attributes of this object contains information about the event that triggered the listener. The gr.EventData object itself contains a .target attribute that refers to the component 
+    When gr.EventData or one of its subclasses is added as a type hint to an argument of a prediction function, a gr.EventData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener. The gr.EventData object itself contains a .target attribute that refers to the component
     that triggered the event, while subclasses of gr.EventData contains additional attributes that are different for each class.
 
     Example:
@@ -109,11 +109,11 @@ class EventData:
         gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
         textbox = gr.Textbox("Hello World!")
         statement = gr.Textbox()
-        def on_select(evt: gr.EventData):
-            return f"The {evt.target} component was selected."
-        table.select(on_select, None, statement)
-        gallery.select(on_select, None, statement)
-        textbox.select(on_select, None, statement)
+        def on_select(value, evt: gr.EventData):
+            return f"The {evt.target} component was selected, and its value was {value}."
+        table.select(on_select, table, statement)
+        gallery.select(on_select, gallery, statement)
+        textbox.select(on_select, textbox, statement)
     demo.launch()
     Demos: gallery_selections, tictactoe
     """
@@ -126,8 +126,13 @@ class EventData:
         self.target = target
         self._data = _data
 
-
+@document()
 class SelectData(EventData):
+    """
+    The gr.SelectData class is a subclass of gr.EventData that specifically carries information about the `.select()` event. When gr.SelectData
+    is added as a type hint to an argument of an event listener method, a gr.SelectData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    """
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
         self.index: int | tuple[int, int] = data["index"]
@@ -144,7 +149,13 @@ class SelectData(EventData):
         """
 
 
+@document()
 class KeyUpData(EventData):
+    """
+    The gr.KeyUpData class is a subclass of gr.EventData that specifically carries information about the `.key_up()` event. When gr.KeyUpData
+    is added as a type hint to an argument of an event listener method, a gr.KeyUpData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    """
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
         self.key: str = data["key"]
@@ -159,12 +170,40 @@ class KeyUpData(EventData):
         """
 
 
+@document()
 class DeletedFileData(EventData):
+    """
+    The gr.DeletedFileData class is a subclass of gr.EventData that specifically carries information about the `.delete()` event. When gr.DeletedFileData
+    is added as a type hint to an argument of an event listener method, a gr.DeletedFileData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    """
     def __init__(self, target: Block | None, data: FileDataDict):
         super().__init__(target, data)
         self.file: FileData = FileData(**data)
         """
         The file that was deleted.
+        """
+
+
+class LikeData(EventData):
+    """
+    The gr.LikeData class is a subclass of gr.EventData that specifically carries information about the `.like()` event. When gr.LikeData
+    is added as a type hint to an argument of an event listener method, a gr.LikeData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    """
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the liked/disliked item. Is a tuple if the component is two dimensional.
+        """
+        self.value: Any = data["value"]
+        """
+        The value of the liked/disliked item.
+        """
+        self.liked: bool = data.get("liked", True)
+        """
+        True if the item was liked, False if disliked.
         """
 
 
@@ -627,20 +666,3 @@ class Events:
         "delete",
         doc="This listener is triggered when the user deletes and item from the {{ component }}. Uses event data gradio.DeletedFileData to carry `value` referring to the file that was deleted as an instance of FileData. See EventData documentation on how to use this event data",
     )
-
-
-class LikeData(EventData):
-    def __init__(self, target: Block | None, data: Any):
-        super().__init__(target, data)
-        self.index: int | tuple[int, int] = data["index"]
-        """
-        The index of the liked/disliked item. Is a tuple if the component is two dimensional.
-        """
-        self.value: Any = data["value"]
-        """
-        The value of the liked/disliked item.
-        """
-        self.liked: bool = data.get("liked", True)
-        """
-        True if the item was liked, False if disliked.
-        """
