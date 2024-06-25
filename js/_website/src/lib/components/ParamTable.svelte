@@ -4,40 +4,50 @@
 </script>
 
 {#if (parameters.length > 0 && parameters[0].name != "self") || parameters.length > 1}
-	<table class="table-fixed w-full leading-loose">
-		<thead class="text-left">
-			<tr>
-				<th class="px-3 pb-3 w-2/5 text-gray-700 font-semibold">Parameter</th>
-				<th class="px-3 pb-3 text-gray-700 font-semibold">Description</th>
-			</tr>
-		</thead>
-		<tbody
-			class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y"
-		>
-			{#each parameters as param}
-				{#if param["name"] != "self"}
-					<tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-						<td class="p-3 w-2/5 break-words">
-							<code class="block">
-								{param["name"]}
-							</code>
-							<p class="text-gray-500 italic">
-								{param["annotation"].replace("Sequence[", "list[")}
-							</p>
-							{#if "default" in param}
-								<p class="text-gray-500 font-semibold">
-									default: {param["default"]}
-								</p>
-							{:else if !("kwargs" in param)}
-								<p class="text-orange-600 font-semibold italic">required</p>
-							{/if}
-						</td>
-						<td class="p-3 text-gray-700 break-words">
-							<p>{@html style_formatted_text(param["doc"]) || ""}</p>
-						</td>
-					</tr>
-				{/if}
-			{/each}
-		</tbody>
-	</table>
+	<div class="w-full">
+	{#each parameters as param}
+		{#if param["name"] != "self"}
+			<hr class="hr" />
+			<div style="margin:10px;">
+				<p style="white-space: nowrap; overflow-x: auto;">
+					<span class="code" style="margin-right: 10px;">{param["name"]}</span>
+					<span class="code highlight" style="margin-right: 10px;">{param["annotation"].replace("Sequence[", "list[")}</span>
+					{#if "default" in param}
+					<span> Default: </span><span class="code" style="font-size: var(--text-sm);">{param["default"]}</span>
+							{:else if !("kwargs" in param)}<span style="font-weight:bold">Required</span>{/if}
+				</p>
+				<p class="desc">
+					{@html style_formatted_text(param["doc"]) || ""}
+				</p>
+			</div>
+		{/if}
+	{/each}
+	</div>
 {/if}
+
+<style>
+	.hr {
+		border: 0;
+		height: 1px;
+		background: var(--color-accent-soft);
+		margin-bottom: 12px;
+	}
+
+
+	.code {
+		font-family: var(--font-mono);
+		display: inline;
+	}
+
+	.highlight {
+		background: var(--color-accent-soft);
+		color: var(--color-accent);
+		padding: var(--size-1);
+	}
+
+	.desc {
+		color: var(--body-text-color-subdued);
+		font-size: var(--text-lg);
+		margin-top: var(--size-1);
+	}
+</style>
