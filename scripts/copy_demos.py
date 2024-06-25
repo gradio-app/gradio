@@ -70,10 +70,7 @@ if __name__ == "__main__":
     {args.gradio_version}
     pypistats==1.1.0
     plotly
-    opencv-python==4.6.0.66
-    transformers==4.21.1
-    torch==1.12.1
     altair
     vega_datasets
     """
-    open(reqs_file_path, "w").write(textwrap.dedent(requirements))
+    pathlib.Path(reqs_file_path).write_text(textwrap.dedent(requirements))
