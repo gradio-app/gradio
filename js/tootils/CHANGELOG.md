@@ -1,5 +1,12 @@
 # @gradio/tootils
 
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/utils@0.5.0
+- @gradio/statustracker@0.7.0
+
 ## 0.5.0
 
 ### Features

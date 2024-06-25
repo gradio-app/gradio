@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/accordion",
-	"version": "0.3.16",
+	"version": "0.3.17",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -11,7 +11,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/column": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
-		"@gradio/utils": "workspace:0.4.2"
+		"@gradio/utils": "workspace:0.5.0"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

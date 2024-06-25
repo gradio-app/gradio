@@ -1,5 +1,11 @@
 # @gradio/utils
 
+## 0.5.0
+
+### Features
+
+- [#8131](https://github.com/gradio-app/gradio/pull/8131) [`bb504b4`](https://github.com/gradio-app/gradio/commit/bb504b494947a287d6386e0e7ead3860c0f15223) - Gradio components in `gr.Chatbot()`.  Thanks @dawoodkhan82!
+
 ## 0.4.2
 
 ### Dependency updates

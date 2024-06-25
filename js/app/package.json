@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/app",
-	"version": "1.36.2",
+	"version": "1.37.0",
 	"private": true,
 	"type": "module",
 	"scripts": {
