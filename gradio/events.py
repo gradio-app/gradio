@@ -98,29 +98,30 @@ class Dependency(dict):
 @document()
 class EventData:
     """
-    When a subclass of EventData is added as a type hint to an argument of an event listener method, this object will be passed as that argument.
-    It contains information about the event that triggered the listener, such the target object, and other data related to the specific event that are attributes of the subclass.
+    When gr.EventData or one of its subclasses is added as a type hint to an argument of an event listener method, an object of this class will automatically be passed as that argument.
+    The attributes of this object contains information about the event that triggered the listener. The gr.EventData object itself contains a .target attribute that refers to the component 
+    that triggered the event, while subclasses of gr.EventData contains additional attributes that are different for each class.
 
     Example:
+    import gradio as gr
+    with gr.Blocks() as demo:
         table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
         gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
         textbox = gr.Textbox("Hello World!")
-
         statement = gr.Textbox()
-
-        def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-            return f"You selected {evt.value} at {evt.index} from {evt.target}"
-
+        def on_select(evt: gr.EventData):
+            return f"The {evt.target} component was selected."
         table.select(on_select, None, statement)
         gallery.select(on_select, None, statement)
         textbox.select(on_select, None, statement)
+    demo.launch()
     Demos: gallery_selections, tictactoe
     """
 
     def __init__(self, target: Block | None, _data: Any):
         """
         Parameters:
-            target: The target object that triggered the event. Can be used to distinguish if multiple components are bound to the same listener.
+            target: The component object that triggered the event. Can be used to distinguish multiple components bound to the same listener.
         """
         self.target = target
         self._data = _data
@@ -434,13 +435,11 @@ def on(
         show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
     Example:
         import gradio as gr
-
         with gr.Blocks() as demo:
             with gr.Row():
                 input = gr.Textbox()
                 button = gr.Button("Submit")
             output = gr.Textbox()
-
             gr.on(
                 triggers=[button.click, input.submit],
                 fn=lambda x: x,
