@@ -58,8 +58,8 @@ def set_cancel_events(
 @document()
 class Dependency(dict):
     """
-    The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration 
-    data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event 
+    The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration
+    data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
     listener using .then() and .success().
 
     Demos: chatbot_consecutive, blocks_chained_events
@@ -128,6 +128,7 @@ class EventData:
         self.target = target
         self._data = _data
 
+
 @document()
 class SelectData(EventData):
     """
@@ -150,6 +151,7 @@ class SelectData(EventData):
         demo.launch()
     Demos: gallery_selections, tictactoe
     """
+
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
         self.index: int | tuple[int, int] = data["index"]
@@ -188,6 +190,7 @@ class KeyUpData(EventData):
         demo.launch()
     Demos: dropdown_key_up
     """
+
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
         self.key: str = data["key"]
@@ -219,6 +222,7 @@ class DeletedFileData(EventData):
         demo.launch()
     Demos: file_component_events
     """
+
     def __init__(self, target: Block | None, data: FileDataDict):
         super().__init__(target, data)
         self.file: FileData = FileData(**data)
@@ -227,6 +231,7 @@ class DeletedFileData(EventData):
         """
 
 
+@document()
 class LikeData(EventData):
     """
     The gr.LikeData class is a subclass of gr.EventData that specifically carries information about the `.like()` event. When gr.LikeData
@@ -248,6 +253,7 @@ class LikeData(EventData):
         demo.launch()
     Demos: chatbot_multimodal
     """
+
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
         self.index: int | tuple[int, int] = data["index"]
