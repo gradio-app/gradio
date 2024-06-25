@@ -407,6 +407,10 @@ def on(
     show_api: bool = True,
 ) -> Dependency:
     """
+    Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
+    useful when the same function should be triggered by multiple events. Only a single API endpoint is generated
+    for all events in the triggers list.
+
     Parameters:
         triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will listen to changes to any inputs.
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
