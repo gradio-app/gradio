@@ -38,7 +38,7 @@
 		if (fit_width_to_parent) {
 			spec.width = Math.min(
 				parent_element.offsetWidth,
-				spec_width || parent_element.offsetWidth,
+				spec_width || parent_element.offsetWidth
 			);
 		}
 		vegaEmbed(element, spec, { actions: show_actions_button });
