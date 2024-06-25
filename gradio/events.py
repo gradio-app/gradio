@@ -140,8 +140,8 @@ class SelectData(EventData):
             gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
             textbox = gr.Textbox("Hello World!")
             statement = gr.Textbox()
-            def on_select(value, evt: gr.EventData):
-                return f"The {evt.target} component was selected, and its value was {value}."
+            def on_select(evt: gr.SelectData):
+                return f"You selected {evt.value} at {evt.index} from {evt.target}"
             table.select(on_select, table, statement)
             gallery.select(on_select, gallery, statement)
             textbox.select(on_select, textbox, statement)
