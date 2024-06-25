@@ -29,7 +29,7 @@
                 annotation: "bool",
                 doc: "True if the item was selected, False if deselected.",
                 kwargs: null
-            },
+            }
         ]    
 </script>
 
