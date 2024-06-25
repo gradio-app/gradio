@@ -1,6 +1,6 @@
 ---
-"@gradio/plot": minor
-"gradio": minor
+"@gradio/plot": patch
+"gradio": patch
 ---
 
 feat:Fix resizer on altair
