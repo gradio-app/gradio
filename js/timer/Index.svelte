@@ -9,17 +9,12 @@
 	let old_value: number;
 	let old_active: boolean;
 	let interval: NodeJS.Timeout;
-	let documentVisible = true;
-
-	document.addEventListener("visibilitychange", () => {
-		documentVisible = document.visibilityState === "visible";
-	});
 
 	$: if (old_value !== value || active !== old_active) {
 		if (interval) clearInterval(interval);
 		if (active) {
 			interval = setInterval(() => {
-				if (documentVisible) gradio.dispatch("tick");
+				if (document.visibilityState === "visible") gradio.dispatch("tick");
 			}, value * 1000);
 		}
 		old_value = value;
