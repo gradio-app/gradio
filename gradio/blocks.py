@@ -131,7 +131,7 @@ class Block:
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
         self.key = key
-        # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
+        # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
 
