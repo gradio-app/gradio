@@ -1,5 +1,11 @@
 # gradio
 
+## 4.37.1
+
+### Fixes
+
+- [#8610](https://github.com/gradio-app/gradio/pull/8610) [`9204d86`](https://github.com/gradio-app/gradio/commit/9204d86ed48b4a45ed5de5ea628b756d092ce910) - Add guide on cleaning up state and file resources.  Thanks @freddyaboulton!
+
 ## 4.37.0
 
 ### Features
