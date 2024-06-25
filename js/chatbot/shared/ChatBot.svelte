@@ -391,9 +391,13 @@
 	.bubble-wrap {
 		width: 100%;
 		overflow-y: auto;
-		background: var(--background-fill-secondary);
+
 		height: 100%;
 		padding-top: var(--spacing-xxl);
+	}
+
+	:global(.dark) .bubble-wrap {
+		background: var(--background-fill-secondary);
 	}
 
 	.message-wrap {
@@ -469,7 +473,6 @@
 	/* Colors */
 	.bubble .bot {
 		border-color: var(--border-color-primary);
-		background: var(--background-fill-secondary);
 	}
 
 	.bubble .user {
@@ -522,7 +525,6 @@
 
 	.message-row.bubble.bot-row {
 		align-self: flex-start;
-		background: var(--background-fill-secondary);
 		width: calc(100% - var(--spacing-xl) * 6);
 	}
 
