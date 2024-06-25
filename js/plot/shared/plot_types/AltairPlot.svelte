@@ -28,7 +28,11 @@
 		spec = set_config(spec, computed_style, value.chart as string, colors);
 	}
 	$: fit_width_to_parent =
-		spec.encoding?.column?.field || spec.encoding?.row?.field ? false : true; // vega seems to glitch with width when orientation is set
+		spec.encoding?.column?.field ||
+		spec.encoding?.row?.field ||
+		value.chart === undefined
+			? false
+			: true; // vega seems to glitch with width when orientation is set
 
 	const renderPlot = (): void => {
 		if (fit_width_to_parent) {
