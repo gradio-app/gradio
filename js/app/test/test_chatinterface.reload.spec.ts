@@ -58,9 +58,9 @@ test("gradio dev mode correctly reloads a stateful ChatInterface demo", async ({
 import gradio as gr
 
 def greet(msg, history):
-    return "Hello"
+    return f"You typed: {msg}"
 
-demo = gr.ChatInterface(fn=greet, textbox=gr.Textbox(label="foo"))
+demo = gr.ChatInterface(fn=greet, textbox=gr.Textbox(label="foo", placeholder="Type a message..."))
 
 if __name__ == "__main__":
     demo.launch()
@@ -75,6 +75,17 @@ if __name__ == "__main__":
 			}
 		});
 		await expect(page.getByLabel("foo")).toBeVisible();
+		const textbox = page.getByPlaceholder("Type a message...");
+		const submit_button = page.getByRole("button", { name: "Submit" });
+
+		await textbox.fill("hello");
+		await submit_button.click();
+
+		await expect(textbox).toHaveValue("");
+		const response = page.locator(".bot  p", {
+			hasText: "You typed: hello"
+		});
+		await expect(response).toBeVisible();
 	} finally {
 		if (_process) kill_process(_process);
 	}
