@@ -318,6 +318,7 @@
 					app.close();
 					app = await Client.connect(api_url, {
 						status_callback: handle_status,
+						with_null_state: true,
 						events: ["data", "log", "status", "render"]
 					});
 
