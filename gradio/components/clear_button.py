@@ -32,7 +32,7 @@ class ClearButton(Button):
         components: None | list[Component] | Component = None,
         *,
         value: str = "Clear",
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,

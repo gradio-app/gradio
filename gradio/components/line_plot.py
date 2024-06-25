@@ -78,7 +78,7 @@ class LinePlot(Plot):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -113,7 +113,7 @@ class LinePlot(Plot):
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
             show_label: Whether the label should be displayed.
-            every: If `value` is a callable, run the function every time the provided Timer ticks. Has no effect otherwise.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer. 
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.

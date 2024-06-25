@@ -570,7 +570,7 @@ class PDF(Component):
                  elem_classes: list[str] | str | None = None,
                  render: bool = True,
                  load_fn: Callable[..., Any] | None = None,
-                 every: float | None = None):
+                 every: Timer | float | None = None):
         super().__init__(value, label=label, info=info,
                          show_label=show_label, container=container,
                          scale=scale, min_width=min_width,

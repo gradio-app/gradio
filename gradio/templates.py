@@ -30,7 +30,7 @@ class TextArea(components.Textbox):
         placeholder: str | None = None,
         label: str | None = None,
         info: str | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -99,7 +99,7 @@ class Sketchpad(components.ImageEditor):
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -181,7 +181,7 @@ class Paint(components.ImageEditor):
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -265,7 +265,7 @@ class ImageMask(components.ImageEditor):
         ),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -346,7 +346,7 @@ class PlayableVideo(components.Video):
         height: int | str | None = None,
         width: int | str | None = None,
         label: str | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -413,7 +413,7 @@ class Microphone(components.Audio):
         sources: list[Literal["upload", "microphone"]] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -483,7 +483,7 @@ class Files(components.File):
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
         label: str | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -541,7 +541,7 @@ class Numpy(components.Dataframe):
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -605,7 +605,7 @@ class Matrix(components.Dataframe):
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]
@@ -669,7 +669,7 @@ class List(components.Dataframe):
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: components.Component
         | list[components.Component]
         | set[components.Component]

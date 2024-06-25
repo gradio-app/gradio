@@ -147,7 +147,7 @@ class Component(ComponentBase, Block):
         render: bool = True,
         key: int | str | None = None,
         load_fn: Callable | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
     ):
         self.server_fns = [
@@ -207,7 +207,6 @@ class Component(ComponentBase, Block):
             None
             | tuple[
                 Callable,
-                float | None,
                 list[tuple[Block, str]],
                 Component | list[Component] | set[Component] | None,
             ]
@@ -269,21 +268,15 @@ class Component(ComponentBase, Block):
             [(i, "change") for i in inputs if hasattr(i, "change")] if inputs else []
         )
         if isinstance(every, (int, float)):
-            self.load_event_to_attach = (
-                callable,
-                every,
-                [],
-                inputs,
-            )
-        else:
-            if every is not None:
-                changeable_events.append((every, "tick"))
-            self.load_event_to_attach = (
-                callable,
-                None,
-                changeable_events,
-                inputs,
-            )
+            from gradio.components import Timer
+            every = Timer(every)
+        if every:
+            changeable_events.append((every, "tick"))
+        self.load_event_to_attach = (
+            callable,
+            changeable_events,
+            inputs,
+        )
 
     def process_example(self, value):
         """

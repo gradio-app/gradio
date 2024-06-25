@@ -25,7 +25,7 @@ class Button(Component):
         self,
         value: str | Callable = "Run",
         *,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
@@ -43,7 +43,7 @@ class Button(Component):
         """
         Parameters:
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            every: If `value` is a callable, run the function every time the provided Timer ticks. Has no effect otherwise.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer. 
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             size: Size of the button. Can be "sm" or "lg".
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.

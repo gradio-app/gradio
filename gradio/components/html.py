@@ -29,7 +29,7 @@ class HTML(Component):
         value: str | Callable | None = None,
         *,
         label: str | None = None,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         visible: bool = True,
@@ -42,7 +42,7 @@ class HTML(Component):
         Parameters:
             value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function every time the provided Timer ticks. Has no effect otherwise.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer. 
             show_label: This parameter has no effect.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.

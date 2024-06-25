@@ -114,7 +114,6 @@ class Queue:
         self.progress_update_sleep_when_free = 0.1
         self.max_size = max_size
         self.blocks = blocks
-        self.continuous_tasks: list[Event] = []
         self._asyncio_tasks: list[asyncio.Task] = []
         self.default_concurrency_limit = self._resolve_concurrency_limit(
             default_concurrency_limit
@@ -338,7 +337,7 @@ class Queue:
         while not self.stopped:
             events = [
                 evt for job in self.active_jobs if job is not None for evt in job
-            ] + self.continuous_tasks
+            ]
 
             if len(events) == 0:
                 await asyncio.sleep(self.progress_update_sleep_when_free)
@@ -386,7 +385,7 @@ class Queue:
     ):
         events = [
             evt for job in self.active_jobs if job is not None for evt in job
-        ] + self.continuous_tasks
+        ]
         for event in events:
             if event._id == event_id:
                 log_message = LogMessage(

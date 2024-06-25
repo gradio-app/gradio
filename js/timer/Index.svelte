@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
+	import { onDestroy } from "svelte";
 	export let gradio: Gradio<{
 		tick: never;
 	}>;
@@ -19,4 +20,8 @@
 		old_value = value;
 		old_active = active;
 	}
+
+	onDestroy(() => {
+		if (interval) clearInterval(interval);
+	});
 </script>

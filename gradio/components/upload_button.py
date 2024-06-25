@@ -36,7 +36,7 @@ class UploadButton(Component):
         label: str = "Upload a File",
         value: str | list[str] | Callable | None = None,
         *,
-        every: Timer | None = None,
+        every: Timer | float | None = None,
         inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
@@ -57,7 +57,7 @@ class UploadButton(Component):
         Parameters:
             label: Text to display on the button. Defaults to "Upload a File".
             value: File or list of files to upload by default.
-            every: If `value` is a callable, run the function every time the provided Timer ticks. Has no effect otherwise.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer. 
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
