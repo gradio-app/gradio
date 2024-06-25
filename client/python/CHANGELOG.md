@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.0.2
+
+### Features
+
+- [#8516](https://github.com/gradio-app/gradio/pull/8516) [`de6aa2b`](https://github.com/gradio-app/gradio/commit/de6aa2b67668605b65ad92842b2c798afa2c6d8a) - Add helper classes to docs.  Thanks @aliabd!
+
 ## 1.0.1
 
 ### Features
