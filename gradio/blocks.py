@@ -528,10 +528,9 @@ class BlockFunction:
         self.scroll_to_output = False if utils.get_space() else scroll_to_output
         self.show_api = show_api
         self.zero_gpu = hasattr(self.fn, "zerogpu")
-        self.types_generator = (
-            inspect.isgeneratorfunction(self.fn)
-            or inspect.isasyncgenfunction(self.fn)
-        )
+        self.types_generator = inspect.isgeneratorfunction(
+            self.fn
+        ) or inspect.isasyncgenfunction(self.fn)
         self.renderable = renderable
         self.rendered_in = rendered_in
 
@@ -2648,9 +2647,7 @@ Received outputs:
                     isinstance(component, components.Component)
                     and component.load_event_to_attach
                 ):
-                    load_fn, triggers, inputs = (
-                        component.load_event_to_attach
-                    )
+                    load_fn, triggers, inputs = component.load_event_to_attach
                     has_target = len(triggers) > 0
                     triggers += [(self, "load")]
                     # Use set_event_trigger to avoid ambiguity between load class/instance method

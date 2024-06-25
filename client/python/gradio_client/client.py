@@ -453,7 +453,7 @@ class Client:
             client.predict(5, "add", 4, api_name="/predict")
             >> 9.0
         """
-        inferred_fn_index = self._infer_fn_index(api_name, fn_index)
+        self._infer_fn_index(api_name, fn_index)
         return self.submit(
             *args, api_name=api_name, fn_index=fn_index, **kwargs
         ).result()

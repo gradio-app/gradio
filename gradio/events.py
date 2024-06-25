@@ -36,41 +36,53 @@ def set_cancel_events(
 ):
     if not cancels:
         return
-    
-    if not isinstance(cancels, list):
-        cancels = [cancels]
-    fn_indices_to_cancel = get_cancelled_fn_indices(cancels)
 
     root_block = get_blocks_context()
     if root_block is None:
         raise AttributeError("Cannot cancel outside of a gradio.Blocks context.")
-            
-    timers_to_cancel = [cancel.associated_timer for cancel in cancels if cancel.associated_timer]
+
+    if not isinstance(cancels, list):
+        cancels = [cancels]
+
+    regular_cancels, timers_to_cancel = [], []
+    for cancel in cancels:
+        if cancel.associated_timer:
+            timers_to_cancel.append(cancel.associated_timer)
+        else:
+            regular_cancels.append(cancel)
+
     if timers_to_cancel:
         from gradio.components import Timer
+
         root_block.set_event_trigger(
             triggers,
-            fn=lambda: [Timer(active=False) for _ in timers_to_cancel] if len(timers_to_cancel) > 1 else Timer(active=False),
+            fn=lambda: [Timer(active=False) for _ in timers_to_cancel]
+            if len(timers_to_cancel) > 1
+            else Timer(active=False),
             inputs=None,
             outputs=timers_to_cancel,
-            show_api=False
+            show_api=False,
         )
 
-    root_block.set_event_trigger(
-        triggers,
-        fn=None,
-        inputs=None,
-        outputs=None,
-        queue=False,
-        preprocess=False,
-        show_api=False,
-        cancels=fn_indices_to_cancel,
-        is_cancel_function=True,
-    )
+    if regular_cancels:
+        fn_indices_to_cancel = get_cancelled_fn_indices(regular_cancels)
+        root_block.set_event_trigger(
+            triggers,
+            fn=None,
+            inputs=None,
+            outputs=None,
+            queue=False,
+            preprocess=False,
+            show_api=False,
+            cancels=fn_indices_to_cancel,
+            is_cancel_function=True,
+        )
 
 
 class Dependency(dict):
-    def __init__(self, trigger, key_vals, dep_index, fn, associated_timer: Timer | None = None):
+    def __init__(
+        self, trigger, key_vals, dep_index, fn, associated_timer: Timer | None = None
+    ):
         super().__init__(key_vals)
         self.fn = fn
         self.associated_timer = associated_timer
@@ -356,14 +368,23 @@ class EventListener(str):
                     f"Cannot call {_event_name} outside of a gradio.Blocks context."
                 )
 
-            event_target = EventListenerMethod(block if _has_trigger else None, _event_name)
+            event_target = EventListenerMethod(
+                block if _has_trigger else None, _event_name
+            )
 
             # Handle every as a float (to be deprecated in favor of gr.Timer)
             timer = None
             if every is not None:
                 from gradio.components import Timer
+
                 timer = Timer(every, active=False)
-                root_block.set_event_trigger([event_target], lambda: Timer(active=True), None, timer, show_api=False)
+                root_block.set_event_trigger(
+                    [event_target],
+                    lambda: Timer(active=True),
+                    None,
+                    timer,
+                    show_api=False,
+                )
                 target = EventListenerMethod(timer, "tick")
             else:
                 target = event_target

@@ -265,6 +265,7 @@ class Component(ComponentBase, Block):
         )
         if isinstance(every, (int, float)):
             from gradio.components import Timer
+
             every = Timer(every)
         if every:
             changeable_events.append((every, "tick"))

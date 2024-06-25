@@ -30,7 +30,7 @@ from functools import wraps
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
-from types import AsyncGeneratorType, GeneratorType, ModuleType
+from types import ModuleType
 from typing import (
     TYPE_CHECKING,
     Any,
