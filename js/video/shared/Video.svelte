@@ -75,6 +75,7 @@ Then, even when `controls` is false, the compiled DOM would be `<video controls=
 	on:mouseout={dispatch.bind(null, "mouseout")}
 	on:focus={dispatch.bind(null, "focus")}
 	on:blur={dispatch.bind(null, "blur")}
+	on:load
 	bind:currentTime
 	bind:duration
 	bind:paused

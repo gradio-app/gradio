@@ -804,6 +804,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       '@types/dompurify':
         specifier: ^3.0.2
         version: 3.0.2
