@@ -273,3 +273,31 @@ In your terminal, it may appear like this:
 event: complete
 data: [{"path": "/tmp/gradio/359933dc8d6cfe1b022f35e2c639e6e42c97a003/image.webp", "url": "https://gradio-image-mod.hf.space/c/file=/tmp/gradio/359933dc8d6cfe1b022f35e2c639e6e42c97a003/image.webp", "size": null, "orig_name": "image.webp", "mime_type": null, "is_stream": false, "meta": {"_type": "gradio.FileData"}}]
 ```
+
+## Authentication
+
+What if your Gradio application has [authentication enabled](/guides/sharing-your-app#authentication)? In that case, you'll need to make an additional `POST` request with cURL to authenticate yourself before you make any queries. Here are the complete steps:
+
+First, login with a `POST` request supplying a valid username and password:
+
+```bash
+curl -X POST $URL/login \
+     -d "username=$USERNAME&password=$PASSWORD" \
+     -c cookies.txt
+```
+
+If the credentials are correct, you'll get `{"success":true}` in response and the cookies will be saved in `cookies.txt`.
+
+Next, you'll need to include these cookies when you make the original `POST` request, like this:
+
+```bash
+$ curl -X POST $URL/call/$API_NAME -b cookies.txt -H "Content-Type: application/json" -d '{
+  "data": $PAYLOAD
+}'
+```
+
+Finally, you'll need to `GET` the results, again supplying the cookies from the file:
+
+```bash
+curl -N $URL/call/$API_NAME/$EVENT_ID -b cookies.txt
+```
