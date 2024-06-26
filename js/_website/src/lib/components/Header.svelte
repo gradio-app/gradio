@@ -2,8 +2,7 @@
 	import { store } from "../../routes/+layout.svelte";
 
 	import { gradio_logo, github_black } from "../assets";
-	import Search from './search'
-
+	import Search from "./search";
 
 	let click_nav = false;
 	let show_help_menu = false;
@@ -109,11 +108,10 @@
 							class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
 							href="https://github.com/gradio-app/gradio"
 						>
-							Github 
+							Github
 						</a>
 					</div>
 				{/if}
-			
 			</div>
 
 			<Search />

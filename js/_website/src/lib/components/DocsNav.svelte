@@ -57,7 +57,6 @@
 	<div
 		class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block my-4 ml-4"
 	>
-		
 		<DropDown></DropDown>
 	</div>
 
