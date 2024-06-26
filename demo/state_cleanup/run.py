@@ -14,8 +14,8 @@ def generate_random_img(history: list[Image.Image], request: gr.Request):
     colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 165, 0), (255, 255, 0), (128, 0, 128)]
     color = colors[np.random.randint(0, len(colors))]
     img = Image.new('RGB', (100, 100), color)
-    
-    user_dir: Path = current_dir / request.username # type: ignore
+
+    user_dir: Path = current_dir / request.session_hash
     user_dir.mkdir(exist_ok=True)
     path = user_dir / f"{secrets.token_urlsafe(8)}.webp"
 
@@ -30,7 +30,7 @@ def delete_directory(req: gr.Request):
     user_dir: Path = current_dir / req.username
     shutil.rmtree(str(user_dir))
 
-with gr.Blocks() as demo:
+with gr.Blocks(delete_cache=(60, 3600)) as demo:
     gr.Markdown("""# State Cleanup Demo
                 🖼️ Images are saved in a user-specific directory and deleted when the users closes the page via demo.unload.
                 """)
@@ -44,10 +44,9 @@ with gr.Blocks() as demo:
                 history = gr.Gallery(label="Previous Generations", height=500, columns=10)
                 state = gr.State(value=[], delete_callback=lambda v: print("STATE DELETED"))
 
-    demo.load(generate_random_img, [state], [img, state, history]) 
+    demo.load(generate_random_img, [state], [img, state, history])
     gen.click(generate_random_img, [state], [img, state, history])
     demo.unload(delete_directory)
 
 
-demo.launch(auth=lambda user,pwd: True,
-            auth_message="Enter any username and password to continue")
+demo.launch()

@@ -1,0 +1,93 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("selectdata");
+
+    obj["attributes"] = [
+            {
+                name: "index",
+                annotation: "int | tuple[int, int]",
+                doc: "The index of the selected item. Is a tuple if the component is two dimensional or selection is a range.",
+                kwargs: null
+            },
+            {
+                name: "value",
+                annotation: "Any",
+                doc: "The value of the selected item.",
+                kwargs: null
+            },
+            {
+                name: "selected",
+                annotation: "bool",
+                doc: "True if the item was selected, False if deselected.",
+                kwargs: null
+            }
+        ]    
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.SelectData(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+{#if obj.example}
+### Example Usage
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
+    gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
+    textbox = gr.Textbox("Hello World!")
+    statement = gr.Textbox()
+
+    def on_select(evt: gr.SelectData):
+        return f"You selected {evt.value} at {evt.index} from {evt.target}"
+
+    table.select(on_select, table, statement)
+    gallery.select(on_select, gallery, statement)
+    textbox.select(on_select, textbox, statement)
+
+demo.launch()
+```
+{/if}
+
+<!--- Initialization -->
+### Attributes
+<ParamTable parameters={obj.attributes} />
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}

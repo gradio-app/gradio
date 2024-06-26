@@ -477,7 +477,7 @@ importers:
         specifier: workspace:^
         version: link:../statustracker
       '@gradio/utils':
-        specifier: workspace:0.4.2
+        specifier: workspace:0.5.0
         version: link:../utils
     devDependencies:
       '@gradio/preview':
@@ -807,6 +807,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       '@types/dompurify':
         specifier: ^3.0.2
         version: 3.0.2
@@ -1567,12 +1570,12 @@ importers:
       plotly.js-dist-min:
         specifier: ^2.10.1
         version: 2.10.1
-      svelte-vega:
-        specifier: ^2.0.0
-        version: 2.0.0(svelte@4.2.15)(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0)
       vega:
-        specifier: ^5.22.1
+        specifier: ^5.23.0
         version: 5.23.0
+      vega-embed:
+        specifier: ^6.25.0
+        version: 6.25.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0)
       vega-lite:
         specifier: ^5.12.0
         version: 5.12.0(vega@5.23.0)
@@ -1946,8 +1949,8 @@ importers:
         version: 1.0.1
     devDependencies:
       pyodide:
-        specifier: ^0.25.0
-        version: 0.25.0(bufferutil@4.0.7)
+        specifier: 0.26.1
+        version: 0.26.1(bufferutil@4.0.7)
 
 packages:
 
@@ -3263,6 +3266,7 @@ packages:
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/config-array@0.9.5':
     resolution: {integrity: sha512-ObyMyWxZiCu/yTisA7uzx81s40xR2fD5Cg/2Kq7G02ajkNubJf6BopgDTmDyc3U7sXpNKM8cYOw7s7Tyr+DnCw==}
@@ -3279,6 +3283,7 @@ packages:
 
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
+    deprecated: Use @eslint/object-schema instead
 
   '@humanwhocodes/retry@0.2.3':
     resolution: {integrity: sha512-X38nUbachlb01YMlvPFojKoiXq+LzZvuSce70KPMPdeM1Rj03k4dR7lDslhbqXn3Ang4EU3+EAmwEAsbrjHW3g==}
@@ -4944,9 +4949,6 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
-
-  base-64@1.0.0:
-    resolution: {integrity: sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==}
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
@@ -8058,8 +8060,9 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  pyodide@0.25.0:
-    resolution: {integrity: sha512-RagtX3TfV2M0QAfThG2SMvwE31ikqAFDUXc5/4xhppEoVf4VbL7L0kbKOIdSNg7MbVsHELVxftk66WvT926GpA==}
+  pyodide@0.26.1:
+    resolution: {integrity: sha512-P+Gm88nwZqY7uBgjbQH8CqqU6Ei/rDn7pS1t02sNZsbyLJMyE2OVXjgNuqVT3KqYWnyGREUN0DbBUCJqk8R0ew==}
+    engines: {node: '>=18.0.0'}
 
   qs@6.11.0:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
@@ -8763,13 +8766,6 @@ packages:
   svelte-range-slider-pips@2.0.1:
     resolution: {integrity: sha512-sCHvcTgi0ZYE4c/mwSsdALRsfuqEmpwTsSUdL+PUrumZ8u2gv1GKwZ3GohcAcTB6gfmqRBkyn6ujRXrOIga1gw==}
 
-  svelte-vega@2.0.0:
-    resolution: {integrity: sha512-WnJM+hQNw15VAUtwT6oteog3+0KRw8i8K02gAB4VLM0RYs2NXxBZ1q/BdOvkl1XVnZytRVlLr1HQgxeZs7QwUA==}
-    peerDependencies:
-      svelte: ^3.54.0
-      vega: '*'
-      vega-lite: '*'
-
   svelte2tsx@0.7.7:
     resolution: {integrity: sha512-HAIxtk5TUHXvCRKApKfxoh1BGT85S/17lS3DvbfxRKFd+Ghr5YScqBvd+sU+p7vJFw48LNkzdFk+ooNVk3e4kA==}
     peerDependencies:
@@ -8944,9 +8940,6 @@ packages:
 
   tslib@1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
-
-  tslib@2.4.1:
-    resolution: {integrity: sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==}
 
   tslib@2.5.3:
     resolution: {integrity: sha512-mSxlJJwl3BMEQCUNnxXBU9jP4JBktcEGhURcPR6VQVlnP0FdDEsIaz0C35dXNGLyRfrATNofF0F5p2KPxQgB+w==}
@@ -9187,13 +9180,11 @@ packages:
   vega-dataflow@5.7.5:
     resolution: {integrity: sha512-EdsIl6gouH67+8B0f22Owr2tKDiMPNNR8lEvJDcxmFw02nXd8juimclpLvjPQriqn6ta+3Dn5txqfD117H04YA==}
 
-  vega-embed@6.23.0:
-    resolution: {integrity: sha512-8Iava57LdROsatqsOhMLErHYaBpZBB7yZJlSVU3/xOK3l8Ft5WFnj5fm3OOAVML97/0yULE7LRVjXW5hV3fSpg==}
+  vega-embed@6.25.0:
+    resolution: {integrity: sha512-pK99jEhZPNYgx4daiYDyNZ7f1h2ep5PyzMYN/qKzJNxzcaNf8wgmUjHrWeJSeMh8RNyw89VRphIleeg7LNLhDA==}
     peerDependencies:
       vega: ^5.21.0
       vega-lite: '*'
-    bundledDependencies:
-      - yallist
 
   vega-encode@4.9.2:
     resolution: {integrity: sha512-c3J0LYkgYeXQxwnYkEzL15cCFBYPRaYUon8O2SZ6O4PhH4dfFTXBzSyT8+gh8AhBd572l2yGDfxpEYA6pOqdjg==}
@@ -9277,8 +9268,8 @@ packages:
   vega-time@2.1.1:
     resolution: {integrity: sha512-z1qbgyX0Af2kQSGFbApwBbX2meenGvsoX8Nga8uyWN8VIbiySo/xqizz1KrP6NbB6R+x5egKmkjdnyNThPeEWA==}
 
-  vega-tooltip@0.33.0:
-    resolution: {integrity: sha512-jMcvH2lP20UfyvO2KAEdloiwRyasikaiLuNFhzwrrzf2RamGTxP4G7B2OZ2QENfrGUH05Z9ei5tn/eErdzOaZQ==}
+  vega-tooltip@0.34.0:
+    resolution: {integrity: sha512-TtxwkcLZ5aWQTvKGlfWDou8tISGuxmqAW1AgGZjrDpf75qsXvgtbPdRAAls2LZMqDxpr5T1kMEZs9XbSpiI8yw==}
 
   vega-transforms@4.10.2:
     resolution: {integrity: sha512-sJELfEuYQ238PRG+GOqQch8D69RYnJevYSGLsRGQD2LxNz3j+GlUX6Pid+gUEH5HJy22Q5L0vsTl2ZNhIr4teQ==}
@@ -9535,18 +9526,6 @@ packages:
 
   ws@8.13.0:
     resolution: {integrity: sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
-  ws@8.16.0:
-    resolution: {integrity: sha512-HS0c//TP7Ina87TfiPUz1rQzMhHrl/SG2guqRcTOIUYD2q8uhUdNHZYJUaQ8aTGPzCh+c6oawMKW35nFl1dxyQ==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -13286,8 +13265,6 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
-  base-64@1.0.0: {}
-
   base64-js@1.5.1: {}
 
   better-opn@3.0.2:
@@ -15250,7 +15227,7 @@ snapshots:
       '@formatjs/ecma402-abstract': 1.11.4
       '@formatjs/fast-memoize': 1.2.1
       '@formatjs/icu-messageformat-parser': 2.1.0
-      tslib: 2.4.1
+      tslib: 2.6.2
 
   invariant@2.2.4:
     dependencies:
@@ -16662,10 +16639,9 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  pyodide@0.25.0(bufferutil@4.0.7):
+  pyodide@0.26.1(bufferutil@4.0.7):
     dependencies:
-      base-64: 1.0.0
-      ws: 8.16.0(bufferutil@4.0.7)
+      ws: 8.17.0(bufferutil@4.0.7)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -17467,14 +17443,6 @@ snapshots:
 
   svelte-range-slider-pips@2.0.1: {}
 
-  svelte-vega@2.0.0(svelte@4.2.15)(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0):
-    dependencies:
-      fast-deep-equal: 3.1.3
-      svelte: 4.2.15
-      vega: 5.23.0
-      vega-embed: 6.23.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0)
-      vega-lite: 5.12.0(vega@5.23.0)
-
   svelte2tsx@0.7.7(svelte@4.2.15)(typescript@5.4.5):
     dependencies:
       dedent-js: 1.0.1
@@ -17706,8 +17674,6 @@ snapshots:
   ts-interface-checker@0.1.13: {}
 
   tslib@1.14.1: {}
-
-  tslib@2.4.1: {}
 
   tslib@2.5.3: {}
 
@@ -17945,7 +17911,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  vega-embed@6.23.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0):
+  vega-embed@6.25.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0):
     dependencies:
       fast-json-patch: 3.1.1
       json-stringify-pretty-compact: 3.0.0
@@ -17956,7 +17922,7 @@ snapshots:
       vega-lite: 5.12.0(vega@5.23.0)
       vega-schema-url-parser: 2.2.0
       vega-themes: 2.14.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0)
-      vega-tooltip: 0.33.0
+      vega-tooltip: 0.34.0
 
   vega-encode@4.9.2:
     dependencies:
@@ -18158,7 +18124,7 @@ snapshots:
       d3-time: 3.1.0
       vega-util: 1.17.2
 
-  vega-tooltip@0.33.0:
+  vega-tooltip@0.34.0:
     dependencies:
       vega-util: 1.17.2
 
@@ -18492,10 +18458,6 @@ snapshots:
       signal-exit: 3.0.7
 
   ws@8.13.0(bufferutil@4.0.7):
-    optionalDependencies:
-      bufferutil: 4.0.7
-
-  ws@8.16.0(bufferutil@4.0.7):
     optionalDependencies:
       bufferutil: 4.0.7
 
