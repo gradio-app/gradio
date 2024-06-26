@@ -52,6 +52,23 @@ test("images uploaded by a user should be shown in the chat", async ({
 	expect(bot_message).toBeTruthy();
 });
 
+test("Users can upload multiple images and they will be shown as thumbnails", async ({
+	page
+}) => {
+	const fileChooserPromise = page.waitForEvent("filechooser");
+	await page.getByTestId("upload-button").click();
+	const fileChooser = await fileChooserPromise;
+	await fileChooser.setFiles([
+		"./test/files/cheetah1.jpg",
+		"./test/files/cheetah1.jpg"
+	]);
+	expect
+		.poll(async () => await page.locator("thumbnail-image").count(), {
+			timeout: 5000
+		})
+		.toEqual(2);
+});
+
 test("audio uploaded by a user should be shown in the chatbot", async ({
 	page
 }) => {
