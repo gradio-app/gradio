@@ -10,18 +10,15 @@
 				<hr class="hr" />
 				<div style="padding-left:5px">
 					<p>
-						<span class="code" style="font-weight:bold">{param["name"]}</span
-						>
+						<span class="code" style="font-weight:bold">{param["name"]}</span>
 						<span class="code highlight" style="margin-left: 10px;"
 							>{param["annotation"].replace("Sequence[", "list[")}</span
 						>
-						</p>
-						<p>
+					</p>
+					<p style="margin-top:5px">
 						{#if "default" in param}
 							<span> <em>Default: </em></span><span>{param["default"]}</span>
-						{:else if !("kwargs" in param)}<em
-								>Required</em
-							>{/if}
+						{:else if !("kwargs" in param)}<em>Required</em>{/if}
 					</p>
 					<p class="desc">
 						{@html style_formatted_text(param["doc"]) || ""}
@@ -38,7 +35,7 @@
 		height: 2px;
 		background: var(--color-accent-soft);
 		margin-bottom: 12px;
-		margin-top:12px;
+		margin-top: 12px;
 	}
 
 	.code {
