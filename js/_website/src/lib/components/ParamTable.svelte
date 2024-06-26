@@ -4,24 +4,23 @@
 </script>
 
 {#if (parameters.length > 0 && parameters[0].name != "self") || parameters.length > 1}
-	<div class="w-full">
+	<div style="background-color: rgb(252 253 253); padding-left: 10px;">
 		{#each parameters as param}
 			{#if param["name"] != "self"}
 				<hr class="hr" />
-				<div style="margin:10px;">
-					<p style="white-space: nowrap; overflow-x: auto;">
-						<span class="code" style="margin-right: 10px;">{param["name"]}</span
+				<div>
+					<p>
+						<span class="code" style="font-weight:bold">{param["name"]}</span
 						>
-						<span class="code highlight" style="margin-right: 10px;"
+						<span class="code highlight" style="margin-left: 10px;"
 							>{param["annotation"].replace("Sequence[", "list[")}</span
 						>
+						</p>
+						<p>
 						{#if "default" in param}
-							<span> Default: </span><span
-								class="code"
-								style="font-size: var(--text-sm);">{param["default"]}</span
-							>
-						{:else if !("kwargs" in param)}<span style="font-weight:bold"
-								>Required</span
+							<span> <em>Default: </em></span><span>{param["default"]}</span>
+						{:else if !("kwargs" in param)}<em
+								>Required</em
 							>{/if}
 					</p>
 					<p class="desc">
@@ -36,9 +35,10 @@
 <style>
 	.hr {
 		border: 0;
-		height: 1px;
+		height: 2px;
 		background: var(--color-accent-soft);
 		margin-bottom: 12px;
+		margin-top:12px;
 	}
 
 	.code {
@@ -53,7 +53,7 @@
 	}
 
 	.desc {
-		color: var(--body-text-color-subdued);
+		color: #444;
 		font-size: var(--text-lg);
 		margin-top: var(--size-1);
 	}
