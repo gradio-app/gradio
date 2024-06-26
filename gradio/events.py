@@ -45,7 +45,7 @@ def set_cancel_events(
         cancels = [cancels]
 
     regular_cancels: list[dict[str, Any]] = []
-    timers_to_cancel: list[Timer] = []
+    timers_to_cancel: list[Block] = []
     for cancel in cancels:
         associated_timer = getattr(cancel, "associated_timer", None)
         if associated_timer:
