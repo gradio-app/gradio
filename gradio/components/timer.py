@@ -58,7 +58,7 @@ class Timer(Component):
         return payload
 
     def api_info(self) -> dict:
-        return {"type": "string"}
+        return {"type": "number"}
 
     def example_payload(self):
         return 1
