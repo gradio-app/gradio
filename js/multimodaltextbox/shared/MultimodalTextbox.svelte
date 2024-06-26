@@ -37,6 +37,7 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let file_count: "single" | "multiple" | "directory" = "multiple";
 
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
@@ -161,6 +162,7 @@
 			for (let file of detail) {
 				value.files.push(file);
 			}
+			value = value;
 		} else {
 			value.files.push(detail);
 			value = value;
@@ -244,7 +246,7 @@
 		<Upload
 			bind:this={upload_component}
 			on:load={handle_upload}
-			filetype={accept_file_types}
+			{file_count}
 			{root}
 			{max_file_size}
 			bind:dragging
