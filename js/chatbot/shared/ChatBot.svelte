@@ -287,7 +287,6 @@
 										dir={rtl ? "rtl" : "ltr"}
 										aria-label={(j == 0 ? "user" : "bot") +
 											"'s message: " +
-											message.type +
 											(message.type === "text"
 												? message.value
 												: "file" in message &&
@@ -298,7 +297,7 @@
 															message.file?.orig_name ??
 															""
 														}`
-													: `a file of type` + message.type ?? "unknown")}
+													: `a file of type ` + message.type ?? "unknown")}
 									>
 										{#if message.type === "text"}
 											<Markdown
