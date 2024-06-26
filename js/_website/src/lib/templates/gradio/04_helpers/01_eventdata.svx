@@ -1,0 +1,73 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("eventdata");
+    obj.parameters[0]["kwargs"] = null;
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.EventData(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+{#if obj.example}
+### Example Usage
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
+    gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
+    textbox = gr.Textbox("Hello World!")
+    statement = gr.Textbox()
+
+    def on_select(value, evt: gr.EventData):
+        return f"The {evt.target} component was selected, and its value was {value}."
+
+    table.select(on_select, table, statement)
+    gallery.select(on_select, gallery, statement)
+    textbox.select(on_select, textbox, statement)
+
+demo.launch()
+```
+{/if}
+
+<!--- Initialization -->
+### Attributes
+<ParamTable parameters={obj.parameters} />
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}
