@@ -7,11 +7,14 @@ from __future__ import annotations
 import inspect
 import json
 import os
+import uuid
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Literal, cast
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Callable, List, Literal, cast
 
 from gradio_client.documentation import document
+from huggingface_hub import CommitScheduler, HfApi
 
 from gradio import Examples, utils, wasm_utils
 from gradio.blocks import Blocks
@@ -897,6 +900,71 @@ class Interface(Blocks):
             repr += f"\n|-{component}"
         return repr
 
+    def sync_with_hub(
+            self,
+            repo_id: str,
+            folder_path: str | Path = "feedback",
+            every: int = 5,
+            revision: str | None = None,
+            private: bool = False,
+            token: str | None = None,
+            allow_patterns: List[str] | str | None = None,
+            ignore_patterns: List[str] | str | None = None,
+            squash_history: bool = False,
+            hf_api: HfApi | None = None
+        ) -> None:
+
+        folder_path = Path(folder_path)
+        data_file = folder_path / f"data_{uuid.uuid4()}.json"
+
+        scheduler = CommitScheduler(
+            repo_id=repo_id,
+            repo_type="dataset",
+            folder_path=folder_path,
+            path_in_repo="data",
+            every=every,
+            revision=revision,
+            private=private,
+            token=token,
+            allow_patterns=allow_patterns,
+            ignore_patterns=ignore_patterns,
+            squash_history=squash_history,
+            hf_api=hf_api
+        )
+
+        def save_feedback(item):
+            with scheduler.lock:
+                with data_file.open("a") as f:
+                    f.write(json.dumps(item))
+
+        old_function = self.fn
+        def fn_new(*args):
+            inputs_formatted = list(args)
+            if isinstance(self.input_components, list):
+                input_keys: list[str | None] = [comp.label for comp in self.input_components]
+            else:
+                input_keys = [self.input_components.label]
+            outputs = old_function(*args)
+            if isinstance(self.output_components, list):
+                output_keys = [comp.label for comp in self.output_components]
+                outputs_formatted = list(outputs)
+            else:
+                outputs_formatted = [outputs]
+                output_keys = [self.output_components.label]
+            save_feedback(dict(zip(input_keys + output_keys,inputs_formatted + outputs_formatted)))
+            return outputs
+
+        payload = self.__dict__
+        payload["inputs"] = payload["input_components"]
+        payload["outputs"] = payload["output_components"]
+        payload["fn"] = fn_new
+
+        def get_init_arg_names(cls):
+            init_signature = inspect.signature(cls.__init__)
+            return [param.name for param in init_signature.parameters.values() if param.name != 'self']
+
+        payload = {key: value for key, value in payload.items() if key in get_init_arg_names(self)}
+        self.__init__(**payload)
 
 @document()
 class TabbedInterface(Blocks):
