@@ -35,7 +35,7 @@ export async function GET() {
 			}
 			path = path.split("/").slice(-1)[0];
 			path = path.match(/(?:\d{2}_)?(.+)/i)[1];
-			path = "/docs/gradio/" + path.split(".svx")[0];
+			path = "/main/docs/gradio/" + path.split(".svx")[0];
 
 			return {
 				title: title,
@@ -60,7 +60,7 @@ export async function GET() {
 			}
 			path = path.split("/").slice(-1)[0];
 			path = path.match(/(?:\d{2}_)?(.+)/i)[1];
-			path = "/docs/python-client/" + path.split(".svx")[0];
+			path = "/main/docs/python-client/" + path.split(".svx")[0];
 
 			return {
 				title: title,
