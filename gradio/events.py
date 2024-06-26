@@ -251,7 +251,7 @@ class LikeData(EventData):
             t = gr.JSON()
             c.like(test, c, t)
         demo.launch()
-    Demos: chatbot_multimodal
+    Demos: chatbot_core_components_simple
     """
 
     def __init__(self, target: Block | None, data: Any):
