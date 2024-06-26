@@ -509,7 +509,7 @@ class EventListener(str):
                 preprocess=preprocess,
                 postprocess=postprocess,
                 scroll_to_output=scroll_to_output,
-                show_progress=show_progress,
+                show_progress=show_progress if every is None else "hidden",
                 api_name=api_name,
                 js=js,
                 concurrency_limit=concurrency_limit,
@@ -776,4 +776,5 @@ class Events:
     tick = EventListener(
         "tick",
         doc="This listener is triggered at regular intervals defined by the {{ component }}.",
+        show_progress="hidden",
     )

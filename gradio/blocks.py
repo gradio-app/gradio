@@ -2658,6 +2658,7 @@ Received outputs:
                         inputs,
                         component,
                         no_target=not has_target,
+                        show_progress="hidden" if has_target else "full",
                     )[0]
                     component.load_event = dep.get_config()
 
