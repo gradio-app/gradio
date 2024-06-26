@@ -901,19 +901,18 @@ class Interface(Blocks):
         return repr
 
     def sync_with_hub(
-            self,
-            repo_id: str,
-            folder_path: str | Path = "feedback",
-            every: int = 5,
-            revision: str | None = None,
-            private: bool = False,
-            token: str | None = None,
-            allow_patterns: List[str] | str | None = None,
-            ignore_patterns: List[str] | str | None = None,
-            squash_history: bool = False,
-            hf_api: HfApi | None = None
-        ) -> None:
-
+        self,
+        repo_id: str,
+        folder_path: str | Path = "feedback",
+        every: int = 5,
+        revision: str | None = None,
+        private: bool = False,
+        token: str | None = None,
+        allow_patterns: List[str] | str | None = None,
+        ignore_patterns: List[str] | str | None = None,
+        squash_history: bool = False,
+        hf_api: HfApi | None = None,
+    ) -> None:
         folder_path = Path(folder_path)
         data_file = folder_path / f"data_{uuid.uuid4()}.json"
 
@@ -929,7 +928,7 @@ class Interface(Blocks):
             allow_patterns=allow_patterns,
             ignore_patterns=ignore_patterns,
             squash_history=squash_history,
-            hf_api=hf_api
+            hf_api=hf_api,
         )
 
         def save_feedback(item):
@@ -938,10 +937,13 @@ class Interface(Blocks):
                     f.write(json.dumps(item))
 
         old_function = self.fn
+
         def fn_new(*args):
             inputs_formatted = list(args)
             if isinstance(self.input_components, list):
-                input_keys: list[str | None] = [comp.label for comp in self.input_components]
+                input_keys: list[str | None] = [
+                    comp.label for comp in self.input_components
+                ]
             else:
                 input_keys = [self.input_components.label]
             outputs = old_function(*args)
@@ -951,7 +953,11 @@ class Interface(Blocks):
             else:
                 outputs_formatted = [outputs]
                 output_keys = [self.output_components.label]
-            save_feedback(dict(zip(input_keys + output_keys,inputs_formatted + outputs_formatted)))
+            save_feedback(
+                dict(
+                    zip(input_keys + output_keys, inputs_formatted + outputs_formatted)
+                )
+            )
             return outputs
 
         payload = self.__dict__
@@ -961,10 +967,19 @@ class Interface(Blocks):
 
         def get_init_arg_names(cls):
             init_signature = inspect.signature(cls.__init__)
-            return [param.name for param in init_signature.parameters.values() if param.name != 'self']
+            return [
+                param.name
+                for param in init_signature.parameters.values()
+                if param.name != "self"
+            ]
 
-        payload = {key: value for key, value in payload.items() if key in get_init_arg_names(self)}
+        payload = {
+            key: value
+            for key, value in payload.items()
+            if key in get_init_arg_names(self)
+        }
         self.__init__(**payload)
+
 
 @document()
 class TabbedInterface(Blocks):
