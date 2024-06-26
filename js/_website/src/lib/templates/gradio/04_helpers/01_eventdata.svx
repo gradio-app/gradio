@@ -10,6 +10,7 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("eventdata");
+    obj.parameters[0]["kwargs"] = null;
 </script>
 
 <!--- Title -->
