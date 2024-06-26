@@ -62,7 +62,7 @@ class Chatbot(Component):
     Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This
     component is usually used as an output component.
 
-    Demos: chatbot_simple, chatbot_multimodal
+    Demos: chatbot_simple, chatbot_multimodal, chatbot_core_components_simple
     Guides: creating-a-chatbot
     """
 
@@ -71,11 +71,13 @@ class Chatbot(Component):
 
     def __init__(
         self,
-        value: list[
-            list[str | GradioComponent | tuple[str] | tuple[str | Path, str] | None]
-        ]
-        | Callable
-        | None = None,
+        value: (
+            list[
+                list[str | GradioComponent | tuple[str] | tuple[str | Path, str] | None]
+            ]
+            | Callable
+            | None
+        ) = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -185,10 +187,17 @@ class Chatbot(Component):
         elif isinstance(chat_message, str):
             return chat_message
         elif isinstance(chat_message, ComponentMessage):
-            component = import_component_and_data(chat_message.component.capitalize())
+            capitalized_component = (
+                chat_message.component.upper()
+                if chat_message.component in ("json", "html")
+                else chat_message.component.capitalize()
+            )
+            component = import_component_and_data(capitalized_component)
             if component is not None:
                 instance = component()  # type: ignore
-                if issubclass(instance.data_model, GradioModel):
+                if not instance.data_model:
+                    payload = chat_message.value
+                elif issubclass(instance.data_model, GradioModel):
                     payload = instance.data_model(**chat_message.value)
                 elif issubclass(instance.data_model, GradioRootModel):
                     payload = instance.data_model(root=chat_message.value)
@@ -240,10 +249,12 @@ class Chatbot(Component):
             mime_type = client_utils.get_mimetype(filepath)
             return FileMessage(
                 file=FileData(path=filepath, mime_type=mime_type),
-                alt_text=chat_message[1]
-                if not isinstance(chat_message, GradioComponent)
-                and len(chat_message) > 1
-                else None,
+                alt_text=(
+                    chat_message[1]
+                    if not isinstance(chat_message, GradioComponent)
+                    and len(chat_message) > 1
+                    else None
+                ),
             )
 
         if chat_message is None:
@@ -271,10 +282,13 @@ class Chatbot(Component):
 
     def postprocess(
         self,
-        value: list[
-            list[str | GradioComponent | tuple[str] | tuple[str, str] | None] | tuple
-        ]
-        | None,
+        value: (
+            list[
+                list[str | GradioComponent | tuple[str] | tuple[str, str] | None]
+                | tuple
+            ]
+            | None
+        ),
     ) -> ChatbotData:
         """
         Parameters:

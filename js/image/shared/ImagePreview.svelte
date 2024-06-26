@@ -63,7 +63,7 @@
 	</div>
 	<button on:click={handle_click}>
 		<div class:selectable class="image-container">
-			<Image src={value.url} alt="" loading="lazy" />
+			<Image src={value.url} alt="" loading="lazy" on:load />
 		</div>
 	</button>
 {/if}

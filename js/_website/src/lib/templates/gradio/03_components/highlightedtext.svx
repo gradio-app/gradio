@@ -20,6 +20,30 @@
 gradio.HighlightedText(···)
 ```
 
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+with gr.Blocks() as demo:
+    gr.HighlightedText(
+        value=[
+            ("The ", "article"), 
+            ("quick ", "adjective"),
+            ("brown ", "adjective"), 
+            ("fox ", "noun"),
+            ("jumps ", "verb"), 
+            ("over ", "preposition"),
+            ("the ", "article"), 
+            ("lazy ", "adjective"),
+            ("dog", "noun"),
+        ],
+        combine_adjacent=True,
+    )
+demo.launch()
+
+</gradio-lite>
+</div>
+
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}

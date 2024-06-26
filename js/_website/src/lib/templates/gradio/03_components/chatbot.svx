@@ -20,6 +20,16 @@
 gradio.Chatbot(···)
 ```
 
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+with gr.Blocks() as demo:
+    gr.Chatbot(value=[["Hello World","Hey Gradio!"],["❤️","😍"],["🔥","🤗"]])
+demo.launch()
+</gradio-lite>
+</div>
+
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}
@@ -58,6 +68,29 @@ def predict(···) -> list[list[str | tuple[str] | tuple[str, str] | None] | tu
 ### Shortcuts
 <ShortcutTable shortcuts={obj.string_shortcuts} />
 {/if}
+
+### Examples
+
+**Using Gradio Components Inside `gr.Chatbot`**
+
+The `Chatbot` component supports using many of the core Gradio components (such as `gr.Image`, `gr.Plot`, `gr.Audio`, and `gr.HTML`) inside of the chatbot. Simply include one of these components in your list of tuples. Here's an example:
+
+```py
+import gradio as gr
+
+def load():
+    return [
+        ("Here's an audio", gr.Audio("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav")),
+        ("Here's an video", gr.Video("https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"))
+    ]
+
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot()
+    button = gr.Button("Load audio and video")
+    button.click(load, None, chatbot)
+
+demo.launch()
+```
 
 {#if obj.demos && obj.demos.length > 0}
 <!--- Demos -->

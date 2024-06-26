@@ -1,5 +1,26 @@
 # website
 
+## 0.32.0
+
+### Features
+
+- [#8489](https://github.com/gradio-app/gradio/pull/8489) [`c2a0d05`](https://github.com/gradio-app/gradio/commit/c2a0d056d679d90631d9ccd944dadd67e7e03b7f) - Control Display of Error, Info, Warning.  Thanks @freddyaboulton!
+- [#8593](https://github.com/gradio-app/gradio/pull/8593) [`d35c290`](https://github.com/gradio-app/gradio/commit/d35c290aadcb85113ee7ceea96a7ed7dc894b1d2) - Adding more docs for using components in chatbot.  Thanks @abidlabs!
+- [#8516](https://github.com/gradio-app/gradio/pull/8516) [`de6aa2b`](https://github.com/gradio-app/gradio/commit/de6aa2b67668605b65ad92842b2c798afa2c6d8a) - Add helper classes to docs.  Thanks @aliabd!
+- [#8605](https://github.com/gradio-app/gradio/pull/8605) [`fe83e64`](https://github.com/gradio-app/gradio/commit/fe83e6445a53c9376d92a7af9fd9a5ccf9376d7d) - Small fix to guide styling.  Thanks @aliabd!
+- [#8557](https://github.com/gradio-app/gradio/pull/8557) [`ed82a62`](https://github.com/gradio-app/gradio/commit/ed82a6237ec7873e2554c2ad0be438650cfebe8c) - Bring back embedded demos on component docs.  Thanks @aliabd!
+
+### Fixes
+
+- [#8589](https://github.com/gradio-app/gradio/pull/8589) [`34430b9`](https://github.com/gradio-app/gradio/commit/34430b934dbab3bc525f56b390dbc054f76cf56c) - Handle GIFs correct in `gr.Image` preprocessing.  Thanks @abidlabs!
+- [#8581](https://github.com/gradio-app/gradio/pull/8581) [`a1c21cb`](https://github.com/gradio-app/gradio/commit/a1c21cb69a688bd38139153fe9c85a50c6ae86f2) - fix dataset update.  Thanks @abidlabs!
+- [#8537](https://github.com/gradio-app/gradio/pull/8537) [`81ae766`](https://github.com/gradio-app/gradio/commit/81ae7663b303ac7738bc216d9bf916f0515dd22e) - Many small fixes to website and docs.  Thanks @aliabd!
+- [#8559](https://github.com/gradio-app/gradio/pull/8559) [`483ecaa`](https://github.com/gradio-app/gradio/commit/483ecaae627145470ed68ed6872d42f2ac3a1980) - fix website build.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/code@0.6.12
+
 ## 0.31.5
 
 ### Features

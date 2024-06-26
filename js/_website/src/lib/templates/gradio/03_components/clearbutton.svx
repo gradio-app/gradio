@@ -20,6 +20,17 @@
 gradio.ClearButton(···)
 ```
 
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+with gr.Blocks() as demo:
+    textbox = gr.Textbox(value="This is some text")
+    gr.ClearButton(textbox)
+demo.launch()
+</gradio-lite>
+</div>
+
 <!--- Description -->
 ### Description
 ## {@html style_formatted_text(obj.description)}

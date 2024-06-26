@@ -75,7 +75,7 @@ class MultimodalTextbox(FormComponent):
         key: int | str | None = None,
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
-        submit_btn: str | Literal[False] | None = None,
+        submit_btn: str | bool | None = True,
     ):
         """
         Parameters:
@@ -101,7 +101,7 @@ class MultimodalTextbox(FormComponent):
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
-            submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text. Only applies if `interactive` is True.
+            submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
         """
         self.file_types = file_types
         if value is None:

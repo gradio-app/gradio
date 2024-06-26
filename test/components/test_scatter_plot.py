@@ -20,7 +20,7 @@ class TestScatterPlot:
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
-            "show_label": True,
+            "show_label": False,
             "container": True,
             "min_width": 160,
             "scale": None,
