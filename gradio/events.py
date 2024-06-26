@@ -101,7 +101,7 @@ class Dependency(dict):
 class EventData:
     """
     When gr.EventData or one of its subclasses is added as a type hint to an argument of a prediction function, a gr.EventData object will automatically be passed as the value of that argument.
-    The attributes of this object contains information about the event that triggered the listener. The gr.EventData object itself contains a .target attribute that refers to the component
+    The attributes of this object contains information about the event that triggered the listener. The gr.EventData object itself contains a `.target` attribute that refers to the component
     that triggered the event, while subclasses of gr.EventData contains additional attributes that are different for each class.
 
     Example:
