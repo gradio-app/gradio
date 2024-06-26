@@ -49,6 +49,7 @@
 	export let autoscroll = true;
 	export let interactive: boolean;
 	export let root: string;
+	export let file_count: "single" | "multiple" | "directory";
 </script>
 
 <Block
@@ -86,6 +87,7 @@
 		{autofocus}
 		{container}
 		{autoscroll}
+		{file_count}
 		max_file_size={gradio.max_file_size}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}

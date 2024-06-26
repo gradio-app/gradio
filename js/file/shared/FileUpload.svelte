@@ -12,7 +12,7 @@
 
 	export let label: string;
 	export let show_label = true;
-	export let file_count = "single";
+	export let file_count: "single" | "multiple" | "directory" = "single";
 	export let file_types: string[] | null = null;
 	export let selectable = false;
 	export let root: string;

@@ -10,7 +10,7 @@
 	export let boundedheight = true;
 	export let center = true;
 	export let flex = true;
-	export let file_count = "single";
+	export let file_count: "single" | "multiple" | "directory" = "single";
 	export let disable_click = false;
 	export let root: string;
 	export let hidden = false;

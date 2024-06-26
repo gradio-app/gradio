@@ -55,6 +55,7 @@ class MultimodalTextbox(FormComponent):
         value: dict[str, str | list] | Callable | None = None,
         *,
         file_types: list[str] | None = None,
+        file_count: Literal["single", "multiple", "directory"] = "single",
         lines: int = 1,
         max_lines: int = 20,
         placeholder: str | None = None,
@@ -80,6 +81,7 @@ class MultimodalTextbox(FormComponent):
         """
         Parameters:
             value: Default value to show in MultimodalTextbox. A dictionary of the form {"text": "sample text", "files": [{path: "files/file.jpg", orig_name: "file.jpg", url: "http://image_url.jpg", size: 100}]}. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
@@ -104,6 +106,7 @@ class MultimodalTextbox(FormComponent):
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
         """
         self.file_types = file_types
+        self.file_count = file_count
         if value is None:
             value = {"text": "", "files": []}
         if file_types is not None and not isinstance(file_types, list):
