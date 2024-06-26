@@ -62,7 +62,7 @@ class Chatbot(Component):
     Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This
     component is usually used as an output component.
 
-    Demos: chatbot_simple, chatbot_multimodal, chatbot_core_components_simple
+    Demos: chatbot_simple, chatbot_core_components_simple
     Guides: creating-a-chatbot
     """
 
