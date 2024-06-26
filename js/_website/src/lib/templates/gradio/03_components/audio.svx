@@ -26,7 +26,7 @@ gradio.Audio(···)
 <gradio-lite shared-worker>
 import gradio as gr
 with gr.Blocks() as demo:
-    gr.Audio("https://file-examples.com/storage/fe3cb26995666504a8d6180/2017/11/file_example_MP3_700KB.mp3")
+    gr.Audio("https://cdn.pixabay.com/download/audio/2022/03/09/audio_7e096b862f.mp3")
 demo.launch()
 </gradio-lite>
 </div>
