@@ -38,8 +38,8 @@ job.result()
 >> 49 # returns the result of the remote API call (blocking call)
 ```
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 

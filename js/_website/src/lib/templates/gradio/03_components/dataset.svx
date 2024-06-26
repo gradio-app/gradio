@@ -69,8 +69,8 @@ def predict(···) -> list[list]
 ```
 
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 

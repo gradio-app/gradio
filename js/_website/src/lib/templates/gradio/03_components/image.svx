@@ -58,8 +58,8 @@ def predict(···) -> np.ndarray | PIL.Image.Image | str | Path | None
 ```
 
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 

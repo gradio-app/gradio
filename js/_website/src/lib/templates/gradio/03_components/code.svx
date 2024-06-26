@@ -64,8 +64,8 @@ def predict(···) -> tuple[str] | str | None
 ```
 
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 

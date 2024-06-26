@@ -4,11 +4,11 @@
 </script>
 
 {#if (parameters.length > 0 && parameters[0].name != "self") || parameters.length > 1}
-	<div style="background-color: rgb(252 253 253); padding-left: 10px;">
+	<div style="background-color: rgb(252 253 253);">
 		{#each parameters as param}
 			{#if param["name"] != "self"}
 				<hr class="hr" />
-				<div>
+				<div style="padding-left:5px">
 					<p>
 						<span class="code" style="font-weight:bold">{param["name"]}</span
 						>

@@ -61,8 +61,8 @@ def predict(···) -> EditorValue | ImageType | None
 ```
 
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 
@@ -101,8 +101,8 @@ gradio.Brush(···)
 #### Description
 ## {@html style_formatted_text(brush_obj.description)}
 
-<!--- Initialization -->
-#### Initialization
+<!--- Parameters -->
+#### Parameters
 <ParamTable parameters={brush_obj.parameters} />
 
 <!-- ERASER -->
@@ -118,8 +118,8 @@ gradio.Eraser(···)
 #### Description
 ## {@html style_formatted_text(eraser_obj.description)}
 
-<!--- Initialization -->
-#### Initialization
+<!--- Parameters -->
+#### Parameters
 <ParamTable parameters={eraser_obj.parameters} />
 
 

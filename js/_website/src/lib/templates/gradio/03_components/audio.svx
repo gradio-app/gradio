@@ -59,8 +59,8 @@ def predict(···) -> str | Path | bytes | tuple[int, np.ndarray] | None
 ```
 
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 
@@ -99,8 +99,8 @@ gradio.WaveformOptions(···)
 #### Description
 ## {@html style_formatted_text(waveform_obj.description)}
 
-<!--- Initialization -->
-#### Initialization
+<!--- Parameters -->
+#### Parameters
 <ParamTable parameters={waveform_obj.parameters} />
 
 </div>

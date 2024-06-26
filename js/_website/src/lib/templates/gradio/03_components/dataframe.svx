@@ -63,8 +63,8 @@ def predict(···) -> pd.DataFrame | Styler | np.ndarray | pl.DataFrame | list 
 ```
 
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 

@@ -37,8 +37,8 @@ demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="E
 demo.launch()
 ```
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 
