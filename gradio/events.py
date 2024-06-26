@@ -55,7 +55,16 @@ def set_cancel_events(
         )
 
 
+@document()
 class Dependency(dict):
+    """
+    The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration
+    data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
+    listener using .then() and .success().
+
+    Demos: chatbot_consecutive, blocks_chained_events
+    """
+
     def __init__(self, trigger, key_vals, dep_index, fn):
         super().__init__(key_vals)
         self.fn = fn
@@ -91,35 +100,58 @@ class Dependency(dict):
 @document()
 class EventData:
     """
-    When a subclass of EventData is added as a type hint to an argument of an event listener method, this object will be passed as that argument.
-    It contains information about the event that triggered the listener, such the target object, and other data related to the specific event that are attributes of the subclass.
+    When gr.EventData or one of its subclasses is added as a type hint to an argument of a prediction function, a gr.EventData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener. The gr.EventData object itself contains a `.target` attribute that refers to the component
+    that triggered the event, while subclasses of gr.EventData contains additional attributes that are different for each class.
 
     Example:
-        table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
-        gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
-        textbox = gr.Textbox("Hello World!")
-
-        statement = gr.Textbox()
-
-        def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-            return f"You selected {evt.value} at {evt.index} from {evt.target}"
-
-        table.select(on_select, None, statement)
-        gallery.select(on_select, None, statement)
-        textbox.select(on_select, None, statement)
+        import gradio as gr
+        with gr.Blocks() as demo:
+            table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
+            gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
+            textbox = gr.Textbox("Hello World!")
+            statement = gr.Textbox()
+            def on_select(value, evt: gr.EventData):
+                return f"The {evt.target} component was selected, and its value was {value}."
+            table.select(on_select, table, statement)
+            gallery.select(on_select, gallery, statement)
+            textbox.select(on_select, textbox, statement)
+        demo.launch()
     Demos: gallery_selections, tictactoe
     """
 
     def __init__(self, target: Block | None, _data: Any):
         """
         Parameters:
-            target: The target object that triggered the event. Can be used to distinguish if multiple components are bound to the same listener.
+            target: The component object that triggered the event. Can be used to distinguish multiple components bound to the same listener.
         """
         self.target = target
         self._data = _data
 
 
+@document()
 class SelectData(EventData):
+    """
+    The gr.SelectData class is a subclass of gr.EventData that specifically carries information about the `.select()` event. When gr.SelectData
+    is added as a type hint to an argument of an event listener method, a gr.SelectData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
+            gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
+            textbox = gr.Textbox("Hello World!")
+            statement = gr.Textbox()
+            def on_select(evt: gr.SelectData):
+                return f"You selected {evt.value} at {evt.index} from {evt.target}"
+            table.select(on_select, table, statement)
+            gallery.select(on_select, gallery, statement)
+            textbox.select(on_select, textbox, statement)
+        demo.launch()
+    Demos: gallery_selections, tictactoe
+    """
+
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
         self.index: int | tuple[int, int] = data["index"]
@@ -136,7 +168,29 @@ class SelectData(EventData):
         """
 
 
+@document()
 class KeyUpData(EventData):
+    """
+    The gr.KeyUpData class is a subclass of gr.EventData that specifically carries information about the `.key_up()` event. When gr.KeyUpData
+    is added as a type hint to an argument of an event listener method, a gr.KeyUpData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+
+    Example:
+        import gradio as gr
+        def test(value, key_up_data: gr.KeyUpData):
+            return {
+                "component value": value,
+                "input value": key_up_data.input_value,
+                "key": key_up_data.key
+            }
+        with gr.Blocks() as demo:
+            d = gr.Dropdown(["abc", "def"], allow_custom_value=True)
+            t = gr.JSON()
+            d.key_up(test, d, t)
+        demo.launch()
+    Demos: dropdown_key_up
+    """
+
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
         self.key: str = data["key"]
@@ -151,12 +205,68 @@ class KeyUpData(EventData):
         """
 
 
+@document()
 class DeletedFileData(EventData):
+    """
+    The gr.DeletedFileData class is a subclass of gr.EventData that specifically carries information about the `.delete()` event. When gr.DeletedFileData
+    is added as a type hint to an argument of an event listener method, a gr.DeletedFileData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def test(delete_data: gr.DeletedFileData):
+            return delete_data.file.path
+        with gr.Blocks() as demo:
+            files = gr.File(file_count="multiple")
+            deleted_file = gr.File()
+            files.delete(test, None, deleted_file)
+        demo.launch()
+    Demos: file_component_events
+    """
+
     def __init__(self, target: Block | None, data: FileDataDict):
         super().__init__(target, data)
         self.file: FileData = FileData(**data)
         """
-        The file that was deleted.
+        The file that was deleted, as a FileData object.
+        """
+
+
+@document()
+class LikeData(EventData):
+    """
+    The gr.LikeData class is a subclass of gr.EventData that specifically carries information about the `.like()` event. When gr.LikeData
+    is added as a type hint to an argument of an event listener method, a gr.LikeData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def test(value, like_data: gr.LikeData):
+            return {
+                "chatbot_value": value,
+                "liked_message": like_data.value,
+                "liked_index": like_data.index,
+                "liked_or_disliked_as_bool": like_data.liked
+            }
+        with gr.Blocks() as demo:
+            c = gr.Chatbot([("abc", "def")])
+            t = gr.JSON()
+            c.like(test, c, t)
+        demo.launch()
+    Demos: chatbot_core_components_simple
+    """
+
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the liked/disliked item. Is a tuple if the component is two dimensional.
+        """
+        self.value: Any = data["value"]
+        """
+        The value of the liked/disliked item.
+        """
+        self.liked: bool = data.get("liked", True)
+        """
+        True if the item was liked, False if disliked.
         """
 
 
@@ -377,6 +487,7 @@ class EventListener(str):
         return event_trigger
 
 
+@document()
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
@@ -400,6 +511,10 @@ def on(
     show_api: bool = True,
 ) -> Dependency:
     """
+    Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
+    useful when the same function should be triggered by multiple events. Only a single API endpoint is generated
+    for all events in the triggers list.
+
     Parameters:
         triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will listen to changes to any inputs.
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
@@ -420,6 +535,20 @@ def on(
         concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            with gr.Row():
+                input = gr.Textbox()
+                button = gr.Button("Submit")
+            output = gr.Textbox()
+            gr.on(
+                triggers=[button.click, input.submit],
+                fn=lambda x: x,
+                inputs=[input],
+                outputs=[output]
+            )
+        demo.launch()
     """
     from gradio.components.base import Component
 
@@ -600,20 +729,3 @@ class Events:
         "delete",
         doc="This listener is triggered when the user deletes and item from the {{ component }}. Uses event data gradio.DeletedFileData to carry `value` referring to the file that was deleted as an instance of FileData. See EventData documentation on how to use this event data",
     )
-
-
-class LikeData(EventData):
-    def __init__(self, target: Block | None, data: Any):
-        super().__init__(target, data)
-        self.index: int | tuple[int, int] = data["index"]
-        """
-        The index of the liked/disliked item. Is a tuple if the component is two dimensional.
-        """
-        self.value: Any = data["value"]
-        """
-        The value of the liked/disliked item.
-        """
-        self.liked: bool = data.get("liked", True)
-        """
-        True if the item was liked, False if disliked.
-        """
