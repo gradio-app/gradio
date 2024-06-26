@@ -9,7 +9,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
     import { style_formatted_text } from "$lib/text";
 
-    let obj = get_object("eventdata");
+    let obj = get_object("on");
 </script>
 
 <!--- Title -->
@@ -17,7 +17,7 @@
 
 <!--- Usage -->
 ```python
-gradio.EventData(···)
+gradio.on(···)
 ```
 
 <!--- Description -->
@@ -29,18 +29,21 @@ gradio.EventData(···)
 {#if obj.example}
 ### Example Usage
 ```python
-table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
-gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
-textbox = gr.Textbox("Hello World!")
+import gradio as gr
 
-statement = gr.Textbox()
+with gr.Blocks() as demo:
+    with gr.Row():
+        input = gr.Textbox()
+        button = gr.Button("Submit")
+    output = gr.Textbox()
+    gr.on(
+        triggers=[button.click, input.submit],
+        fn=lambda x: x,
+        inputs=[input],
+        outputs=[output]
+    )
 
-def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-    return f"You selected {evt.value} at {evt.index} from {evt.target}"
-
-table.select(on_select, None, statement)
-gallery.select(on_select, None, statement)
-textbox.select(on_select, None, statement)
+demo.launch()
 ```
 {/if}
 

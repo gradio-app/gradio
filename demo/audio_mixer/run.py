@@ -31,7 +31,7 @@ with gr.Blocks() as demo:
                     else:
                         min_shape = tuple(min(s1, s2) for s1, s2 in zip(output.shape, final_track.shape))
                         trimmed_output = output[:min_shape[0], ...][:, :min_shape[1], ...] if output.ndim > 1 else output[:min_shape[0]]
-                        trimmed_final = final_track[:min_shape[0], ...][:, :final_track[1], ...] if final_track.ndim > 1 else final_track[:min_shape[0]]
+                        trimmed_final = final_track[:min_shape[0], ...][:, :min_shape[1], ...] if final_track.ndim > 1 else final_track[:min_shape[0]]
                         output += trimmed_output + trimmed_final
                 return (sr, output)
             
