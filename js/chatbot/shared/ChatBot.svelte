@@ -206,7 +206,7 @@
 				return `file of extension type: ${message.file[0].orig_name?.split(".").pop()}`;
 			}
 			return (
-				`extension: ${message.file?.orig_name?.split(".").pop()}` +
+				`file of extension type: ${message.file?.orig_name?.split(".").pop()}` +
 				(message.file?.orig_name ?? "")
 			);
 		}
