@@ -545,11 +545,13 @@ When all is said an done, your component's backend code should look like this:
 
 ```python
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any, Callable, TYPE_CHECKING
 
 from gradio.components.base import Component
 from gradio.data_classes import FileData
 from gradio import processing_utils
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 class PDF(Component):
 

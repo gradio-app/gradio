@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 @document()
 class Timer(Component):
     """
-    Create a timer that ticks at regular intervals when active.
+    Special component that ticks at regular intervals when active. It is not visible, and only used to trigger events at a regular interval through the `tick` event listener.
     """
 
     EVENTS = [
