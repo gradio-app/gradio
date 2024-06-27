@@ -29,6 +29,7 @@
 		path: string;
 		app_id?: string;
 		fill_height?: boolean;
+		fill_width?: boolean;
 		theme_hash?: number;
 	}
 
@@ -411,6 +412,7 @@
 	{initial_height}
 	{space}
 	loaded={loader_status === "complete"}
+	fill_width={config?.fill_width || false}
 	bind:wrapper
 >
 	{#if (loader_status === "pending" || loader_status === "error") && !(config && config?.auth_required)}
