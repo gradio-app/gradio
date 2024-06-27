@@ -34,7 +34,7 @@ with gr.Accordion("See Details"):
 ```
 {/if}
 
-<!--- Parameters
+<!--- Parameters -->
 ### Parameters
 <ParamTable parameters={obj.parameters} />
 
