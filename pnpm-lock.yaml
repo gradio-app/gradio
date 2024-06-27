@@ -300,6 +300,9 @@ importers:
       '@gradio/textbox':
         specifier: workspace:^
         version: link:js/textbox
+      '@gradio/timer':
+        specifier: workspace:^
+        version: link:js/timer
       '@gradio/upload':
         specifier: workspace:^
         version: link:js/upload
