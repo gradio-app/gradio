@@ -14,10 +14,11 @@
 						<span class="code highlight" style="margin-left: 10px;"
 							>{param["annotation"].replace("Sequence[", "list[")}</span
 						>
-						<span style="margin-left: 10px;"> 
-						{#if "default" in param}
-							<em><strong>Default: </strong></em>{param["default"]}
-						{:else if !("kwargs" in param)}<em><strong>Required</strong></em>{/if}
+						<span style="margin-left: 10px;">
+							{#if "default" in param}
+								<em><strong>Default: </strong></em>{param["default"]}
+							{:else if !("kwargs" in param)}<em><strong>Required</strong></em
+								>{/if}
 						</span>
 					</p>
 					<p class="desc">
