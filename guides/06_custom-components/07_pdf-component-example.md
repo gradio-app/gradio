@@ -22,7 +22,7 @@ gradio cc create PDF
 
 
 Tip: You should change the name of the component.
-Some of the screenshots assume the component is callled `PDF` but the concepts are the same!
+Some of the screenshots assume the component is called `PDF` but the concepts are the same!
 
 This will create a subdirectory called `pdf` in your current working directory.
 There are three main subdirectories in `pdf`: `frontend`, `backend`, and `demo`.
