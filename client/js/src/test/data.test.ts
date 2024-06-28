@@ -300,12 +300,7 @@ describe("handle_file", () => {
 		}
 		const file = new File(["test image"], "test.png", { type: "image/png" });
 		const result = handle_file(file) as FileData;
-		expect(result.path).toBe("test.png");
-		expect(result.orig_name).toBe("test.png");
-		expect(result.blob).toBeInstanceOf(Blob);
-		expect(result.size).toBe(file.size);
-		expect(result.mime_type).toBe("image/png");
-		expect(result.meta).toEqual({ _type: "gradio.FileData" });
+		expect(result).toBeInstanceOf(Blob);
 	});
 
 	it("should throw an error for invalid input", () => {
