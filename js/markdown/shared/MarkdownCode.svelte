@@ -84,9 +84,15 @@
 			console.error("Element is not in the DOM");
 		}
 	});
-  </script>
+</script>
 
-<span id="container" class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
+<span
+	id="container"
+	class:chatbot
+	bind:this={el}
+	class="md"
+	class:prose={render_markdown}
+>
 	{#if render_markdown}
 		{@html html}
 	{:else}
