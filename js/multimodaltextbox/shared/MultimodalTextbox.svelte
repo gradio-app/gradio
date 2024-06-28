@@ -307,7 +307,7 @@
 	.input-container {
 		display: flex;
 		position: relative;
-		align-items: center;
+		align-items: flex-end;
 	}
 
 	textarea {
@@ -350,6 +350,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		margin-bottom: 5px;
 	}
 	.padded-button {
 		padding: 0 10px;
