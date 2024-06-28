@@ -16,7 +16,7 @@
 	export let layout: "bubble" | "panel";
 	$: show_copy = show_copy_button && message && message?.type === "text";
 	$: show_download =
-		(show_copy_button && message?.value?.video?.url) || message?.value?.url;
+		show_copy_button && (message?.value?.video?.url || message?.value?.url);
 </script>
 
 {#if show}
