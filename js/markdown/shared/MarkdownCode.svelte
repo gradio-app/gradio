@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { afterUpdate, createEventDispatcher } from "svelte";
+	import { afterUpdate, onMount } from "svelte";
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
@@ -73,10 +73,20 @@
 			}
 		}
 	}
-	afterUpdate(() => render_html(message));
-</script>
+	onMount(() => {
+		el = document.getElementById("container") as HTMLSpanElement;
+	});
 
-<span class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
+	afterUpdate(async () => {
+		if (el && document.body.contains(el)) {
+			await render_html(message);
+		} else {
+			console.error("Element is not in the DOM");
+		}
+	});
+  </script>
+
+<span id="container" class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
 	{#if render_markdown}
 		{@html html}
 	{:else}
