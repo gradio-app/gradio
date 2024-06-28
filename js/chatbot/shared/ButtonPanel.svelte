@@ -11,13 +11,12 @@
 	export let message: Record<string, any>;
 	export let position: "right" | "left";
 	export let avatar: FileData | null;
-	export let show_download = false;
+
 	export let handle_action: (selected: string | null) => void;
 	export let layout: "bubble" | "panel";
-
 	$: show_copy = show_copy_button && message && message?.type === "text";
 	$: show_download =
-		(show_download && message?.value?.video?.url) || message?.value?.url;
+		show_copy_button && (message?.value?.video?.url || message?.value?.url);
 </script>
 
 {#if show}

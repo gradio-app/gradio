@@ -22,6 +22,7 @@
 	import Pending from "./Pending.svelte";
 	import Component from "./Component.svelte";
 	import LikeButtons from "./ButtonPanel.svelte";
+	import type { LoadedComponent } from "../../app/src/types";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
@@ -42,7 +43,7 @@
 			component_name;
 		});
 
-		const loaded_components = await Promise.all(components);
+		const loaded_components: LoadedComponent[] = await Promise.all(components);
 		loaded_components.forEach((component, i) => {
 			_components[names[i]] = component.default;
 		});
@@ -341,10 +342,7 @@
 									</button>
 								</div>
 								<LikeButtons
-									show={(likeable && j === 1) ||
-										(show_copy_button &&
-											message &&
-											typeof message === "string")}
+									show={j === 1 && (likeable || show_copy_button)}
 									handle_action={(selected) =>
 										handle_like(i, j, message, selected)}
 									{likeable}
@@ -352,7 +350,6 @@
 									{message}
 									position={j === 0 ? "right" : "left"}
 									avatar={avatar_images[j]}
-									show_download={true}
 									{layout}
 								/>
 							</div>
