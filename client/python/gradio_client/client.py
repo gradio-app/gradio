@@ -453,11 +453,7 @@ class Client:
             client.predict(5, "add", 4, api_name="/predict")
             >> 9.0
         """
-        inferred_fn_index = self._infer_fn_index(api_name, fn_index)
-        if self.endpoints[inferred_fn_index].is_continuous:
-            raise ValueError(
-                "Cannot call predict on this function as it may run forever. Use submit instead."
-            )
+        self._infer_fn_index(api_name, fn_index)
         return self.submit(
             *args, api_name=api_name, fn_index=fn_index, **kwargs
         ).result()
@@ -1061,7 +1057,6 @@ class Endpoint:
         self.parameters_info = self._get_parameters_info()
 
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
-        self.is_continuous = dependency.get("types", {}).get("continuous", False)
 
         # Disallow hitting endpoints that the Gradio app has disabled
         self.is_valid = self.api_name is not False

@@ -545,11 +545,13 @@ When all is said an done, your component's backend code should look like this:
 
 ```python
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any, Callable, TYPE_CHECKING
 
 from gradio.components.base import Component
 from gradio.data_classes import FileData
 from gradio import processing_utils
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 class PDF(Component):
 
@@ -570,7 +572,7 @@ class PDF(Component):
                  elem_classes: list[str] | str | None = None,
                  render: bool = True,
                  load_fn: Callable[..., Any] | None = None,
-                 every: float | None = None):
+                 every: Timer | float | None = None):
         super().__init__(value, label=label, info=info,
                          show_label=show_label, container=container,
                          scale=scale, min_width=min_width,

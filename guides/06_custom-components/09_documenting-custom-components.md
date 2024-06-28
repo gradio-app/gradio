@@ -94,7 +94,7 @@ def __init__(
   value: str | None = None,
   *,
   sources: Literal["upload", "microphone"] = "upload,
-  every: float | None = None,
+  every: Timer | float | None = None,
   ...
 ):
   ...

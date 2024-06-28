@@ -31,6 +31,8 @@ if TYPE_CHECKING:
         headers: list[str]
         data: list[list[str | int | bool]]
 
+    from gradio.components import Timer
+
 
 class _Keywords(Enum):
     NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
@@ -145,7 +147,8 @@ class Component(ComponentBase, Block):
         render: bool = True,
         key: int | str | None = None,
         load_fn: Callable | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
     ):
         self.server_fns = [
             getattr(self, value)
@@ -196,8 +199,15 @@ class Component(ComponentBase, Block):
 
         # load_event is set in the Blocks.attach_load_events method
         self.load_event: None | dict[str, Any] = None
-        self.load_event_to_attach: None | tuple[Callable, float | None] = None
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.load_event_to_attach: (
+            None
+            | tuple[
+                Callable,
+                list[tuple[Block, str]],
+                Component | list[Component] | set[Component] | None,
+            ]
+        ) = None
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value, inputs)
         initial_value = self.postprocess(initial_value)
         self.value = move_files_to_cache(
             initial_value,
@@ -209,7 +219,7 @@ class Component(ComponentBase, Block):
             self.keep_in_cache.add(self.value["path"])
 
         if callable(load_fn):
-            self.attach_load_event(load_fn, every)
+            self.attach_load_event(load_fn, every, inputs)
 
         self.component_class_id = self.__class__.get_component_class_id()
 
@@ -230,18 +240,40 @@ class Component(ComponentBase, Block):
         return False
 
     @staticmethod
-    def get_load_fn_and_initial_value(value):
+    def get_load_fn_and_initial_value(value, inputs=None):
+        initial_value = None
         if callable(value):
-            initial_value = value()
+            if not inputs:
+                initial_value = value()
             load_fn = value
         else:
             initial_value = value
             load_fn = None
         return load_fn, initial_value
 
-    def attach_load_event(self, callable: Callable, every: float | None):
-        """Add a load event that runs `callable`, optionally every `every` seconds."""
-        self.load_event_to_attach = (callable, every)
+    def attach_load_event(
+        self,
+        callable: Callable,
+        every: Timer | float | None,
+        inputs: Component | list[Component] | set[Component] | None = None,
+    ):
+        """Add an event that runs `callable`, optionally at interval specified by `every`."""
+        if isinstance(inputs, Component):
+            inputs = [inputs]
+        changeable_events: list[tuple[Block, str]] = (
+            [(i, "change") for i in inputs if hasattr(i, "change")] if inputs else []
+        )
+        if isinstance(every, (int, float)):
+            from gradio.components import Timer
+
+            every = Timer(every)
+        if every:
+            changeable_events.append((every, "tick"))
+        self.load_event_to_attach = (
+            callable,
+            changeable_events,
+            inputs,
+        )
 
     def process_example(self, value):
         """

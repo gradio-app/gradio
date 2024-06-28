@@ -5,13 +5,16 @@ from __future__ import annotations
 import json
 import time
 import warnings
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
 
-from gradio.components import Button
+from gradio.components import Button, Component
 from gradio.context import get_blocks_context
 from gradio.routes import Request
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -27,7 +30,8 @@ class LoginButton(Button):
         value: str = "Sign in with Hugging Face",
         logout_value: str = "Logout ({})",
         *,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str
@@ -55,6 +59,7 @@ class LoginButton(Button):
         super().__init__(
             value,
             every=every,
+            inputs=inputs,
             variant=variant,
             size=size,
             icon=icon,

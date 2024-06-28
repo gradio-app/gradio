@@ -163,12 +163,29 @@ The `.then()` method of an event listener executes the subsequent event regardle
 
 ## Running Events Continuously
 
-You can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event `every` number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration. Note that this does not take into account the runtime of the event itself. So a function with a 1 second runtime running with `every=5`, would actually run every 6 seconds. Also note that this parameter does not apply to the `js` function, only the Python function associated with the event listener.
+You can run events on a fixed schedule using `gr.Timer()` object. This will run the event when the timer's `tick` event fires. See the code below:
 
-Here is an example of a sine curve that updates every second!
+```python
+with gr.Blocks as demo:
+    timer = gr.Timer(5)
+    textbox = gr.Textbox()
+    textbox2 = gr.Textbox()
+    timer.tick(set_textbox_fn, textbox, textbox2)
+```
 
-$code_sine_curve
-$demo_sine_curve
+This can also be used directly with a Component's `every=` parameter as such:
+
+```python
+with gr.Blocks as demo:
+    timer = gr.Timer(5)
+    textbox = gr.Textbox()
+    textbox2 = gr.Textbox(set_textbox_fn, inputs=[textbox], every=timer)
+```
+
+Here is an example of a demo that print the current timestamp, and also prints random numbers regularly!
+
+$code_timer
+$demo_timer
 
 ## Gathering Event Data
 
@@ -198,3 +215,29 @@ $code_on_listener_live
 $demo_on_listener_live
 
 You can follow `gr.on` with `.then`, just like any regular event listener. This handy method should save you from having to write a lot of repetitive code!
+
+## Binding a Component Value Directly to a Function of Other Components
+
+If you want to set a Component's value to always be a function of the value of other Components, you can use the following shorthand:
+
+```python
+with gr.Blocks() as demo:
+  num1 = gr.Number()
+  num2 = gr.Number()
+  product = gr.Number(lambda a, b: a * b, inputs=[num1, num2])
+```
+
+This functionally the same as:
+```python
+with gr.Blocks() as demo:
+  num1 = gr.Number()
+  num2 = gr.Number()
+  product = gr.Number()
+
+  gr.on(
+    [num1.change, num2.change, demo.load], 
+    lambda a, b: a * b, 
+    inputs=[num1, num2], 
+    outputs=product
+  )
+```

@@ -246,7 +246,6 @@ export interface Dependency {
 }
 
 export interface DependencyTypes {
-	continuous: boolean;
 	generator: boolean;
 	cancel: boolean;
 }

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import Literal, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 class Parameter(TypedDict):
@@ -33,7 +36,8 @@ class ParamViewer(Component):
         value: dict[str, Parameter] | None = None,
         language: Literal["python", "typescript"] = "python",
         linkify: list[str] | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         render: bool = True,
         key: int | str | None = None,
     ):
@@ -42,7 +46,8 @@ class ParamViewer(Component):
             value: A list of dictionaries with keys "type", "description", and "default" for each parameter.
             language: The language to display the code in. One of "python" or "typescript".
             linkify: A list of strings to linkify. If any of these strings is found in the description, it will be rendered as a link.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
@@ -51,6 +56,7 @@ class ParamViewer(Component):
         self.linkify = linkify
         super().__init__(
             every=every,
+            inputs=inputs,
             value=value,
             render=render,
             key=key,

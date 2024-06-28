@@ -43,9 +43,9 @@ with gr.Blocks() as demo:
     gr.Markdown("# 📈 Real-Time Line Plot")
     with gr.Row():
         with gr.Column():
-            gr.DataFrame(get_data, every=5)
+            gr.DataFrame(get_data, every=gr.Timer(5))
         with gr.Column():
-            gr.LinePlot(get_data, every=5, x="Date", y="Sales", y_title="Sales ($ millions)", overlay_point=True, width=500, height=500)
+            gr.LinePlot(get_data, every=gr.Timer(5), x="Date", y="Sales", y_title="Sales ($ millions)", overlay_point=True, width=500, height=500)
 
 demo.queue().launch()  # Run the demo with queuing enabled
 ```
@@ -128,9 +128,9 @@ with gr.Blocks() as demo:
     gr.Markdown("# 📈 Real-Time Line Plot")
     with gr.Row():
         with gr.Column():
-            gr.DataFrame(get_data, every=5)
+            gr.DataFrame(get_data, every=gr.Timer(5))
         with gr.Column():
-            gr.LinePlot(get_data, every=5, x="Date", y="Sales", y_title="Sales ($ millions)", overlay_point=True, width=500, height=500)
+            gr.LinePlot(get_data, every=gr.Timer(5), x="Date", y="Sales", y_title="Sales ($ millions)", overlay_point=True, width=500, height=500)
 
 demo.queue().launch()  # Run the demo with queuing enabled
 ```

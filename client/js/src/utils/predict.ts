@@ -23,12 +23,6 @@ export async function predict(
 		)!;
 	}
 
-	if (dependency?.types.continuous) {
-		throw new Error(
-			"Cannot call predict on this function as it may run forever. Use submit instead"
-		);
-	}
-
 	return new Promise(async (resolve, reject) => {
 		const app = this.submit(endpoint, data, null, null, true);
 		let result: unknown;

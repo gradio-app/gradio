@@ -98,9 +98,9 @@ Here is an example of how to use the `gr.DataFrame` component to display the res
 import gradio as gr
 
 with gr.Blocks() as demo:
-    gr.DataFrame(run_query, every=60*60)
+    gr.DataFrame(run_query, every=gr.Timer(60*60))
 
-demo.queue().launch()  # Run the demo using queuing
+demo.launch()
 ```
 
 Perhaps you'd like to add a visualization to our dashboard. You can use the `gr.ScatterPlot()` component to visualize the data in a scatter plot. This allows you to see the relationship between different variables such as case count and case deaths in the dataset and can be useful for exploring the data and gaining insights. Again, we can do this in real-time
@@ -114,8 +114,8 @@ import gradio as gr
 with gr.Blocks() as demo:
     gr.Markdown("# 💉 Covid Dashboard (Updated Hourly)")
     with gr.Row():
-        gr.DataFrame(run_query, every=60*60)
-        gr.ScatterPlot(run_query, every=60*60, x="confirmed_cases",
+        gr.DataFrame(run_query, every=gr.Timer(60*60))
+        gr.ScatterPlot(run_query, every=gr.Timer(60*60), x="confirmed_cases",
                         y="deaths", tooltip="county", width=500, height=500)
 
 demo.queue().launch()  # Run the demo with queuing enabled

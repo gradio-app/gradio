@@ -333,31 +333,27 @@ class TestBlocksMethods:
             generator_btn.click(generator_function, inputs=None, outputs=[counter])
             demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
 
-        for i, dependency in enumerate(demo.config["dependencies"]):
-            if i == 3:
-                assert dependency["types"] == {
-                    "continuous": True,
-                    "generator": True,
-                    "cancel": False,
-                }
-            if i == 0:
-                assert dependency["types"] == {
-                    "continuous": False,
-                    "generator": False,
-                    "cancel": False,
-                }
-            if i == 1:
-                assert dependency["types"] == {
-                    "continuous": False,
-                    "generator": True,
-                    "cancel": False,
-                }
-            if i == 2:
-                assert dependency["types"] == {
-                    "continuous": True,
-                    "generator": True,
-                    "cancel": False,
-                }
+        dependencies = demo.config["dependencies"]
+        assert dependencies[0]["types"] == {
+            "generator": False,
+            "cancel": False,
+        }
+        assert dependencies[1]["types"] == {
+            "generator": True,
+            "cancel": False,
+        }
+        assert dependencies[2]["types"] == {
+            "generator": False,
+            "cancel": False,
+        }
+        assert dependencies[3]["types"] == {
+            "generator": False,
+            "cancel": False,
+        }
+        assert dependencies[4]["types"] == {
+            "generator": False,
+            "cancel": False,
+        }
 
     @patch(
         "gradio.themes.ThemeClass.from_hub",
@@ -485,8 +481,6 @@ class TestComponentsInBlocks:
         ]
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
-        # Queue should be explicitly false for these events
-        assert all(dep["queue"] is False for dep in demo.config["dependencies"])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         interface = gr.Interface(
@@ -498,10 +492,15 @@ class TestComponentsInBlocks:
         dependencies_on_load = [
             dep
             for dep in interface.config["dependencies"]
-            if dep["targets"][0][1] == "load"
+            if "load" in [target[1] for target in dep["targets"]]
+        ]
+        dependencies_on_tick = [
+            dep
+            for dep in interface.config["dependencies"]
+            if "tick" in [target[1] for target in dep["targets"]]
         ]
         assert len(dependencies_on_load) == len(io_components)
-        assert all(dep["every"] == 1 for dep in dependencies_on_load)
+        assert len(dependencies_on_tick) == len(io_components)
 
     def test_get_load_events(self, io_components):
         components = []
@@ -1371,25 +1370,6 @@ class TestCancel:
                 cancel = gr.Button(value="Cancel")
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
-
-
-class TestEvery:
-    def test_raise_exception_if_parameters_invalid(self):
-        with pytest.raises(
-            ValueError, match="Cannot run event in a batch and every 0.5 seconds"
-        ):
-            with gr.Blocks():
-                num = gr.Number()
-                num.change(
-                    lambda s: s + 1, inputs=[num], outputs=[num], every=0.5, batch=True
-                )
-
-        with pytest.raises(
-            ValueError, match="Parameter every must be positive or None"
-        ):
-            with gr.Blocks():
-                num = gr.Number()
-                num.change(lambda s: s + 1, inputs=[num], outputs=[num], every=-0.1)
 
 
 class TestGetAPIInfo:

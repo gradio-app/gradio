@@ -37,7 +37,6 @@ class EndpointV3Compatibility:
         self.input_component_types = []
         self.output_component_types = []
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
-        self.is_continuous = dependency.get("types", {}).get("continuous", False)
         try:
             # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
             # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)

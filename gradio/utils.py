@@ -30,7 +30,7 @@ from functools import wraps
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
-from types import AsyncGeneratorType, GeneratorType, ModuleType
+from types import ModuleType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -739,27 +739,6 @@ def validate_url(possible_url: str) -> bool:
 
 def is_prop_update(val):
     return isinstance(val, dict) and "update" in val.get("__type__", "")
-
-
-def get_continuous_fn(fn: Callable, every: float) -> Callable:
-    # For Wasm-compatibility, we need to use asyncio.sleep() instead of time.sleep(),
-    # so we need to make the function async.
-    async def continuous_coro(*args):
-        while True:
-            output = fn(*args)
-            if isinstance(output, GeneratorType):
-                for item in output:
-                    yield item
-            elif isinstance(output, AsyncGeneratorType):
-                async for item in output:
-                    yield item
-            elif inspect.isawaitable(output):
-                yield await output
-            else:
-                yield output
-            await asyncio.sleep(every)
-
-    return continuous_coro
 
 
 def function_wrapper(

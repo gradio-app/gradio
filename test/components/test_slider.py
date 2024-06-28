@@ -57,7 +57,7 @@ class TestSlider:
         slider = gr.Slider(minimum=-5, maximum=10, randomize=True)
         assert slider.value == 7
         assert slider.load_event_to_attach[0]() == 7
-        assert slider.load_event_to_attach[1] is None
+        assert not slider.load_event_to_attach[1]
 
     @patch("random.randint", return_value=3)
     def test_slider_rounds_when_using_default_randomizer(self, mock_randint):
