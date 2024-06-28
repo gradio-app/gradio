@@ -51,6 +51,7 @@ class LoginButton(Button):
             warnings.warn(
                 "The `signed_in_value` parameter is deprecated. Please use `logout_value` instead."
             )
+        self.value = value
         self.logout_value = logout_value
         super().__init__(
             value,
@@ -68,12 +69,10 @@ class LoginButton(Button):
             scale=scale,
             min_width=min_width,
         )
-        if get_blocks_context():
-            self.activate()
-        else:
-            warnings.warn(
-                "LoginButton created outside of a Blocks context. May not work unless you call its `activate()` method manually."
-            )
+
+    def render(self):
+        super().render()
+        self.activate()
 
     def activate(self):
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
