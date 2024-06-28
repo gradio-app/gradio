@@ -1,5 +1,14 @@
 # @gradio/gallery
 
+## 0.11.1
+
+### Dependency updates
+
+- @gradio/upload@0.11.4
+- @gradio/client@1.2.1
+- @gradio/image@0.12.1
+- @gradio/file@0.8.4
+
 ## 0.11.0
 
 ### Features
