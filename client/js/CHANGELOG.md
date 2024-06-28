@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.2.1
+
+### Features
+
+- [#8649](https://github.com/gradio-app/gradio/pull/8649) [`4b6c8b1`](https://github.com/gradio-app/gradio/commit/4b6c8b1c004cee67345a7f103ba2dc8e90b82e6c) - ensure `File` objects are handled in JS client `handle_file`.  Thanks @hannahblair!
+
 ## 1.2.0
 
 ### Features
