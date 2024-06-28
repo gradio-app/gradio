@@ -1387,6 +1387,3 @@ def test_upstream_exceptions(count_generator_demo_exception):
             match="The upstream Gradio app has raised an exception but has not enabled verbose error reporting.",
         ):
             client.predict(7, api_name="/count")
-
-        with pytest.raises(ValueError, match="Cannot call predict on this function"):
-            client.predict(5, api_name="/count_forever")

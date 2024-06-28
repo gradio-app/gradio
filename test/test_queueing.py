@@ -212,23 +212,3 @@ class TestQueueing:
                     mul_job_2,
                 ]
             )
-
-    def test_every_does_not_block_queue(self):
-        with gr.Blocks() as demo:
-            num = gr.Number(value=0)
-            num2 = gr.Number(value=0)
-            num.submit(lambda n: 2 * n, num, num, every=0.5)
-            num2.submit(lambda n: 3 * n, num, num)
-
-        app, local_url, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
-        test_client = TestClient(app)
-
-        client = grc.Client(local_url)
-        job = client.submit(1, fn_index=1)
-
-        for _ in range(5):
-            status = test_client.get("/queue/status").json()
-            assert status["queue_size"] == 0
-            time.sleep(0.5)
-
-        assert job.result() == 3

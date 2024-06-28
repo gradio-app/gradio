@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -12,6 +12,9 @@ from gradio.components import Button, Component
 from gradio.context import get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.utils import resolve_singleton
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document("add")
@@ -29,7 +32,8 @@ class ClearButton(Button):
         components: None | list[Component] | Component = None,
         *,
         value: str = "Clear",
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str | None = None,
@@ -48,6 +52,7 @@ class ClearButton(Button):
         super().__init__(
             value,
             every=every,
+            inputs=inputs,
             variant=variant,
             size=size,
             icon=icon,
