@@ -196,6 +196,23 @@
 			liked: selected === "like"
 		});
 	}
+
+	function get_message_label_data(message: NormalisedMessage): string {
+		if (message.type === "text") {
+			return message.value;
+		} else if (message.type === "component") {
+			return `a component of type ${message.component}`;
+		} else if (message.type === "file") {
+			if (Array.isArray(message.file)) {
+				return `file of extension type: ${message.file[0].orig_name?.split(".").pop()}`;
+			}
+			return (
+				`file of extension type: ${message.file?.orig_name?.split(".").pop()}` +
+				(message.file?.orig_name ?? "")
+			);
+		}
+		return `a message of type ` + message.type ?? "unknown";
+	}
 </script>
 
 {#if show_share_button && value !== null && value.length > 0}
@@ -288,17 +305,7 @@
 										dir={rtl ? "rtl" : "ltr"}
 										aria-label={(j == 0 ? "user" : "bot") +
 											"'s message: " +
-											(typeof message === "string"
-												? message
-												: "file" in message &&
-													  message.file !== undefined &&
-													  !Array.isArray(message.file)
-													? `a file of type ${message.file?.mime_type}, ${
-															message.file?.alt_text ??
-															message.file?.orig_name ??
-															""
-														}`
-													: "")}
+											get_message_label_data(message)}
 									>
 										{#if message.type === "text"}
 											<Markdown
