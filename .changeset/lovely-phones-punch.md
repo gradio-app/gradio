@@ -1,6 +1,6 @@
 ---
-"@gradio/multimodaltextbox": minor
-"gradio": minor
+"@gradio/multimodaltextbox": patch
+"gradio": patch
 ---
 
-feat:Multimodal textbox buttons alignment
+fix:Multimodal textbox buttons alignment
