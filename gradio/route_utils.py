@@ -90,6 +90,11 @@ class Obj:
             return self.__dict__[item]
         return default
 
+    def pop(self, item, default=None):
+        if item in self:
+            return self.__dict__.pop(item)
+        return default
+
     def keys(self):
         return self.__dict__.keys()
 
