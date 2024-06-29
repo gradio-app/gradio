@@ -38,14 +38,14 @@ const sql_dialects = [
 
 const lang_map: Record<string, (() => Promise<Extension>) | undefined> = {
 	python: () => import("@codemirror/lang-python").then((m) => m.python()),
-	c: () => 
+	c: () =>
 		import("@codemirror/legacy-modes/mode/clike").then((m) =>
 			StreamLanguage.define(m.c)
 		),
-	cpp: () => 
-			import("@codemirror/legacy-modes/mode/clike").then((m) =>
-				StreamLanguage.define(m.cpp)
-			),
+	cpp: () =>
+		import("@codemirror/legacy-modes/mode/clike").then((m) =>
+			StreamLanguage.define(m.cpp)
+		),
 	markdown: async () => {
 		const [md, frontmatter] = await Promise.all([
 			import("@codemirror/lang-markdown"),

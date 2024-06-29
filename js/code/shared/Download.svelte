@@ -29,7 +29,7 @@
 			shell: "sh",
 			r: "r",
 			c: "c",
-			cpp: "cpp",
+			cpp: "cpp"
 		};
 
 		return exts[type] || "txt";
