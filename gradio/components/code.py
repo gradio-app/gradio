@@ -22,6 +22,8 @@ class Code(Component):
 
     languages = [
         "python",
+        "c",
+        "cpp",
         "markdown",
         "json",
         "html",
@@ -60,6 +62,8 @@ class Code(Component):
         value: str | Callable | tuple[str] | None = None,
         language: Literal[
             "python",
+            "c",
+            "cpp",
             "markdown",
             "json",
             "html",
