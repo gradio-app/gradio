@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Callable, Literal
 
 import gradio_client.utils as client_utils
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client.documentation import document
 
 from gradio import processing_utils
@@ -26,7 +26,7 @@ class File(Component):
     Demo: zip_files, zip_to_json
     """
 
-    EVENTS = [Events.change, Events.select, Events.clear, Events.upload]
+    EVENTS = [Events.change, Events.select, Events.clear, Events.upload, Events.delete]
 
     def __init__(
         self,
@@ -69,8 +69,14 @@ class File(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
+        file_count_valid_types = ["single", "multiple", "directory"]
         self.file_count = file_count
-        if self.file_count in ["multiple", "directory"]:
+
+        if self.file_count not in file_count_valid_types:
+            raise ValueError(
+                f"Parameter file_count must be one of them: {file_count_valid_types}"
+            )
+        elif self.file_count in ["multiple", "directory"]:
             self.data_model = ListFiles
         else:
             self.data_model = FileData
@@ -203,12 +209,12 @@ class File(Component):
 
     def example_payload(self) -> Any:
         if self.file_count == "single":
-            return file(
+            return handle_file(
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
             )
         else:
             return [
-                file(
+                handle_file(
                     "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
                 )
             ]

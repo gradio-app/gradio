@@ -15,6 +15,7 @@
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
+	import bash from "./img/bash.svg";
 	import ResponseSnippet from "./ResponseSnippet.svelte";
 
 	export let dependencies: Dependency[];
@@ -26,6 +27,8 @@
 		"https://www.gradio.app/guides/getting-started-with-the-js-client";
 	const py_docs =
 		"https://www.gradio.app/guides/getting-started-with-the-python-client";
+	const bash_docs =
+		"https://www.gradio.app/guides/querying-gradio-apps-with-curl";
 	const spaces_docs_suffix = "#connecting-to-a-hugging-face-space";
 
 	let api_count = dependencies.filter(
@@ -40,11 +43,12 @@
 	}
 
 	export let api_calls: Payload[] = [];
-	let current_language: "python" | "javascript" = "python";
+	let current_language: "python" | "javascript" | "bash" = "python";
 
 	const langs = [
 		["python", python],
-		["javascript", javascript]
+		["javascript", javascript],
+		["bash", bash]
 	] as const;
 
 	let is_running = false;
@@ -98,12 +102,9 @@
 
 		<div class="docs-wrap">
 			<div class="client-doc">
-				<p>
-					Use the <code class="library">gradio_client</code>
-					<a href={py_docs} target="_blank">Python library</a> or the
-					<code class="library">@gradio/client</code>
-					<a href={js_docs} target="_blank">Javascript package</a> to query the app
-					via API.
+				<p style="font-size: var(--text-lg);">
+					Choose a language to see the code snippets for interacting with the
+					API.
 				</p>
 			</div>
 			<div class="endpoint">
@@ -125,7 +126,9 @@
 							id="num-recorded-api-calls"
 							style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
 						>
-							🪄 Recorded API Calls ({api_calls.length})
+							🪄 Recorded API Calls <span class="api-count"
+								>[{api_calls.length}]</span
+							>
 						</p>
 						<p>
 							Here is the code snippet to replay the most recently recorded API
@@ -153,7 +156,16 @@
 					</p>
 				{:else}
 					<p class="padded">
-						1. Install the client if you don't already have it installed.
+						{#if current_language == "python" || current_language == "javascript"}
+							1. Install the
+							<span style="text-transform:capitalize">{current_language}</span>
+							client (<a
+								href={current_language == "python" ? py_docs : js_docs}
+								target="_blank">docs</a
+							>) if you don't already have it installed.
+						{:else}
+							1. Confirm that you have cURL installed on your system.
+						{/if}
 					</p>
 
 					<InstallSnippet {current_language} />
@@ -164,19 +176,36 @@
 						placeholder values with your own input data.
 						{#if space_id}If this is a private Space, you may need to pass your
 							Hugging Face token as well (<a
-								href={(current_language == "python" ? py_docs : js_docs) +
-									spaces_docs_suffix}
+								href={current_language == "python"
+									? py_docs + spaces_docs_suffix
+									: current_language == "javascript"
+										? js_docs + spaces_docs_suffix
+										: bash_docs}
 								class="underline"
 								target="_blank">read more</a
-							>).{/if} Or
+							>).{/if}
+
+						Or use the
 						<Button
 							size="sm"
-							variant="primary"
+							variant="secondary"
 							on:click={() => dispatch("close", { api_recorder_visible: true })}
 						>
-							🪄 Use the API Recorder
+							<div class="loading-dot"></div>
+							<p class="self-baseline">API Recorder</p>
 						</Button>
 						to automatically generate your API requests.
+						{#if current_language == "bash"}<br />&nbsp;<br />Note: making a
+							prediction and getting a result requires
+							<strong>2 requests</strong>: a
+							<code>POST</code>
+							and a <code>GET</code> request. The <code>POST</code> request
+							returns an <code>EVENT_ID</code>, which is used in the second
+							<code>GET</code> request to fetch the results. In these snippets,
+							we've used <code>awk</code> and <code>read</code> to parse the
+							results, combining these two requests into one command for ease of
+							use. See <a href={bash_docs} target="_blank">curl docs</a>.
+						{/if}
 
 						<!-- <span
 							id="api-recorder"
@@ -197,7 +226,8 @@
 								{dependency}
 								{dependency_index}
 								{current_language}
-								root={space_id || root}
+								{root}
+								{space_id}
 							/>
 
 							<ParametersSnippet
@@ -348,5 +378,34 @@
 		padding: 0px var(--size-2);
 		border-radius: var(--size-1);
 		cursor: pointer;
+	}
+
+	code {
+		font-size: var(--text-md);
+	}
+	.loading-dot {
+		position: relative;
+		left: -9999px;
+		width: 10px;
+		height: 10px;
+		border-radius: 5px;
+		background-color: #fd7b00;
+		color: #fd7b00;
+		box-shadow: 9999px 0 0 -1px;
+		margin-right: 0.25rem;
+	}
+	:global(.docs-wrap .sm.secondary) {
+		padding-top: 1px;
+		padding-bottom: 1px;
+	}
+	.self-baseline {
+		align-self: baseline;
+	}
+	.api-count {
+		font-weight: bold;
+		color: #fd7b00;
+		align-self: baseline;
+		font-family: var(--font-mono);
+		font-size: var(--text-md);
 	}
 </style>

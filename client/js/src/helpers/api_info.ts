@@ -106,7 +106,7 @@ export function transform_api_info(
 						dependencyIndex !== -1
 							? config.dependencies.find((dep) => dep.id == dependencyIndex)
 									?.types
-							: { continuous: false, generator: false };
+							: { continuous: false, generator: false, cancel: false };
 
 					if (
 						dependencyIndex !== -1 &&
@@ -318,6 +318,8 @@ export function handle_message(
 					status: {
 						queue,
 						message: data.output.error as string,
+						visible: data.output.visible as boolean,
+						duration: data.output.duration as number,
 						stage: "error",
 						code: data.code,
 						success: data.success
@@ -381,7 +383,7 @@ export function handle_message(
  */
 
 export const map_data_to_params = (
-	data: unknown[] | Record<string, unknown>,
+	data: unknown[] | Record<string, unknown> = [],
 	api_info: ApiInfo<JsApiData | ApiData>
 ): unknown[] => {
 	const parameters = Object.values(api_info.named_endpoints).flatMap(

@@ -12,7 +12,7 @@
 	>;
 	export let label = "Examples";
 	export let headers: string[];
-	export let samples: any[][];
+	export let samples: any[][] | null = null;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -34,7 +34,7 @@
 		: `${root}/file=`;
 	let page = 0;
 	$: gallery = components.length < 2;
-	let paginate = samples.length > samples_per_page;
+	let paginate = samples ? samples.length > samples_per_page : false;
 
 	let selected_samples: any[][];
 	let page_count: number;
@@ -51,6 +51,7 @@
 	}
 
 	$: {
+		samples = samples || [];
 		paginate = samples.length > samples_per_page;
 		if (paginate) {
 			visible_pages = [];

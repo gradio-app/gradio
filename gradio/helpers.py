@@ -83,7 +83,7 @@ class Examples:
     assigns event listener so that clicking on an example populates the input/output
     components. Optionally handles example caching for fast inference.
 
-    Demos: fake_gan
+    Demos: calculator_blocks
     Guides: more-on-examples-and-flagging, using-hugging-face-integrations, image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
     """
 
@@ -326,9 +326,7 @@ class Examples:
             [output.render() for output in self.outputs]
             demo.load(self.fn, self.inputs, self.outputs)
         demo.unrender()
-        return (await demo.postprocess_data(demo.default_config.fns[0], output, None))[
-            0
-        ]
+        return await demo.postprocess_data(demo.default_config.fns[0], output, None)
 
     def _get_cached_index_if_cached(self, example_index) -> int | None:
         if Path(self.cached_indices_file).exists():
@@ -546,7 +544,7 @@ class Examples:
                     component, components.File
                 ):
                     value_to_use = value_as_dict
-                if not utils.is_update(value_as_dict):
+                if not utils.is_prop_update(value_as_dict):
                     raise TypeError("value wasn't an update")  # caught below
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError):
@@ -1228,7 +1226,12 @@ def make_waveform(
     return output_mp4.name
 
 
-def log_message(message: str, level: Literal["info", "warning"] = "info"):
+def log_message(
+    message: str,
+    level: Literal["info", "warning"] = "info",
+    duration: float | None = 10,
+    visible: bool = True,
+):
     from gradio.context import LocalContext
 
     blocks = LocalContext.blocks.get()
@@ -1241,16 +1244,22 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
         elif level == "warning":
             warnings.warn(message)
         return
-    blocks._queue.log_message(event_id=event_id, log=message, level=level)
+    blocks._queue.log_message(
+        event_id=event_id, log=message, level=level, duration=duration, visible=visible
+    )
 
 
 @document(documentation_group="modals")
-def Warning(message: str = "Warning issued."):  # noqa: N802
+def Warning(  # noqa: N802
+    message: str = "Warning issued.", duration: float | None = 10, visible: bool = True
+):
     """
     This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
     Demos: blocks_chained_events
     Parameters:
         message: The warning message to be displayed to the user.
+        duration: The duration in seconds that the warning message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
+        visible: Whether the error message should be displayed in the UI.
     Example:
         import gradio as gr
         def hello_world():
@@ -1261,16 +1270,22 @@ def Warning(message: str = "Warning issued."):  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, level="warning")
+    log_message(message, level="warning", duration=duration, visible=visible)
 
 
 @document(documentation_group="modals")
-def Info(message: str = "Info issued."):  # noqa: N802
+def Info(  # noqa: N802
+    message: str = "Info issued.",
+    duration: float | None = 10,
+    visible: bool = True,
+):
     """
     This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is gray by default and has the heading: "Info." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.
     Demos: blocks_chained_events
     Parameters:
         message: The info message to be displayed to the user.
+        duration: The duration in seconds that the info message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
+        visible: Whether the error message should be displayed in the UI.
     Example:
         import gradio as gr
         def hello_world():
@@ -1281,4 +1296,4 @@ def Info(message: str = "Info issued."):  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, level="info")
+    log_message(message, level="info", duration=duration, visible=visible)

@@ -13,5 +13,9 @@ export function style_formatted_text(formatted_text: string | null): string {
 		.replace(
 			regex_curly_brackets,
 			"<code class='text-orange-500' style='font-family: monospace; font-size: large;'>$1</code>"
+		)
+		.replace(
+			/\[(.*?)\]\((.*?)\)/g,
+			"<a href='$2' class= 'text-orange-500'>$1</a>"
 		);
 }

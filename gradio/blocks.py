@@ -73,7 +73,7 @@ from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
-    get_cancel_function,
+    get_cancelled_fn_indices,
     get_continuous_fn,
     get_package_version,
     get_upload_folder,
@@ -131,7 +131,7 @@ class Block:
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
         self.key = key
-        # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
+        # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
 
@@ -541,12 +541,7 @@ class BlockFunction:
         self.rendered_in = rendered_in
 
         # We need to keep track of which events are cancel events
-        # in two places:
-        # 1. So that we can skip postprocessing for cancel events.
-        #   They return event_ids that have been cancelled but there
-        #   are no output components
-        # 2. So that we can place the ProcessCompletedMessage in the
-        #   event stream so that clients can close the stream when necessary
+        # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
 
         self.spaces_auto_wrap()
@@ -589,6 +584,7 @@ class BlockFunction:
             "types": {
                 "continuous": self.types_continuous,
                 "generator": self.types_generator,
+                "cancel": self.is_cancel_function,
             },
             "collects_event_data": self.collects_event_data,
             "trigger_after": self.trigger_after,
@@ -992,6 +988,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.theme: Theme = theme
         self.theme_css = theme._get_theme_css()
         self.stylesheets = theme._stylesheets
+        theme_hasher = hashlib.sha256()
+        theme_hasher.update(self.theme_css.encode("utf-8"))
+        self.theme_hash = theme_hasher.hexdigest()
+
         self.encrypt = False
         self.share = False
         self.enable_queue = True
@@ -1181,7 +1181,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         with Blocks(theme=theme) as blocks:
             # ID 0 should be the root Blocks component
-            original_mapping[0] = Context.root_block or blocks
+            original_mapping[0] = root_block = Context.root_block or blocks
 
             iterate_over_children(config["layout"]["children"])
 
@@ -1256,7 +1256,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         )
                         for t in targets
                     ]
-                dependency = blocks.default_config.set_event_trigger(
+                dependency = root_block.default_config.set_event_trigger(
                     targets=targets, fn=fn, **dependency
                 )[0]
                 if first_dependency is None:
@@ -1352,13 +1352,14 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
 
             root_context.blocks.update(self.blocks)
-            dependency_offset = len(root_context.fns)
+            dependency_offset = max(root_context.fns.keys(), default=-1) + 1
             existing_api_names = [
                 dep.api_name
                 for dep in root_context.fns.values()
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns.values():
+                dependency._id += dependency_offset
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -1377,9 +1378,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     updated_cancels = [
                         root_context.fns[i].get_config() for i in dependency.cancels
                     ]
-                    dependency.fn = get_cancel_function(updated_cancels)[0]
-                root_context.fns[root_context.fn_id] = dependency
-                root_context.fn_id += 1
+                    dependency.cancels = get_cancelled_fn_indices(updated_cancels)
+                root_context.fns[dependency._id] = dependency
+            root_context.fn_id = max(root_context.fns.keys(), default=-1) + 1
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
             Context.root_block.proxy_urls.update(self.proxy_urls)
 
@@ -1694,16 +1695,8 @@ Received outputs:
         block_fn: BlockFunction,
         predictions: list | dict,
         state: SessionState | None,
-    ) -> Any:
+    ) -> list[Any]:
         state = state or SessionState(self)
-
-        # If the function is a cancel function, 'predictions' are the ids of
-        # the event in the queue that has been cancelled. We need these
-        # so that the server can put the ProcessCompleted message in the event stream
-        # Cancel events have no output components, so we need to return early otherise the output
-        # be None.
-        if block_fn.is_cancel_function:
-            return predictions
 
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
@@ -1718,7 +1711,6 @@ Received outputs:
         self.validate_outputs(block_fn, predictions)  # type: ignore
 
         output = []
-        changed_state_ids = []
         for i, block in enumerate(block_fn.outputs):
             try:
                 if predictions[i] is components._Keywords.FINISHED_ITERATING:
@@ -1731,22 +1723,12 @@ Received outputs:
                 ) from err
 
             if block.stateful:
-                if not utils.is_update(predictions[i]):
-                    has_change_event = False
-                    for dep in state.blocks_config.fns.values():
-                        if block._id in [t[0] for t in dep.targets if t[1] == "change"]:
-                            has_change_event = True
-                            break
-                    if has_change_event and (
-                        block._id not in state
-                        or not utils.deep_equal(state[block._id], predictions[i])
-                    ):
-                        changed_state_ids.append(block._id)
+                if not utils.is_prop_update(predictions[i]):
                     state[block._id] = predictions[i]
                 output.append(None)
             else:
                 prediction_value = predictions[i]
-                if utils.is_update(
+                if utils.is_prop_update(
                     prediction_value
                 ):  # if update is passed directly (deprecated), remove Nones
                     prediction_value = utils.delete_none(
@@ -1756,7 +1738,7 @@ Received outputs:
                 if isinstance(prediction_value, Block):
                     prediction_value = prediction_value.constructor_args.copy()
                     prediction_value["__type__"] = "update"
-                if utils.is_update(prediction_value):
+                if utils.is_prop_update(prediction_value):
                     kwargs = state[block._id].constructor_args.copy()
                     kwargs.update(prediction_value)
                     kwargs.pop("value", None)
@@ -1785,7 +1767,7 @@ Received outputs:
                 )
                 output.append(outputs_cached)
 
-        return output, changed_state_ids
+        return output
 
     async def handle_streaming_outputs(
         self,
@@ -1892,6 +1874,8 @@ Received outputs:
         if isinstance(block_fn, int):
             block_fn = self.fns[block_fn]
         batch = block_fn.batch
+        state_ids_to_track, hashed_values = self.get_state_ids_to_track(block_fn, state)
+        changed_state_ids = []
 
         if batch:
             max_batch_size = block_fn.max_batch_size
@@ -1924,13 +1908,12 @@ Received outputs:
                 state,
             )
             preds = result["prediction"]
-            data_and_changed_state_ids = [
+            data = [
                 await self.postprocess_data(block_fn, list(o), state)
                 for o in zip(*preds)
             ]
-            data, changed_state_ids = zip(*data_and_changed_state_ids)
             if root_path is not None:
-                data = processing_utils.add_root_url(data, root_path, None)
+                data = processing_utils.add_root_url(data, root_path, None)  # type: ignore
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
@@ -1952,9 +1935,14 @@ Received outputs:
                 in_event_listener,
                 state,
             )
-            data, changed_state_ids = await self.postprocess_data(
-                block_fn, result["prediction"], state
-            )
+            data = await self.postprocess_data(block_fn, result["prediction"], state)
+            if state:
+                changed_state_ids = [
+                    state_id
+                    for hash_value, state_id in zip(hashed_values, state_ids_to_track)
+                    if hash_value != utils.deep_hash(state[state_id])
+                ]
+
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -1994,6 +1982,22 @@ Received outputs:
             output["render_config"]["render_id"] = block_fn.renderable._id
 
         return output
+
+    def get_state_ids_to_track(
+        self, block_fn: BlockFunction, state: SessionState | None
+    ) -> tuple[list[int], list]:
+        if state is None:
+            return [], []
+        state_ids_to_track = []
+        hashed_values = []
+        for block in block_fn.outputs:
+            if block.stateful and any(
+                (block._id, "change") in fn.targets for fn in self.fns.values()
+            ):
+                value = state[block._id]
+                state_ids_to_track.append(block._id)
+                hashed_values.append(utils.deep_hash(value))
+        return state_ids_to_track, hashed_values
 
     def create_limiter(self):
         self.limiter = (
@@ -2040,6 +2044,7 @@ Received outputs:
                 ),
             },
             "fill_height": self.fill_height,
+            "theme_hash": self.theme_hash,
         }
         config.update(self.default_config.get_config())
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -2179,6 +2184,7 @@ Received outputs:
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         max_file_size: str | int | None = None,
         _frontend: bool = True,
+        enable_monitoring: bool = False,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2397,6 +2403,11 @@ Received outputs:
                     self.share = True
         else:
             self.share = share
+
+        if enable_monitoring:
+            print(
+                f"Monitoring URL: {self.local_url}monitoring/{self.app.analytics_key}"
+            )
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.

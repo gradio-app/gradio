@@ -8,7 +8,8 @@
 
 	let name: string = data.name;
 	let on_main: boolean;
-	let wheel: string = data.wheel;
+	let wheel: any = data.wheel;
+	let install_command: string = wheel.gradio_install;
 	let url_version: string = data.url_version;
 
 	let y: number;
@@ -126,7 +127,7 @@
 					</p>
 					<div class="codeblock">
 						<pre class="language-bash" style="padding-right: 50px;"><code
-								class="language-bash">pip install {wheel}</code
+								class="language-bash">{install_command}</code
 							></pre>
 					</div>
 					<p class="float-right text-sm">

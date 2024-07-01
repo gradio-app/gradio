@@ -20,7 +20,7 @@ from gradio.http_server import Server
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
-from gradio_client import Client, file
+from gradio_client import Client, handle_file
 from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.exceptions import AppError, AuthenticationError
 from gradio_client.utils import (
@@ -37,13 +37,12 @@ HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 @contextmanager
 def connect(
     demo: gr.Blocks,
-    serialize: bool = True,
-    output_dir: str = DEFAULT_TEMP_DIR,
+    download_files: str = DEFAULT_TEMP_DIR,
     **kwargs,
 ):
     _, local_url, _ = demo.launch(prevent_thread_lock=True, **kwargs)
     try:
-        yield Client(local_url, serialize=serialize, output_dir=output_dir)
+        yield Client(local_url, download_files=download_files)
     finally:
         # A more verbose version of .close()
         # because we should set a timeout
@@ -92,11 +91,11 @@ class TestClientPredictions:
         with connect(max_file_size_demo, max_file_size="15kb") as client:
             with pytest.raises(ValueError, match="exceeds the maximum file size"):
                 client.predict(
-                    file(Path(__file__).parent / "files" / "cheetah1.jpg"),
+                    handle_file(Path(__file__).parent / "files" / "cheetah1.jpg"),
                     api_name="/upload_1b",
                 )
             client.predict(
-                file(Path(__file__).parent / "files" / "alphabet.txt"),
+                handle_file(Path(__file__).parent / "files" / "alphabet.txt"),
                 api_name="/upload_1b",
             )
 
@@ -160,22 +159,25 @@ class TestClientPredictions:
         space_id = "gradio-tests/space_with_files_v4_sse_v2"
         client = Client(space_id)
         payload = (
-            "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+            handle_file(
+                "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+            ),
             {
-                "video": "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
+                "video": handle_file(
+                    "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+                ),
                 "subtitle": None,
             },
-            "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+            handle_file(
+                "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+            ),
         )
         output = client.predict(*payload, api_name="/predict")
         assert output[0].endswith(".wav")  # Audio files are converted to wav
         assert output[1]["video"].endswith(
             "world.mp4"
         )  # Video files are not converted by default
-        assert (
-            output[2]
-            == "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
-        )  # textbox string should remain exactly the same
+        assert "sample-0.mp3" in output[2]
 
     def test_state(self, increment_demo):
         with connect(increment_demo) as client:
@@ -254,17 +256,11 @@ class TestClientPredictions:
                 job = client.submit("foo", "add", 9, fn_index=0)
                 job.result()
 
-    def test_raises_exception_no_queue(self, sentiment_classification_demo):
-        with pytest.raises(Exception):
-            with connect(sentiment_classification_demo) as client:
-                job = client.submit([5], api_name="/sleep")
-                job.result()
-
     def test_job_output_video(self, video_component):
         with connect(video_component) as client:
             job = client.submit(
                 {
-                    "video": file(
+                    "video": handle_file(
                         "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
                     )
                 },
@@ -277,10 +273,10 @@ class TestClientPredictions:
             )
 
         temp_dir = tempfile.mkdtemp()
-        with connect(video_component, output_dir=temp_dir) as client:
+        with connect(video_component, download_files=temp_dir) as client:
             job = client.submit(
                 {
-                    "video": file(
+                    "video": handle_file(
                         "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
                     )
                 },
@@ -430,13 +426,15 @@ class TestClientPredictions:
     def test_stream_audio(self, stream_audio):
         with connect(stream_audio) as client:
             job1 = client.submit(
-                file("https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"),
+                handle_file(
+                    "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"
+                ),
                 api_name="/predict",
             )
             assert Path(job1.result()).exists()
 
             job2 = client.submit(
-                file(
+                handle_file(
                     "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
                 ),
                 api_name="/predict",
@@ -551,13 +549,6 @@ class TestClientPredictions:
 
                 client.submit(1, "foo", f.name, fn_index=0).result()
                 serialize.assert_called_once_with(1, "foo", f.name)
-
-    def test_state_without_serialize(self, stateful_chatbot):
-        with connect(stateful_chatbot, serialize=False) as client:
-            initial_history = [["", None]]
-            message = "Hello"
-            ret = client.predict(message, initial_history, api_name="/submit")
-            assert ret == ("", [["", None], ["Hello", "I love you"]])
 
     def test_does_not_upload_dir(self, stateful_chatbot):
         with connect(stateful_chatbot) as client:
@@ -921,8 +912,8 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "str",
-                                "description": "filepath to JSON file",
+                                "type": "Dict[Any, Any]",
+                                "description": "any valid json",
                             },
                             "component": "Label",
                             "serializer": "JSONSerializable",
@@ -961,8 +952,8 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "str",
-                                "description": "filepath to JSON file",
+                                "type": "Dict[Any, Any]",
+                                "description": "any valid json",
                             },
                             "component": "Label",
                             "serializer": "JSONSerializable",
@@ -1001,8 +992,8 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "str",
-                                "description": "filepath to JSON file",
+                                "type": "Dict[Any, Any]",
+                                "description": "any valid json",
                             },
                             "component": "Label",
                             "serializer": "JSONSerializable",
@@ -1297,7 +1288,9 @@ class TestEndpoints:
         client = Client(
             src="gradio/zip_files",
         )
-        url_path = "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
+        url_path = handle_file(
+            "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
+        )
         file = client.endpoints[0]._upload_file(url_path, 0)  # type: ignore
         assert file["path"].endswith(".jpg")
 

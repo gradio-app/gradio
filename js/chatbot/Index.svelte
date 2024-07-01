@@ -11,7 +11,12 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { Message, TupleFormat, MessageRole } from "./types";
+	import type { Message, TupleFormat, MessageRole, NormalisedMessage } from "./types";
+
+	import {
+		normalise_tuples,
+		normalise_messages,
+	} from "./shared/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -26,7 +31,7 @@
 	export let likeable = false;
 	export let show_share_button = false;
 	export let rtl = false;
-	export let show_copy_button = false;
+	export let show_copy_button = true;
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
@@ -48,68 +53,14 @@
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
-	let _value: Message[] = [];
+	let _value: NormalisedMessage[] | null = [];
 
-	const redirect_src_url = (src: string): string =>
-		src.replace('src="/file', `src="${root}file`);
-
-	function normalize_messages(
-		message: { file: FileData; alt_text: string | null } | null
-	): FileData | null {
-		if (message == null) {
-			return message;
-		}
-		const file = message?.file;
-		if (message.alt_text) file.alt_text = message?.alt_text;
-		return file;
-	}
-
-	function is_tuple_format(
-		value: TupleFormat | Message[]
-	): value is TupleFormat {
-		return Array.isArray(value[0]);
-	}
-
-	function consolidate_msg_format(
-		value: TupleFormat | Message[],
-		msg_format: "messages" | "tuples"
-	): Message[] {
-		if (msg_format === "tuples" && is_tuple_format(value)) {
-			if (!value) {
-				return [];
-			}
-			const messages = (value as TupleFormat).flatMap(([user_msg, bot_msg]) => [
-				{
-					content:
-						typeof user_msg === "string"
-							? redirect_src_url(user_msg)
-							: normalize_messages(user_msg),
-					role: "user" as MessageRole,
-					metadata: { error: false, tool_name: null }
-				},
-				{
-					content:
-						typeof bot_msg === "string"
-							? redirect_src_url(bot_msg)
-							: normalize_messages(bot_msg),
-					role: "assistant" as MessageRole,
-					metadata: { error: false, tool_name: null }
-				}
-			]);
-			return messages.filter(
-				(c) => c.content != null && ["user", "assistant"].includes(c.role)
-			) as Message[];
-		}
-		return (value as Message[]).filter(
-			(c) => c.content != null && ["user", "assistant"].includes(c.role)
-		) as Message[];
-	}
-
-	$: _value = consolidate_msg_format(value, msg_format);
+	$: _value = msg_format === "tuples" ? normalise_tuples(value as TupleFormat, root) : normalise_messages(value as Message[], root);
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 	export let placeholder: string | null = null;
+	export let theme_mode: "system" | "light" | "dark";
 </script>
 
 <Block
@@ -138,7 +89,7 @@
 			<BlockLabel
 				{show_label}
 				Icon={Chat}
-				float={false}
+				float={true}
 				label={label || "Chatbot"}
 			/>
 		{/if}
@@ -150,6 +101,7 @@
 			value={_value}
 			{latex_delimiters}
 			{render_markdown}
+			{theme_mode}
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
 			{show_copy_button}
@@ -164,6 +116,9 @@
 			{line_breaks}
 			{layout}
 			{placeholder}
+			upload={gradio.client.upload}
+			_fetch={gradio.client.fetch}
+			load_component={gradio.load_component}
 		/>
 	</div>
 </Block>

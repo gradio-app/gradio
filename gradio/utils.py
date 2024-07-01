@@ -6,6 +6,7 @@ import ast
 import asyncio
 import copy
 import functools
+import hashlib
 import importlib
 import importlib.util
 import inspect
@@ -52,6 +53,7 @@ from typing_extensions import ParamSpec
 import gradio
 from gradio.context import get_blocks_context
 from gradio.data_classes import FileData
+from gradio.exceptions import Error
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -735,7 +737,7 @@ def validate_url(possible_url: str) -> bool:
         return False
 
 
-def is_update(val):
+def is_prop_update(val):
     return isinstance(val, dict) and "update" in val.get("__type__", "")
 
 
@@ -871,7 +873,7 @@ def get_function_with_locals(
 
 async def cancel_tasks(task_ids: set[str]) -> list[str]:
     tasks = [(task, task.get_name()) for task in asyncio.all_tasks()]
-    event_ids = []
+    event_ids: list[str] = []
     matching_tasks = []
     for task, name in tasks:
         if "<gradio-sep>" not in name:
@@ -890,27 +892,19 @@ def set_task_name(task, session_hash: str, fn_index: int, event_id: str, batch: 
         task.set_name(f"{session_hash}_{fn_index}<gradio-sep>{event_id}")
 
 
-def get_cancel_function(
+def get_cancelled_fn_indices(
     dependencies: list[dict[str, Any]],
-) -> tuple[Callable, list[int]]:
-    fn_to_comp = {}
+) -> list[int]:
+    fn_indices = []
     for dep in dependencies:
         root_block = get_blocks_context()
         if root_block:
             fn_index = next(
                 i for i, d in root_block.fns.items() if d.get_config() == dep
             )
-            fn_to_comp[fn_index] = [root_block.blocks[o] for o in dep["outputs"]]
+            fn_indices.append(fn_index)
 
-    async def cancel(session_hash: str) -> list[str]:
-        task_ids = {f"{session_hash}_{fn}" for fn in fn_to_comp}
-        event_ids = await cancel_tasks(task_ids)
-        return event_ids
-
-    return (
-        cancel,
-        list(fn_to_comp.keys()),
-    )
+    return fn_indices
 
 
 def get_type_hints(fn):
@@ -1302,14 +1296,21 @@ def get_upload_folder() -> str:
 
 
 def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
+    """
+    Gets the parameters of a function as a list of tuples of the form (name, has_default, default_value).
+    Excludes *args and **kwargs, as well as args that are Gradio-specific, such as gr.Request, gr.EventData, gr.OAuthProfile, and gr.OAuthToken.
+    """
     params_info = []
     signature = inspect.signature(func)
+    type_hints = get_type_hints(func)
     for name, parameter in signature.parameters.items():
         if parameter.kind in (
             inspect.Parameter.VAR_POSITIONAL,
             inspect.Parameter.VAR_KEYWORD,
         ):
             break
+        if is_special_typed_parameter(name, type_hints):
+            continue
         if parameter.default is inspect.Parameter.empty:
             params_info.append((name, False, None))
         else:
@@ -1395,3 +1396,38 @@ def connect_heartbeat(config: dict[str, Any], blocks) -> bool:
                 if any_unload:
                     break
     return any_state or any_unload
+
+
+def deep_hash(obj):
+    """Compute a hash for a deeply nested data structure."""
+    hasher = hashlib.sha256()
+    if isinstance(obj, (int, float, str, bytes)):
+        items = obj
+    elif isinstance(obj, dict):
+        items = tuple(
+            [
+                (k, deep_hash(v))
+                for k, v in sorted(obj.items(), key=lambda x: hash(x[0]))
+            ]
+        )
+    elif isinstance(obj, (list, tuple)):
+        items = tuple(deep_hash(x) for x in obj)
+    elif isinstance(obj, set):
+        items = tuple(deep_hash(x) for x in sorted(obj, key=hash))
+    else:
+        items = str(id(obj)).encode("utf-8")
+    hasher.update(repr(items).encode("utf-8"))
+    return hasher.hexdigest()
+
+
+def error_payload(
+    error: BaseException | None, show_error: bool
+) -> dict[str, bool | str | float | None]:
+    content: dict[str, bool | str | float | None] = {"error": None}
+    show_error = show_error or isinstance(error, Error)
+    if show_error:
+        content["error"] = str(error)
+    if isinstance(error, Error):
+        content["duration"] = error.duration
+        content["visible"] = error.visible
+    return content

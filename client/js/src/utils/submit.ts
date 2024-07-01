@@ -2,19 +2,16 @@
 import type {
 	Status,
 	Payload,
-	EventType,
-	ListenerMap,
-	SubmitReturn,
-	EventListener,
-	Event,
+	GradioEvent,
 	JsApiData,
 	EndpointInfo,
 	ApiInfo,
 	Config,
-	Dependency
+	Dependency,
+	SubmitIterable
 } from "../types";
 
-import { skip_queue, post_message } from "../helpers/data";
+import { skip_queue, post_message, handle_payload } from "../helpers/data";
 import { resolve_root } from "../helpers/init_helpers";
 import {
 	handle_message,
@@ -31,8 +28,9 @@ export function submit(
 	endpoint: string | number,
 	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown,
-	trigger_id?: number | null
-): SubmitReturn {
+	trigger_id?: number | null,
+	all_events?: boolean
+): SubmitIterable<GradioEvent> {
 	try {
 		const { hf_token } = this.options;
 		const {
@@ -47,8 +45,11 @@ export function submit(
 			pending_diff_streams,
 			event_callbacks,
 			unclosed_events,
-			post_data
+			post_data,
+			options
 		} = this;
+
+		const that = this;
 
 		if (!api_info) throw new Error("No API found");
 		if (!config) throw new Error("Could not resolve app config");
@@ -70,41 +71,26 @@ export function submit(
 		let payload: Payload;
 		let event_id: string | null = null;
 		let complete: Status | undefined | false = false;
-		const listener_map: ListenerMap<EventType> = {};
 		let last_status: Record<string, Status["stage"]> = {};
 		let url_params =
-			typeof window !== "undefined"
+			typeof window !== "undefined" && typeof document !== "undefined"
 				? new URLSearchParams(window.location.search).toString()
 				: "";
 
+		const events_to_publish =
+			options?.events?.reduce(
+				(acc, event) => {
+					acc[event] = true;
+					return acc;
+				},
+				{} as Record<string, boolean>
+			) || {};
+
 		// event subscription methods
-		function fire_event<K extends EventType>(event: Event<K>): void {
-			const narrowed_listener_map: ListenerMap<K> = listener_map;
-			const listeners = narrowed_listener_map[event.type] || [];
-			listeners?.forEach((l) => l(event));
-		}
-
-		function on<K extends EventType>(
-			eventType: K,
-			listener: EventListener<K>
-		): SubmitReturn {
-			const narrowed_listener_map: ListenerMap<K> = listener_map;
-			const listeners = narrowed_listener_map[eventType] || [];
-			narrowed_listener_map[eventType] = listeners;
-			listeners?.push(listener);
-
-			return { on, off, cancel, destroy };
-		}
-
-		function off<K extends EventType>(
-			eventType: K,
-			listener: EventListener<K>
-		): SubmitReturn {
-			const narrowed_listener_map: ListenerMap<K> = listener_map;
-			let listeners = narrowed_listener_map[eventType] || [];
-			listeners = listeners?.filter((l) => l !== listener);
-			narrowed_listener_map[eventType] = listeners;
-			return { on, off, cancel, destroy };
+		function fire_event(event: GradioEvent): void {
+			if (all_events || events_to_publish[event.type]) {
+				push_event(event);
+			}
 		}
 
 		async function cancel(): Promise<void> {
@@ -121,6 +107,7 @@ export function submit(
 				fn_index: fn_index
 			});
 
+			let reset_request = {};
 			let cancel_request = {};
 			if (protocol === "ws") {
 				if (websocket && websocket.readyState === 0) {
@@ -130,10 +117,12 @@ export function submit(
 				} else {
 					websocket.close();
 				}
-				cancel_request = { fn_index, session_hash };
+				reset_request = { fn_index, session_hash };
 			} else {
-				stream?.close();
-				cancel_request = { event_id };
+				close_stream(stream_status, that.abort_controller);
+				close();
+				reset_request = { event_id };
+				cancel_request = { event_id, session_hash, fn_index };
 			}
 
 			try {
@@ -141,24 +130,23 @@ export function submit(
 					throw new Error("Could not resolve app config");
 				}
 
+				if ("event_id" in cancel_request) {
+					await fetch(`${config.root}/cancel`, {
+						headers: { "Content-Type": "application/json" },
+						method: "POST",
+						body: JSON.stringify(cancel_request)
+					});
+				}
+
 				await fetch(`${config.root}/reset`, {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",
-					body: JSON.stringify(cancel_request)
+					body: JSON.stringify(reset_request)
 				});
 			} catch (e) {
 				console.warn(
 					"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
 				);
-			}
-		}
-
-		function destroy(): void {
-			for (const event_type in listener_map) {
-				listener_map &&
-					listener_map[event_type as "data" | "status"]?.forEach((fn) => {
-						off(event_type as "data" | "status", fn);
-					});
 			}
 		}
 
@@ -193,8 +181,15 @@ export function submit(
 
 		this.handle_blob(config.root, resolved_data, endpoint_info).then(
 			async (_payload) => {
+				let input_data = handle_payload(
+					_payload,
+					dependency,
+					config.components,
+					"input",
+					true
+				);
 				payload = {
-					data: _payload || [],
+					data: input_data || [],
 					event_data,
 					fn_index,
 					trigger_id
@@ -225,7 +220,13 @@ export function submit(
 									type: "data",
 									endpoint: _endpoint,
 									fn_index,
-									data: data,
+									data: handle_payload(
+										data,
+										dependency,
+										config.components,
+										"output",
+										options.with_null_state
+									),
 									time: new Date(),
 									event_data,
 									trigger_id
@@ -342,6 +343,8 @@ export function submit(
 								log: data.log,
 								level: data.level,
 								endpoint: _endpoint,
+								duration: data.duration,
+								visible: data.visible,
 								fn_index
 							});
 						} else if (type === "generating") {
@@ -359,7 +362,13 @@ export function submit(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: data.data,
+								data: handle_payload(
+									data.data,
+									dependency,
+									config.components,
+									"output",
+									options.with_null_state
+								),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
@@ -411,7 +420,7 @@ export function submit(
 						url.searchParams.set("__sign", this.jwt);
 					}
 
-					stream = await this.stream(url);
+					stream = this.stream(url);
 
 					if (!stream) {
 						return Promise.reject(
@@ -437,6 +446,7 @@ export function submit(
 							});
 							if (status.stage === "error") {
 								stream?.close();
+								close();
 							}
 						} else if (type === "data") {
 							event_id = _data.event_id as string;
@@ -456,6 +466,7 @@ export function submit(
 									time: new Date()
 								});
 								stream?.close();
+								close();
 							}
 						} else if (type === "complete") {
 							complete = status;
@@ -465,6 +476,8 @@ export function submit(
 								log: data.log,
 								level: data.level,
 								endpoint: _endpoint,
+								duration: data.duration,
+								visible: data.visible,
 								fn_index
 							});
 						} else if (type === "generating") {
@@ -482,7 +495,13 @@ export function submit(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: data.data,
+								data: handle_payload(
+									data.data,
+									dependency,
+									config.components,
+									"output",
+									options.with_null_state
+								),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
@@ -500,6 +519,7 @@ export function submit(
 									fn_index
 								});
 								stream?.close();
+								close();
 							}
 						}
 					};
@@ -520,7 +540,10 @@ export function submit(
 						time: new Date()
 					});
 					let hostname = "";
-					if (typeof window !== "undefined") {
+					if (
+						typeof window !== "undefined" &&
+						typeof document !== "undefined"
+					) {
 						hostname = window?.location?.hostname;
 					}
 
@@ -530,7 +553,9 @@ export function submit(
 						: `https://huggingface.co`;
 
 					const is_iframe =
-						typeof window !== "undefined" && window.parent != window;
+						typeof window !== "undefined" &&
+						typeof document !== "undefined" &&
+						window.parent != window;
 					const is_zerogpu_space = dependency.zerogpu && config.space_id;
 					const zerogpu_auth_promise =
 						is_iframe && is_zerogpu_space
@@ -609,6 +634,8 @@ export function submit(
 											log: data.log,
 											level: data.level,
 											endpoint: _endpoint,
+											duration: data.duration,
+											visible: data.visible,
 											fn_index
 										});
 										return;
@@ -633,7 +660,13 @@ export function submit(
 										fire_event({
 											type: "data",
 											time: new Date(),
-											data: data.data,
+											data: handle_payload(
+												data.data,
+												dependency,
+												config.components,
+												"output",
+												options.with_null_state
+											),
 											endpoint: _endpoint,
 											fn_index
 										});
@@ -676,9 +709,10 @@ export function submit(
 										fn_index,
 										time: new Date()
 									});
-									if (["sse_v2", "sse_v2.1"].includes(protocol)) {
-										close_stream(stream_status, stream);
+									if (["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)) {
+										close_stream(stream_status, that.abort_controller);
 										stream_status.open = false;
+										close();
 									}
 								}
 							};
@@ -701,11 +735,76 @@ export function submit(
 			}
 		);
 
-		return { on, off, cancel, destroy };
+		let done = false;
+		const values: (IteratorResult<GradioEvent> | PromiseLike<never>)[] = [];
+		const resolvers: ((
+			value: IteratorResult<GradioEvent> | PromiseLike<never>
+		) => void)[] = [];
+
+		function close(): void {
+			done = true;
+			while (resolvers.length > 0)
+				(resolvers.shift() as (typeof resolvers)[0])({
+					value: undefined,
+					done: true
+				});
+		}
+
+		function push(
+			data: { value: GradioEvent; done: boolean } | PromiseLike<never>
+		): void {
+			if (done) return;
+			if (resolvers.length > 0) {
+				(resolvers.shift() as (typeof resolvers)[0])(data);
+			} else {
+				values.push(data);
+			}
+		}
+
+		function push_error(error: unknown): void {
+			push(thenable_reject(error));
+			close();
+		}
+
+		function push_event(event: GradioEvent): void {
+			push({ value: event, done: false });
+		}
+
+		function next(): Promise<IteratorResult<GradioEvent, unknown>> {
+			if (values.length > 0)
+				return Promise.resolve(values.shift() as (typeof values)[0]);
+			if (done) return Promise.resolve({ value: undefined, done: true });
+			return new Promise((resolve) => resolvers.push(resolve));
+		}
+
+		const iterator = {
+			[Symbol.asyncIterator]: () => iterator,
+			next,
+			throw: async (value: unknown) => {
+				push_error(value);
+				return next();
+			},
+			return: async () => {
+				close();
+				return next();
+			},
+			cancel
+		};
+
+		return iterator;
 	} catch (error) {
 		console.error("Submit function encountered an error:", error);
 		throw error;
 	}
+}
+
+function thenable_reject<T>(error: T): PromiseLike<never> {
+	return {
+		then: (
+			resolve: (value: never) => PromiseLike<never>,
+			reject: (error: T) => PromiseLike<never>
+		) => reject(error)
+	};
 }
 
 function get_endpoint_info(

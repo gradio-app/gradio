@@ -8,7 +8,7 @@ from typing import Any, Callable, Literal
 
 import httpx
 import numpy as np
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
@@ -19,6 +19,7 @@ from gradio.events import Events
 from gradio.exceptions import Error
 
 
+@document()
 @dataclasses.dataclass
 class WaveformOptions:
     """
@@ -123,7 +124,7 @@ class Audio(
             editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
             min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
-            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options.
+            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -186,7 +187,7 @@ class Audio(
         )
 
     def example_payload(self) -> Any:
-        return file(
+        return handle_file(
             "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
         )
 

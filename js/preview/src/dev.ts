@@ -57,6 +57,9 @@ export async function create_server({
 					allow: [root_dir, component_dir]
 				}
 			},
+			build: {
+				target: config.build.target
+			},
 			plugins: [
 				...plugins(config),
 				make_gradio_plugin({
@@ -101,7 +104,7 @@ function find_frontend_folders(start_path: string): string[] {
 
 function to_posix(_path: string): string {
 	const isExtendedLengthPath = /^\\\\\?\\/.test(_path);
-	const hasNonAscii = /[^\u0000-\u0080]+/.test(_path); // eslint-disable-line no-control-regex
+	const hasNonAscii = /[^\u0000-\u0080]+/.test(_path);
 
 	if (isExtendedLengthPath || hasNonAscii) {
 		return _path;
@@ -115,6 +118,9 @@ export interface ComponentConfig {
 	svelte: {
 		preprocess: PreprocessorGroup[];
 		extensions?: string[];
+	};
+	build: {
+		target: string | string[];
 	};
 }
 
@@ -134,10 +140,13 @@ async function generate_imports(
 		);
 	}
 
-	let component_config = {
+	let component_config: ComponentConfig = {
 		plugins: [],
 		svelte: {
 			preprocess: []
+		},
+		build: {
+			target: []
 		}
 	};
 
@@ -148,11 +157,12 @@ async function generate_imports(
 				fs.existsSync(join(component.frontend_dir, "gradio.config.js"))
 			) {
 				const m = await import(
-					join(component.frontend_dir, "gradio.config.js")
+					join("file://" + component.frontend_dir, "gradio.config.js")
 				);
 
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
+				component_config.build.target = m.default.build?.target || "modules";
 			} else {
 			}
 		})
@@ -174,13 +184,13 @@ async function generate_imports(
 			);
 
 		const example = exports.example
-			? `example: () => import("${to_posix(
+			? `example: () => import("/@fs/${to_posix(
 					join(component.frontend_dir, exports.example)
 				)}"),\n`
 			: "";
 		return `${acc}"${component.component_class_id}": {
 			${example}
-			component: () => import("${to_posix(
+			component: () => import("/@fs/${to_posix(
 				join(component.frontend_dir, exports.component)
 			)}")
 			},\n`;

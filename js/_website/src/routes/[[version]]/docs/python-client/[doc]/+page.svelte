@@ -8,7 +8,8 @@
 
 	let name: string = data.name;
 	let on_main: boolean;
-	let wheel: string = data.wheel;
+	let wheel: any = data.wheel;
+	let install_command: string = wheel.gradio_py_client_install;
 	let url_version: string = data.url_version;
 	let module = data.module.default;
 
@@ -92,13 +93,27 @@
 	$: if (dynamic_component) {
 		all_headers = get_headers();
 	}
+	let title: string;
+	let description: string;
+	$: title =
+		all_headers.page_title.title === "Introduction"
+			? "Gradio Python Client - " + all_headers.page_title.title + " Docs"
+			: "Gradio Python Client - " +
+				all_headers.page_title.title +
+				" Class Docs";
+	$: description =
+		all_headers.page_title.title === "Introduction"
+			? "Make programmatic requests to Gradio applications from Python environments."
+			: "Using the " +
+				all_headers.page_title.title +
+				" class in the Gradio Python Client.";
 </script>
 
 <MetaTags
-	title={"Gradio Client " + all_headers.page_title.title + " Docs"}
+	{title}
 	url={$page.url.pathname}
 	canonical={$page.url.pathname}
-	description={"Gradio Client docs for using " + all_headers.page_title.title}
+	{description}
 />
 
 <svelte:window bind:scrollY={y} />
@@ -128,17 +143,14 @@
 					class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10"
 				>
 					<p class="my-2">
-						To install Gradio from main, run the following command:
+						To install the Gradio Python Client from main, run the following
+						command:
 					</p>
-					<div class="codeblock">
+					<div class="codeblock mb-2">
 						<pre class="language-bash" style="padding-right: 50px;"><code
-								class="language-bash">pip install {wheel}</code
+								class="language-bash">{install_command}</code
 							></pre>
 					</div>
-					<p class="float-right text-sm">
-						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in
-						<code style="font-size: 0.85rem">launch()</code> will not work.
-					</p>
 				</div>
 			{/if}
 

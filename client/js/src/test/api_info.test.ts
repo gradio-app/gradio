@@ -16,7 +16,6 @@ import { initialise_server } from "./server";
 import { transformed_api_info } from "./test_data";
 
 const server = initialise_server();
-const IS_NODE = process.env.TEST_MODE === "node";
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
@@ -579,6 +578,20 @@ describe("map_data_params", () => {
 
 		const result = map_data_to_params(data, transformed_api_info);
 		expect(result).toEqual(data);
+	});
+
+	it("should return an empty array when data is an empty array", () => {
+		const data = [];
+
+		const result = map_data_to_params(data, transformed_api_info);
+		expect(result).toEqual(data);
+	});
+
+	it("should return an empty array when data is not defined", () => {
+		const data = undefined;
+
+		const result = map_data_to_params(data, transformed_api_info);
+		expect(result).toEqual([]);
 	});
 
 	it("should return the data when too many arguments are provided for the endpoint", () => {

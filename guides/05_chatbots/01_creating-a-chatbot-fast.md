@@ -193,6 +193,26 @@ demo.launch()
 
 If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/creating-a-custom-chatbot-with-blocks).
 
+## Using Gradio Components inside the Chatbot
+
+The `Chatbot` component supports using many of the core Gradio components (such as `gr.Image`, `gr.Plot`, `gr.Audio`, and `gr.HTML`) inside of the chatbot. Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example:
+
+```py
+import gradio as gr
+
+def fake(message, history):
+    if message.strip():
+        return gr.Audio("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav")
+    else:
+        return "Please provide the name of an artist"
+
+gr.ChatInterface(
+    fake, 
+    textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
+    chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
+).launch()
+```
+
 ## Using your chatbot via an API
 
 Once you've built your Gradio chatbot and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message (and potentially additional inputs if you have set any using the `additional_inputs` parameter), and will return the response, internally keeping track of the messages sent so far.

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, Tuple, TypedDict, Union, cast
+from typing import Any, Callable, List, Literal, Optional, Tuple, TypedDict, Union, cast, Dict
+from dataclasses import dataclass, field
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
@@ -12,6 +13,10 @@ from pydantic import Field
 from typing_extensions import NotRequired
 
 from gradio import utils
+from gradio.component_meta import ComponentMeta
+from gradio.components import (
+    Component as GradioComponent,
+)
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
@@ -35,7 +40,7 @@ class FileDataDict(TypedDict):
 
 
 class MessageDict(TypedDict):
-    content: str | FileDataDict
+    content: str | FileDataDict | tuple | Component
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
 
@@ -43,13 +48,40 @@ class MessageDict(TypedDict):
 TupleFormat = List[List[Union[str, Tuple[str], Tuple[str, str], None]]]
 
 
+def import_component_and_data(
+    component_name: str,
+) -> GradioComponent | ComponentMeta | Any | None:
+    try:
+        for component in utils.get_all_components():
+            if component_name == component.__name__ and isinstance(
+                component, ComponentMeta
+            ):
+                return component
+    except ModuleNotFoundError as e:
+        raise ValueError(f"Error importing {component_name}: {e}") from e
+    except AttributeError:
+        pass
+
+
 class FileMessage(GradioModel):
     file: FileData
     alt_text: Optional[str] = None
 
 
-class ChatbotData(GradioRootModel):
-    root: List[Tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]]
+class ComponentMessage(GradioModel):
+    component: str
+    value: Any
+    constructor_args: Dict[str, Any]
+    props: Dict[str, Any]
+
+
+class ChatbotDataTuples(GradioRootModel):
+    root: List[
+        Tuple[
+            Union[str, FileMessage, ComponentMessage, None],
+            Union[str, FileMessage, ComponentMessage, None],
+        ]
+    ]
 
 
 class Metadata(GradioModel):
@@ -60,10 +92,16 @@ class Metadata(GradioModel):
 class Message(GradioModel):
     role: str
     metadata: Metadata = Field(default_factory=Metadata)
-    content: Union[str, FileData]
+    content: Union[str, FileMessage, ComponentMessage]
+
+@dataclass
+class ChatMessage:
+    role: Literal["user", "assistant", "system"]
+    content: str | FileData | Component | FileDataDict | tuple | list
+    metadata: MetadataDict | Metadata = field(default_factory=Metadata)
 
 
-class ChatbotDataOpenAi(GradioRootModel):
+class ChatbotDataMessages(GradioRootModel):
     root: List[Message]
 
 
@@ -74,7 +112,7 @@ class Chatbot(Component):
     Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This
     component is usually used as an output component.
 
-    Demos: chatbot_simple, chatbot_multimodal
+    Demos: chatbot_simple, chatbot_core_components_simple
     Guides: creating-a-chatbot
     """
 
@@ -82,9 +120,13 @@ class Chatbot(Component):
 
     def __init__(
         self,
-        value: list[list[str | tuple[str] | tuple[str | Path, str] | None]]
-        | Callable
-        | None = None,
+        value: (
+            list[
+                list[str | GradioComponent | tuple[str] | tuple[str | Path, str] | None]
+            ]
+            | Callable
+            | None
+        ) = None,
         *,
         msg_format: Literal["messages", "tuples"] = "tuples",
         label: str | None = None,
@@ -143,9 +185,9 @@ class Chatbot(Component):
         self.likeable = likeable
         self.msg_format: Literal["tuples", "messages"] = msg_format
         if msg_format == "messages":
-            self.data_model = ChatbotDataOpenAi
+            self.data_model = ChatbotDataMessages
         else:
-            self.data_model = ChatbotData
+            self.data_model = ChatbotDataTuples
         self.height = height
         self.rtl = rtl
         if latex_delimiters is None:
@@ -206,9 +248,10 @@ class Chatbot(Component):
                 "Data incompatible with tuples format. Each message should be a list of length 2."
             )
 
-    def _preprocess_chat_messages(
-        self, chat_message: str | FileMessage | None
-    ) -> str | tuple[str | None] | tuple[str | None, str] | None:
+    def _preprocess_content(
+        self,
+        chat_message: str | FileMessage | ComponentMessage | None,
+    ) -> str | GradioComponent | tuple[str | None] | tuple[str | None, str] | None:
         if chat_message is None:
             return None
         elif isinstance(chat_message, FileMessage):
@@ -218,11 +261,34 @@ class Chatbot(Component):
                 return (chat_message.file.path,)
         elif isinstance(chat_message, str):
             return chat_message
+        elif isinstance(chat_message, ComponentMessage):
+            capitalized_component = (
+                chat_message.component.upper()
+                if chat_message.component in ("json", "html")
+                else chat_message.component.capitalize()
+            )
+            component = import_component_and_data(capitalized_component)
+            if component is not None:
+                instance = component()  # type: ignore
+                if not instance.data_model:
+                    payload = chat_message.value
+                elif issubclass(instance.data_model, GradioModel):
+                    payload = instance.data_model(**chat_message.value)
+                elif issubclass(instance.data_model, GradioRootModel):
+                    payload = instance.data_model(root=chat_message.value)
+                else:
+                    payload = chat_message.value
+                value = instance.preprocess(payload)
+                return component(value=value, **chat_message.constructor_args)  # type: ignore
+            else:
+                raise ValueError(
+                    f"Invalid component for Chatbot component: {chat_message.component}"
+                )
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
     def _preprocess_messages_tuples(
-        self, payload: ChatbotData
+        self, payload: ChatbotDataTuples
     ) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
         processed_messages = []
         for message_pair in payload.root:
@@ -236,15 +302,15 @@ class Chatbot(Component):
                 )
             processed_messages.append(
                 [
-                    self._preprocess_chat_messages(message_pair[0]),
-                    self._preprocess_chat_messages(message_pair[1]),
+                    self._preprocess_content(message_pair[0]),
+                    self._preprocess_content(message_pair[1]),
                 ]
             )
         return processed_messages
 
     def preprocess(
         self,
-        payload: ChatbotData | ChatbotDataOpenAi | None,
+        payload: ChatbotDataTuples | ChatbotDataMessages | None,
     ) -> (
         list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict] | None
     ):
@@ -257,78 +323,111 @@ class Chatbot(Component):
         if payload is None:
             return payload
         if self.msg_format == "tuples":
-            if not isinstance(payload, ChatbotData):
+            if not isinstance(payload, ChatbotDataTuples):
                 raise Error("Data incompatible with tuples format")
-            return self._preprocess_messages_tuples(cast(ChatbotData, payload))
-        if not isinstance(payload, ChatbotDataOpenAi):
+            return self._preprocess_messages_tuples(cast(ChatbotDataTuples, payload))
+        if not isinstance(payload, ChatbotDataMessages):
             raise Error("Data incompatible with openai format")
-        return cast(List[MessageDict], payload.model_dump())
+        message_dicts = []
+        for message in payload.root:
+            message_dict = cast(MessageDict, message.model_dump())
+            message_dict["content"] = self._preprocess_content(message.content)
+            message_dicts.append(message_dict)
+        return message_dicts
 
-    def _postprocess_chat_messages(
-        self, chat_message: str | tuple | list | None
-    ) -> str | FileMessage | None:
-        if chat_message is None:
-            return None
-        elif isinstance(chat_message, (tuple, list)):
-            filepath = str(chat_message[0])
+    @staticmethod
+    def _get_alt_text(chat_message: dict | list | tuple | GradioComponent):
+        if isinstance(chat_message, dict):
+            return chat_message.get("alt_text")
+        elif not isinstance(chat_message, GradioComponent) and len(chat_message) > 1:
+            return chat_message[1]
 
+    @staticmethod
+    def _create_file_message(chat_message, filepath):
             mime_type = client_utils.get_mimetype(filepath)
+
             return FileMessage(
                 file=FileData(path=filepath, mime_type=mime_type),
-                alt_text=chat_message[1] if len(chat_message) > 1 else None,
+                alt_text=Chatbot._get_alt_text(chat_message),
             )
+
+    def _postprocess_content(
+        self, chat_message: str | tuple | list | FileDataDict | FileData | GradioComponent | None
+    ) -> str | FileMessage | ComponentMessage | None:
+
+        if chat_message is None:
+            return None
+        elif isinstance(chat_message, FileData):
+            return FileMessage(file=chat_message)
+        elif isinstance(chat_message, GradioComponent):
+            component = import_component_and_data(type(chat_message).__name__)
+            if component:
+                component = chat_message.__class__(**chat_message.constructor_args)
+                chat_message.constructor_args.pop("value", None)
+                config = component.get_config()
+                return ComponentMessage(
+                    component=type(chat_message).__name__.lower(),
+                    value=config.get("value", None),
+                    constructor_args=chat_message.constructor_args,
+                    props=config,
+                )
+        elif isinstance(chat_message, dict) and "path" in chat_message:
+            filepath = chat_message["path"]
+            return self._create_file_message(chat_message, filepath)
+        elif isinstance(chat_message, (tuple, list)):
+            filepath = str(chat_message[0])
+            return self._create_file_message(chat_message, filepath)
         elif isinstance(chat_message, str):
             chat_message = inspect.cleandoc(chat_message)
             return chat_message
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
-    def _postprocess_messages_tuples(self, value: TupleFormat) -> ChatbotData:
+    def _postprocess_messages_tuples(self, value: TupleFormat) -> ChatbotDataTuples:
         processed_messages = []
         for message_pair in value:
             processed_messages.append(
                 [
-                    self._postprocess_chat_messages(message_pair[0]),
-                    self._postprocess_chat_messages(message_pair[1]),
+                    self._postprocess_content(message_pair[0]),
+                    self._postprocess_content(message_pair[1]),
                 ]
             )
-        return ChatbotData(root=processed_messages)
+        return ChatbotDataTuples(root=processed_messages)
 
-    def _postprocess_message_openai(self, msg: Message | MessageDict) -> list[Message]:
-        if isinstance(msg, dict):
-            msg = Message(**msg)  # pyright: ignore
-        if isinstance(msg.content, FileData):
-            cached_file = move_resource_to_block_cache(msg.content.path, block=self)
-            msg.content.path = cast(str, cached_file)
-            msg.content.mime_type = client_utils.get_mimetype(msg.content.path)
-            return [cast(Message, msg)]
+    def _postprocess_message_messages(self, message: MessageDict | ChatMessage) -> list[Message]:
+        if isinstance(message, dict):
+            message['content'] = self._postprocess_content(message['content'])
+            msg = Message(**message) # type: ignore
+
+        if isinstance(message, ChatMessage):
+            message.content = self._postprocess_content(message.content) # type: ignore
+            msg = Message(role=message.role, content=message.content, metadata=message.metadata)
 
         # extract file path from message
         new_messages = []
-        for word in msg.content.split(" "):
-            filepath = Path(word)
-            try:
-                is_file = filepath.is_file() and filepath.exists()
-            except OSError:
-                is_file = False
-            if is_file:
-                filepath = cast(str, move_resource_to_block_cache(filepath, block=self))
-
-                mime_type = client_utils.get_mimetype(filepath)
-                new_messages.append(
-                    Message(
-                        role=msg.role,
-                        metadata=msg.metadata,
-                        content=FileData(path=filepath, mime_type=mime_type),
-                    ),
-                )
-        msg.content = inspect.cleandoc(msg.content)
+        if isinstance(msg.content, str):
+            for word in msg.content.split(" "):
+                filepath = Path(word)
+                try:
+                    is_file = filepath.is_file() and filepath.exists()
+                except OSError:
+                    is_file = False
+                if is_file:
+                    filepath = cast(str, move_resource_to_block_cache(filepath, block=self))
+                    mime_type = client_utils.get_mimetype(filepath)
+                    new_messages.append(
+                        Message(
+                            role=msg.role,
+                            metadata=msg.metadata,
+                            content=FileMessage(file=FileData(path=filepath, mime_type=mime_type))
+                        ),
+                    )
         return [msg, *new_messages]
 
     def postprocess(
         self,
         value: TupleFormat | list[MessageDict | Message] | None,
-    ) -> ChatbotData | ChatbotDataOpenAi:
+    ) -> ChatbotDataTuples | ChatbotDataMessages:
         """
         Parameters:
             value: expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed.
@@ -336,7 +435,7 @@ class Chatbot(Component):
             an object of type ChatbotData
         """
         if value is None:
-            return ChatbotData(root=[])
+            return ChatbotDataTuples(root=[])
         if self.msg_format == "tuples":
             self._check_format(value, "tuples")
             return self._postprocess_messages_tuples(cast(TupleFormat, value))
@@ -344,9 +443,9 @@ class Chatbot(Component):
         processed_messages = [
             msg
             for message in value
-            for msg in self._postprocess_message_openai(cast(MessageDict, message))
+            for msg in self._postprocess_message_messages(cast(MessageDict, message))
         ]
-        return ChatbotDataOpenAi(root=processed_messages)
+        return ChatbotDataMessages(root=processed_messages)
 
     def example_payload(self) -> Any:
         if self.msg_format == "messages":

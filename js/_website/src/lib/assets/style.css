@@ -132,6 +132,9 @@
 .obj h3 {
 	@apply mt-8 text-xl text-orange-500 font-light;
 }
+.obj h4 {
+	@apply mt-8 text-xl text-orange-500 font-light;
+}
 /* playground */
 
 .current-playground-demo {
@@ -275,6 +278,27 @@ strong {
 	font-weight: 600;
 }
 
+.obj a {
+	color: var(--tw-prose-links);
+	text-decoration: underline;
+	font-weight: 500;
+}
+
 .codeblock > pre {
 	font-size: 1em;
+}
+
+.obj ul > li {
+	list-style: circle;
+}
+.obj ol,
+.obj ul {
+	padding-inline-start: 40px;
+}
+
+.embedded-component .gradio-container {
+	padding: var(--size-4) 0 0 0 !important;
+}
+.embedded-component .gradio-container footer {
+	display: none !important;
 }

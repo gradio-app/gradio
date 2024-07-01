@@ -4,6 +4,7 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 
 from __future__ import annotations
 
+import functools
 import inspect
 from typing import AsyncGenerator, Callable, Literal, Union, cast
 
@@ -82,6 +83,7 @@ class ChatInterface(Blocks):
         concurrency_limit: int | None | Literal["default"] = "default",
         fill_height: bool = True,
         delete_cache: tuple[int, int] | None = None,
+        show_progress: Literal["full", "minimal", "hidden"] = "minimal",
     ):
         """
         Parameters:
@@ -111,6 +113,7 @@ class ChatInterface(Blocks):
             concurrency_limit: If set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: If True, the chat interface will expand to the height of window.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            show_progress: whether to show progress animation while running.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -319,7 +322,7 @@ class ChatInterface(Blocks):
             self.chatbot_state = (
                 State(self.chatbot.value) if self.chatbot.value else State([])
             )
-
+            self.show_progress = show_progress
             self._setup_events()
             self._setup_api()
 
@@ -355,6 +358,9 @@ class ChatInterface(Blocks):
                 concurrency_limit=cast(
                     Union[int, Literal["default"], None], self.concurrency_limit
                 ),
+                show_progress=cast(
+                    Literal["full", "minimal", "hidden"], self.show_progress
+                ),
             )
         )
         self._setup_stop_events(submit_triggers, submit_event)
@@ -382,6 +388,9 @@ class ChatInterface(Blocks):
                     show_api=False,
                     concurrency_limit=cast(
                         Union[int, Literal["default"], None], self.concurrency_limit
+                    ),
+                    show_progress=cast(
+                        Literal["full", "minimal", "hidden"], self.show_progress
                     ),
                 )
             )
@@ -467,7 +476,36 @@ class ChatInterface(Blocks):
             )
 
     def _setup_api(self) -> None:
-        api_fn = self._api_stream_fn if self.is_generator else self._api_submit_fn
+        if self.is_generator:
+
+            @functools.wraps(self.fn)
+            async def api_fn(message, history, *args, **kwargs):  # type: ignore
+                if self.is_async:
+                    generator = self.fn(message, history, *args, **kwargs)
+                else:
+                    generator = await anyio.to_thread.run_sync(
+                        self.fn, message, history, *args, **kwargs, limiter=self.limiter
+                    )
+                    generator = SyncToAsyncIterator(generator, self.limiter)
+                try:
+                    first_response = await async_iteration(generator)
+                    yield first_response, history + [[message, first_response]]
+                except StopIteration:
+                    yield None, history + [[message, None]]
+                async for response in generator:
+                    yield response, history + [[message, response]]
+        else:
+
+            @functools.wraps(self.fn)
+            async def api_fn(message, history, *args, **kwargs):
+                if self.is_async:
+                    response = await self.fn(message, history, *args, **kwargs)
+                else:
+                    response = await anyio.to_thread.run_sync(
+                        self.fn, message, history, *args, **kwargs, limiter=self.limiter
+                    )
+                history.append([message, response])
+                return response, history
 
         self.fake_api_btn.click(
             api_fn,

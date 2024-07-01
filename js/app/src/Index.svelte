@@ -29,6 +29,7 @@
 		path: string;
 		app_id?: string;
 		fill_height?: boolean;
+		theme_hash?: number;
 	}
 
 	let id = -1;
@@ -131,7 +132,10 @@
 				css_text_stylesheet || undefined
 			);
 		}
-		await mount_css(config.root + "/theme.css", document.head);
+		await mount_css(
+			config.root + "/theme.css?v=" + config.theme_hash,
+			document.head
+		);
 		if (!config.stylesheets) return;
 
 		await Promise.all(
@@ -274,7 +278,9 @@
 				: host || space || src || location.origin;
 
 		app = await Client.connect(api_url, {
-			status_callback: handle_status
+			status_callback: handle_status,
+			with_null_state: true,
+			events: ["data", "log", "status", "render"]
 		});
 
 		if (!app.config) {
@@ -311,7 +317,9 @@
 				stream.addEventListener("reload", async (event) => {
 					app.close();
 					app = await Client.connect(api_url, {
-						status_callback: handle_status
+						status_callback: handle_status,
+						with_null_state: true,
+						events: ["data", "log", "status", "render"]
 					});
 
 					if (!app.config) {

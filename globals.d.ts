@@ -1,3 +1,4 @@
+import { ApiData, ApiInfo } from "client/js/src/types";
 declare global {
 	interface Window {
 		__gradio_mode__: "app" | "website";
@@ -5,6 +6,7 @@ declare global {
 		launchGradio: Function;
 		launchGradioFromSpaces: Function;
 		gradio_config: Config;
+		gradio_api_info: ApiInfo<ApiData> | { api: ApiInfo<ApiData> };
 		scoped_css_attach: (link: HTMLLinkElement) => void;
 		__is_colab__: boolean;
 		parentIFrame?: {
@@ -38,4 +40,5 @@ export interface Config {
 	show_error: boolean;
 	is_space: boolean;
 	protocol: "ws" | "sse" | "sse_v1" | "sse_v2" | "sse_v2.1" | "sse_v3";
+	theme_hash?: number;
 }

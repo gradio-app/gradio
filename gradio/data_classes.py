@@ -8,7 +8,7 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, TypedDict, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
@@ -110,6 +110,25 @@ class PredictBody(BaseModel):
         None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
     )
 
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
+        return {
+            "title": "PredictBody",
+            "type": "object",
+            "properties": {
+                "session_hash": {"type": "string"},
+                "event_id": {"type": "string"},
+                "data": {"type": "array", "items": {"type": "object"}},
+                "event_data": {"type": "object"},
+                "fn_index": {"type": "integer"},
+                "trigger_id": {"type": "integer"},
+                "simple_format": {"type": "boolean"},
+                "batched": {"type": "boolean"},
+                "request": {"type": "object"},
+            },
+            "required": ["data"],
+        }
+
 
 class ResetBody(BaseModel):
     event_id: str
@@ -187,6 +206,16 @@ class GradioRootModel(GradioBaseModel, RootModel):
 
 
 GradioDataModel = Union[GradioModel, GradioRootModel]
+
+
+class FileDataDict(TypedDict):
+    path: str  # server filepath
+    url: Optional[str]  # normalised server url
+    size: Optional[int]  # size in bytes
+    orig_name: Optional[str]  # original filename
+    mime_type: Optional[str]
+    is_stream: bool
+    meta: dict
 
 
 class FileData(GradioModel):

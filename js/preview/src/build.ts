@@ -37,6 +37,9 @@ export async function make_build({
 				plugins: [],
 				svelte: {
 					preprocess: []
+				},
+				build: {
+					target: []
 				}
 			};
 
@@ -44,10 +47,13 @@ export async function make_build({
 				comp.frontend_dir &&
 				fs.existsSync(join(comp.frontend_dir, "gradio.config.js"))
 			) {
-				const m = await import(join(comp.frontend_dir, "gradio.config.js"));
+				const m = await import(
+					join("file://" + comp.frontend_dir, "gradio.config.js")
+				);
 
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
+				component_config.build.target = m.default.build?.target || "modules";
 			}
 
 			const exports: string[][] = [
@@ -65,6 +71,7 @@ export async function make_build({
 							make_gradio_plugin({ mode: "build", svelte_dir })
 						],
 						build: {
+							target: component_config.build.target,
 							emptyOutDir: true,
 							outDir: join(template_dir, entry),
 							lib: {
