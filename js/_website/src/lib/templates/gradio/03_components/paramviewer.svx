@@ -73,8 +73,8 @@ def predict(···) -> dict[str, Parameter]
 ```
 
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 

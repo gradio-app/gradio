@@ -73,8 +73,8 @@ def predict(···) -> tuple[np.ndarray | PIL.Image.Image | str, list[tuple[np.n
 ```
 
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 

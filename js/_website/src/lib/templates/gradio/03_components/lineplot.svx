@@ -88,8 +88,8 @@ def predict(···) -> pd.DataFrame | dict | None
 ```
 
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 

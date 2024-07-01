@@ -41,8 +41,8 @@ gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue().launch()
 ```
 {/if}
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 

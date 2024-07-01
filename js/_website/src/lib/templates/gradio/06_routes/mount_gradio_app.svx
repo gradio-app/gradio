@@ -41,8 +41,8 @@ app = gr.mount_gradio_app(app, io, path="/gradio")
 ##### Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
 {/if}
 
-<!--- Initialization -->
-### Initialization
+<!--- Parameters -->
+### Parameters
 <ParamTable parameters={obj.parameters} />
 
 
