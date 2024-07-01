@@ -211,7 +211,7 @@ class ChatInterface(Blocks):
                         else:
                             textbox.container = False
                         textbox.show_label = False
-                        textbox_ = textbox.render()
+                        textbox_ = get_component_instance(textbox)
                         if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
                             raise TypeError(
                                 f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {type(textbox_)}"
