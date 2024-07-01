@@ -1,8 +1,8 @@
-# Building a FastAPI App with the Gradio Python Client
+# Building a Web App with the Gradio Python Client
 
 Tags: CLIENT, API, WEB APP
 
-In this blog post, we will demonstrate how to use the `gradio_client` [Python library](getting-started-with-the-python-client/), which enables developers to make requests to a Gradio app programmatically, by creating an example FastAPI web app. The web app we will be building is called "Acapellify," and it will allow users to upload video files as input and return a version of that video without instrumental music. It will also display a gallery of generated videos.
+In this blog post, we will demonstrate how to use the `gradio_client` [Python library](getting-started-with-the-python-client/), which enables developers to make requests to a Gradio app programmatically, by creating an end-to-end example web app using FastAPI. The web app we will be building is called "Acapellify," and it will allow users to upload video files as input and return a version of that video without instrumental music. It will also display a gallery of generated videos.
 
 **Prerequisites**
 
@@ -111,6 +111,10 @@ async def home(request: Request):
 
 @app.post("/uploadvideo/")
 async def upload_video(video: UploadFile = File(...)):
+    video_path = video.filename
+    with open(video_path, "wb+") as fp:
+        fp.write(video.file.read())
+
     new_video = process_video(video.filename)
     videos.append(new_video)
     return RedirectResponse(url='/', status_code=303)

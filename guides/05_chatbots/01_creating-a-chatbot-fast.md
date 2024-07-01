@@ -279,6 +279,35 @@ def predict(message, history):
 gr.ChatInterface(predict).launch()
 ```
 
+**Handling Concurrent Users with Threads**
+
+The example above works if you have a single user — or if you have multiple users, since it passes the entire history of the conversation each time there is a new message from a user. 
+
+However, the `openai` library also provides higher-level abstractions that manage conversation history for you, e.g. the [Threads abstraction](https://platform.openai.com/docs/assistants/how-it-works/managing-threads-and-messages). If you use these abstractions, you will need to create a separate thread for each user session. Here's a partial example of how you can do that, by accessing the `session_hash` within your `predict()` function:
+
+```py
+import openai
+import gradio as gr
+
+client = openai.OpenAI(api_key = os.getenv("OPENAI_API_KEY"))
+threads = {}
+
+def predict(message, history, request: gr.Request):
+    if request.session_hash in threads:
+        thread = threads[request.session_hash]
+    else:
+        threads[request.session_hash] = client.beta.threads.create()
+        
+    message = client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=message)
+    
+    ...
+
+gr.ChatInterface(predict).launch()
+```
+
 ## Example using a local, open-source LLM with Hugging Face
 
 Of course, in many cases you want to run a chatbot locally. Here's the equivalent example using Together's RedePajama model, from Hugging Face (this requires you to have a GPU with CUDA).
