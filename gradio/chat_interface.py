@@ -182,7 +182,7 @@ class ChatInterface(Blocks):
                 Markdown(description)
 
             if chatbot:
-                self.chatbot = chatbot.render()
+                self.chatbot = get_component_instance(chatbot)
             else:
                 self.chatbot = Chatbot(
                     label="Chatbot", scale=1, height=200 if fill_height else None
