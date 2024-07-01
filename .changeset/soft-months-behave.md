@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Chatinterface like
+fix:Allow putting suppling custom `gr.Chatbot` with events to `gr.ChatInterface`
