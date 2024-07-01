@@ -136,6 +136,25 @@ gr.ChatInterface(
 
 The placeholder appears vertically and horizontally centered in the chatbot.
 
+If you would like to attach event listeners to your custom chatbot, wrap the chatbot as well as the `gr.ChatInterface` inside of a `gr.Blocks` like this:
+
+```py
+import gradio as gr
+
+def vote(data: gr.LikeData):
+    if data.liked:
+        print("You upvoted this response: " + data.value["value"])
+    else:
+        print("You downvoted this response: " + data.value["value"])
+
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot()
+    chatbot.like(vote, None, None)
+    gr.ChatInterface(fn=lambda x,y:x, chatbot=chatbot)
+    
+demo.launch()
+```
+
 ## Add Multimodal Capability to your chatbot
 
 You may want to add multimodal capability to your chatbot. For example, you may want users to be able to easily upload images or files to your chatbot and ask questions about it. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
