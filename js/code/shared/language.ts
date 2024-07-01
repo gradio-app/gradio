@@ -1,9 +1,12 @@
 import type { Extension } from "@codemirror/state";
 import { StreamLanguage } from "@codemirror/language";
 import { sql } from "@codemirror/legacy-modes/mode/sql";
+import { _ } from "svelte-i18n";
 
 const possible_langs = [
 	"python",
+	"c",
+	"cpp",
 	"markdown",
 	"json",
 	"html",
@@ -35,6 +38,14 @@ const sql_dialects = [
 
 const lang_map: Record<string, (() => Promise<Extension>) | undefined> = {
 	python: () => import("@codemirror/lang-python").then((m) => m.python()),
+	c: () =>
+		import("@codemirror/legacy-modes/mode/clike").then((m) =>
+			StreamLanguage.define(m.c)
+		),
+	cpp: () =>
+		import("@codemirror/legacy-modes/mode/clike").then((m) =>
+			StreamLanguage.define(m.cpp)
+		),
 	markdown: async () => {
 		const [md, frontmatter] = await Promise.all([
 			import("@codemirror/lang-markdown"),

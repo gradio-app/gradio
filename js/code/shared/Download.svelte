@@ -27,7 +27,9 @@
 			dockerfile: "dockerfile",
 			sh: "sh",
 			shell: "sh",
-			r: "r"
+			r: "r",
+			c: "c",
+			cpp: "cpp"
 		};
 
 		return exts[type] || "txt";
