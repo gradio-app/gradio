@@ -2230,6 +2230,19 @@ Received outputs:
             self.auth = [auth]
         else:
             self.auth = auth
+
+        if (
+            self.auth
+            and not callable(self.auth)
+            and any(
+                not authenticable[0] or not authenticable[1]
+                for authenticable in self.auth
+            )
+        ):
+            raise ValueError(
+                "You must provide a username and password for authentication."
+            )
+
         self.auth_message = auth_message
         self.show_error = show_error
         self.height = height
