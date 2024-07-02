@@ -11,6 +11,7 @@ export type Result = {
 	content: string[];
 	slug: string;
 	title: string;
+	type?: string;
 };
 
 let pages_index: FlexSearch.Index;

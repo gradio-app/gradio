@@ -1,5 +1,4 @@
 <script lang="ts">
-	// @ts-nocheck
 	import Search_Worker from "./search-worker?worker";
 	import SearchIcon from "./SearchIcon.svelte";
 	import { onNavigate } from "$app/navigation";
@@ -46,25 +45,18 @@
 	}
 
 	function get_os() {
-		if (
-			"userAgentData" in navigator.userAgentData &&
-			"platform" in navigator.userAgentData
-		) {
-			return navigator.userAgentData.platform;
-		} else {
-			return navigator.userAgent;
-		}
+		// @ts-ignore - userAgentData is not yet in the TS types as it is currently experimental
+		return navigator.userAgentData.platform ?? navigator.userAgent;
 	}
+
 	let meta_key = "⌘";
 
 	$: if (browser && navigator) {
 		let os = get_os();
 		meta_key = os.includes("Mac") || os.includes("mac") ? "⌘" : "CTRL+";
 	}
-</script>
 
-<svelte:window
-	on:keydown={(e) => {
+	function handle_key_down(e: KeyboardEvent): void {
 		if (e.ctrlKey || e.metaKey) {
 			if (e.key === "k" || e.key === "K") {
 				e.preventDefault();
@@ -91,22 +83,30 @@
 				}
 			}
 
-			current.blur();
-			items[new_index].focus();
+			(current as HTMLElement).blur();
+
+			const newElement = items[new_index] as HTMLElement;
+			if (newElement) {
+				newElement.focus();
+			}
 		}
-	}}
-	on:click={(e) => {
+	}
+
+	function on_click(e: MouseEvent) {
 		if (content_elem) {
-			if (!content_elem.contains(e.target) && open) {
+			if (!content_elem.contains(e.target as Node) && open) {
 				open = false;
 			}
 		} else {
-			if (search_button_elem.contains(e.target)) {
+			if (search_button_elem.contains(e.target as Node)) {
 				initialize();
 			}
 		}
-	}}
-/>
+	}
+
+</script>
+
+<svelte:window on:keydown={handle_key_down} on:click={on_click} />
 
 <button class="search-button" bind:this={search_button_elem}>
 	<SearchIcon />
