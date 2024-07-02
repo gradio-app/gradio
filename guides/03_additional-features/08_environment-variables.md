@@ -1,0 +1,99 @@
+# Environment Variables
+
+Environment variables in Gradio provide a way to customize your applications and launch settings without changing the codebase. In this guide, we'll explore the key environment variables supported in Gradio and how to set them.
+
+## Key Environment Variables
+
+### 1. `GRADIO_SERVER_PORT`
+
+- **Description**: Specifies the port on which the Gradio app will run.
+- **Default**: `7860`
+- **Example**:
+  ```bash
+  export GRADIO_SERVER_PORT=8000
+  ```
+
+### 2. `GRADIO_SERVER_NAME`
+
+- **Description**: Defines the host name for the Gradio server. To make Gradio accessible from any IP address, set this to `"0.0.0.0"`
+- **Default**: `"127.0.0.1"` 
+- **Example**:
+  ```bash
+  export GRADIO_SERVER_NAME="0.0.0.0"
+  ```
+
+### 3. `GRADIO_ANALYTICS_ENABLED`
+
+- **Description**: Whether Gradio should provide 
+- **Default**: `"True"`
+- **Options**: `"True"`, `"False"`
+- **Example**:
+  ```sh
+  export GRADIO_ANALYTICS_ENABLED="True"
+  ```
+
+### 4. `GRADIO_DEBUG`
+
+- **Description**: Enables or disables debug mode in Gradio. If debug mode is enabled, the main thread does not terminate allowing error messages to be printed in environments such as Google Colab.
+- **Default**: `0`
+- **Example**:
+  ```sh
+  export GRADIO_DEBUG=1
+  ```
+
+### 5. `GRADIO_ALLOW_FLAGGING`
+
+- **Description**: Controls whether users can flag inputs/outputs in the Gradio interface. See [the Guide on flagging](/guides/using-flagging) for more details.
+- **Default**: `"manual"`
+- **Options**: `"never"`, `"manual"`, `"auto"`
+- **Example**:
+  ```sh
+  export GRADIO_ALLOW_FLAGGING="never"
+  ```
+
+### 6. `GRADIO_TEMP_DIR`
+
+- **Description**: Specifies the directory where temporary files created by Gradio are stored.
+- **Default**: System default temporary directory
+- **Example**:
+  ```sh
+  export GRADIO_TEMP_DIR="/path/to/temp"
+  ```
+
+### 7. `GRADIO_ROOT_PATH`
+
+- **Description**: Sets the root path for the Gradio application. Useful if running Gradio [behind a reverse proxy](/guides/running-gradio-on-your-web-server-with-nginx).
+- **Default**: `""`
+- **Example**:
+  ```sh
+  export GRADIO_ROOT_PATH="/myapp"
+  ```
+
+### 8. `GRADIO_SHARE`
+
+- **Description**: Enables or disables sharing the Gradio app.
+- **Default**: `"False"`
+- **Options**: `"True"`, `"False"`
+- **Example**:
+  ```sh
+  export GRADIO_SHARE="True"
+  ```
+
+
+## How to Set Environment Variables
+
+To set environment variables in your terminal, use the `export` command followed by the variable name and its value. For example:
+
+```sh
+export GRADIO_SERVER_PORT=8000
+```
+
+If you're using a `.env` file to manage your environment variables, you can add them like this:
+
+```sh
+GRADIO_SERVER_PORT=8000
+GRADIO_SERVER_NAME="localhost"
+```
+
+Then, use a tool like `dotenv` to load these variables when running your application.
+
