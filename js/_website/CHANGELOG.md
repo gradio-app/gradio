@@ -1,5 +1,16 @@
 # website
 
+## 0.34.0
+
+### Fixes
+
+- [#8505](https://github.com/gradio-app/gradio/pull/8505) [`2943d6d`](https://github.com/gradio-app/gradio/commit/2943d6d68847314885dc6c5c0247083116017ca0) - Add Timer component.  Thanks @aliabid94!
+- [#8677](https://github.com/gradio-app/gradio/pull/8677) [`c946c6f`](https://github.com/gradio-app/gradio/commit/c946c6f31a34bfd888a6a16c3fb479fe34710206) - Allow supplying custom `gr.Chatbot` with events to `gr.ChatInterface`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.7.0
+
 ## 0.33.0
 
 ### Features
