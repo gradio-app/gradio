@@ -182,7 +182,7 @@ class ChatInterface(Blocks):
                 Markdown(description)
 
             if chatbot:
-                self.chatbot = chatbot.render()
+                self.chatbot = get_component_instance(chatbot, render=True)
             else:
                 self.chatbot = Chatbot(
                     label="Chatbot", scale=1, height=200 if fill_height else None
@@ -211,7 +211,7 @@ class ChatInterface(Blocks):
                         else:
                             textbox.container = False
                         textbox.show_label = False
-                        textbox_ = textbox.render()
+                        textbox_ = get_component_instance(textbox, render=True)
                         if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
                             raise TypeError(
                                 f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {type(textbox_)}"

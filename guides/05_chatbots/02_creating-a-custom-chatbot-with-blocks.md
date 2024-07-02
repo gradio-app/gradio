@@ -66,9 +66,9 @@ def greet(history, input):
 
 def vote(data: gr.LikeData):
     if data.liked:
-        print("You upvoted this response: " + data.value)
+        print("You upvoted this response: " + data.value["value"])
     else:
-        print("You downvoted this response: " + data.value)
+        print("You downvoted this response: " + data.value["value"])
     
 
 with gr.Blocks() as demo:
