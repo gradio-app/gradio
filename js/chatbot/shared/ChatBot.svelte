@@ -17,20 +17,14 @@
 
 	import { Clear } from "@gradio/icons";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type {
-		MessageRole,
-		TextMessage,
-		ComponentMessage,
-		ComponentData
-	} from "../types";
+	import type { MessageRole, ComponentMessage, ComponentData } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
-	import Copy from "./Copy.svelte";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import Pending from "./Pending.svelte";
 	import MessageBox from "./MessageBox.svelte";
 
-	export let value: NormalisedMessage[] = [];
+	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
 
 	import Component from "./Component.svelte";
@@ -65,7 +59,7 @@
 	$: load_components(get_components_from_messages(value));
 
 	function get_components_from_messages(
-		messages: NormalisedMessage[]
+		messages: NormalisedMessage[] | null
 	): string[] {
 		if (!messages) return [];
 		let components: Set<string> = new Set();
@@ -199,19 +193,20 @@
 
 	function get_message_label_data(message: NormalisedMessage): string {
 		if (message.type === "text") {
-			return message.value;
-		} else if (message.type === "component") {
-			return `a component of type ${message.component}`;
-		} else if (message.type === "file") {
-			if (Array.isArray(message.file)) {
-				return `file of extension type: ${message.file[0].orig_name?.split(".").pop()}`;
+			return message.content;
+		} else if (
+			message.type === "component" &&
+			message.content.component === "file"
+		) {
+			if (Array.isArray(message.content.value)) {
+				return `file of extension type: ${message.content.value[0].orig_name?.split(".").pop()}`;
 			}
 			return (
-				`file of extension type: ${message.file?.orig_name?.split(".").pop()}` +
-				(message.file?.orig_name ?? "")
+				`file of extension type: ${message.content.value?.orig_name?.split(".").pop()}` +
+				(message.content.value?.orig_name ?? "")
 			);
 		}
-		return `a message of type ` + message.type ?? "unknown";
+		return `a component of type ${message.content.component ?? "unknown"}`;
 	}
 
 	function is_component_message(
