@@ -22,7 +22,7 @@ export interface Message {
 }
 
 export interface TextMessage extends Message {
-	type: "string";
+	type: "text";
 	content: string;
 }
 
@@ -39,6 +39,4 @@ export type message_data =
 
 export type TupleFormat = [message_data, message_data][] | null;
 
-export type NormalisedMessage =
-	| TextMessage
-	| ComponentMessage
+export type NormalisedMessage = TextMessage | ComponentMessage;

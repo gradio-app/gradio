@@ -37,18 +37,25 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("textbox").click();
 		await page.keyboard.press("Enter");
 
-<<<<<<< HEAD
-		const user_message = await page
-			.getByTestId("user")
-			.first()
-			.getByRole("img");
+		const user_message_locator = await page.getByTestId("user").first();
+		const user_message = await user_message_locator.elementHandle();
+		if (user_message) {
+			const imageContainer = await user_message.$("div.image-container");
+
+			if (imageContainer) {
+				const imgElement = await imageContainer.$("img");
+				if (imgElement) {
+					const image_src = await imgElement.getAttribute("src");
+					expect(image_src).toBeTruthy();
+				}
+			}
+		}
+
 		const bot_message = await page
 			.getByTestId("bot")
 			.first()
 			.getByRole("paragraph")
 			.textContent();
-		const image_src = await user_message.getAttribute("src");
-		expect(image_src).toBeTruthy();
 
 		expect(bot_message).toBeTruthy();
 	});
@@ -65,56 +72,6 @@ for (const msg_format of ["tuples", "messages"]) {
 		await fileChooser.setFiles("../../test/test_files/audio_sample.wav");
 		await page.getByTestId("textbox").click();
 		await page.keyboard.press("Enter");
-=======
-	const user_message_locator = await page.getByTestId("user").first();
-	const user_message = await user_message_locator.elementHandle();
-	if (user_message) {
-		const imageContainer = await user_message.$("div.image-container");
-
-		if (imageContainer) {
-			const imgElement = await imageContainer.$("img");
-			if (imgElement) {
-				const image_src = await imgElement.getAttribute("src");
-				expect(image_src).toBeTruthy();
-			}
-		}
-	}
-
-	const bot_message = await page
-		.getByTestId("bot")
-		.first()
-		.getByRole("paragraph")
-		.textContent();
-	expect(bot_message).toBeTruthy();
-});
-
-test("Users can upload multiple images and they will be shown as thumbnails", async ({
-	page
-}) => {
-	const fileChooserPromise = page.waitForEvent("filechooser");
-	await page.getByTestId("upload-button").click();
-	const fileChooser = await fileChooserPromise;
-	await fileChooser.setFiles([
-		"./test/files/cheetah1.jpg",
-		"./test/files/cheetah1.jpg"
-	]);
-	expect
-		.poll(async () => await page.locator("thumbnail-image").count(), {
-			timeout: 5000
-		})
-		.toEqual(2);
-});
-
-test("audio uploaded by a user should be shown in the chatbot", async ({
-	page
-}) => {
-	const fileChooserPromise = page.waitForEvent("filechooser");
-	await page.getByTestId("upload-button").click();
-	const fileChooser = await fileChooserPromise;
-	await fileChooser.setFiles("../../test/test_files/audio_sample.wav");
-	await page.getByTestId("textbox").click();
-	await page.keyboard.press("Enter");
->>>>>>> main
 
 		const user_message = await page
 			.getByTestId("user")
@@ -286,5 +243,26 @@ test("audio uploaded by a user should be shown in the chatbot", async ({
 
 		expect(await page.getByLabel("clicked dislike").count()).toEqual(1);
 		expect(await page.getByLabel("clicked like").count()).toEqual(0);
+	});
+
+	test(`message format ${msg_format} - Users can upload multiple images and they will be shown as thumbnails`, async ({
+		page
+	}) => {
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
+		}
+
+		const fileChooserPromise = page.waitForEvent("filechooser");
+		await page.getByTestId("upload-button").click();
+		const fileChooser = await fileChooserPromise;
+		await fileChooser.setFiles([
+			"./test/files/cheetah1.jpg",
+			"./test/files/cheetah1.jpg"
+		]);
+		expect
+			.poll(async () => await page.locator("thumbnail-image").count(), {
+				timeout: 5000
+			})
+			.toEqual(2);
 	});
 }

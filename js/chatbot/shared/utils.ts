@@ -1,6 +1,11 @@
 import type { FileData } from "@gradio/client";
 import { uploadToHuggingFace } from "@gradio/utils";
-import type { TupleFormat, ComponentMessage, ComponentData, TextMessage, NormalisedMessage,
+import type {
+	TupleFormat,
+	ComponentMessage,
+	ComponentData,
+	TextMessage,
+	NormalisedMessage,
 	Message
 } from "../types";
 
@@ -59,7 +64,6 @@ export const format_chat_for_sharing = async (
 		.join("\n");
 };
 
-
 const redirect_src_url = (src: string, root: string): string =>
 	src.replace('src="/file', `src="${root}file`);
 
@@ -73,8 +77,9 @@ function get_component_for_mime_type(
 	return "file";
 }
 
-function convert_file_message_to_component_message(message: any): ComponentData {
-
+function convert_file_message_to_component_message(
+	message: any
+): ComponentData {
 	const _file = Array.isArray(message.file) ? message.file[0] : message.file;
 	return {
 		component: get_component_for_mime_type(_file?.mime_type),
@@ -96,49 +101,53 @@ export function normalise_messages(
 				role: message.role,
 				metadata: message.metadata,
 				content: redirect_src_url(message.content, root),
-				type: "string"
-			}
+				type: "text"
+			};
 		} else if ("file" in message.content) {
 			return {
 				content: convert_file_message_to_component_message(message.content),
 				metadata: message.metadata,
 				role: message.role,
 				type: "component"
-			}
+			};
 		}
-		return {type: "component", ...message} as ComponentMessage
-	})
+		return { type: "component", ...message } as ComponentMessage;
+	});
 }
 
 export function normalise_tuples(
 	messages: TupleFormat,
 	root: string
-): (NormalisedMessage)[] | null {
+): NormalisedMessage[] | null {
 	if (messages === null) return messages;
-	const msg =  messages.flatMap((message_pair) => {
+	const msg = messages.flatMap((message_pair) => {
 		return message_pair.map((message, index) => {
-			if (message == null) return null;	
+			if (message == null) return null;
 			const role = index == 0 ? "user" : "assistant";
 
 			if (typeof message === "string") {
 				return {
 					role: role,
-					type: "string",
+					type: "text",
 					content: redirect_src_url(message, root),
-					metadata: {error: false, tool_name: null}
-				} as TextMessage
+					metadata: { error: false, tool_name: null }
+				} as TextMessage;
 			}
 
 			if ("file" in message) {
 				return {
 					content: convert_file_message_to_component_message(message),
 					role: role,
-					type: "component",
-				} as ComponentMessage
+					type: "component"
+				} as ComponentMessage;
 			}
 
-			return {role: role, content: message, type: "component"} as ComponentMessage;
-		})
+			return {
+				role: role,
+				content: message,
+				type: "component"
+			} as ComponentMessage;
+		});
 	});
-	return msg.filter(message => message != null) as NormalisedMessage[]
+	return msg.filter((message) => message != null) as NormalisedMessage[];
 }

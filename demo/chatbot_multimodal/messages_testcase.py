@@ -30,7 +30,9 @@ with gr.Blocks() as demo:
         msg_format="messages"
     )
 
-    chat_input = gr.MultimodalTextbox(interactive=True, file_types=["image"], placeholder="Enter message or upload file...", show_label=False)
+    chat_input = gr.MultimodalTextbox(interactive=True,
+                                      file_count="multiple",
+                                      placeholder="Enter message or upload file...", show_label=False)
 
     chat_msg = chat_input.submit(add_message, [chatbot, chat_input], [chatbot, chat_input])
     bot_msg = chat_msg.then(bot, chatbot, chatbot, api_name="bot_response")

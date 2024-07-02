@@ -80,7 +80,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		await textbox.fill("hi");
 
 		await page.getByRole("button", { name: "Use via API logo" }).click();
-		await page.getByRole("button", { name: "🪄 Use the API Recorder" }).click();
+		await page.locator("#start-api-recorder").click();
 		await submit_button.click();
 		await expect(textbox).toHaveValue("");
 		await expect(page.locator(".bot p").first()).toContainText(
@@ -89,7 +89,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		const api_recorder = await page.locator("#api-recorder");
 		await api_recorder.click();
 		await expect(page.locator("#num-recorded-api-calls")).toContainText(
-			"🪄 Recorded API Calls (5)"
+			"🪄 Recorded API Calls [5]"
 		);
 	});
 }

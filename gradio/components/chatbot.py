@@ -3,9 +3,20 @@
 from __future__ import annotations
 
 import inspect
-from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, Tuple, TypedDict, Union, cast, Dict
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    TypedDict,
+    Union,
+    cast,
+)
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
@@ -93,6 +104,7 @@ class Message(GradioModel):
     role: str
     metadata: Metadata = Field(default_factory=Metadata)
     content: Union[str, FileMessage, ComponentMessage]
+
 
 @dataclass
 class ChatMessage:
@@ -344,19 +356,27 @@ class Chatbot(Component):
 
     @staticmethod
     def _create_file_message(chat_message, filepath):
-            mime_type = client_utils.get_mimetype(filepath)
+        mime_type = client_utils.get_mimetype(filepath)
 
-            return FileMessage(
-                file=FileData(path=filepath, mime_type=mime_type),
-                alt_text=Chatbot._get_alt_text(chat_message),
-            )
+        return FileMessage(
+            file=FileData(path=filepath, mime_type=mime_type),
+            alt_text=Chatbot._get_alt_text(chat_message),
+        )
 
     def _postprocess_content(
-        self, chat_message: str | tuple | list | FileDataDict | FileData | GradioComponent | None
+        self,
+        chat_message: str
+        | tuple
+        | list
+        | FileDataDict
+        | FileData
+        | GradioComponent
+        | None,
     ) -> str | FileMessage | ComponentMessage | None:
-
         if chat_message is None:
             return None
+        elif isinstance(chat_message, FileMessage):
+            return chat_message
         elif isinstance(chat_message, FileData):
             return FileMessage(file=chat_message)
         elif isinstance(chat_message, GradioComponent):
@@ -394,14 +414,23 @@ class Chatbot(Component):
             )
         return ChatbotDataTuples(root=processed_messages)
 
-    def _postprocess_message_messages(self, message: MessageDict | ChatMessage) -> list[Message]:
+    def _postprocess_message_messages(
+        self, message: MessageDict | ChatMessage
+    ) -> list[Message]:
         if isinstance(message, dict):
-            message['content'] = self._postprocess_content(message['content'])
-            msg = Message(**message) # type: ignore
-
-        if isinstance(message, ChatMessage):
-            message.content = self._postprocess_content(message.content) # type: ignore
-            msg = Message(role=message.role, content=message.content, metadata=message.metadata)
+            message["content"] = self._postprocess_content(message["content"])
+            msg = Message(**message)  # type: ignore
+        elif isinstance(message, ChatMessage):
+            message.content = self._postprocess_content(message.content)  # type: ignore
+            msg = Message(
+                role=message.role,
+                content=message.content,  # type: ignore
+                metadata=message.metadata,  # type: ignore
+            )
+        else:
+            raise Error(
+                f"Invalid message for Chatbot component: {message}", visible=False
+            )
 
         # extract file path from message
         new_messages = []
@@ -413,13 +442,17 @@ class Chatbot(Component):
                 except OSError:
                     is_file = False
                 if is_file:
-                    filepath = cast(str, move_resource_to_block_cache(filepath, block=self))
+                    filepath = cast(
+                        str, move_resource_to_block_cache(filepath, block=self)
+                    )
                     mime_type = client_utils.get_mimetype(filepath)
                     new_messages.append(
                         Message(
                             role=msg.role,
                             metadata=msg.metadata,
-                            content=FileMessage(file=FileData(path=filepath, mime_type=mime_type))
+                            content=FileMessage(
+                                file=FileData(path=filepath, mime_type=mime_type)
+                            ),
                         ),
                     )
         return [msg, *new_messages]

@@ -11,12 +11,14 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { Message, TupleFormat, MessageRole, NormalisedMessage } from "./types";
+	import type {
+		Message,
+		TupleFormat,
+		MessageRole,
+		NormalisedMessage
+	} from "./types";
 
-	import {
-		normalise_tuples,
-		normalise_messages,
-	} from "./shared/utils";
+	import { normalise_tuples, normalise_messages } from "./shared/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -55,7 +57,10 @@
 
 	let _value: NormalisedMessage[] | null = [];
 
-	$: _value = msg_format === "tuples" ? normalise_tuples(value as TupleFormat, root) : normalise_messages(value as Message[], root);
+	$: _value =
+		msg_format === "tuples"
+			? normalise_tuples(value as TupleFormat, root)
+			: normalise_messages(value as Message[], root);
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;

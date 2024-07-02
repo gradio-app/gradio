@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { format_chat_for_sharing} from "./utils";
-	import type { NormalisedMessage } from "../types"
+	import { format_chat_for_sharing } from "./utils";
+	import type { NormalisedMessage } from "../types";
 	import { Gradio, copy } from "@gradio/utils";
 
 	import { dequal } from "dequal/lite";
@@ -64,7 +64,9 @@
 
 	$: load_components(get_components_from_messages(value));
 
-	function get_components_from_messages(messages: NormalisedMessage[]): string[] {
+	function get_components_from_messages(
+		messages: NormalisedMessage[]
+	): string[] {
 		if (!messages) return [];
 		let components: Set<string> = new Set();
 		messages.forEach((message) => {
@@ -176,13 +178,10 @@
 		}
 	}
 
-	function handle_select(
-		i: number,
-		message: NormalisedMessage
-	): void {
+	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
 			index: i,
-			value: (message.content as ComponentData).value.url  || message.content
+			value: (message.content as ComponentData).value.url || message.content
 		});
 	}
 
@@ -196,6 +195,30 @@
 			value: (message.content as ComponentData).value.url || message.content,
 			liked: selected === "like"
 		});
+	}
+
+	function get_message_label_data(message: NormalisedMessage): string {
+		if (message.type === "text") {
+			return message.content;
+		} else if (
+			message.type === "component" &&
+			message.content.component === "file"
+		) {
+			if (Array.isArray(message.content.value)) {
+				return `file of extension type: ${message.content.value[0].orig_name?.split(".").pop()}`;
+			}
+			return (
+				`file of extension type: ${message.content.value?.orig_name?.split(".").pop()}` +
+				(message.content.value?.orig_name ?? "")
+			);
+		}
+		return `a component of type ${message.content.component}`;
+	}
+
+	function is_component_message(
+		message: NormalisedMessage
+	): message is ComponentMessage {
+		return message.type === "component";
 	}
 
 	function groupMessages(messages: NormalisedMessage[]): NormalisedMessage[][] {
@@ -245,61 +268,70 @@
 >
 	<div class="message-wrap" use:copy>
 		{#if value !== null && value.length > 0}
-			{#if is_image_preview_open}
-				<div class="image-preview">
-					<img src={image_preview_source} alt={image_preview_source_alt} />
-					<button
-                    class="image-preview-close-button"
-                    on:click={() => {
-                        is_image_preview_open = false;
-                    }}><Clear /></button
-                >
-				</div>
-			{/if}
 			{@const groupedMessages = groupMessages(value)}
 			{#each groupedMessages as messages, i}
-				{#if messages.length}
-					{@const role = messages[0].role === "user" ? "user" : "bot"}
-					{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
-					<div
-						class="message-row {layout} {role === 'user'
-							? 'user-row'
-							: 'bot-row'}"
-					>
-						{#if avatar_img}
-							<div class="avatar-container">
-								<Image
-									class="avatar-image"
-									src={avatar_img.url}
-									alt="{role} avatar"
-								/>
-							</div>
-						{/if}
-						<div
-							class="message {role === 'user' ? 'user' : 'bot'}"
-							class:message-fit={layout === "bubble" && !bubble_full_width}
-							class:panel-full-width={layout === "panel"}
-							class:message-bubble-border={layout === "bubble"}
-							class:message-markdown-disabled={!render_markdown}
-							style:text-align={rtl && role == "bot" ? "left" : "right"}
+				{@const role = messages[0].role === "user" ? "user" : "bot"}
+				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
+				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
+				{#if is_image_preview_open}
+					<div class="image-preview">
+						<img src={image_preview_source} alt={image_preview_source_alt} />
+						<button
+							class="image-preview-close-button"
+							on:click={() => {
+								is_image_preview_open = false;
+							}}><Clear /></button
 						>
-							{#each messages as message, thought_index}
+					</div>
+				{/if}
+				<div
+					class="message-row {layout} {role}-row"
+					class:with_avatar={avatar_img !== null}
+					class:with_opposite_avatar={opposite_avatar_img !== null}
+				>
+					{#if avatar_img !== null}
+						<div class="avatar-container">
+							<Image
+								class="avatar-image"
+								src={avatar_img?.url}
+								alt="{role} avatar"
+							/>
+						</div>
+					{/if}
+					<div class="flex-wrap">
+						{#each messages as message, thought_index}
+							{@const msg_type = messages[0].type}
+							<div
+								class="message {role} {is_component_message(message)
+									? message?.content.component
+									: ''}"
+								class:message-fit={!bubble_full_width}
+								class:panel-full-width={true}
+								class:message-markdown-disabled={!render_markdown}
+								style:text-align={rtl && role === "user" ? "left" : "right"}
+								class:component={msg_type === "component"}
+								class:html={is_component_message(message) &&
+									message.content.component === "html"}
+							>
 								<button
 									data-testid={role}
-									class:latest={i === groupedMessages.length - 1}
+									class:latest={i === value.length - 1}
 									class:message-markdown-disabled={!render_markdown}
 									style:user-select="text"
 									class:selectable
 									style:text-align={rtl ? "right" : "left"}
-									on:click={() => handle_select(i, messages[0])}
+									on:click={() => handle_select(i, message)}
 									on:keydown={(e) => {
 										if (e.key === "Enter") {
-											handle_select(i, messages[0]);
+											handle_select(i, message);
 										}
 									}}
 									dir={rtl ? "rtl" : "ltr"}
+									aria-label={role +
+										"'s message: " +
+										get_message_label_data(message)}
 								>
-									{#if isStringMessage(message)}
+									{#if message.type === "text"}
 										<div class:thought={thought_index > 0}>
 											{#if message.metadata.tool_name}
 												<MessageBox
@@ -337,74 +369,51 @@
 												/>
 											{/if}
 										</div>
-									{:else if isFileMessage(message)}
-										{#if message.content.mime_type?.includes("audio")}
-											<Audio
-												data-testid="chatbot-audio"
-												controls
-												preload="metadata"
-												src={message.content.url}
-												title={message.content.alt_text}
-												on:play
-												on:pause
-												on:ended
-											/>
-										{:else if message !== null && message.content.mime_type?.includes("video")}
-											<Video
-												data-testid="chatbot-video"
-												controls
-												src={message.content?.url}
-												title={message.content.alt_text}
-												preload="auto"
-												on:play
-												on:pause
-												on:ended
-											>
-												<track kind="captions" />
-											</Video>
-										{:else if message !== null && message.content?.mime_type?.includes("image")}
-											<Image
-												data-testid="chatbot-image"
-												src={message.content?.url}
-												alt={message.content.alt_text}
-											/>
-										{:else if message !== null && message.content?.url !== null}
-											<a
-												data-testid="chatbot-file"
-												href={message.content?.url}
-												target="_blank"
-												download={window.__is_colab__
-													? null
-													: message.content?.orig_name || message.content?.path}
-											>
-												{message.content?.orig_name || message.content?.path}
-											</a>
-										{/if}
-									{/if}
-									{#if (likeable && role === "bot") || (show_copy_button && message && typeof message === "string")}
-										<div
-											class="message-buttons-{role} message-buttons-{layout} {avatar_img !==
-												null && 'with-avatar'}"
-											class:message-buttons-fit={layout === "bubble" &&
-												!bubble_full_width}
-											class:bubble-buttons-user={layout === "bubble"}
+									{:else if message.type === "component" && message.content.component in _components}
+										<Component
+											{target}
+											{theme_mode}
+											props={message.content.props}
+											type={message.content.component}
+											components={_components}
+											value={message.content.value}
+											{i18n}
+											{upload}
+											{_fetch}
+											on:load={scroll}
+										/>
+									{:else if message.type === "component" && message.content.component === "file"}
+										<a
+											data-testid="chatbot-file"
+											class="file-pil"
+											href={message.content.value.url}
+											target="_blank"
+											download={window.__is_colab__
+												? null
+												: message.content.value?.orig_name ||
+													message.content.value?.path.split("/").pop() ||
+													"file"}
 										>
-											{#if likeable && role === "bot"}
-												<LikeDislike
-													handle_action={(selected) =>
-														handle_like(i, message, selected)}
-												/>
-											{/if}
-											{#if show_copy_button && message && typeof message === "string"}
-												<Copy value={message} />
-											{/if}
-										</div>
+											{message.content.value?.orig_name ||
+												message.content.value?.path.split("/").pop() ||
+												"file"}
+										</a>
 									{/if}
 								</button>
-							{/each}
-						</div>
+							</div>
+							<LikeButtons
+								show={role === "bot" && (likeable || show_copy_button)}
+								handle_action={(selected) => handle_like(i, message, selected)}
+								{likeable}
+								{show_copy_button}
+								{message}
+								position={role === "user" ? "right" : "left"}
+								avatar={avatar_img}
+								{layout}
+							/>
+						{/each}
 					</div>
-				{/if}
+				</div>
 			{/each}
 			{#if pending_message}
 				<Pending {layout} />
@@ -472,13 +481,10 @@
 		overflow-wrap: break-word;
 	}
 
-<<<<<<< HEAD
 	.thought {
 		margin-top: var(--spacing-xxl);
 	}
 
-=======
->>>>>>> main
 	.message :global(.prose) {
 		font-size: var(--chatbot-body-text-size);
 	}
@@ -727,8 +733,6 @@
 	.message-wrap :global(pre) {
 		position: relative;
 	}
-<<<<<<< HEAD
-=======
 
 	.message-wrap :global(.grid-wrap) {
 		max-height: 80% !important;
@@ -736,7 +740,6 @@
 		object-fit: contain;
 	}
 
->>>>>>> main
 	/* Image preview */
 	.message :global(.preview) {
 		object-fit: contain;
