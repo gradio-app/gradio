@@ -55,6 +55,7 @@ from gradio.components import (
     Textbox,
     UploadButton,
     Video,
+    ChatMessage,
     component,
 )
 from gradio.components.audio import WaveformOptions

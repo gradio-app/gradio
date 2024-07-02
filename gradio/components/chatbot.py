@@ -247,10 +247,10 @@ class Chatbot(Component):
                 isinstance(message, dict) and "role" in message and "content" in message
                 for message in messages
             )
-            all_msgs = all(isinstance(msg, Message) for msg in messages)
+            all_msgs = all(isinstance(msg, ChatMessage) for msg in messages)
             if not (all_dicts or all_msgs):
                 raise Error(
-                    "Data incompatible with messages format. Each message should be a dictionary with 'role' and 'content' keys or an instance of gr.components.chatbot.Message."
+                    "Data incompatible with messages format. Each message should be a dictionary with 'role' and 'content' keys or a ChatMessage object."
                 )
         elif not all(
             isinstance(message, (tuple, list)) and len(message) == 2

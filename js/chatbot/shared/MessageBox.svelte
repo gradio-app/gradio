@@ -34,7 +34,7 @@
 		display: flex;
 		align-items: center;
 		padding: 8px;
-		color: var(--color-red-50);
+		color: var(--body-text-color);
 	}
 
 	.icon {
