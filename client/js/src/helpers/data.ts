@@ -149,21 +149,7 @@ export function handle_file(
 			});
 		}
 	} else if (typeof File !== "undefined" && file_or_url instanceof File) {
-		return {
-			path: file_or_url instanceof File ? file_or_url.name : "blob",
-			orig_name: file_or_url instanceof File ? file_or_url.name : "unknown",
-			// @ts-ignore
-			blob: file_or_url instanceof File ? file_or_url : new Blob([file_or_url]),
-			size:
-				file_or_url instanceof Blob
-					? file_or_url.size
-					: Buffer.byteLength(file_or_url as Buffer),
-			mime_type:
-				file_or_url instanceof File
-					? file_or_url.type
-					: "application/octet-stream", // Default MIME type for buffers
-			meta: { _type: "gradio.FileData" }
-		};
+		return new Blob([file_or_url]);
 	} else if (file_or_url instanceof Buffer) {
 		return new Blob([file_or_url]);
 	} else if (file_or_url instanceof Blob) {

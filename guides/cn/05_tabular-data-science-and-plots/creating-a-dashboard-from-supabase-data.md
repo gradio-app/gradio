@@ -106,8 +106,8 @@ import gradio as gr
 
 with gr.Blocks() as dashboard:
     with gr.Row():
-        gr.BarPlot(read_data, x="product_id", y="price", title="价格", every=60)
-        gr.BarPlot(read_data, x="product_id", y="inventory_count", title="库存", every=60)
+        gr.BarPlot(read_data, x="product_id", y="price", title="价格", every=gr.Timer(60))
+        gr.BarPlot(read_data, x="product_id", y="inventory_count", title="库存", every=gr.Timer(60))
 
 dashboard.queue().launch()
 ```

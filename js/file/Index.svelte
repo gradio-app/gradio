@@ -42,7 +42,7 @@
 		clear_status: LoadingStatus;
 		delete: FileData;
 	}>;
-	export let file_count: string;
+	export let file_count: "single" | "multiple" | "directory";
 	export let file_types: string[] = ["file"];
 
 	let old_value = value;

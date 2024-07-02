@@ -22,7 +22,7 @@ gradio cc create PDF
 
 
 Tip: You should change the name of the component.
-Some of the screenshots assume the component is callled `PDF` but the concepts are the same!
+Some of the screenshots assume the component is called `PDF` but the concepts are the same!
 
 This will create a subdirectory called `pdf` in your current working directory.
 There are three main subdirectories in `pdf`: `frontend`, `backend`, and `demo`.
@@ -545,11 +545,13 @@ When all is said an done, your component's backend code should look like this:
 
 ```python
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any, Callable, TYPE_CHECKING
 
 from gradio.components.base import Component
 from gradio.data_classes import FileData
 from gradio import processing_utils
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 class PDF(Component):
 
@@ -570,7 +572,7 @@ class PDF(Component):
                  elem_classes: list[str] | str | None = None,
                  render: bool = True,
                  load_fn: Callable[..., Any] | None = None,
-                 every: float | None = None):
+                 every: Timer | float | None = None):
         super().__init__(value, label=label, info=info,
                          show_label=show_label, container=container,
                          scale=scale, min_width=min_width,
