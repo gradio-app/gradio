@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:OAI message format for chatbot and chatinterface
+feat:Support Message API for chatbot and chatinterface
