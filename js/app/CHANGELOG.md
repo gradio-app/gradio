@@ -1,5 +1,35 @@
 # @gradio/app
 
+## 1.38.0
+
+### Fixes
+
+- [#8505](https://github.com/gradio-app/gradio/pull/8505) [`2943d6d`](https://github.com/gradio-app/gradio/commit/2943d6d68847314885dc6c5c0247083116017ca0) - Add Timer component.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/upload@0.11.5
+- @gradio/client@1.3.0
+- @gradio/timer@0.3.0
+- @gradio/code@0.7.0
+- @gradio/annotatedimage@0.6.13
+- @gradio/audio@0.12.2
+- @gradio/button@0.2.46
+- @gradio/chatbot@0.11.2
+- @gradio/dataframe@0.8.13
+- @gradio/dataset@0.1.46
+- @gradio/downloadbutton@0.1.23
+- @gradio/file@0.8.5
+- @gradio/fileexplorer@0.4.14
+- @gradio/gallery@0.11.2
+- @gradio/image@0.12.2
+- @gradio/imageeditor@0.7.13
+- @gradio/model3d@0.10.13
+- @gradio/multimodaltextbox@0.5.2
+- @gradio/simpleimage@0.6.2
+- @gradio/uploadbutton@0.6.14
+- @gradio/video@0.9.2
+
 ## 1.37.1
 
 ### Dependency updates
