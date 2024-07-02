@@ -16,6 +16,7 @@ from gradio.components import (
     BarPlot,
     Button,
     Chatbot,
+    ChatMessage,
     Checkbox,
     CheckboxGroup,
     Checkboxgroup,

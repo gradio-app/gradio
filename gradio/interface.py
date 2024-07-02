@@ -229,7 +229,7 @@ class Interface(Blocks):
             state_output_index = state_output_indexes[0]
             if inputs[state_input_index] == "state":
                 default = utils.get_default_args(fn)[state_input_index]
-                state_variable = State(value=default)  # type: ignore
+                state_variable = State(value=default)
             else:
                 state_variable = inputs[state_input_index]
 
@@ -244,12 +244,10 @@ class Interface(Blocks):
             self.cache_examples = False
 
         self.main_input_components = [
-            get_component_instance(i, unrender=True)
-            for i in inputs  # type: ignore
+            get_component_instance(i, unrender=True) for i in inputs
         ]
         self.additional_input_components = [
-            get_component_instance(i, unrender=True)
-            for i in additional_inputs  # type: ignore
+            get_component_instance(i, unrender=True) for i in additional_inputs
         ]
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
