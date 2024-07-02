@@ -103,7 +103,6 @@
 			}
 		}
 	}
-
 </script>
 
 <svelte:window on:keydown={handle_key_down} on:click={on_click} />
