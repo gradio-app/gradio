@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { store } from "../../routes/+layout.svelte";
 
-	import { gradio_logo, github_black } from "../assets";
+	import { gradio_logo } from "../assets";
 	import Search from "./search";
 
 	let click_nav = false;
