@@ -199,20 +199,19 @@
 
 	function get_message_label_data(message: NormalisedMessage): string {
 		if (message.type === "text") {
-			return message.content;
-		} else if (
-			message.type === "component" &&
-			message.content.component === "file"
-		) {
-			if (Array.isArray(message.content.value)) {
-				return `file of extension type: ${message.content.value[0].orig_name?.split(".").pop()}`;
+			return message.value;
+		} else if (message.type === "component") {
+			return `a component of type ${message.component}`;
+		} else if (message.type === "file") {
+			if (Array.isArray(message.file)) {
+				return `file of extension type: ${message.file[0].orig_name?.split(".").pop()}`;
 			}
 			return (
-				`file of extension type: ${message.content.value?.orig_name?.split(".").pop()}` +
-				(message.content.value?.orig_name ?? "")
+				`file of extension type: ${message.file?.orig_name?.split(".").pop()}` +
+				(message.file?.orig_name ?? "")
 			);
 		}
-		return `a component of type ${message.content.component}`;
+		return `a message of type ` + message.type ?? "unknown";
 	}
 
 	function is_component_message(

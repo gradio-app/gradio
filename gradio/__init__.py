@@ -16,6 +16,7 @@ from gradio.components import (
     BarPlot,
     Button,
     Chatbot,
+    ChatMessage,
     Checkbox,
     CheckboxGroup,
     Checkboxgroup,
@@ -53,9 +54,9 @@ from gradio.components import (
     State,
     Text,
     Textbox,
+    Timer,
     UploadButton,
     Video,
-    ChatMessage,
     component,
 )
 from gradio.components.audio import WaveformOptions
