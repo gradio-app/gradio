@@ -2231,17 +2231,15 @@ Received outputs:
         else:
             self.auth = auth
 
-        if (
-            self.auth
-            and not callable(self.auth)
-            and any(
-                not authenticable[0] or not authenticable[1]
-                for authenticable in self.auth
-            )
-        ):
-            raise ValueError(
-                "You must provide a username and password for authentication."
-            )
+        if self.auth and not callable(self.auth):
+            if any(not authenticable[0] for authenticable in self.auth):
+                warnings.warn(
+                    "You have provided an empty username in `auth`. Please provide a valid username."
+                )
+            if any(not authenticable[1] for authenticable in self.auth):
+                warnings.warn(
+                    "You have provided an empty password in `auth`. Please provide a valid password."
+                )
 
         self.auth_message = auth_message
         self.show_error = show_error
