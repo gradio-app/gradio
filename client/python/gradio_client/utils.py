@@ -13,6 +13,9 @@ import shutil
 import tempfile
 import time
 import warnings
+import ipaddress
+import socket
+from urllib.parse import urlparse
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -286,6 +289,32 @@ def is_valid_url(possible_url: str) -> bool:
         "Use is_http_url_like() and probe_url(), as suitable, instead.",
     )
     return is_http_url_like(possible_url) and probe_url(possible_url)
+
+def is_safe_url(url):
+    try:
+        # Parse the given URL
+        parsed_url = urlparse(url)
+        domain = parsed_url.hostname
+    except Exception:
+        return False
+
+    # Check if the URL's scheme (protocol) is not http or https
+    if parsed_url.scheme not in ('http', 'https'):
+        return False
+
+    try:
+        # Resolve the domain to an IP address using DNS lookup
+        resolve = socket.gethostbyname(domain)
+
+        # Convert the resolved IP address to an ipaddress.IPv4Address or ipaddress.IPv6Address object
+        ip = ipaddress.ip_address(resolve)
+
+        # Check if the IP address is private (within private address ranges) or multicast
+        if ip.is_private or ip.is_multicast:
+            return False
+    except ValueError:
+        return False
+    return True
 
 
 async def get_pred_from_ws(
