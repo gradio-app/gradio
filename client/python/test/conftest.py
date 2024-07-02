@@ -462,9 +462,9 @@ def max_file_size_demo():
 
 
 @pytest.fixture
-def chatbot_openai():
+def chatbot_message_format():
     with gr.Blocks() as demo:
-        chatbot = gr.Chatbot(msg_format="openai")
+        chatbot = gr.Chatbot(msg_format="messages")
         msg = gr.Textbox()
 
         def respond(message, chat_history: list):

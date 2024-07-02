@@ -682,8 +682,8 @@ class TestClientPredictionsWithKwargs:
             ):
                 client.predict(num1=3, operation="add", api_name="/predict")
 
-    def test_chatbot_openai(self, chatbot_openai):
-        with connect(chatbot_openai) as client:
+    def test_chatbot_message_format(self, chatbot_message_format):
+        with connect(chatbot_message_format) as client:
             _, history = client.predict("hello", [], api_name="/chat")
             assert history[1]["role"] == "assistant"
             assert history[1]["content"] in [
