@@ -304,5 +304,5 @@ strong {
 }
 
 .obj .codeblock {
-	@apply my-4
+	@apply my-4;
 }
