@@ -4,7 +4,7 @@
 	import { mount_css as default_mount_css } from "../css";
 	import type { Client as ClientType } from "@gradio/client";
 	import type { WorkerProxy } from "@gradio/wasm";
-	import { createEventDispatcher, onMount } from "svelte";
+	import { createEventDispatcher, onMount, SvelteComponent } from "svelte";
 	import { Block } from "@gradio/atoms";
 	import { BaseCode as Code } from "@gradio/code";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
@@ -43,10 +43,15 @@
 		loaded = true;
 	});
 
+	let is_editing = false;
 	function shortcut_run(e: KeyboardEvent): void {
 		if (e.key == "Enter" && (e.metaKey || e.ctrlKey)) {
-			dispatch("code", { code });
 			e.preventDefault();
+
+			if (!is_editing) {
+				return;
+			}
+			dispatch("code", { code });
 		}
 	}
 
@@ -104,8 +109,8 @@
 	let parent_container: HTMLDivElement;
 
 	onMount(() => {
-		var code_editors = document.getElementsByClassName("code-editor");
-		for (var i = 0; i < code_editors.length; i++) {
+		const code_editors = document.getElementsByClassName("code-editor");
+		for (let i = 0; i < code_editors.length; i++) {
 			code_editors[i].addEventListener(
 				"keydown",
 				shortcut_run as EventListener,
@@ -113,6 +118,17 @@
 			);
 		}
 		active_theme_mode = handle_theme_mode(parent_container);
+
+		return () => {
+			const code_editors = document.getElementsByClassName("code-editor");
+			for (var i = 0; i < code_editors.length; i++) {
+				code_editors[i].removeEventListener(
+					"keydown",
+					shortcut_run as EventListener,
+					true
+				);
+			}
+		};
 	});
 
 	$: loading_text;
@@ -166,6 +182,12 @@
 								lines={10}
 								readonly={false}
 								dark_mode={active_theme_mode === "dark"}
+								on:focus={() => {
+									is_editing = true;
+								}}
+								on:blur={() => {
+									is_editing = false;
+								}}
 							/>
 						{:else}
 							<Code
@@ -174,6 +196,12 @@
 								lines={10}
 								readonly={false}
 								dark_mode={active_theme_mode === "dark"}
+								on:focus={() => {
+									is_editing = true;
+								}}
+								on:blur={() => {
+									is_editing = false;
+								}}
 							/>
 						{/if}
 					</Block>
