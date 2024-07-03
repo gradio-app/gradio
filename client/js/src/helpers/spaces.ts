@@ -68,7 +68,7 @@ export async function check_space_status(
 			status_callback({
 				status: "running",
 				load_status: "complete",
-				message: "",
+				message: "Space is running.",
 				detail: stage
 			});
 			break;
@@ -77,6 +77,18 @@ export async function check_space_status(
 				status: "building",
 				load_status: "pending",
 				message: "Space is building...",
+				detail: stage
+			});
+
+			setTimeout(() => {
+				check_space_status(id, type, status_callback);
+			}, 1000);
+			break;
+		case "APP_STARTING":
+			status_callback({
+				status: "starting",
+				load_status: "pending",
+				message: "Space is starting...",
 				detail: stage
 			});
 

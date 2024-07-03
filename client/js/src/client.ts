@@ -141,6 +141,7 @@ export class Client {
 		this.resolve_config = resolve_config.bind(this);
 		this.resolve_cookies = resolve_cookies.bind(this);
 		this.upload = upload.bind(this);
+		this.handle_space_success.bind(this);
 	}
 
 	private async init(): Promise<void> {
@@ -235,6 +236,49 @@ export class Client {
 		);
 
 		const { status_callback } = this.options;
+
+		if (space_id && status_callback) {
+			let retries = 0;
+			const max_retries = 12;
+			const check_interval = 5000;
+
+			const check_and_wake_space = async (): Promise<void> => {
+				return new Promise((resolve) => {
+					check_space_status(
+						space_id,
+						RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
+						(status) => {
+							status_callback(status);
+
+							if (status.status === "running") {
+								resolve();
+							} else if (
+								status.status === "error" ||
+								status.status === "paused" ||
+								status.status === "space_error"
+							) {
+								resolve();
+							} else if (
+								status.status === "sleeping" ||
+								status.status === "building"
+							) {
+								if (retries < max_retries) {
+									retries++;
+									setTimeout(() => {
+										check_and_wake_space().then(resolve);
+									}, check_interval);
+								} else {
+									resolve();
+								}
+							}
+						}
+					);
+				});
+			};
+
+			await check_and_wake_space();
+		}
+
 		let config: Config | undefined;
 
 		try {
