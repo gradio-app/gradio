@@ -227,6 +227,17 @@ class TestInit:
             assert prediction_hello[0].root[0] == ("hello", "robot hello")
             assert prediction_hi[0].root[0] == ("hi", "ro")
 
+    def test_custom_chatbot_with_events(self):
+        with gr.Blocks() as demo:
+            chatbot = gr.Chatbot()
+            chatbot.like(lambda: None, None, None)
+            gr.ChatInterface(fn=lambda x, y: x, chatbot=chatbot)
+        dependencies = demo.fns.values()
+        assert next(
+            (d for d in dependencies if d.targets == [(chatbot._id, "like")]),
+            None,
+        )
+
 
 class TestAPI:
     def test_get_api_info(self):

@@ -98,7 +98,7 @@ def run_query():
 import gradio as gr
 
 with gr.Blocks() as demo:
-    gr.DataFrame(run_query, every=60*60)
+    gr.DataFrame(run_query, every=gr.Timer(60*60))
 
 demo.queue().launch()  # Run the demo using queuing
 ```
@@ -114,8 +114,8 @@ import gradio as gr
 with gr.Blocks() as demo:
     gr.Markdown("# 💉 Covid Dashboard (Updated Hourly)")
     with gr.Row():
-        gr.DataFrame(run_query, every=60*60)
-        gr.ScatterPlot(run_query, every=60*60, x="confirmed_cases",
+        gr.DataFrame(run_query, every=gr.Timer(60*60))
+        gr.ScatterPlot(run_query, every=gr.Timer(60*60), x="confirmed_cases",
                         y="deaths", tooltip="county", width=500, height=500)
 
 demo.queue().launch()  # Run the demo with queuing enabled

@@ -1,5 +1,21 @@
 # @gradio/chatbot
 
+## 0.11.1
+
+### Fixes
+
+- [#8655](https://github.com/gradio-app/gradio/pull/8655) [`3896398`](https://github.com/gradio-app/gradio/commit/38963984800d58bfad81bc928f2d631cb4bac773) - Ensure copy button on chatbot shows when appropriate.  Thanks @pngwn!
+- [#8631](https://github.com/gradio-app/gradio/pull/8631) [`9b8840a`](https://github.com/gradio-app/gradio/commit/9b8840ab5f712a6634b77df014083071fa253ba0) - Ensure chatbot messages are visible to screenreaders.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.11.4
+- @gradio/client@1.2.1
+- @gradio/gallery@0.11.1
+- @gradio/image@0.12.1
+- @gradio/audio@0.12.1
+- @gradio/video@0.9.1
+
 ## 0.11.0
 
 ### Features

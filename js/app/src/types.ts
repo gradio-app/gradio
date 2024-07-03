@@ -33,7 +33,6 @@ export interface ComponentMeta {
 
 /** Dictates whether a dependency is continous and/or a generator */
 export interface DependencyTypes {
-	continuous: boolean;
 	generator: boolean;
 	cancel: boolean;
 }

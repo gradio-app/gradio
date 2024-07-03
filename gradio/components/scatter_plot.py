@@ -7,10 +7,13 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document
 
+from gradio.components.base import Component
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 
 if TYPE_CHECKING:
     import pandas as pd
+
+    from gradio.components import Timer
 
 
 @document()
@@ -85,7 +88,8 @@ class ScatterPlot(Plot):
         caption: str | None = None,
         interactive: bool | None = True,
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -124,7 +128,8 @@ class ScatterPlot(Plot):
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
-            every:  If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -173,6 +178,7 @@ class ScatterPlot(Plot):
             value=value,
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,

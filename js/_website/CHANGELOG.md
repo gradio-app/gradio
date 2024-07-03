@@ -1,5 +1,16 @@
 # website
 
+## 0.33.0
+
+### Features
+
+- [#8604](https://github.com/gradio-app/gradio/pull/8604) [`b6fa6b5`](https://github.com/gradio-app/gradio/commit/b6fa6b543f226540247cd50748019cde59b93005) - Add docs for `.on()`, `.then()`, and `.success()`, as well as the subclasses of `gr.EventData`.  Thanks @abidlabs!
+- [#8623](https://github.com/gradio-app/gradio/pull/8623) [`4c6e4e0`](https://github.com/gradio-app/gradio/commit/4c6e4e0ba9a6dc29f256d00d97f3062a516f5aac) - Fix CORS issues with Lite Component Demos.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.6.13
+
 ## 0.32.0
 
 ### Features
