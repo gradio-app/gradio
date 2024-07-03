@@ -77,7 +77,9 @@ def generate_response(history):
     return history
 ```
 
-Would be displayed as - 
+Would be displayed as following:
+
+![Gradio chatbot tool display](https://github.com/freddyaboulton/freddyboulton/assets/41651716/a4bb2b0a-5f8a-4287-814b-4eab278e021e)
 
 All of the types expected by the messages format are documented below:
 
