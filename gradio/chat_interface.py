@@ -191,7 +191,7 @@ class ChatInterface(Blocks):
                         "The msg_format of the chatbot must match the msg_format of the chat interface."
                         "Recieved msg_format of chatbot: {chatbot.msg_format}, msg_format of chat interface: {self.msg_format}"
                     )
-                self.chatbot = chatbot.render()
+                self.chatbot = get_component_instance(chatbot, render=True)
             else:
                 self.chatbot = Chatbot(
                     label="Chatbot",
@@ -223,7 +223,7 @@ class ChatInterface(Blocks):
                         else:
                             textbox.container = False
                         textbox.show_label = False
-                        textbox_ = textbox.render()
+                        textbox_ = get_component_instance(textbox, render=True)
                         if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
                             raise TypeError(
                                 f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {type(textbox_)}"
