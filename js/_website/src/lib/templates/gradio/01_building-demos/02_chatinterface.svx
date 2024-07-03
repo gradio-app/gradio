@@ -40,9 +40,7 @@ demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="E
 demo.launch()
 ```
 
-**Custom Chatbot**: A `gr.ChatInterface` with a custom `gr.Chatbot` that includes a placeholder as well as upvote/downvote buttons. The upvote/downvote buttons are automatically added when a `.like()` event is attached to a `gr.Chatbot`. 
-
-In order to attach event listeners to your custom chatbot, wrap the `gr.Chatbot` as well as the `gr.ChatInterface` inside of a `gr.Blocks` like this:
+**Custom Chatbot**: A `gr.ChatInterface` with a custom `gr.Chatbot` that includes a placeholder as well as upvote/downvote buttons. The upvote/downvote buttons are automatically added when a `.like()` event is attached to a `gr.Chatbot`. In order to attach event listeners to your custom chatbot, wrap the `gr.Chatbot` as well as the `gr.ChatInterface` inside of a `gr.Blocks` like this:
 
 ```py
 import gradio as gr
