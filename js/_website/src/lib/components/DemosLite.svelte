@@ -96,9 +96,6 @@
 	let position = 0.5;
 
 	let fullscreen = false;
-	function make_full_screen() {
-		fullscreen = true;
-	}
 	let preview_width = 100;
 	let lg_breakpoint = false;
 
