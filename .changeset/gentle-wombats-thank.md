@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Create <LiteIndex /> component that contains the initialization logic and manages <Index /> and <Playground />
+fix:Refactoring <gradio-lite /> component making the code simpler and fixing a Playground mode bug
