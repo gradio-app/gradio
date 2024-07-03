@@ -88,10 +88,14 @@
 			const newElement = items[new_index] as HTMLElement;
 			if (newElement) {
 				newElement.focus();
-				document.querySelectorAll(".res-block").forEach((el) => el.classList.remove("first-res"));
+				document
+					.querySelectorAll(".res-block")
+					.forEach((el) => el.classList.remove("first-res"));
 			}
 		}
-		const search_input = document.getElementById("search-input") as HTMLInputElement;
+		const search_input = document.getElementById(
+			"search-input"
+		) as HTMLInputElement;
 		const first_result = document.querySelector(".res-block") as HTMLElement;
 		if (e.key === "Enter" && document.activeElement === search_input) {
 			first_result.click();
@@ -112,7 +116,7 @@
 
 	$: if (browser && document.querySelector(".res-block")) {
 		document.querySelector(".res-block")?.classList.add("first-res");
-	} 
+	}
 </script>
 
 <svelte:window on:keydown={handle_key_down} on:click={on_click} />
@@ -164,9 +168,11 @@
 					{#each results as result, i}
 						{#if result.content.length > 0}
 							<li>
-								<a class="res-block" 
-								class:first-res={i === 0}
-								href={result.slug}>
+								<a
+									class="res-block"
+									class:first-res={i === 0}
+									href={result.slug}
+								>
 									<p
 										class:text-green-700={result.type == "DOCS"}
 										class:bg-green-100={result.type == "DOCS"}
@@ -177,9 +183,7 @@
 										{result.type}
 									</p>
 									<div class="float-right">
-										<div class="enter">
-											↵
-										</div>
+										<div class="enter">↵</div>
 									</div>
 									<p>{@html result.title}</p>
 									<ol>
@@ -212,9 +216,7 @@
 								GUIDE
 							</p>
 							<div class="float-right">
-								<div class="enter">
-									↵
-								</div>
+								<div class="enter">↵</div>
 							</div>
 							<p>Quickstart</p>
 						</a>
@@ -227,9 +229,7 @@
 								DOCS
 							</p>
 							<div class="float-right">
-								<div class="enter">
-									↵
-								</div>
+								<div class="enter">↵</div>
 							</div>
 							<p>Interface</p>
 						</a>
@@ -242,9 +242,7 @@
 								DOCS
 							</p>
 							<div class="float-right">
-								<div class="enter">
-									↵
-								</div>
+								<div class="enter">↵</div>
 							</div>
 							<p>Blocks</p>
 						</a>
