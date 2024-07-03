@@ -74,7 +74,7 @@
 			const current_index = current ? items.indexOf(current) : -1;
 			let new_index;
 			if (current_index === -1) {
-				new_index = 0;
+				new_index = 1;
 			} else {
 				if (e.key === "ArrowUp") {
 					new_index = (current_index + items.length - 1) % items.length;
@@ -88,7 +88,13 @@
 			const newElement = items[new_index] as HTMLElement;
 			if (newElement) {
 				newElement.focus();
+				document.querySelectorAll(".res-block").forEach((el) => el.classList.remove("first-res"));
 			}
+		}
+		const search_input = document.getElementById("search-input") as HTMLInputElement;
+		const first_result = document.querySelector(".res-block") as HTMLElement;
+		if (e.key === "Enter" && document.activeElement === search_input) {
+			first_result.click();
 		}
 	}
 
@@ -103,6 +109,10 @@
 			}
 		}
 	}
+
+	$: if (browser && document.querySelector(".res-block")) {
+		document.querySelector(".res-block")?.classList.add("first-res");
+	} 
 </script>
 
 <svelte:window on:keydown={handle_key_down} on:click={on_click} />
@@ -151,19 +161,26 @@
 		<div class="results">
 			{#if results.length}
 				<ul>
-					{#each results as result}
+					{#each results as result, i}
 						{#if result.content.length > 0}
 							<li>
-								<a class="res-block" href={result.slug}>
+								<a class="res-block" 
+								class:first-res={i === 0}
+								href={result.slug}>
 									<p
 										class:text-green-700={result.type == "DOCS"}
 										class:bg-green-100={result.type == "DOCS"}
 										class:text-orange-700={result.type == "GUIDE"}
 										class:bg-orange-100={result.type == "GUIDE"}
-										class="float-right text-xs font-semibold rounded-md p-1 px-2"
+										class="float-left text-xs font-semibold rounded-md p-1 px-2 mx-1 mt-[3px]"
 									>
 										{result.type}
 									</p>
+									<div class="float-right">
+										<div class="enter">
+											↵
+										</div>
+									</div>
 									<p>{@html result.title}</p>
 									<ol>
 										{#each result.content as content}
@@ -188,32 +205,47 @@
 				<ul>
 					<p class="">Suggestions</p>
 					<li>
-						<a class="res-block" href="/quickstart">
+						<a class="res-block first-res" href="/quickstart">
 							<p
-								class="float-right text-xs font-semibold text-orange-700 bg-orange-100 rounded-md p-1 px-2"
+								class="float-left text-xs mx-1 font-semibold text-orange-700 bg-orange-100 rounded-md p-1 px-2 mt-[3px]"
 							>
 								GUIDE
 							</p>
+							<div class="float-right">
+								<div class="enter">
+									↵
+								</div>
+							</div>
 							<p>Quickstart</p>
 						</a>
 					</li>
 					<li>
 						<a class="res-block" href="/docs/gradio/interface">
 							<p
-								class="float-right text-xs font-semibold text-green-700 bg-green-100 rounded-md p-1 px-2"
+								class="float-left text-xs font-semibold text-green-700 bg-green-100 rounded-md p-1 px-2 mx-1 mt-[3px]"
 							>
 								DOCS
 							</p>
+							<div class="float-right">
+								<div class="enter">
+									↵
+								</div>
+							</div>
 							<p>Interface</p>
 						</a>
 					</li>
 					<li>
 						<a class="res-block" href="/docs/gradio/blocks">
 							<p
-								class="float-right text-xs font-semibold text-green-700 bg-green-100 rounded-md p-1 px-2"
+								class="float-left text-xs font-semibold text-green-700 bg-green-100 rounded-md p-1 px-2 mx-1 mt-[3px]"
 							>
 								DOCS
 							</p>
+							<div class="float-right">
+								<div class="enter">
+									↵
+								</div>
+							</div>
 							<p>Blocks</p>
 						</a>
 					</li>
@@ -274,6 +306,24 @@
 	}
 	:global(.res-block) {
 		@apply m-2 p-2 border border-gray-100 rounded-md bg-gray-50 hover:bg-gray-100 hover:scale-[1.01] focus:bg-gray-100 focus:scale-[1.01] focus:outline-none;
+	}
+	:global(.first-res) {
+		@apply bg-gray-100 scale-[1.01];
+	}
+
+	:global(.res-block:focus .enter) {
+		display: block !important;
+	}
+	:global(.first-res .enter) {
+		display: block !important;
+	}
+
+	.enter {
+		display: none;
+	}
+
+	.enter {
+		@apply text-xs font-semibold rounded-md p-1 border-gray-300 border text-gray-500 font-sans bg-white;
 	}
 
 	.loader {
