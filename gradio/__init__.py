@@ -43,6 +43,7 @@ from gradio.components import (
     LoginButton,
     LogoutButton,
     Markdown,
+    MessageDict,
     Model3D,
     MultimodalTextbox,
     Number,
