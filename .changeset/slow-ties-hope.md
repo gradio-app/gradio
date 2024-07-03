@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Fix playground debounce
+feat:Fix playground to display errors
