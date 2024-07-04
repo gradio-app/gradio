@@ -30,7 +30,7 @@ import {
 	get_jwt,
 	parse_and_set_cookies
 } from "./helpers/init_helpers";
-import { check_space_status } from "./helpers/spaces";
+import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
 
@@ -238,45 +238,7 @@ export class Client {
 		const { status_callback } = this.options;
 
 		if (space_id && status_callback) {
-			let retries = 0;
-			const max_retries = 12;
-			const check_interval = 5000;
-
-			const check_and_wake_space = async (): Promise<void> => {
-				return new Promise((resolve) => {
-					check_space_status(
-						space_id,
-						RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
-						(status) => {
-							status_callback(status);
-
-							if (status.status === "running") {
-								resolve();
-							} else if (
-								status.status === "error" ||
-								status.status === "paused" ||
-								status.status === "space_error"
-							) {
-								resolve();
-							} else if (
-								status.status === "sleeping" ||
-								status.status === "building"
-							) {
-								if (retries < max_retries) {
-									retries++;
-									setTimeout(() => {
-										check_and_wake_space().then(resolve);
-									}, check_interval);
-								} else {
-									resolve();
-								}
-							}
-						}
-					);
-				});
-			};
-
-			await check_and_wake_space();
+			await check_and_wake_space(space_id, status_callback);
 		}
 
 		let config: Config | undefined;
