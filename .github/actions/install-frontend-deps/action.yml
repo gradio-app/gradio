@@ -22,7 +22,7 @@ runs:
           gradio/templates/*
         key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
     - name: Install pnpm
-      uses: pnpm/action-setup@v2
+      uses: pnpm/action-setup@v4
       with:
         version: 9.1.x
     - uses: actions/setup-node@v4
