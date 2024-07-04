@@ -8,6 +8,7 @@
 	import type Canvas3D from "./Canvas3D.svelte";
 
 	export let value: FileData | null;
+	export let display_mode: "solid" | "point_cloud" | "wireframe" = "solid";
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;
@@ -101,6 +102,7 @@
 				bind:this={canvas3d}
 				bind:resolved_url
 				{value}
+				{display_mode}
 				{clear_color}
 				{camera_position}
 				{zoom_speed}
