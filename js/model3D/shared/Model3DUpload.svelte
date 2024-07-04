@@ -9,7 +9,7 @@
 	import type Canvas3D from "./Canvas3D.svelte";
 
 	export let value: null | FileData;
-	export let display_mode: "default" | "point_cloud" | "wireframe" = "default";
+	export let display_mode: "solid" | "point_cloud" | "wireframe" = "solid";
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
 	export let label = "";
 	export let show_label: boolean;

@@ -20,7 +20,7 @@
 	export let visible = true;
 	export let value: null | FileData = null;
 	export let root: string;
-	export let display_mode: "default" | "point_cloud" | "wireframe" = "default";
+	export let display_mode: "solid" | "point_cloud" | "wireframe" = "solid";
 	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
