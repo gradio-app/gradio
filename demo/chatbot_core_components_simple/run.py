@@ -11,17 +11,20 @@ color_map = {
     "beneficial": "green",
 }
 
+
 def html_src(harm_level):
     return f"""
-<div style="display: flex; gap: 5px;padding: 2px 4px;margin-top: -40px">
+<div style="display: flex; gap: 5px;">
   <div style="background-color: {color_map[harm_level]}; padding: 2px; border-radius: 5px;">
   {harm_level}
   </div>
 </div>
 """
 
+
 def print_like_dislike(x: gr.LikeData):
     print(x.index, x.value, x.liked)
+
 
 def add_message(history, message):
     for x in message["files"]:
@@ -30,18 +33,27 @@ def add_message(history, message):
         history.append((message["text"], None))
     return history, gr.MultimodalTextbox(value=None, interactive=False)
 
+
 def bot(history, response_type):
     if response_type == "gallery":
         history[-1][1] = gr.Gallery(
-            ["https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
-             "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"]
+            [
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            ]
         )
     elif response_type == "image":
-        history[-1][1] = gr.Image("https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png")
+        history[-1][1] = gr.Image(
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+        )
     elif response_type == "video":
-        history[-1][1] = gr.Video("https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4")
+        history[-1][1] = gr.Video(
+            "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+        )
     elif response_type == "audio":
-        history[-1][1] = gr.Audio("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav")
+        history[-1][1] = gr.Audio(
+            "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+        )
     elif response_type == "html":
         history[-1][1] = gr.HTML(
             html_src(random.choice(["harmful", "neutral", "beneficial"]))
