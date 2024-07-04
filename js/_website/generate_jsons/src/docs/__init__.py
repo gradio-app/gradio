@@ -210,6 +210,17 @@ def organize_docs(d):
 
     pages = organize_pages()
 
+    # content_json = {}
+    # def generate_content_json(pages): 
+    #     for library in pages: 
+    #         for category in pages[library]: 
+    #             for page in category["pages"]: 
+    #                 page_path = os.path.join(TEMPLATES_DIR, page["path"] + ".svx")
+    #                 with open(page_path) as f:
+    #                     content = f.read()
+    #                 content_json["content"] = content
+
+
     organized["gradio"]["events_matrix"] = component_events
     organized["gradio"]["events"] = events
 

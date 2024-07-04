@@ -6,39 +6,8 @@
 	export let current_nav_link = "";
 
 	let show_nav = false;
-	let searchTerm = "";
-	let searchBar: HTMLInputElement;
-
-	const search = () => {
-		let links = document.querySelectorAll(
-			".navigation a"
-		) as NodeListOf<HTMLAnchorElement>;
-		links.forEach((link) => {
-			let linkText = link.innerText.toLowerCase();
-			if (linkText.includes(searchTerm.toLowerCase())) {
-				link.style.display = "block";
-			} else {
-				link.style.display = "none";
-			}
-		});
-	};
-
-	function onKeyDown(e: KeyboardEvent) {
-		if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
-			e.preventDefault();
-			searchBar.focus();
-		}
-		if (e.key == "Escape") {
-			searchTerm = "";
-			searchBar.blur();
-			search();
-		}
-	}
-
 	import DropDown from "$lib/components/VersionDropdown.svelte";
 </script>
-
-<svelte:window on:keydown={onKeyDown} />
 
 <section
 	class="top-0 left-0 fixed flex items-center p-4 rounded-br-lg backdrop-blur-lg z-50 bg-gray-200/50 lg:hidden"
@@ -88,16 +57,6 @@
 	<div
 		class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block my-4 ml-4"
 	>
-		<input
-			bind:value={searchTerm}
-			on:input={search}
-			bind:this={searchBar}
-			id="search"
-			type="search"
-			class="w-4/5 rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
-			placeholder="Search ⌘-k / ctrl-k"
-			autocomplete="off"
-		/>
 		<DropDown></DropDown>
 	</div>
 

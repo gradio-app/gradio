@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { store } from "../../routes/+layout.svelte";
 
-	import { gradio_logo, github_black } from "../assets";
+	import { gradio_logo } from "../assets";
+	import Search from "./search";
 
 	let click_nav = false;
 	let show_help_menu = false;
@@ -103,16 +104,17 @@
 							class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
 							href="/brand">Brand</a
 						>
+						<a
+							class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
+							href="https://github.com/gradio-app/gradio"
+						>
+							Github
+						</a>
 					</div>
 				{/if}
 			</div>
 
-			<a
-				class="thin-link flex items-center gap-3"
-				href="https://github.com/gradio-app/gradio"
-			>
-				<img src={github_black} class="w-6" alt="Github logo" />
-			</a>
+			<Search />
 		</nav>
 	</div>
 </div>
