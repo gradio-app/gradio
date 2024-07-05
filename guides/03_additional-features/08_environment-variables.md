@@ -79,6 +79,24 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_SHARE="True"
   ```
 
+### 9. `GRADIO_ALLOWED_PATHS`
+
+- **Description**: Sets a list of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Multiple items can be specified by separating items with commas.
+- **Default**: `""`
+- **Example**:
+  ```sh
+  export GRADIO_ALLOWED_PATHS="/mnt/sda1,/mnt/sda2"
+  ```
+
+### 10. `GRADIO_BLOCKED_PATHS`
+
+- **Description**: Sets a list of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Multiple items can be specified by separating items with commas.
+- **Default**: `""`
+- **Example**:
+  ```sh
+  export GRADIO_BLOCKED_PATHS="/users/x/gradio_app/admin,/users/x/gradio_app/keys"
+  ```
+
 
 ## How to Set Environment Variables
 
