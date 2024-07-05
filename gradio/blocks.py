@@ -2260,7 +2260,9 @@ Received outputs:
         else:
             allowed_paths_env = os.environ.get("GRADIO_ALLOWED_PATHS", "")
             if len(allowed_paths_env) > 0:
-                self.allowed_paths = [item.strip() for item in allowed_paths_env.split(",")]
+                self.allowed_paths = [
+                    item.strip() for item in allowed_paths_env.split(",")
+                ]
             else:
                 self.allowed_paths = []
 
@@ -2269,10 +2271,11 @@ Received outputs:
         else:
             blocked_paths_env = os.environ.get("GRADIO_BLOCKED_PATHS", "")
             if len(blocked_paths_env) > 0:
-                self.blocked_paths = [item.strip() for item in blocked_paths_env.split(",")]
+                self.blocked_paths = [
+                    item.strip() for item in blocked_paths_env.split(",")
+                ]
             else:
                 self.blocked_paths = []
-
 
         if not isinstance(self.allowed_paths, list):
             raise ValueError("`allowed_paths` must be a list of directories.")
