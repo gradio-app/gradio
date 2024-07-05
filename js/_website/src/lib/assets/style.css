@@ -147,6 +147,7 @@
 }
 code.language-python {
 	@apply !leading-7 !whitespace-pre-wrap !break-all;
+	line-height: 1 !important;
 }
 code.language-bash {
 	@apply !leading-7 !whitespace-pre-wrap !break-all;
@@ -195,10 +196,7 @@ code.language-bash {
 }
 
 [type="search"]::-webkit-search-cancel-button {
-	@apply appearance-none h-5 w-5;
-	-webkit-appearance: none;
-	background-image: url("/src/lib/assets/img/esc.svg");
-	background-size: 20px 20px;
+	display: none;
 }
 
 .view-code {
@@ -249,10 +247,19 @@ li > ul {
 	padding-bottom: 0 !important;
 }
 
+code {
+	font-size: 0.9em;
+}
+
 pre > code {
 	font-weight: 500 !important;
 	border-radius: 0.25rem;
 	font-size: 0.9em !important;
+	line-height: 1 !important;
+}
+
+h3.header-tag {
+	margin-bottom: 10px;
 }
 
 h1 > code,
@@ -301,4 +308,8 @@ strong {
 }
 .embedded-component .gradio-container footer {
 	display: none !important;
+}
+
+.obj .codeblock {
+	@apply my-4;
 }

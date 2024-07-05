@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Literal
 
 from gradio_client import handle_file
 from gradio_client.documentation import document
@@ -32,6 +32,7 @@ class Model3D(Component):
         self,
         value: str | Callable | None = None,
         *,
+        display_mode: Literal["solid", "point_cloud", "wireframe"] | None = None,
         clear_color: tuple[float, float, float, float] | None = None,
         camera_position: tuple[
             int | float | None, int | float | None, int | float | None
@@ -60,6 +61,7 @@ class Model3D(Component):
         """
         Parameters:
             value: path to (.obj, .glb, .stl, .gltf, .splat, or .ply) file to show in model3D viewer. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            display_mode: the display mode of the 3D model in the scene. Can be "solid" (which renders the model as a solid object), "point_cloud", or "wireframe". For .splat, or .ply files, this parameter is ignored, as those files can only be rendered as solid objects.
             clear_color: background color of scene, should be a tuple of 4 floats between 0 and 1 representing RGBA values.
             camera_position: initial camera position of scene, provided as a tuple of `(alpha, beta, radius)`. Each value is optional. If provided, `alpha` and `beta` should be in degrees reflecting the angular position along the longitudinal and latitudinal axes, respectively. Radius corresponds to the distance from the center of the object to the camera.
             zoom_speed: the speed of zooming in and out of the scene when the cursor wheel is rotated or when screen is pinched on a mobile device. Should be a positive float, increase this value to make zooming faster, decrease to make it slower. Affects the wheelPrecision property of the camera.
@@ -79,6 +81,7 @@ class Model3D(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
+        self.display_mode = display_mode
         self.clear_color = clear_color or [0, 0, 0, 0]
         self.camera_position = camera_position
         self.height = height
