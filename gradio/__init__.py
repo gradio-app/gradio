@@ -53,6 +53,7 @@ from gradio.components import (
     State,
     Text,
     Textbox,
+    TimeRange,
     UploadButton,
     Video,
     component,

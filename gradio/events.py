@@ -484,6 +484,7 @@ class EventListener(str):
 
         event_trigger.event_name = _event_name
         event_trigger.has_trigger = _has_trigger
+        event_trigger.callback = _callback
         return event_trigger
 
 
@@ -606,6 +607,9 @@ def on(
             EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore
             for t in triggers_typed
         ]
+    if triggers:
+        for trigger in triggers:
+            trigger.callback(trigger.__self__)
     dep, dep_index = root_block.set_event_trigger(
         methods,
         fn,

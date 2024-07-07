@@ -300,6 +300,9 @@ importers:
       '@gradio/textbox':
         specifier: workspace:^
         version: link:js/textbox
+      '@gradio/timerange':
+        specifier: workspace:^
+        version: link:js/timerange
       '@gradio/upload':
         specifier: workspace:^
         version: link:js/upload
@@ -655,6 +658,9 @@ importers:
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
+      '@gradio/timerange':
+        specifier: workspace:^
+        version: link:../timerange
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
@@ -1838,6 +1844,25 @@ importers:
         version: link:../preview
 
   js/theme: {}
+
+  js/timerange:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
 
   js/tooltip: {}
 

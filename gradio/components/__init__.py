@@ -46,6 +46,7 @@ from gradio.components.scatter_plot import ScatterPlot
 from gradio.components.slider import Slider
 from gradio.components.state import State
 from gradio.components.textbox import Textbox
+from gradio.components.time_range import TimeRange
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
 from gradio.layouts import Form
@@ -92,6 +93,7 @@ __all__ = [
     "LogoutButton",
     "Markdown",
     "Textbox",
+    "TimeRange",
     "Dropdown",
     "Model3D",
     "File",
