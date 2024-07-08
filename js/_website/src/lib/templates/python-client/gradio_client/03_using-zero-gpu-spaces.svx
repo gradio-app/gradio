@@ -12,13 +12,13 @@ These kinds of spaces are a great foundation to build new applications on top of
 
 ZeroGPU spaces are rate-limited to ensure that a single user does not hog all of the available GPUs.
 The limit is controlled by a special token that the Hugging Face Hub infrastructure adds to all incoming requests to Spaces.
+This token is a request header called `X-IP-Token` and it's value changes depending on the user who makes a request to the ZeroGPU space.
 
 Let's say you want to create a space (Space A) that uses a ZeroGPU space (Space B) programmatically.
 Simply calling Space B from Space A with the python client will quickly exhaust your rate limit, as all the requests to the ZeroGPU space will have the same token.
 
-The special token is changes depending on the Hugging Face user who is using Space A.
-So in order to avoid this, we need to set the token of the user using Space A before we call Space B programmatically.
-This will be explained in the following section.
+So in order to avoid this, we need to extract the token of the user using Space A before we call Space B programmatically.
+How to do this will be explained in the following section.
 
 ## Avoiding Rate Limits 
 
@@ -31,7 +31,7 @@ We use the `load` event to extract the user's `x-ip-token` header when they visi
 We create a new client with this header passed to the `headers` parameter.
 This ensures all subsequent predictions pass this header to the ZeroGPU space.
 The client is saved in a State variable so that it's kept independent from other users.
-It will be deleted when the user exits the page.
+It will be deleted automatically when the user exits the page.
 
 
 ```python
