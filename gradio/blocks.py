@@ -2015,7 +2015,7 @@ Received outputs:
             "fill_height": self.fill_height,
             "theme_hash": self.theme_hash,
         }
-        config.update(self.default_config.get_config())
+        config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
             config, self.blocks.values()
         )
