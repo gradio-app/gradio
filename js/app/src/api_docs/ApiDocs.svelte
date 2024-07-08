@@ -23,6 +23,9 @@
 	export let app: Awaited<ReturnType<typeof Client.connect>>;
 	export let space_id: string | null;
 	export let root_node: ComponentMeta;
+	export let username: string | null;
+	console.log("username", username);
+	
 	const js_docs =
 		"https://www.gradio.app/guides/getting-started-with-the-js-client";
 	const py_docs =

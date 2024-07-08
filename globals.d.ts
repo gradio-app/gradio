@@ -16,7 +16,7 @@ declare global {
 }
 
 export interface Config {
-	auth_required: boolean;
+	auth_required?: true;
 	auth_message: string;
 	components: any[];
 	css: string | null;

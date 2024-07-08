@@ -47,7 +47,7 @@ from gradio.context import (
     get_render_context,
     set_render_context,
 )
-from gradio.data_classes import FileData, GradioModel, GradioRootModel
+from gradio.data_classes import BlocksConfigDict, FileData, GradioModel, GradioRootModel
 from gradio.events import (
     EventData,
     EventListener,
@@ -1024,7 +1024,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.predict = None
         self.input_components = None
         self.output_components = None
-        self.__name__ = None
+        self.__name__ = None  # type: ignore
         self.api_mode = None
 
         self.progress_tracking = None
@@ -1082,7 +1082,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     @classmethod
     def from_config(
         cls,
-        config: dict,
+        config: BlocksConfigDict,
         fns: list[Callable],
         proxy_url: str,
     ) -> Blocks:
@@ -1978,8 +1978,8 @@ Received outputs:
     def get_config(self):
         return {"type": "column"}
 
-    def get_config_file(self):
-        config = {
+    def get_config_file(self) -> BlocksConfigDict:
+        config: BlocksConfigDict = {
             "version": routes.VERSION,
             "mode": self.mode,
             "app_id": self.app_id,
