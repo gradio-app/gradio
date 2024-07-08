@@ -204,6 +204,11 @@ OVERRIDES = {
         python_file_name="image_editor.py",
         js_dir="imageeditor",
     ),
+    "MultimodalTextbox": ComponentFiles(
+        template="MultimodalTextbox",
+        python_file_name="multimodal_textbox.py",
+        js_dir="multimodaltextbox",
+    ),
 }
 
 
