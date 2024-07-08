@@ -657,7 +657,8 @@ def on(
         ]
     if triggers:
         for trigger in triggers:
-            trigger.callback(trigger.__self__)
+            if trigger.callback:
+                trigger.callback(trigger.__self__)
 
     if every is not None:
         from gradio.components import Timer
