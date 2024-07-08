@@ -24,6 +24,8 @@
 	let range_history: [string, string][] = [];
 	$: if (value[0] !== old_value[0] || value[1] !== old_value[1]) {
 		old_value = value;
+		start_time = value[0];
+		end_time = value[1];
 		range_history.push(value);
 		gradio.dispatch("change");
 	}
@@ -42,8 +44,8 @@
 		return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 	};
 
-	$: start_time = value == null ? "" : value[0];
-	$: end_time = value == null ? "" : value[1];
+	let start_time = value[0];
+	let end_time = value[1];
 
 	let datetime1: HTMLInputElement;
 	let datevalue1 = "";
@@ -63,7 +65,8 @@
 	$: end_time_valid = date_is_valid_format(end_time);
 
 	const submit_values = () => {
-		if (!start_time_valid || !end_time_valid) return;
+		if (!date_is_valid_format(start_time) || !date_is_valid_format(end_time))
+			return;
 		old_value = value = [start_time, end_time];
 		range_history = [...range_history, value];
 		gradio.dispatch("change");
