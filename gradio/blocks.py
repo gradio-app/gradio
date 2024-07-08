@@ -74,7 +74,6 @@ from gradio.utils import (
     check_function_inputs_match,
     component_or_layout_class,
     get_cancelled_fn_indices,
-    get_continuous_fn,
     get_package_version,
     get_upload_folder,
 )
@@ -489,7 +488,6 @@ class BlockFunction:
         api_name: str | Literal[False] = False,
         js: str | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
-        every: float | None = None,
         cancels: list[int] | None = None,
         collects_event_data: bool = False,
         trigger_after: int | None = None,
@@ -521,7 +519,6 @@ class BlockFunction:
         self.api_name = api_name
         self.js = js
         self.show_progress = show_progress
-        self.every = every
         self.cancels = cancels or []
         self.collects_event_data = collects_event_data
         self.trigger_after = trigger_after
@@ -531,12 +528,9 @@ class BlockFunction:
         self.scroll_to_output = False if utils.get_space() else scroll_to_output
         self.show_api = show_api
         self.zero_gpu = hasattr(self.fn, "zerogpu")
-        self.types_continuous = bool(self.every)
-        self.types_generator = (
-            inspect.isgeneratorfunction(self.fn)
-            or inspect.isasyncgenfunction(self.fn)
-            or bool(self.every)
-        )
+        self.types_generator = inspect.isgeneratorfunction(
+            self.fn
+        ) or inspect.isasyncgenfunction(self.fn)
         self.renderable = renderable
         self.rendered_in = rendered_in
 
@@ -577,12 +571,10 @@ class BlockFunction:
             "api_name": self.api_name,
             "scroll_to_output": self.scroll_to_output,
             "show_progress": self.show_progress,
-            "every": self.every,
             "batch": self.batch,
             "max_batch_size": self.max_batch_size,
             "cancels": self.cancels,
             "types": {
-                "continuous": self.types_continuous,
                 "generator": self.types_generator,
                 "cancel": self.is_cancel_function,
             },
@@ -673,7 +665,6 @@ class BlocksConfig:
         batch: bool = False,
         max_batch_size: int = 4,
         cancels: list[int] | None = None,
-        every: float | None = None,
         collects_event_data: bool | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
@@ -702,7 +693,6 @@ class BlocksConfig:
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
             collects_event_data: whether to collect event data for this event
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
@@ -740,25 +730,6 @@ class BlocksConfig:
 
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
-        if every is not None and every <= 0:
-            raise ValueError("Parameter every must be positive or None")
-        if every and batch:
-            raise ValueError(
-                f"Cannot run event in a batch and every {every} seconds. "
-                "Either batch is True or every is non-zero but not both."
-            )
-
-        if every and fn:
-            fn = get_continuous_fn(fn, every)
-        elif every:
-            raise ValueError("Cannot set a value for `every` without a `fn`.")
-        if every and concurrency_limit is not None:
-            if concurrency_limit == "default":
-                concurrency_limit = None
-            else:
-                raise ValueError(
-                    "Cannot set a value for `concurrency_limit` with `every`."
-                )
 
         if _targets[0][1] in ["change", "key_up"] and trigger_mode is None:
             trigger_mode = "always_last"
@@ -830,7 +801,6 @@ class BlocksConfig:
             api_name=api_name,
             js=js,
             show_progress=show_progress,
-            every=every,
             cancels=cancels,
             collects_event_data=collects_event_data,
             trigger_after=trigger_after,
@@ -1326,7 +1296,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             batch=False,
             max_batch_size=4,
             cancels=None,
-            every=None,
             collects_event_data=None,
             trigger_after=None,
             trigger_only_on_success=False,
@@ -2211,8 +2180,8 @@ Received outputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True.
-            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
-            blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
+            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS.
+            blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Can be set by comma separated environment variable GRADIO_BLOCKED_PATHS.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
@@ -2261,6 +2230,17 @@ Received outputs:
             self.auth = [auth]
         else:
             self.auth = auth
+
+        if self.auth and not callable(self.auth):
+            if any(not authenticable[0] for authenticable in self.auth):
+                warnings.warn(
+                    "You have provided an empty username in `auth`. Please provide a valid username."
+                )
+            if any(not authenticable[1] for authenticable in self.auth):
+                warnings.warn(
+                    "You have provided an empty password in `auth`. Please provide a valid password."
+                )
+
         self.auth_message = auth_message
         self.show_error = show_error
         self.height = height
@@ -2275,8 +2255,27 @@ Received outputs:
 
         self.show_api = show_api
 
-        self.allowed_paths = allowed_paths or []
-        self.blocked_paths = blocked_paths or []
+        if allowed_paths:
+            self.allowed_paths = allowed_paths
+        else:
+            allowed_paths_env = os.environ.get("GRADIO_ALLOWED_PATHS", "")
+            if len(allowed_paths_env) > 0:
+                self.allowed_paths = [
+                    item.strip() for item in allowed_paths_env.split(",")
+                ]
+            else:
+                self.allowed_paths = []
+
+        if blocked_paths:
+            self.blocked_paths = blocked_paths
+        else:
+            blocked_paths_env = os.environ.get("GRADIO_BLOCKED_PATHS", "")
+            if len(blocked_paths_env) > 0:
+                self.blocked_paths = [
+                    item.strip() for item in blocked_paths_env.split(",")
+                ]
+            else:
+                self.blocked_paths = []
 
         if not isinstance(self.allowed_paths, list):
             raise ValueError("`allowed_paths` must be a list of directories.")
@@ -2633,7 +2632,7 @@ Received outputs:
         try:
             if wasm_utils.IS_WASM:
                 # NOTE:
-                # Normally, queue-related async tasks (e.g. continuous events created by `gr.Blocks.load(..., every=interval)`, whose async tasks are started at the `/queue/data` endpoint function)
+                # Normally, queue-related async tasks whose async tasks are started at the `/queue/data` endpoint function)
                 # are running in an event loop in the server thread,
                 # so they will be cancelled by `self.server.close()` below.
                 # However, in the Wasm env, we don't have the `server` and
@@ -2678,21 +2677,18 @@ Received outputs:
                     isinstance(component, components.Component)
                     and component.load_event_to_attach
                 ):
-                    load_fn, every = component.load_event_to_attach
+                    load_fn, triggers, inputs = component.load_event_to_attach
+                    has_target = len(triggers) > 0
+                    triggers += [(self, "load")]
                     # Use set_event_trigger to avoid ambiguity between load class/instance method
 
                     dep = self.default_config.set_event_trigger(
-                        [EventListenerMethod(self, "load")],
+                        [EventListenerMethod(*trigger) for trigger in triggers],
                         load_fn,
-                        None,
+                        inputs,
                         component,
-                        no_target=True,
-                        # If every is None, for sure skip the queue
-                        # else, let the enable_queue parameter take precedence
-                        # this will raise a nice error message is every is used
-                        # without queue
-                        queue=every is not None,
-                        every=every,
+                        no_target=not has_target,
+                        show_progress="hidden" if has_target else "full",
                     )[0]
                     component.load_event = dep.get_config()
 

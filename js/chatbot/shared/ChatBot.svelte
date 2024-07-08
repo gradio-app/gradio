@@ -22,6 +22,7 @@
 	import Pending from "./Pending.svelte";
 	import Component from "./Component.svelte";
 	import LikeButtons from "./ButtonPanel.svelte";
+	import type { LoadedComponent } from "../../app/src/types";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
@@ -42,7 +43,7 @@
 			component_name;
 		});
 
-		const loaded_components = await Promise.all(components);
+		const loaded_components: LoadedComponent[] = await Promise.all(components);
 		loaded_components.forEach((component, i) => {
 			_components[names[i]] = component.default;
 		});
@@ -195,6 +196,23 @@
 			liked: selected === "like"
 		});
 	}
+
+	function get_message_label_data(message: NormalisedMessage): string {
+		if (message.type === "text") {
+			return message.value;
+		} else if (message.type === "component") {
+			return `a component of type ${message.component}`;
+		} else if (message.type === "file") {
+			if (Array.isArray(message.file)) {
+				return `file of extension type: ${message.file[0].orig_name?.split(".").pop()}`;
+			}
+			return (
+				`file of extension type: ${message.file?.orig_name?.split(".").pop()}` +
+				(message.file?.orig_name ?? "")
+			);
+		}
+		return `a message of type ` + message.type ?? "unknown";
+	}
 </script>
 
 {#if show_share_button && value !== null && value.length > 0}
@@ -287,17 +305,7 @@
 										dir={rtl ? "rtl" : "ltr"}
 										aria-label={(j == 0 ? "user" : "bot") +
 											"'s message: " +
-											(typeof message === "string"
-												? message
-												: "file" in message &&
-													  message.file !== undefined &&
-													  !Array.isArray(message.file)
-													? `a file of type ${message.file?.mime_type}, ${
-															message.file?.alt_text ??
-															message.file?.orig_name ??
-															""
-														}`
-													: "")}
+											get_message_label_data(message)}
 									>
 										{#if message.type === "text"}
 											<Markdown
@@ -341,10 +349,7 @@
 									</button>
 								</div>
 								<LikeButtons
-									show={(likeable && j === 1) ||
-										(show_copy_button &&
-											message &&
-											typeof message === "string")}
+									show={j === 1 && (likeable || show_copy_button)}
 									handle_action={(selected) =>
 										handle_like(i, j, message, selected)}
 									{likeable}
@@ -352,7 +357,6 @@
 									{message}
 									position={j === 0 ? "right" : "left"}
 									avatar={avatar_images[j]}
-									show_download={true}
 									{layout}
 								/>
 							</div>

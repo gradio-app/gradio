@@ -1,5 +1,21 @@
 # gradio
 
+## 4.37.2
+
+### Features
+
+- [#8632](https://github.com/gradio-app/gradio/pull/8632) [`ea6482c`](https://github.com/gradio-app/gradio/commit/ea6482cc89a883075a9008d1758e97f5ea73a9ec) - remove `chatbot_multimodal` demo from `gr.Chatbot` documentation page.  Thanks @abidlabs!
+- [#8649](https://github.com/gradio-app/gradio/pull/8649) [`4b6c8b1`](https://github.com/gradio-app/gradio/commit/4b6c8b1c004cee67345a7f103ba2dc8e90b82e6c) - ensure `File` objects are handled in JS client `handle_file`.  Thanks @hannahblair!
+- [#8604](https://github.com/gradio-app/gradio/pull/8604) [`b6fa6b5`](https://github.com/gradio-app/gradio/commit/b6fa6b543f226540247cd50748019cde59b93005) - Add docs for `.on()`, `.then()`, and `.success()`, as well as the subclasses of `gr.EventData`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#8655](https://github.com/gradio-app/gradio/pull/8655) [`3896398`](https://github.com/gradio-app/gradio/commit/38963984800d58bfad81bc928f2d631cb4bac773) - Ensure copy button on chatbot shows when appropriate.  Thanks @pngwn!
+- [#8645](https://github.com/gradio-app/gradio/pull/8645) [`9933e53`](https://github.com/gradio-app/gradio/commit/9933e538c9544c386851d90adacd148763ccc878) - Update file_explorer.py for str type `height`.  Thanks @magical-l!
+- [#8608](https://github.com/gradio-app/gradio/pull/8608) [`c12f82a`](https://github.com/gradio-app/gradio/commit/c12f82a36dc75ff30918dc2ce5f24e583b676f22) - Bugfix: Add a `file_count` parameter to `gr.MultimodalTextbox`. Multiple files cab be uploaded by setting `file_count="multiple"`. Default is `"single"` to preserve the previous behavior.  Thanks @freddyaboulton!
+- [#8631](https://github.com/gradio-app/gradio/pull/8631) [`9b8840a`](https://github.com/gradio-app/gradio/commit/9b8840ab5f712a6634b77df014083071fa253ba0) - Ensure chatbot messages are visible to screenreaders.  Thanks @hannahblair!
+- [#8637](https://github.com/gradio-app/gradio/pull/8637) [`c348392`](https://github.com/gradio-app/gradio/commit/c34839293f7ebad91d71caced84eea4a3790a558) - Multimodal textbox buttons alignment.  Thanks @dawoodkhan82!
+
 ## 4.37.1
 
 ### Fixes

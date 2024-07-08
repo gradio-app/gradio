@@ -54,6 +54,7 @@ from gradio.components import (
     Text,
     Textbox,
     TimeRange,
+    Timer,
     UploadButton,
     Video,
     component,

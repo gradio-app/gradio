@@ -551,7 +551,6 @@
 			"max_batch_size": 4,
 			"cancels": [],
 			"types": {
-				"continuous": false,
 				"generator": false
 			},
 			"collects_event_data": false,
@@ -574,7 +573,6 @@
 			"max_batch_size": 4,
 			"cancels": [],
 			"types": {
-				"continuous": false,
 				"generator": false
 			},
 			"collects_event_data": false,
@@ -597,7 +595,6 @@
 			"max_batch_size": 4,
 			"cancels": [],
 			"types": {
-				"continuous": false,
 				"generator": false
 			},
 			"collects_event_data": false,

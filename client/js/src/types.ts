@@ -117,12 +117,19 @@ export type PredictReturn = {
 export type SpaceStatus = SpaceStatusNormal | SpaceStatusError;
 
 export interface SpaceStatusNormal {
-	status: "sleeping" | "running" | "building" | "error" | "stopped";
+	status:
+		| "sleeping"
+		| "running"
+		| "building"
+		| "error"
+		| "stopped"
+		| "starting";
 	detail:
 		| "SLEEPING"
 		| "RUNNING"
 		| "RUNNING_BUILDING"
 		| "BUILDING"
+		| "APP_STARTING"
 		| "NOT_FOUND";
 	load_status: "pending" | "error" | "complete" | "generating";
 	message: string;
@@ -246,7 +253,6 @@ export interface Dependency {
 }
 
 export interface DependencyTypes {
-	continuous: boolean;
 	generator: boolean;
 	cancel: boolean;
 }
