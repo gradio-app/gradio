@@ -89,6 +89,7 @@ class LinePlot(Plot):
         render: bool = True,
         key: int | str | None = None,
         show_actions_button: bool = False,
+        interactive: bool | None = None,
     ):
         """
         Parameters:
@@ -175,6 +176,11 @@ class LinePlot(Plot):
             every=every,
             inputs=inputs,
         )
+        if interactive is not None:
+            warnings.warn(
+                "The `interactive` parameter is deprecated and will be removed in a future version. "
+                "The LinePlot component is always interactive."
+            )
 
     def get_block_name(self) -> str:
         return "plot"

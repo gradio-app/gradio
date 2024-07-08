@@ -30,9 +30,9 @@
 		gradio.dispatch("change");
 	}
 
-	const format_date = (date: Date) => {
+	const format_date = (date: Date): string => {
 		if (date.toJSON() === null) return "";
-		const pad = (num: number) => num.toString().padStart(2, "0");
+		const pad = (num: number): string => num.toString().padStart(2, "0");
 
 		const year = date.getFullYear();
 		const month = pad(date.getMonth() + 1); // getMonth() returns 0-11
@@ -52,7 +52,7 @@
 	let datetime2: HTMLInputElement;
 	let datevalue2 = "";
 
-	const date_is_valid_format = (date: string) => {
+	const date_is_valid_format = (date: string): boolean => {
 		if (date === "") return false;
 		const is_valid_date =
 			date.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/) !== null;
@@ -64,7 +64,7 @@
 	$: start_time_valid = date_is_valid_format(start_time);
 	$: end_time_valid = date_is_valid_format(end_time);
 
-	const submit_values = () => {
+	const submit_values = (): void => {
 		if (!date_is_valid_format(start_time) || !date_is_valid_format(end_time))
 			return;
 		old_value = value = [start_time, end_time];
@@ -72,7 +72,7 @@
 		gradio.dispatch("change");
 	};
 
-	const back_in_history = () => {
+	const back_in_history = (): void => {
 		range_history.pop();
 		const last_range = range_history.pop();
 		if (last_range === undefined) {
@@ -101,13 +101,13 @@
 		{#if show_label}
 			<div class="quick-ranges">
 				{#each quick_ranges as quick_range}
-					<a
+					<button
 						class="quick-range"
 						on:click={() => {
 							start_time = "now - " + quick_range;
 							end_time = "now";
 							submit_values();
-						}}>Last {quick_range}</a
+						}}>Last {quick_range}</button
 					>
 				{/each}
 			</div>
@@ -187,16 +187,17 @@
 	.label-content {
 		display: flex;
 		justify-content: space-between;
+		align-items: flex-start;
 	}
 	.quick-ranges {
 		display: inline-flex;
 		gap: var(--size-3);
 	}
-	a {
+	button {
 		cursor: pointer;
 		color: var(--body-text-color-subdued);
 	}
-	a:hover {
+	button:hover {
 		color: var(--body-text-color);
 	}
 

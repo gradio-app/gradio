@@ -15,7 +15,6 @@
 	export let gradio: Gradio<{
 		select: SelectData;
 	}>;
-	export let x_lim: [number, number] | null = null;
 	let element: HTMLElement;
 	let parent_element: HTMLElement;
 	let view: View;
@@ -51,20 +50,20 @@
 			spec_width || parent_element.offsetWidth
 		);
 	};
-	let resize_callback = () => {};
+	let resize_callback = (): void => {};
 	const renderPlot = (): void => {
 		if (fit_width_to_parent) {
 			spec.width = get_width();
 		}
 		vegaEmbed(element, spec, { actions: show_actions_button }).then(
-			function (result) {
+			function (result): void {
 				view = result.view;
 				resize_callback = () => {
 					view.signal("width", get_width()).run();
 				};
 
 				if (!_selectable) return;
-				const callback = (event, item) => {
+				const callback = (event, item): void => {
 					const brushValue = view.signal("brush");
 					if (brushValue) {
 						if (Object.keys(brushValue).length === 0) {
