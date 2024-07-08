@@ -14,6 +14,7 @@ from typing import (
     Literal,
     Optional,
     Tuple,
+    Type,
     TypedDict,
     Union,
     cast,
@@ -480,7 +481,7 @@ class Chatbot(Component):
             an object of type ChatbotData
         """
         data_model = cast(
-            Union[type[ChatbotDataTuples], type[ChatbotDataMessages]], self.data_model
+            Union[Type[ChatbotDataTuples], Type[ChatbotDataMessages]], self.data_model
         )
         if value is None:
             return data_model(root=[])
