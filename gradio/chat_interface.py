@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import functools
 import inspect
+import warnings
 from typing import AsyncGenerator, Callable, Literal, Union, cast
 
 import anyio
@@ -187,10 +188,11 @@ class ChatInterface(Blocks):
 
             if chatbot:
                 if self.msg_format != chatbot.msg_format:
-                    raise ValueError(
-                        "The msg_format of the chatbot must match the msg_format of the chat interface."
+                    warnings.warn(
+                        "The msg_format of the chatbot does not match the msg_format of the chat interface. The msg_format of the chat interface will be used."
                         "Recieved msg_format of chatbot: {chatbot.msg_format}, msg_format of chat interface: {self.msg_format}"
                     )
+                    chatbot.msg_format = self.msg_format
                 self.chatbot = get_component_instance(chatbot, render=True)
             else:
                 self.chatbot = Chatbot(
@@ -624,9 +626,9 @@ class ChatInterface(Blocks):
         if self.multimodal and isinstance(message, MultimodalData):
             self._append_multimodal_history(message, new_response, history)  # type: ignore
         elif isinstance(message, str) and self.msg_format == "tuples":
-            history.append([message, response])  # type: ignore
+            history.append([message, new_response])  # type: ignore
         elif isinstance(message, str) and self.msg_format == "messages":
-            history.append({"role": "user", "content": message})  # type: ignore
+            history.extend([{"role": "user", "content": message}, new_response])  # type: ignore
         return history, history  # type: ignore
 
     async def _stream_fn(

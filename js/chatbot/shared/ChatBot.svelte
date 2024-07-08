@@ -215,12 +215,17 @@
 		return message.type === "component";
 	}
 
-	function groupMessages(messages: NormalisedMessage[]): NormalisedMessage[][] {
+	function group_messages(
+		messages: NormalisedMessage[]
+	): NormalisedMessage[][] {
 		const groupedMessages: NormalisedMessage[][] = [];
 		let currentGroup: NormalisedMessage[] = [];
 		let currentRole: MessageRole | null = null;
 
 		for (const message of messages) {
+			if (!(message.role === "assistant" || message.role === "user")) {
+				continue;
+			}
 			if (message.role === currentRole) {
 				currentGroup.push(message);
 			} else {
@@ -262,7 +267,7 @@
 >
 	<div class="message-wrap" use:copy>
 		{#if value !== null && value.length > 0}
-			{@const groupedMessages = groupMessages(value)}
+			{@const groupedMessages = group_messages(value)}
 			{#each groupedMessages as messages, i}
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
 				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
@@ -306,6 +311,7 @@
 								class:component={msg_type === "component"}
 								class:html={is_component_message(message) &&
 									message.content.component === "html"}
+								class:thought={thought_index > 0}
 							>
 								<button
 									data-testid={role}
@@ -326,33 +332,11 @@
 										get_message_label_data(message)}
 								>
 									{#if message.type === "text"}
-										<div class:thought={thought_index > 0}>
-											{#if message.metadata.tool_name}
-												<MessageBox
-													title={`Used tool ${message.metadata.tool_name}`}
-													emoji="🛠️"
-												>
-													<Markdown
-														message={message.content}
-														{latex_delimiters}
-														{sanitize_html}
-														{render_markdown}
-														{line_breaks}
-														on:load={scroll}
-													/>
-												</MessageBox>
-											{:else if message.metadata.error}
-												<MessageBox title={"Error"} emoji={"💥"}>
-													<Markdown
-														message={message.content}
-														{latex_delimiters}
-														{sanitize_html}
-														{render_markdown}
-														{line_breaks}
-														on:load={scroll}
-													/>
-												</MessageBox>
-											{:else}
+										{#if message.metadata.tool_name}
+											<MessageBox
+												title={`Used tool ${message.metadata.tool_name}`}
+												emoji="🛠️"
+											>
 												<Markdown
 													message={message.content}
 													{latex_delimiters}
@@ -361,8 +345,28 @@
 													{line_breaks}
 													on:load={scroll}
 												/>
-											{/if}
-										</div>
+											</MessageBox>
+										{:else if message.metadata.error}
+											<MessageBox title={"Error"} emoji={"💥"}>
+												<Markdown
+													message={message.content}
+													{latex_delimiters}
+													{sanitize_html}
+													{render_markdown}
+													{line_breaks}
+													on:load={scroll}
+												/>
+											</MessageBox>
+										{:else}
+											<Markdown
+												message={message.content}
+												{latex_delimiters}
+												{sanitize_html}
+												{render_markdown}
+												{line_breaks}
+												on:load={scroll}
+											/>
+										{/if}
 									{:else if message.type === "component" && message.content.component in _components}
 										<Component
 											{target}

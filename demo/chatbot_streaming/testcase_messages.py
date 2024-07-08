@@ -3,7 +3,7 @@ import random
 import time
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(msg_format="openai")
+    chatbot = gr.Chatbot(msg_format="messages")
     msg = gr.Textbox()
     clear = gr.Button("Clear")
 
@@ -23,6 +23,6 @@ with gr.Blocks() as demo:
     )
     clear.click(lambda: None, None, chatbot, queue=False)
 
-demo.queue()
+
 if __name__ == "__main__":
     demo.launch()

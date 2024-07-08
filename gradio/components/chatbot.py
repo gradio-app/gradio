@@ -174,6 +174,7 @@ class Chatbot(Component):
         """
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            msg_format: The format of the messages. If 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed. If 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content' key's value supports everything the 'tuples' format supports. The 'role' key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -201,6 +202,10 @@ class Chatbot(Component):
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
         """
         self.likeable = likeable
+        if msg_format not in ["messages", "tuples"]:
+            raise ValueError(
+                "msg_format must be 'messages' or 'tuples', received: {msg_format}"
+            )
         self.msg_format: Literal["tuples", "messages"] = msg_format
         if msg_format == "messages":
             self.data_model = ChatbotDataMessages
@@ -337,16 +342,16 @@ class Chatbot(Component):
         Parameters:
             payload: data as a ChatbotData object
         Returns:
-            Passes the messages in the chatbot as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. Each message can be (1) a string in valid Markdown, (2) a tuple if there are displayed files: (a filepath or URL to a file, [optional string alt text]), or (3) None, if there is no message displayed.
+            If msg_format is 'tuples', passes the messages in the chatbot as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. Each message can be (1) a string in valid Markdown, (2) a tuple if there are displayed files: (a filepath or URL to a file, [optional string alt text]), or (3) None, if there is no message displayed. If msg_format is 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content' key's value supports everything the 'tuples' format supports.
         """
         if payload is None:
             return payload
         if self.msg_format == "tuples":
             if not isinstance(payload, ChatbotDataTuples):
-                raise Error("Data incompatible with tuples format")
+                raise Error("Data incompatible with the tuples format")
             return self._preprocess_messages_tuples(cast(ChatbotDataTuples, payload))
         if not isinstance(payload, ChatbotDataMessages):
-            raise Error("Data incompatible with openai format")
+            raise Error("Data incompatible with the messages format")
         message_dicts = []
         for message in payload.root:
             message_dict = cast(MessageDict, message.model_dump())
@@ -470,12 +475,15 @@ class Chatbot(Component):
     ) -> ChatbotDataTuples | ChatbotDataMessages:
         """
         Parameters:
-            value: expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed.
+            value: If msg_format is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed. If msg_format is 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content' key's value supports everything the 'tuples' format supports.
         Returns:
             an object of type ChatbotData
         """
+        data_model = cast(
+            Union[type[ChatbotDataTuples], type[ChatbotDataMessages]], self.data_model
+        )
         if value is None:
-            return ChatbotDataTuples(root=[])
+            return data_model(root=[])
         if self.msg_format == "tuples":
             self._check_format(value, "tuples")
             return self._postprocess_messages_tuples(cast(TupleFormat, value))

@@ -35,6 +35,7 @@
 		align-items: center;
 		padding: 8px;
 		color: var(--body-text-color);
+		opacity: 0.8;
 	}
 
 	.icon {

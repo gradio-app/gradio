@@ -40,6 +40,6 @@ with gr.Blocks() as demo:
 
     chatbot.like(print_like_dislike, None, None)
 
-demo.queue()
+
 if __name__ == "__main__":
     demo.launch()
