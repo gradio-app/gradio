@@ -26,7 +26,7 @@
 	let spec_width: number;
 	$: plot = value?.plot;
 	$: spec = JSON.parse(plot) as Spec;
-	$: if (spec && !_selectable) {
+	$: if (spec && spec.params && !_selectable) {
 		spec.params = spec.params.filter((param) => param.name !== "brush");
 	}
 	$: if (old_spec !== spec) {
