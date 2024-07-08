@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from gradio_client.documentation import document
 
@@ -94,15 +94,18 @@ class TimeRange(FormComponent):
             return None
         if self.type == "string":
             return payload
-        datetime_tuple = (self.get_datetime_from_str(item) for item in payload)
+        datetime_tuple = (
+            self.get_datetime_from_str(payload[0]),
+            self.get_datetime_from_str(payload[0]),
+        )
         if self.type == "datetime":
             return datetime_tuple
         elif self.type == "timestamp":
-            return tuple(item.timestamp() for item in datetime_tuple)
+            return (datetime_tuple[0].timestamp(), datetime_tuple[1].timestamp())
 
     def postprocess(
         self, value: tuple[float | datetime | str, float | datetime | str] | None
-    ) -> tuple[float, float] | None:
+    ) -> tuple[str, str] | None:
         """
         Parameters:
             value: Expects a tuple pair of datetimes.
@@ -111,15 +114,16 @@ class TimeRange(FormComponent):
         """
         if value is None:
             return None
-        output = []
-        for item in value:
+
+        def parse_item(item: float | datetime | str) -> str:
             if isinstance(item, datetime):
-                output.append(datetime.strftime(item, TIME_FORMAT))
+                return datetime.strftime(item, TIME_FORMAT)
             elif isinstance(item, str):
-                output.append(item)
+                return item
             else:
-                output.append(datetime.fromtimestamp(item).strftime(TIME_FORMAT))
-        return tuple(output)
+                return datetime.fromtimestamp(item).strftime(TIME_FORMAT)
+
+        return (parse_item(value[0]), parse_item(value[1]))
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
@@ -131,7 +135,7 @@ class TimeRange(FormComponent):
         return (1609459200, 1612137600)
 
     @staticmethod
-    def get_datetime_from_str(date: str) -> float:
+    def get_datetime_from_str(date: str) -> datetime:
         now_regex = r"^(?:\s*now\s*(?:-\s*(\d+)\s*([dmhs]))?)?\s*$"
 
         if "now" in date:
@@ -158,10 +162,11 @@ class TimeRange(FormComponent):
 
         if not isinstance(plots, list):
             plots = [plots]
+        plot_count = len(plots)
 
         def reset_range(select: SelectData):
             if select.selected:
-                a, b = select.index
+                a, b = cast(tuple[float, float], select.index)
                 dt_a, dt_b = datetime.fromtimestamp(a), datetime.fromtimestamp(b)
                 return dt_a, dt_b
             else:
@@ -169,10 +174,11 @@ class TimeRange(FormComponent):
 
         on([plot.select for plot in plots], reset_range, None, self)
 
-        def update_plots(range):
+        def update_plots(domain: tuple[int, int]):
             changes = [
-                LinePlot(x_lim=tuple(item * 1000 for item in range)) for _ in plots
+                LinePlot(x_lim=[domain[0] * 1000, domain[1] * 1000])
+                for _ in range(plot_count)
             ]
             return changes if len(changes) > 1 else changes[0]
 
-        self.change(update_plots, self, plots)
+        self.change(update_plots, self, plots)  # type: ignore

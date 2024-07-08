@@ -601,10 +601,10 @@ def on(
     """
     from gradio.components.base import Component
 
-    triggers_typed = cast(EventListener, triggers)
+    if not isinstance(triggers, Sequence) and triggers is not None:
+        triggers = [triggers]
+    triggers_typed = cast(Sequence[EventListener], triggers)
 
-    if isinstance(triggers_typed, EventListener):
-        triggers_typed = [triggers_typed]
     if isinstance(inputs, Component):
         inputs = [inputs]
 
