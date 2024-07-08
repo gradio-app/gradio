@@ -9,6 +9,7 @@
 	export let short_root: string;
 	export let root: string;
 	export let current_language: "python" | "javascript" | "bash";
+	export let username: string | null;
 
 	let python_code: HTMLElement;
 	let python_code_text: string;
@@ -133,7 +134,7 @@
 							class="highlight">import</span
 						> Client, file
 
-client = Client(<span class="token string">"{short_root}"</span>)
+client = Client(<span class="token string">"{short_root}"</span>{#if username !== null}, auth=("{username}", **password**){/if})
 {#each py_zipped as { call, api_name }}<!--
 -->
 client.<span class="highlight"
@@ -152,12 +153,12 @@ client.<span class="highlight"
 					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 
 const app = await Client.connect(<span class="token string">"{short_root}"</span
-						>);
+						>{#if username !== null}, &lbrace;auth: ["{username}", **password**]&rbrace;{/if});
 					{#each js_zipped as { call, api_name }}<!--
 					-->
 await client.predict(<span class="api-name">
   "/{api_name}"</span
-							>{#if call},{/if}{call});
+							>{#if call}, {/if}{call});
 						{/each}</pre>
 				</div>
 			</code>
