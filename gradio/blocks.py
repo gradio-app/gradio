@@ -499,6 +499,7 @@ class BlockFunction:
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
         is_cancel_function: bool = False,
+        protocol: Literal["ws", "sse_v3"] = "ws",
     ):
         self.fn = fn
         self._id = _id
@@ -537,6 +538,8 @@ class BlockFunction:
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
+        self.time_limit = 30
+        self.protocol = protocol
 
         self.spaces_auto_wrap()
 
@@ -674,6 +677,7 @@ class BlocksConfig:
         show_api: bool = True,
         renderable: Renderable | None = None,
         is_cancel_function: bool = False,
+        protocol:  Literal["ws", "sse_v3"] = "sse_v3",
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -812,6 +816,7 @@ class BlocksConfig:
             renderable=renderable,
             rendered_in=rendered_in,
             is_cancel_function=is_cancel_function,
+            protocol=protocol
         )
 
         self.fns[self.fn_id] = block_fn

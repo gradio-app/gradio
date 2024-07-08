@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import sys
+from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
@@ -845,3 +846,46 @@ def create_lifespan_handler(
             yield
 
     return _handler
+
+
+async def send_with_timeout(ws, msg, timeout) -> int:
+    try:
+        await asyncio.wait_for(ws.send_json(msg), timeout=timeout)
+        return True
+    except AsyncTimeOutError:
+        return False
+
+
+async def receive_with_timeout(ws, timeout) -> dict | None:
+    try:
+        return await asyncio.wait_for(ws.receive_json(), timeout=timeout)
+    except AsyncTimeOutError:
+        return
+
+
+from collections import defaultdict
+
+from fastapi import WebSocket
+
+
+class StreamConnectionManager:
+    def __init__(self):
+        self.active_connections = []
+        self.run_time = {}
+        self.fn_id_to_connections = defaultdict(list)
+        self.fn_id_to_run_time = {}
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    @staticmethod
+    async def send_msg(message: dict, websocket: WebSocket):
+        return await send_with_timeout(websocket, message, 5)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections:
+            await StreamConnectionManager.send_msg(message, connection)
