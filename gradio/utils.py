@@ -1370,6 +1370,8 @@ def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
     from gradio.components import State
 
     any_state = any(isinstance(block, State) for block in blocks)
+    any_unload = False
+
     if "dependencies" not in config:
         raise ValueError("Dependencies not found in config. Cannot determine whether"
                          "heartbeat is required.")
