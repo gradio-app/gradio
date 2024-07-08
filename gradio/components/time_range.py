@@ -166,7 +166,7 @@ class TimeRange(FormComponent):
 
         def reset_range(select: SelectData):
             if select.selected:
-                a, b = cast(tuple[float, float], select.index)
+                a, b = cast("tuple[float, float]", select.index)
                 dt_a, dt_b = datetime.fromtimestamp(a), datetime.fromtimestamp(b)
                 return dt_a, dt_b
             else:
