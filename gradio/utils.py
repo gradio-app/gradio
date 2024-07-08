@@ -1373,8 +1373,10 @@ def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
     any_unload = False
 
     if "dependencies" not in config:
-        raise ValueError("Dependencies not found in config. Cannot determine whether"
-                         "heartbeat is required.")
+        raise ValueError(
+            "Dependencies not found in config. Cannot determine whether"
+            "heartbeat is required."
+        )
 
     for dep in config["dependencies"]:
         for target in dep["targets"]:

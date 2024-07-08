@@ -297,9 +297,11 @@ class BodyCSS(TypedDict):
     body_background_fill_dark: str
     body_text_color_dark: str
 
+
 class Layout(TypedDict):
     id: int
     children: list[int | Layout]
+
 
 class BlocksConfigDict(TypedDict):
     version: str
