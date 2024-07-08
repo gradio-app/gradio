@@ -1,7 +1,7 @@
 ---
-"@gradio/app": minor
-"@gradio/client": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:Fixes auth and documents /config
+feat:Documents auth in the guides, in the view API page, and also documents the `/config` route
