@@ -84,7 +84,7 @@ describe("check_space_status", () => {
 		expect(status_callback).toHaveBeenCalledWith({
 			status: "running",
 			load_status: "complete",
-			message: "",
+			message: "Space is running.",
 			detail: "RUNNING"
 		});
 	});

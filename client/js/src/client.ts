@@ -30,7 +30,7 @@ import {
 	get_jwt,
 	parse_and_set_cookies
 } from "./helpers/init_helpers";
-import { check_space_status } from "./helpers/spaces";
+import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
 
@@ -141,6 +141,7 @@ export class Client {
 		this.resolve_config = resolve_config.bind(this);
 		this.resolve_cookies = resolve_cookies.bind(this);
 		this.upload = upload.bind(this);
+		this.handle_space_success = this.handle_space_success.bind(this);
 	}
 
 	private async init(): Promise<void> {
@@ -235,6 +236,11 @@ export class Client {
 		);
 
 		const { status_callback } = this.options;
+
+		if (space_id && status_callback) {
+			await check_and_wake_space(space_id, status_callback);
+		}
+
 		let config: Config | undefined;
 
 		try {

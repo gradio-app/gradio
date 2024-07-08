@@ -3,6 +3,7 @@ import {
 	SLEEPTIME_URL,
 	SPACE_STATUS_ERROR_MSG
 } from "../constants";
+import { RE_SPACE_NAME } from "./api_info";
 import type { SpaceStatusCallback } from "../types";
 
 export async function check_space_status(
@@ -68,7 +69,7 @@ export async function check_space_status(
 			status_callback({
 				status: "running",
 				load_status: "complete",
-				message: "",
+				message: "Space is running.",
 				detail: stage
 			});
 			break;
@@ -77,6 +78,18 @@ export async function check_space_status(
 				status: "building",
 				load_status: "pending",
 				message: "Space is building...",
+				detail: stage
+			});
+
+			setTimeout(() => {
+				check_space_status(id, type, status_callback);
+			}, 1000);
+			break;
+		case "APP_STARTING":
+			status_callback({
+				status: "starting",
+				load_status: "pending",
+				message: "Space is starting...",
 				detail: stage
 			});
 
@@ -95,6 +108,47 @@ export async function check_space_status(
 			break;
 	}
 }
+
+export const check_and_wake_space = async (
+	space_id: string,
+	status_callback: SpaceStatusCallback
+): Promise<void> => {
+	let retries = 0;
+	const max_retries = 12;
+	const check_interval = 5000;
+
+	return new Promise((resolve) => {
+		check_space_status(
+			space_id,
+			RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
+			(status) => {
+				status_callback(status);
+
+				if (status.status === "running") {
+					resolve();
+				} else if (
+					status.status === "error" ||
+					status.status === "paused" ||
+					status.status === "space_error"
+				) {
+					resolve();
+				} else if (
+					status.status === "sleeping" ||
+					status.status === "building"
+				) {
+					if (retries < max_retries) {
+						retries++;
+						setTimeout(() => {
+							check_and_wake_space(space_id, status_callback).then(resolve);
+						}, check_interval);
+					} else {
+						resolve();
+					}
+				}
+			}
+		);
+	});
+};
 
 const RE_DISABLED_DISCUSSION =
 	/^(?=[^]*\b[dD]iscussions{0,1}\b)(?=[^]*\b[dD]isabled\b)[^]*$/;
