@@ -15,6 +15,7 @@ else:
     from importlib_resources import files
 import hashlib
 import inspect
+import anyio
 import json
 import mimetypes
 import os
@@ -35,6 +36,7 @@ from typing import (
     Optional,
     Type,
     Union,
+    cast,
 )
 
 import fastapi
@@ -47,6 +49,7 @@ from fastapi import (
     FastAPI,
     HTTPException,
     status,
+    WebSocket
 )
 from fastapi.responses import (
     FileResponse,
@@ -66,7 +69,7 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse, StreamingResponse
 
 import gradio
-from gradio import ranged_response, route_utils, utils, wasm_utils
+from gradio import ranged_response, route_utils, utils, wasm_utils, processing_utils
 from gradio.context import Context
 from gradio.data_classes import (
     CancelBody,
@@ -183,6 +186,7 @@ class App(FastAPI):
         self.auth_dependency = auth_dependency
         self.api_info = None
         self.all_app_info = None
+        self.stream_connection_manager = route_utils.StreamConnectionManager()
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -586,6 +590,50 @@ class App(FastAPI):
                     return response
 
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
+
+        @app.websocket("/stream")
+        async def _(ws: WebSocket):
+            await app.stream_connection_manager.connect(ws)
+            try:
+                success = await route_utils.send_with_timeout(ws, {"msg": "send_data"}, 5)
+                if not success:
+                    app.stream_connection_manager.disconnect(ws)
+                    return
+                message = cast(PredictBody, await route_utils.receive_with_timeout(ws, 5))
+                if message is None:
+                    app.stream_connection_manager.disconnect(ws)
+                    return
+                dep = app.blocks.fns[message.fn_index]
+                app.stream_connection_manager.fn_id_to_run_time[message.fn_index] = dep.total_runtime
+                run_time = 0
+                while True:
+                    if run_time > dep.total_runtime:
+                        break
+                    message = await route_utils.receive_with_timeout(ws, 5)
+                    if message is None:
+                        app.stream_connection_manager.disconnect(ws)
+                        return
+                    if message["msg"] == "close":
+                        app.stream_connection_manager.disconnect(ws)
+                        return
+                    if message['msg'] == "data":
+                        data = message["data"]
+                        data[0] = processing_utils.decode_base64_to_array(data[0])
+                        pred_start = time.monotonic()
+                        if inspect.iscoroutinefunction(dep.fn):
+                            prediction = await dep.fn(*message["data"])
+                        else:
+                            prediction = await anyio.to_thread.run_sync(
+                                dep.fn, *message[data], limiter=app.blocks.limiter
+                            )
+                        prediction[0] = {"path": processing_utils.encode_array_to_base64(prediction[0])}
+                        pred_end = time.monotonic()
+                        run_time += (pred_end - pred_start)
+                        message = {"msg": "process_generating", "data": prediction}
+                        await app.stream_connection_manager.send_msg(ws, message)
+            except Exception:
+                await ws.close()
+                return
 
         @app.get(
             "/stream/{session_hash}/{run}/{component_id}",

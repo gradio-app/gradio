@@ -979,3 +979,18 @@ def get_video_length(video_path: str | Path):
     duration_float = float(duration_str)
 
     return duration_float
+
+
+def encode_array_to_base64(image_array):
+    with BytesIO() as output_bytes:
+        pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
+        pil_image.save(output_bytes, "PNG")
+        bytes_data = output_bytes.getvalue()
+    base64_str = str(base64.b64encode(bytes_data), "utf-8")
+    return "data:image/png;base64," + base64_str
+
+
+def decode_base64_to_array(base64_encoding):
+    image_data = base64_encoding.split(',')[1]
+    image_bytes = base64.b64decode(image_data)
+    return p.frombuffer(image_bytes, dtype=np.uint8)
