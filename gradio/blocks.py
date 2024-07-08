@@ -2180,8 +2180,8 @@ Received outputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True.
-            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
-            blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
+            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS.
+            blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Can be set by comma separated environment variable GRADIO_BLOCKED_PATHS.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
@@ -2255,8 +2255,27 @@ Received outputs:
 
         self.show_api = show_api
 
-        self.allowed_paths = allowed_paths or []
-        self.blocked_paths = blocked_paths or []
+        if allowed_paths:
+            self.allowed_paths = allowed_paths
+        else:
+            allowed_paths_env = os.environ.get("GRADIO_ALLOWED_PATHS", "")
+            if len(allowed_paths_env) > 0:
+                self.allowed_paths = [
+                    item.strip() for item in allowed_paths_env.split(",")
+                ]
+            else:
+                self.allowed_paths = []
+
+        if blocked_paths:
+            self.blocked_paths = blocked_paths
+        else:
+            blocked_paths_env = os.environ.get("GRADIO_BLOCKED_PATHS", "")
+            if len(blocked_paths_env) > 0:
+                self.blocked_paths = [
+                    item.strip() for item in blocked_paths_env.split(",")
+                ]
+            else:
+                self.blocked_paths = []
 
         if not isinstance(self.allowed_paths, list):
             raise ValueError("`allowed_paths` must be a list of directories.")

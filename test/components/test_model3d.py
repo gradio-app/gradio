@@ -11,6 +11,7 @@ class TestModel3D:
         model_component = gr.components.Model3D(None, label="Model")
         assert model_component.get_config() == {
             "value": None,
+            "display_mode": None,
             "clear_color": [0, 0, 0, 0],
             "label": "Model",
             "show_label": True,
