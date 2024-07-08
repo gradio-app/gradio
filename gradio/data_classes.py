@@ -8,10 +8,11 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, List, Literal, NotRequired, Optional, Tuple, TypedDict, Union
+from typing import TYPE_CHECKING, Any, List, Literal, Optional, Tuple, TypedDict, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
+from typing_extensions import NotRequired
 
 from . import wasm_utils
 
