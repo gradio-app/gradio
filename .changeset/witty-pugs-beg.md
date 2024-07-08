@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-feat:Documents auth in the guides, in the view API page, and also documents the `/config` route
+feat:Documents auth in the guides, in the view API page, and also types the Blocks.config object 
