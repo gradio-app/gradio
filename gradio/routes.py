@@ -384,6 +384,7 @@ class App(FastAPI):
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = blocks.config
                 config = route_utils.update_root_in_config(config, root)
+                config["username"] = user
             elif app.auth_dependency:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
@@ -440,6 +441,7 @@ class App(FastAPI):
                 request=request, route_path="/config", root_path=app.root_path
             )
             config = route_utils.update_root_in_config(config, root)
+            config["username"] = get_current_user(request)
             return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")

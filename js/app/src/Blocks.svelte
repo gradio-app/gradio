@@ -44,6 +44,7 @@
 	export let js: string | null;
 	export let fill_height = false;
 	export let ready: boolean;
+	export let username: string | null;
 
 	const {
 		layout: _layout,
@@ -678,6 +679,7 @@
 				{app}
 				{space_id}
 				{api_calls}
+				{username}
 			/>
 		</div>
 	</div>
