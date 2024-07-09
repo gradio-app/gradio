@@ -250,6 +250,7 @@ export interface Dependency {
 	show_api: boolean;
 	zerogpu?: boolean;
 	rendered_in: number | null;
+	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws" | "ws_stream";
 }
 
 export interface DependencyTypes {

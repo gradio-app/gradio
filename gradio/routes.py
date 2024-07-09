@@ -599,40 +599,56 @@ class App(FastAPI):
                 if not success:
                     app.stream_connection_manager.disconnect(ws)
                     return
-                message = cast(PredictBody, await route_utils.receive_with_timeout(ws, 5))
+                message = PredictBody(**(await route_utils.receive_with_timeout(ws, 5)))
                 if message is None:
                     app.stream_connection_manager.disconnect(ws)
                     return
                 dep = app.blocks.fns[message.fn_index]
                 app.stream_connection_manager.fn_id_to_run_time[message.fn_index] = dep.total_runtime
                 run_time = 0
+                print("dep.time_limit", dep.time_limit)
                 while True:
-                    if run_time > dep.total_runtime:
+                    send_data_start = time.monotonic()
+                    success = await route_utils.send_with_timeout(ws, {"msg": "send_data"}, 5)
+                    send_data_end = time.monotonic()
+                    #print("send_data time", send_data_end - send_data_start)
+                    recieve_start = time.monotonic()
+                    msg = await route_utils.receive_with_timeout(ws, None)
+                    receieve_end = time.monotonic()
+                    print("recieve time", receieve_end - recieve_start)
+                    message = PredictBody(**msg)
+                    if run_time > dep.time_limit:
+                        print("HERE")
                         break
-                    message = await route_utils.receive_with_timeout(ws, 5)
                     if message is None:
+                        print("message none")
                         app.stream_connection_manager.disconnect(ws)
                         return
-                    if message["msg"] == "close":
-                        app.stream_connection_manager.disconnect(ws)
-                        return
-                    if message['msg'] == "data":
-                        data = message["data"]
-                        data[0] = processing_utils.decode_base64_to_array(data[0])
-                        pred_start = time.monotonic()
-                        if inspect.iscoroutinefunction(dep.fn):
-                            prediction = await dep.fn(*message["data"])
-                        else:
-                            prediction = await anyio.to_thread.run_sync(
-                                dep.fn, *message[data], limiter=app.blocks.limiter
-                            )
-                        prediction[0] = {"path": processing_utils.encode_array_to_base64(prediction[0])}
-                        pred_end = time.monotonic()
-                        run_time += (pred_end - pred_start)
-                        message = {"msg": "process_generating", "data": prediction}
-                        await app.stream_connection_manager.send_msg(ws, message)
-            except Exception:
+                    data = message.data
+                    pred_start = time.monotonic()
+                    data[0] = processing_utils.decode_base64_to_image_array(data[0]['path'])
+                    if inspect.iscoroutinefunction(dep.fn):
+                        prediction = await dep.fn(*data)
+                    else:
+                        prediction = await anyio.to_thread.run_sync(
+                            dep.fn, *data, limiter=app.blocks.limiter
+                        )
+                    prediction = {"url": processing_utils.encode_array_to_base64(prediction)}
+                    pred_end = time.monotonic()
+                    run_time += (pred_end - pred_start)
+                    #print("total run_time", run_time)
+                    #print("run_time", (pred_end - pred_start))
+
+                    send_start = time.monotonic()
+                    message = {"msg": "process_generating", "output": {"data": [prediction]}, "success": True}
+                    await app.stream_connection_manager.send_msg(message, ws)
+                    send_end = time.monotonic()
+                    #print("send time", send_end - send_start)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
                 await ws.close()
+                print("error", e)
                 return
 
         @app.get(

@@ -108,9 +108,15 @@
 				context.drawImage(video_source, -video_source.videoWidth, 0);
 			}
 
+			if (streaming) {
+				const image_data = canvas.toDataURL('image/jpeg')
+				dispatch("stream", image_data);
+				return;
+			}
+
 			canvas.toBlob(
 				(blob) => {
-					dispatch(streaming ? "stream" : "capture", blob);
+					dispatch("capture", blob);
 				},
 				"image/png",
 				0.8
@@ -192,7 +198,7 @@
 			if (video_source && !pending) {
 				take_picture();
 			}
-		}, 500);
+		}, 100);
 	}
 
 	let options_open = false;
