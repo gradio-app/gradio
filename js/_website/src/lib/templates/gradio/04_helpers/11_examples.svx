@@ -10,6 +10,27 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("examples");
+
+    obj["attributes"] = [
+            {
+                name: "dataset",
+                annotation: "gradio.Dataset",
+                doc: "The dataset component corresponding to this Examples helper class.",
+                kwargs: null
+            },
+            {
+                name: "load_input_event",
+                annotation: "gradio.events.Dependency",
+                doc: "The Gradio event that populates the input values when the examples are clicked. You can attach a .then() or a .success() to this event to trigger subsequent events to fire after this event.",
+                kwargs: null
+            },
+            {
+                name: "cache_event",
+                annotation: "gradio.events.Dependency | None",
+                doc: "The Gradio event that populates the cached output values when the examples are clicked. You can attach a .then() or a .success() to this event to trigger subsequent events to fire after this event. This event is not defined if cache_exm",
+                kwargs: null
+            }
+        ]    
 </script>
 
 <!--- Title -->

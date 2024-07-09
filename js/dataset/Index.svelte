@@ -13,6 +13,7 @@
 	export let label = "Examples";
 	export let headers: string[];
 	export let samples: any[][] | null = null;
+	export let sample_labels: string[] | null = null;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -33,7 +34,7 @@
 		? `/proxy=${proxy_url}file=`
 		: `${root}/file=`;
 	let page = 0;
-	$: gallery = components.length < 2;
+	$: gallery = components.length < 2 || sample_labels !== null;
 	let paginate = samples ? samples.length > samples_per_page : false;
 
 	let selected_samples: any[][];
@@ -84,7 +85,13 @@
 	}[][] = [];
 
 	async function get_component_meta(selected_samples: any[][]): Promise<void> {
-		component_meta = await Promise.all(
+		if (sample_labels !== null) {
+			component_meta = await Promise.all(sample_labels.map(async (label) => ([{
+			value: label,
+			component: (await component_map.get("textbox"))?.default as ComponentType<SvelteComponent>
+		}])));
+		} else {
+			component_meta = await Promise.all(
 			selected_samples &&
 				selected_samples.map(
 					async (sample_row) =>
@@ -99,6 +106,7 @@
 						)
 				)
 		);
+		}
 	}
 
 	$: component_map, get_component_meta(selected_samples);
