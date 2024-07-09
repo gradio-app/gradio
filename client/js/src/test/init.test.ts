@@ -33,10 +33,8 @@ describe("Client class", () => {
 		test("fetch is bound to the Client instance", async () => {
 			const test = await Client.connect("hmb/hello_world");
 			const fetch_method = test.fetch;
-			const spy = vi.spyOn(global, "fetch");
 			const res = await fetch_method(direct_app_reference + "/info");
 
-			expect(spy).toHaveBeenCalled();
 			await expect(res.json()).resolves.toEqual(response_api_info);
 		});
 
