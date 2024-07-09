@@ -154,6 +154,7 @@ class SourceFileReloader(BaseReloader):
         super().swap_blocks(demo)
         if old_blocks:
             reassign_keys(old_blocks, demo)
+            reassign_fns(old_blocks, demo)
         demo.config = demo.get_config_file()
         self.alert_change("reload")
 
@@ -359,6 +360,20 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
                     reassign_context_keys(None, new_block)
 
     reassign_context_keys(old_blocks, new_blocks)
+
+
+def reassign_fns(old_blocks: Blocks, new_blocks: Blocks):
+    new_component_map = {
+        component.key: component
+        for component in new_blocks.blocks.values()
+        if component.key is not None
+    }
+    for fn in old_blocks.fns.values():
+        for i, old_output in enumerate(fn.outputs):
+            if old_output.key not in new_component_map:
+                continue
+            new_output = new_component_map[old_output.key]
+            fn.outputs[i] = new_output  # type: ignore
 
 
 def colab_check() -> bool:
