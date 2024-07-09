@@ -7,7 +7,7 @@
 	import Webcam from "./Webcam.svelte";
 
 	import { Upload } from "@gradio/upload";
-	import type { FileData, Client } from "@gradio/client";
+	import { FileData, type Client } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
@@ -45,6 +45,12 @@
 	}
 
 	async function handle_save(img_blob: Blob | any): Promise<void> {
+
+		if (streaming) {
+			value = new FileData({path: img_blob})
+			dispatch("stream");
+			return;
+		}
 		pending = true;
 		const f = await upload_input.load_files([
 			new File([img_blob], `webcam.png`)

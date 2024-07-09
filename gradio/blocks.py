@@ -499,7 +499,7 @@ class BlockFunction:
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
         is_cancel_function: bool = False,
-        protocol: Literal["ws", "sse_v3"] = "ws",
+        protocol: Literal["ws_stream", "sse_v3"] = "sse_v3",
     ):
         self.fn = fn
         self._id = _id
@@ -588,6 +588,8 @@ class BlockFunction:
             "show_api": self.show_api,
             "zerogpu": self.zero_gpu,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
+            "protocol": self.protocol,
+            "time_limit": self.time_limit,
         }
 
 
@@ -677,7 +679,7 @@ class BlocksConfig:
         show_api: bool = True,
         renderable: Renderable | None = None,
         is_cancel_function: bool = False,
-        protocol:  Literal["ws", "sse_v3"] = "sse_v3",
+        protocol:  Literal["ws_stream", "sse_v3"] = "sse_v3",
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -737,6 +739,8 @@ class BlocksConfig:
 
         if _targets[0][1] in ["change", "key_up"] and trigger_mode is None:
             trigger_mode = "always_last"
+        elif _targets[0][1] in ["stream"] and trigger_mode is None:
+            trigger_mode = "multiple"
         elif trigger_mode is None:
             trigger_mode = "once"
         elif trigger_mode not in ["once", "multiple", "always_last"]:

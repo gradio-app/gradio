@@ -345,7 +345,7 @@ class EventListener(str):
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         doc: str = "",
-        protocol: Literal["sse_v3", "ws"] = "sse_v3",
+        protocol: Literal["sse_v3", "ws_stream"] = "sse_v3",
     ):
         super().__init__()
         self.has_trigger = has_trigger
@@ -356,6 +356,7 @@ class EventListener(str):
         self.trigger_only_on_success = trigger_only_on_success
         self.callback = callback
         self.doc = doc
+        self.protocol = protocol
         self.listener = self._setup(
             event_name,
             has_trigger,
@@ -383,6 +384,7 @@ class EventListener(str):
             self.trigger_after,
             self.trigger_only_on_success,
             self.doc,
+            self.protocol # type: ignore
         )
 
     @staticmethod
@@ -393,7 +395,7 @@ class EventListener(str):
         _callback: Callable | None,
         _trigger_after: int | None,
         _trigger_only_on_success: bool,
-        _protocol: Literal["sse_v3", "ws"] = "sse_v3",
+        _protocol: Literal["sse_v3", "ws_stream"] = "sse_v3",
     ):
         def event_trigger(
             block: Block | None,
@@ -771,7 +773,7 @@ class Events:
         config_data=lambda: {"streamable": False},
         callback=lambda block: setattr(block, "streaming", True),
         doc="This listener is triggered when the user streams the {{ component }}.",
-        protocol="ws",
+        protocol="ws_stream",
     )
     like = EventListener(
         "like",

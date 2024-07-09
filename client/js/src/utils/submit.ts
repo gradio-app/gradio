@@ -65,7 +65,8 @@ export function submit(
 
 		let websocket: WebSocket;
 		let stream: EventSource | null;
-		let protocol = config.protocol ?? "ws";
+		let protocol = (dependency.protocol || config.protocol) ?? "ws";
+		console.log("protocol", protocol);
 
 		const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 		let payload: Payload;
@@ -731,6 +732,122 @@ export function submit(
 							}
 						}
 					});
+				} else if (protocol === "ws_stream") {
+					const { ws_protocol, host } = await process_endpoint(
+						app_reference,
+						hf_token
+					);
+
+					fire_event({
+						type: "status",
+						stage: "pending",
+						queue: true,
+						endpoint: _endpoint,
+						fn_index,
+						time: new Date()
+					});
+
+					let url = new URL(
+						`${ws_protocol}://${host}/stream`
+					);
+
+					if (this.jwt) {
+						url.searchParams.set("__sign", this.jwt);
+					}
+
+					websocket = new WebSocket(url);
+
+					websocket.onclose = (evt) => {
+						if (!evt.wasClean) {
+							fire_event({
+								type: "status",
+								stage: "error",
+								broken: true,
+								message: BROKEN_CONNECTION_MSG,
+								queue: true,
+								endpoint: _endpoint,
+								fn_index,
+								time: new Date()
+							});
+						}
+					};
+
+					websocket.onmessage = function (event) {
+						const _data = JSON.parse(event.data);
+						const { type, status, data } = handle_message(
+							_data,
+							last_status[fn_index]
+						);
+
+						if (type === "update" && status && !complete) {
+							// call 'status' listeners
+							fire_event({
+								type: "status",
+								endpoint: _endpoint,
+								fn_index,
+								time: new Date(),
+								...status
+							});
+							if (status.stage === "error") {
+								websocket.close();
+							}
+						} else if (type === "data") {
+							console.log("app.payload", that.current_payload)
+							websocket.send(JSON.stringify({ ...that.current_payload, session_hash }));
+						} else if (type === "complete") {
+							complete = status;
+						} else if (type === "log") {
+							fire_event({
+								type: "log",
+								log: data.log,
+								level: data.level,
+								endpoint: _endpoint,
+								duration: data.duration,
+								visible: data.visible,
+								fn_index
+							});
+						} else if (type === "generating") {
+							fire_event({
+								type: "status",
+								time: new Date(),
+								...status,
+								stage: status?.stage!,
+								queue: true,
+								endpoint: _endpoint,
+								fn_index
+							});
+						}
+						if (data) {
+							fire_event({
+								type: "data",
+								time: new Date(),
+								data: handle_payload(
+									data.data,
+									dependency,
+									config.components,
+									"output",
+									options.with_null_state
+								),
+								endpoint: _endpoint,
+								fn_index,
+								event_data,
+								trigger_id
+							});
+
+							if (complete) {
+								fire_event({
+									type: "status",
+									time: new Date(),
+									...complete,
+									stage: status?.stage!,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index
+								});
+								websocket.close();
+							}
+						}
+					};
 				}
 			}
 		);

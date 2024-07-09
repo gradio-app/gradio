@@ -253,12 +253,12 @@
 		} else {
 			if (dep.backend_fn) {
 				if (dep.trigger_mode === "once") {
-					if (!dep.pending_request) make_prediction(payload);
+					if (!dep.pending_request) make_prediction(payload,  dep.protocol == "ws_stream");
 				} else if (dep.trigger_mode === "multiple") {
-					make_prediction(payload);
+					make_prediction(payload, dep.protocol == "ws_stream");
 				} else if (dep.trigger_mode === "always_last") {
 					if (!dep.pending_request) {
-						make_prediction(payload);
+						make_prediction(payload,  dep.protocol == "ws_stream");
 					} else {
 						dep.final_event = payload;
 					}
@@ -266,13 +266,19 @@
 			}
 		}
 
-		async function make_prediction(payload: Payload): Promise<void> {
+		async function make_prediction(payload: Payload, streaming = false): Promise<void> {
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
 
 			let submission: ReturnType<typeof app.submit>;
+			if (streaming && submit_map.has(dep_index)) {
+				app.current_payload = payload;
+				console.log("Current payload", app.current_payload)
+				return;
+			}
 			try {
+				app.current_payload = payload;
 				submission = app.submit(
 					payload.fn_index,
 					payload.data as unknown[],
