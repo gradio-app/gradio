@@ -52,7 +52,7 @@ from typing_extensions import ParamSpec
 
 import gradio
 from gradio.context import get_blocks_context
-from gradio.data_classes import FileData
+from gradio.data_classes import BlocksConfigDict, FileData
 from gradio.exceptions import Error
 from gradio.strings import en
 
@@ -1363,11 +1363,21 @@ def _parse_file_size(size: str | int | None) -> int | None:
     return multiple * size_int
 
 
-def connect_heartbeat(config: dict[str, Any], blocks) -> bool:
+def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
+    """
+    Determines whether a heartbeat is required for a given config.
+    """
     from gradio.components import State
 
     any_state = any(isinstance(block, State) for block in blocks)
     any_unload = False
+
+    if "dependencies" not in config:
+        raise ValueError(
+            "Dependencies not found in config. Cannot determine whether"
+            "heartbeat is required."
+        )
+
     for dep in config["dependencies"]:
         for target in dep["targets"]:
             if isinstance(target, (list, tuple)) and len(target) == 2:
