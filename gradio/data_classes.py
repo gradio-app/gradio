@@ -8,10 +8,11 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, TypedDict, Union
+from typing import TYPE_CHECKING, Any, List, Literal, Optional, Tuple, TypedDict, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
+from typing_extensions import NotRequired
 
 from . import wasm_utils
 
@@ -288,3 +289,45 @@ class _StaticFiles:
     @classmethod
     def clear(cls):
         cls.all_paths = []
+
+
+class BodyCSS(TypedDict):
+    body_background_fill: str
+    body_text_color: str
+    body_background_fill_dark: str
+    body_text_color_dark: str
+
+
+class Layout(TypedDict):
+    id: int
+    children: list[int | Layout]
+
+
+class BlocksConfigDict(TypedDict):
+    version: str
+    mode: str
+    app_id: int
+    dev_mode: bool
+    analytics_enabled: bool
+    components: list[dict[str, Any]]
+    css: str | None
+    connect_heartbeat: bool
+    js: str | None
+    head: str | None
+    title: str
+    space_id: str | None
+    enable_queue: bool
+    show_error: bool
+    show_api: bool
+    is_colab: bool
+    max_file_size: int | None
+    stylesheets: list[str]
+    theme: str | None
+    protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
+    body_css: BodyCSS
+    fill_height: bool
+    theme_hash: str
+    layout: NotRequired[Layout]
+    dependencies: NotRequired[list[dict[str, Any]]]
+    root: NotRequired[str | None]
+    username: NotRequired[str | None]
