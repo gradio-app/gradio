@@ -141,8 +141,7 @@ export class Client {
 		this.resolve_config = resolve_config.bind(this);
 		this.resolve_cookies = resolve_cookies.bind(this);
 		this.upload = upload.bind(this);
-		this.fetch = fetch.bind(this);
-
+		this.fetch = this.fetch.bind(this);
 		this.handle_space_success = this.handle_space_success.bind(this);
 		this.stream = this.stream.bind(this);
 	}
