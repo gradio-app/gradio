@@ -248,46 +248,51 @@ def watchfn(reloader: SourceFileReloader):
     # Need to import the module in this thread so that the
     # module is available in the namespace of this thread
     module = importlib.import_module(reloader.watch_module_name)
+    lock = reloader.app.blocks._queue.reload_lock
     while reloader.should_watch():
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")
+            lock.acquire()
             try:
-                # How source file reloading works
-                # 1. Remove the gr.no_reload code blocks from the temp file
-                # 2. Execute the changed source code in the original module's namespac
-                # 3. Delete the package the module is in from sys.modules.
-                # This is so that the updated module is available in the entire package
-                # 4. Do 1-2 for the main demo file even if it did not change.
-                # This is because the main demo file may import the changed file and we need the
-                # changes to be reflected in the main demo file.
+                try:
+                    # How source file reloading works
+                    # 1. Remove the gr.no_reload code blocks from the temp file
+                    # 2. Execute the changed source code in the original module's namespac
+                    # 3. Delete the package the module is in from sys.modules.
+                    # This is so that the updated module is available in the entire package
+                    # 4. Do 1-2 for the main demo file even if it did not change.
+                    # This is because the main demo file may import the changed file and we need the
+                    # changes to be reflected in the main demo file.
 
-                if changed.suffix == ".py":
-                    changed_in_copy = _remove_no_reload_codeblocks(str(changed))
-                    if changed != reloader.demo_file:
-                        changed_module = _find_module(changed)
-                        exec(changed_in_copy, changed_module.__dict__)
-                        top_level_parent = sys.modules[
-                            changed_module.__name__.split(".")[0]
-                        ]
-                        if top_level_parent != changed_module:
-                            importlib.reload(top_level_parent)
+                    if changed.suffix == ".py":
+                        changed_in_copy = _remove_no_reload_codeblocks(str(changed))
+                        if changed != reloader.demo_file:
+                            changed_module = _find_module(changed)
+                            exec(changed_in_copy, changed_module.__dict__)
+                            top_level_parent = sys.modules[
+                                changed_module.__name__.split(".")[0]
+                            ]
+                            if top_level_parent != changed_module:
+                                importlib.reload(top_level_parent)
 
-                changed_demo_file = _remove_no_reload_codeblocks(
-                    str(reloader.demo_file)
-                )
-                exec(changed_demo_file, module.__dict__)
-            except Exception:
-                print(
-                    f"Reloading {reloader.watch_module_name} failed with the following exception: "
-                )
-                traceback.print_exc()
-                mtimes = {}
-                reloader.alert_change("error")
-                reloader.app.reload_error_message = traceback.format_exc()
-                continue
-            demo = getattr(module, reloader.demo_name)
-            reloader.swap_blocks(demo)
+                    changed_demo_file = _remove_no_reload_codeblocks(
+                        str(reloader.demo_file)
+                    )
+                    exec(changed_demo_file, module.__dict__)
+                except Exception:
+                    print(
+                        f"Reloading {reloader.watch_module_name} failed with the following exception: "
+                    )
+                    traceback.print_exc()
+                    mtimes = {}
+                    reloader.alert_change("error")
+                    reloader.app.reload_error_message = traceback.format_exc()
+                    continue
+                demo = getattr(module, reloader.demo_name)
+                reloader.swap_blocks(demo)
+            finally:
+                lock.release()
             mtimes = {}
         time.sleep(0.05)
 

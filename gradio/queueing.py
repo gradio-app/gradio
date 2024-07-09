@@ -4,6 +4,7 @@ import asyncio
 import copy
 import os
 import random
+import threading
 import time
 import traceback
 import uuid
@@ -119,6 +120,7 @@ class Queue:
             default_concurrency_limit
         )
         self.event_analytics: dict[str, dict[str, float | str | None]] = {}
+        self.reload_lock = threading.Lock()
 
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
@@ -532,6 +534,7 @@ class Queue:
             root_path = route_utils.get_root_url(
                 request=body.request, route_path="/queue/join", root_path=app.root_path
             )
+            app.blocks._queue.reload_lock.acquire()
             try:
                 response = await route_utils.call_process_api(
                     app=app,
@@ -554,6 +557,8 @@ class Queue:
                             success=False,
                         ),
                     )
+            finally:
+                app.blocks._queue.reload_lock.release()
             if response and response.get("is_generating", False):
                 old_response = response
                 old_err = err
@@ -571,6 +576,8 @@ class Queue:
                     awake_events = [event for event in awake_events if event.alive]
                     if not awake_events:
                         return
+
+                    app.blocks._queue.reload_lock.acquire()
                     try:
                         response = await route_utils.call_process_api(
                             app=app,
@@ -583,6 +590,8 @@ class Queue:
                         traceback.print_exc()
                         response = None
                         err = e
+                    finally:
+                        app.blocks._queue.reload_lock.release()
 
                 if response:
                     success = True
