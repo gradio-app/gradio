@@ -56,6 +56,7 @@ class ParamViewer(Component):
         self.value = value or {}
         self.language = language
         self.linkify = linkify
+        self.header = header
         super().__init__(
             every=every,
             inputs=inputs,

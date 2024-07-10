@@ -17,7 +17,7 @@
 	export let linkify: string[] = [];
 	export let header: string | null;
 
-    let component_root: HTMLElement;
+	let component_root: HTMLElement;
 	let _docs: Param[];
 	let all_open = false;
 
@@ -59,30 +59,36 @@
 	}
 
 	function toggle_all(): void {
-    all_open = !all_open;
-    const details = component_root.querySelectorAll('.param');
-    details.forEach((detail) => {
-        if (detail instanceof HTMLDetailsElement) {
-            detail.open = all_open;
-        }
-    });
+		all_open = !all_open;
+		const details = component_root.querySelectorAll(".param");
+		details.forEach((detail) => {
+			if (detail instanceof HTMLDetailsElement) {
+				detail.open = all_open;
+			}
+		});
 	}
 </script>
 
 <div class="wrap" bind:this={component_root}>
 	{#if header !== null}
-	<div class="header">
-		<span class="title">{header}</span>
-		<button class="toggle-all" on:click={toggle_all} title={all_open ? 'Close All' : 'Open All'}>
-			▼
-		</button>
-	</div>
+		<div class="header">
+			<span class="title">{header}</span>
+			<button
+				class="toggle-all"
+				on:click={toggle_all}
+				title={all_open ? "Close All" : "Open All"}
+			>
+				▼
+			</button>
+		</div>
 	{/if}
 	{#if _docs}
 		{#each _docs as { type, description, default: _default, name } (name)}
 			<details class="param md">
 				<summary class="type">
-					<pre class="language-{lang}"><code>{name}{#if type}: {@html type}{/if}</code></pre>
+					<pre class="language-{lang}"><code
+							>{name}{#if type}: {@html type}{/if}</code
+						></pre>
 				</summary>
 				{#if _default}
 					<div class="default" class:last={!description}>
@@ -122,7 +128,9 @@
 		font-size: 0.7em;
 		line-height: 1;
 		opacity: 0.7;
-		transition: opacity 0.2s ease, transform 0.3s ease;
+		transition:
+			opacity 0.2s ease,
+			transform 0.3s ease;
 	}
 
 	.toggle-all:hover {
