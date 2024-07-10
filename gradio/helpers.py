@@ -231,11 +231,9 @@ class Examples:
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in examples
         ]
-        if example_labels is not None and len(example_labels) != len(
-            inputs_with_examples
-        ):
+        if example_labels is not None and len(example_labels) != len(examples):
             raise ValueError(
-                "The length of `example_labels` should be the same as the number of examples."
+                "If `example_labels` are provided, the length of `example_labels` must be the same as the number of examples."
             )
 
         self.examples = examples
