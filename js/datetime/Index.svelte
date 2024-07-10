@@ -17,12 +17,12 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: string = "";
+	export let value = "";
 	let old_value = value;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
-	export let include_time: boolean = true;
+	export let include_time = true;
 	$: if (value !== old_value) {
 		old_value = value;
 		gradio.dispatch("change");
@@ -43,9 +43,8 @@
 		const time_str = `${hours}:${minutes}:${seconds}`;
 		if (include_time) {
 			return `${date_str} ${time_str}`;
-		} else {
-			return date_str;
 		}
+		return date_str;
 	};
 
 	let entered_value = value;

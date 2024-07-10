@@ -48,7 +48,6 @@ class DateTime(FormComponent):
             show_label: if True, will display label. If False, the copy button is hidden as well as well as the label.
             include_time: If True, the component will include time selection. If False, only date selection will be available.
             type: The type of the value. Can be "timestamp", "datetime", or "string". If "timestamp", the value will be a tuple of two numbers representing the start and end date in seconds since epoch. If "datetime", the value will be a tuple of two datetime objects. If "string", the value will be the date entered by the user.
-            quick_ranges: List of strings representing quick ranges to display, such as ["30s", "1h", "24h", "7d"]. Set to [] to clear.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.

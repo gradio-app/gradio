@@ -23,7 +23,7 @@
 	export let min_width: number | undefined = undefined;
 
 	export let quick_ranges: string[] = [];
-	export let include_time: boolean = true;
+	export let include_time = true;
 	let range_history: [string, string][] = [];
 	$: if (value[0] !== old_value[0] || value[1] !== old_value[1]) {
 		old_value = value;
@@ -48,9 +48,8 @@
 		const time_str = `${hours}:${minutes}:${seconds}`;
 		if (include_time) {
 			return `${date_str} ${time_str}`;
-		} else {
-			return date_str;
 		}
+		return date_str;
 	};
 
 	let start_time = value[0];
@@ -286,7 +285,6 @@
 	.end.invalid {
 		color: var(--body-text-color-subdued);
 	}
-	.range-btn,
 	.calendar {
 		display: inline-flex;
 		justify-content: center;
