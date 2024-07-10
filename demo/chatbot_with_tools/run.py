@@ -14,7 +14,7 @@ def generate_response(history):
 
     history.append(ChatMessage(role="assistant",
                                content="API Error when connecting to weather service.",
-                              metadata={"title": "🛠️ Used tool 'Weather'"})
+                              metadata={"title": "💥 Error using tool 'Weather'"})
                   )
     yield history
     time.sleep(0.25)
@@ -27,7 +27,7 @@ def generate_response(history):
 
     history.append(ChatMessage(role="assistant",
                                content="Weather 72 degrees Fahrenheit with 20% chance of rain.",
-                                metadata={"title": "💥 Error using tool 'Weather'"}
+                                metadata={"title": "🛠️ Used tool 'Weather'"}
                               ))
     yield history
     time.sleep(0.25)
