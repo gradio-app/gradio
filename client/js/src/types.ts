@@ -117,12 +117,19 @@ export type PredictReturn = {
 export type SpaceStatus = SpaceStatusNormal | SpaceStatusError;
 
 export interface SpaceStatusNormal {
-	status: "sleeping" | "running" | "building" | "error" | "stopped";
+	status:
+		| "sleeping"
+		| "running"
+		| "building"
+		| "error"
+		| "stopped"
+		| "starting";
 	detail:
 		| "SLEEPING"
 		| "RUNNING"
 		| "RUNNING_BUILDING"
 		| "BUILDING"
+		| "APP_STARTING"
 		| "NOT_FOUND";
 	load_status: "pending" | "error" | "complete" | "generating";
 	message: string;
@@ -146,7 +153,7 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 // Configuration and Response Types
 // --------------------------------
 export interface Config {
-	auth_required: boolean;
+	auth_required?: true;
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
 	auth_message: string;
@@ -174,6 +181,7 @@ export interface Config {
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
 	max_file_size?: number;
 	theme_hash?: number;
+	username: string | null;
 }
 
 // todo: DRY up types
