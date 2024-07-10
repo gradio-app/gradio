@@ -168,7 +168,7 @@ class TestExamplesDataset:
         )
         assert examples.dataset.headers == ["im", ""]
 
-    def test_example_labels(self):
+    def test_example_labels(self, patched_cache_folder):
         examples = gr.Examples(
             examples=[
                 [5, "add", 3],
