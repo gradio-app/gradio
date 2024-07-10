@@ -1,4 +1,4 @@
-"""gr.DateTimeRange() component."""
+"""gr.DateTime() component."""
 
 from __future__ import annotations
 

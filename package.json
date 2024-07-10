@@ -133,7 +133,6 @@
 		"@gradio/tabitem": "workspace:^",
 		"@gradio/tabs": "workspace:^",
 		"@gradio/textbox": "workspace:^",
-		"@gradio/datetimerange": "workspace:^",
 		"@gradio/datetime": "workspace:^",
 		"@gradio/timer": "workspace:^",
 		"@gradio/upload": "workspace:^",

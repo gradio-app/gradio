@@ -20,7 +20,6 @@ from gradio.components.color_picker import ColorPicker
 from gradio.components.dataframe import Dataframe
 from gradio.components.dataset import Dataset
 from gradio.components.datetime import DateTime
-from gradio.components.datetime_range import DateTimeRange
 from gradio.components.download_button import DownloadButton
 from gradio.components.dropdown import Dropdown
 from gradio.components.duplicate_button import DuplicateButton
@@ -95,7 +94,6 @@ __all__ = [
     "LogoutButton",
     "Markdown",
     "Textbox",
-    "DateTimeRange",
     "DateTime",
     "Dropdown",
     "Model3D",

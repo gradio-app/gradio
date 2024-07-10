@@ -219,9 +219,6 @@ importers:
       '@gradio/datetime':
         specifier: workspace:^
         version: link:js/datetime
-      '@gradio/datetimerange':
-        specifier: workspace:^
-        version: link:js/datetimerange
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:js/downloadbutton
@@ -571,9 +568,6 @@ importers:
       '@gradio/datetime':
         specifier: workspace:^
         version: link:../datetime
-      '@gradio/datetimerange':
-        specifier: workspace:^
-        version: link:../datetimerange
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:../downloadbutton
