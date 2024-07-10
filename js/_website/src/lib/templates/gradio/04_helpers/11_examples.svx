@@ -21,13 +21,13 @@
             {
                 name: "load_input_event",
                 annotation: "gradio.events.Dependency",
-                doc: "The Gradio event that populates the input values when the examples are clicked. You can attach a .then() or a .success() to this event to trigger subsequent events to fire after this event.",
+                doc: "The Gradio event that populates the input values when the examples are clicked. You can attach a `.then()` or a `.success()` to this event to trigger subsequent events to fire after this event.",
                 kwargs: null
             },
             {
                 name: "cache_event",
                 annotation: "gradio.events.Dependency | None",
-                doc: "The Gradio event that populates the cached output values when the examples are clicked. You can attach a .then() or a .success() to this event to trigger subsequent events to fire after this event. This event is not defined if cache_exm",
+                doc: "The Gradio event that populates the cached output values when the examples are clicked. You can attach a `.then()` or a `.success()` to this event to trigger subsequent events to fire after this event. This event is `None` if `cache_examples` if False, and is the same as `load_input_event` if `cache_examples` is `'lazy'`.",
                 kwargs: null
             }
         ]    
@@ -57,6 +57,10 @@ None
 <!--- Initialization -->
 ### Initialization
 <ParamTable parameters={obj.parameters} />
+
+<!--- Attributes -->
+### Attributes
+<ParamTable parameters={obj.attributes} />
 
 
 {#if obj.demos && obj.demos.length > 0}
