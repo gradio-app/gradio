@@ -2,6 +2,7 @@
 	import { Block } from "@gradio/atoms";
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
+	import { BaseExample } from "@gradio/textbox";
 	export let components: string[];
 	export let component_props: Record<string, any>[];
 	export let component_map: Map<
@@ -52,7 +53,7 @@
 	}
 
 	$: {
-		samples = samples || [];
+		samples = sample_labels ? sample_labels.map(e => [e]) : samples || [];
 		paginate = samples.length > samples_per_page;
 		if (paginate) {
 			visible_pages = [];
@@ -85,33 +86,21 @@
 	}[][] = [];
 
 	async function get_component_meta(selected_samples: any[][]): Promise<void> {
-		if (sample_labels !== null) {
-			component_meta = await Promise.all(
-				sample_labels.map(async (label) => [
-					{
-						value: label,
-						component: (await component_map.get("textbox"))
-							?.default as ComponentType<SvelteComponent>
-					}
-				])
-			);
-		} else {
-			component_meta = await Promise.all(
-				selected_samples &&
-					selected_samples.map(
-						async (sample_row) =>
-							await Promise.all(
-								sample_row.map(async (sample_cell, j) => {
-									return {
-										value: sample_cell,
-										component: (await component_map.get(components[j]))
-											?.default as ComponentType<SvelteComponent>
-									};
-								})
-							)
-					)
-			);
-		}
+		component_meta = await Promise.all(
+			selected_samples &&
+				selected_samples.map(
+					async (sample_row) =>
+						await Promise.all(
+							sample_row.map(async (sample_cell, j) => {
+								return {
+									value: sample_cell,
+									component: (await component_map.get(components[j]))
+										?.default as ComponentType<SvelteComponent>
+								};
+							})
+						)
+				)
+		);
 	}
 
 	$: component_map, get_component_meta(selected_samples);
@@ -159,7 +148,13 @@
 						on:mouseenter={() => handle_mouseenter(i)}
 						on:mouseleave={() => handle_mouseleave()}
 					>
-						{#if component_meta.length && component_map.get(components[0])}
+						{#if sample_labels}
+							<BaseExample
+								value={sample_row[0]}
+								selected={current_hover === i}
+								type="gallery"
+							/>
+						{:else if component_meta.length && component_map.get(components[0])}
 							<svelte:component
 								this={component_meta[0][0].component}
 								{...component_props[0]}
