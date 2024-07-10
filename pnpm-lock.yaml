@@ -1083,25 +1083,6 @@ importers:
         specifier: workspace:^
         version: link:../preview
 
-  js/datetimerange:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-    devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../preview
-
   js/downloadbutton:
     dependencies:
       '@gradio/button':
