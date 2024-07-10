@@ -1,10 +1,6 @@
 from __future__ import annotations
 
-<<<<<<< Updated upstream
-from typing import TYPE_CHECKING, Literal, TypedDict
-=======
-from typing import Literal, Mapping, TypedDict
->>>>>>> Stashed changes
+from typing import TYPE_CHECKING, Literal, Mapping, TypedDict
 
 from gradio_client.documentation import document
 
