@@ -11,17 +11,19 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
+	import type {
+		Message,
+		TupleFormat,
+		MessageRole,
+		NormalisedMessage
+	} from "./types";
 
-	import {
-		type messages,
-		type NormalisedMessage,
-		normalise_messages
-	} from "./shared/utils";
+	import { normalise_tuples, normalise_messages } from "./shared/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: messages = [];
+	export let value: TupleFormat | Message[] = [];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
@@ -35,6 +37,7 @@
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
+	export let msg_format: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let latex_delimiters: {
@@ -52,9 +55,12 @@
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
-	let _value: [NormalisedMessage, NormalisedMessage][] | null = [];
+	let _value: NormalisedMessage[] | null = [];
 
-	$: _value = normalise_messages(value, root);
+	$: _value =
+		msg_format === "tuples"
+			? normalise_tuples(value as TupleFormat, root)
+			: normalise_messages(value as Message[], root);
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;

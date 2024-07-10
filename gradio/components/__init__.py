@@ -11,7 +11,7 @@ from gradio.components.base import (
     get_component_instance,
 )
 from gradio.components.button import Button
-from gradio.components.chatbot import Chatbot
+from gradio.components.chatbot import Chatbot, ChatMessage, MessageDict
 from gradio.components.checkbox import Checkbox
 from gradio.components.checkboxgroup import CheckboxGroup
 from gradio.components.clear_button import ClearButton
@@ -65,6 +65,7 @@ __all__ = [
     "BarPlot",
     "Button",
     "Chatbot",
+    "ChatMessage",
     "ClearButton",
     "Component",
     "component",
@@ -93,6 +94,7 @@ __all__ = [
     "LoginButton",
     "LogoutButton",
     "Markdown",
+    "MessageDict",
     "Textbox",
     "DateTime",
     "Dropdown",
