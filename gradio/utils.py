@@ -559,7 +559,11 @@ def get_all_components() -> list[type[Component] | type[BlockContext]]:
         subclass = classes_to_check.pop()
         classes_to_check.extend(subclass.__subclasses__())
         subclasses.append(subclass)
-    return subclasses
+    return [
+        c
+        for c in subclasses
+        if c.__name__ not in ["ChatInterface", "Interface", "Blocks", "TabbedInterface"]
+    ]
 
 
 def core_gradio_components():

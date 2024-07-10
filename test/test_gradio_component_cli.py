@@ -4,39 +4,31 @@ from pathlib import Path
 
 import pytest
 
-from gradio.cli.commands.components._create_utils import OVERRIDES
 from gradio.cli.commands.components.build import _build
-from gradio.cli.commands.components.create import _create
+from gradio.cli.commands.components.create import _create, _create_utils
 from gradio.cli.commands.components.install_component import _get_executable_path
 from gradio.cli.commands.components.publish import _get_version_from_file
 from gradio.cli.commands.components.show import _show
+from gradio.utils import core_gradio_components
+
+core = [
+    c.__name__
+    for c in core_gradio_components()
+    if not getattr(c, "is_template", False)
+    and c.__name__ not in ["Tab", "Form", "FormComponent"]
+]
 
 
 @pytest.mark.parametrize(
     "template",
-    [
-        "Row",
-        "Column",
-        "Tabs",
-        "Group",
-        "Accordion",
-        "AnnotatedImage",
-        "HighlightedText",
-        "BarPlot",
-        "ClearButton",
-        "ColorPicker",
-        "DuplicateButton",
-        "LinePlot",
-        "LogoutButton",
-        "LoginButton",
-        "ScatterPlot",
-        "UploadButton",
-        "JSON",
-        "FileExplorer",
-        "Model3D",
-    ],
+    core,
 )
 def test_template_override_component(template, tmp_path):
+    """When you add a new component this test will likely fail locally
+    because the js files have not been moved to the _frontend_code directory.
+
+    Just build the python package (python -m build -w) to move the latest state of the js directory to _frontend_code.
+    """
     _create(
         "MyComponent",
         tmp_path,
@@ -46,12 +38,13 @@ def test_template_override_component(template, tmp_path):
         configure_metadata=False,
     )
     app = (tmp_path / "demo" / "app.py").read_text()
+    component_files = _create_utils._get_component_code(template)
     answer = textwrap.dedent(
         f"""
 import gradio as gr
 from gradio_mycomponent import MyComponent
 
-{OVERRIDES[template].demo_code.format(name="MyComponent")}
+{component_files.demo_code.format(name="MyComponent")}
 
 if __name__ == "__main__":
     demo.launch()
