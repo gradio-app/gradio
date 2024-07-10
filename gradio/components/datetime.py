@@ -16,7 +16,7 @@ from gradio.events import Events
 @document()
 class DateTime(FormComponent):
     """
-    Component to select a date or time.
+    Component to select a date and (optionally) a time.
     """
 
     EVENTS = [
