@@ -118,7 +118,10 @@ class DateTime(FormComponent):
             ).strftime(self.time_format)
 
     def api_info(self) -> dict[str, Any]:
-        return {"type": "string"}
+        return {
+            "type": "string",
+            "description": f"Formatted as YYYY-MM-DD{" HH:MM:SS" if self.include_time else ""}",
+        }
 
     def example_payload(self) -> str:
         return "2020-10-01 05:20:15"
