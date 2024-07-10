@@ -27,7 +27,7 @@ def test_template_override_component(template, tmp_path):
     """When you add a new component this test will likely fail locally
     because the js files have not been moved to the _frontend_code directory.
 
-    Just build the python package to move the latest state of the js directory to _frontend_code.
+    Just build the python package (python -m build -w) to move the latest state of the js directory to _frontend_code.
     """
     _create(
         "MyComponent",
