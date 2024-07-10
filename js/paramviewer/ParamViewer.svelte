@@ -15,6 +15,7 @@
 	export let docs: Record<string, Param>;
 	export let lang: "python" | "typescript" = "python";
 	export let linkify: string[] = [];
+	export let header: string | null;
 
     let component_root: HTMLElement;
 	let _docs: Param[];
@@ -69,12 +70,14 @@
 </script>
 
 <div class="wrap" bind:this={component_root}>
+	{#if header !== null}
 	<div class="header">
-		<span class="title">Parameters</span>
+		<span class="title">{header}</span>
 		<button class="toggle-all" on:click={toggle_all} title={all_open ? 'Close All' : 'Open All'}>
 			▼
 		</button>
 	</div>
+	{/if}
 	{#if _docs}
 		{#each _docs as { type, description, default: _default, name } (name)}
 			<details class="param md">
