@@ -86,26 +86,31 @@
 
 	async function get_component_meta(selected_samples: any[][]): Promise<void> {
 		if (sample_labels !== null) {
-			component_meta = await Promise.all(sample_labels.map(async (label) => ([{
-			value: label,
-			component: (await component_map.get("textbox"))?.default as ComponentType<SvelteComponent>
-		}])));
+			component_meta = await Promise.all(
+				sample_labels.map(async (label) => [
+					{
+						value: label,
+						component: (await component_map.get("textbox"))
+							?.default as ComponentType<SvelteComponent>
+					}
+				])
+			);
 		} else {
 			component_meta = await Promise.all(
-			selected_samples &&
-				selected_samples.map(
-					async (sample_row) =>
-						await Promise.all(
-							sample_row.map(async (sample_cell, j) => {
-								return {
-									value: sample_cell,
-									component: (await component_map.get(components[j]))
-										?.default as ComponentType<SvelteComponent>
-								};
-							})
-						)
-				)
-		);
+				selected_samples &&
+					selected_samples.map(
+						async (sample_row) =>
+							await Promise.all(
+								sample_row.map(async (sample_cell, j) => {
+									return {
+										value: sample_cell,
+										component: (await component_map.get(components[j]))
+											?.default as ComponentType<SvelteComponent>
+									};
+								})
+							)
+					)
+			);
 		}
 	}
 
