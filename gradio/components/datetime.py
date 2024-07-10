@@ -113,7 +113,9 @@ class DateTime(FormComponent):
         elif isinstance(value, str):
             return value
         else:
-            return datetime.fromtimestamp(value, tz=pytz.timezone(self.timezone)).strftime(self.time_format)
+            return datetime.fromtimestamp(
+                value, tz=pytz.timezone(self.timezone)
+            ).strftime(self.time_format)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}

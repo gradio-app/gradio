@@ -1,11 +1,14 @@
-import gradio as gr
 from datetime import datetime
+
+import gradio as gr
+
 
 class TestDateTime:
     def test_component_functions(self):
         """
         Preprocess, postprocess
         """
+
         def within_range(time1, time2, delta=30):
             return abs(time1 - time2) < delta
 
@@ -28,9 +31,8 @@ class TestDateTime:
         assert dt4.preprocess("2020-02-01 08:10:25") == "2020-02-01 08:10:25"
         assert len(dt4.preprocess("now - 10m")) == 19
 
-        assert dt.postprocess(1500000000) == '2017-07-13 19:40:00'
-        assert dt2.postprocess(1500000000) == '2017-07-14 04:40:00'
-
+        assert dt.postprocess(1500000000) == "2017-07-13 19:40:00"
+        assert dt2.postprocess(1500000000) == "2017-07-14 04:40:00"
 
     def test_in_interface(self):
         """
@@ -38,4 +40,4 @@ class TestDateTime:
         """
         dt = gr.DateTime(timezone="US/Pacific")
         iface = gr.Interface(lambda x: x, dt, "number")
-        assert iface('2017-07-13 19:40:00') == 1500000000
+        assert iface("2017-07-13 19:40:00") == 1500000000
