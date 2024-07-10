@@ -200,3 +200,11 @@ export const drag_and_drop_file = async (
 		await selector.dispatchEvent("drop", { dataTransfer });
 	}
 };
+
+export async function go_to_testcase(
+	page: Page,
+	test_case: string
+): Promise<void> {
+	const url = page.url();
+	await page.goto(`${url.substring(0, url.length - 1)}_${test_case}_testcase`);
+}
