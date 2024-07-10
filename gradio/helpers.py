@@ -231,7 +231,9 @@ class Examples:
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in examples
         ]
-        if example_labels is not None and len(example_labels) != len(inputs_with_examples):
+        if example_labels is not None and len(example_labels) != len(
+            inputs_with_examples
+        ):
             raise ValueError(
                 "The length of `example_labels` should be the same as the number of examples."
             )
@@ -290,7 +292,6 @@ class Examples:
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
         self.cache_event: Dependency | None = None
-
 
     def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
