@@ -31,7 +31,7 @@ export class ShareError extends Error {
 }
 
 export async function uploadToHuggingFace(
-	data: string | { url: string; path: string },
+	data: string | { url?: string; path?: string },
 	type: "base64" | "url"
 ): Promise<string> {
 	if (window.__gradio_space__ == null) {
