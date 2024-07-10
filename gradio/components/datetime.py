@@ -114,7 +114,7 @@ class DateTime(FormComponent):
             return value
         else:
             return datetime.fromtimestamp(
-                value, tz=pytz.timezone(self.timezone)
+                value, tz=pytz.timezone(self.timezone) if self.timezone else None
             ).strftime(self.time_format)
 
     def api_info(self) -> dict[str, Any]:
