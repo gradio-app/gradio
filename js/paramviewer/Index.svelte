@@ -14,4 +14,4 @@
 	export let header: string | null = null;
 </script>
 
-<ParamViewer docs={value} {linkify} {header}/>
+<ParamViewer docs={value} {linkify} {header} />
