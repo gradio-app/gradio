@@ -14,7 +14,8 @@ with gr.Blocks() as demo:
              "description": "The number of digits to round to", 
              "default": "0"
             }
-         }
+         },
+         header=None
     )
 
 if __name__ == "__main__":
