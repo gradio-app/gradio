@@ -1,5 +1,13 @@
 import type { FileData } from "@gradio/client";
 import { uploadToHuggingFace } from "@gradio/utils";
+import type {
+	TupleFormat,
+	ComponentMessage,
+	ComponentData,
+	TextMessage,
+	NormalisedMessage,
+	Message
+} from "../types";
 
 export const format_chat_for_sharing = async (
 	chat: [string | FileData | null, string | FileData | null][]
@@ -56,51 +64,6 @@ export const format_chat_for_sharing = async (
 		.join("\n");
 };
 
-export interface ComponentMessage {
-	type: "component";
-	component: string;
-	value: any;
-	constructor_args: any;
-	props: any;
-	id: string;
-}
-export interface TextMessage {
-	type: "text";
-	value: string;
-	id: string;
-}
-
-export interface FileMessage {
-	type: "file";
-	file: FileData | FileData[];
-	alt_text: string | null;
-	id: string;
-}
-
-export interface EmptyMessage {
-	type: "empty";
-	value: null;
-	id: string;
-}
-
-export type NormalisedMessage =
-	| TextMessage
-	| FileMessage
-	| ComponentMessage
-	| EmptyMessage;
-
-export type message_data =
-	| string
-	| { file: FileData | FileData[]; alt_text: string | null }
-	| { component: string; value: any; constructor_args: any; props: any }
-	| null;
-
-export type messages = [message_data, message_data][] | null;
-
-function make_id(): string {
-	return Math.random().toString(36).substring(7);
-}
-
 const redirect_src_url = (src: string, root: string): string =>
 	src.replace('src="/file', `src="${root}file`);
 
@@ -114,37 +77,82 @@ function get_component_for_mime_type(
 	return "file";
 }
 
+function convert_file_message_to_component_message(
+	message: any
+): ComponentData {
+	const _file = Array.isArray(message.file) ? message.file[0] : message.file;
+	return {
+		component: get_component_for_mime_type(_file?.mime_type),
+		value: message.file,
+		alt_text: message.alt_text,
+		constructor_args: {},
+		props: {}
+	} as ComponentData;
+}
+
 export function normalise_messages(
-	messages: messages,
+	messages: Message[] | null,
 	root: string
-): [NormalisedMessage, NormalisedMessage][] | null {
-	if (messages === null) return null;
-	return messages.map((message_pair) => {
-		return message_pair.map((message) => {
-			if (message == null) return { value: null, id: make_id(), type: "empty" };
+): NormalisedMessage[] | null {
+	if (messages === null) return messages;
+	return messages.map((message, i) => {
+		if (typeof message.content === "string") {
+			return {
+				role: message.role,
+				metadata: message.metadata,
+				content: redirect_src_url(message.content, root),
+				type: "text",
+				index: i
+			};
+		} else if ("file" in message.content) {
+			return {
+				content: convert_file_message_to_component_message(message.content),
+				metadata: message.metadata,
+				role: message.role,
+				type: "component",
+				index: i
+			};
+		}
+		return { type: "component", ...message } as ComponentMessage;
+	});
+}
+
+export function normalise_tuples(
+	messages: TupleFormat,
+	root: string
+): NormalisedMessage[] | null {
+	if (messages === null) return messages;
+	const msg = messages.flatMap((message_pair, i) => {
+		return message_pair.map((message, index) => {
+			if (message == null) return null;
+			const role = index == 0 ? "user" : "assistant";
 
 			if (typeof message === "string") {
 				return {
+					role: role,
 					type: "text",
-					value: redirect_src_url(message, root),
-					id: make_id()
-				};
+					content: redirect_src_url(message, root),
+					metadata: { title: null },
+					index: [i, index]
+				} as TextMessage;
 			}
 
 			if ("file" in message) {
-				const _file = Array.isArray(message.file)
-					? message.file[0]
-					: message.file;
 				return {
+					content: convert_file_message_to_component_message(message),
+					role: role,
 					type: "component",
-					component: get_component_for_mime_type(_file?.mime_type),
-					value: message.file,
-					alt_text: message.alt_text,
-					id: make_id()
-				};
+					index: [i, index]
+				} as ComponentMessage;
 			}
 
-			return { ...message, type: "component", id: make_id() };
-		}) as [NormalisedMessage, NormalisedMessage];
+			return {
+				role: role,
+				content: message,
+				type: "component",
+				index: [i, index]
+			} as ComponentMessage;
+		});
 	});
+	return msg.filter((message) => message != null) as NormalisedMessage[];
 }

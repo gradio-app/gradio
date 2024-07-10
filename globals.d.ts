@@ -16,7 +16,7 @@ declare global {
 }
 
 export interface Config {
-	auth_required: boolean;
+	auth_required?: true;
 	auth_message: string;
 	components: any[];
 	css: string | null;
@@ -41,4 +41,5 @@ export interface Config {
 	is_space: boolean;
 	protocol: "ws" | "sse" | "sse_v1" | "sse_v2" | "sse_v2.1" | "sse_v3";
 	theme_hash?: number;
+	username: string | null;
 }
