@@ -1047,6 +1047,9 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
+      '@gradio/textbox':
+        specifier: workspace:^
+        version: link:../textbox
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
