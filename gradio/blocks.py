@@ -17,8 +17,9 @@ import webbrowser
 from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequence, cast
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequence, cast, Mapping
 from urllib.parse import urlparse, urlunparse
+from weakref import WeakValueDictionary, WeakKeyDictionary
 
 import anyio
 import fastapi
@@ -614,7 +615,7 @@ def postprocess_update_dict(
 
 
 def convert_component_dict_to_list(
-    outputs_ids: list[int], predictions: dict
+    outputs_ids: list[int], predictions: dict, old_component_mapping: Mapping[Block, Block]
 ) -> list | dict:
     """
     Converts a dictionary of component updates into a list of updates in the order of
@@ -626,10 +627,14 @@ def convert_component_dict_to_list(
     if all(keys_are_blocks):
         reordered_predictions = [skip() for _ in outputs_ids]
         for component, value in predictions.items():
+            new_component = old_component_mapping.get(component)
+            if new_component is not None:
+                component = new_component
             if component._id not in outputs_ids:
-                raise ValueError(
+                print(
                     f"Returned component {component} not specified as output of function."
                 )
+                continue
             output_index = outputs_ids.index(component._id)
             reordered_predictions[output_index] = value
         predictions = utils.resolve_singleton(reordered_predictions)
@@ -647,6 +652,8 @@ class BlocksConfig:
         self.blocks: dict[int, Component | Block] = {}
         self.fns: dict[int, BlockFunction] = {}
         self.fn_id: int = 0
+        self.old_blocks_mapping: WeakKeyDictionary[Component | Block, Component | Block] = WeakKeyDictionary()
+        self.old_fns_mapping: WeakKeyDictionary[BlockFunction, BlockFunction] = WeakKeyDictionary()
 
     def set_event_trigger(
         self,
@@ -1669,7 +1676,7 @@ Received outputs:
 
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
-                [block._id for block in block_fn.outputs], predictions
+                [block._id for block in block_fn.outputs], predictions, self.default_config.old_blocks_mapping
             )
 
         if len(block_fn.outputs) == 1 and not block_fn.batch:
@@ -1932,6 +1939,18 @@ Received outputs:
                     final=not is_generating,
                     simple_format=simple_format,
                 )
+
+        new_fn = self.default_config.old_fns_mapping.get(block_fn)
+        if new_fn is not None:
+            # map to new outputs
+            new_data = []
+            for new_out in new_fn.outputs:
+                if new_out not in block_fn.outputs:
+                    new_data.append({'__type__': 'update'})
+                    continue
+                old_i = block_fn.outputs.index(new_out)
+                new_data.append(data[old_i])
+            data = new_data
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1

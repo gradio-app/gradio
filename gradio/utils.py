@@ -42,6 +42,7 @@ from typing import (
     Optional,
     TypeVar,
 )
+from weakref import WeakKeyDictionary
 
 import anyio
 import gradio_client.utils as client_utils
@@ -112,6 +113,8 @@ class BaseReloader(ABC):
         # Copy over the blocks to get new components and events but
         # not a new queue
         demo._queue = self.running_app.blocks._queue
+        demo.pending_diff_streams = self.running_app.blocks.pending_diff_streams
+        demo.pending_streams = self.running_app.blocks.pending_streams
         demo.max_file_size = self.running_app.blocks.max_file_size
         self.running_app.state_holder.reset(demo)
         self.running_app.blocks = demo
@@ -368,12 +371,42 @@ def reassign_fns(old_blocks: Blocks, new_blocks: Blocks):
         for component in new_blocks.blocks.values()
         if component.key is not None
     }
+    old_component_map = {
+        component.key: component
+        for component in old_blocks.blocks.values()
+        if component.key is not None
+    }
+
+    new_fn_by_api_name = {
+        fn.api_name: fn
+        for fn in new_blocks.fns.values()
+        if fn.api_name
+    }
+
+    # weakly map old fns to new fns
+    old_fns_mapping = WeakKeyDictionary()
     for fn in old_blocks.fns.values():
-        for i, old_output in enumerate(fn.outputs):
+        # map by api_name
+        if fn.api_name in new_fn_by_api_name:
+            old_fns_mapping[fn] = new_fn_by_api_name[fn.api_name]
+        # remap fn outputs
+        for i, old_output in enumerate(fn.outputs[:]):
             if old_output.key not in new_component_map:
                 continue
             new_output = new_component_map[old_output.key]
+            print(f'{old_output._id} -> {new_output._id}')
             fn.outputs[i] = new_output  # type: ignore
+    new_blocks.default_config.old_fns_mapping = old_fns_mapping
+
+    # weakly map old blocks to new blocks
+    old_blocks_mapping = WeakKeyDictionary()
+    for key, old_component in old_component_map.items():
+        if key in new_component_map:
+            old_blocks_mapping[old_component] = new_component_map[key]
+    for older_component, old_component in old_blocks.default_config.old_blocks_mapping.items():
+        if old_component in old_blocks_mapping:
+            old_blocks_mapping[older_component] = old_blocks_mapping[old_component]
+    new_blocks.default_config.old_blocks_mapping = old_blocks_mapping
 
 
 def colab_check() -> bool:
