@@ -15,7 +15,7 @@
             {
                 name: "dataset",
                 annotation: "gradio.Dataset",
-                doc: "The dataset component corresponding to this Examples helper class.",
+                doc: "The `gr.Dataset` component corresponding to this Examples object.",
                 kwargs: null
             },
             {
