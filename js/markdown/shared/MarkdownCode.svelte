@@ -73,9 +73,6 @@
 			}
 		}
 	}
-	onMount(() => {
-		el = document.getElementById("container") as HTMLSpanElement;
-	});
 
 	afterUpdate(async () => {
 		if (el && document.body.contains(el)) {
@@ -87,7 +84,6 @@
 </script>
 
 <span
-	id="container"
 	class:chatbot
 	bind:this={el}
 	class="md"
