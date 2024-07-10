@@ -120,7 +120,7 @@ class DateTime(FormComponent):
     def api_info(self) -> dict[str, Any]:
         return {
             "type": "string",
-            "description": f"Formatted as YYYY-MM-DD{" HH:MM:SS" if self.include_time else ""}",
+            "description": f"Formatted as YYYY-MM-DD{' HH:MM:SS' if self.include_time else ''}",
         }
 
     def example_payload(self) -> str:
