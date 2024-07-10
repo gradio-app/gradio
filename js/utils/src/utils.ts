@@ -31,7 +31,7 @@ export class ShareError extends Error {
 }
 
 export async function uploadToHuggingFace(
-	data: string | { url?: string; path?: string },
+	data: string,
 	type: "base64" | "url"
 ): Promise<string> {
 	if (window.__gradio_space__ == null) {
@@ -41,38 +41,17 @@ export async function uploadToHuggingFace(
 	let contentType: string;
 	let filename: string;
 	if (type === "url") {
-		let url: string;
-
-		if (typeof data === "object" && data.url) {
-			url = data.url;
-		} else if (typeof data === "string") {
-			url = data;
-		} else {
-			throw new Error("Invalid data format for URL type");
-		}
-
-		const response = await fetch(url);
+		const response = await fetch(data);
 		blob = await response.blob();
 		contentType = response.headers.get("content-type") || "";
 		filename = response.headers.get("content-disposition") || "";
 	} else {
-		let dataurl: string;
-
-		if (typeof data === "object" && data.path) {
-			dataurl = data.path;
-		} else if (typeof data === "string") {
-			dataurl = data;
-		} else {
-			throw new Error("Invalid data format for base64 type");
-		}
-
-		blob = dataURLtoBlob(dataurl);
-		contentType = dataurl.split(";")[0].split(":")[1];
-		filename = "file." + contentType.split("/")[1];
+		blob = dataURLtoBlob(data);
+		contentType = data.split(";")[0].split(":")[1];
+		filename = "file" + contentType.split("/")[1];
 	}
 
 	const file = new File([blob], filename, { type: contentType });
-
 	// Send file to endpoint
 	const uploadResponse = await fetch("https://huggingface.co/uploads", {
 		method: "POST",
@@ -82,7 +61,6 @@ export async function uploadToHuggingFace(
 			"X-Requested-With": "XMLHttpRequest"
 		}
 	});
-
 	// Check status of response
 	if (!uploadResponse.ok) {
 		if (
@@ -93,7 +71,6 @@ export async function uploadToHuggingFace(
 		}
 		throw new ShareError(`Upload failed.`);
 	}
-
 	// Return response if needed
 	const result = await uploadResponse.text();
 	return result;
