@@ -3,8 +3,7 @@ import type { FileData } from "@gradio/client";
 export type MessageRole = "system" | "user" | "assistant";
 
 export interface Metadata {
-	error: boolean;
-	tool_name: string | null;
+	title: string | null;
 }
 
 export interface ComponentData {
@@ -19,6 +18,7 @@ export interface Message {
 	role: MessageRole;
 	metadata: Metadata;
 	content: string | FileData | ComponentData;
+	index: [number, number] | number;
 }
 
 export interface TextMessage extends Message {

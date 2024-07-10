@@ -95,20 +95,22 @@ export function normalise_messages(
 	root: string
 ): NormalisedMessage[] | null {
 	if (messages === null) return messages;
-	return messages.map((message) => {
+	return messages.map((message, i) => {
 		if (typeof message.content === "string") {
 			return {
 				role: message.role,
 				metadata: message.metadata,
 				content: redirect_src_url(message.content, root),
-				type: "text"
+				type: "text",
+				index: i
 			};
 		} else if ("file" in message.content) {
 			return {
 				content: convert_file_message_to_component_message(message.content),
 				metadata: message.metadata,
 				role: message.role,
-				type: "component"
+				type: "component",
+				index: i
 			};
 		}
 		return { type: "component", ...message } as ComponentMessage;
@@ -120,7 +122,7 @@ export function normalise_tuples(
 	root: string
 ): NormalisedMessage[] | null {
 	if (messages === null) return messages;
-	const msg = messages.flatMap((message_pair) => {
+	const msg = messages.flatMap((message_pair, i) => {
 		return message_pair.map((message, index) => {
 			if (message == null) return null;
 			const role = index == 0 ? "user" : "assistant";
@@ -130,7 +132,8 @@ export function normalise_tuples(
 					role: role,
 					type: "text",
 					content: redirect_src_url(message, root),
-					metadata: { error: false, tool_name: null }
+					metadata: { title: null },
+					index: [i, index]
 				} as TextMessage;
 			}
 
@@ -138,14 +141,16 @@ export function normalise_tuples(
 				return {
 					content: convert_file_message_to_component_message(message),
 					role: role,
-					type: "component"
+					type: "component",
+					index: [i, index]
 				} as ComponentMessage;
 			}
 
 			return {
 				role: role,
 				content: message,
-				type: "component"
+				type: "component",
+				index: [i, index]
 			} as ComponentMessage;
 		});
 	});

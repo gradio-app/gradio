@@ -72,7 +72,7 @@ def generate_response(history):
     history.append(
         ChatMessage(role="assistant",
                     content="The weather API says it is 20 degrees Celcius in New York.",
-                    metadata={"tool_name": "Weather API", "error": False})
+                    metadata={"title": "🛠️ Used tool Weather API"})
         )
     return history
 ```
@@ -85,9 +85,7 @@ All of the types expected by the messages format are documented below:
 
 ```python
 class MetadataDict(TypedDict):
-    tool_name: Union[str, None]
-    error: bool
-
+    title: Union[str, None]
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
@@ -107,8 +105,7 @@ class MessageDict(TypedDict):
 
 @dataclass
 class Metadata:
-    tool_name: Optional[str] = None
-    error: bool = False
+    title: Optional[str] = None
 
 
 @dataclass
@@ -140,6 +137,7 @@ from gradio import MessageDict
 
 def predict(value: list[MessageDict] | None):
     ...
+```
 <br>
 
 ## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}

@@ -565,25 +565,11 @@ class ChatInterface(Blocks):
             history.append({"role": "user", "content": message})  # type: ignore
         return history, history  # type: ignore
 
-    def response_as_dict(
-        self,
-        response: MessageDict | Message | str,
-        current_response: MessageDict | None = None,
-    ) -> MessageDict:
+    def response_as_dict(self, response: MessageDict | Message | str) -> MessageDict:
         if isinstance(response, Message):
             new_response = response.model_dump()
         elif isinstance(response, str):
-            if current_response is None:
-                return {"role": "assistant", "content": response}
-            elif current_response is not None and isinstance(
-                current_response["content"], str
-            ):
-                current_response["content"] += response
-                new_response = current_response
-            else:
-                raise ValueError(
-                    "The current response conent must be a string when the response is a string."
-                )
+            return {"role": "assistant", "content": response}
         else:
             new_response = response
         return cast(MessageDict, new_response)
@@ -651,8 +637,6 @@ class ChatInterface(Blocks):
             self.fn, inputs=[message, history, *args], request=request
         )
 
-        current_response = {"role": "assistant", "content": ""}
-
         if self.is_async:
             generator = self.fn(*inputs)
         else:
@@ -663,9 +647,7 @@ class ChatInterface(Blocks):
         try:
             first_response = await async_iteration(generator)
             if self.msg_format == "messages":
-                first_response = self.response_as_dict(
-                    first_response, current_response=cast(MessageDict, current_response)
-                )
+                first_response = self.response_as_dict(first_response)
             if (
                 self.multimodal
                 and isinstance(message, MultimodalData)
@@ -707,9 +689,7 @@ class ChatInterface(Blocks):
                 yield update, update
         async for response in generator:
             if self.msg_format == "messages":
-                response = self.response_as_dict(
-                    response, current_response=cast(MessageDict, current_response)
-                )
+                response = self.response_as_dict(response)
             if (
                 self.multimodal
                 and isinstance(message, MultimodalData)
@@ -764,7 +744,6 @@ class ChatInterface(Blocks):
         inputs, _, _ = special_args(
             self.fn, inputs=[message, history, *args], request=request
         )
-        current_response: MessageDict = {"role": "assistant", "content": ""}
         if self.is_async:
             generator = self.fn(*inputs)
         else:
@@ -777,9 +756,7 @@ class ChatInterface(Blocks):
             if self.msg_format == "tuples":
                 yield first_response, history + [[message, first_response]]
             else:
-                first_response = self.response_as_dict(
-                    first_response, current_response=current_response
-                )
+                first_response = self.response_as_dict(first_response)
                 yield (
                     first_response,
                     history + [{"role": "user", "content": message}, first_response],
@@ -790,9 +767,7 @@ class ChatInterface(Blocks):
             if self.msg_format == "tuples":
                 yield response, history + [[message, response]]
             else:
-                new_response = self.response_as_dict(
-                    response, current_response=current_response
-                )
+                new_response = self.response_as_dict(response)
                 yield (
                     new_response,
                     history + [{"role": "user", "content": message}, new_response],
@@ -821,7 +796,6 @@ class ChatInterface(Blocks):
     ) -> AsyncGenerator:
         inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
 
-        current_response: MessageDict = {"role": "assistant", "content": ""}
         if self.is_async:
             generator = self.fn(*inputs)
         else:
@@ -833,9 +807,7 @@ class ChatInterface(Blocks):
             if self.msg_format == "tuples":
                 yield [[message, response]]
             else:
-                new_response = self.response_as_dict(
-                    response, current_response=current_response
-                )
+                new_response = self.response_as_dict(response)
                 yield [{"role": "user", "content": message}, new_response]
 
     async def _delete_prev_fn(

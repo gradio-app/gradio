@@ -1,6 +1,5 @@
 <script lang="ts">
 	let expanded = false;
-	export let emoji: string;
 	export let title: string;
 
 	function toggleExpanded(): void {
@@ -8,19 +7,22 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="box" on:click={toggleExpanded}>
+<button class="box" on:click={toggleExpanded}>
 	<div class="title">
-		<div class="icon">{emoji}</div>
-		<span>{title}</span>
+		<span class="title-text">{title}</span>
+		<span
+			style:transform={expanded ? "rotate(0)" : "rotate(90deg)"}
+			class="arrow"
+		>
+			▼
+		</span>
 	</div>
 	{#if expanded}
 		<div class="content">
 			<slot></slot>
 		</div>
 	{/if}
-</div>
+</button>
 
 <style>
 	.box {
@@ -38,13 +40,16 @@
 		opacity: 0.8;
 	}
 
-	.icon {
-		width: 18px;
-		height: 18px;
-		margin-right: 8px;
-	}
-
 	.content {
 		padding: 8px;
+	}
+
+	.title-text {
+		padding-right: var(--spacing-lg);
+	}
+
+	.arrow {
+		margin-left: auto;
+		opacity: 0.8;
 	}
 </style>

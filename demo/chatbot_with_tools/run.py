@@ -1,6 +1,5 @@
 import gradio as gr
 from gradio import ChatMessage
-from gradio.components.chatbot import Metadata
 import time
 
 def generate_response(history):
@@ -15,7 +14,7 @@ def generate_response(history):
 
     history.append(ChatMessage(role="assistant",
                                content="API Error when connecting to weather service.",
-                               metadata={"error": True, "tool_name": None})
+                              metadata={"title": "🛠️ Used tool 'Weather'"})
                   )
     yield history
     time.sleep(0.25)
@@ -28,7 +27,7 @@ def generate_response(history):
 
     history.append(ChatMessage(role="assistant",
                                content="Weather 72 degrees Fahrenheit with 20% chance of rain.",
-                                metadata={"error": False, "tool_name": "Weather"}
+                                metadata={"title": "💥 Error using tool 'Weather'"}
                               ))
     yield history
     time.sleep(0.25)

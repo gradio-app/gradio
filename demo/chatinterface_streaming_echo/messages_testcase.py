@@ -3,10 +3,10 @@ import gradio as gr
 
 
 def slow_echo(message, history):
-    yield "You typed: "
     for i in range(len(message)):
         time.sleep(0.05)
-        yield message[i]
+        yield "You typed: " + message[: i + 1]
+
 
 
 demo = gr.ChatInterface(slow_echo, msg_format="messages")

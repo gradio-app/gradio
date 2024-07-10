@@ -38,8 +38,7 @@ from gradio.processing_utils import move_resource_to_block_cache
 
 
 class MetadataDict(TypedDict):
-    tool_name: Union[str, None]
-    error: bool
+    title: Union[str, None]
 
 
 class FileDataDict(TypedDict):
@@ -101,8 +100,7 @@ class ChatbotDataTuples(GradioRootModel):
 
 
 class Metadata(GradioModel):
-    tool_name: Optional[str] = None
-    error: bool = False
+    title: Optional[str] = None
 
 
 class Message(GradioModel):

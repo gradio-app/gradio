@@ -174,8 +174,8 @@
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
-			index: i,
-			value: (message.content as ComponentData).value.url || message.content
+			index: message.index,
+			value: message.content
 		});
 	}
 
@@ -185,8 +185,8 @@
 		selected: string | null
 	): void {
 		dispatch("like", {
-			index: i,
-			value: (message.content as ComponentData).value.url || message.content,
+			index: message.index,
+			value: message.content,
 			liked: selected === "like"
 		});
 	}
@@ -332,22 +332,8 @@
 										get_message_label_data(message)}
 								>
 									{#if message.type === "text"}
-										{#if message.metadata.tool_name}
-											<MessageBox
-												title={`Used tool ${message.metadata.tool_name}`}
-												emoji="🛠️"
-											>
-												<Markdown
-													message={message.content}
-													{latex_delimiters}
-													{sanitize_html}
-													{render_markdown}
-													{line_breaks}
-													on:load={scroll}
-												/>
-											</MessageBox>
-										{:else if message.metadata.error}
-											<MessageBox title={"Error"} emoji={"💥"}>
+										{#if message.metadata.title}
+											<MessageBox title={message.metadata.title}>
 												<Markdown
 													message={message.content}
 													{latex_delimiters}
