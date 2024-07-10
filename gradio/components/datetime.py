@@ -47,9 +47,9 @@ class DateTime(FormComponent):
         Parameters:
             value: default value for datetime.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            show_label: if True, will display label. If False, the copy button is hidden as well as well as the label.
+            show_label: if True, will display label.
             include_time: If True, the component will include time selection. If False, only date selection will be available.
-            type: The type of the value. Can be "timestamp", "datetime", or "string". If "timestamp", the value will be a tuple of two numbers representing the start and end date in seconds since epoch. If "datetime", the value will be a tuple of two datetime objects. If "string", the value will be the date entered by the user.
+            type: The type of the value. Can be "timestamp", "datetime", or "string". If "timestamp", the value will be a number representing the start and end date in seconds since epoch. If "datetime", the value will be a datetime object. If "string", the value will be the date entered by the user.
             timezone: The timezone to use for timestamps, such as "US/Pacific" or "Europe/Paris". If None, the timezone will be the local timezone.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -88,9 +88,11 @@ class DateTime(FormComponent):
         """
         if payload is None or payload == "":
             return None
-        if self.type == "string":
+        if self.type == "string" and "now" not in payload:
             return payload
         datetime = self.get_datetime_from_str(payload)
+        if self.type == "string":
+            return datetime.strftime(self.time_format)
         if self.type == "datetime":
             return datetime
         elif self.type == "timestamp":
@@ -111,16 +113,16 @@ class DateTime(FormComponent):
         elif isinstance(value, str):
             return value
         else:
-            return datetime.fromtimestamp(value).strftime(self.time_format)
+            return datetime.fromtimestamp(value, tz=pytz.timezone(self.timezone)).strftime(self.time_format)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
-    def example_payload(self) -> float:
-        return 1609459200
+    def example_payload(self) -> str:
+        return "2020-10-01 05:20:15"
 
-    def example_value(self) -> float:
-        return 1609459200
+    def example_value(self) -> str:
+        return "2020-10-01 05:20:15"
 
     def get_datetime_from_str(self, date: str) -> datetime:
         now_regex = r"^(?:\s*now\s*(?:-\s*(\d+)\s*([dmhs]))?)?\s*$"
@@ -144,5 +146,5 @@ class DateTime(FormComponent):
         else:
             dt = datetime.strptime(date, self.time_format)
             if self.timezone:
-                dt = dt.replace(tzinfo=pytz.timezone(self.timezone))
+                dt = pytz.timezone(self.timezone).localize(dt)
             return dt
