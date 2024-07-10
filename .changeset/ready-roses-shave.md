@@ -1,7 +1,7 @@
 ---
-"@gradio/image": minor
-"@gradio/utils": minor
-"gradio": minor
+"@gradio/image": patch
+"@gradio/utils": patch
+"gradio": patch
 ---
 
-feat:Fix `Share to community` button for images
+fix:Fix `Share to community` button for images
