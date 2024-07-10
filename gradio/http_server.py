@@ -76,7 +76,7 @@ def start_server(
     ssl_certfile: str | None = None,
     ssl_keyfile_password: str | None = None,
 ) -> tuple[str, int, str, Server]:
-    """Launches a local server running the provided Interface
+    """Launches a local server running the provided app.
     Parameters:
         app: the FastAPI app object to run
         server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
@@ -114,15 +114,17 @@ def start_server(
 
     for port in server_ports:
         try:
-            # The fastest way to check if a port is available is to try to bind to it with socket.
-            # If the port is not available, socket will throw an OSError.
-            s = socket.socket()
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # Really, we should be checking if (server_name, server_port) is available, but
-            # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
-            # Instead, we just check if the port is available on localhost.
-            s.bind((LOCALHOST_NAME, port))
-            s.close()
+            if server_port is None:
+                # The fastest way to check if a port is available is to try to bind to it with socket.
+                # If the port is not available, socket will throw an OSError. This is only needed if
+                # the port is not specified by the user.
+                s = socket.socket()
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                # Really, we should be checking if (server_name, server_port) is available, but
+                # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
+                # Instead, we just check if the port is available on localhost.
+                s.bind((LOCALHOST_NAME, port))
+                s.close()
 
             # To avoid race conditions, so we also check if the port by trying to start the uvicorn server.
             # If the port is not available, this will throw a ServerFailedToStartError.
