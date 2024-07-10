@@ -216,6 +216,12 @@ importers:
       '@gradio/dataset':
         specifier: workspace:^
         version: link:js/dataset
+      '@gradio/datetime':
+        specifier: workspace:^
+        version: link:js/datetime
+      '@gradio/datetimerange':
+        specifier: workspace:^
+        version: link:js/datetimerange
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:js/downloadbutton
@@ -303,9 +309,6 @@ importers:
       '@gradio/timer':
         specifier: workspace:^
         version: link:js/timer
-      '@gradio/timerange':
-        specifier: workspace:^
-        version: link:js/timerange
       '@gradio/upload':
         specifier: workspace:^
         version: link:js/upload
@@ -565,6 +568,12 @@ importers:
       '@gradio/dataset':
         specifier: workspace:^
         version: link:../dataset
+      '@gradio/datetime':
+        specifier: workspace:^
+        version: link:../datetime
+      '@gradio/datetimerange':
+        specifier: workspace:^
+        version: link:../datetimerange
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:../downloadbutton
@@ -667,9 +676,6 @@ importers:
       '@gradio/timer':
         specifier: workspace:^
         version: link:../timer
-      '@gradio/timerange':
-        specifier: workspace:^
-        version: link:../timerange
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
@@ -1056,6 +1062,44 @@ importers:
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/datetime:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/datetimerange:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
@@ -1856,25 +1900,6 @@ importers:
 
   js/timer:
     dependencies:
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-    devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../preview
-
-  js/timerange:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../statustracker
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils

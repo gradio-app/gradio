@@ -9,6 +9,7 @@
 
 	export let gradio: Gradio<{
 		change: undefined;
+		submit: undefined;
 	}>;
 	export let label = "Time Range";
 	export let show_label = true;
@@ -20,7 +21,9 @@
 	let old_value = value;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+
 	export let quick_ranges: string[] = [];
+	export let include_time: boolean = true;
 	let range_history: [string, string][] = [];
 	$: if (value[0] !== old_value[0] || value[1] !== old_value[1]) {
 		old_value = value;
@@ -41,7 +44,13 @@
 		const minutes = pad(date.getMinutes());
 		const seconds = pad(date.getSeconds());
 
-		return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+		const date_str = `${year}-${month}-${day}`;
+		const time_str = `${hours}:${minutes}:${seconds}`;
+		if (include_time) {
+			return `${date_str} ${time_str}`;
+		} else {
+			return date_str;
+		}
 	};
 
 	let start_time = value[0];
@@ -54,8 +63,10 @@
 
 	const date_is_valid_format = (date: string): boolean => {
 		if (date === "") return false;
-		const is_valid_date =
-			date.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/) !== null;
+		const valid_regex = include_time
+			? /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
+			: /^\d{4}-\d{2}-\d{2}$/;
+		const is_valid_date = date.match(valid_regex) !== null;
 		const is_valid_now =
 			date.match(/^(?:\s*now\s*(?:-\s*\d+\s*[dmhs])?)?\s*$/) !== null;
 		return is_valid_date || is_valid_now;
@@ -67,6 +78,7 @@
 	const submit_values = (): void => {
 		if (!date_is_valid_format(start_time) || !date_is_valid_format(end_time))
 			return;
+		if (start_time === value[0] && end_time === value[1]) return;
 		old_value = value = [start_time, end_time];
 		range_history = [...range_history, value];
 		gradio.dispatch("change");
@@ -100,6 +112,12 @@
 		<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		{#if show_label}
 			<div class="quick-ranges">
+				<button
+					class="quick-range"
+					style:display={range_history.length === 0 ? "none" : "block"}
+					on:click={back_in_history}>Back</button
+				>
+
 				{#each quick_ranges as quick_range}
 					<button
 						class="quick-range"
@@ -113,12 +131,7 @@
 			</div>
 		{/if}
 	</div>
-	<div class="timerange">
-		<button
-			class="range-btn"
-			disabled={range_history.length === 0}
-			on:click={back_in_history}><Back></Back></button
-		>
+	<div class="datetimerange">
 		<div class="timebox">
 			<input
 				class="start"
@@ -126,20 +139,40 @@
 				bind:value={start_time}
 				class:invalid={!start_time_valid}
 				on:keydown={(evt) => {
-					if (evt.key === "Enter") submit_values();
+					if (evt.key === "Enter") {
+						submit_values();
+						gradio.dispatch("submit");
+					}
 				}}
+				on:blur={submit_values}
 			/>
-			<input
-				type="datetime-local"
-				class="datetime"
-				step="1"
-				bind:this={datetime1}
-				bind:value={datevalue1}
-				on:input={(evt) => {
-					const date = new Date(datevalue1);
-					start_time = format_date(date);
-				}}
-			/>
+			{#if include_time}
+				<input
+					type="datetime-local"
+					class="datetime"
+					step="1"
+					bind:this={datetime1}
+					bind:value={datevalue1}
+					on:input={() => {
+						const date = new Date(datevalue1);
+						start_time = format_date(date);
+						submit_values();
+					}}
+				/>
+			{:else}
+				<input
+					type="date"
+					class="datetime"
+					bind:this={datetime1}
+					bind:value={datevalue1}
+					on:input={() => {
+						const date = new Date(datevalue1);
+						start_time = format_date(date);
+						submit_values();
+					}}
+				/>
+			{/if}
+
 			<button
 				class="calendar"
 				on:click={() => {
@@ -154,20 +187,39 @@
 				bind:value={end_time}
 				class:invalid={!end_time_valid}
 				on:keydown={(evt) => {
-					if (evt.key === "Enter") submit_values();
+					if (evt.key === "Enter") {
+						submit_values();
+						gradio.dispatch("submit");
+					}
 				}}
+				on:blur={submit_values}
 			/>
-			<input
-				type="datetime-local"
-				class="datetime"
-				step="1"
-				bind:this={datetime2}
-				bind:value={datevalue2}
-				on:input={(evt) => {
-					const date = new Date(datevalue2);
-					end_time = format_date(date);
-				}}
-			/>
+			{#if include_time}
+				<input
+					type="datetime-local"
+					class="datetime"
+					step="1"
+					bind:this={datetime2}
+					bind:value={datevalue2}
+					on:input={(evt) => {
+						const date = new Date(datevalue2);
+						end_time = format_date(date);
+						submit_values();
+					}}
+				/>
+			{:else}
+				<input
+					type="date"
+					class="datetime"
+					bind:this={datetime2}
+					bind:value={datevalue2}
+					on:input={(evt) => {
+						const date = new Date(datevalue2);
+						end_time = format_date(date);
+						submit_values();
+					}}
+				/>
+			{/if}
 			<button
 				class="calendar"
 				on:click={() => {
@@ -175,11 +227,6 @@
 				}}><Calendar></Calendar></button
 			>
 		</div>
-		<button
-			class="range-btn"
-			on:click={submit_values}
-			disabled={!start_time_valid || !end_time_valid}>Apply</button
-		>
 	</div>
 </Block>
 
@@ -204,7 +251,7 @@
 	::placeholder {
 		color: var(--input-placeholder-color);
 	}
-	.timerange {
+	.datetimerange {
 		display: flex;
 		gap: var(--size-2);
 		flex-wrap: wrap;
@@ -252,30 +299,11 @@
 		font-weight: var(--button-large-text-weight);
 		font-size: var(--button-large-text-size);
 	}
-	.range-btn {
-		padding: var(--button-large-padding);
-		border-radius: var(--button-large-radius);
-		border: var(--button-border-width) solid
-			var(--button-secondary-border-color);
-	}
 	.calendar {
 		border-top-right-radius: var(--input-radius);
 		border-bottom-right-radius: var(--input-radius);
 		padding: var(--size-2);
 	}
-	.range-btn:hover,
-	.range-btn[disabled] {
-		box-shadow: var(--button-shadow-hover);
-		border-color: var(--button-secondary-border-color-hover);
-		background: var(--button-secondary-background-fill-hover);
-		color: var(--button-secondary-text-color-hover);
-	}
-	.range-btn[disabled] {
-		opacity: 0.5;
-		filter: grayscale(30%);
-		cursor: not-allowed;
-	}
-
 	.datetime {
 		width: 0px;
 		padding: 0;

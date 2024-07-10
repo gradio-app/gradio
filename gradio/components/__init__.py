@@ -19,6 +19,8 @@ from gradio.components.code import Code
 from gradio.components.color_picker import ColorPicker
 from gradio.components.dataframe import Dataframe
 from gradio.components.dataset import Dataset
+from gradio.components.datetime import DateTime
+from gradio.components.datetime_range import DateTimeRange
 from gradio.components.download_button import DownloadButton
 from gradio.components.dropdown import Dropdown
 from gradio.components.duplicate_button import DuplicateButton
@@ -46,7 +48,6 @@ from gradio.components.scatter_plot import ScatterPlot
 from gradio.components.slider import Slider
 from gradio.components.state import State
 from gradio.components.textbox import Textbox
-from gradio.components.time_range import TimeRange
 from gradio.components.timer import Timer
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
@@ -94,7 +95,8 @@ __all__ = [
     "LogoutButton",
     "Markdown",
     "Textbox",
-    "TimeRange",
+    "DateTimeRange",
+    "DateTime",
     "Dropdown",
     "Model3D",
     "File",
