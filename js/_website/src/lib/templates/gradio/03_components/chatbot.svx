@@ -40,16 +40,19 @@ demo.launch()
 The data format accepted by the Chatbot is dictated by the `msg_format` parameter.
 This parameter can take two values, `'tuples'` and `'messages'`.
 
+
 If `msg_format` is `'tuples'`, then the data sent to/from the chatbot will be a list of tuples.
 The first element of each tuple is the user message and the second element is the bot's response.
 Each element can be a string (markdown/html is supported),
 a tuple (in which case the first element is a filepath that will be displayed in the chatbot),
 or a gradio component (see the Examples section for more details).
 
+
 If the `msg_format` is `'messages'`, then the data sent to/from the chatbot will be a list of dictionaries
 with `role` and `content` keys. This format is compliant with the format expected by most LLM APIs (HuggingChat, OpenAI, Claude).
 The `role` key is either `'user'` or `'`assistant'` and the `content` key can be a string (markdown/html supported),
 a `FileDataDict` (to represent a file that is displayed in the chatbot - documented below), or a gradio component.
+
 
 For convenience, you can use the `ChatMessage` dataclass so that your text editor can give you autocomplete hints and typechecks.
 
@@ -80,6 +83,7 @@ def generate_response(history):
 Would be displayed as following:
 
 <img src="https://github.com/freddyaboulton/freddyboulton/assets/41651716/a4bb2b0a-5f8a-4287-814b-4eab278e021e" alt="Gradio chatbot tool display">
+
 
 All of the types expected by the messages format are documented below:
 
