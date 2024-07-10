@@ -23,6 +23,8 @@
 	export let app: Awaited<ReturnType<typeof Client.connect>>;
 	export let space_id: string | null;
 	export let root_node: ComponentMeta;
+	export let username: string | null;
+
 	const js_docs =
 		"https://www.gradio.app/guides/getting-started-with-the-js-client";
 	const py_docs =
@@ -142,6 +144,7 @@
 							{dependencies}
 							{root}
 							short_root={space_id || root}
+							{username}
 						/>
 						<p>
 							Note: Some API calls only affect the UI, so when using the
@@ -195,7 +198,7 @@
 							<p class="self-baseline">API Recorder</p>
 						</Button>
 						to automatically generate your API requests.
-						{#if current_language == "bash"}<br />&nbsp;<br />Note: making a
+						{#if current_language == "bash"}<br />&nbsp;<br />Making a
 							prediction and getting a result requires
 							<strong>2 requests</strong>: a
 							<code>POST</code>
@@ -204,7 +207,10 @@
 							<code>GET</code> request to fetch the results. In these snippets,
 							we've used <code>awk</code> and <code>read</code> to parse the
 							results, combining these two requests into one command for ease of
-							use. See <a href={bash_docs} target="_blank">curl docs</a>.
+							use. {#if username !== null}
+								Note: connecting to an authenticated app requires an additional
+								request.{/if} See
+							<a href={bash_docs} target="_blank">curl docs</a>.
 						{/if}
 
 						<!-- <span
@@ -228,6 +234,7 @@
 								{current_language}
 								{root}
 								{space_id}
+								{username}
 							/>
 
 							<ParametersSnippet

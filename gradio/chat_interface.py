@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import functools
 import inspect
+import warnings
 from typing import AsyncGenerator, Callable, Literal, Union, cast
 
 import anyio
@@ -22,6 +23,8 @@ from gradio.components import (
     Textbox,
     get_component_instance,
 )
+from gradio.components.chatbot import FileDataDict, Message, MessageDict, TupleFormat
+from gradio.components.multimodal_textbox import MultimodalData
 from gradio.events import Dependency, on
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args
@@ -56,6 +59,7 @@ class ChatInterface(Blocks):
         fn: Callable,
         *,
         multimodal: bool = False,
+        msg_format: Literal["messages", "tuples"] = "tuples",
         chatbot: Chatbot | None = None,
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
@@ -123,6 +127,7 @@ class ChatInterface(Blocks):
             fill_height=fill_height,
             delete_cache=delete_cache,
         )
+        self.msg_format: Literal["messages", "tuples"] = msg_format
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
         self.fn = fn
@@ -182,10 +187,19 @@ class ChatInterface(Blocks):
                 Markdown(description)
 
             if chatbot:
+                if self.msg_format != chatbot.msg_format:
+                    warnings.warn(
+                        "The msg_format of the chatbot does not match the msg_format of the chat interface. The msg_format of the chat interface will be used."
+                        "Recieved msg_format of chatbot: {chatbot.msg_format}, msg_format of chat interface: {self.msg_format}"
+                    )
+                    chatbot.msg_format = self.msg_format
                 self.chatbot = get_component_instance(chatbot, render=True)
             else:
                 self.chatbot = Chatbot(
-                    label="Chatbot", scale=1, height=200 if fill_height else None
+                    label="Chatbot",
+                    scale=1,
+                    height=200 if fill_height else None,
+                    msg_format=self.msg_format,
                 )
 
             with Row():
@@ -329,6 +343,7 @@ class ChatInterface(Blocks):
                 [self.textbox, self.saved_input],
                 show_api=False,
                 queue=False,
+                preprocess=False,
             )
             .then(
                 self._display_input,
@@ -383,6 +398,12 @@ class ChatInterface(Blocks):
             )
             self._setup_stop_events([self.retry_btn.click], retry_event)
 
+        async def format_textbox(data: str | MultimodalData) -> str | dict:
+            if isinstance(data, MultimodalData):
+                return {"text": data.text, "files": [x.path for x in data.files]}
+            else:
+                return data
+
         if self.undo_btn:
             self.undo_btn.click(
                 self._delete_prev_fn,
@@ -391,7 +412,7 @@ class ChatInterface(Blocks):
                 show_api=False,
                 queue=False,
             ).then(
-                async_lambda(lambda x: x),
+                format_textbox,
                 [self.saved_input],
                 [self.textbox],
                 show_api=False,
@@ -498,54 +519,82 @@ class ChatInterface(Blocks):
             ),
         )
 
-    def _clear_and_save_textbox(self, message: str) -> tuple[str | dict, str]:
+    def _clear_and_save_textbox(
+        self, message: str | dict
+    ) -> tuple[str | dict, str | MultimodalData]:
         if self.multimodal:
-            return {"text": "", "files": []}, message
+            return {"text": "", "files": []}, MultimodalData(**cast(dict, message))
         else:
-            return "", message
+            return "", cast(str, message)
 
     def _append_multimodal_history(
         self,
-        message: dict[str, list],
-        response: str | None,
-        history: list[list[str | tuple | None]],
+        message: MultimodalData,
+        response: MessageDict | str | None,
+        history: list[MessageDict] | TupleFormat,
     ):
-        for x in message["files"]:
-            history.append([(x,), None])
-        if message["text"] is None or not isinstance(message["text"], str):
-            return
-        elif message["text"] == "" and message["files"] != []:
-            history.append([None, response])
+        if self.msg_format == "tuples":
+            for x in message.files:
+                history.append([(x.path,), None])  # type: ignore
+            if message.text is None or not isinstance(message.text, str):
+                return
+            elif message.text == "" and message.files != []:
+                history.append([None, response])  # type: ignore
+            else:
+                history.append([message.text, cast(str, response)])  # type: ignore
         else:
-            history.append([message["text"], response])
+            for x in message.files:
+                history.append(
+                    {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
+                )
+            if message.text is None or not isinstance(message.text, str):
+                return
+            else:
+                history.append({"role": "user", "content": message.text})  # type: ignore
+            if response:
+                history.append(cast(MessageDict, response))  # type: ignore
 
     async def _display_input(
-        self, message: str | dict[str, list], history: list[list[str | tuple | None]]
-    ) -> tuple[list[list[str | tuple | None]], list[list[str | tuple | None]]]:
-        if self.multimodal and isinstance(message, dict):
+        self, message: str | MultimodalData, history: TupleFormat | list[MessageDict]
+    ) -> tuple[TupleFormat, TupleFormat] | tuple[list[MessageDict], list[MessageDict]]:
+        if self.multimodal and isinstance(message, MultimodalData):
             self._append_multimodal_history(message, None, history)
-        elif isinstance(message, str):
-            history.append([message, None])
-        return history, history
+        elif isinstance(message, str) and self.msg_format == "tuples":
+            history.append([message, None])  # type: ignore
+        elif isinstance(message, str) and self.msg_format == "messages":
+            history.append({"role": "user", "content": message})  # type: ignore
+        return history, history  # type: ignore
+
+    def response_as_dict(self, response: MessageDict | Message | str) -> MessageDict:
+        if isinstance(response, Message):
+            new_response = response.model_dump()
+        elif isinstance(response, str):
+            return {"role": "assistant", "content": response}
+        else:
+            new_response = response
+        return cast(MessageDict, new_response)
 
     async def _submit_fn(
         self,
-        message: str | dict[str, list],
-        history_with_input: list[list[str | tuple | None]],
+        message: str | MultimodalData,
+        history_with_input: TupleFormat | list[MessageDict],
         request: Request,
         *args,
-    ) -> tuple[list[list[str | tuple | None]], list[list[str | tuple | None]]]:
-        if self.multimodal and isinstance(message, dict):
+    ) -> tuple[TupleFormat, TupleFormat] | tuple[list[MessageDict], list[MessageDict]]:
+        if self.multimodal and isinstance(message, MultimodalData):
             remove_input = (
-                len(message["files"]) + 1
-                if message["text"] is not None
-                else len(message["files"])
+                len(message.files) + 1
+                if message.text is not None
+                else len(message.files)
             )
             history = history_with_input[:-remove_input]
+            message_serialized = message.model_dump()
         else:
             history = history_with_input[:-1]
+            message_serialized = message
+
         inputs, _, _ = special_args(
-            self.fn, inputs=[message, history, *args], request=request
+            self.fn, inputs=[message_serialized, history, *args], request=request
         )
 
         if self.is_async:
@@ -555,24 +604,31 @@ class ChatInterface(Blocks):
                 self.fn, *inputs, limiter=self.limiter
             )
 
-        if self.multimodal and isinstance(message, dict):
-            self._append_multimodal_history(message, response, history)
-        elif isinstance(message, str):
-            history.append([message, response])
-        return history, history
+        if self.msg_format == "messages":
+            new_response = self.response_as_dict(response)
+        else:
+            new_response = response
+
+        if self.multimodal and isinstance(message, MultimodalData):
+            self._append_multimodal_history(message, new_response, history)  # type: ignore
+        elif isinstance(message, str) and self.msg_format == "tuples":
+            history.append([message, new_response])  # type: ignore
+        elif isinstance(message, str) and self.msg_format == "messages":
+            history.extend([{"role": "user", "content": message}, new_response])  # type: ignore
+        return history, history  # type: ignore
 
     async def _stream_fn(
         self,
-        message: str | dict[str, list],
-        history_with_input: list[list[str | tuple | None]],
+        message: str | MultimodalData,
+        history_with_input: TupleFormat | list[MessageDict],
         request: Request,
         *args,
     ) -> AsyncGenerator:
-        if self.multimodal and isinstance(message, dict):
+        if self.multimodal and isinstance(message, MultimodalData):
             remove_input = (
-                len(message["files"]) + 1
-                if message["text"] is not None
-                else len(message["files"])
+                len(message.files) + 1
+                if message.text is not None
+                else len(message.files)
             )
             history = history_with_input[:-remove_input]
         else:
@@ -590,30 +646,136 @@ class ChatInterface(Blocks):
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
             first_response = await async_iteration(generator)
-            if self.multimodal and isinstance(message, dict):
-                for x in message["files"]:
-                    history.append([(x,), None])
-                update = history + [[message["text"], first_response]]
+            if self.msg_format == "messages":
+                first_response = self.response_as_dict(first_response)
+            if (
+                self.multimodal
+                and isinstance(message, MultimodalData)
+                and self.msg_format == "tuples"
+            ):
+                for x in message.files:
+                    history.append([(x,), None])  # type: ignore
+                update = history + [[message.text, first_response]]
                 yield update, update
-            else:
+            elif (
+                self.multimodal
+                and isinstance(message, MultimodalData)
+                and self.msg_format == "messages"
+            ):
+                for x in message.files:
+                    history.append(
+                        {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
+                    )
+                update = history + [
+                    {"role": "user", "content": message.text},
+                    first_response,
+                ]
+                yield update, update
+            elif self.msg_format == "tuples":
                 update = history + [[message, first_response]]
                 yield update, update
+            else:
+                update = history + [
+                    {"role": "user", "content": message},
+                    first_response,
+                ]
+                yield update, update
         except StopIteration:
-            if self.multimodal and isinstance(message, dict):
+            if self.multimodal and isinstance(message, MultimodalData):
                 self._append_multimodal_history(message, None, history)
                 yield history, history
             else:
                 update = history + [[message, None]]
                 yield update, update
         async for response in generator:
-            if self.multimodal and isinstance(message, dict):
-                update = history + [[message["text"], response]]
+            if self.msg_format == "messages":
+                response = self.response_as_dict(response)
+            if (
+                self.multimodal
+                and isinstance(message, MultimodalData)
+                and self.msg_format == "tuples"
+            ):
+                update = history + [[message.text, response]]
                 yield update, update
-            else:
+            elif (
+                self.multimodal
+                and isinstance(message, MultimodalData)
+                and self.msg_format == "messages"
+            ):
+                update = history + [
+                    {"role": "user", "content": message.text},
+                    response,
+                ]
+                yield update, update
+            elif self.msg_format == "tuples":
                 update = history + [[message, response]]
                 yield update, update
+            else:
+                update = history + [{"role": "user", "content": message}, response]
+                yield update, update
 
-    async def _examples_fn(self, message: str, *args) -> list[list[str | None]]:
+    async def _api_submit_fn(
+        self,
+        message: str,
+        history: TupleFormat | list[MessageDict],
+        request: Request,
+        *args,
+    ) -> tuple[str, TupleFormat | list[MessageDict]]:
+        inputs, _, _ = special_args(
+            self.fn, inputs=[message, history, *args], request=request
+        )
+
+        if self.is_async:
+            response = await self.fn(*inputs)
+        else:
+            response = await anyio.to_thread.run_sync(
+                self.fn, *inputs, limiter=self.limiter
+            )
+        if self.msg_format == "tuples":
+            history.append([message, response])  # type: ignore
+        else:
+            new_response = self.response_as_dict(response)
+            history.extend([{"role": "user", "content": message}, new_response])  # type: ignore
+        return response, history
+
+    async def _api_stream_fn(
+        self, message: str, history: list[list[str | None]], request: Request, *args
+    ) -> AsyncGenerator:
+        inputs, _, _ = special_args(
+            self.fn, inputs=[message, history, *args], request=request
+        )
+        if self.is_async:
+            generator = self.fn(*inputs)
+        else:
+            generator = await anyio.to_thread.run_sync(
+                self.fn, *inputs, limiter=self.limiter
+            )
+            generator = SyncToAsyncIterator(generator, self.limiter)
+        try:
+            first_response = await async_iteration(generator)
+            if self.msg_format == "tuples":
+                yield first_response, history + [[message, first_response]]
+            else:
+                first_response = self.response_as_dict(first_response)
+                yield (
+                    first_response,
+                    history + [{"role": "user", "content": message}, first_response],
+                )
+        except StopIteration:
+            yield None, history + [[message, None]]
+        async for response in generator:
+            if self.msg_format == "tuples":
+                yield response, history + [[message, response]]
+            else:
+                new_response = self.response_as_dict(response)
+                yield (
+                    new_response,
+                    history + [{"role": "user", "content": message}, new_response],
+                )
+
+    async def _examples_fn(
+        self, message: str, *args
+    ) -> TupleFormat | list[MessageDict]:
         inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
 
         if self.is_async:
@@ -622,7 +784,10 @@ class ChatInterface(Blocks):
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-        return [[message, response]]
+        if self.msg_format == "tuples":
+            return [[message, response]]
+        else:
+            return [{"role": "user", "content": message}, response]
 
     async def _examples_stream_fn(
         self,
@@ -639,24 +804,29 @@ class ChatInterface(Blocks):
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
-            yield [[message, response]]
+            if self.msg_format == "tuples":
+                yield [[message, response]]
+            else:
+                new_response = self.response_as_dict(response)
+                yield [{"role": "user", "content": message}, new_response]
 
     async def _delete_prev_fn(
         self,
-        message: str | dict[str, list],
-        history: list[list[str | tuple | None]],
+        message: str | MultimodalData | None,
+        history: list[MessageDict] | TupleFormat,
     ) -> tuple[
-        list[list[str | tuple | None]],
-        str | dict[str, list],
-        list[list[str | tuple | None]],
+        list[MessageDict] | TupleFormat,
+        str | MultimodalData,
+        list[MessageDict] | TupleFormat,
     ]:
-        if self.multimodal and isinstance(message, dict):
+        extra = 1 if self.msg_format == "messages" else 0
+        if self.multimodal and isinstance(message, MultimodalData):
             remove_input = (
-                len(message["files"]) + 1
-                if message["text"] is not None
-                else len(message["files"])
-            )
+                len(message.files) + 1
+                if message.text is not None
+                else len(message.files)
+            ) + extra
             history = history[:-remove_input]
         else:
-            history = history[:-1]
+            history = history[: -(1 + extra)]
         return history, message or "", history
