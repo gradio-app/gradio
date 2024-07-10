@@ -66,10 +66,6 @@ export async function uploadToHuggingFace(
 			throw new Error("Invalid data format for base64 type");
 		}
 
-		if (!dataurl.startsWith("data:")) {
-			throw new Error("Invalid base64 data URL");
-		}
-
 		blob = dataURLtoBlob(dataurl);
 		contentType = dataurl.split(";")[0].split(":")[1];
 		filename = "file." + contentType.split("/")[1];
