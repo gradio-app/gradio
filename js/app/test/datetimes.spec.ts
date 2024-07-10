@@ -57,7 +57,7 @@ test("gr.DateTimeRange shows correct values", async ({ page }) => {
 	await page.getByRole("button", { name: "Load Date Range" }).click();
 	await expect(page.getByLabel("Last Load")).not.toBeEmpty();
 	let last_load = await page.getByLabel("Last Load").inputValue();
-	expect(last_load).toContain("1602331261");
+	expect(last_load).toContain("1602305521");
 
 	await page.getByRole("button", { name: "Last 24h" }).click();
 	await expect(page.getByPlaceholder("From")).toHaveValue("now - 24h");

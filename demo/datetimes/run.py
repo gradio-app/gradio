@@ -3,7 +3,7 @@ import gradio as gr
 with gr.Blocks() as demo:
     date1 = gr.DateTime(include_time=True, label="Date and Time", type="datetime", elem_id="date1")
     date2 = gr.DateTime(include_time=False, label="Date Only", type="string", elem_id="date2")
-    date_time_range = gr.DateTimeRange(elem_id="date3")
+    date_time_range = gr.DateTimeRange(elem_id="date3", timezone="Europe/Paris")
 
     with gr.Row():
         btn1 = gr.Button("Load Date 1")

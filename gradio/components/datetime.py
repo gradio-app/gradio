@@ -6,6 +6,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Any, Literal
 
+import pytz
 from gradio_client.documentation import document
 
 from gradio.components.base import FormComponent
@@ -29,6 +30,7 @@ class DateTime(FormComponent):
         *,
         include_time: bool = True,
         type: Literal["timestamp", "datetime", "string"] = "timestamp",
+        timezone: str | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         info: str | None = None,
@@ -48,6 +50,7 @@ class DateTime(FormComponent):
             show_label: if True, will display label. If False, the copy button is hidden as well as well as the label.
             include_time: If True, the component will include time selection. If False, only date selection will be available.
             type: The type of the value. Can be "timestamp", "datetime", or "string". If "timestamp", the value will be a tuple of two numbers representing the start and end date in seconds since epoch. If "datetime", the value will be a tuple of two datetime objects. If "string", the value will be the date entered by the user.
+            timezone: The timezone to use for timestamps, such as "US/Pacific" or "Europe/Paris". If None, the timezone will be the local timezone.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
@@ -74,6 +77,7 @@ class DateTime(FormComponent):
         self.type = type
         self.include_time = include_time
         self.time_format = "%Y-%m-%d %H:%M:%S" if include_time else "%Y-%m-%d"
+        self.timezone = timezone
 
     def preprocess(self, payload: str | None) -> str | float | datetime | None:
         """
@@ -138,4 +142,7 @@ class DateTime(FormComponent):
             else:
                 raise ValueError("Invalid 'now' time format")
         else:
-            return datetime.strptime(date, self.time_format)
+            dt = datetime.strptime(date, self.time_format)
+            if self.timezone:
+                dt = dt.replace(tzinfo=pytz.timezone(self.timezone))
+            return dt
