@@ -187,14 +187,15 @@ export function handle_payload(
 
 	let updated_payload: unknown[] = [];
 	let payload_index = 0;
-	for (let i = 0; i < dependency.inputs.length; i++) {
-		const input_id = dependency.inputs[i];
+	const deps = type === "input" ? dependency.inputs : dependency.outputs;
+	for (let i = 0; i < deps.length; i++) {
+		const input_id = deps[i];
 		const component = components.find((c) => c.id === input_id);
 
 		if (component?.type === "state") {
 			// input + with_null_state needs us to fill state with null values
 			if (with_null_state) {
-				if (resolved_payload.length === dependency.inputs.length) {
+				if (resolved_payload.length === deps.length) {
 					const value = resolved_payload[payload_index];
 					updated_payload.push(value);
 					payload_index++;

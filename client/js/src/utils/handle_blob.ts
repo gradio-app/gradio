@@ -41,7 +41,10 @@ export async function handle_blob(
 				path,
 				file_url,
 				type,
-				name: blob instanceof File ? blob?.name : undefined
+				name:
+					typeof File !== "undefined" && blob instanceof File
+						? blob?.name
+						: undefined
 			};
 		})
 	);
