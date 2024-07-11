@@ -1428,6 +1428,11 @@ def error_payload(
 
 
 class UnhashableKeyDict(MutableMapping):
+    """
+    Essentially a list of key-value tuples that allows for keys that are not hashable,
+    but acts like a dictionary for convenience.
+    """
+
     def __init__(self):
         self.data = []
 
@@ -1465,3 +1470,6 @@ class UnhashableKeyDict(MutableMapping):
 
     def __len__(self):
         return len(self.data)
+
+    def as_list(self):
+        return [v for _, v in self.data]
