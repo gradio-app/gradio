@@ -11,7 +11,7 @@ from gradio.components.base import (
     get_component_instance,
 )
 from gradio.components.button import Button
-from gradio.components.chatbot import Chatbot
+from gradio.components.chatbot import Chatbot, ChatMessage, MessageDict
 from gradio.components.checkbox import Checkbox
 from gradio.components.checkboxgroup import CheckboxGroup
 from gradio.components.clear_button import ClearButton
@@ -19,6 +19,7 @@ from gradio.components.code import Code
 from gradio.components.color_picker import ColorPicker
 from gradio.components.dataframe import Dataframe
 from gradio.components.dataset import Dataset
+from gradio.components.datetime import DateTime
 from gradio.components.download_button import DownloadButton
 from gradio.components.dropdown import Dropdown
 from gradio.components.duplicate_button import DuplicateButton
@@ -46,6 +47,7 @@ from gradio.components.scatter_plot import ScatterPlot
 from gradio.components.slider import Slider
 from gradio.components.state import State
 from gradio.components.textbox import Textbox
+from gradio.components.timer import Timer
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
 from gradio.layouts import Form
@@ -63,6 +65,7 @@ __all__ = [
     "BarPlot",
     "Button",
     "Chatbot",
+    "ChatMessage",
     "ClearButton",
     "Component",
     "component",
@@ -91,7 +94,9 @@ __all__ = [
     "LoginButton",
     "LogoutButton",
     "Markdown",
+    "MessageDict",
     "Textbox",
+    "DateTime",
     "Dropdown",
     "Model3D",
     "File",
@@ -109,6 +114,7 @@ __all__ = [
     "ScatterPlot",
     "Slider",
     "State",
+    "Timer",
     "UploadButton",
     "Video",
     "StreamingInput",

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
 import PIL.Image
@@ -16,6 +16,9 @@ from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
@@ -52,7 +55,8 @@ class Image(StreamingInput, Component):
         sources: list[Literal["upload", "webcam", "clipboard"]] | None = None,
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -78,7 +82,8 @@ class Image(StreamingInput, Component):
             sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard. If None, defaults to ["upload", "webcam", "clipboard"] if streaming is False, otherwise defaults to ["webcam"].
             type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned. To support animated GIFs in input, the `type` should be set to "filepath" or "pil".
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
             show_download_button: If True, will display button to download image.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -133,6 +138,7 @@ class Image(StreamingInput, Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,

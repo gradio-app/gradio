@@ -216,6 +216,9 @@ importers:
       '@gradio/dataset':
         specifier: workspace:^
         version: link:js/dataset
+      '@gradio/datetime':
+        specifier: workspace:^
+        version: link:js/datetime
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:js/downloadbutton
@@ -300,6 +303,9 @@ importers:
       '@gradio/textbox':
         specifier: workspace:^
         version: link:js/textbox
+      '@gradio/timer':
+        specifier: workspace:^
+        version: link:js/timer
       '@gradio/upload':
         specifier: workspace:^
         version: link:js/upload
@@ -455,6 +461,9 @@ importers:
       '@types/prismjs':
         specifier: ^1.26.0
         version: 1.26.1
+      flexsearch:
+        specifier: ^0.7.43
+        version: 0.7.43
       prismjs:
         specifier: 1.29.0
         version: 1.29.0
@@ -556,6 +565,9 @@ importers:
       '@gradio/dataset':
         specifier: workspace:^
         version: link:../dataset
+      '@gradio/datetime':
+        specifier: workspace:^
+        version: link:../datetime
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:../downloadbutton
@@ -655,6 +667,9 @@ importers:
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
+      '@gradio/timer':
+        specifier: workspace:^
+        version: link:../timer
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
@@ -1038,9 +1053,31 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
+      '@gradio/textbox':
+        specifier: workspace:^
+        version: link:../textbox
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/datetime:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
@@ -1838,6 +1875,16 @@ importers:
         version: link:../preview
 
   js/theme: {}
+
+  js/timer:
+    dependencies:
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
 
   js/tooltip: {}
 
@@ -6244,6 +6291,9 @@ packages:
 
   flatted@3.3.1:
     resolution: {integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==}
+
+  flexsearch@0.7.43:
+    resolution: {integrity: sha512-c5o/+Um8aqCSOXGcZoqZOm+NqtVwNsvVpWv6lfmSclU954O3wvQKxxK8zj74fPaSJbXpSLTs4PRhh+wnoCXnKg==}
 
   flow-parser@0.235.1:
     resolution: {integrity: sha512-s04193L4JE+ntEcQXbD6jxRRlyj9QXcgEl2W6xSjH4l9x4b0eHoCHfbYHjqf9LdZFUiM5LhgpiqsvLj/AyOyYQ==}
@@ -14799,6 +14849,8 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.3.1: {}
+
+  flexsearch@0.7.43: {}
 
   flow-parser@0.235.1: {}
 

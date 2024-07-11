@@ -36,9 +36,9 @@ with gr.Blocks() as demo:
     gr.Markdown("# 📈 Real-Time Line Plot")
     with gr.Row():
         with gr.Column():
-            gr.DataFrame(get_data, every=5)
+            gr.DataFrame(get_data, every=gr.Timer(5))
         with gr.Column():
-            gr.LinePlot(get_data, every=5, x="Date", y="Sales", y_title="Sales ($ millions)", overlay_point=True, width=500, height=500)
+            gr.LinePlot(get_data, every=gr.Timer(5), x="Date", y="Sales", y_title="Sales ($ millions)", overlay_point=True, width=500, height=500)
 
 demo.queue().launch()  # Run the demo with queuing enabled
 ```
@@ -107,9 +107,9 @@ with gr.Blocks() as demo:
     gr.Markdown("# 📈 实时折线图")
     with gr.Row():
         with gr.Column():
-            gr.DataFrame(get_data, every=5)
+            gr.DataFrame(get_data, every=gr.Timer(5))
         with gr.Column():
-            gr.LinePlot(get_data, every=5, x="日期", y="销售额", y_title="销售额（百万美元）", overlay_point=True, width=500, height=500)
+            gr.LinePlot(get_data, every=gr.Timer(5), x="日期", y="销售额", y_title="销售额（百万美元）", overlay_point=True, width=500, height=500)
 
 demo.queue().launch()  # 启动带有排队功能的演示
 ```

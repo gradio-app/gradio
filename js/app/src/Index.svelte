@@ -7,7 +7,7 @@
 
 	declare let BUILD_MODE: string;
 	interface Config {
-		auth_required: boolean | undefined;
+		auth_required?: true;
 		auth_message: string;
 		components: ComponentMeta[];
 		css: string | null;
@@ -31,6 +31,7 @@
 		fill_height?: boolean;
 		fill_width?: boolean;
 		theme_hash?: number;
+		username: string | null;
 	}
 
 	let id = -1;

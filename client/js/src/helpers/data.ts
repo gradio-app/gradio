@@ -149,21 +149,7 @@ export function handle_file(
 			});
 		}
 	} else if (typeof File !== "undefined" && file_or_url instanceof File) {
-		return {
-			path: file_or_url instanceof File ? file_or_url.name : "blob",
-			orig_name: file_or_url instanceof File ? file_or_url.name : "unknown",
-			// @ts-ignore
-			blob: file_or_url instanceof File ? file_or_url : new Blob([file_or_url]),
-			size:
-				file_or_url instanceof Blob
-					? file_or_url.size
-					: Buffer.byteLength(file_or_url as Buffer),
-			mime_type:
-				file_or_url instanceof File
-					? file_or_url.type
-					: "application/octet-stream", // Default MIME type for buffers
-			meta: { _type: "gradio.FileData" }
-		};
+		return new Blob([file_or_url]);
 	} else if (file_or_url instanceof Buffer) {
 		return new Blob([file_or_url]);
 	} else if (file_or_url instanceof Blob) {
@@ -201,14 +187,15 @@ export function handle_payload(
 
 	let updated_payload: unknown[] = [];
 	let payload_index = 0;
-	for (let i = 0; i < dependency.inputs.length; i++) {
-		const input_id = dependency.inputs[i];
+	const deps = type === "input" ? dependency.inputs : dependency.outputs;
+	for (let i = 0; i < deps.length; i++) {
+		const input_id = deps[i];
 		const component = components.find((c) => c.id === input_id);
 
 		if (component?.type === "state") {
 			// input + with_null_state needs us to fill state with null values
 			if (with_null_state) {
-				if (resolved_payload.length === dependency.inputs.length) {
+				if (resolved_payload.length === deps.length) {
 					const value = resolved_payload[payload_index];
 					updated_payload.push(value);
 					payload_index++;

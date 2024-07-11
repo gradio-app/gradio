@@ -20,6 +20,7 @@
 	export let visible = true;
 	export let value: null | FileData = null;
 	export let root: string;
+	export let display_mode: "solid" | "point_cloud" | "wireframe" = "solid";
 	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
@@ -66,6 +67,7 @@
 			<Model3D
 				{value}
 				i18n={gradio.i18n}
+				{display_mode}
 				{clear_color}
 				{label}
 				{show_label}
@@ -105,6 +107,7 @@
 			{label}
 			{show_label}
 			{root}
+			{display_mode}
 			{clear_color}
 			{value}
 			{camera_position}
