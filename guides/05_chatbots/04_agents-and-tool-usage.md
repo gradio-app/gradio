@@ -47,7 +47,7 @@ llm_engine = HfEngine("meta-llama/Meta-Llama-3-70B-Instruct")
 agent = ReactCodeAgent(tools=[image_generation_tool], llm_engine=llm_engine)
 ```
 
-Then we'll build the UI. The bulk of the logic is handled by `stream_from_transformers_agent`. We won't cover it in this guide because it will soon be merged to transformers but you can see its source code [here]()
+Then we'll build the UI. The bulk of the logic is handled by `stream_from_transformers_agent`. We won't cover it in this guide because it will soon be merged to transformers but you can see its source code [here](https://huggingface.co/spaces/gradio/agent_chatbot/blob/main/utils.py).
 
 ```python
 def interact_with_agent(prompt, messages):
