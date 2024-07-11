@@ -5,6 +5,7 @@ Defines helper methods useful for loading and caching Interface examples.
 from __future__ import annotations
 
 import ast
+import copy
 import csv
 import inspect
 import os
@@ -257,7 +258,7 @@ class Examples:
         with utils.set_directory(working_directory):
             self.dataset = components.Dataset(
                 components=inputs_with_examples,
-                samples=non_none_examples,
+                samples=copy.deepcopy(non_none_examples),
                 type="tuple",
                 label=label,
                 samples_per_page=examples_per_page,
@@ -274,8 +275,11 @@ class Examples:
         self.cache_event: Dependency | None = None
         self.non_none_processed_examples = UnhashableKeyDict()
 
-        for example in examples:
-            self._get_processed_example(example)
+        if self.dataset.samples:
+            for index, example in enumerate(self.non_none_examples):
+                self.non_none_processed_examples[self.dataset.samples[index]] = (
+                    self._get_processed_example(example)
+                )
 
     def _get_processed_example(self, example):
         if example in self.non_none_processed_examples:
@@ -292,10 +296,7 @@ class Examples:
                     postprocess=True,
                 )
                 sub.append(prediction_value)
-        self.non_none_processed_examples[example] = [
-            ex for (ex, keep) in zip(sub, self.input_has_examples) if keep
-        ]
-        return self.non_none_processed_examples[example]
+        return [ex for (ex, keep) in zip(sub, self.input_has_examples) if keep]
 
     def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
