@@ -443,6 +443,10 @@
 		font-family: var(--font);
 	}
 
+	.minimal {
+		pointer-events: none;
+	}
+
 	.minimal .progress-text {
 		background: var(--block-background-fill);
 	}
