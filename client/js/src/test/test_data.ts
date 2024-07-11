@@ -46,7 +46,7 @@ export const transformed_api_info: ApiInfo<ApiData> = {
 					component: "Textbox"
 				}
 			],
-			type: { continuous: false, generator: false, cancel: false }
+			type: { generator: false, cancel: false }
 		}
 	},
 	unnamed_endpoints: {
@@ -68,7 +68,7 @@ export const transformed_api_info: ApiInfo<ApiData> = {
 					component: "Textbox"
 				}
 			],
-			type: { continuous: false, generator: false, cancel: false }
+			type: { generator: false, cancel: false }
 		}
 	}
 };
@@ -394,7 +394,6 @@ export const config_response: Config = {
 			max_batch_size: 4,
 			cancels: [],
 			types: {
-				continuous: false,
 				generator: false,
 				cancel: false
 			},
@@ -421,7 +420,6 @@ export const config_response: Config = {
 			max_batch_size: 4,
 			cancels: [],
 			types: {
-				continuous: false,
 				generator: false,
 				cancel: false
 			},
@@ -448,7 +446,6 @@ export const config_response: Config = {
 			max_batch_size: 4,
 			cancels: [],
 			types: {
-				continuous: false,
 				generator: false,
 				cancel: false
 			},
@@ -550,7 +547,6 @@ export const endpoint_info: EndpointInfo<ApiData> = {
 		}
 	],
 	type: {
-		continuous: false,
 		generator: false
 	}
 };

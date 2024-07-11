@@ -30,7 +30,7 @@ from functools import wraps
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
-from types import AsyncGeneratorType, GeneratorType, ModuleType
+from types import ModuleType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -52,7 +52,7 @@ from typing_extensions import ParamSpec
 
 import gradio
 from gradio.context import get_blocks_context
-from gradio.data_classes import FileData
+from gradio.data_classes import BlocksConfigDict, FileData
 from gradio.exceptions import Error
 from gradio.strings import en
 
@@ -559,7 +559,11 @@ def get_all_components() -> list[type[Component] | type[BlockContext]]:
         subclass = classes_to_check.pop()
         classes_to_check.extend(subclass.__subclasses__())
         subclasses.append(subclass)
-    return subclasses
+    return [
+        c
+        for c in subclasses
+        if c.__name__ not in ["ChatInterface", "Interface", "Blocks", "TabbedInterface"]
+    ]
 
 
 def core_gradio_components():
@@ -739,27 +743,6 @@ def validate_url(possible_url: str) -> bool:
 
 def is_prop_update(val):
     return isinstance(val, dict) and "update" in val.get("__type__", "")
-
-
-def get_continuous_fn(fn: Callable, every: float) -> Callable:
-    # For Wasm-compatibility, we need to use asyncio.sleep() instead of time.sleep(),
-    # so we need to make the function async.
-    async def continuous_coro(*args):
-        while True:
-            output = fn(*args)
-            if isinstance(output, GeneratorType):
-                for item in output:
-                    yield item
-            elif isinstance(output, AsyncGeneratorType):
-                async for item in output:
-                    yield item
-            elif inspect.isawaitable(output):
-                yield await output
-            else:
-                yield output
-            await asyncio.sleep(every)
-
-    return continuous_coro
 
 
 def function_wrapper(
@@ -1384,11 +1367,21 @@ def _parse_file_size(size: str | int | None) -> int | None:
     return multiple * size_int
 
 
-def connect_heartbeat(config: dict[str, Any], blocks) -> bool:
+def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
+    """
+    Determines whether a heartbeat is required for a given config.
+    """
     from gradio.components import State
 
     any_state = any(isinstance(block, State) for block in blocks)
     any_unload = False
+
+    if "dependencies" not in config:
+        raise ValueError(
+            "Dependencies not found in config. Cannot determine whether"
+            "heartbeat is required."
+        )
+
     for dep in config["dependencies"]:
         for target in dep["targets"]:
             if isinstance(target, (list, tuple)) and len(target) == 2:

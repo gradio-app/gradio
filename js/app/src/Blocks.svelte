@@ -44,6 +44,7 @@
 	export let js: string | null;
 	export let fill_height = false;
 	export let ready: boolean;
+	export let username: string | null;
 
 	const {
 		layout: _layout,
@@ -493,7 +494,7 @@
 
 		// handle load triggers
 		dependencies.forEach((dep) => {
-			if (dep.targets[0][1] === "load") {
+			if (dep.targets.some((dep) => dep[1] === "load")) {
 				wait_then_trigger_api_call(dep.id);
 			}
 		});
@@ -678,6 +679,7 @@
 				{app}
 				{space_id}
 				{api_calls}
+				{username}
 			/>
 		</div>
 	</div>
