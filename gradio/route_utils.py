@@ -744,9 +744,8 @@ class CustomCORSMiddleware:
         message.setdefault("headers", [])
         headers = MutableHeaders(scope=message)
         headers.update(self.simple_headers)
-        has_cookie = "cookie" in request_headers
         origin = request_headers["Origin"]
-        if has_cookie or self.is_valid_origin(request_headers):
+        if self.is_valid_origin(request_headers):
             self.allow_explicit_origin(headers, origin)
         await send(message)
 
