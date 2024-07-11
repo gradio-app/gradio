@@ -1,5 +1,6 @@
 import { test as base, type Locator, type Page } from "@playwright/test";
 import { spy } from "tinyspy";
+import { performance } from "node:perf_hooks";
 import url from "url";
 import path from "path";
 import fsPromises from "fs/promises";
@@ -47,7 +48,34 @@ const test_lite = base.extend<{ setup: void }>({
 		}
 		if (shared_page_for_lite.url() !== lite_url) {
 			await shared_page_for_lite.goto(lite_url);
+
+			performance.mark("opened");
+
 			testInfo.setTimeout(600000); // Lite takes a long time to initialize.
+
+			// Measure the time taken for the app to load.
+			shared_page_for_lite
+				.waitForSelector('css=[id^="component-"]', { state: "visible" })
+				.then(() => {
+					performance.mark("app-loaded");
+					const app_load_perf = performance.measure(
+						"app-load",
+						"opened",
+						"app-loaded"
+					);
+					const app_load_time = app_load_perf.duration;
+
+					const perf_file_content = JSON.stringify({ app_load_time }, null, 2);
+
+					fsPromises
+						.writeFile(
+							path.resolve(ROOT_DIR, `./.lite-perf.json`),
+							perf_file_content
+						)
+						.catch((err) => {
+							console.error("Failed to write the performance data.", err);
+						});
+				});
 		}
 		await use(shared_page_for_lite);
 	},
