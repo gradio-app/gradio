@@ -142,7 +142,7 @@ class Dataset(Component):
         Parameters:
             payload: the index of the selected example in the dataset
         Returns:
-            Passes the selected sample either as a `list` of data corresponding to each input component (if `type` is "value") or as an `int` index (if `type` is "index")
+            Passes the selected sample either as a `list` of data corresponding to each input component (if `type` is "value") or as an `int` index (if `type` is "index"), or as a `tuple` of the index and the data (if `type` is "tuple").
         """
         if payload is None:
             return None
