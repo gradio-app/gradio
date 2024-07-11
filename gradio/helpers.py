@@ -284,7 +284,6 @@ class Examples:
             sub = []
             for component, sample in zip(self.inputs, example):
                 prediction_value = component.postprocess(sample)
-                print("prediction_value", prediction_value)
                 if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                     prediction_value = prediction_value.model_dump()
                 prediction_value = processing_utils.move_files_to_cache(
@@ -293,8 +292,9 @@ class Examples:
                     postprocess=True,
                 )
                 sub.append(prediction_value)
-            print("sub", sub)
-        self.non_none_processed_examples[example] = [ex for (ex, keep) in zip(sub, self.input_has_examples) if keep]
+        self.non_none_processed_examples[example] = [
+            ex for (ex, keep) in zip(sub, self.input_has_examples) if keep
+        ]
         return self.non_none_processed_examples[example]
 
     def create(self) -> None:
@@ -533,7 +533,9 @@ class Examples:
 
         def load_example(example_tuple):
             example_id, example_value = example_tuple
-            processed_example = self._get_processed_example(example_value) + self.load_from_cache(example_id)
+            processed_example = self._get_processed_example(
+                example_value
+            ) + self.load_from_cache(example_id)
             return utils.resolve_singleton(processed_example)
 
         self.cache_event = self.load_input_event = self.dataset.click(
