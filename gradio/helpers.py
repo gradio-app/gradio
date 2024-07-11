@@ -304,7 +304,6 @@ class Examples:
         async def load_example(example_tuple):
             _, example_value = example_tuple
             processed_example = self._get_processed_example(example_value)
-            print("processed_example", processed_example)
             if len(self.inputs_with_examples) == 1:
                 return update(
                     value=processed_example[0],
