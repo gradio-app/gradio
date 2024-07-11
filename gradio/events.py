@@ -532,6 +532,7 @@ class EventListener(str):
 
         event_trigger.event_name = _event_name
         event_trigger.has_trigger = _has_trigger
+        event_trigger.callback = _callback
         return event_trigger
 
 
@@ -600,10 +601,10 @@ def on(
     """
     from gradio.components.base import Component
 
-    triggers_typed = cast(EventListener, triggers)
+    if not isinstance(triggers, Sequence) and triggers is not None:
+        triggers = [triggers]
+    triggers_typed = cast(Sequence[EventListener], triggers)
 
-    if isinstance(triggers_typed, EventListener):
-        triggers_typed = [triggers_typed]
     if isinstance(inputs, Component):
         inputs = [inputs]
 
@@ -654,6 +655,10 @@ def on(
             EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore
             for t in triggers_typed
         ]
+    if triggers:
+        for trigger in triggers:
+            if trigger.callback:
+                trigger.callback(trigger.__self__)
 
     if every is not None:
         from gradio.components import Timer

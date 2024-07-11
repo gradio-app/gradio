@@ -1,17 +1,24 @@
 <script lang="ts">
 	//@ts-nocheck
 	import { set_config } from "./altair_utils";
-	import { afterUpdate, onDestroy } from "svelte";
+	import { onMount, onDestroy } from "svelte";
 	import type { TopLevelSpec as Spec } from "vega-lite";
 	import vegaEmbed from "vega-embed";
+	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { View } from "vega";
 
 	export let value;
 	export let target: HTMLDivElement;
 	export let colors: string[] = [];
 	export let caption: string;
 	export let show_actions_button: bool;
+	export let gradio: Gradio<{
+		select: SelectData;
+	}>;
 	let element: HTMLElement;
 	let parent_element: HTMLElement;
+	let view: View;
+	export let _selectable: bool;
 
 	let computed_style = window.getComputedStyle(target);
 
@@ -19,6 +26,9 @@
 	let spec_width: number;
 	$: plot = value?.plot;
 	$: spec = JSON.parse(plot) as Spec;
+	$: if (spec && spec.params && !_selectable) {
+		spec.params = spec.params.filter((param) => param.name !== "brush");
+	}
 	$: if (old_spec !== spec) {
 		old_spec = spec;
 		spec_width = spec.width;
@@ -34,21 +44,58 @@
 			? false
 			: true; // vega seems to glitch with width when orientation is set
 
+	const get_width = (): number => {
+		return Math.min(
+			parent_element.offsetWidth,
+			spec_width || parent_element.offsetWidth
+		);
+	};
+	let resize_callback = (): void => {};
 	const renderPlot = (): void => {
 		if (fit_width_to_parent) {
-			spec.width = Math.min(
-				parent_element.offsetWidth,
-				spec_width || parent_element.offsetWidth
-			);
+			spec.width = get_width();
 		}
-		vegaEmbed(element, spec, { actions: show_actions_button });
+		vegaEmbed(element, spec, { actions: show_actions_button }).then(
+			function (result): void {
+				view = result.view;
+				resize_callback = () => {
+					view.signal("width", get_width()).run();
+				};
+
+				if (!_selectable) return;
+				const callback = (event, item): void => {
+					const brushValue = view.signal("brush");
+					if (brushValue) {
+						if (Object.keys(brushValue).length === 0) {
+							gradio.dispatch("select", {
+								value: null,
+								index: null,
+								selected: false
+							});
+						} else {
+							const key = Object.keys(brushValue)[0];
+							let range: [number, number] = brushValue[key].map(
+								(x) => x / 1000
+							);
+							gradio.dispatch("select", {
+								value: brushValue,
+								index: range,
+								selected: true
+							});
+						}
+					}
+				};
+				view.addEventListener("mouseup", callback);
+				view.addEventListener("touchup", callback);
+			}
+		);
 	};
 	let resizeObserver = new ResizeObserver(() => {
 		if (fit_width_to_parent && spec.width !== parent_element.offsetWidth) {
-			renderPlot();
+			resize_callback();
 		}
 	});
-	afterUpdate(() => {
+	onMount(() => {
 		renderPlot();
 		resizeObserver.observe(parent_element);
 	});
