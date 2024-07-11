@@ -216,6 +216,9 @@ importers:
       '@gradio/dataset':
         specifier: workspace:^
         version: link:js/dataset
+      '@gradio/datetime':
+        specifier: workspace:^
+        version: link:js/datetime
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:js/downloadbutton
@@ -562,6 +565,9 @@ importers:
       '@gradio/dataset':
         specifier: workspace:^
         version: link:../dataset
+      '@gradio/datetime':
+        specifier: workspace:^
+        version: link:../datetime
       '@gradio/downloadbutton':
         specifier: workspace:^
         version: link:../downloadbutton
@@ -1047,9 +1053,31 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
+      '@gradio/textbox':
+        specifier: workspace:^
+        version: link:../textbox
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/datetime:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
