@@ -10,6 +10,27 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("examples");
+
+    obj["attributes"] = [
+            {
+                name: "dataset",
+                annotation: "gradio.Dataset",
+                doc: "The `gr.Dataset` component corresponding to this Examples object.",
+                kwargs: null
+            },
+            {
+                name: "load_input_event",
+                annotation: "gradio.events.Dependency",
+                doc: "The Gradio event that populates the input values when the examples are clicked. You can attach a `.then()` or a `.success()` to this event to trigger subsequent events to fire after this event.",
+                kwargs: null
+            },
+            {
+                name: "cache_event",
+                annotation: "gradio.events.Dependency | None",
+                doc: "The Gradio event that populates the cached output values when the examples are clicked. You can attach a `.then()` or a `.success()` to this event to trigger subsequent events to fire after this event. This event is `None` if `cache_examples` if False, and is the same as `load_input_event` if `cache_examples` is `'lazy'`.",
+                kwargs: null
+            }
+        ]    
 </script>
 
 <!--- Title -->
@@ -36,6 +57,10 @@ None
 <!--- Initialization -->
 ### Initialization
 <ParamTable parameters={obj.parameters} />
+
+<!--- Attributes -->
+### Attributes
+<ParamTable parameters={obj.attributes} />
 
 
 {#if obj.demos && obj.demos.length > 0}
