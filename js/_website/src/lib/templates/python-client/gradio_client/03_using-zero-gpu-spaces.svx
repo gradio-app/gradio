@@ -1,0 +1,63 @@
+<script lang="ts">
+    import CopyButton from "$lib/components/CopyButton.svelte";
+</script>
+
+# Using ZeroGPU Spaces with the Clients
+
+Hugging Face Spaces now offers a new hardware option called ZeroGPU.
+ZeroGPU is a "serverless" cluster of spaces that let Gradio applications run on A100 GPUs for free.
+These kinds of spaces are a great foundation to build new applications on top of with the python gradio client, but you need to take care to avoid ZeroGPU's rate limiting.
+
+### Explaining Rate Limits for ZeroGPU
+
+ZeroGPU spaces are rate-limited to ensure that a single user does not hog all of the available GPUs.
+The limit is controlled by a special token that the Hugging Face Hub infrastructure adds to all incoming requests to Spaces.
+This token is a request header called `X-IP-Token` and its value changes depending on the user who makes a request to the ZeroGPU space.
+<br>
+
+Let's say you want to create a space (Space A) that uses a ZeroGPU space (Space B) programmatically.
+Simply calling Space B from Space A with the python client will quickly exhaust your rate limit, as all the requests to the ZeroGPU space will have the same token.
+So in order to avoid this, we need to extract the token of the user using Space A before we call Space B programmatically.
+<br> 
+
+How to do this will be explained in the following section.
+
+### Avoiding Rate Limits 
+
+When a user visits the page, we will extract their token from the `X-IP-Token` header of the incoming request.
+We will use this header value in all subsequent client requests.
+The following hypothetical text-to-image application shows how this is done.
+<br> 
+
+We use the `load` event to extract the user's `x-ip-token` header when they visit the page.
+We create a new client with this header passed to the `headers` parameter.
+This ensures all subsequent predictions pass this header to the ZeroGPU space.
+The client is saved in a State variable so that it's kept independent from other users.
+It will be deleted automatically when the user exits the page.
+
+
+```python
+import gradio as gr
+from gradio_client import Client
+
+def text_to_image(client, prompt):
+    img = client.predict(prompt, api_name="/predict")
+    return img
+
+
+def set_client_for_session(request: gr.Request):
+    x_ip_token = request.headers['x-ip-token']
+
+    # The "gradio/text-to-image" space is a ZeroGPU space
+    return Client("gradio/text-to-image", headers={"X-IP-Token": x_ip_token})
+
+with gr.Blocks() as demo:
+    client = gr.State()
+    image = gr.Image()
+    prompt = gr.Textbox(max_lines=1)
+
+    prompt.submit(text_to_image, [client, prompt], [image])
+
+    demo.load(set_client_for_session, None, client)
+```
+

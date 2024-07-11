@@ -464,7 +464,7 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
             predict_fns.append(endpoint.make_end_to_end_fn(helper))
         else:
             predict_fns.append(None)
-    return gradio.Blocks.from_config(client.config, predict_fns, client.src)
+    return gradio.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
 
 
 def from_spaces_interface(
