@@ -248,8 +248,9 @@ class Examples:
         self.api_name: str | Literal[False] = api_name
         self.batch = batch
         self.example_labels = example_labels
+        self.working_directory = working_directory
 
-        with utils.set_directory(working_directory):
+        with utils.set_directory(self.working_directory):
             self.processed_examples = []
             for example in examples:
                 sub = []
@@ -276,7 +277,7 @@ class Examples:
             self.dataset = components.Dataset(
                 components=inputs_with_examples,
                 samples=non_none_examples,
-                type="index",
+                type="values",
                 label=label,
                 samples_per_page=examples_per_page,
                 elem_id=elem_id,
