@@ -543,4 +543,4 @@ class TestUnhashableKeyDict:
         assert d._is_equal(c1, c1)
         assert not d._is_equal(
             c1, c2
-        )  # different numpy arrays will be considered different but that's okay since exact equality is not required
+        )  # different numpy arrays that contain the same elements will be considered different but that's okay since we only care about exact references
