@@ -182,7 +182,7 @@ export function readable_stream(
 ): EventSource {
 	const instance: EventSource & { readyState: number } = {
 		close: () => {
-			throw new Error("Method not implemented.");
+			console.warn("Method not implemented.");
 		},
 		onerror: null,
 		onmessage: null,
