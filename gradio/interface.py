@@ -132,6 +132,7 @@ class Interface(Blocks):
         clear_btn: str | Button | None = "Clear",
         delete_cache: tuple[int, int] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
+        fill_width: bool = False,
         **kwargs,
     ):
         """
@@ -168,6 +169,7 @@ class Interface(Blocks):
             clear_btn: The button to use for clearing the inputs. Defaults to a `gr.Button("Clear", variant="secondary")`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization). Can be set to None, which hides the button.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
             show_progress: whether to show progress animation while running. Has no effect if the interface is `live`.
+            fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -178,6 +180,7 @@ class Interface(Blocks):
             js=js,
             head=head,
             delete_cache=delete_cache,
+            fill_width=fill_width,
             **kwargs,
         )
         self.api_name: str | Literal[False] | None = api_name
