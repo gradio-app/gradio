@@ -258,7 +258,7 @@ class Examples:
             self.dataset = components.Dataset(
                 components=inputs_with_examples,
                 samples=non_none_examples,
-                type="values",
+                type="tuple",
                 label=label,
                 samples_per_page=examples_per_page,
                 elem_id=elem_id,
@@ -292,16 +292,15 @@ class Examples:
                     postprocess=True,
                 )
                 sub.append(prediction_value)
-        self.non_none_processed_examples[example] = [
-            ex for (ex, keep) in zip(sub, self.input_has_examples) if keep
-        ]
+        self.non_none_processed_examples[example] = [ex for (ex, keep) in zip(sub, self.input_has_examples) if keep]
         return self.non_none_processed_examples[example]
 
     def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
         component to hold the examples"""
 
-        async def load_example(example_value):
+        async def load_example(example_tuple):
+            _, example_value = example_tuple
             processed_example = self._get_processed_example(example_value)
             print("processed_example", processed_example)
             if len(self.inputs_with_examples) == 1:
@@ -530,11 +529,9 @@ class Examples:
         # method to be called independently of the create() method
         blocks_config.fns.pop(self.load_input_event["id"])
 
-        def load_example(example_value):
-            example_id = self.examples.index(example_value)
-            processed_example = self._get_processed_example(
-                example_value
-            ) + self.load_from_cache(example_id)
+        def load_example(example_tuple):
+            example_id, example_value = example_tuple
+            processed_example = self._get_processed_example(example_value) + self.load_from_cache(example_id)
             return utils.resolve_singleton(processed_example)
 
         self.cache_event = self.load_input_event = self.dataset.click(

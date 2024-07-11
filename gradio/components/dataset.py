@@ -32,7 +32,7 @@ class Dataset(Component):
         component_props: list[dict[str, Any]] | None = None,
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
-        type: Literal["values", "index"] = "values",
+        type: Literal["values", "index", "tuple"] = "values",
         samples_per_page: int = 10,
         visible: bool = True,
         elem_id: str | None = None,
@@ -137,7 +137,7 @@ class Dataset(Component):
 
         return config
 
-    def preprocess(self, payload: int | None) -> int | list | None:
+    def preprocess(self, payload: int | None) -> int | list | tuple[int, list] | None:
         """
         Parameters:
             payload: the index of the selected example in the dataset
@@ -150,6 +150,8 @@ class Dataset(Component):
             return payload
         elif self.type == "values":
             return self.samples[payload]
+        elif self.type == "tuple":
+            return payload, self.samples[payload]
 
     def postprocess(self, sample: int | list | None) -> int | None:
         """

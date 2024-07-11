@@ -1433,20 +1433,20 @@ class UnhashableKeyDict(MutableMapping):
 
     def __getitem__(self, key):
         for k, v in self.data:
-            if k == key:
+            if k is key:
                 return v
         raise KeyError(key)
 
     def __setitem__(self, key, value):
         for i, (k, _) in enumerate(self.data):
-            if k == key:
+            if k is key:
                 self.data[i] = (key, value)
                 return
         self.data.append((key, value))
 
     def __delitem__(self, key):
         for i, (k, _) in enumerate(self.data):
-            if k == key:
+            if k is key:
                 del self.data[i]
                 return
         raise KeyError(key)

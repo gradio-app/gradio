@@ -67,7 +67,7 @@ None
 
 **Updating Examples**
 
-In this demo, we show how to update the examples by updating the samples of the underlying dataset:
+In this demo, we show how to update the examples by updating the samples of the underlying dataset. Note that this only works if `cache_examples=False` as updating the underlying dataset does not update the cache.
 
 ```py
 import gradio as gr
