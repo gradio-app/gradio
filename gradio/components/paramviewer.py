@@ -44,7 +44,7 @@ class ParamViewer(Component):
     ):
         """
         Parameters:
-            value: A dictionary of dictionaries. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and (optionally) "default" for each parameter.
+            value: A dictionary of dictionaries. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and "default" for each parameter.
             language: The language to display the code in. One of "python" or "typescript".
             linkify: A list of strings to linkify. If any of these strings is found in the description, it will be rendered as a link.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
@@ -68,16 +68,16 @@ class ParamViewer(Component):
     def preprocess(self, payload: dict[str, Parameter]) -> dict[str, Parameter]:
         """
         Parameters:
-            payload: A `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and (optionally) "default" for each parameter.
+            payload: A `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and "default" for each parameter.
         Returns:
-            (Rarely used) passes value as a `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and (optionally) "default" for each parameter.
+            (Rarely used) passes value as a `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and "default" for each parameter.
         """
         return payload
 
     def postprocess(self, value: dict[str, Parameter]) -> dict[str, Parameter]:
         """
         Parameters:
-            value: Expects value as a `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and (optionally) "default" for each parameter.
+            value: Expects value as a `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and "default" for each parameter.
         Returns:
             The same value.
         """
