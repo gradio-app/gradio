@@ -19,6 +19,7 @@ from gradio.components.code import Code
 from gradio.components.color_picker import ColorPicker
 from gradio.components.dataframe import Dataframe
 from gradio.components.dataset import Dataset
+from gradio.components.datetime import DateTime
 from gradio.components.download_button import DownloadButton
 from gradio.components.dropdown import Dropdown
 from gradio.components.duplicate_button import DuplicateButton
@@ -95,6 +96,7 @@ __all__ = [
     "Markdown",
     "MessageDict",
     "Textbox",
+    "DateTime",
     "Dropdown",
     "Model3D",
     "File",
