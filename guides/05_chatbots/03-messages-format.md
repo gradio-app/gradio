@@ -3,7 +3,7 @@
 In the previous guides, we built chatbots where the conversation history was stored in a list of tuple pairs.
 It is also possible to use the more flexible [Messages API](https://huggingface.co/docs/text-generation-inference/en/messages_api#messages-api), which is fully compatible with LLM API providers such as Hugging Face Text Generation Inference, Llama.cpp server, and OpenAI's chat completions API.
 
-To use this format, set the `msg_format` parameter of `gr.Chatbot` or `gr.ChatInterface` to `'messages'`. This expects a list of dictionaries with content and role keys.
+To use this format, set the `type` parameter of `gr.Chatbot` or `gr.ChatInterface` to `'messages'`. This expects a list of dictionaries with content and role keys.
 
 The `role` key should be `'assistant'` for the bot/llm and `user` for the human.
 
@@ -36,7 +36,7 @@ def chat_greeter(msg, history):
     return history
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(msg_format="messages")
+    chatbot = gr.Chatbot(type="messages")
     msg = gr.Textbox()
     clear = gr.ClearButton([msg, chatbot])
 
@@ -74,7 +74,7 @@ def respond(message, history: list[dict]):
         yield response
 
 
-demo = gr.ChatInterface(respond, msg_format="messages")
+demo = gr.ChatInterface(respond, type="messages")
 
 if __name__ == "__main__":
     demo.launch()

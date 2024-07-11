@@ -14,7 +14,7 @@ Here is an example, were we display the agent's thought to use a weather API too
 
 ```python
 with gr.Blocks() as demo:
-    chatbot  = gr.Chatbot(msg_format="messages",
+    chatbot  = gr.Chatbot(type="messages",
             value=[{"role": "user", "content": "What is the weather in San Francisco?"},
                     {"role": "assistant", "content": "I need to use the weather API tool",
                     "metadata": {"title":  "🧠 Thinking"}}]
@@ -61,7 +61,7 @@ def interact_with_agent(prompt, messages):
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(label="Agent",
-                         msg_format="messages",
+                         type="messages",
                          avatar_images=(None, "https://em-content.zobj.net/source/twitter/53/robot-face_1f916.png"))
     text_input = gr.Textbox(lines=1, label="Chat Message")
     text_input.submit(interact_with_agent, [text_input, chatbot], [chatbot])
@@ -134,7 +134,7 @@ async def interact_with_langchain_agent(prompt, messages):
 with gr.Blocks() as demo:
     gr.Markdown("# Chat with a LangChain Agent 🦜⛓️ and see its thoughts 💭")
     chatbot = gr.Chatbot(
-        msg_format="messages",
+        type="messages",
         label="Agent",
         avatar_images=(
             None,

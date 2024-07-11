@@ -13,7 +13,7 @@ highlight:
 
 Building Gradio applications around these LLM solutions is now even easier! 
 
-`gr.Chatbot` and `gr.ChatInterface` now have a `msg_format` parameter that can accept two values - `'tuples'` and `'messages'`. If set to `'tuples'`, the default chatbot data format is expected. If set to `'messages'`, a list of dictionaries with `content` and `role` keys is expected. See below - 
+`gr.Chatbot` and `gr.ChatInterface` now have a `type` parameter that can accept two values - `'tuples'` and `'messages'`. If set to `'tuples'`, the default chatbot data format is expected. If set to `'messages'`, a list of dictionaries with `content` and `role` keys is expected. See below - 
 
 ```python
 def chat_greeter(msg, history):
@@ -80,7 +80,7 @@ def generate_response(history):
 
 
 with gr.Blocks() as demo:
-    chatbot  = gr.Chatbot(msg_format="messages")
+    chatbot  = gr.Chatbot(type="messages")
     button = gr.Button("Get San Francisco Weather")
     button.click(generate_response, chatbot, chatbot)
 

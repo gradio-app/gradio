@@ -23,7 +23,7 @@ def interact_with_agent(prompt, messages):
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(label="Agent",
-                         msg_format="messages",
+                         type="messages",
                          avatar_images=(None, "https://em-content.zobj.net/source/twitter/53/robot-face_1f916.png"))
     text_input = gr.Textbox(lines=1, label="Chat Message")
     text_input.submit(interact_with_agent, [text_input, chatbot], [chatbot])
