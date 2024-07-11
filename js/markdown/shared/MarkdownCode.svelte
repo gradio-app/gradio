@@ -83,17 +83,8 @@
 	});
 </script>
 
-<span
-	class:chatbot
-	bind:this={el}
-	class="md"
-	class:prose={render_markdown}
->
-	{#if render_markdown}
-		{@html html}
-	{:else}
-		{html}
-	{/if}
+<span class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
+	{@html html}
 </span>
 
 <style>
