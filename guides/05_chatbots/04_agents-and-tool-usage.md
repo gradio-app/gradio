@@ -1,9 +1,9 @@
 # Building a UI for an LLM Agent
 
 Tags: LLM, AGENTS, CHAT
-Related spaces: 
+Related spaces: https://huggingface.co/spaces/gradio/agent_chatbot, https://huggingface.co/spaces/gradio/langchain-agent
 
-The Gradio Chatbot can natively display intermediate thoughts and tool usage. This makes it perfect for creating UIs for LLM agents. This guide will show you how. Before we begin, familiarize yourself with the `messages` chatbot data format documented in this [guide](/guides/messages-format).
+The Gradio Chatbot can natively display intermediate thoughts and tool usage. This makes it perfect for creating UIs for LLM agents. This guide will show you how. Before we begin, familiarize yourself with the `messages` chatbot data format documented in this [guide](/guides/05_chatbots/messages-format).
 
 ## The metadata key
 
