@@ -149,7 +149,7 @@ demo.launch()
 
 ![langchain_agent_code](https://github.com/freddyaboulton/freddyboulton/assets/41651716/762283e5-3937-47e5-89e0-79657279ea67)
 
-That's it! See our finished langchain demo [here]()
+That's it! See our finished langchain demo [here](https://huggingface.co/spaces/gradio/langchain-agent).
 
 
 
