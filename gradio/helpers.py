@@ -529,6 +529,7 @@ class Examples:
         blocks_config.fns.pop(self.load_input_event["id"])
 
         def load_example(example_value):
+            example_id = self.examples.index(example_value)
             processed_example = self._get_processed_example(example_value) + self.load_from_cache(example_id)
             return utils.resolve_singleton(processed_example)
 
