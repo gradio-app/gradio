@@ -239,6 +239,7 @@ class Examples:
         self.examples = examples
         self.non_none_examples = non_none_examples
         self.inputs = inputs
+        self.input_has_examples = input_has_examples
         self.inputs_with_examples = inputs_with_examples
         self.outputs = outputs or []
         self.fn = fn
@@ -249,27 +250,6 @@ class Examples:
         self.batch = batch
         self.example_labels = example_labels
         self.working_directory = working_directory
-
-        with utils.set_directory(self.working_directory):
-            self.processed_examples = []
-            for example in examples:
-                sub = []
-                for component, sample in zip(inputs, example):
-                    prediction_value = component.postprocess(sample)
-                    if isinstance(prediction_value, (GradioRootModel, GradioModel)):
-                        prediction_value = prediction_value.model_dump()
-                    prediction_value = processing_utils.move_files_to_cache(
-                        prediction_value,
-                        component,
-                        postprocess=True,
-                    )
-                    sub.append(prediction_value)
-                self.processed_examples.append(sub)
-
-        self.non_none_processed_examples = [
-            [ex for (ex, keep) in zip(example, input_has_examples) if keep]
-            for example in self.processed_examples
-        ]
 
         from gradio import components
 
@@ -291,13 +271,35 @@ class Examples:
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
         self.cache_event: Dependency | None = None
+        self.non_none_processed_examples = dict()
+
+    def _get_processed_example(self, example):
+        if example in self.non_none_processed_examples:
+            return self.non_none_processed_examples[example]
+        with utils.set_directory(self.working_directory):
+            self.processed_examples = []
+            sub = []
+            for component, sample in zip(self.inputs, example):
+                prediction_value = component.postprocess(sample)
+                if isinstance(prediction_value, (GradioRootModel, GradioModel)):
+                    prediction_value = prediction_value.model_dump()
+                prediction_value = processing_utils.move_files_to_cache(
+                    prediction_value,
+                    component,
+                    postprocess=True,
+                )
+                sub.append(prediction_value)
+        self.non_none_processed_examples[example] = [
+            [ex for (ex, keep) in zip(sub, self.input_has_examples) if keep]
+        ]
+        return self.non_none_processed_examples[example]
 
     def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
         component to hold the examples"""
 
-        async def load_example(example_id):
-            processed_example = self.non_none_processed_examples[example_id]
+        async def load_example(example_value):
+            processed_example = 
             if len(self.inputs_with_examples) == 1:
                 return update(
                     value=processed_example[0],
