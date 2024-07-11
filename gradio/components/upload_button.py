@@ -5,10 +5,10 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import gradio_client.utils as client_utils
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client.documentation import document
 
 from gradio import processing_utils
@@ -16,6 +16,9 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.utils import NamedString
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -33,7 +36,8 @@ class UploadButton(Component):
         label: str = "Upload a File",
         value: str | list[str] | Callable | None = None,
         *,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
         size: Literal["sm", "lg"] | None = None,
@@ -53,7 +57,8 @@ class UploadButton(Component):
         Parameters:
             label: Text to display on the button. Defaults to "Upload a File".
             value: File or list of files to upload by default.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
@@ -98,6 +103,7 @@ class UploadButton(Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
@@ -118,12 +124,12 @@ class UploadButton(Component):
 
     def example_payload(self) -> Any:
         if self.file_count == "single":
-            return file(
+            return handle_file(
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
             )
         else:
             return [
-                file(
+                handle_file(
                     "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
                 )
             ]

@@ -28,12 +28,13 @@ export interface ComponentMeta {
 	value?: any;
 	component_class_id: string;
 	key: string | number | null;
+	rendered_in?: number;
 }
 
 /** Dictates whether a dependency is continous and/or a generator */
 export interface DependencyTypes {
-	continuous: boolean;
 	generator: boolean;
+	cancel: boolean;
 }
 
 /** An event payload that is sent with an API request */
@@ -46,6 +47,7 @@ export interface Payload {
 
 /** A dependency as received from the backend */
 export interface Dependency {
+	id: number;
 	targets: [number, string][];
 	inputs: number[];
 	outputs: number[];
@@ -66,6 +68,7 @@ export interface Dependency {
 	trigger_mode: "once" | "multiple" | "always_last";
 	final_event: Payload | null;
 	show_api: boolean;
+	rendered_in: number | null;
 }
 
 interface TypeDescription {

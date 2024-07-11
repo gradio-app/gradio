@@ -23,9 +23,9 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
-from gradio.context import Context, LocalContext
+from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
-from gradio.events import EventData
+from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
@@ -50,6 +50,9 @@ def create_examples(
     postprocess: bool = True,
     api_name: str | Literal[False] = "load_example",
     batch: bool = False,
+    *,
+    example_labels: list[str] | None = None,
+    visible: bool = True,
     _defer_caching: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
@@ -69,6 +72,8 @@ def create_examples(
         api_name=api_name,
         batch=batch,
         _defer_caching=_defer_caching,
+        example_labels=example_labels,
+        visible=visible,
         _initiated_directly=False,
     )
     examples_obj.create()
@@ -83,7 +88,7 @@ class Examples:
     assigns event listener so that clicking on an example populates the input/output
     components. Optionally handles example caching for fast inference.
 
-    Demos: fake_gan
+    Demos: calculator_blocks
     Guides: more-on-examples-and-flagging, using-hugging-face-integrations, image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
     """
 
@@ -103,6 +108,9 @@ class Examples:
         postprocess: bool = True,
         api_name: str | Literal[False] = "load_example",
         batch: bool = False,
+        *,
+        example_labels: list[str] | None = None,
+        visible: bool = True,
         _defer_caching: bool = False,
         _initiated_directly: bool = True,
     ):
@@ -121,6 +129,8 @@ class Examples:
             postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is not False.
             api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use the example function.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
+            example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
+            visible: If False, the examples component will be hidden in the UI.
         """
         if _initiated_directly:
             warnings.warn(
@@ -221,6 +231,10 @@ class Examples:
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in examples
         ]
+        if example_labels is not None and len(example_labels) != len(examples):
+            raise ValueError(
+                "If `example_labels` are provided, the length of `example_labels` must be the same as the number of examples."
+            )
 
         self.examples = examples
         self.non_none_examples = non_none_examples
@@ -233,6 +247,7 @@ class Examples:
         self.postprocess = postprocess
         self.api_name: str | Literal[False] = api_name
         self.batch = batch
+        self.example_labels = example_labels
 
         with utils.set_directory(working_directory):
             self.processed_examples = []
@@ -265,6 +280,8 @@ class Examples:
                 label=label,
                 samples_per_page=examples_per_page,
                 elem_id=elem_id,
+                visible=visible,
+                sample_labels=example_labels,
             )
 
         self.cache_logger = CSVLogger(simplify_file_data=False)
@@ -272,6 +289,7 @@ class Examples:
         self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
+        self.cache_event: Dependency | None = None
 
     def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
@@ -289,7 +307,8 @@ class Examples:
                 for i in range(len(self.inputs_with_examples))
             ]
 
-        if Context.root_block:
+        root_block = get_blocks_context()
+        if root_block:
             self.load_input_event = self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
@@ -300,7 +319,6 @@ class Examples:
                 api_name=self.api_name,
                 show_api=False,
             )
-            self.load_input_event_id = len(Context.root_block.fns) - 1
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
                     raise ValueError("Cannot run_on_click if no function is provided")
@@ -326,7 +344,7 @@ class Examples:
             [output.render() for output in self.outputs]
             demo.load(self.fn, self.inputs, self.outputs)
         demo.unrender()
-        return await demo.postprocess_data(0, output, None)
+        return await demo.postprocess_data(demo.default_config.fns[0], output, None)
 
     def _get_cached_index_if_cached(self, example_index) -> int | None:
         if Path(self.cached_indices_file).exists():
@@ -380,7 +398,7 @@ class Examples:
             lazy_cache_fn = self.async_lazy_cache
         else:
             lazy_cache_fn = self.sync_lazy_cache
-        self.load_input_event.then(
+        self.cache_event = self.load_input_event.then(
             lazy_cache_fn,
             inputs=[self.dataset] + self.inputs,
             outputs=self.outputs,
@@ -429,7 +447,8 @@ class Examples:
         """
         Caches examples so that their predictions can be shown immediately.
         """
-        if Context.root_block is None:
+        blocks_config = get_blocks_context()
+        if blocks_config is None or Context.root_block is None:
             raise ValueError("Cannot cache examples if not in a Blocks context")
         if Path(self.cached_file).exists():
             print(
@@ -465,7 +484,7 @@ class Examples:
             # create a fake dependency to process the examples and get the predictions
             from gradio.events import EventListenerMethod
 
-            dependency, fn_index = Context.root_block.set_event_trigger(
+            _, fn_index = blocks_config.set_event_trigger(
                 [EventListenerMethod(Context.root_block, "load")],
                 fn=fn,
                 inputs=self.inputs_with_examples,  # type: ignore
@@ -484,7 +503,7 @@ class Examples:
                     processed_input = [[value] for value in processed_input]
                 with utils.MatplotlibBackendMananger():
                     prediction = await Context.root_block.process_api(
-                        fn_index=fn_index,
+                        block_fn=blocks_config.fns[fn_index],
                         inputs=processed_input,
                         request=None,
                     )
@@ -497,12 +516,12 @@ class Examples:
                     output = [value[0] for value in output]
                 self.cache_logger.flag(output)
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
-            Context.root_block.fns.pop(fn_index)
+            blocks_config.fns.pop(fn_index)
 
         # Remove the original load_input_event and replace it with one that
         # also populates the input. We do it this way to to allow the cache()
         # method to be called independently of the create() method
-        Context.root_block.fns.pop(self.load_input_event_id)
+        blocks_config.fns.pop(self.load_input_event["id"])
 
         def load_example(example_id):
             processed_example = self.non_none_processed_examples[
@@ -510,7 +529,7 @@ class Examples:
             ] + self.load_from_cache(example_id)
             return utils.resolve_singleton(processed_example)
 
-        self.load_input_event = self.dataset.click(
+        self.cache_event = self.load_input_event = self.dataset.click(
             load_example,
             inputs=[self.dataset],
             outputs=self.inputs_with_examples + self.outputs,  # type: ignore
@@ -520,7 +539,6 @@ class Examples:
             api_name=self.api_name,
             show_api=False,
         )
-        self.load_input_event_id = len(Context.root_block.fns) - 1
 
     def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
@@ -544,7 +562,7 @@ class Examples:
                     component, components.File
                 ):
                     value_to_use = value_as_dict
-                if not utils.is_update(value_as_dict):
+                if not utils.is_prop_update(value_as_dict):
                     raise TypeError("value wasn't an update")  # caught below
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError):
@@ -1226,7 +1244,12 @@ def make_waveform(
     return output_mp4.name
 
 
-def log_message(message: str, level: Literal["info", "warning"] = "info"):
+def log_message(
+    message: str,
+    level: Literal["info", "warning"] = "info",
+    duration: float | None = 10,
+    visible: bool = True,
+):
     from gradio.context import LocalContext
 
     blocks = LocalContext.blocks.get()
@@ -1239,16 +1262,22 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
         elif level == "warning":
             warnings.warn(message)
         return
-    blocks._queue.log_message(event_id=event_id, log=message, level=level)
+    blocks._queue.log_message(
+        event_id=event_id, log=message, level=level, duration=duration, visible=visible
+    )
 
 
 @document(documentation_group="modals")
-def Warning(message: str = "Warning issued."):  # noqa: N802
+def Warning(  # noqa: N802
+    message: str = "Warning issued.", duration: float | None = 10, visible: bool = True
+):
     """
     This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
     Demos: blocks_chained_events
     Parameters:
         message: The warning message to be displayed to the user.
+        duration: The duration in seconds that the warning message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
+        visible: Whether the error message should be displayed in the UI.
     Example:
         import gradio as gr
         def hello_world():
@@ -1259,16 +1288,22 @@ def Warning(message: str = "Warning issued."):  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, level="warning")
+    log_message(message, level="warning", duration=duration, visible=visible)
 
 
 @document(documentation_group="modals")
-def Info(message: str = "Info issued."):  # noqa: N802
+def Info(  # noqa: N802
+    message: str = "Info issued.",
+    duration: float | None = 10,
+    visible: bool = True,
+):
     """
     This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is gray by default and has the heading: "Info." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.
     Demos: blocks_chained_events
     Parameters:
         message: The info message to be displayed to the user.
+        duration: The duration in seconds that the info message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
+        visible: Whether the error message should be displayed in the UI.
     Example:
         import gradio as gr
         def hello_world():
@@ -1279,4 +1314,4 @@ def Info(message: str = "Info issued."):  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, level="info")
+    log_message(message, level="info", duration=duration, visible=visible)

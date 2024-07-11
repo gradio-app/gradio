@@ -39,12 +39,13 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-		callback?: () => void;
 	}) => void;
 	rerender_layout: (args: {
+		render_id: number;
 		components: ComponentMeta[];
 		layout: LayoutNode;
 		root: string;
+		dependencies: Dependency[];
 	}) => void;
 } {
 	let _component_map: Map<number, ComponentMeta>;
@@ -58,10 +59,10 @@ export function create_components(): {
 	let loading_status: ReturnType<typeof create_loading_status_store> =
 		create_loading_status_store();
 	const layout_store: Writable<ComponentMeta> = writable();
-	let root: string;
 	let _components: ComponentMeta[] = [];
 	let app: client_return;
 	let keyed_component_values: Record<string | number, any> = {};
+	let _rootNode: ComponentMeta;
 
 	function create_layout({
 		app: _app,
@@ -69,8 +70,7 @@ export function create_components(): {
 		layout,
 		dependencies,
 		root,
-		options,
-		callback
+		options
 	}: {
 		app: client_return;
 		components: ComponentMeta[];
@@ -80,7 +80,6 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-		callback?: () => void;
 	}): void {
 		app = _app;
 		store_keyed_values(_components);
@@ -94,7 +93,7 @@ export function create_components(): {
 
 		instance_map = {};
 
-		const _rootNode: ComponentMeta = {
+		_rootNode = {
 			id: layout.id,
 			type: "column",
 			props: { interactive: false, scale: options.fill_height ? 1 : null },
@@ -106,16 +105,16 @@ export function create_components(): {
 		};
 
 		components.push(_rootNode);
-		// loading_status = create_loading_status_store();
-		dependencies.forEach((dep, fn_index) => {
-			loading_status.register(fn_index, dep.inputs, dep.outputs);
+
+		dependencies.forEach((dep) => {
+			loading_status.register(dep.id, dep.inputs, dep.outputs);
 			dep.frontend_fn = process_frontend_fn(
 				dep.js,
 				!!dep.backend_fn,
 				dep.inputs.length,
 				dep.outputs.length
 			);
-			create_target_meta(dep.targets, fn_index, _target_map);
+			create_target_meta(dep.targets, dep.id, _target_map);
 			get_inputs_outputs(dep, inputs, outputs);
 		});
 
@@ -133,9 +132,6 @@ export function create_components(): {
 
 		walk_layout(layout, root).then(() => {
 			layout_store.set(_rootNode);
-			if (callback) {
-				callback();
-			}
 		});
 	}
 
@@ -143,20 +139,38 @@ export function create_components(): {
 	 * Rerender the layout when the config has been modified to attach new components
 	 */
 	function rerender_layout({
+		render_id,
 		components,
 		layout,
-		root
+		root,
+		dependencies
 	}: {
+		render_id: number;
 		components: ComponentMeta[];
 		layout: LayoutNode;
 		root: string;
+		dependencies: Dependency[];
 	}): void {
-		target_map.set(_target_map);
-
 		let _constructor_map = preload_all_components(components, root);
 		_constructor_map.forEach((v, k) => {
 			constructor_map.set(k, v);
 		});
+
+		_target_map = {};
+
+		dependencies.forEach((dep) => {
+			loading_status.register(dep.id, dep.inputs, dep.outputs);
+			dep.frontend_fn = process_frontend_fn(
+				dep.js,
+				!!dep.backend_fn,
+				dep.inputs.length,
+				dep.outputs.length
+			);
+			create_target_meta(dep.targets, dep.id, _target_map);
+			get_inputs_outputs(dep, inputs, outputs);
+		});
+
+		target_map.set(_target_map);
 
 		let current_element = instance_map[layout.id];
 		let all_current_children: ComponentMeta[] = [];
@@ -171,6 +185,16 @@ export function create_components(): {
 		add_to_current_children(current_element);
 		store_keyed_values(all_current_children);
 
+		Object.entries(instance_map).forEach(([id, component]) => {
+			let _id = Number(id);
+			if (component.rendered_in === render_id) {
+				delete instance_map[_id];
+				if (_component_map.has(_id)) {
+					_component_map.delete(_id);
+				}
+			}
+		});
+
 		components.forEach((c) => {
 			instance_map[c.id] = c;
 			_component_map.set(c.id, c);
@@ -181,7 +205,9 @@ export function create_components(): {
 			] = instance_map[layout.id];
 		}
 
-		walk_layout(layout, root, current_element.parent);
+		walk_layout(layout, root, current_element.parent).then(() => {
+			layout_store.set(_rootNode);
+		});
 	}
 
 	async function walk_layout(
@@ -192,7 +218,7 @@ export function create_components(): {
 		const instance = instance_map[node.id];
 
 		instance.component = (await constructor_map.get(
-			instance.component_class_id
+			instance.component_class_id || instance.type
 		))!?.default;
 		instance.parent = parent;
 
@@ -258,6 +284,7 @@ export function create_components(): {
 			for (let i = 0; i < pending_updates.length; i++) {
 				for (let j = 0; j < pending_updates[i].length; j++) {
 					const update = pending_updates[i][j];
+					if (!update) continue;
 					const instance = instance_map[update.id];
 					if (!instance) continue;
 					let new_value;
@@ -343,6 +370,7 @@ export function process_frontend_fn(
 		return new AsyncFunction(
 			"__fn_args",
 			`  let result = await (${source})(...__fn_args);
+  if (typeof result === "undefined") return [];
   return (${wrap} && !Array.isArray(result)) ? [result] : result;`
 		);
 	} catch (e) {
@@ -353,16 +381,16 @@ export function process_frontend_fn(
 }
 
 /**
- * `Dependency.targets` is an array of `[id, trigger]` pairs with the indices as the `fn_index`.
+ * `Dependency.targets` is an array of `[id, trigger]` pairs with the ids as the `fn_id`.
  * This function take a single list of `Dependency.targets` and add those to the target_map.
  * @param targets the targets array
- * @param fn_index the function index
+ * @param fn_id the function index
  * @param target_map the target map
  * @returns the tagert map
  */
 export function create_target_meta(
 	targets: Dependency["targets"],
-	fn_index: number,
+	fn_id: number,
 	target_map: TargetMap
 ): TargetMap {
 	targets.forEach(([id, trigger]) => {
@@ -371,11 +399,11 @@ export function create_target_meta(
 		}
 		if (
 			target_map[id]?.[trigger] &&
-			!target_map[id]?.[trigger].includes(fn_index)
+			!target_map[id]?.[trigger].includes(fn_id)
 		) {
-			target_map[id][trigger].push(fn_index);
+			target_map[id][trigger].push(fn_id);
 		} else {
-			target_map[id][trigger] = [fn_index];
+			target_map[id][trigger] = [fn_id];
 		}
 	});
 
@@ -549,7 +577,7 @@ export function preload_all_components(
 			components
 		);
 
-		constructor_map.set(c.component_class_id, component);
+		constructor_map.set(c.component_class_id || c.type, component);
 
 		if (example_components) {
 			for (const [name, example_component] of example_components) {

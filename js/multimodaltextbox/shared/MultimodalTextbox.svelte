@@ -27,7 +27,7 @@
 	export let show_label = true;
 	export let container = true;
 	export let max_lines: number;
-	export let submit_btn: string | null = null;
+	export let submit_btn: string | boolean | null = null;
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
@@ -37,6 +37,7 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let file_count: "single" | "multiple" | "directory" = "multiple";
 
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
@@ -161,6 +162,7 @@
 			for (let file of detail) {
 				value.files.push(file);
 			}
+			value = value;
 		} else {
 			value.files.push(detail);
 			value = value;
@@ -204,11 +206,47 @@
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	{#if value.files.length > 0 || uploading}
+		<div
+			class="thumbnails scroll-hide"
+			data-testid="container_el"
+			style="display: {value.files.length > 0 || uploading ? 'flex' : 'none'};"
+		>
+			{#each value.files as file, index}
+				<button class="thumbnail-item thumbnail-small">
+					<button
+						class:disabled
+						class="delete-button"
+						on:click={(event) => remove_thumbnail(event, index)}
+						><Clear /></button
+					>
+					{#if file.mime_type && file.mime_type.includes("image")}
+						<Image
+							src={file.url}
+							title={null}
+							alt=""
+							loading="lazy"
+							class={"thumbnail-image"}
+						/>
+					{:else if file.mime_type && file.mime_type.includes("audio")}
+						<Music />
+					{:else if file.mime_type && file.mime_type.includes("video")}
+						<Video />
+					{:else}
+						<File />
+					{/if}
+				</button>
+			{/each}
+			{#if uploading}
+				<div class="loader"></div>
+			{/if}
+		</div>
+	{/if}
 	<div class="input-container">
 		<Upload
 			bind:this={upload_component}
 			on:load={handle_upload}
-			filetype={accept_file_types}
+			{file_count}
 			{root}
 			{max_file_size}
 			bind:dragging
@@ -217,104 +255,66 @@
 			disable_click={true}
 			bind:hidden_upload
 			on:error
+			hidden={true}
 			{upload}
 			{stream_handler}
+		></Upload>
+		<button
+			data-testid="upload-button"
+			class="upload-button"
+			on:click={handle_upload_click}><Paperclip /></button
 		>
-			{#if submit_btn !== null}
-				<button class:disabled class="submit-button" on:click={handle_submit}
-					>{submit_btn}</button
-				>
-			{:else}
-				<button class:disabled class="submit-button" on:click={handle_submit}
-					><Send /></button
-				>
-			{/if}
+		<textarea
+			data-testid="textbox"
+			use:text_area_resize={{
+				text: value.text,
+				lines: lines,
+				max_lines: max_lines
+			}}
+			class="scroll-hide"
+			dir={rtl ? "rtl" : "ltr"}
+			bind:value={value.text}
+			bind:this={el}
+			{placeholder}
+			rows={lines}
+			{disabled}
+			{autofocus}
+			on:keypress={handle_keypress}
+			on:blur
+			on:select={handle_select}
+			on:focus
+			on:scroll={handle_scroll}
+			on:paste={handle_paste}
+			style={text_align ? "text-align: " + text_align : ""}
+		/>
+		{#if submit_btn}
 			<button
-				data-testid="upload-button"
-				class="upload-button"
-				on:click={handle_upload_click}><Paperclip /></button
+				class="submit-button"
+				class:padded-button={submit_btn !== true}
+				on:click={handle_submit}
 			>
-			{#if value.files.length > 0 || uploading}
-				<div
-					class="thumbnails scroll-hide"
-					data-testid="container_el"
-					style="display: {value.files.length > 0 || uploading
-						? 'flex'
-						: 'none'};"
-				>
-					{#each value.files as file, index}
-						<button class="thumbnail-item thumbnail-small">
-							<button
-								class:disabled
-								class="delete-button"
-								on:click={(event) => remove_thumbnail(event, index)}
-								><Clear /></button
-							>
-							{#if file.mime_type && file.mime_type.includes("image")}
-								<Image
-									src={file.url}
-									title={null}
-									alt=""
-									loading="lazy"
-									class={"thumbnail-image"}
-								/>
-							{:else if file.mime_type && file.mime_type.includes("audio")}
-								<Music />
-							{:else if file.mime_type && file.mime_type.includes("video")}
-								<Video />
-							{:else}
-								<File />
-							{/if}
-						</button>
-					{/each}
-					{#if uploading}
-						<div class="loader"></div>
-					{/if}
-				</div>
-			{/if}
-			<textarea
-				data-testid="textbox"
-				use:text_area_resize={{
-					text: value.text,
-					lines: lines,
-					max_lines: max_lines
-				}}
-				class="scroll-hide"
-				dir={rtl ? "rtl" : "ltr"}
-				bind:value={value.text}
-				bind:this={el}
-				{placeholder}
-				rows={lines}
-				{disabled}
-				{autofocus}
-				on:keypress={handle_keypress}
-				on:blur
-				on:select={handle_select}
-				on:focus
-				on:scroll={handle_scroll}
-				on:paste={handle_paste}
-				style={text_align ? "text-align: " + text_align : ""}
-			/>
-		</Upload>
+				{#if submit_btn === true}
+					<Send />
+				{:else}
+					Hello World
+				{/if}
+			</button>
+		{/if}
 	</div>
 </label>
 
 <style>
 	.input-container {
 		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
+		position: relative;
+		align-items: flex-end;
 	}
 
 	textarea {
-		align-self: flex-start;
+		flex-grow: 1;
 		outline: none !important;
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
-		width: 90%;
-		max-height: 100%;
-		height: 25px;
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
@@ -322,17 +322,12 @@
 		border: none;
 		margin-top: 0px;
 		margin-bottom: 0px;
-		margin-left: 30px;
-		padding-top: 12px;
 		resize: none;
 	}
 
 	textarea:disabled {
-		-webkit-text-fill-color: var(--body-text-color);
 		-webkit-opacity: 1;
 		opacity: 1;
-		width: 100%;
-		margin-left: 0px;
 	}
 
 	textarea::placeholder {
@@ -341,18 +336,24 @@
 
 	.upload-button,
 	.submit-button {
-		position: absolute;
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
 		border: none;
 		text-align: center;
 		text-decoration: none;
-		font-size: 20px;
+		font-size: 14px;
 		cursor: pointer;
-		border-radius: 50%;
-		width: 30px;
+		border-radius: 15px;
+		min-width: 30px;
 		height: 30px;
-		bottom: 15px;
+		flex-shrink: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-bottom: 5px;
+	}
+	.padded-button {
+		padding: 0 10px;
 	}
 
 	.upload-button:hover,
@@ -365,29 +366,13 @@
 		box-shadow: var(--button-shadow-active);
 	}
 
-	.submit-button {
-		right: 10px;
-		margin-left: 5px;
-		padding-bottom: 5px;
-		padding-left: 2px;
-	}
-
 	.submit-button :global(svg) {
-		height: 23px;
-		width: 23px;
-		padding-left: 4px;
-		padding-top: 2px;
+		height: 22px;
+		width: 22px;
 	}
-
-	.upload-button {
-		left: 10px;
-		margin-right: 5px;
-	}
-
 	.upload-button :global(svg) {
-		height: 23px;
-		width: 23px;
-		padding-left: 7px;
+		height: 17px;
+		width: 17px;
 	}
 
 	.loader {

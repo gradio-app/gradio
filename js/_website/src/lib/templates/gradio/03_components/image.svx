@@ -1,0 +1,111 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("image");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.Image(···)
+```
+
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr 
+with gr.Blocks() as demo:
+    gr.Image()
+demo.launch()
+</gradio-lite>
+</div>
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Behavior -->
+### Behavior
+## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
+##### Your function should accept one of these types:
+
+```python
+def predict(
+	value: np.ndarray | PIL.Image.Image | str | None
+)
+	...
+```
+
+<br>
+
+## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
+##### Your function should return one of these types:
+
+```python
+def predict(···) -> np.ndarray | PIL.Image.Image | str | Path | None
+	...	
+	return value
+```
+
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} />
+
+
+{#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
+<!--- Shortcuts -->
+### Shortcuts
+<ShortcutTable shortcuts={obj.string_shortcuts} />
+{/if}
+
+
+### `GIF` and `SVG` Image Formats
+
+The `gr.Image` component can process or display any image format that is [supported by the PIL library](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html), including animated GIFs. In addition, it also supports the SVG image format. 
+
+When the `gr.Image` component is used as an input component, the image is converted into a `str` filepath, a `PIL.Image` object, or a `numpy.array`, depending on the `type` parameter. However, animated GIF and SVG images are treated differently:
+
+* Animated `GIF` images can only be converted to `str` filepaths or `PIL.Image` objects. If they are converted to a `numpy.array` (which is the default behavior), only the first frame will be used. So if your demo expects an input `GIF` image, make sure to set the `type` parameter accordingly, e.g.
+
+```py
+import gradio as gr
+
+demo = gr.Interface(
+    fn=lambda x:x, 
+    inputs=gr.Image(type="filepath"), 
+    outputs=gr.Image()
+)
+    
+demo.launch()
+```
+
+* For `SVG` images, the `type` parameter is ignored altogether and the image is always returned as an image filepath. This is because `SVG` images cannot be processed as `PIL.Image` or `numpy.array` objects.
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Event Listeners -->
+### Event Listeners 
+<FunctionsSection fns={obj.fns} event_listeners={true} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}

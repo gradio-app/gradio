@@ -5,7 +5,7 @@
 	export let is_running: boolean;
 	export let endpoint_returns: any;
 	export let js_returns: any;
-	export let current_language: "python" | "javascript";
+	export let current_language: "python" | "javascript" | "bash";
 </script>
 
 <h4>
@@ -21,13 +21,15 @@
 		<div style="margin:10px;">
 			<p style="white-space: nowrap; overflow-x: auto;">
 				<span class="code" style="margin-right: 10px;"
-					>{parameter_name ? parameter_name : "[" + i + "]"}</span
+					>{current_language !== "bash" && parameter_name
+						? parameter_name
+						: "[" + i + "]"}</span
 				>
 				<span class="code highlight" style="margin-right: 10px;"
 					>{#if current_language === "python"}{python_type.type}{#if parameter_has_default && parameter_default === null}&nbsp;|
-							None{/if}{:else}{js_returns[i].type}{/if}</span
+							None{/if}{:else}{js_returns[i].type || "any"}{/if}</span
 				>
-				{#if !parameter_has_default || current_language == "javascript"}<span
+				{#if !parameter_has_default || current_language == "bash"}<span
 						style="font-weight:bold">Required</span
 					>{:else}<span> Default: </span><span
 						class="code"

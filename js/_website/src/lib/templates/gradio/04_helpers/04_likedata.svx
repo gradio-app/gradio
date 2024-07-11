@@ -1,0 +1,93 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("likedata");
+
+    obj["attributes"] = [
+            {
+                name: "index",
+                annotation: "int | tuple[int, int]",
+                doc: "The index of the liked/disliked item. Is a tuple if the component is two dimensional.",
+                kwargs: null
+            },
+            {
+                name: "value",
+                annotation: "Any",
+                doc: "The value of the liked/disliked item.",
+                kwargs: null
+            },
+            {
+                name: "selected",
+                annotation: "bool",
+                doc: "True if the item was liked, False if disliked.",
+                kwargs: null
+            }
+        ]    
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.LikeData(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+{#if obj.example}
+### Example Usage
+```python
+import gradio as gr
+
+def test(value, like_data: gr.LikeData):
+    return {
+        "chatbot_value": value,
+        "liked_message": like_data.value,
+        "liked_index": like_data.index,
+        "liked_or_disliked_as_bool": like_data.liked
+    }
+
+with gr.Blocks() as demo:
+    c = gr.Chatbot([("abc", "def")])
+    t = gr.JSON()
+    c.like(test, c, t)
+
+demo.launch()
+```
+{/if}
+
+<!--- Initialization -->
+### Attributes
+<ParamTable parameters={obj.attributes} />
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}

@@ -1,11 +1,11 @@
 import { Client } from "../client";
-import type { Dependency, SubmitReturn } from "../types";
+import type { Dependency, PredictReturn } from "../types";
 
 export async function predict(
 	this: Client,
 	endpoint: string | number,
 	data: unknown[] | Record<string, unknown>
-): Promise<SubmitReturn> {
+): Promise<PredictReturn> {
 	let data_returned = false;
 	let status_complete = false;
 	let dependency: Dependency;
@@ -15,42 +15,37 @@ export async function predict(
 	}
 
 	if (typeof endpoint === "number") {
-		dependency = this.config.dependencies[endpoint];
+		dependency = this.config.dependencies.find((dep) => dep.id == endpoint)!;
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
-		dependency = this.config.dependencies[this.api_map[trimmed_endpoint]];
-	}
-
-	if (dependency?.types.continuous) {
-		throw new Error(
-			"Cannot call predict on this function as it may run forever. Use submit instead"
-		);
+		dependency = this.config.dependencies.find(
+			(dep) => dep.id == this.api_map[trimmed_endpoint]
+		)!;
 	}
 
 	return new Promise(async (resolve, reject) => {
-		const app = this.submit(endpoint, data);
+		const app = this.submit(endpoint, data, null, null, true);
 		let result: unknown;
 
-		app
-			.on("data", (d: unknown) => {
-				// if complete message comes before data, resolve here
+		for await (const message of app) {
+			if (message.type === "data") {
 				if (status_complete) {
-					app.destroy();
-					resolve(d as SubmitReturn);
+					resolve(result as PredictReturn);
 				}
 				data_returned = true;
-				result = d;
-			})
-			.on("status", (status) => {
-				if (status.stage === "error") reject(status);
-				if (status.stage === "complete") {
+				result = message;
+			}
+
+			if (message.type === "status") {
+				if (message.stage === "error") reject(message);
+				if (message.stage === "complete") {
 					status_complete = true;
 					// if complete message comes after data, resolve here
 					if (data_returned) {
-						app.destroy();
-						resolve(result as SubmitReturn);
+						resolve(result as PredictReturn);
 					}
 				}
-			});
+			}
+		}
 	});
 }

@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from gradio_client.documentation import document
 
+from gradio.components.base import Component
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
+from gradio.events import Events
 
 if TYPE_CHECKING:
     import pandas as pd
+
+    from gradio.components import Timer
 
 
 @document()
@@ -22,6 +27,8 @@ class LinePlot(Plot):
     """
 
     data_model = AltairPlotData
+
+    EVENTS = [Events.select]
 
     def __init__(
         self,
@@ -64,35 +71,36 @@ class LinePlot(Plot):
             "none",
         ]
         | None = None,
-        height: int | str | None = None,
-        width: int | str | None = None,
+        height: int | None = None,
+        width: int | None = None,
         x_lim: list[int] | None = None,
         y_lim: list[int] | None = None,
         caption: str | None = None,
-        interactive: bool | None = True,
         label: str | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
         show_actions_button: bool = False,
+        interactive: bool | None = None,
     ):
         """
         Parameters:
             value: The pandas dataframe containing the data to display in a scatter plot.
-            x: Column corresponding to the x axis.
-            y: Column corresponding to the y axis.
+            x: Column corresponding to the x axis. Can be grouped if datetime, e.g. 'yearmonth(date)' or 'minuteseconds(date)' with a column name 'date'. Any time unit supported by altair can be used.
+            y: Column corresponding to the y axis. Can be aggregated, e.g. 'sum(price)' or 'count(price)' with a column name 'price'. Any aggregation function supported by altair can be used.
             color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
             stroke_dash: The column to determine the symbol used to draw the line, e.g. dashed lines, dashed lines with points.
             overlay_point: Whether to draw a point on the line for each (x, y) coordinate pair.
             title: The title to display on top of the chart.
-            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot. Set to [] to disable tooltips.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
             x_label_angle: The angle for the x axis labels. Positive values are clockwise, and negative values are counter-clockwise.
@@ -101,15 +109,16 @@ class LinePlot(Plot):
             stroke_dash_legend_title: The title given to the stroke_dash legend. By default, uses the value of the stroke_dash parameter.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             stroke_dash_legend_position: The position of the stoke_dash legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
-            height: The height of the plot, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the plot, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels. If None, expands to fit.
             x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
-            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            interactive: Deprecated.
             label: The (optional) label to display on the top left corner of the plot.
             show_label: Whether the label should be displayed.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -121,7 +130,9 @@ class LinePlot(Plot):
         self.y = y
         self.color = color
         self.stroke_dash = stroke_dash
-        self.tooltip = tooltip
+        self.tooltip = (
+            tooltip if tooltip is not None else [elem for elem in [x, y, color] if elem]
+        )
         self.title = title
         self.x_title = x_title
         self.y_title = y_title
@@ -135,10 +146,21 @@ class LinePlot(Plot):
         self.x_lim = x_lim
         self.y_lim = y_lim
         self.caption = caption
-        self.interactive_chart = interactive
+        if isinstance(width, str):
+            width = None
+            warnings.warn(
+                "Width should be an integer, not a string. Setting width to None."
+            )
+        if isinstance(height, str):
+            warnings.warn(
+                "Height should be an integer, not a string. Setting height to None."
+            )
+            height = None
         self.width = width
         self.height = height
         self.show_actions_button = show_actions_button
+        if label is None and show_label is None:
+            show_label = False
         super().__init__(
             value=value,
             label=label,
@@ -152,7 +174,13 @@ class LinePlot(Plot):
             render=render,
             key=key,
             every=every,
+            inputs=inputs,
         )
+        if interactive is not None:
+            warnings.warn(
+                "The `interactive` parameter is deprecated and will be removed in a future version. "
+                "The LinePlot component is always interactive."
+            )
 
     def get_block_name(self) -> str:
         return "plot"
@@ -201,25 +229,23 @@ class LinePlot(Plot):
         width: int | None = None,
         x_lim: list[int] | None = None,
         y_lim: list[int] | None = None,
-        interactive: bool | None = None,
     ):
         """Helper for creating the scatter plot."""
         import altair as alt
 
-        interactive = True if interactive is None else interactive
         encodings = {
             "x": alt.X(
-                x,  # type: ignore
-                title=x_title or x,  # type: ignore
-                scale=AltairPlot.create_scale(x_lim),  # type: ignore
+                x,
+                title=x_title or x,
+                scale=AltairPlot.create_scale(x_lim),
                 axis=alt.Axis(labelAngle=x_label_angle)
                 if x_label_angle is not None
                 else alt.Axis(),
             ),
             "y": alt.Y(
-                y,  # type: ignore
-                title=y_title or y,  # type: ignore
-                scale=AltairPlot.create_scale(y_lim),  # type: ignore
+                y,
+                title=y_title or y,
+                scale=AltairPlot.create_scale(y_lim),
                 axis=alt.Axis(labelAngle=y_label_angle)
                 if y_label_angle is not None
                 else alt.Axis(),
@@ -234,6 +260,7 @@ class LinePlot(Plot):
             properties["width"] = width
 
         if color:
+            color_legend_position = color_legend_position or "bottom"
             domain = value[color].unique().tolist()
             range_ = list(range(len(domain)))
             encodings["color"] = {
@@ -241,50 +268,64 @@ class LinePlot(Plot):
                 "type": "nominal",
                 "scale": {"domain": domain, "range": range_},
                 "legend": AltairPlot.create_legend(
-                    position=color_legend_position, title=color_legend_title or color
+                    position=color_legend_position, title=color_legend_title
                 ),
             }
 
-        highlight = None
-        if interactive and any([color, stroke_dash]):
-            highlight = alt.selection(
-                type="single",  # type: ignore
-                on="mouseover",
-                fields=[c for c in [color, stroke_dash] if c],
-                nearest=True,
-            )
-
         if stroke_dash:
-            stroke_dash = {
-                "field": stroke_dash,  # type: ignore
-                "legend": AltairPlot.create_legend(  # type: ignore
-                    position=stroke_dash_legend_position,  # type: ignore
-                    title=stroke_dash_legend_title or stroke_dash,  # type: ignore
-                ),  # type: ignore
-            }  # type: ignore
+            stroke_dash_encoding = {
+                "field": stroke_dash,
+                "legend": AltairPlot.create_legend(
+                    position=stroke_dash_legend_position or "bottom",
+                    title=stroke_dash_legend_title,
+                ),
+            }
         else:
-            stroke_dash = alt.value(alt.Undefined)  # type: ignore
+            stroke_dash_encoding = alt.value(alt.Undefined)
 
         if tooltip:
             encodings["tooltip"] = tooltip
 
-        chart = alt.Chart(value).encode(**encodings)  # type: ignore
+        chart = alt.Chart(value).encode(**encodings)
 
         points = chart.mark_point(clip=True).encode(
             opacity=alt.value(alt.Undefined) if overlay_point else alt.value(0),
         )
-        lines = chart.mark_line(clip=True).encode(strokeDash=stroke_dash)
+        lines = chart.mark_line(clip=True).encode(strokeDash=stroke_dash_encoding)
 
-        if highlight:
-            points = points.add_selection(highlight)
+        highlight = alt.selection_point(
+            on="mouseover",
+            fields=[c for c in [color, stroke_dash] if c],
+            nearest=True,
+            clear="mouseout",
+            empty=False,
+        )
+        points = points.add_params(highlight)
+        lines = lines.encode(
+            size=alt.condition(highlight, alt.value(4), alt.value(2)),
+        )
+        if not overlay_point:
+            highlight_pts = alt.selection_point(
+                on="mouseover",
+                nearest=True,
+                clear="mouseout",
+                empty=False,
+            )
+            points = points.add_params(highlight_pts)
 
-            lines = lines.encode(
-                size=alt.condition(highlight, alt.value(4), alt.value(1)),
+            points = points.encode(
+                opacity=alt.condition(highlight_pts, alt.value(1), alt.value(0)),
+                size=alt.condition(highlight_pts, alt.value(100), alt.value(0)),
             )
 
         chart = (lines + points).properties(background="transparent", **properties)
-        if interactive:
-            chart = chart.interactive()
+
+        selection = alt.selection_interval(
+            encodings=["x"],
+            mark=alt.BrushConfig(fill="gray", fillOpacity=0.3, stroke="none"),
+            name="brush",
+        )
+        chart = chart.add_params(selection)
 
         return chart
 
@@ -330,7 +371,6 @@ class LinePlot(Plot):
             x_lim=self.x_lim,
             y_lim=self.y_lim,
             stroke_dash=self.stroke_dash,
-            interactive=self.interactive_chart,
             height=self.height,
             width=self.width,
         )

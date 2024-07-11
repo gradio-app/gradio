@@ -2,49 +2,12 @@
 	// @ts-nocheck
 	import { clickOutside } from "./clickOutside.js";
 
-	export let components: any;
-	export let helpers: any;
-	export let modals: any;
-	export let routes: any;
-	export let py_client: any;
-
+	export let library_pages: any;
 	export let current_nav_link = "";
-	let docs_type = "python";
 
 	let show_nav = false;
-	let searchTerm = "";
-	let searchBar: HTMLInputElement;
-
-	const search = () => {
-		let links = document.querySelectorAll(
-			".navigation a"
-		) as NodeListOf<HTMLAnchorElement>;
-		links.forEach((link) => {
-			let linkText = link.innerText.toLowerCase();
-			if (linkText.includes(searchTerm.toLowerCase())) {
-				link.style.display = "block";
-			} else {
-				link.style.display = "none";
-			}
-		});
-	};
-
-	function onKeyDown(e: KeyboardEvent) {
-		if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
-			e.preventDefault();
-			searchBar.focus();
-		}
-		if (e.key == "Escape") {
-			searchTerm = "";
-			searchBar.blur();
-			search();
-		}
-	}
-
 	import DropDown from "$lib/components/VersionDropdown.svelte";
 </script>
-
-<svelte:window on:keydown={onKeyDown} />
 
 <section
 	class="top-0 left-0 fixed flex items-center p-4 rounded-br-lg backdrop-blur-lg z-50 bg-gray-200/50 lg:hidden"
@@ -94,124 +57,17 @@
 	<div
 		class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block my-4 ml-4"
 	>
-		<input
-			bind:value={searchTerm}
-			on:input={search}
-			bind:this={searchBar}
-			id="search"
-			type="search"
-			class="w-4/5 rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
-			placeholder="Search ⌘-k / ctrl-k"
-			autocomplete="off"
-		/>
 		<DropDown></DropDown>
 	</div>
 
-	<p class="font-semibold px-4 my-2 block">Building Demos</p>
-	<a
-		class:current-nav-link={current_nav_link == "interface"}
-		class="thin-link px-4 block leading-8"
-		href="./interface/">Interface</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "chatinterface"}
-		class="thin-link px-4 block leading-8"
-		href="./chatinterface/"
-		>ChatInterface<sup class="text-orange-500">NEW</sup></a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "tabbedinterface"}
-		class="thin-link px-4 block leading-8"
-		href="./tabbedinterface/">TabbedInterface</a
-	>
-
-	<a
-		class:current-nav-link={current_nav_link == "blocks"}
-		class="thin-link px-4 block leading-8"
-		href="./blocks/">Blocks</a
-	>
-
-	<p class="font-semibold px-4 my-2 block">Block Layouts</p>
-
-	<a
-		class:current-nav-link={current_nav_link == "row"}
-		class="thin-link px-4 block leading-8"
-		href="./row/">Row</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "column"}
-		class="thin-link px-4 block leading-8"
-		href="./column/">Column</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "tab"}
-		class="thin-link px-4 block leading-8"
-		href="./tab/">Tab</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "group"}
-		class="thin-link px-4 block leading-8"
-		href="./group/">Group</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "accordion"}
-		class="thin-link px-4 block leading-8"
-		href="./accordion/">Accordion</a
-	>
-
-	<a
-		class:current-nav-link={current_nav_link == "components"}
-		class="link px-4 my-2 block"
-		href="./components/">Components</a
-	>
-	{#each Object.entries(components) as [name, obj] (name)}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link leading-8"
-			href="./{name}/">{obj.name}</a
-		>
+	{#each library_pages as category_pages}
+		<p class="font-semibold px-4 my-2 block">{category_pages.category}</p>
+		{#each category_pages.pages as page}
+			<a
+				class:current-nav-link={current_nav_link == page.name}
+				class="thin-link px-4 block leading-8"
+				href={page.name}>{page.pretty_name}</a
+			>
+		{/each}
 	{/each}
-	<p class="font-semibold px-4 my-2 block">Helpers</p>
-	{#each Object.entries(helpers) as [name, obj] (name)}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link leading-8"
-			href="./{name}/">{obj.name}</a
-		>
-	{/each}
-	<p class="font-semibold px-4 my-2 block">Modals</p>
-	{#each Object.entries(modals) as [name, obj] (name)}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link leading-8"
-			href="./{name}/">{obj.name}</a
-		>
-	{/each}
-
-	<p class="font-semibold px-4 my-2 block">Routes</p>
-	{#each Object.entries(routes) as [name, obj] (name)}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link leading-8"
-			href="./{name}/">{obj.name}</a
-		>
-	{/each}
-
-	<p class="font-semibold px-4 my-2 block">Other</p>
-
-	<a
-		class:current-nav-link={current_nav_link == "flagging"}
-		class="thin-link px-4 block leading-8"
-		href="./flagging/">Flagging</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "themes"}
-		class="thin-link px-4 block leading-8"
-		href="./themes/">Themes</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "no-reload"}
-		class="thin-link px-4 block leading-8"
-		href="./no-reload/">NO_RELOAD</a
-	>
 </div>

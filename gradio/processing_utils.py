@@ -17,7 +17,7 @@ import aiofiles
 import httpx
 import numpy as np
 from gradio_client import utils as client_utils
-from PIL import Image, ImageOps, PngImagePlugin
+from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
 from gradio import utils, wasm_utils
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
@@ -104,6 +104,7 @@ log = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from gradio.blocks import Block
 
+
 #########################
 # GENERAL
 #########################
@@ -137,7 +138,7 @@ def encode_plot_to_base64(plt, format: str = "png"):
         plt.savefig(output_bytes, format=fmt)
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return output_base64(base64_str, fmt)
+    return f"data:image/{format or 'png'};base64,{base64_str}"
 
 
 def get_pil_exif_bytes(pil_image):
@@ -157,32 +158,23 @@ def get_pil_metadata(pil_image):
 
 def encode_pil_to_bytes(pil_image, format="png"):
     with BytesIO() as output_bytes:
-        if format == "png":
-            params = {"pnginfo": get_pil_metadata(pil_image)}
+        if format.lower() == "gif":
+            frames = [frame.copy() for frame in ImageSequence.Iterator(pil_image)]
+            frames[0].save(
+                output_bytes,
+                format=format,
+                save_all=True,
+                append_images=frames[1:],
+                loop=0,
+            )
         else:
-            exif = get_pil_exif_bytes(pil_image)
-            params = {"exif": exif} if exif else {}
-        pil_image.save(output_bytes, format, **params)
+            if format.lower() == "png":
+                params = {"pnginfo": get_pil_metadata(pil_image)}
+            else:
+                exif = get_pil_exif_bytes(pil_image)
+                params = {"exif": exif} if exif else {}
+            pil_image.save(output_bytes, format, **params)
         return output_bytes.getvalue()
-
-
-def encode_pil_to_base64(pil_image, format="png"):
-    bytes_data = encode_pil_to_bytes(pil_image, format)
-    base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return output_base64(base64_str, format)
-
-
-def encode_array_to_base64(image_array, format="png"):
-    with BytesIO() as output_bytes:
-        pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
-        pil_image.save(output_bytes, format)
-        bytes_data = output_bytes.getvalue()
-    base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return output_base64(base64_str, format)
-
-
-def output_base64(data, format=None) -> str:
-    return f"data:image/{format or 'png'};base64,{data}"
 
 
 def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
@@ -660,13 +652,16 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     dtype_range = {
         bool: (False, True),
         np.bool_: (False, True),
-        np.bool8: (False, True),  # type: ignore
         float: (-1, 1),
-        np.float_: (-1, 1),
         np.float16: (-1, 1),
         np.float32: (-1, 1),
         np.float64: (-1, 1),
     }
+
+    if hasattr(np, "float_"):
+        dtype_range[np.float_] = dtype_range[float]  # type: ignore
+    if hasattr(np, "bool8"):
+        dtype_range[np.bool8] = dtype_range[np.bool_]  # type: ignore
 
     def _dtype_itemsize(itemsize, *dtypes):
         """Return first of `dtypes` with itemsize greater than `itemsize`
@@ -786,7 +781,12 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     #   is a subclass of that type (e.g. `np.floating` will allow
     #   `float32` and `float64` arrays through)
 
-    if np.issubdtype(dtype_in, np.obj2sctype(dtype)):
+    if hasattr(np, "obj2sctype"):
+        is_subdtype = np.issubdtype(dtype_in, np.obj2sctype(dtype))
+    else:
+        is_subdtype = np.issubdtype(dtype_in, dtypeobj_out.type)
+
+    if is_subdtype:
         if force_copy:
             image = image.copy()
         return image

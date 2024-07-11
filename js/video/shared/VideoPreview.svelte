@@ -62,6 +62,7 @@
 			on:pause
 			on:stop
 			on:end
+			on:load
 			mirror={false}
 			{label}
 			interactive={false}

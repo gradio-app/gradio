@@ -1,0 +1,157 @@
+<script lang="ts">
+    import CopyButton from "$lib/components/CopyButton.svelte";
+</script>
+
+# Clients 1.0 Launch!
+
+We're excited to unveil the first major release of the Gradio clients.
+We've made it even easier to turn any Gradio application into a production endpoint thanks to the clients' **ergonomic**, **transparent**, and **portable** design.
+
+
+### Ergonomic API 💆
+
+<br>
+
+**Stream From a Gradio app in 5 lines**
+<br>
+
+Use the `submit` method to get a job you can iterate over.
+
+<br>
+
+In python:
+```python
+from gradio_client import Client
+
+client = Client("gradio/llm_stream")
+
+for result in client.submit("What's the best UI framework in Python?"):
+    print(result)
+```
+<br>
+
+In typescript:
+```ts
+import { Client } from "@gradio/client";
+
+const client = await Client.connect("gradio/llm_stream")
+const job = client.submit("/predict", {"text": "What's the best UI framework in Python?"})
+
+for await (const msg of job) console.log(msg.data)
+```
+
+<br>
+
+**Use the same keyword arguments as the app**
+<br>
+In the examples below, the upstream app has a function with parameters called `message`, `system_prompt`, and `tokens`.
+We can see that the client `predict` call uses the same arguments.
+
+In python:
+```python
+from gradio_client import Client
+
+client = Client("http://127.0.0.1:7860/")
+result = client.predict(
+		message="Hello!!",
+		system_prompt="You are helpful AI.",
+		tokens=10,
+		api_name="/chat"
+)
+print(result)
+```
+
+In typescript:
+```ts
+import { Client } from "@gradio/client";
+
+const client = await Client.connect("http://127.0.0.1:7860/");
+const result = await client.predict("/chat", { 		
+		message: "Hello!!", 		
+		system_prompt: "Hello!!", 		
+		tokens: 10, 
+});
+
+console.log(result.data);
+```
+<br>
+
+**Better Error Messages**
+<br>
+If something goes wrong in the upstream app, the client will raise the same exception as the app provided that `show_error=True` in the original app's `launch()` function, or it's a `gr.Error` exception.
+
+### Transparent Design 🪟
+
+Anything you can do in the UI, you can do with the client:
+* 🔐Authentication 
+* 🛑 Job Cancelling
+* ℹ️ Access Queue Position and API
+* 📕 View the API information
+
+<br>
+Here's an example showing how to display the queue position of a pending job:
+
+```python
+from gradio_client import Client
+
+client = Client("gradio/diffusion_model")
+
+job = client.submit("A cute cat")
+while not job.done():
+    status = job.status()
+    print(f"Current in position {status.rank} out of {status.queue_size}")
+```
+
+
+### Portable Design ⛺️
+<br>
+The client can run from pretty much any python and javascript environment (node, deno, the browser, Service Workers). 
+<br>
+Here's an example using the client from a Flask server using gevent:
+
+```python
+from gevent import monkey
+monkey.patch_all()
+
+from gradio_client import Client
+from flask import Flask, send_file
+import time
+
+app = Flask(__name__)
+
+imageclient = Client("gradio/diffusion_model")
+
+@app.route("/gen")
+def gen():
+      result = imageclient.predict(
+                "A cute cat",
+                api_name="/predict"
+              )
+      return send_file(result)
+
+if __name__ == "__main__":
+      app.run(host="0.0.0.0", port=5000)
+```
+
+### v1.0 Migration Guide and Breaking Changes
+
+<br>
+
+**Python**
+<ul>
+    <li>The `serialize` argument of the `Client` class was removed and has no effect. </li>
+    <li>The `upload_files` argument of the `Client` was removed.</li>
+    <li>All filepaths must be wrapped in the `handle_file` method. For example, `caption = client.predict(handle_file('./dog.jpg'))`.</li>
+    <li>The `output_dir` argument was removed. It is not specified in the `download_files` argument.</li>
+</ul>
+<br>
+
+**Javascript**
+<br>
+The client has been redesigned entirely. It was refactored from a function into a class. An instance can now be constructed by awaiting the `connect` method.
+
+```js
+const app = await Client.connect("gradio/whisper")
+```
+The app variable has the same methods as the python class (`submit`, `predict`, `view_api`, `duplicate`).
+

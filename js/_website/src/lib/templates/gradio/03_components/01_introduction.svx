@@ -1,0 +1,73 @@
+<script lang="ts">
+    import dataflow from "$lib/assets/img/dataflow.svg"
+    import {get_object} from "../../process_json.ts";
+    let components = get_object("components");
+    let components_no_dataclasses = {...components};
+    delete components_no_dataclasses["brush"];
+    delete components_no_dataclasses["eraser"];
+    delete components_no_dataclasses["waveformoptions"];
+
+    let events = get_object("events");
+    let events_matrix = get_object("events_matrix");
+</script>
+
+# Components 
+
+### Introduction
+
+## Gradio includes pre-built components that can be used as inputs or outputs in your Interface or Blocks with a single line of code. Components include preprocessing steps that convert user data submitted through browser to something that be can used by a Python function, and postprocessing steps to convert values returned by a Python function into something that can be displayed in a browser.
+
+## Consider an example with three inputs (Textbox, Number, and Image) and two outputs (Number and Gallery), below is a diagram of what our preprocessing will send to the function and what our postprocessing will require from it.
+
+<img src={dataflow} />
+
+### Events
+
+## Components also come with certain events that they support. These are methods that are triggered with user actions. Below is a table showing which events are supported for each component. All events are also listed (with parameters) in the component's docs.
+
+
+<div class="max-h-96 overflow-y-scroll my-6">
+    <table class="table-fixed leading-loose">
+        <thead class="text-center sticky top-0">
+            <tr>
+                <th class="p-3 bg-white w-1/5 sticky left-0" />
+                {#each events as event}
+                    <th class="p-3 font-normal bg-white border-t border-l"
+                        >{event}</th
+                    >
+                {/each}
+            </tr>
+        </thead>
+        <tbody
+            class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y"
+        >
+            {#each Object.entries(components_no_dataclasses) as [name, obj] (name)}
+                <tr class="group hover:bg-gray-200/60">
+                    <th
+                        class="p-3 w-1/5 bg-white sticky z-2 left-0 font-normal"
+                    >
+                        <a href={obj.name.toLowerCase()} class="thin-link"
+                            >{obj.name}</a
+                        >
+                    </th>
+                {#each events as event}
+                        <td class="p-3 text-gray-700 break-words text-center">
+                            {#if events_matrix[obj.name].includes(event.toLowerCase())}
+                                <p class="text-orange-500">&#10003;</p>
+                            {:else}
+                                <p class="text-gray-300">&#10005;</p>
+                            {/if}
+                        </td>
+                    {/each}
+                </tr>
+            {/each}
+        </tbody>
+    </table>
+</div>
+
+
+
+<style>
+
+
+</style>

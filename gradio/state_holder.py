@@ -21,6 +21,7 @@ class StateHolder:
 
     def set_blocks(self, blocks: Blocks):
         self.blocks = blocks
+        blocks.state_holder = self
         self.capacity = blocks.state_session_capacity
 
     def reset(self, blocks: Blocks):

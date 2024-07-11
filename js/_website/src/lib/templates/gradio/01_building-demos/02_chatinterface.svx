@@ -1,0 +1,87 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("chatinterface");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.ChatInterface(fn, ···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+### Example Usage
+
+**Basic Example**: A chatbot that echoes back the users's message
+
+```python
+import gradio as gr
+
+def echo(message, history):
+    return message
+
+demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="Echo Bot")
+demo.launch()
+```
+
+**Custom Chatbot**: A `gr.ChatInterface` with a custom `gr.Chatbot` that includes a placeholder as well as upvote/downvote buttons. The upvote/downvote buttons are automatically added when a `.like()` event is attached to a `gr.Chatbot`. In order to attach event listeners to your custom chatbot, wrap the `gr.Chatbot` as well as the `gr.ChatInterface` inside of a `gr.Blocks` like this:
+
+```py
+import gradio as gr
+
+def yes(message, history):
+    return "yes"
+
+def vote(data: gr.LikeData):
+    if data.liked:
+        print("You upvoted this response: " + data.value["value"])
+    else:
+        print("You downvoted this response: " + data.value["value"])
+
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot(placeholder="<strong>Your Personal Yes-Man</strong><br>Ask Me Anything")
+    chatbot.like(vote, None, None)
+    gr.ChatInterface(fn=yes, chatbot=chatbot)
+    
+demo.launch()
+```
+
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} />
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}

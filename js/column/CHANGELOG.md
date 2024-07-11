@@ -1,5 +1,28 @@
 # @gradio/column
 
+## 0.1.2
+
+### Dependency updates
+
+- @gradio/utils@0.5.0
+- @gradio/statustracker@0.7.0
+
+## 0.1.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
+## 0.1.2
+
+### Features
+
+- [#8398](https://github.com/gradio-app/gradio/pull/8398) [`945ac83`](https://github.com/gradio-app/gradio/commit/945ac837e779b120790814ea6f6f81bd2712f5f8) - Improve rendering.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
 ## 0.1.1
 
 ### Fixes

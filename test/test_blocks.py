@@ -24,7 +24,7 @@ import gradio as gr
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
-from gradio.utils import assert_configs_are_equivalent_besides_ids
+from gradio.utils import assert_configs_are_equivalent_besides_ids, cancel_tasks
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -82,26 +82,13 @@ class TestBlocksMethods:
             gr.Image(height=54, width=240)
 
         config1 = demo1.get_config_file()
-        demo2 = gr.Blocks.from_config(config1, [update], fake_url)
+        demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
 
         for component in config1["components"]:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
 
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
-
-    def test_load_config_with_sucess(self):
-        fake_url = "https://fake.hf.space"
-        with gr.Blocks() as demo1:
-            t1 = gr.Textbox()
-            t2 = gr.Textbox()
-            t3 = gr.Textbox()
-            t4 = gr.Textbox()
-            t1.change(lambda x: x, t1, t2).then(lambda x: x, t2, t3).success(
-                lambda x: x, t3, t4
-            )
-        config1 = demo1.get_config_file()
-        gr.Blocks.from_config(config1, [lambda x: x] * 3, fake_url)
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
@@ -130,7 +117,7 @@ class TestBlocksMethods:
             btn.click(greet, {first, last}, greeting)
 
         result = await demo.process_api(
-            inputs=["huggy", "face"], fn_index=0, state=None
+            inputs=["huggy", "face"], block_fn=0, state=None
         )
         assert result["data"] == ["Hello huggy face"]
 
@@ -146,7 +133,7 @@ class TestBlocksMethods:
             button.click(wait, [text], [text])
 
             start = time.time()
-            result = await demo.process_api(inputs=[1], fn_index=0, state=None)
+            result = await demo.process_api(inputs=[1], block_fn=0, state=None)
             end = time.time()
             difference = end - start
             assert difference >= 0.01
@@ -346,15 +333,27 @@ class TestBlocksMethods:
             generator_btn.click(generator_function, inputs=None, outputs=[counter])
             demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
 
-        for i, dependency in enumerate(demo.config["dependencies"]):
-            if i == 3:
-                assert dependency["types"] == {"continuous": True, "generator": True}
-            if i == 0:
-                assert dependency["types"] == {"continuous": False, "generator": False}
-            if i == 1:
-                assert dependency["types"] == {"continuous": False, "generator": True}
-            if i == 2:
-                assert dependency["types"] == {"continuous": True, "generator": True}
+        dependencies = demo.config["dependencies"]
+        assert dependencies[0]["types"] == {
+            "generator": False,
+            "cancel": False,
+        }
+        assert dependencies[1]["types"] == {
+            "generator": True,
+            "cancel": False,
+        }
+        assert dependencies[2]["types"] == {
+            "generator": False,
+            "cancel": False,
+        }
+        assert dependencies[3]["types"] == {
+            "generator": False,
+            "cancel": False,
+        }
+        assert dependencies[4]["types"] == {
+            "generator": False,
+            "cancel": False,
+        }
 
     @patch(
         "gradio.themes.ThemeClass.from_hub",
@@ -397,7 +396,7 @@ class TestTempFile:
 
     def test_no_empty_image_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(__file__).parent / "test_files"
-        image = str(file_dir / "bus.png")
+        image = grc.handle_file(str(file_dir / "bus.png"))
 
         demo = gr.Interface(
             lambda x: x,
@@ -413,7 +412,7 @@ class TestTempFile:
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads(self, component, connect, gradio_temp_dir):
-        code_file = str(pathlib.Path(__file__))
+        code_file = grc.handle_file(str(pathlib.Path(__file__)))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo) as client:
             _ = client.predict(code_file, api_name="/predict")
@@ -426,7 +425,7 @@ class TestTempFile:
 
     def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        video = str(file_dir / "video_sample.mp4")
+        video = grc.handle_file(str(file_dir / "video_sample.mp4"))
         demo = gr.Interface(lambda x: x, gr.Video(), gr.Video())
         with connect(demo) as client:
             _ = client.predict({"video": video}, api_name="/predict")
@@ -436,7 +435,7 @@ class TestTempFile:
 
     def test_no_empty_audio_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        audio = str(file_dir / "audio_sample.wav")
+        audio = grc.handle_file(str(file_dir / "audio_sample.wav"))
 
         def reverse_audio(audio):
             sr, data = audio
@@ -482,8 +481,6 @@ class TestComponentsInBlocks:
         ]
         assert all(dependencies_on_load)
         assert len(dependencies_on_load) == 2
-        # Queue should be explicitly false for these events
-        assert all(dep["queue"] is False for dep in demo.config["dependencies"])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         interface = gr.Interface(
@@ -495,10 +492,15 @@ class TestComponentsInBlocks:
         dependencies_on_load = [
             dep
             for dep in interface.config["dependencies"]
-            if dep["targets"][0][1] == "load"
+            if "load" in [target[1] for target in dep["targets"]]
+        ]
+        dependencies_on_tick = [
+            dep
+            for dep in interface.config["dependencies"]
+            if "tick" in [target[1] for target in dep["targets"]]
         ]
         assert len(dependencies_on_load) == len(io_components)
-        assert all(dep["every"] == 1 for dep in dependencies_on_load)
+        assert len(dependencies_on_tick) == len(io_components)
 
     def test_get_load_events(self, io_components):
         components = []
@@ -539,7 +541,7 @@ class TestBlocksPostprocessing:
             )
 
         output = await demo.postprocess_data(
-            0, [gr.update(value=None) for _ in io_components], state=None
+            demo.fns[0], [gr.update(value=None) for _ in io_components], state=None
         )
 
         def process_and_dump(component):
@@ -563,7 +565,9 @@ class TestBlocksPostprocessing:
                 outputs=text,
             )
 
-        output = await demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
+        output = await demo.postprocess_data(
+            demo.fns[0], gr.update(value="NO_VALUE"), state=None
+        )
         assert output[0]["value"] == "NO_VALUE"
 
     @pytest.mark.asyncio
@@ -578,7 +582,7 @@ class TestBlocksPostprocessing:
             checkbox.change(change_visibility, inputs=checkbox, outputs=im_list)
 
         output = await demo.postprocess_data(
-            0, [gr.update(visible=False)] * 2, state=None
+            demo.fns[0], [gr.update(visible=False)] * 2, state=None
         )
         assert output == [
             {"visible": False, "__type__": "update"},
@@ -597,10 +601,12 @@ class TestBlocksPostprocessing:
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = await demo.postprocess_data(0, {num2: gr.Number(value=42)}, state=None)
+        output = await demo.postprocess_data(
+            demo.fns[0], {num2: gr.Number(value=42)}, state=None
+        )
         assert output[0]["value"] == 42
 
-        output = await demo.postprocess_data(0, {num2: 23}, state=None)
+        output = await demo.postprocess_data(demo.fns[0], {num2: 23}, state=None)
         assert output[0] == 23
 
     @pytest.mark.asyncio
@@ -677,7 +683,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=["test"], state=None)
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
@@ -693,7 +699,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=["test"], state=None)
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_single_output(self):
@@ -706,7 +712,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(fn_index=0, predictions=1, state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=1, state=None)
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_tuple_output(self):
@@ -723,7 +729,34 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(fn_index=0, predictions=(1, 2), state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=(1, 2), state=None)
+
+    @pytest.mark.asyncio
+    async def test_dataset_is_updated(self):
+        def update(value):
+            return value, gr.Dataset(samples=[["New A"], ["New B"]])
+
+        with gr.Blocks() as demo:
+            with gr.Row():
+                textbox = gr.Textbox()
+                dataset = gr.Dataset(
+                    components=["text"], samples=[["Original"]], label="Saved Prompts"
+                )
+                dataset.click(update, inputs=[dataset], outputs=[textbox, dataset])
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+
+        client = TestClient(app)
+
+        session_1 = client.post(
+            "/api/predict/",
+            json={"data": [0], "session_hash": "1", "fn_index": 0},
+        )
+        assert "Original" in session_1.json()["data"][0]
+        session_2 = client.post(
+            "/api/predict/",
+            json={"data": [0], "session_hash": "1", "fn_index": 0},
+        )
+        assert "New" in session_2.json()["data"][0]
 
 
 class TestStateHolder:
@@ -1135,7 +1168,7 @@ class TestUpdate:
                 outputs=[accordion],
             )
         result = await demo.process_api(
-            fn_index=0, inputs=[None], request=None, state=None
+            block_fn=0, inputs=[None], request=None, state=None
         )
         assert result["data"][0] == {
             "open": True,
@@ -1143,7 +1176,7 @@ class TestUpdate:
             "__type__": "update",
         }
         result = await demo.process_api(
-            fn_index=1, inputs=[None], request=None, state=None
+            block_fn=1, inputs=[None], request=None, state=None
         )
         assert result["data"][0] == {
             "open": False,
@@ -1156,13 +1189,13 @@ class TestUpdate:
 async def test_root_path():
     image_file = pathlib.Path(__file__).parent / "test_files" / "bus.png"
     demo = gr.Interface(lambda x: image_file, "textbox", "image")
-    result = await demo.process_api(fn_index=0, inputs=[""], request=None, state=None)
+    result = await demo.process_api(block_fn=0, inputs=[""], request=None, state=None)
     result_url = result["data"][0]["url"]
     assert result_url.startswith("/file=")
     assert result_url.endswith("bus.png")
 
     result = await demo.process_api(
-        fn_index=0, inputs=[""], request=None, state=None, root_path="abidlabs.hf.space"
+        block_fn=0, inputs=[""], request=None, state=None, root_path="abidlabs.hf.space"
     )
     result_url = result["data"][0]["url"]
     assert result_url.startswith("abidlabs.hf.space/file=")
@@ -1274,18 +1307,17 @@ class TestCancel:
             await asyncio.sleep(10)
             print("HELLO FROM LONG JOB")
 
-        with gr.Blocks() as demo:
+        with gr.Blocks():
             button = gr.Button(value="Start")
             click = button.click(long_job, None, None)
             cancel = gr.Button(value="Cancel")
             cancel.click(None, None, None, cancels=[click])
 
-        cancel_fun = demo.fns[-1].fn
         task = asyncio.create_task(long_job())
         task.set_name("foo_0<gradio-sep>event")
         # If cancel_fun didn't cancel long_job the message would be printed to the console
         # The test would also take 10 seconds
-        await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
+        await asyncio.gather(task, cancel_tasks({"foo_0"}), return_exceptions=True)
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out
 
@@ -1305,17 +1337,15 @@ class TestCancel:
             cancel = gr.Button(value="Cancel")
             cancel.click(None, None, None, cancels=[click])
 
-        with gr.Blocks() as demo:
+        with gr.Blocks():
             with gr.Tab("Demo 1"):
                 demo1.render()
             with gr.Tab("Demo 2"):
                 demo2.render()
 
-        cancel_fun = demo.fns[-1].fn
-
         task = asyncio.create_task(long_job())
         task.set_name("foo_1<gradio-sep>event")
-        await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
+        await asyncio.gather(task, cancel_tasks({"foo_1"}), return_exceptions=True)
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out
 
@@ -1340,25 +1370,6 @@ class TestCancel:
                 cancel = gr.Button(value="Cancel")
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
-
-
-class TestEvery:
-    def test_raise_exception_if_parameters_invalid(self):
-        with pytest.raises(
-            ValueError, match="Cannot run event in a batch and every 0.5 seconds"
-        ):
-            with gr.Blocks():
-                num = gr.Number()
-                num.change(
-                    lambda s: s + 1, inputs=[num], outputs=[num], every=0.5, batch=True
-                )
-
-        with pytest.raises(
-            ValueError, match="Parameter every must be positive or None"
-        ):
-            with gr.Blocks():
-                num = gr.Number()
-                num.change(lambda s: s + 1, inputs=[num], outputs=[num], every=-0.1)
 
 
 class TestGetAPIInfo:
@@ -1704,10 +1715,10 @@ async def test_blocks_postprocessing_with_copies_of_component_instance():
             fn=clear_func, outputs=[chatbot, chatbot2, chatbot3], api_name="clear"
         )
 
-        assert (
-            await demo.postprocess_data(0, [gr.Chatbot(value=[])] * 3, None)
-            == [{"value": [], "__type__": "update"}] * 3
+        output = await demo.postprocess_data(
+            demo.fns[0], [gr.Chatbot(value=[])] * 3, None
         )
+        assert output == [{"value": [], "__type__": "update"}] * 3
 
 
 def test_static_files_single_app(connect, gradio_temp_dir):
@@ -1725,7 +1736,7 @@ def test_static_files_single_app(connect, gradio_temp_dir):
     assert len(list(gradio_temp_dir.glob("**/*.*"))) == 0
 
     with connect(demo) as client:
-        client.predict("test/test_files/bus.png")
+        client.predict(grc.handle_file("test/test_files/bus.png"))
 
     # Input/Output got saved to cache
     assert len(list(gradio_temp_dir.glob("**/*.*"))) == 2

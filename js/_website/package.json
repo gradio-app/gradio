@@ -1,9 +1,9 @@
 {
 	"name": "website",
-	"version": "0.30.3",
+	"version": "0.33.0",
 	"private": true,
 	"scripts": {
-		"dev": "python generate_jsons/generate.py && vite dev",
+		"dev": "pip install boto3 && python generate_jsons/generate.py && vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -18,7 +18,8 @@
 		"@tailwindcss/typography": "^0.5.4",
 		"@types/prismjs": "^1.26.0",
 		"prismjs": "1.29.0",
-		"tailwindcss": "^3.1.6"
+		"tailwindcss": "^3.1.6",
+		"flexsearch": "^0.7.43"
 	},
 	"type": "module",
 	"dependencies": {

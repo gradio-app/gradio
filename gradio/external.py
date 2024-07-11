@@ -440,7 +440,6 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(
         space,
         hf_token=hf_token,
-        upload_files=False,
         download_files=False,
         _skip_components=False,
     )
@@ -455,7 +454,7 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
 
     # Use end_to_end_fn here to properly upload/download all files
     predict_fns = []
-    for fn_index, endpoint in enumerate(client.endpoints):
+    for fn_index, endpoint in client.endpoints.items():
         if not isinstance(endpoint, Endpoint):
             raise TypeError(
                 f"Expected endpoint to be an Endpoint, but got {type(endpoint)}"
@@ -465,7 +464,7 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
             predict_fns.append(endpoint.make_end_to_end_fn(helper))
         else:
             predict_fns.append(None)
-    return gradio.Blocks.from_config(client.config, predict_fns, client.src)
+    return gradio.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
 
 
 def from_spaces_interface(

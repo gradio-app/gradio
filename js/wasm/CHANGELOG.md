@@ -1,5 +1,15 @@
 # @gradio/wasm
 
+## 0.11.0
+
+### Features
+
+- [#8569](https://github.com/gradio-app/gradio/pull/8569) [`6f99a02`](https://github.com/gradio-app/gradio/commit/6f99a028ed0071e3f588076c059d19f3ff5d85f8) - Upgrade pyodide 0.26.  Thanks @whitphx!
+
+### Fixes
+
+- [#8594](https://github.com/gradio-app/gradio/pull/8594) [`530f8a0`](https://github.com/gradio-app/gradio/commit/530f8a0b056b35dabe9bdd148e1ab7c4577f017d) - chatbot component tweaks.  Thanks @pngwn!
+
 ## 0.10.1
 
 ### Fixes

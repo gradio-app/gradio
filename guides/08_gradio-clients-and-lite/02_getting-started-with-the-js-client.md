@@ -29,13 +29,25 @@ The Gradio Client works with any hosted Gradio app, whether it be an image gener
 
 **Prequisites**: To use the Gradio client, you do _not_ need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
 
-## Installation
+## Installation via npm
 
-The lightweight `@gradio/client` package can be installed from the npm registry with a package manager of your choice and support node version 18 and above:
+Install the @gradio/client package to interact with Gradio APIs using Node.js version >=18.0.0 or in browser-based projects. Use npm or any compatible package manager:
 
 ```bash
 npm i @gradio/client
 ```
+
+This command adds @gradio/client to your project dependencies, allowing you to import it in your JavaScript or TypeScript files.
+
+## Installation via CDN
+
+For quick addition to your web project, you can use the jsDelivr CDN to load the latest version of @gradio/client directly into your HTML:
+
+```bash
+<script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
+```
+
+Be sure to add this to the `<head>` of your HTML. This will install the latest version but we advise hardcoding the version in production. You can find all available versions [here](https://www.jsdelivr.com/package/npm/@gradio/client). This approach is ideal for experimental or prototying purposes, though has some limitations.
 
 ## Connecting to a running Gradio App
 
@@ -72,7 +84,7 @@ const response = await fetch(
 const audio_file = await response.blob();
 
 const app = await Client.duplicate("abidlabs/whisper", { hf_token: "hf_..." });
-const transcription = app.predict("/predict", [audio_file]);
+const transcription = await app.predict("/predict", [audio_file]);
 ```
 
 If you have previously duplicated a Space, re-running `Client.duplicate` will _not_ create a new Space. Instead, the client will attach to the previously-created Space. So it is safe to re-run the `Client.duplicate` method multiple times with the same space.
@@ -98,6 +110,20 @@ import { Client } from "@gradio/client";
 
 const app = Client.connect("https://bec81a83-5b5c-471e.gradio.live");
 ```
+
+## Connecting to a Gradio app with auth
+
+If the Gradio application you are connecting to [requires a username and password](/guides/sharing-your-app#authentication), then provide them as a tuple to the `auth` argument of the `Client` class:
+
+```js
+import { Client } from "@gradio/client";
+
+Client.connect(
+  space_name,
+  { auth: [username, password] }
+)
+```
+
 
 ## Inspecting the API endpoints
 
@@ -190,7 +216,7 @@ const result = await app.predict("/predict", [audio_file]);
 
 ## Using events
 
-If the API you are working with can return results over time, or you wish to access information about the status of a job, you can use the event interface for more flexibility. This is especially useful for iterative endpoints or generator endpoints that will produce a series of values over time as discreet responses.
+If the API you are working with can return results over time, or you wish to access information about the status of a job, you can use the iterable interface for more flexibility. This is especially useful for iterative endpoints or generator endpoints that will produce a series of values over time as discreet responses.
 
 ```js
 import { Client } from "@gradio/client";
@@ -206,12 +232,27 @@ function log_result(payload) {
 const app = await Client.connect("abidlabs/en2fr");
 const job = app.submit("/predict", ["Hello"]);
 
-job.on("data", log_result);
+for await (const message of job) {
+	log_result(message);
+}
 ```
 
 ## Status
 
-The event interface also allows you to get the status of the running job by listening to the `"status"` event. This returns an object with the following attributes: `status` (a human readbale status of the current job, `"pending" | "generating" | "complete" | "error"`), `code` (the detailed gradio code for the job), `position` (the current position of this job in the queue), `queue_size` (the total queue size), `eta` (estimated time this job will complete), `success` (a boolean representing whether the job completed successfully), and `time` ( as `Date` object detailing the time that the status was generated).
+The event interface also allows you to get the status of the running job by instantiating the client with the `events` options passing `status` and `data` as an array:
+
+
+```ts
+import { Client } from "@gradio/client";
+
+const app = await Client.connect("abidlabs/en2fr", {
+	events: ["status", "data"]
+});
+```
+
+This ensures that status messages are also reported to the client.
+
+`status`es are returned as an object with the following attributes: `status` (a human readbale status of the current job, `"pending" | "generating" | "complete" | "error"`), `code` (the detailed gradio code for the job), `position` (the current position of this job in the queue), `queue_size` (the total queue size), `eta` (estimated time this job will complete), `success` (a boolean representing whether the job completed successfully), and `time` ( as `Date` object detailing the time that the status was generated).
 
 ```js
 import { Client } from "@gradio/client";
@@ -222,10 +263,16 @@ function log_status(status) {
 	);
 }
 
-const app = await Client.connect("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr", {
+	events: ["status", "data"]
+});
 const job = app.submit("/predict", ["Hello"]);
 
-job.on("status", log_status);
+for await (const message of job) {
+	if (message.type === "status") {
+		log_status(message);
+	}
+}
 ```
 
 ## Cancelling Jobs
@@ -247,7 +294,7 @@ If the first job has started processing, then it will not be canceled but the cl
 
 ## Generator Endpoints
 
-Some Gradio API endpoints do not return a single value, rather they return a series of values. You can listen for these values in real time using the event interface:
+Some Gradio API endpoints do not return a single value, rather they return a series of values. You can listen for these values in real time using the iterable interface:
 
 ```js
 import { Client } from "@gradio/client";
@@ -255,7 +302,9 @@ import { Client } from "@gradio/client";
 const app = await Client.connect("gradio/count_generator");
 const job = app.submit(0, [9]);
 
-job.on("data", (data) => console.log(data));
+for await (const message of job) {
+	console.log(message.data);
+}
 ```
 
 This will log out the values as they are generated by the endpoint.
@@ -268,7 +317,9 @@ import { Client } from "@gradio/client";
 const app = await Client.connect("gradio/count_generator");
 const job = app.submit(0, [9]);
 
-job.on("data", (data) => console.log(data));
+for await (const message of job) {
+	console.log(message.data);
+}
 
 setTimeout(() => {
 	job.cancel();

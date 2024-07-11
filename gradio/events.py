@@ -5,33 +5,72 @@ from __future__ import annotations
 
 import dataclasses
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Sequence,
+    Union,
+    cast,
+)
 
 from gradio_client.documentation import document
 from jinja2 import Template
 
+from gradio.data_classes import FileData, FileDataDict
+
 if TYPE_CHECKING:
     from gradio.blocks import Block, Component
+    from gradio.components import Timer
 
-from gradio.context import Context
-from gradio.utils import get_cancel_function
+from gradio.context import get_blocks_context
+from gradio.utils import get_cancelled_fn_indices
 
 
 def set_cancel_events(
     triggers: Sequence[EventListenerMethod],
     cancels: None | dict[str, Any] | list[dict[str, Any]],
 ):
-    if cancels:
-        if not isinstance(cancels, list):
-            cancels = [cancels]
-        cancel_fn, fn_indices_to_cancel = get_cancel_function(cancels)
+    if not cancels:
+        return
 
-        if Context.root_block is None:
-            raise AttributeError("Cannot cancel outside of a gradio.Blocks context.")
+    root_block = get_blocks_context()
+    if root_block is None:
+        raise AttributeError("Cannot cancel outside of a gradio.Blocks context.")
 
-        Context.root_block.set_event_trigger(
+    if not isinstance(cancels, list):
+        cancels = [cancels]
+
+    regular_cancels: list[dict[str, Any]] = []
+    timers_to_cancel: list[Block] = []
+    for cancel in cancels:
+        associated_timer = getattr(cancel, "associated_timer", None)
+        if associated_timer:
+            timers_to_cancel.append(associated_timer)
+        else:
+            regular_cancels.append(cancel)
+
+    if timers_to_cancel:
+        from gradio.components import Timer
+
+        root_block.set_event_trigger(
             triggers,
-            cancel_fn,
+            fn=lambda: [Timer(active=False) for _ in timers_to_cancel]
+            if len(timers_to_cancel) > 1
+            else Timer(active=False),
+            inputs=None,
+            outputs=timers_to_cancel,
+            show_api=False,
+        )
+
+    if regular_cancels:
+        fn_indices_to_cancel = get_cancelled_fn_indices(regular_cancels)
+        root_block.set_event_trigger(
+            triggers,
+            fn=None,
             inputs=None,
             outputs=None,
             queue=False,
@@ -42,10 +81,22 @@ def set_cancel_events(
         )
 
 
+@document()
 class Dependency(dict):
-    def __init__(self, trigger, key_vals, dep_index, fn):
+    def __init__(
+        self, trigger, key_vals, dep_index, fn, associated_timer: Timer | None = None
+    ):
+        """
+        The Dependency object is usualy not created directly but is returned when an event listener is set up. It contains the configuration
+        data for the event listener, and can be used to set up additional event listeners that depend on the completion of the current event
+        listener using .then() and .success().
+
+        Demos: chatbot_consecutive, blocks_chained_events
+        """
+
         super().__init__(key_vals)
         self.fn = fn
+        self.associated_timer = associated_timer
         self.then = partial(
             EventListener(
                 "then",
@@ -78,35 +129,58 @@ class Dependency(dict):
 @document()
 class EventData:
     """
-    When a subclass of EventData is added as a type hint to an argument of an event listener method, this object will be passed as that argument.
-    It contains information about the event that triggered the listener, such the target object, and other data related to the specific event that are attributes of the subclass.
+    When gr.EventData or one of its subclasses is added as a type hint to an argument of a prediction function, a gr.EventData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener. The gr.EventData object itself contains a `.target` attribute that refers to the component
+    that triggered the event, while subclasses of gr.EventData contains additional attributes that are different for each class.
 
     Example:
-        table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
-        gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
-        textbox = gr.Textbox("Hello World!")
-
-        statement = gr.Textbox()
-
-        def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-            return f"You selected {evt.value} at {evt.index} from {evt.target}"
-
-        table.select(on_select, None, statement)
-        gallery.select(on_select, None, statement)
-        textbox.select(on_select, None, statement)
+        import gradio as gr
+        with gr.Blocks() as demo:
+            table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
+            gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
+            textbox = gr.Textbox("Hello World!")
+            statement = gr.Textbox()
+            def on_select(value, evt: gr.EventData):
+                return f"The {evt.target} component was selected, and its value was {value}."
+            table.select(on_select, table, statement)
+            gallery.select(on_select, gallery, statement)
+            textbox.select(on_select, textbox, statement)
+        demo.launch()
     Demos: gallery_selections, tictactoe
     """
 
     def __init__(self, target: Block | None, _data: Any):
         """
         Parameters:
-            target: The target object that triggered the event. Can be used to distinguish if multiple components are bound to the same listener.
+            target: The component object that triggered the event. Can be used to distinguish multiple components bound to the same listener.
         """
         self.target = target
         self._data = _data
 
 
+@document()
 class SelectData(EventData):
+    """
+    The gr.SelectData class is a subclass of gr.EventData that specifically carries information about the `.select()` event. When gr.SelectData
+    is added as a type hint to an argument of an event listener method, a gr.SelectData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
+            gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
+            textbox = gr.Textbox("Hello World!")
+            statement = gr.Textbox()
+            def on_select(evt: gr.SelectData):
+                return f"You selected {evt.value} at {evt.index} from {evt.target}"
+            table.select(on_select, table, statement)
+            gallery.select(on_select, gallery, statement)
+            textbox.select(on_select, textbox, statement)
+        demo.launch()
+    Demos: gallery_selections, tictactoe
+    """
+
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
         self.index: int | tuple[int, int] = data["index"]
@@ -123,7 +197,29 @@ class SelectData(EventData):
         """
 
 
+@document()
 class KeyUpData(EventData):
+    """
+    The gr.KeyUpData class is a subclass of gr.EventData that specifically carries information about the `.key_up()` event. When gr.KeyUpData
+    is added as a type hint to an argument of an event listener method, a gr.KeyUpData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+
+    Example:
+        import gradio as gr
+        def test(value, key_up_data: gr.KeyUpData):
+            return {
+                "component value": value,
+                "input value": key_up_data.input_value,
+                "key": key_up_data.key
+            }
+        with gr.Blocks() as demo:
+            d = gr.Dropdown(["abc", "def"], allow_custom_value=True)
+            t = gr.JSON()
+            d.key_up(test, d, t)
+        demo.launch()
+    Demos: dropdown_key_up
+    """
+
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
         self.key: str = data["key"]
@@ -138,10 +234,101 @@ class KeyUpData(EventData):
         """
 
 
+@document()
+class DeletedFileData(EventData):
+    """
+    The gr.DeletedFileData class is a subclass of gr.EventData that specifically carries information about the `.delete()` event. When gr.DeletedFileData
+    is added as a type hint to an argument of an event listener method, a gr.DeletedFileData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def test(delete_data: gr.DeletedFileData):
+            return delete_data.file.path
+        with gr.Blocks() as demo:
+            files = gr.File(file_count="multiple")
+            deleted_file = gr.File()
+            files.delete(test, None, deleted_file)
+        demo.launch()
+    Demos: file_component_events
+    """
+
+    def __init__(self, target: Block | None, data: FileDataDict):
+        super().__init__(target, data)
+        self.file: FileData = FileData(**data)
+        """
+        The file that was deleted, as a FileData object.
+        """
+
+
+@document()
+class LikeData(EventData):
+    """
+    The gr.LikeData class is a subclass of gr.EventData that specifically carries information about the `.like()` event. When gr.LikeData
+    is added as a type hint to an argument of an event listener method, a gr.LikeData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def test(value, like_data: gr.LikeData):
+            return {
+                "chatbot_value": value,
+                "liked_message": like_data.value,
+                "liked_index": like_data.index,
+                "liked_or_disliked_as_bool": like_data.liked
+            }
+        with gr.Blocks() as demo:
+            c = gr.Chatbot([("abc", "def")])
+            t = gr.JSON()
+            c.like(test, c, t)
+        demo.launch()
+    Demos: chatbot_core_components_simple
+    """
+
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the liked/disliked item. Is a tuple if the component is two dimensional.
+        """
+        self.value: Any = data["value"]
+        """
+        The value of the liked/disliked item.
+        """
+        self.liked: bool = data.get("liked", True)
+        """
+        True if the item was liked, False if disliked.
+        """
+
+
 @dataclasses.dataclass
 class EventListenerMethod:
     block: Block | None
     event_name: str
+
+
+if TYPE_CHECKING:
+    EventListenerCallable = Callable[
+        [
+            Union[Callable, None],
+            Union[Component, Sequence[Component], None],
+            Union[Block, Sequence[Block], Sequence[Component], Component, None],
+            Union[str, None, Literal[False]],
+            bool,
+            Literal["full", "minimal", "hidden"],
+            Union[bool, None],
+            bool,
+            int,
+            bool,
+            bool,
+            Union[Dict[str, Any], List[Dict[str, Any]], None],
+            Union[float, None],
+            Union[Literal["once", "multiple", "always_last"], None],
+            Union[str, None],
+            Union[int, None, Literal["default"]],
+            Union[str, None],
+            bool,
+        ],
+        Dependency,
+    ]
 
 
 class EventListener(str):
@@ -209,11 +396,11 @@ class EventListener(str):
             block: Block | None,
             fn: Callable | None | Literal["decorator"] = "decorator",
             inputs: Component | list[Component] | set[Component] | None = None,
-            outputs: Component | list[Component] | None = None,
+            outputs: Block | list[Block] | list[Component] | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
-            queue: bool | None = None,
+            queue: bool = True,
             batch: bool = False,
             max_batch_size: int = 4,
             preprocess: bool = True,
@@ -240,7 +427,7 @@ class EventListener(str):
                 preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
                 postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
                 cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
-                every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
+                every: Will be deprecated in favor of gr.Timer. Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
                 trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
                 js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
                 concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
@@ -265,7 +452,6 @@ class EventListener(str):
                         preprocess=preprocess,
                         postprocess=postprocess,
                         cancels=cancels,
-                        every=every,
                         trigger_mode=trigger_mode,
                         js=js,
                         concurrency_limit=concurrency_limit,
@@ -288,20 +474,42 @@ class EventListener(str):
             if isinstance(show_progress, bool):
                 show_progress = "full" if show_progress else "hidden"
 
-            if Context.root_block is None:
+            root_block = get_blocks_context()
+            if root_block is None:
                 raise AttributeError(
                     f"Cannot call {_event_name} outside of a gradio.Blocks context."
                 )
 
-            dep, dep_index = Context.root_block.set_event_trigger(
-                [EventListenerMethod(block if _has_trigger else None, _event_name)],
+            event_target = EventListenerMethod(
+                block if _has_trigger else None, _event_name
+            )
+
+            # Handle every as a float (to be deprecated in favor of gr.Timer)
+            timer = None
+            if every is not None:
+                from gradio.components import Timer
+
+                timer = Timer(every, active=False)
+                root_block.set_event_trigger(
+                    [event_target],
+                    lambda: Timer(active=True),
+                    None,
+                    timer,
+                    show_api=False,
+                )
+                target = EventListenerMethod(timer, "tick")
+            else:
+                target = event_target
+
+            dep, dep_index = root_block.set_event_trigger(
+                [target],
                 fn,
                 inputs,
                 outputs,
                 preprocess=preprocess,
                 postprocess=postprocess,
                 scroll_to_output=scroll_to_output,
-                show_progress=show_progress,
+                show_progress=show_progress if every is None else "hidden",
                 api_name=api_name,
                 js=js,
                 concurrency_limit=concurrency_limit,
@@ -309,35 +517,36 @@ class EventListener(str):
                 queue=queue,
                 batch=batch,
                 max_batch_size=max_batch_size,
-                every=every,
                 trigger_after=_trigger_after,
                 trigger_only_on_success=_trigger_only_on_success,
                 trigger_mode=trigger_mode,
                 show_api=show_api,
             )
             set_cancel_events(
-                [EventListenerMethod(block if _has_trigger else None, _event_name)],
+                [event_target],
                 cancels,
             )
             if _callback:
                 _callback(block)
-            return Dependency(block, dep.get_config(), dep_index, fn)
+            return Dependency(block, dep.get_config(), dep_index, fn, timer)
 
         event_trigger.event_name = _event_name
         event_trigger.has_trigger = _has_trigger
+        event_trigger.callback = _callback
         return event_trigger
 
 
+@document()
 def on(
-    triggers: Sequence[Any] | Any | None = None,
+    triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
     inputs: Component | list[Component] | set[Component] | None = None,
-    outputs: Component | list[Component] | None = None,
+    outputs: Block | list[Block] | list[Component] | None = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
     show_progress: Literal["full", "minimal", "hidden"] = "full",
-    queue: bool | None = None,
+    queue: bool = True,
     batch: bool = False,
     max_batch_size: int = 4,
     preprocess: bool = True,
@@ -351,6 +560,10 @@ def on(
     show_api: bool = True,
 ) -> Dependency:
     """
+    Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
+    useful when the same function should be triggered by multiple events. Only a single API endpoint is generated
+    for all events in the triggers list.
+
     Parameters:
         triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will listen to changes to any inputs.
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
@@ -366,16 +579,32 @@ def on(
         postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
         trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
-        every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
+        every: Will be deprecated in favor of gr.Timer. Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
         js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs', return should be a list of values for output components.
         concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            with gr.Row():
+                input = gr.Textbox()
+                button = gr.Button("Submit")
+            output = gr.Textbox()
+            gr.on(
+                triggers=[button.click, input.submit],
+                fn=lambda x: x,
+                inputs=[input],
+                outputs=[output]
+            )
+        demo.launch()
     """
     from gradio.components.base import Component
 
-    if isinstance(triggers, EventListener):
+    if not isinstance(triggers, Sequence) and triggers is not None:
         triggers = [triggers]
+    triggers_typed = cast(Sequence[EventListener], triggers)
+
     if isinstance(inputs, Component):
         inputs = [inputs]
 
@@ -396,12 +625,12 @@ def on(
                 preprocess=preprocess,
                 postprocess=postprocess,
                 cancels=cancels,
-                every=every,
                 js=js,
                 concurrency_limit=concurrency_limit,
                 concurrency_id=concurrency_id,
                 show_api=show_api,
                 trigger_mode=trigger_mode,
+                every=every,
             )
 
             @wraps(func)
@@ -412,21 +641,40 @@ def on(
 
         return Dependency(None, {}, None, wrapper)
 
-    if Context.root_block is None:
+    root_block = get_blocks_context()
+    if root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
-        triggers = (
+        methods = (
             [EventListenerMethod(input, "change") for input in inputs]
             if inputs is not None
             else []
         )  # type: ignore
     else:
-        triggers = [
-            EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)
-            for t in triggers
-        ]  # type: ignore
-    dep, dep_index = Context.root_block.set_event_trigger(
-        triggers,
+        methods = [
+            EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore
+            for t in triggers_typed
+        ]
+    if triggers:
+        for trigger in triggers:
+            if trigger.callback:
+                trigger.callback(trigger.__self__)
+
+    if every is not None:
+        from gradio.components import Timer
+
+        timer = Timer(every, active=False)
+        root_block.set_event_trigger(
+            methods,
+            lambda: Timer(active=True),
+            None,
+            timer,
+            show_api=False,
+        )
+        methods = [EventListenerMethod(timer, "tick")]
+
+    dep, dep_index = root_block.set_event_trigger(
+        methods,
         fn,
         inputs,
         outputs,
@@ -441,11 +689,10 @@ def on(
         queue=queue,
         batch=batch,
         max_batch_size=max_batch_size,
-        every=every,
         show_api=show_api,
         trigger_mode=trigger_mode,
     )
-    set_cancel_events(triggers, cancels)
+    set_cancel_events(methods, cancels)
     return Dependency(None, dep.get_config(), dep_index, fn)
 
 
@@ -544,20 +791,12 @@ class Events:
         "apply",
         doc="This listener is triggered when the user applies changes to the {{ component }} through an integrated UI action.",
     )
-
-
-class LikeData(EventData):
-    def __init__(self, target: Block | None, data: Any):
-        super().__init__(target, data)
-        self.index: int | tuple[int, int] = data["index"]
-        """
-        The index of the liked/disliked item. Is a tuple if the component is two dimensional.
-        """
-        self.value: Any = data["value"]
-        """
-        The value of the liked/disliked item.
-        """
-        self.liked: bool = data.get("liked", True)
-        """
-        True if the item was liked, False if disliked.
-        """
+    delete = EventListener(
+        "delete",
+        doc="This listener is triggered when the user deletes and item from the {{ component }}. Uses event data gradio.DeletedFileData to carry `value` referring to the file that was deleted as an instance of FileData. See EventData documentation on how to use this event data",
+    )
+    tick = EventListener(
+        "tick",
+        doc="This listener is triggered at regular intervals defined by the {{ component }}.",
+        show_progress="hidden",
+    )

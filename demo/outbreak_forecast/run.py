@@ -39,7 +39,7 @@ def outbreak(plot_type, r, month, countries, social_distancing):
         return fig
     elif plot_type == "Altair":
         df = df.melt(id_vars="day").rename(columns={"variable": "country"})
-        fig = altair.Chart(df).mark_line().encode(x="day", y='value', color='country')
+        fig = altair.Chart(df).mark_line().encode(x="day", y="value", color="country")
         return fig
     else:
         raise ValueError("A plot type must be selected")
@@ -70,6 +70,3 @@ demo = gr.Interface(
 
 if __name__ == "__main__":
     demo.launch()
-
-
-

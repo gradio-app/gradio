@@ -9,9 +9,13 @@ import {
 } from "vitest";
 
 import { Client, client, duplicate } from "..";
-import { transformed_api_info, config_response } from "./test_data";
+import {
+	transformed_api_info,
+	config_response,
+	response_api_info
+} from "./test_data";
 import { initialise_server } from "./server";
-import { CONFIG_ERROR_MSG, SPACE_METADATA_ERROR_MSG } from "../constants";
+import { SPACE_METADATA_ERROR_MSG } from "../constants";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
@@ -26,6 +30,24 @@ afterAll(() => server.close());
 
 describe("Client class", () => {
 	describe("initialisation", () => {
+		test("fetch is bound to the Client instance", async () => {
+			const test = await Client.connect("hmb/hello_world");
+			const fetch_method = test.fetch;
+			const res = await fetch_method(direct_app_reference + "/info");
+
+			await expect(res.json()).resolves.toEqual(response_api_info);
+		});
+
+		test("stream is bound to the Client instance", async () => {
+			const test = await Client.connect("hmb/hello_world");
+			const stream_method = test.stream;
+			const url = new URL(`${direct_app_reference}/queue/data`);
+			const stream = stream_method(url);
+
+			expect(stream).toBeDefined();
+			expect(stream.onmessage).toBeDefined();
+		});
+
 		test("backwards compatibility of client using deprecated syntax", async () => {
 			const app = await client(app_reference);
 			expect(app.config).toEqual(config_response);
@@ -67,7 +89,7 @@ describe("Client class", () => {
 				Client.connect("hmb/secret_world", {
 					hf_token: "hf_bad_token"
 				})
-			).rejects.toThrow(CONFIG_ERROR_MSG);
+			).rejects.toThrowError(SPACE_METADATA_ERROR_MSG);
 		});
 
 		test("viewing the api info of a running app", async () => {
@@ -77,7 +99,7 @@ describe("Client class", () => {
 
 		test("viewing the api info of a non-existent app", async () => {
 			const app = Client.connect(broken_app_reference);
-			await expect(app).rejects.toThrow(CONFIG_ERROR_MSG);
+			await expect(app).rejects.toThrowError();
 		});
 	});
 

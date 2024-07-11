@@ -38,6 +38,7 @@ class Column(BlockContext, metaclass=ComponentMeta):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        show_progress: bool = False,
     ):
         """
         Parameters:
@@ -48,6 +49,7 @@ class Column(BlockContext, metaclass=ComponentMeta):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            show_progress: If True, shows progress animation when being updated.
         """
         if scale != round(scale):
             warnings.warn(
@@ -59,6 +61,7 @@ class Column(BlockContext, metaclass=ComponentMeta):
         self.variant = variant
         if variant == "compact":
             self.allow_expected_parents = False
+        self.show_progress = show_progress
         BlockContext.__init__(
             self,
             visible=visible,

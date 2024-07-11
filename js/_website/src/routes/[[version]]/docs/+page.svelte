@@ -143,36 +143,34 @@
 				(TypeScript) from the browser or server-side.
 			</div>
 		</a>
-		{#if $page.params?.version !== "3.50.2"}
-			<a
-				href="./docs/js"
-				target="_self"
-				class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-					.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-			>
-				<div class="relative mb-2 flex items-center text-lg font-semibold">
-					<span>Javascript Components</span>
-				</div>
-				<div class="relative pr-4 text-lg font-light">
-					Use Gradio's UI components in standalone JavaScript applications
-					outside of the Gradio environment.
-				</div>
-			</a>
-			<a
-				href="../guides/custom-components-in-five-minutes"
-				target="_self"
-				class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-					.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-			>
-				<div class="relative mb-2 flex items-center text-lg font-semibold">
-					<span>Custom Components</span>
-				</div>
-				<div class="relative pr-4 text-lg font-light">
-					Create, use, and share your own custom components within a Gradio
-					application.
-				</div>
-			</a>
-		{/if}
+		<a
+			href="./docs/js"
+			target="_self"
+			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
+				.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+		>
+			<div class="relative mb-2 flex items-center text-lg font-semibold">
+				<span>Javascript Components</span>
+			</div>
+			<div class="relative pr-4 text-lg font-light">
+				Use Gradio's UI components in standalone JavaScript applications outside
+				of the Gradio environment.
+			</div>
+		</a>
+		<a
+			href="../guides/custom-components-in-five-minutes"
+			target="_self"
+			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
+				.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+		>
+			<div class="relative mb-2 flex items-center text-lg font-semibold">
+				<span>Custom Components</span>
+			</div>
+			<div class="relative pr-4 text-lg font-light">
+				Create, use, and share your own custom components within a Gradio
+				application.
+			</div>
+		</a>
 		<a
 			href="../guides/gradio-lite"
 			target="_self"

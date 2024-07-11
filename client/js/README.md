@@ -1,6 +1,7 @@
 ## JavaScript Client Library
 
-A JavaScript (and TypeScript) Client to call Gradio APIs.
+Interact with Gradio APIs using our JavaScript (and TypeScript) client.
+
 
 ## Installation
 
@@ -8,6 +9,12 @@ The Gradio JavaScript Client is available on npm as `@gradio/client`. You can in
 
 ```shell
 npm i @gradio/client
+```
+
+Or, you can include it directly in your HTML via the jsDelivr CDN:
+
+```shell
+<script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 ```
 
 ## Usage
@@ -147,11 +154,19 @@ const submission = app.submit("/predict", { name: "Chewbacca" });
 
 The `submit` method accepts the same [`endpoint`](#endpoint) and [`payload`](#payload) arguments as `predict`.
 
-The `submit` method does not return a promise and should not be awaited, instead it returns an object with a `on`, `off`, and `cancel` methods.
+The `submit` method does not return a promise and should not be awaited, instead it returns an async iterator with a  `cancel` method.
 
-##### `on`
+##### Accessing values
 
-The `on` method allows you to subscribe to events related to the submitted API request. There are two types of event that can be subscribed to: `"data"` updates and `"status"` updates.
+Iterating the submission allows you to access the events related to the submitted API request. There are two types of events that can be listened for: `"data"` updates and `"status"` updates. By default only the `"data"` event is reported, but you can listen for the `"status"` event by manually passing the events you care about when instantiating the client:
+
+```ts
+import { Client } from "@gradio/client";
+
+const app = await Client.connect("user/space-name", {
+	events: ["data", "status"]
+});
+```
 
 `"data"` updates are issued when the API computes a value, the callback provided as the second argument will be called when such a value is sent to the client. The shape of the data depends on the way the API itself is constructed. This event may fire more than once if that endpoint supports emmitting new values over time.
 
@@ -180,7 +195,7 @@ interface Status {
 }
 ```
 
-Usage of these subscribe callback looks like this:
+Usage looks like this:
 
 ```ts
 import { Client } from "@gradio/client";
@@ -188,41 +203,18 @@ import { Client } from "@gradio/client";
 const app = await Client.connect("user/space-name");
 const submission = app
 	.submit("/predict", { name: "Chewbacca" })
-	.on("data", (data) => console.log(data))
-	.on("status", (status: Status) => console.log(status));
+
+	for await (const msg of submission) {
+		if (msg.type === "data") {
+			console.log(msg.data);
+		}
+
+		if (msg.type === "status") {
+			console.log(msg);
+		}
+	}
 ```
 
-##### `off`
-
-The `off` method unsubscribes from a specific event of the submitted job and works similarly to `document.removeEventListener`; both the event name and the original callback must be passed in to successfully unsubscribe:
-
-```ts
-import { Client } from "@gradio/client";
-
-const app = await Client.connect("user/space-name");
-const handle_data = (data) => console.log(data);
-
-const submission = app.submit("/predict", { name: "Chewbacca" }).on("data", handle_data);
-
-// later
-submission.off("/predict", handle_data);
-```
-
-##### `destroy`
-
-The `destroy` method will remove all subscriptions to a job, regardless of whether or not they are `"data"` or `"status"` events. This is a convenience method for when you do not want to unsubscribe use the `off` method.
-
-```js
-import { Client } from "@gradio/client";
-
-const app = await Client.connect("user/space-name");
-const handle_data = (data) => console.log(data);
-
-const submission = app.submit("/predict", { name: "Chewbacca" }).on("data", handle_data);
-
-// later
-submission.destroy();
-```
 
 ##### `cancel`
 
@@ -234,7 +226,7 @@ import { Client } from "@gradio/client";
 const app = await Client.connect("user/space-name");
 const submission = app
 	.submit("/predict", { name: "Chewbacca" })
-	.on("data", (data) => console.log(data));
+
 
 // later
 
@@ -345,5 +337,112 @@ const app = await Client.duplicate("user/space-name", {
 	hf_token: "hf_...",
 	private: true,
 	hardware: "a10g-small"
+});
+```
+
+### `handle_file(file_or_url: File | string | Blob | Buffer)`
+
+This utility function is used to simplify the process of handling file inputs for the client.
+
+Gradio APIs expect a special file datastructure that references a location on the server. These files can be manually uploaded but figuring what to do with different file types can be difficult depending on your environment.
+
+This function will handle files regardless of whether or not they are local files (node only), URLs, Blobs, or Buffers. It will take in a reference and handle it accordingly,uploading the file where appropriate and generating the correct data structure for the client.
+
+The return value of this function can be used anywhere in the input data where a file is expected:
+
+```ts
+import { handle_file } from "@gradio/client";
+
+const app = await Client.connect("user/space-name");
+const result = await app.predict("/predict", {
+	single: handle_file(file),
+	flat: [handle_file(url), handle_file(buffer)],
+	nested: {
+		image: handle_file(url),
+		layers: [handle_file(buffer)]
+	},
+	deeply_nested: {
+		image: handle_file(url),
+		layers: [{
+			layer1: handle_file(buffer),
+			layer2: handle_file(buffer)
+		}]
+	}
+});
+```
+
+#### filepaths
+
+`handle_file` can be passed a local filepath which it will upload to the client server and return a reference that the client can understand. 
+
+This only works in a node environment.
+
+Filepaths are resolved relative to the current working directory, not the location of the file that calls `handle_file`.
+
+```ts
+import { handle_file } from "@gradio/client";
+
+// not uploaded yet
+const file_ref = handle_file("path/to/file");
+
+const app = await Client.connect("user/space-name");
+
+// upload happens here
+const result = await app.predict("/predict", {
+	file: file_ref,
+});
+```
+
+#### URLs
+
+`handle_file` can be passed a URL which it will convert into a reference that the client can understand.
+
+```ts
+import { handle_file } from "@gradio/client";
+
+const url_ref = handle_file("https://example.com/file.png");
+
+const app = await Client.connect("user/space-name");
+const result = await app.predict("/predict", {
+	url: url_ref,
+});
+```
+
+#### Blobs
+
+`handle_file` can be passed a Blob which it will upload to the client server and return a reference that the client can understand.
+
+The upload is not initiated until predict or submit are called.
+
+```ts
+import { handle_file } from "@gradio/client";
+
+// not uploaded yet
+const blob_ref = handle_file(new Blob(["Hello, world!"]));
+
+const app = await Client.connect("user/space-name");
+
+// upload happens here
+const result = await app.predict("/predict", {
+	blob: blob_ref,
+});
+```
+
+#### Buffers
+
+`handle_file` can be passed a Buffer which it will upload to the client server and return a reference that the client can understand.
+
+```ts
+import { handle_file } from "@gradio/client";
+import { readFileSync } from "fs";
+
+// not uploaded yet
+const buffer_ref = handle_file(readFileSync("file.png"));
+
+const app = await Client.connect("user/space-name");
+
+// upload happens here
+const result = await app.predict("/predict", {
+	buffer: buffer_ref,
 });
 ```

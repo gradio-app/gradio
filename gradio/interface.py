@@ -9,7 +9,7 @@ import json
 import os
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, cast
 
 from gradio_client.documentation import document
 
@@ -131,6 +131,8 @@ class Interface(Blocks):
         stop_btn: str | Button = "Stop",
         clear_btn: str | Button | None = "Clear",
         delete_cache: tuple[int, int] | None = None,
+        show_progress: Literal["full", "minimal", "hidden"] = "full",
+        example_labels: list[str] | None = None,
         **kwargs,
     ):
         """
@@ -166,6 +168,8 @@ class Interface(Blocks):
             stop_btn: The button to use for stopping the interface. Defaults to a `gr.Button("Stop", variant="stop", visible=False)`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
             clear_btn: The button to use for clearing the inputs. Defaults to a `gr.Button("Clear", variant="secondary")`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization). Can be set to None, which hides the button.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            show_progress: whether to show progress animation while running. Has no effect if the interface is `live`.
+            example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -227,7 +231,7 @@ class Interface(Blocks):
             state_output_index = state_output_indexes[0]
             if inputs[state_input_index] == "state":
                 default = utils.get_default_args(fn)[state_input_index]
-                state_variable = State(value=default)  # type: ignore
+                state_variable = State(value=default)
             else:
                 state_variable = inputs[state_input_index]
 
@@ -242,12 +246,10 @@ class Interface(Blocks):
             self.cache_examples = False
 
         self.main_input_components = [
-            get_component_instance(i, unrender=True)
-            for i in inputs  # type: ignore
+            get_component_instance(i, unrender=True) for i in inputs
         ]
         self.additional_input_components = [
-            get_component_instance(i, unrender=True)
-            for i in additional_inputs  # type: ignore
+            get_component_instance(i, unrender=True) for i in additional_inputs
         ]
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
@@ -320,6 +322,7 @@ class Interface(Blocks):
 
         self.examples = examples
         self.examples_per_page = examples_per_page
+        self.example_labels = example_labels
 
         if isinstance(submit_btn, Button):
             self.submit_btn_parms = submit_btn.recover_kwargs(submit_btn.get_config())
@@ -415,6 +418,7 @@ class Interface(Blocks):
 
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
+        self.show_progress = show_progress
 
         self.batch = batch
         self.max_batch_size = max_batch_size
@@ -732,6 +736,9 @@ class Interface(Blocks):
                     batch=self.batch,
                     max_batch_size=self.max_batch_size,
                     concurrency_limit=self.concurrency_limit,
+                    show_progress=cast(
+                        Literal["full", "minimal", "hidden"], self.show_progress
+                    ),
                 )
 
                 final_event = predict_event.then(
@@ -875,6 +882,7 @@ class Interface(Blocks):
                 examples_per_page=self.examples_per_page,
                 _api_mode=self.api_mode,
                 batch=self.batch,
+                example_labels=self.example_labels,
             )
 
     def __str__(self):

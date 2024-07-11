@@ -4,14 +4,17 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import Callable, Literal
+from typing import TYPE_CHECKING, Callable, Literal
 
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.data_classes import FileData
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -29,7 +32,8 @@ class DownloadButton(Component):
         label: str = "Download",
         value: str | Path | Callable | None = None,
         *,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
         size: Literal["sm", "lg"] | None = None,
@@ -46,7 +50,8 @@ class DownloadButton(Component):
         Parameters:
             label: Text to display on the button. Defaults to "Download".
             value: A str or pathlib.Path filepath or URL to download, or a Callable that returns a str or pathlib.Path filepath or URL to download.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
@@ -66,6 +71,7 @@ class DownloadButton(Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
@@ -104,7 +110,7 @@ class DownloadButton(Component):
         return FileData(path=str(value))
 
     def example_payload(self) -> dict:
-        return file(
+        return handle_file(
             "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         )
 

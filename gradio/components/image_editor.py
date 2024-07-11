@@ -6,11 +6,21 @@ import dataclasses
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Iterable, List, Literal, Optional, Tuple, Union, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
 import numpy as np
 import PIL.Image
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client.documentation import document
 from typing_extensions import TypedDict
 
@@ -18,6 +28,9 @@ from gradio import image_utils, utils
 from gradio.components.base import Component, server
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 ImageType = Union[np.ndarray, PIL.Image.Image, str]
 
@@ -59,6 +72,7 @@ class AcceptBlobs(GradioModel):
     files: List[Tuple[str, bytes]]
 
 
+@document()
 @dataclasses.dataclass
 class Eraser:
     """
@@ -70,6 +84,7 @@ class Eraser:
     default_size: int | Literal["auto"] = "auto"
 
 
+@document()
 @dataclasses.dataclass
 class Brush(Eraser):
     """
@@ -140,7 +155,8 @@ class ImageEditor(Component):
         ),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -172,7 +188,8 @@ class ImageEditor(Component):
             sources: List of sources that can be used to set the background image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
             type: The format the images are converted to before being passed into the prediction function. "numpy" converts the images to numpy arrays with shape (height, width, 3) and values from 0 to 255, "pil" converts the images to PIL image objects, "filepath" passes images as str filepaths to temporary copies of the images.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
             show_download_button: If True, will display button to download image.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -188,8 +205,8 @@ class ImageEditor(Component):
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             crop_size: The size of the crop box in pixels. If a tuple, the first value is the width and the second value is the height. If a string, the value must be a ratio in the form `width:height` (e.g. "16:9").
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
-            eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool.
-            brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool.
+            eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool. [See `gr.Eraser` docs](#eraser).
+            brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool. [See `gr.Brush` docs](#brush).
             format: Format to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
             layers: If True, will allow users to add layers to the image. If False, the layers option will be hidden.
             canvas_size: The size of the default canvas in pixels. If a tuple, the first value is the width and the second value is the height. If None, the canvas size will be the same as the background image or 800 x 600 if no background image is provided.
@@ -238,6 +255,7 @@ class ImageEditor(Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -398,7 +416,7 @@ class ImageEditor(Component):
 
     def example_payload(self) -> Any:
         return {
-            "background": file(
+            "background": handle_file(
                 "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
             ),
             "layers": [],

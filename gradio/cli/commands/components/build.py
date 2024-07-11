@@ -64,7 +64,7 @@ def _build(
         package_name = get_deep(pyproject_toml, ["project", "name"])
 
         python_path = _get_executable_path(
-            "python", None, "--python-path", check_3=True
+            "python", python_path, "--python-path", check_3=True
         )
 
         if not isinstance(package_name, str):
@@ -76,7 +76,7 @@ def _build(
         except ModuleNotFoundError as e:
             raise ValueError(
                 f"Your custom component package ({package_name}) is not installed! "
-                "Please install it with the gradio cc install command before buillding it."
+                "Please install it with the gradio cc install command before building it."
             ) from e
         if bump_version:
             pyproject_toml = parse((path / "pyproject.toml").read_text())
@@ -88,7 +88,7 @@ def _build(
                 "Set [bold][magenta]--no-bump-version[/][/] to use the version in pyproject.toml file."
             )
             pyproject_toml["project"]["version"] = str(version)  # type: ignore
-            with open(path / "pyproject.toml", "w") as f:
+            with open(path / "pyproject.toml", "w", encoding="utf-8") as f:
                 dump(pyproject_toml, f)
         else:
             version = pyproject_toml["project"]["version"]  # type: ignore

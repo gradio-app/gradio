@@ -1,0 +1,118 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("lineplot");
+    let demo_code = `{
+            'week': x,
+            'price': y
+        }`
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.LinePlot(···)
+```
+
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+import pandas as pd
+import numpy as np
+simple = pd.DataFrame(np.array(
+    [
+        [1, 28],
+        [2, 55],
+        [3, 43],
+        [4, 91],
+        [5, 81],
+        [6, 53],
+        [7, 19],
+        [8, 87],
+        [9, 52],
+    ]
+), columns=["week", "price"])
+with gr.Blocks() as demo:
+    gr.LinePlot(
+        value=simple,
+        x="week",
+        y="price",
+        title="Stock Price Chart",
+        container=True,
+        width=400
+    )
+demo.launch()
+<gradio-requirements>
+pandas
+numpy
+</gradio-requirements>
+</gradio-lite>
+</div>
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Behavior -->
+### Behavior
+## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
+##### Your function should accept one of these types:
+
+```python
+def predict(
+	value: AltairPlotData | None
+)
+	...
+```
+
+<br>
+
+## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
+##### Your function should return one of these types:
+
+```python
+def predict(···) -> pd.DataFrame | dict | None
+	...	
+	return value
+```
+
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} />
+
+
+{#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
+<!--- Shortcuts -->
+### Shortcuts
+<ShortcutTable shortcuts={obj.string_shortcuts} />
+{/if}
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Event Listeners -->
+### Event Listeners 
+<FunctionsSection fns={obj.fns} event_listeners={true} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}

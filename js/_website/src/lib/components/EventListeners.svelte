@@ -1,5 +1,6 @@
 <script lang="ts">
 	export let fns: any[];
+	import { style_formatted_text } from "$lib/text";
 </script>
 
 <div id="event-listeners-description">
@@ -42,11 +43,13 @@
 				<tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80 align-top">
 					<td class="p-3 w-2/5 break-words">
 						<p>
-							<code class="lang-python">{fn.parent}.{fn.name}(fn, ···)</code>
+							<code class="lang-python"
+								>{fn.parent.replace("gradio.", "")}.{fn.name}(fn, ···)</code
+							>
 						</p>
 					</td>
 					<td class="p-3 break-words text-gray-700">
-						<p>{@html fn.description}</p>
+						<p>{@html style_formatted_text(fn.description)}</p>
 					</td>
 				</tr>
 			{/each}
@@ -79,7 +82,10 @@
 							<code class="block">
 								{param["name"]}
 							</code>
-							<p class="text-gray-500 italic">{param["annotation"]}</p>
+							<p class="text-gray-500 italic">
+								{param["annotation"].replace("Sequence[", "list[")}
+							</p>
+
 							{#if "default" in param}
 								<p class="text-gray-500 font-semibold">
 									default: {param["default"]}
@@ -89,7 +95,7 @@
 							{/if}
 						</td>
 						<td class="p-3 text-gray-700 break-words">
-							<p>{@html param["doc"] || ""}</p>
+							<p>{@html style_formatted_text(param["doc"]) || ""}</p>
 						</td>
 					</tr>
 				{/if}

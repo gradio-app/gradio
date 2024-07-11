@@ -10,6 +10,8 @@
 	let modals = data.modals;
 	let routes = data.routes;
 	let py_client = data.py_client;
+	let wheel: any = data.wheel;
+	let install_command: string = wheel.gradio_js_client_install;
 
 	let readme_html = data.readme_html;
 	$: components = data.components;
@@ -17,13 +19,14 @@
 	$: modals = data.modals;
 	$: routes = data.routes;
 	$: py_client = data.py_client;
+	$: on_main = data.on_main;
 </script>
 
 <MetaTags
-	title={"Gradio Python Client Docs"}
+	title={"Gradio Javascript Client Docs"}
 	url={$page.url.pathname}
 	canonical={$page.url.pathname}
-	description={"The lightweight Gradio client library that makes it easy to use any Gradio app as an API"}
+	description={"Make programmatic requests to Gradio applications in JavaScript (TypeScript) from the browser or server-side."}
 />
 
 <main class="container mx-auto px-4 flex gap-4">
@@ -52,6 +55,18 @@
 				>
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
+			</div>
+			<div
+				class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10"
+			>
+				<p class="my-2">
+					To install the Gradio JS Client from main, run the following command:
+				</p>
+				<div class="codeblock mb-2">
+					<pre class="language-bash" style="padding-right: 50px;"><code
+							class="language-bash">{install_command}</code
+						></pre>
+				</div>
 			</div>
 
 			<div class="lg:ml-10 flex justify-between mt-4"></div>

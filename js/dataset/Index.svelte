@@ -2,6 +2,7 @@
 	import { Block } from "@gradio/atoms";
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
+	import { BaseExample } from "@gradio/textbox";
 	export let components: string[];
 	export let component_props: Record<string, any>[];
 	export let component_map: Map<
@@ -12,7 +13,8 @@
 	>;
 	export let label = "Examples";
 	export let headers: string[];
-	export let samples: any[][];
+	export let samples: any[][] | null = null;
+	export let sample_labels: string[] | null = null;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -33,8 +35,8 @@
 		? `/proxy=${proxy_url}file=`
 		: `${root}/file=`;
 	let page = 0;
-	$: gallery = components.length < 2;
-	let paginate = samples.length > samples_per_page;
+	$: gallery = components.length < 2 || sample_labels !== null;
+	let paginate = samples ? samples.length > samples_per_page : false;
 
 	let selected_samples: any[][];
 	let page_count: number;
@@ -51,6 +53,7 @@
 	}
 
 	$: {
+		samples = sample_labels ? sample_labels.map((e) => [e]) : samples || [];
 		paginate = samples.length > samples_per_page;
 		if (paginate) {
 			visible_pages = [];
@@ -145,7 +148,13 @@
 						on:mouseenter={() => handle_mouseenter(i)}
 						on:mouseleave={() => handle_mouseleave()}
 					>
-						{#if component_meta.length && component_map.get(components[0])}
+						{#if sample_labels}
+							<BaseExample
+								value={sample_row[0]}
+								selected={current_hover === i}
+								type="gallery"
+							/>
+						{:else if component_meta.length && component_map.get(components[0])}
 							<svelte:component
 								this={component_meta[0][0].component}
 								{...component_props[0]}
@@ -279,6 +288,7 @@
 		table-layout: auto;
 		overflow-x: auto;
 		line-height: var(--line-sm);
+		color: var(--table-text-color);
 	}
 	table {
 		width: var(--size-full);

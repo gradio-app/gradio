@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import dataclasses
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import httpx
 import numpy as np
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
@@ -18,7 +18,11 @@ from gradio.data_classes import FileData
 from gradio.events import Events
 from gradio.exceptions import Error
 
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
+
+@document()
 @dataclasses.dataclass
 class WaveformOptions:
     """
@@ -77,7 +81,8 @@ class Audio(
         sources: list[Literal["upload", "microphone"]] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -104,7 +109,8 @@ class Audio(
             sources: A list of sources permitted for audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input. The first element in the list will be used as the default source. If None, defaults to ["upload", "microphone"], or ["microphone"] if `streaming` is True.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -123,7 +129,7 @@ class Audio(
             editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
             min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
-            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options.
+            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -172,6 +178,7 @@ class Audio(
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -186,7 +193,7 @@ class Audio(
         )
 
     def example_payload(self) -> Any:
-        return file(
+        return handle_file(
             "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
         )
 

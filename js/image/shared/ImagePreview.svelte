@@ -36,7 +36,7 @@
 <BlockLabel
 	{show_label}
 	Icon={ImageIcon}
-	label={label || i18n("image.image")}
+	label={!show_label ? "" : label || i18n("image.image")}
 />
 {#if value === null || !value.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
@@ -63,7 +63,7 @@
 	</div>
 	<button on:click={handle_click}>
 		<div class:selectable class="image-container">
-			<Image src={value.url} alt="" loading="lazy" />
+			<Image src={value.url} alt="" loading="lazy" on:load />
 		</div>
 	</button>
 {/if}

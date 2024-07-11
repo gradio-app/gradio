@@ -5,10 +5,10 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import gradio_client.utils as client_utils
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client.documentation import document
 
 from gradio import processing_utils
@@ -16,6 +16,9 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.utils import NamedString
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -26,7 +29,7 @@ class File(Component):
     Demo: zip_files, zip_to_json
     """
 
-    EVENTS = [Events.change, Events.select, Events.clear, Events.upload]
+    EVENTS = [Events.change, Events.select, Events.clear, Events.upload, Events.delete]
 
     def __init__(
         self,
@@ -36,7 +39,8 @@ class File(Component):
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -56,7 +60,8 @@ class File(Component):
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise.sed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
@@ -69,8 +74,14 @@ class File(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
+        file_count_valid_types = ["single", "multiple", "directory"]
         self.file_count = file_count
-        if self.file_count in ["multiple", "directory"]:
+
+        if self.file_count not in file_count_valid_types:
+            raise ValueError(
+                f"Parameter file_count must be one of them: {file_count_valid_types}"
+            )
+        elif self.file_count in ["multiple", "directory"]:
             self.data_model = ListFiles
         else:
             self.data_model = FileData
@@ -94,6 +105,7 @@ class File(Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -203,12 +215,12 @@ class File(Component):
 
     def example_payload(self) -> Any:
         if self.file_count == "single":
-            return file(
+            return handle_file(
                 "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
             )
         else:
             return [
-                file(
+                handle_file(
                     "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
                 )
             ]

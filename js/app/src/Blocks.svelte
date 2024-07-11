@@ -18,12 +18,16 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import { create_components, AsyncFunction } from "./init";
+	import type {
+		LogMessage,
+		RenderMessage,
+		StatusMessage
+	} from "@gradio/client";
 
 	setupi18n();
 
 	export let root: string;
 	export let components: ComponentMeta[];
-	let old_components: ComponentMeta[] = components;
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
 	export let title = "Gradio";
@@ -40,6 +44,7 @@
 	export let js: string | null;
 	export let fill_height = false;
 	export let ready: boolean;
+	export let username: string | null;
 
 	const {
 		layout: _layout,
@@ -85,7 +90,7 @@
 
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
-		const outputs = dependencies[fn_index].outputs;
+		const outputs = dependencies.find((dep) => dep.id == fn_index)!.outputs;
 
 		const meta_updates = data?.map((value: any, i: number) => {
 			return {
@@ -133,19 +138,21 @@
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
 
-	let handled_dependencies: number[][] = [];
-
 	let messages: (ToastMessage & { fn_index: number })[] = [];
 	function new_message(
 		message: string,
 		fn_index: number,
-		type: ToastMessage["type"]
+		type: ToastMessage["type"],
+		duration: number | null = 10,
+		visible = true
 	): ToastMessage & { fn_index: number } {
 		return {
 			message,
 			fn_index,
 			type,
-			id: ++_error_id
+			id: ++_error_id,
+			duration,
+			visible
 		};
 	}
 
@@ -206,19 +213,10 @@
 		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
-		let dep = dependencies[dep_index];
+		let dep = dependencies.find((dep) => dep.id === dep_index)!;
 
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
-		if (dep.cancels) {
-			await Promise.all(
-				dep.cancels.map(async (fn_index) => {
-					const submission = submit_map.get(fn_index);
-					submission?.cancel();
-					return submission;
-				})
-			);
-		}
 		if (current_status === "pending" || current_status === "generating") {
 			dep.pending_request = true;
 		}
@@ -245,6 +243,14 @@
 						handle_update(v, dep_index);
 					}
 				});
+		} else if (dep.types.cancel && dep.cancels) {
+			await Promise.all(
+				dep.cancels.map(async (fn_index) => {
+					const submission = submit_map.get(fn_index);
+					submission?.cancel();
+					return submission;
+				})
+			);
 		} else {
 			if (dep.backend_fn) {
 				if (dep.trigger_mode === "once") {
@@ -288,112 +294,157 @@
 				return;
 			}
 
-			submission
-				.on("data", ({ data, fn_index }) => {
-					if (dep.pending_request && dep.final_event) {
-						dep.pending_request = false;
-						make_prediction(dep.final_event);
-					}
+			submit_map.set(dep_index, submission);
+
+			for await (const message of submission) {
+				if (message.type === "data") {
+					handle_data(message);
+				} else if (message.type === "render") {
+					handle_render(message);
+				} else if (message.type === "status") {
+					handle_status_update(message);
+				} else if (message.type === "log") {
+					handle_log(message);
+				}
+			}
+
+			function handle_data(message: Payload): void {
+				const { data, fn_index } = message;
+				if (dep.pending_request && dep.final_event) {
 					dep.pending_request = false;
-					handle_update(data, fn_index);
-					set_status($loading_status);
-				})
-				.on("render", ({ data, fn_index }) => {
-					let _components: ComponentMeta[] = data.components;
-					let render_layout: LayoutNode = data.layout;
+					make_prediction(dep.final_event);
+				}
+				dep.pending_request = false;
+				handle_update(data, fn_index);
+				set_status($loading_status);
+			}
 
-					rerender_layout({
-						components: _components,
-						layout: render_layout,
-						root: root
-					});
-				})
-				.on("status", ({ fn_index, ...status }) => {
-					//@ts-ignore
-					loading_status.update({
-						...status,
-						status: status.stage,
-						progress: status.progress_data,
-						fn_index
-					});
-					set_status($loading_status);
-					if (
-						!showed_duplicate_message &&
-						space_id !== null &&
-						status.position !== undefined &&
-						status.position >= 2 &&
-						status.eta !== undefined &&
-						status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
-					) {
-						showed_duplicate_message = true;
-						messages = [
-							new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
-							...messages
-						];
-					}
-					if (
-						!showed_mobile_warning &&
-						is_mobile_device &&
-						status.eta !== undefined &&
-						status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
-					) {
-						showed_mobile_warning = true;
-						messages = [
-							new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
-							...messages
-						];
-					}
+			function handle_render(message: RenderMessage): void {
+				const { data } = message;
+				let _components: ComponentMeta[] = data.components;
+				let render_layout: LayoutNode = data.layout;
+				let _dependencies: Dependency[] = data.dependencies;
+				let render_id = data.render_id;
 
-					if (status.stage === "complete") {
-						dependencies.map(async (dep, i) => {
-							if (dep.trigger_after === fn_index) {
-								wait_then_trigger_api_call(i, payload.trigger_id);
-							}
-						});
-
-						submission.destroy();
+				let deps_to_remove: number[] = [];
+				dependencies.forEach((dep, i) => {
+					if (dep.rendered_in === render_id) {
+						deps_to_remove.push(i);
 					}
-					if (status.broken && is_mobile_device && user_left_page) {
-						window.setTimeout(() => {
-							messages = [
-								new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-								...messages
-							];
-						}, 0);
-						wait_then_trigger_api_call(
-							dep_index,
-							payload.trigger_id,
-							event_data
-						);
-						user_left_page = false;
-					} else if (status.stage === "error") {
-						if (status.message) {
-							const _message = status.message.replace(
-								MESSAGE_QUOTE_RE,
-								(_, b) => b
-							);
-							messages = [
-								new_message(_message, fn_index, "error"),
-								...messages
-							];
-						}
-						dependencies.map(async (dep, i) => {
-							if (
-								dep.trigger_after === fn_index &&
-								!dep.trigger_only_on_success
-							) {
-								wait_then_trigger_api_call(i, payload.trigger_id);
-							}
-						});
-
-						submission.destroy();
-					}
-				})
-				.on("log", ({ log, fn_index, level }) => {
-					messages = [new_message(log, fn_index, level), ...messages];
+				});
+				deps_to_remove.reverse().forEach((i) => {
+					dependencies.splice(i, 1);
+				});
+				_dependencies.forEach((dep) => {
+					dependencies.push(dep);
 				});
 
-			submit_map.set(dep_index, submission);
+				rerender_layout({
+					components: _components,
+					layout: render_layout,
+					root: root,
+					dependencies: dependencies,
+					render_id: render_id
+				});
+			}
+
+			function handle_log(msg: LogMessage): void {
+				const { log, fn_index, level, duration, visible } = msg;
+				messages = [
+					new_message(log, fn_index, level, duration, visible),
+					...messages
+				];
+			}
+
+			function handle_status_update(message: StatusMessage): void {
+				const { fn_index, ...status } = message;
+				//@ts-ignore
+				loading_status.update({
+					...status,
+					status: status.stage,
+					progress: status.progress_data,
+					fn_index
+				});
+				set_status($loading_status);
+				if (
+					!showed_duplicate_message &&
+					space_id !== null &&
+					status.position !== undefined &&
+					status.position >= 2 &&
+					status.eta !== undefined &&
+					status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
+				) {
+					showed_duplicate_message = true;
+					messages = [
+						new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
+						...messages
+					];
+				}
+				if (
+					!showed_mobile_warning &&
+					is_mobile_device &&
+					status.eta !== undefined &&
+					status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
+				) {
+					showed_mobile_warning = true;
+					messages = [
+						new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
+						...messages
+					];
+				}
+
+				if (status.stage === "complete") {
+					status.changed_state_ids?.forEach((id) => {
+						dependencies
+							.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
+							.forEach((dep) => {
+								wait_then_trigger_api_call(dep.id, payload.trigger_id);
+							});
+					});
+					dependencies.forEach(async (dep) => {
+						if (dep.trigger_after === fn_index) {
+							wait_then_trigger_api_call(dep.id, payload.trigger_id);
+						}
+					});
+
+					// submission.destroy();
+				}
+				if (status.broken && is_mobile_device && user_left_page) {
+					window.setTimeout(() => {
+						messages = [
+							new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+							...messages
+						];
+					}, 0);
+					wait_then_trigger_api_call(dep.id, payload.trigger_id, event_data);
+					user_left_page = false;
+				} else if (status.stage === "error") {
+					if (status.message) {
+						const _message = status.message.replace(
+							MESSAGE_QUOTE_RE,
+							(_, b) => b
+						);
+						messages = [
+							new_message(
+								_message,
+								fn_index,
+								"error",
+								status.duration,
+								status.visible
+							),
+							...messages
+						];
+					}
+					dependencies.map(async (dep) => {
+						if (
+							dep.trigger_after === fn_index &&
+							!dep.trigger_only_on_success
+						) {
+							wait_then_trigger_api_call(dep.id, payload.trigger_id);
+						}
+					});
+				}
+			}
 		}
 	}
 
@@ -442,9 +493,9 @@
 		}
 
 		// handle load triggers
-		dependencies.forEach((dep, i) => {
-			if (dep.targets[0][1] === "load") {
-				wait_then_trigger_api_call(i);
+		dependencies.forEach((dep) => {
+			if (dep.targets.some((dep) => dep[1] === "load")) {
+				wait_then_trigger_api_call(dep.id);
 			}
 		});
 
@@ -481,12 +532,6 @@
 		render_complete = true;
 	}
 
-	function handle_destroy(id: number): void {
-		handled_dependencies = handled_dependencies.map((dep) => {
-			return dep.filter((_id) => _id !== id);
-		});
-	}
-
 	$: set_status($loading_status);
 
 	function update_status(
@@ -505,15 +550,25 @@
 	}
 
 	function set_status(statuses: LoadingStatusCollection): void {
-		const updates = Object.entries(statuses).map(([id, loading_status]) => {
-			let dependency = dependencies[loading_status.fn_index];
+		let updates: {
+			id: number;
+			prop: string;
+			value: LoadingStatus;
+		}[] = [];
+		Object.entries(statuses).forEach(([id, loading_status]) => {
+			let dependency = dependencies.find(
+				(dep) => dep.id == loading_status.fn_index
+			);
+			if (dependency === undefined) {
+				return;
+			}
 			loading_status.scroll_to_output = dependency.scroll_to_output;
 			loading_status.show_progress = dependency.show_progress;
-			return {
+			updates.push({
 				id: parseInt(id),
 				prop: "loading_status",
 				value: loading_status
-			};
+			});
 		});
 
 		const inputs_to_update = loading_status.get_inputs_to_update();
@@ -550,7 +605,6 @@
 				{target}
 				{theme_mode}
 				on:mount={handle_mount}
-				on:destroy={({ detail }) => handle_destroy(detail)}
 				{version}
 				{autoscroll}
 				max_file_size={app.config.max_file_size}
@@ -625,6 +679,7 @@
 				{app}
 				{space_id}
 				{api_calls}
+				{username}
 			/>
 		</div>
 	</div>

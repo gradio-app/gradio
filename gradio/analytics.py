@@ -103,11 +103,11 @@ def version_check():
         current_pkg_version = get_package_version()
         latest_pkg_version = httpx.get(url=PKG_VERSION_URL, timeout=3).json()["version"]
         if Version(latest_pkg_version) > Version(current_pkg_version):
-            print(
+            warnings.warn(
                 f"IMPORTANT: You are using gradio version {current_pkg_version}, "
-                f"however version {latest_pkg_version} is available, please upgrade."
+                f"however version {latest_pkg_version} is available, please upgrade. \n"
+                f"--------"
             )
-            print("--------")
     except json.decoder.JSONDecodeError:
         warnings.warn("unable to parse version details from package URL.")
     except KeyError:
@@ -198,7 +198,7 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
 
     for x in list(blocks.blocks.values()):
         blocks_telemetry.append(x.get_block_name())
-    for x in blocks.fns:
+    for x in blocks.fns.values():
         targets_telemetry = targets_telemetry + [
             # Sometimes the target can be the Blocks object itself, so we need to check if its in blocks.blocks
             blocks.blocks[y[0]].get_block_name()

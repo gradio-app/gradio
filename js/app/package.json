@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/app",
-	"version": "1.35.4",
+	"version": "1.37.1",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -72,6 +72,8 @@
 		"@gradio/tabs": "workspace:^",
 		"@gradio/textbox": "workspace:^",
 		"@gradio/theme": "workspace:^",
+		"@gradio/datetime": "workspace:^",
+		"@gradio/timer": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/utils": "workspace:^",

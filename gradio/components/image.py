@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
 import PIL.Image
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client.documentation import document
 from PIL import ImageOps
 
@@ -16,6 +16,9 @@ from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
@@ -52,7 +55,8 @@ class Image(StreamingInput, Component):
         sources: list[Literal["upload", "webcam", "clipboard"]] | None = None,
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | list[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -71,14 +75,15 @@ class Image(StreamingInput, Component):
         """
         Parameters:
             value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            format: Format to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
+            format: File format (e.g. "png" or "gif") to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
             height: The height of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
+            image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning. This parameter has no effect on SVG or GIF files.
             sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard. If None, defaults to ["upload", "webcam", "clipboard"] if streaming is False, otherwise defaults to ["webcam"].
-            type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
+            type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned. To support animated GIFs in input, the `type` should be set to "filepath" or "pil".
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
             show_download_button: If True, will display button to download image.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -133,6 +138,7 @@ class Image(StreamingInput, Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -181,9 +187,10 @@ class Image(StreamingInput, Component):
                 warnings.warn(
                     f"Failed to transpose image {file_path} based on EXIF data."
                 )
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            im = im.convert(self.image_mode)
+        if suffix.lower() != "gif" and im is not None:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                im = im.convert(self.image_mode)
         return image_utils.format_image(
             im,
             cast(Literal["numpy", "pil", "filepath"], self.type),
@@ -216,7 +223,7 @@ class Image(StreamingInput, Component):
             )
 
     def example_payload(self) -> Any:
-        return file(
+        return handle_file(
             "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
         )
 

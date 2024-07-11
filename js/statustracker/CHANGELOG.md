@@ -1,5 +1,39 @@
 # @gradio/statustracker
 
+## 0.7.0
+
+### Features
+
+- [#8489](https://github.com/gradio-app/gradio/pull/8489) [`c2a0d05`](https://github.com/gradio-app/gradio/commit/c2a0d056d679d90631d9ccd944dadd67e7e03b7f) - Control Display of Error, Info, Warning.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8543](https://github.com/gradio-app/gradio/pull/8543) [`a4433be`](https://github.com/gradio-app/gradio/commit/a4433be25c183080d397413dc8c4330cd8c2b562) - Ability to disable orange progress animation for generators by setting `show_progress='minimal'` or `show_progress='hidden'` in the event definition. This is a small visual breaking change but it aligns better with the expected behavior of the `show_progress` parameter. Also added `show_progress` to `gr.Interface` and `gr.ChatInterface`.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/icons@0.5.0
+
+## 0.6.0
+
+### Features
+
+- [#8398](https://github.com/gradio-app/gradio/pull/8398) [`945ac83`](https://github.com/gradio-app/gradio/commit/945ac837e779b120790814ea6f6f81bd2712f5f8) - Improve rendering.  Thanks @aliabid94!
+- [#8409](https://github.com/gradio-app/gradio/pull/8409) [`8028c33`](https://github.com/gradio-app/gradio/commit/8028c33bbc5a324a5e9e8b28906443db28683d79) - Render decorator documentation.  Thanks @aliabid94!
+
+### Fixes
+
+- [#8372](https://github.com/gradio-app/gradio/pull/8372) [`89d6a17`](https://github.com/gradio-app/gradio/commit/89d6a176b39f713dd8144a1e6df1419303412ed2) - Change z-index of status tracker.  Thanks @hannahblair!
+
+## 0.5.5
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+
 ## 0.5.4
 
 ### Features

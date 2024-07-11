@@ -16,6 +16,7 @@ from gradio.components import (
     BarPlot,
     Button,
     Chatbot,
+    ChatMessage,
     Checkbox,
     CheckboxGroup,
     Checkboxgroup,
@@ -25,6 +26,7 @@ from gradio.components import (
     DataFrame,
     Dataframe,
     Dataset,
+    DateTime,
     DownloadButton,
     Dropdown,
     DuplicateButton,
@@ -42,6 +44,7 @@ from gradio.components import (
     LoginButton,
     LogoutButton,
     Markdown,
+    MessageDict,
     Model3D,
     MultimodalTextbox,
     Number,
@@ -53,6 +56,7 @@ from gradio.components import (
     State,
     Text,
     Textbox,
+    Timer,
     UploadButton,
     Video,
     component,
@@ -60,7 +64,14 @@ from gradio.components import (
 from gradio.components.audio import WaveformOptions
 from gradio.components.image_editor import Brush, Eraser
 from gradio.data_classes import FileData
-from gradio.events import EventData, KeyUpData, LikeData, SelectData, on
+from gradio.events import (
+    DeletedFileData,
+    EventData,
+    KeyUpData,
+    LikeData,
+    SelectData,
+    on,
+)
 from gradio.exceptions import Error
 from gradio.external import load
 from gradio.flagging import (

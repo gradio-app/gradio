@@ -7,6 +7,11 @@
 	export let message = "";
 	export let type: ToastMessage["type"];
 	export let id: number;
+	export let duration: number | null = 10;
+	export let visible = true;
+
+	$: display = visible;
+	$: duration = duration || null;
 
 	const dispatch = createEventDispatcher();
 
@@ -15,10 +20,14 @@
 	}
 
 	onMount(() => {
-		setTimeout(() => {
-			close_message();
-		}, 10000);
+		if (duration !== null) {
+			setTimeout(() => {
+				close_message();
+			}, duration * 1000);
+		}
 	});
+
+	$: timer_animation_duration = `${duration || 0}s`;
 </script>
 
 <!-- TODO: fix-->
@@ -27,6 +36,7 @@
 	class="toast-body {type}"
 	role="alert"
 	data-testid="toast-body"
+	class:hidden={!display}
 	on:click|stopPropagation
 	on:keydown|stopPropagation
 	in:fade={{ duration: 200, delay: 100 }}
@@ -59,7 +69,10 @@
 		<span aria-hidden="true">&#215;</span>
 	</button>
 
-	<div class="timer {type}" />
+	<div
+		class="timer {type}"
+		style={`animation-duration: ${timer_animation_duration};`}
+	/>
 </div>
 
 <style>
@@ -274,5 +287,9 @@
 
 	:global(.dark) .timer.info {
 		background: var(--color-grey-500);
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>

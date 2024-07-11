@@ -40,8 +40,9 @@
 		clear: never;
 		select: SelectData;
 		clear_status: LoadingStatus;
+		delete: FileData;
 	}>;
-	export let file_count: string;
+	export let file_count: "single" | "multiple" | "directory";
 	export let file_types: string[] = ["file"];
 
 	let old_value = value;
@@ -109,6 +110,9 @@
 				loading_status = loading_status || {};
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
+			}}
+			on:delete={({ detail }) => {
+				gradio.dispatch("delete", detail);
 			}}
 			i18n={gradio.i18n}
 		>

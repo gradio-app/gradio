@@ -2,7 +2,6 @@ export const redirects = {
 	"/guides/creating-a-new-component":
 		"/guides/custom-components-in-five-minutes",
 	"/guides/five-minute-guide": "/guides/custom-components-in-five-minutes",
-	"/controlling-layout": "/guides/controlling-layout",
 	"/state-in-blocks": "/guides/state-in-blocks",
 	"/custom-CSS-and-JS": "/guides/custom-CSS-and-JS",
 	"/blocks-and-event-listeners": "/guides/blocks-and-event-listeners",
@@ -25,9 +24,6 @@ export const redirects = {
 	"/four-kinds-of-interfaces": "/guides/four-kinds-of-interfaces",
 	"/interface-state": "/guides/interface-state",
 	"/more-on-examples": "/guides/more-on-examples",
-	"/advanced-interface-features": "/3.50.2/guides/advanced-interface-features",
-	"/guides/advanced-interface-features":
-		"/3.50.2/guides/advanced-interface-features",
 	"/key-features": "/guides/key-features",
 	"/quickstart": "/guides/quickstart",
 	"/sharing-your-app": "/guides/sharing-your-app",
@@ -108,7 +104,6 @@ export const redirects = {
 	"/gradio-and-llm-agents": "/guides/gradio-and-llm-agents",
 	"/fastapi-app-with-the-gradio-client":
 		"/guides/fastapi-app-with-the-gradio-client",
-	"/guides/key-features": "/guides/queuing",
 	"/docs/client": "/docs/python-client/client",
 	"/docs/job": "/docs/python-client/job",
 	"/docs/set_static_paths": "/docs/gradio/set_static_paths",
@@ -123,8 +118,6 @@ export const redirects = {
 	"/docs/flagging": "/docs/gradio/flagging",
 	"/docs/request": "/docs/gradio/request",
 	"/docs/mount_gradio_app": "/docs/gradio/mount_gradio_app",
-	"/docs/base": "/docs/gradio/base",
-	"/docs/queue": "/docs/gradio/queue",
 	"/docs/blocks": "/docs/gradio/blocks",
 	"/docs/accordion": "/docs/gradio/accordion",
 	"/docs/column": "/docs/gradio/column",
@@ -176,9 +169,8 @@ export const redirects = {
 	"/docs/interface": "/docs/gradio/interface",
 	"/docs/tabbedinterface": "/docs/gradio/tabbedinterface",
 	"/docs/themes": "/docs/gradio/themes",
-	"/docs/no-reload": "/docs/gradio/no-reload",
-	"/docs/python-client/python-client": "/docs/python-client/intro",
+	"/docs/no-reload": "/docs/gradio/NO_RELOAD",
+	"/docs/python-client/python-client": "/docs/python-client/introduction",
 	"/docs/python-client/js-client": "/docs/js-client",
-	"/3.50.2/docs/python-client/python-client": "/docs/python-client/intro",
-	"/3.50.2/docs/python-client/js-client": "/docs/js-client"
+	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface"
 };

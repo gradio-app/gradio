@@ -8,15 +8,21 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, List, Literal, Optional, Tuple, TypedDict, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
+from typing_extensions import NotRequired
 
 from . import wasm_utils
 
 if not wasm_utils.IS_WASM or TYPE_CHECKING:
-    from pydantic import BaseModel, JsonValue, RootModel, ValidationError
+    from pydantic import BaseModel, RootModel, ValidationError
+
+    try:
+        from pydantic import JsonValue
+    except ImportError:
+        JsonValue = Any
 else:
     # XXX: Currently Pyodide V2 is not available on Pyodide,
     # so we install V1 for the Wasm version.
@@ -105,6 +111,25 @@ class PredictBody(BaseModel):
         None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
     )
 
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
+        return {
+            "title": "PredictBody",
+            "type": "object",
+            "properties": {
+                "session_hash": {"type": "string"},
+                "event_id": {"type": "string"},
+                "data": {"type": "array", "items": {"type": "object"}},
+                "event_data": {"type": "object"},
+                "fn_index": {"type": "integer"},
+                "trigger_id": {"type": "integer"},
+                "simple_format": {"type": "boolean"},
+                "batched": {"type": "boolean"},
+                "request": {"type": "object"},
+            },
+            "required": ["data"],
+        }
+
 
 class ResetBody(BaseModel):
     event_id: str
@@ -184,6 +209,16 @@ class GradioRootModel(GradioBaseModel, RootModel):
 GradioDataModel = Union[GradioModel, GradioRootModel]
 
 
+class FileDataDict(TypedDict):
+    path: str  # server filepath
+    url: Optional[str]  # normalised server url
+    size: Optional[int]  # size in bytes
+    orig_name: Optional[str]  # original filename
+    mime_type: Optional[str]
+    is_stream: bool
+    meta: dict
+
+
 class FileData(GradioModel):
     path: str  # server filepath
     url: Optional[str] = None  # normalised server url
@@ -254,3 +289,45 @@ class _StaticFiles:
     @classmethod
     def clear(cls):
         cls.all_paths = []
+
+
+class BodyCSS(TypedDict):
+    body_background_fill: str
+    body_text_color: str
+    body_background_fill_dark: str
+    body_text_color_dark: str
+
+
+class Layout(TypedDict):
+    id: int
+    children: list[int | Layout]
+
+
+class BlocksConfigDict(TypedDict):
+    version: str
+    mode: str
+    app_id: int
+    dev_mode: bool
+    analytics_enabled: bool
+    components: list[dict[str, Any]]
+    css: str | None
+    connect_heartbeat: bool
+    js: str | None
+    head: str | None
+    title: str
+    space_id: str | None
+    enable_queue: bool
+    show_error: bool
+    show_api: bool
+    is_colab: bool
+    max_file_size: int | None
+    stylesheets: list[str]
+    theme: str | None
+    protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
+    body_css: BodyCSS
+    fill_height: bool
+    theme_hash: str
+    layout: NotRequired[Layout]
+    dependencies: NotRequired[list[dict[str, Any]]]
+    root: NotRequired[str | None]
+    username: NotRequired[str | None]

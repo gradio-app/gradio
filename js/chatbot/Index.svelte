@@ -11,14 +11,19 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
+	import type {
+		Message,
+		TupleFormat,
+		MessageRole,
+		NormalisedMessage
+	} from "./types";
+
+	import { normalise_tuples, normalise_messages } from "./shared/utils";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [
-		string | { file: FileData; alt_text: string | null } | null,
-		string | { file: FileData; alt_text: string | null } | null
-	][] = [];
+	export let value: TupleFormat | Message[] = [];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
@@ -28,10 +33,11 @@
 	export let likeable = false;
 	export let show_share_button = false;
 	export let rtl = false;
-	export let show_copy_button = false;
+	export let show_copy_button = true;
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
+	export let msg_format: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let latex_delimiters: {
@@ -49,40 +55,17 @@
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
-	let _value: [
-		string | { file: FileData; alt_text: string | null } | null,
-		string | { file: FileData; alt_text: string | null } | null
-	][];
+	let _value: NormalisedMessage[] | null = [];
 
-	const redirect_src_url = (src: string): string =>
-		src.replace('src="/file', `src="${root}file`);
-
-	function normalize_messages(
-		message: { file: FileData; alt_text: string | null } | null
-	): { file: FileData; alt_text: string | null } | null {
-		if (message === null) {
-			return message;
-		}
-		return {
-			file: message?.file as FileData,
-			alt_text: message?.alt_text
-		};
-	}
-
-	$: _value = value
-		? value.map(([user_msg, bot_msg]) => [
-				typeof user_msg === "string"
-					? redirect_src_url(user_msg)
-					: normalize_messages(user_msg),
-				typeof bot_msg === "string"
-					? redirect_src_url(bot_msg)
-					: normalize_messages(bot_msg)
-			])
-		: [];
+	$: _value =
+		msg_format === "tuples"
+			? normalise_tuples(value as TupleFormat, root)
+			: normalise_messages(value as Message[], root);
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 	export let placeholder: string | null = null;
+	export let theme_mode: "system" | "light" | "dark";
 </script>
 
 <Block
@@ -111,7 +94,7 @@
 			<BlockLabel
 				{show_label}
 				Icon={Chat}
-				float={false}
+				float={true}
 				label={label || "Chatbot"}
 			/>
 		{/if}
@@ -123,6 +106,7 @@
 			value={_value}
 			{latex_delimiters}
 			{render_markdown}
+			{theme_mode}
 			pending_message={loading_status?.status === "pending"}
 			{rtl}
 			{show_copy_button}
@@ -137,6 +121,9 @@
 			{line_breaks}
 			{layout}
 			{placeholder}
+			upload={gradio.client.upload}
+			_fetch={gradio.client.fetch}
+			load_component={gradio.load_component}
 		/>
 	</div>
 </Block>
