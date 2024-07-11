@@ -74,8 +74,6 @@
 	export let border = false;
 	export let autoscroll: boolean;
 
-	$: console.log("show_progress", show_progress);
-
 	let el: HTMLDivElement;
 
 	let _timer = false;
