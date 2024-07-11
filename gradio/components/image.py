@@ -208,7 +208,6 @@ class Image(StreamingInput, Component):
         Returns:
             Returns the image as a `FileData` object.
         """
-        print("value", value, type(value))
         if value is None:
             return None
         if isinstance(value, str) and value.lower().endswith(".svg"):
