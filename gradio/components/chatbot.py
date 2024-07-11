@@ -254,12 +254,14 @@ class Chatbot(Component):
     @staticmethod
     def _check_format(messages: list[Any], msg_format: Literal["messages", "tuples"]):
         if msg_format == "messages":
-            all_dicts = all(
-                isinstance(message, dict) and "role" in message and "content" in message
+            all_valid = all(
+                isinstance(message, dict)
+                and "role" in message
+                and "content" in message
+                or isinstance(message, ChatMessage)
                 for message in messages
             )
-            all_msgs = all(isinstance(msg, ChatMessage) for msg in messages)
-            if not (all_dicts or all_msgs):
+            if not all_valid:
                 raise Error(
                     "Data incompatible with messages format. Each message should be a dictionary with 'role' and 'content' keys or a ChatMessage object."
                 )

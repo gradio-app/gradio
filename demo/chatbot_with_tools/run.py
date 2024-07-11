@@ -17,7 +17,7 @@ def generate_response(history):
                               metadata={"title": "💥 Error using tool 'Weather'"})
                   )
     yield history
-    time.sleep(0.25)
+    time.sleep(5)
 
     history.append(ChatMessage(role="assistant",
                                content="I will try again",
