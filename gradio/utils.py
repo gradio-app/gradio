@@ -1426,6 +1426,7 @@ def error_payload(
         content["visible"] = error.visible
     return content
 
+
 class UnhashableKeyDict(MutableMapping):
     def __init__(self):
         self.data = []
@@ -1437,21 +1438,21 @@ class UnhashableKeyDict(MutableMapping):
         raise KeyError(key)
 
     def __setitem__(self, key, value):
-        for i, (k, v) in enumerate(self.data):
+        for i, (k, _) in enumerate(self.data):
             if k == key:
                 self.data[i] = (key, value)
                 return
         self.data.append((key, value))
 
     def __delitem__(self, key):
-        for i, (k, v) in enumerate(self.data):
+        for i, (k, _) in enumerate(self.data):
             if k == key:
                 del self.data[i]
                 return
         raise KeyError(key)
 
     def __iter__(self):
-        return (k for k, v in self.data)
+        return (k for k, _ in self.data)
 
     def __len__(self):
         return len(self.data)
