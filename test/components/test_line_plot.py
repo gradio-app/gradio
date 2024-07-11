@@ -31,7 +31,7 @@ class TestLinePlot:
             "stroke_dash": None,
             "overlay_point": None,
             "title": None,
-            "tooltip": None,
+            "tooltip": [],
             "x_title": None,
             "y_title": None,
             "color_legend_title": None,
