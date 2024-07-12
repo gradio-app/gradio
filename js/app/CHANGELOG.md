@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.38.1
+
+### Dependency updates
+
+- @gradio/chatbot@0.12.1
+
 ## 1.38.0
 
 ### Features
