@@ -1054,4 +1054,8 @@
 	.row_odd.focus {
 		background: var(--background-fill-primary);
 	}
+
+	table {
+		border-collapse: separate;
+	}
 </style>
