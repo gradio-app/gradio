@@ -26,6 +26,7 @@ from typing import Any, Callable, Literal
 
 import httpx
 import huggingface_hub
+from httpx._types import AuthTypes
 from huggingface_hub import CommitOperationAdd, SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
@@ -79,6 +80,7 @@ class Client:
         max_workers: int = 40,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
+        httpx_auth: AuthTypes | None = None,
         *,
         headers: dict[str, str] | None = None,
         download_files: str | Path | Literal[False] = DEFAULT_TEMP_DIR,
@@ -94,6 +96,7 @@ class Client:
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
             download_files: Directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
             ssl_verify: If False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
+            httpx_auth: Authentication data or mechanism forwarded to httpx calls.
         """
         self.verbose = verbose
         self.hf_token = hf_token
@@ -143,6 +146,7 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
+        self.httpx_auth = httpx_auth
         if auth is not None:
             self._login(auth)
 
@@ -207,6 +211,7 @@ class Client:
                     url,
                     headers=self.headers,
                     cookies=self.cookies,
+                    auth=self.httpx_auth,
                     verify=self.ssl_verify,
                     timeout=20,
                 ) as response:
@@ -224,7 +229,7 @@ class Client:
     ) -> None:
         try:
             with httpx.Client(
-                timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify
+                auth=self.httpx_auth, timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify
             ) as client:
                 with client.stream(
                     "GET",
@@ -283,6 +288,7 @@ class Client:
             json={**data, **hash_data},
             headers=self.headers,
             cookies=self.cookies,
+            auth=self.httpx_auth,
             verify=self.ssl_verify,
         )
         if req.status_code == 503:
@@ -548,6 +554,7 @@ class Client:
                 api_info_url,
                 headers=self.headers,
                 cookies=self.cookies,
+                auth=self.httpx_auth,
                 verify=self.ssl_verify,
             )
             if r.is_success:
@@ -561,6 +568,7 @@ class Client:
                     "config": json.dumps(self.config),
                     "serialize": False,
                 },
+                auth=self.httpx_auth,
             )
             if fetch.is_success:
                 info = fetch.json()["api"]
@@ -822,6 +830,7 @@ class Client:
         resp = httpx.post(
             urllib.parse.urljoin(self.src, utils.LOGIN_URL),
             data={"username": auth[0], "password": auth[1]},
+            auth=self.httpx_auth,
             verify=self.ssl_verify,
         )
         if not resp.is_success:
@@ -840,6 +849,7 @@ class Client:
             urllib.parse.urljoin(self.src, utils.CONFIG_URL),
             headers=self.headers,
             cookies=self.cookies,
+            auth=self.httpx_auth,
             verify=self.ssl_verify,
         )
         if r.is_success:
@@ -853,6 +863,7 @@ class Client:
                 self.src,
                 headers=self.headers,
                 cookies=self.cookies,
+                auth=self.httpx_auth,
                 verify=self.ssl_verify,
             )
             if not r.is_success:
@@ -1184,6 +1195,7 @@ class Endpoint:
                     json=post_data(),
                     headers=self.client.headers,
                     cookies=self.client.cookies,
+                    auth=self.client.httpx_auth,
                     verify=self.client.ssl_verify,
                 )
 
@@ -1329,6 +1341,7 @@ class Endpoint:
                     self.client.upload_url,
                     headers=self.client.headers,
                     cookies=self.client.cookies,
+                    auth=self.client.httpx_auth,
                     verify=self.client.ssl_verify,
                     files=files,
                 )
@@ -1358,6 +1371,7 @@ class Endpoint:
             url_path,
             headers=self.client.headers,
             cookies=self.client.cookies,
+            auth=self.client.httpx_auth,
             verify=self.client.ssl_verify,
             follow_redirects=True,
         ) as response:
@@ -1375,7 +1389,7 @@ class Endpoint:
 
     def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
         with httpx.Client(
-            timeout=httpx.Timeout(timeout=None), verify=self.client.ssl_verify
+            auth=self.client.httpx_auth, timeout=httpx.Timeout(timeout=None), verify=self.client.ssl_verify
         ) as client:
             return utils.get_pred_from_sse_v0(
                 client,
