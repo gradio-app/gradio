@@ -168,6 +168,28 @@ class TestExamplesDataset:
         )
         assert examples.dataset.headers == ["im", ""]
 
+    def test_example_labels(self, patched_cache_folder):
+        examples = gr.Examples(
+            examples=[
+                [5, "add", 3],
+                [4, "divide", 2],
+                [-4, "multiply", 2.5],
+                [0, "subtract", 1.2],
+            ],
+            inputs=[
+                gr.Number(),
+                gr.Radio(["add", "divide", "multiply", "subtract"]),
+                gr.Number(),
+            ],
+            example_labels=["add", "divide", "multiply", "subtract"],
+        )
+        assert examples.dataset.sample_labels == [
+            "add",
+            "divide",
+            "multiply",
+            "subtract",
+        ]
+
 
 def test_example_caching_relaunch(connect):
     def combine(a, b):
