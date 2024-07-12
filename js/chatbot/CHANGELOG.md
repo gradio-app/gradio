@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.12.1
+
+### Features
+
+- [#8766](https://github.com/gradio-app/gradio/pull/8766) [`2b4636e`](https://github.com/gradio-app/gradio/commit/2b4636e75cf728846253451b7104b724609a9cd1) - Fix width of assistant's chatbot bubble.  Thanks @pngwn!
+
 ## 0.12.0
 
 ### Highlights
