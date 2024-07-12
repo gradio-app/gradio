@@ -69,6 +69,8 @@ export function make_gradio_plugin({
 	backend_port,
 	imports
 }: GradioPluginOptions): Plugin {
+	const v_id = "virtual:component-loader";
+	const resolved_v_id = "\0" + v_id;
 	return {
 		name: "gradio",
 		enforce: "pre",
@@ -90,8 +92,8 @@ export function make_gradio_plugin({
 			};
 		},
 		resolveId(id) {
-			if (id === "virtual:component-loader") {
-				return `export default {};`;
+			if (id === v_id) {
+				return resolved_v_id;
 			}
 			if (
 				id !== "svelte" &&
@@ -99,6 +101,11 @@ export function make_gradio_plugin({
 				id.startsWith("svelte/")
 			) {
 				return join(svelte_dir, "svelte-submodules.js");
+			}
+		},
+		load(id) {
+			if (id === resolved_v_id) {
+				return `export default {};`;
 			}
 		},
 		transformIndexHtml(html) {
