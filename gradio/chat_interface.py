@@ -4,6 +4,7 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 
 from __future__ import annotations
 
+import builtins
 import functools
 import inspect
 import warnings
@@ -59,7 +60,7 @@ class ChatInterface(Blocks):
         fn: Callable,
         *,
         multimodal: bool = False,
-        msg_format: Literal["messages", "tuples"] = "tuples",
+        type: Literal["messages", "tuples"] = "tuples",
         chatbot: Chatbot | None = None,
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
@@ -127,7 +128,7 @@ class ChatInterface(Blocks):
             fill_height=fill_height,
             delete_cache=delete_cache,
         )
-        self.msg_format: Literal["messages", "tuples"] = msg_format
+        self.type: Literal["messages", "tuples"] = type
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
         self.fn = fn
@@ -175,7 +176,7 @@ class ChatInterface(Blocks):
             )
         else:
             raise ValueError(
-                f"The `additional_inputs_accordion` parameter must be a string or gr.Accordion, not {type(additional_inputs_accordion)}"
+                f"The `additional_inputs_accordion` parameter must be a string or gr.Accordion, not {builtins.type(additional_inputs_accordion)}"
             )
 
         with self:
@@ -187,19 +188,19 @@ class ChatInterface(Blocks):
                 Markdown(description)
 
             if chatbot:
-                if self.msg_format != chatbot.msg_format:
+                if self.type != chatbot.type:
                     warnings.warn(
-                        "The msg_format of the chatbot does not match the msg_format of the chat interface. The msg_format of the chat interface will be used."
-                        "Recieved msg_format of chatbot: {chatbot.msg_format}, msg_format of chat interface: {self.msg_format}"
+                        "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
+                        "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
                     )
-                    chatbot.msg_format = self.msg_format
+                    chatbot.type = self.type
                 self.chatbot = get_component_instance(chatbot, render=True)
             else:
                 self.chatbot = Chatbot(
                     label="Chatbot",
                     scale=1,
                     height=200 if fill_height else None,
-                    msg_format=self.msg_format,
+                    type=self.type,
                 )
 
             with Row():
@@ -213,7 +214,7 @@ class ChatInterface(Blocks):
                             )
                         else:
                             raise ValueError(
-                                f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
+                                f"All the _btn parameters must be a gr.Button, string, or None, not {builtins.type(btn)}"
                             )
                     self.buttons.append(btn)  # type: ignore
 
@@ -228,7 +229,7 @@ class ChatInterface(Blocks):
                         textbox_ = get_component_instance(textbox, render=True)
                         if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
                             raise TypeError(
-                                f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {type(textbox_)}"
+                                f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
                             )
                         self.textbox = textbox_
                     elif self.multimodal:
@@ -261,7 +262,7 @@ class ChatInterface(Blocks):
                             )
                         else:
                             raise ValueError(
-                                f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}"
+                                f"The submit_btn parameter must be a gr.Button, string, or None, not {builtins.type(submit_btn)}"
                             )
                     if stop_btn is not None:
                         if isinstance(stop_btn, Button):
@@ -277,7 +278,7 @@ class ChatInterface(Blocks):
                             )
                         else:
                             raise ValueError(
-                                f"The stop_btn parameter must be a gr.Button, string, or None, not {type(stop_btn)}"
+                                f"The stop_btn parameter must be a gr.Button, string, or None, not {builtins.type(stop_btn)}"
                             )
                     self.buttons.extend([submit_btn, stop_btn])  # type: ignore
 
@@ -533,7 +534,7 @@ class ChatInterface(Blocks):
         response: MessageDict | str | None,
         history: list[MessageDict] | TupleFormat,
     ):
-        if self.msg_format == "tuples":
+        if self.type == "tuples":
             for x in message.files:
                 history.append([(x.path,), None])  # type: ignore
             if message.text is None or not isinstance(message.text, str):
@@ -559,9 +560,9 @@ class ChatInterface(Blocks):
     ) -> tuple[TupleFormat, TupleFormat] | tuple[list[MessageDict], list[MessageDict]]:
         if self.multimodal and isinstance(message, MultimodalData):
             self._append_multimodal_history(message, None, history)
-        elif isinstance(message, str) and self.msg_format == "tuples":
+        elif isinstance(message, str) and self.type == "tuples":
             history.append([message, None])  # type: ignore
-        elif isinstance(message, str) and self.msg_format == "messages":
+        elif isinstance(message, str) and self.type == "messages":
             history.append({"role": "user", "content": message})  # type: ignore
         return history, history  # type: ignore
 
@@ -604,16 +605,16 @@ class ChatInterface(Blocks):
                 self.fn, *inputs, limiter=self.limiter
             )
 
-        if self.msg_format == "messages":
+        if self.type == "messages":
             new_response = self.response_as_dict(response)
         else:
             new_response = response
 
         if self.multimodal and isinstance(message, MultimodalData):
             self._append_multimodal_history(message, new_response, history)  # type: ignore
-        elif isinstance(message, str) and self.msg_format == "tuples":
+        elif isinstance(message, str) and self.type == "tuples":
             history.append([message, new_response])  # type: ignore
-        elif isinstance(message, str) and self.msg_format == "messages":
+        elif isinstance(message, str) and self.type == "messages":
             history.extend([{"role": "user", "content": message}, new_response])  # type: ignore
         return history, history  # type: ignore
 
@@ -646,12 +647,12 @@ class ChatInterface(Blocks):
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
             first_response = await async_iteration(generator)
-            if self.msg_format == "messages":
+            if self.type == "messages":
                 first_response = self.response_as_dict(first_response)
             if (
                 self.multimodal
                 and isinstance(message, MultimodalData)
-                and self.msg_format == "tuples"
+                and self.type == "tuples"
             ):
                 for x in message.files:
                     history.append([(x,), None])  # type: ignore
@@ -660,7 +661,7 @@ class ChatInterface(Blocks):
             elif (
                 self.multimodal
                 and isinstance(message, MultimodalData)
-                and self.msg_format == "messages"
+                and self.type == "messages"
             ):
                 for x in message.files:
                     history.append(
@@ -671,7 +672,7 @@ class ChatInterface(Blocks):
                     first_response,
                 ]
                 yield update, update
-            elif self.msg_format == "tuples":
+            elif self.type == "tuples":
                 update = history + [[message, first_response]]
                 yield update, update
             else:
@@ -688,26 +689,26 @@ class ChatInterface(Blocks):
                 update = history + [[message, None]]
                 yield update, update
         async for response in generator:
-            if self.msg_format == "messages":
+            if self.type == "messages":
                 response = self.response_as_dict(response)
             if (
                 self.multimodal
                 and isinstance(message, MultimodalData)
-                and self.msg_format == "tuples"
+                and self.type == "tuples"
             ):
                 update = history + [[message.text, response]]
                 yield update, update
             elif (
                 self.multimodal
                 and isinstance(message, MultimodalData)
-                and self.msg_format == "messages"
+                and self.type == "messages"
             ):
                 update = history + [
                     {"role": "user", "content": message.text},
                     response,
                 ]
                 yield update, update
-            elif self.msg_format == "tuples":
+            elif self.type == "tuples":
                 update = history + [[message, response]]
                 yield update, update
             else:
@@ -731,7 +732,7 @@ class ChatInterface(Blocks):
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-        if self.msg_format == "tuples":
+        if self.type == "tuples":
             history.append([message, response])  # type: ignore
         else:
             new_response = self.response_as_dict(response)
@@ -753,7 +754,7 @@ class ChatInterface(Blocks):
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
             first_response = await async_iteration(generator)
-            if self.msg_format == "tuples":
+            if self.type == "tuples":
                 yield first_response, history + [[message, first_response]]
             else:
                 first_response = self.response_as_dict(first_response)
@@ -764,7 +765,7 @@ class ChatInterface(Blocks):
         except StopIteration:
             yield None, history + [[message, None]]
         async for response in generator:
-            if self.msg_format == "tuples":
+            if self.type == "tuples":
                 yield response, history + [[message, response]]
             else:
                 new_response = self.response_as_dict(response)
@@ -784,7 +785,7 @@ class ChatInterface(Blocks):
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-        if self.msg_format == "tuples":
+        if self.type == "tuples":
             return [[message, response]]
         else:
             return [{"role": "user", "content": message}, response]
@@ -804,7 +805,7 @@ class ChatInterface(Blocks):
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
-            if self.msg_format == "tuples":
+            if self.type == "tuples":
                 yield [[message, response]]
             else:
                 new_response = self.response_as_dict(response)
@@ -819,7 +820,7 @@ class ChatInterface(Blocks):
         str | MultimodalData,
         list[MessageDict] | TupleFormat,
     ]:
-        extra = 1 if self.msg_format == "messages" else 0
+        extra = 1 if self.type == "messages" else 0
         if self.multimodal and isinstance(message, MultimodalData):
             remove_input = (
                 len(message.files) + 1
