@@ -1,58 +1,38 @@
 <script lang="ts">
 	export let parameters = [] as any[];
-	import { style_formatted_text } from "$lib/text";
+	import ParamViewer from "@gradio/paramviewer";
+
+	interface Param {
+    type: string | null;
+    description: string;
+    default: string | null;
+    name?: string;
+}
+
+function convert_parameters(parameters: any[]): Record<string, Param> {
+    if (!Array.isArray(parameters)) {
+        console.error('Invalid parameters: expected an array');
+        return {};
+    }
+
+    const result: Record<string, Param> = {};
+
+    for (const param of parameters) {
+        if (param && typeof param === 'object' && param.name && param.name !== "self") {
+            result[param.name] = {
+                type: param.annotation ? param.annotation.replace("Sequence[", "list[") : null,
+                description: param.doc || "",
+                default: param.default !== undefined ? String(param.default) : null,
+                name: param.name
+            };
+        }
+    }
+
+    return result;
+}
+let docs = convert_parameters(parameters);
+
 </script>
 
-{#if (parameters.length > 0 && parameters[0].name != "self") || parameters.length > 1}
-	<div style="background-color: rgb(252 253 253);">
-		{#each parameters as param}
-			{#if param["name"] != "self"}
-				<hr class="hr" />
-				<div style="padding-left:5px">
-					<p>
-						<span class="code" style="font-weight:bold">{param["name"]}</span>
-						<span class="code highlight" style="margin-left: 10px;"
-							>{param["annotation"].replace("Sequence[", "list[")}</span
-						>
-						<span style="margin-left: 10px;">
-							{#if "default" in param}
-								<em><strong>Default: </strong></em>{param["default"]}
-							{:else if !("kwargs" in param)}<em><strong>Required</strong></em
-								>{/if}
-						</span>
-					</p>
-					<p class="desc">
-						{@html style_formatted_text(param["doc"]) || ""}
-					</p>
-				</div>
-			{/if}
-		{/each}
-	</div>
-{/if}
+<ParamViewer {docs} />
 
-<style>
-	.hr {
-		border: 0;
-		height: 2px;
-		background: var(--color-accent-soft);
-		margin-bottom: 12px;
-		margin-top: 12px;
-	}
-
-	.code {
-		font-family: var(--font-mono);
-		display: inline;
-	}
-
-	.highlight {
-		background: var(--color-accent-soft);
-		color: var(--color-accent);
-		padding: var(--size-1);
-	}
-
-	.desc {
-		color: #444;
-		font-size: var(--text-lg);
-		margin-top: var(--size-1);
-	}
-</style>
