@@ -3,7 +3,7 @@
 Tags: LLM, AGENTS, CHAT
 Related spaces: https://huggingface.co/spaces/gradio/agent_chatbot, https://huggingface.co/spaces/gradio/langchain-agent
 
-The Gradio Chatbot can natively display intermediate thoughts and tool usage. This makes it perfect for creating UIs for LLM agents. This guide will show you how. Before we begin, familiarize yourself with the `messages` chatbot data format documented in this [guide](/guides/05_chatbots/messages-format).
+The Gradio Chatbot can natively display intermediate thoughts and tool usage. This makes it perfect for creating UIs for LLM agents. This guide will show you how. Before we begin, familiarize yourself with the `messages` chatbot data format documented in this [guide](./messages-format).
 
 ## The metadata key
 
@@ -60,11 +60,12 @@ def interact_with_agent(prompt, messages):
 
 
 with gr.Blocks() as demo:
+    stored_message = gr.State([])
     chatbot = gr.Chatbot(label="Agent",
                          type="messages",
                          avatar_images=(None, "https://em-content.zobj.net/source/twitter/53/robot-face_1f916.png"))
     text_input = gr.Textbox(lines=1, label="Chat Message")
-    text_input.submit(interact_with_agent, [text_input, chatbot], [chatbot])
+    text_input.submit(lambda s: (s, ""), [text_input], [stored_message, text_input]).then(interact_with_agent, [stored_message, chatbot], [chatbot])
 ```
 
 You can see the full demo code [here](https://huggingface.co/spaces/gradio/agent_chatbot/blob/main/app.py).
