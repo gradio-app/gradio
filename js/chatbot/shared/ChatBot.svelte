@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { format_chat_for_sharing } from "./utils";
+	import { format_chat_for_sharing, is_component_message } from "./utils";
 	import type { NormalisedMessage } from "../types";
 	import { Gradio, copy } from "@gradio/utils";
 
@@ -92,6 +92,8 @@
 	export let layout: "bubble" | "panel" = "bubble";
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
+	export let msg_format: "tuples" | "messages" = "tuples";
+
 	let target = document.querySelector("div.gradio-container");
 
 	let div: HTMLDivElement;
@@ -172,6 +174,8 @@
 		}
 	}
 
+	$: groupedMessages = value && group_messages(value);
+
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
 			index: message.index,
@@ -184,11 +188,27 @@
 		message: NormalisedMessage,
 		selected: string | null
 	): void {
-		dispatch("like", {
-			index: message.index,
-			value: message.content,
-			liked: selected === "like"
-		});
+		if (msg_format === "tuples") {
+			dispatch("like", {
+				index: message.index,
+				value: message.content,
+				liked: selected === "like"
+			});
+		} else {
+			if (!groupedMessages) return;
+
+			const message_group = groupedMessages[i];
+			const [first, last] = [
+				message_group[0],
+				message_group[message_group.length - 1]
+			];
+
+			dispatch("like", {
+				index: [first.index, last.index] as [number, number],
+				value: message_group.map((m) => m.content),
+				liked: selected === "like"
+			});
+		}
 	}
 
 	function get_message_label_data(message: NormalisedMessage): string {
@@ -209,12 +229,6 @@
 		return `a component of type ${message.content.component ?? "unknown"}`;
 	}
 
-	function is_component_message(
-		message: NormalisedMessage
-	): message is ComponentMessage {
-		return message.type === "component";
-	}
-
 	function group_messages(
 		messages: NormalisedMessage[]
 	): NormalisedMessage[][] {
@@ -223,6 +237,10 @@
 		let currentRole: MessageRole | null = null;
 
 		for (const message of messages) {
+			if (msg_format === "tuples") {
+				currentRole = null;
+			}
+
 			if (!(message.role === "assistant" || message.role === "user")) {
 				continue;
 			}
@@ -266,8 +284,7 @@
 	aria-live="polite"
 >
 	<div class="message-wrap" use:copy>
-		{#if value !== null && value.length > 0}
-			{@const groupedMessages = group_messages(value)}
+		{#if value !== null && value.length > 0 && groupedMessages !== null}
 			{#each groupedMessages as messages, i}
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
 				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
@@ -297,7 +314,10 @@
 							/>
 						</div>
 					{/if}
-					<div class="flex-wrap">
+					<div
+						class="flex-wrap {role} "
+						class:component-wrap={messages[0].type === "component"}
+					>
 						{#each messages as message, thought_index}
 							{@const msg_type = messages[0].type}
 							<div
@@ -385,19 +405,19 @@
 									{/if}
 								</button>
 							</div>
-							<LikeButtons
-								show={role === "bot" && (likeable || show_copy_button)}
-								handle_action={(selected) => handle_like(i, message, selected)}
-								{likeable}
-								{show_copy_button}
-								{message}
-								position={role === "user" ? "right" : "left"}
-								avatar={avatar_img}
-								{layout}
-							/>
 						{/each}
 					</div>
 				</div>
+				<LikeButtons
+					show={likeable || show_copy_button}
+					handle_action={(selected) => handle_like(i, messages[0], selected)}
+					{likeable}
+					{show_copy_button}
+					message={msg_format === "tuples" ? messages[0] : messages}
+					position={role === "user" ? "right" : "left"}
+					avatar={avatar_img}
+					{layout}
+				/>
 			{/each}
 			{#if pending_message}
 				<Pending {layout} />
@@ -430,7 +450,6 @@
 	.bubble-wrap {
 		width: 100%;
 		overflow-y: auto;
-
 		height: 100%;
 		padding-top: var(--spacing-xxl);
 	}
@@ -475,16 +494,7 @@
 
 	.message-bubble-border {
 		border-width: 1px;
-		border-radius: var(--radius-lg);
-	}
-
-	.bubble .user {
-		border-width: 1px;
-		border-radius: var(--radius-xl);
-		align-self: flex-start;
-		border-bottom-right-radius: 0;
-
-		box-shadow: var(--shadow-drop-lg);
+		border-radius: var(--radius-md);
 	}
 
 	.user {
@@ -502,11 +512,30 @@
 		white-space: pre-line;
 	}
 
-	.bubble .user {
+	.flex-wrap.user {
+		border-width: 1px;
+		border-radius: var(--radius-md);
 		align-self: flex-start;
 		border-bottom-right-radius: 0;
+		box-shadow: var(--shadow-drop);
+		align-self: flex-start;
 		text-align: right;
 		padding: var(--spacing-sm) var(--spacing-xl);
+		border-color: var(--border-color-accent-subdued);
+		background-color: var(--color-accent-soft);
+	}
+
+	:not(.component-wrap).flex-wrap.bot {
+		border-width: 1px;
+		border-radius: var(--radius-lg);
+		align-self: flex-start;
+		border-bottom-left-radius: 0;
+		box-shadow: var(--shadow-drop);
+		align-self: flex-start;
+		text-align: right;
+		padding: var(--spacing-sm) var(--spacing-xl);
+		border-color: var(--border-color-primary);
+		background-color: var(--background-fill-secondary);
 	}
 
 	.panel .user :global(*) {
@@ -516,11 +545,6 @@
 	/* Colors */
 	.bubble .bot {
 		border-color: var(--border-color-primary);
-	}
-
-	.bubble .user {
-		border-color: var(--border-color-accent-subdued);
-		background-color: var(--color-accent-soft);
 	}
 
 	.message-row {
@@ -534,6 +558,7 @@
 	}
 	.message-row.bubble {
 		margin: calc(var(--spacing-xl) * 3);
+		margin-bottom: var(--spacing-xl);
 	}
 
 	.with_avatar.message-row.panel {
@@ -568,7 +593,7 @@
 
 	.message-row.bubble.bot-row {
 		align-self: flex-start;
-		width: calc(100% - var(--spacing-xl) * 6);
+		max-width: calc(100% - var(--spacing-xl) * 6);
 	}
 
 	.message-row:last-of-type {

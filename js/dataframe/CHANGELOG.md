@@ -1,5 +1,21 @@
 # @gradio/dataframe
 
+## 0.8.13
+
+### Fixes
+
+- [#8763](https://github.com/gradio-app/gradio/pull/8763) [`c1ecfde`](https://github.com/gradio-app/gradio/commit/c1ecfde50e55902140aafc3551968e26c1bb4cd0) - 8394 df hidden items.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/client@1.3.0
+- @gradio/markdown@0.8.1
+- @gradio/upload@0.11.5
+- @gradio/button@0.2.46
+
 ## 0.8.12
 
 ### Dependency updates

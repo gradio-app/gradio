@@ -1,5 +1,77 @@
 # @gradio/app
 
+## 1.38.1
+
+### Dependency updates
+
+- @gradio/chatbot@0.12.1
+
+## 1.38.0
+
+### Features
+
+- [#8713](https://github.com/gradio-app/gradio/pull/8713) [`e3c7079`](https://github.com/gradio-app/gradio/commit/e3c7079e380880d5759d98d180eaf688122f1c69) - Time range component.  Thanks @aliabid94!
+
+### Fixes
+
+- [#8505](https://github.com/gradio-app/gradio/pull/8505) [`2943d6d`](https://github.com/gradio-app/gradio/commit/2943d6d68847314885dc6c5c0247083116017ca0) - Add Timer component.  Thanks @aliabid94!
+- [#8720](https://github.com/gradio-app/gradio/pull/8720) [`936c713`](https://github.com/gradio-app/gradio/commit/936c7137a99ef59efdf75bae5dd27eea2ac1f577) - Documents auth in the guides, in the view API page, and also types the Blocks.config object.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/client@1.3.0
+- @gradio/markdown@0.8.1
+- @gradio/upload@0.11.5
+- @gradio/button@0.2.46
+- @gradio/paramviewer@0.4.17
+- @gradio/dataframe@0.8.13
+- @gradio/timer@0.3.0
+- @gradio/code@0.7.0
+- @gradio/chatbot@0.12.0
+- @gradio/image@0.12.2
+- @gradio/icons@0.6.0
+- @gradio/plot@0.6.0
+- @gradio/dataset@0.2.0
+- @gradio/model3d@0.11.0
+- @gradio/annotatedimage@0.6.13
+- @gradio/audio@0.12.2
+- @gradio/downloadbutton@0.1.23
+- @gradio/file@0.8.5
+- @gradio/fileexplorer@0.4.14
+- @gradio/gallery@0.11.2
+- @gradio/imageeditor@0.7.13
+- @gradio/multimodaltextbox@0.5.2
+- @gradio/simpleimage@0.6.2
+- @gradio/uploadbutton@0.6.14
+- @gradio/video@0.9.2
+- @gradio/accordion@0.3.18
+- @gradio/checkbox@0.3.8
+- @gradio/checkboxgroup@0.5.8
+- @gradio/colorpicker@0.3.8
+- @gradio/column@0.1.2
+- @gradio/datetime@0.0.2
+- @gradio/dropdown@0.7.8
+- @gradio/fallback@0.3.8
+- @gradio/form@0.1.20
+- @gradio/highlightedtext@0.7.2
+- @gradio/html@0.3.1
+- @gradio/json@0.2.8
+- @gradio/label@0.3.8
+- @gradio/number@0.4.8
+- @gradio/radio@0.5.8
+- @gradio/row@0.1.3
+- @gradio/simpledropdown@0.2.8
+- @gradio/simpletextbox@0.2.8
+- @gradio/slider@0.4.8
+- @gradio/tabitem@0.2.12
+- @gradio/tabs@0.2.11
+- @gradio/textbox@0.6.7
+- @gradio/group@0.1.1
+- @gradio/box@0.1.20
+
 ## 1.37.1
 
 ### Dependency updates

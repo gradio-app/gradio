@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.6.0
+
+### Features
+
+- [#8713](https://github.com/gradio-app/gradio/pull/8713) [`e3c7079`](https://github.com/gradio-app/gradio/commit/e3c7079e380880d5759d98d180eaf688122f1c69) - Time range component.  Thanks @aliabid94!
+
 ## 0.5.0
 
 ### Features
