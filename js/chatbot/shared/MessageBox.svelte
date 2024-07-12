@@ -30,18 +30,24 @@
 		cursor: pointer;
 		max-width: max-content;
 		background: var(--color-accent-soft);
+		border: 1px solid var(--border-color-accent-subdued);
+		font-size: 0.8em;
 	}
 
 	.title {
 		display: flex;
 		align-items: center;
-		padding: 8px;
+		padding: 3px 6px;
 		color: var(--body-text-color);
 		opacity: 0.8;
 	}
 
 	.content {
-		padding: 8px;
+		padding: 4px 8px;
+	}
+
+	.content :global(*) {
+		font-size: 0.8em;
 	}
 
 	.title-text {

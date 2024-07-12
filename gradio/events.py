@@ -58,9 +58,11 @@ def set_cancel_events(
 
         root_block.set_event_trigger(
             triggers,
-            fn=lambda: [Timer(active=False) for _ in timers_to_cancel]
-            if len(timers_to_cancel) > 1
-            else Timer(active=False),
+            fn=lambda: (
+                [Timer(active=False) for _ in timers_to_cancel]
+                if len(timers_to_cancel) > 1
+                else Timer(active=False)
+            ),
             inputs=None,
             outputs=timers_to_cancel,
             show_api=False,

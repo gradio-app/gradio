@@ -239,7 +239,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("textbox").fill("hello");
 		await page.keyboard.press("Enter");
 		await page.getByLabel("like", { exact: true }).click();
-		await page.getByLabel("dislike").click();
+		await page.getByLabel("dislike", { exact: true }).click();
 
 		expect(await page.getByLabel("clicked dislike").count()).toEqual(1);
 		expect(await page.getByLabel("clicked like").count()).toEqual(0);

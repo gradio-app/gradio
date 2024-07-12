@@ -124,6 +124,7 @@
 			upload={gradio.client.upload}
 			_fetch={gradio.client.fetch}
 			load_component={gradio.load_component}
+			msg_format={type}
 		/>
 	</div>
 </Block>
