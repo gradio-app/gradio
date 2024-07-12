@@ -4,7 +4,6 @@
 	export let wrapper: HTMLDivElement;
 	export let version: string;
 	export let initial_height: string;
-	export let fill_width: boolean;
 	export let is_embed: boolean;
 
 	export let space: string | null;
@@ -16,7 +15,6 @@
 <div
 	bind:this={wrapper}
 	class:app={!display && !is_embed}
-	class:fill_width
 	class:embed-container={display}
 	class:with-info={info}
 	class="gradio-container gradio-container-{version}"
@@ -89,27 +87,27 @@
 	}
 
 	@media (--screen-sm) {
-		.app:not(.fill_width) {
+		.app {
 			max-width: 640px;
 		}
 	}
 	@media (--screen-md) {
-		.app:not(.fill_width) {
+		.app {
 			max-width: 768px;
 		}
 	}
 	@media (--screen-lg) {
-		.app:not(.fill_width) {
+		.app {
 			max-width: 1024px;
 		}
 	}
 	@media (--screen-xl) {
-		.app:not(.fill_width) {
+		.app {
 			max-width: 1280px;
 		}
 	}
 	@media (--screen-xxl) {
-		.app:not(.fill_width) {
+		.app {
 			max-width: 1536px;
 		}
 	}
