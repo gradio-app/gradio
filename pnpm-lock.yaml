@@ -483,7 +483,7 @@ importers:
         specifier: workspace:^
         version: link:../statustracker
       '@gradio/utils':
-        specifier: workspace:0.5.0
+        specifier: workspace:0.5.1
         version: link:../utils
     devDependencies:
       '@gradio/preview':
@@ -1687,25 +1687,6 @@ importers:
       rollup:
         specifier: ^3.28.0
         version: 3.28.0
-
-  js/preview/test/mycomponent/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../../../../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-    devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../../..
 
   js/preview/test/test/frontend: {}
 
