@@ -90,6 +90,9 @@ export function make_gradio_plugin({
 			};
 		},
 		resolveId(id) {
+			if (id === "virtual:component-loader") {
+				return `export default {};`;
+			}
 			if (
 				id !== "svelte" &&
 				id !== "svelte/internal" &&
