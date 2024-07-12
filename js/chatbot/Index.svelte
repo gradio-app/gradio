@@ -15,7 +15,7 @@
 		Message,
 		TupleFormat,
 		MessageRole,
-		NormalisedMessage,
+		NormalisedMessage
 	} from "./types";
 
 	import { normalise_tuples, normalise_messages } from "./shared/utils";

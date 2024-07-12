@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { format_chat_for_sharing } from "./utils";
+	import { format_chat_for_sharing, is_component_message } from "./utils";
 	import type { NormalisedMessage } from "../types";
 	import { Gradio, copy } from "@gradio/utils";
 
@@ -10,7 +10,7 @@
 		createEventDispatcher,
 		type SvelteComponent,
 		type ComponentType,
-		tick,
+		tick
 	} from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import { Image } from "@gradio/image/shared";
@@ -59,7 +59,7 @@
 	$: load_components(get_components_from_messages(value));
 
 	function get_components_from_messages(
-		messages: NormalisedMessage[] | null,
+		messages: NormalisedMessage[] | null
 	): string[] {
 		if (!messages) return [];
 		let components: Set<string> = new Set();
@@ -121,7 +121,7 @@
 
 		document.body.style.setProperty(
 			"--chatbot-body-text-size",
-			updated_text_size + "px",
+			updated_text_size + "px"
 		);
 	};
 
@@ -179,20 +179,20 @@
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
 			index: message.index,
-			value: message.content,
+			value: message.content
 		});
 	}
 
 	function handle_like(
 		i: number,
 		message: NormalisedMessage,
-		selected: string | null,
+		selected: string | null
 	): void {
 		if (msg_format === "tuples") {
 			dispatch("like", {
 				index: message.index,
 				value: message.content,
-				liked: selected === "like",
+				liked: selected === "like"
 			});
 		} else {
 			if (!groupedMessages) return;
@@ -200,13 +200,13 @@
 			const message_group = groupedMessages[i];
 			const [first, last] = [
 				message_group[0],
-				message_group[message_group.length - 1],
+				message_group[message_group.length - 1]
 			];
 
 			dispatch("like", {
 				index: [first.index, last.index] as [number, number],
 				value: message_group.map((m) => m.content),
-				liked: selected === "like",
+				liked: selected === "like"
 			});
 		}
 	}
@@ -229,14 +229,8 @@
 		return `a component of type ${message.content.component ?? "unknown"}`;
 	}
 
-	function is_component_message(
-		message: NormalisedMessage,
-	): message is ComponentMessage {
-		return message.type === "component";
-	}
-
 	function group_messages(
-		messages: NormalisedMessage[],
+		messages: NormalisedMessage[]
 	): NormalisedMessage[][] {
 		const groupedMessages: NormalisedMessage[][] = [];
 		let currentGroup: NormalisedMessage[] = [];
@@ -419,7 +413,7 @@
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					{likeable}
 					{show_copy_button}
-					message={messages[0]}
+					message={msg_format === "tuples" ? messages[0] : messages}
 					position={role === "user" ? "right" : "left"}
 					avatar={avatar_img}
 					{layout}
