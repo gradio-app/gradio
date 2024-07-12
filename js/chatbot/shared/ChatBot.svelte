@@ -204,7 +204,7 @@
 			];
 
 			dispatch("like", {
-				index: [first.index, last.index],
+				index: [first.index, last.index] as [number, number],
 				value: message_group.map((m) => m.content),
 				liked: selected === "like",
 			});
