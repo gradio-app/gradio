@@ -15,7 +15,7 @@
 		Message,
 		TupleFormat,
 		MessageRole,
-		NormalisedMessage
+		NormalisedMessage,
 	} from "./types";
 
 	import { normalise_tuples, normalise_messages } from "./shared/utils";
@@ -124,6 +124,7 @@
 			upload={gradio.client.upload}
 			_fetch={gradio.client.fetch}
 			load_component={gradio.load_component}
+			{msg_format}
 		/>
 	</div>
 </Block>

@@ -39,7 +39,7 @@
 				</span>
 			</DownloadLink>
 		{/if}
-		{#if likeable && position === "left"}
+		{#if likeable}
 			<LikeDislike {handle_action} padded={show_copy || show_download} />
 		{/if}
 	</div>
@@ -54,28 +54,26 @@
 	.icon-wrap:hover {
 		color: var(--body-text-color);
 	}
-	.message-buttons-right,
-	.message-buttons-left {
+
+	.message-buttons {
 		border-radius: var(--radius-md);
 		display: flex;
 		align-items: center;
-		bottom: 0;
+
 		height: var(--size-7);
 		align-self: self-end;
-		/* position: absolute; */
-		bottom: -15px;
-		margin: 2px;
+		margin: 0px calc(var(--spacing-xl) * 3);
 		padding-left: 5px;
 		z-index: 1;
 		padding-bottom: var(--spacing-xl);
-		padding: var(--spacing-md) 2px;
+		padding: var(--spacing-md) var(--spacing-md);
+		border: 1px solid var(--border-color-primary);
+		background: var(--border-color-secondary);
+		gap: var(--spacing-md);
 	}
 	.message-buttons-left {
 		align-self: start;
 		left: 0px;
-	}
-	.message-buttons-right {
-		right: 5px;
 	}
 
 	.panel.message-buttons-left,
@@ -83,7 +81,7 @@
 		margin: 10px 0 2px 0;
 	}
 
-	.message-buttons {
+	/* .message-buttons {
 		left: 0px;
 		right: 0px;
 		top: unset;
@@ -92,9 +90,13 @@
 		justify-content: flex-start;
 		align-items: center;
 		gap: 0px;
-	}
+	} */
 
 	.message-buttons :global(> *) {
-		margin-right: 7px;
+		margin-right: 0px;
+	}
+
+	.with-avatar {
+		margin-left: calc(var(--spacing-xl) * 4 + 31px);
 	}
 </style>

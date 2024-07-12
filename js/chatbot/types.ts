@@ -18,7 +18,7 @@ export interface Message {
 	role: MessageRole;
 	metadata: Metadata;
 	content: string | FileData | ComponentData;
-	index: [number, number] | number;
+	index: number;
 }
 
 export interface TextMessage extends Message {
