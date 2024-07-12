@@ -1,7 +1,12 @@
 <script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
-	import { afterUpdate, createEventDispatcher } from "svelte";
+	import {
+		afterUpdate,
+		onMount,
+		onDestroy,
+		createEventDispatcher
+	} from "svelte";
 
 	export let value;
 	export let target;
@@ -10,6 +15,7 @@
 
 	let plot_div;
 	let plotly_global_style;
+	let resizeObserver;
 
 	const dispatch = createEventDispatcher<{ load: undefined }>();
 
@@ -23,6 +29,23 @@
 			}
 		}
 	}
+
+	onMount(() => {
+		resizeObserver = new ResizeObserver(() => {
+			Plotly.Plots.resize(plot_div);
+		});
+
+		if (plot_div && plot_div.parentElement) {
+			resizeObserver.observe(plot_div.parentElement);
+		}
+	});
+
+	onDestroy(() => {
+		window.removeEventListener("resize", updatePlot);
+		if (resizeObserver && plot_div && plot_div.parentElement) {
+			resizeObserver.unobserve(plot_div.parentElement);
+		}
+	});
 
 	afterUpdate(async () => {
 		load_plotly_css();
