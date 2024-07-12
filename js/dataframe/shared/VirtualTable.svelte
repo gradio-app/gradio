@@ -205,7 +205,7 @@
 	export async function scroll_to_index(
 		index: number,
 		opts: ScrollToOptions,
-		align_end = false,
+		align_end = false
 	): Promise<void> {
 		await tick();
 
@@ -224,7 +224,7 @@
 		const _opts = {
 			top: distance,
 			behavior: "smooth" as ScrollBehavior,
-			...opts,
+			...opts
 		};
 
 		viewport.scrollTo(_opts);
