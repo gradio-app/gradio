@@ -37,18 +37,18 @@ demo.launch()
 <!-- Behavior -->
 ### Behavior
 
-The data format accepted by the Chatbot is dictated by the `msg_format` parameter.
+The data format accepted by the Chatbot is dictated by the `type` parameter.
 This parameter can take two values, `'tuples'` and `'messages'`.
 
 
-If `msg_format` is `'tuples'`, then the data sent to/from the chatbot will be a list of tuples.
+If `type` is `'tuples'`, then the data sent to/from the chatbot will be a list of tuples.
 The first element of each tuple is the user message and the second element is the bot's response.
 Each element can be a string (markdown/html is supported),
 a tuple (in which case the first element is a filepath that will be displayed in the chatbot),
 or a gradio component (see the Examples section for more details).
 
 
-If the `msg_format` is `'messages'`, then the data sent to/from the chatbot will be a list of dictionaries
+If the `type` is `'messages'`, then the data sent to/from the chatbot will be a list of dictionaries
 with `role` and `content` keys. This format is compliant with the format expected by most LLM APIs (HuggingChat, OpenAI, Claude).
 The `role` key is either `'user'` or `'`assistant'` and the `content` key can be a string (markdown/html supported),
 a `FileDataDict` (to represent a file that is displayed in the chatbot - documented below), or a gradio component.
@@ -67,7 +67,7 @@ def generate_response(history):
     return history
 ```
 
-Additionally, when `msg_format` is `messages`, you can provide additional metadata regarding any tools used to generate the response.
+Additionally, when `type` is `messages`, you can provide additional metadata regarding any tools used to generate the response.
 This is useful for displaying the thought process of LLM agents. For example,
 
 ```python
@@ -123,7 +123,7 @@ class ChatMessage:
 ## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
 ##### Your function should accept one of these types:
 
-If `msg_format` is `tuples` - 
+If `type` is `tuples` - 
 
 ```python
 from gradio import Component
@@ -134,7 +134,7 @@ def predict(
 	...
 ```
 
-If `msg_format` is `messages` - 
+If `type` is `messages` - 
 
 ```python
 from gradio import MessageDict
@@ -147,7 +147,7 @@ def predict(value: list[MessageDict] | None):
 ## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
 ##### Your function should return one of these types:
 
-If `msg_format` is `tuples` - 
+If `type` is `tuples` - 
 
 ```python
 def predict(···) -> list[list[str | tuple[str] | tuple[str, str] | None] | tuple] | None
@@ -155,7 +155,7 @@ def predict(···) -> list[list[str | tuple[str] | tuple[str, str] | None] | tu
 	return value
 ```
 
-If `msg_format` is `messages` - 
+If `type` is `messages` - 
 
 from gradio import ChatMessage, MessageDict
 

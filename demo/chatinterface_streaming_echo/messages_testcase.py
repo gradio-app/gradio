@@ -9,7 +9,7 @@ def slow_echo(message, history):
 
 
 
-demo = gr.ChatInterface(slow_echo, msg_format="messages")
+demo = gr.ChatInterface(slow_echo, type="messages")
 
 if __name__ == "__main__":
     demo.launch()

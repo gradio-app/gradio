@@ -133,7 +133,6 @@ class Interface(Blocks):
         delete_cache: tuple[int, int] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         example_labels: list[str] | None = None,
-        fill_width: bool = False,
         **kwargs,
     ):
         """
@@ -171,7 +170,6 @@ class Interface(Blocks):
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
             show_progress: whether to show progress animation while running. Has no effect if the interface is `live`.
             example_labels: A list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
-            fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -182,7 +180,6 @@ class Interface(Blocks):
             js=js,
             head=head,
             delete_cache=delete_cache,
-            fill_width=fill_width,
             **kwargs,
         )
         self.api_name: str | Literal[False] | None = api_name

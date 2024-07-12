@@ -27,7 +27,7 @@ with gr.Blocks() as demo:
         [],
         elem_id="chatbot",
         bubble_full_width=False,
-        msg_format="messages"
+        type="messages"
     )
 
     chat_input = gr.MultimodalTextbox(interactive=True,

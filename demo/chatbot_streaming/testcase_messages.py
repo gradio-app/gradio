@@ -3,7 +3,7 @@ import random
 import time
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(msg_format="messages")
+    chatbot = gr.Chatbot(type="messages")
     msg = gr.Textbox()
     clear = gr.Button("Clear")
 

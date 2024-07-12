@@ -47,7 +47,7 @@ class TestChatbot:
             "proxy_url": None,
             "_selectable": False,
             "key": None,
-            "msg_format": "tuples",
+            "type": "tuples",
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "likeable": False,
             "rtl": False,

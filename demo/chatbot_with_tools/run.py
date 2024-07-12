@@ -45,7 +45,7 @@ def generate_response(history):
 
 
 with gr.Blocks() as demo:
-    chatbot  = gr.Chatbot(msg_format="messages")
+    chatbot  = gr.Chatbot(type="messages")
     button = gr.Button("Get San Francisco Weather")
     button.click(generate_response, chatbot, chatbot)
 
