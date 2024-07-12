@@ -3,4 +3,4 @@
 "website": minor
 ---
 
-feat:Allow updating the dataset of a `gr.Examples`
+feat:Allows updating the dataset of a `gr.Examples` 
