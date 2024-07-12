@@ -1,5 +1,11 @@
 # @gradio/utils
 
+## 0.5.1
+
+### Fixes
+
+- [#8737](https://github.com/gradio-app/gradio/pull/8737) [`31a876d`](https://github.com/gradio-app/gradio/commit/31a876d0274d7b74a90d30148f3e9c098f486242) - Fix `Share to community` button for images.  Thanks @hannahblair!
+
 ## 0.5.0
 
 ### Features

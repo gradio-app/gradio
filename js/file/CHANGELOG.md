@@ -1,5 +1,16 @@
 # @gradio/file
 
+## 0.8.5
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/client@1.3.0
+- @gradio/upload@0.11.5
+- @gradio/icons@0.6.0
+
 ## 0.8.4
 
 ### Fixes
