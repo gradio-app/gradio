@@ -593,7 +593,7 @@
 
 	.message-row.bubble.bot-row {
 		align-self: flex-start;
-		width: calc(100% - var(--spacing-xl) * 6);
+		max-width: calc(100% - var(--spacing-xl) * 6);
 	}
 
 	.message-row:last-of-type {
