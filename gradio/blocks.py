@@ -1665,7 +1665,6 @@ Received outputs:
         predictions: list | dict,
         state: SessionState | None,
     ) -> list[Any]:
-        from gradio import Dataset
         state = state or SessionState(self)
 
         if isinstance(predictions, dict) and len(predictions) > 0:
