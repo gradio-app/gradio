@@ -1715,20 +1715,6 @@ Received outputs:
                     kwargs.pop("__type__")
                     kwargs["render"] = False
 
-                    # Updating a dataset component is not supported because of two reasons:
-                    # 1. The frontend does some logic to dynamically import the example components
-                    # and this is not reactive to changes in the dataset's `components` prop.
-                    # 2. If `components` prop is provided, the Dataset class runs `.as_example()` on
-                    # the components, which in turn calls the `.postprocess()` method on the components.
-                    # But here, it is using the postprocessed value of samples, which means that
-                    # postprocessing would be done twice. For now, we are ignoring the `components` prop
-                    # because it is a rare use case.
-                    if isinstance(block, Dataset):
-                        if "components" in kwargs:
-                            warnings.warn("Updating components in a Dataset is not supported. Ignoring"
-                                          "the `components` parameter.")
-                        kwargs.pop("components")
-
                     state[block._id] = block.__class__(**kwargs)
 
                     prediction_value = postprocess_update_dict(
