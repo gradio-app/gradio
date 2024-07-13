@@ -1715,8 +1715,6 @@ Received outputs:
                     kwargs.pop("__type__")
                     kwargs["render"] = False
 
-                    print(kwargs)
-
                     # Updating a dataset component is not supported because of two reasons:
                     # 1. The frontend does some logic to dynamically import the example components
                     # and this is not reactive to changes in the dataset's `components` prop.
