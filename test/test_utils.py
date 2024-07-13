@@ -487,14 +487,17 @@ class TestUnhashableKeyDict:
     def test_set_get_unhashable(self):
         d = UnhashableKeyDict()
         key = [1, 2, 3]
+        key2 = [1, 2, 3]
         d[key] = "value"
         assert d[key] == "value"
+        assert d[key2] == "value"
 
     def test_set_get_numpy_array(self):
         d = UnhashableKeyDict()
         key = np.array([1, 2, 3])
+        key2 = np.array([1, 2, 3])
         d[key] = "numpy value"
-        assert d[key] == "numpy value"
+        assert d[key2] == "numpy value"
 
     def test_overwrite(self):
         d = UnhashableKeyDict()
@@ -532,15 +535,3 @@ class TestUnhashableKeyDict:
         d = UnhashableKeyDict()
         with pytest.raises(KeyError):
             d["nonexistent"]
-
-    def test_is_equal_method(self):
-        d = UnhashableKeyDict()
-        assert d._is_equal(1, 1)
-        b = [1, 2]
-        c1 = np.array([1, 2])
-        c2 = np.array([1, 2])
-        assert d._is_equal(b, b)
-        assert d._is_equal(c1, c1)
-        assert not d._is_equal(
-            c1, c2
-        )  # Different numpy arrays that contain the same elements will be considered different but that's okay since we only care about exact references.

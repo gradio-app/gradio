@@ -1436,31 +1436,22 @@ class UnhashableKeyDict(MutableMapping):
     def __init__(self):
         self.data = []
 
-    def _is_equal(self, key1, key2):
-        try:
-            comparison = key1 == key2
-            if comparison in [True, False]:
-                return comparison
-            return key1 is key2
-        except Exception:
-            return key1 is key2
-
     def __getitem__(self, key):
         for k, v in self.data:
-            if k is key:
+            if deep_equal(k, key):
                 return v
         raise KeyError(key)
 
     def __setitem__(self, key, value):
         for i, (k, _) in enumerate(self.data):
-            if k is key:
+            if deep_equal(k, key):
                 self.data[i] = (key, value)
                 return
         self.data.append((key, value))
 
     def __delitem__(self, key):
         for i, (k, _) in enumerate(self.data):
-            if k is key:
+            if deep_equal(k, key):
                 del self.data[i]
                 return
         raise KeyError(key)
