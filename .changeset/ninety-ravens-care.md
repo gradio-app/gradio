@@ -1,4 +1,6 @@
 ---
+"@gradio/paramviewer": patch
+"gradio": patch
 "website": patch
 ---
 
