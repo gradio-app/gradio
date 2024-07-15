@@ -45,6 +45,7 @@
 	}
 
 	function get_os(): string {
+		// @ts-ignore - userAgentData is not yet in the TS types as it is currently experimental
 		if (typeof navigator !== "undefined") {
 			const userAgent = navigator.userAgent.toLowerCase();
 			if (userAgent.indexOf("win") > -1) return "Windows";
