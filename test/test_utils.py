@@ -7,6 +7,7 @@ import warnings
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import numpy as np
 import pytest
 from typing_extensions import Literal
 
@@ -14,6 +15,7 @@ from gradio import EventData, Request
 from gradio.external_utils import format_ner_list
 from gradio.utils import (
     FileSize,
+    UnhashableKeyDict,
     _parse_file_size,
     abspath,
     append_unique_suffix,
@@ -474,3 +476,62 @@ def test_parse_file_size():
     assert _parse_file_size("1kb") == 1 * FileSize.KB
     assert _parse_file_size("1mb") == 1 * FileSize.MB
     assert _parse_file_size("505 Mb") == 505 * FileSize.MB
+
+
+class TestUnhashableKeyDict:
+    def test_set_get_simple(self):
+        d = UnhashableKeyDict()
+        d["a"] = 1
+        assert d["a"] == 1
+
+    def test_set_get_unhashable(self):
+        d = UnhashableKeyDict()
+        key = [1, 2, 3]
+        key2 = [1, 2, 3]
+        d[key] = "value"
+        assert d[key] == "value"
+        assert d[key2] == "value"
+
+    def test_set_get_numpy_array(self):
+        d = UnhashableKeyDict()
+        key = np.array([1, 2, 3])
+        key2 = np.array([1, 2, 3])
+        d[key] = "numpy value"
+        assert d[key2] == "numpy value"
+
+    def test_overwrite(self):
+        d = UnhashableKeyDict()
+        d["key"] = "old"
+        d["key"] = "new"
+        assert d["key"] == "new"
+
+    def test_delete(self):
+        d = UnhashableKeyDict()
+        d["key"] = "value"
+        del d["key"]
+        assert len(d) == 0
+        with pytest.raises(KeyError):
+            d["key"]
+
+    def test_delete_nonexistent(self):
+        d = UnhashableKeyDict()
+        with pytest.raises(KeyError):
+            del d["nonexistent"]
+
+    def test_len(self):
+        d = UnhashableKeyDict()
+        assert len(d) == 0
+        d["a"] = 1
+        d["b"] = 2
+        assert len(d) == 2
+
+    def test_contains(self):
+        d = UnhashableKeyDict()
+        d["key"] = "value"
+        assert "key" in d
+        assert "nonexistent" not in d
+
+    def test_get_nonexistent(self):
+        d = UnhashableKeyDict()
+        with pytest.raises(KeyError):
+            d["nonexistent"]

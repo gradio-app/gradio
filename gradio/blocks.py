@@ -1713,6 +1713,7 @@ Received outputs:
                     kwargs.pop("value", None)
                     kwargs.pop("__type__")
                     kwargs["render"] = False
+
                     state[block._id] = block.__class__(**kwargs)
 
                     prediction_value = postprocess_update_dict(
