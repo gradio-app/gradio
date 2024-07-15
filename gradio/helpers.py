@@ -5,6 +5,7 @@ Defines helper methods useful for loading and caching Interface examples.
 from __future__ import annotations
 
 import ast
+import copy
 import csv
 import inspect
 import os
@@ -28,6 +29,7 @@ from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
+from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
@@ -239,6 +241,7 @@ class Examples:
         self.examples = examples
         self.non_none_examples = non_none_examples
         self.inputs = inputs
+        self.input_has_examples = input_has_examples
         self.inputs_with_examples = inputs_with_examples
         self.outputs = outputs or []
         self.fn = fn
@@ -248,35 +251,15 @@ class Examples:
         self.api_name: str | Literal[False] = api_name
         self.batch = batch
         self.example_labels = example_labels
-
-        with utils.set_directory(working_directory):
-            self.processed_examples = []
-            for example in examples:
-                sub = []
-                for component, sample in zip(inputs, example):
-                    prediction_value = component.postprocess(sample)
-                    if isinstance(prediction_value, (GradioRootModel, GradioModel)):
-                        prediction_value = prediction_value.model_dump()
-                    prediction_value = processing_utils.move_files_to_cache(
-                        prediction_value,
-                        component,
-                        postprocess=True,
-                    )
-                    sub.append(prediction_value)
-                self.processed_examples.append(sub)
-
-        self.non_none_processed_examples = [
-            [ex for (ex, keep) in zip(example, input_has_examples) if keep]
-            for example in self.processed_examples
-        ]
+        self.working_directory = working_directory
 
         from gradio import components
 
         with utils.set_directory(working_directory):
             self.dataset = components.Dataset(
                 components=inputs_with_examples,
-                samples=non_none_examples,
-                type="index",
+                samples=copy.deepcopy(non_none_examples),
+                type="tuple",
                 label=label,
                 samples_per_page=examples_per_page,
                 elem_id=elem_id,
@@ -290,13 +273,38 @@ class Examples:
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
         self.cache_event: Dependency | None = None
+        self.non_none_processed_examples = UnhashableKeyDict()
+
+        if self.dataset.samples:
+            for index, example in enumerate(self.non_none_examples):
+                self.non_none_processed_examples[self.dataset.samples[index]] = (
+                    self._get_processed_example(example)
+                )
+
+    def _get_processed_example(self, example):
+        if example in self.non_none_processed_examples:
+            return self.non_none_processed_examples[example]
+        with utils.set_directory(self.working_directory):
+            sub = []
+            for component, sample in zip(self.inputs, example):
+                prediction_value = component.postprocess(sample)
+                if isinstance(prediction_value, (GradioRootModel, GradioModel)):
+                    prediction_value = prediction_value.model_dump()
+                prediction_value = processing_utils.move_files_to_cache(
+                    prediction_value,
+                    component,
+                    postprocess=True,
+                )
+                sub.append(prediction_value)
+        return [ex for (ex, keep) in zip(sub, self.input_has_examples) if keep]
 
     def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
         component to hold the examples"""
 
-        async def load_example(example_id):
-            processed_example = self.non_none_processed_examples[example_id]
+        async def load_example(example_tuple):
+            _, example_value = example_tuple
+            processed_example = self._get_processed_example(example_value)
             if len(self.inputs_with_examples) == 1:
                 return update(
                     value=processed_example[0],
@@ -496,9 +504,9 @@ class Examples:
 
             if self.outputs is None:
                 raise ValueError("self.outputs is missing")
-            for example_id in range(len(self.examples)):
-                print(f"Caching example {example_id + 1}/{len(self.examples)}")
-                processed_input = self.processed_examples[example_id]
+            for i, example in enumerate(self.examples):
+                print(f"Caching example {i + 1}/{len(self.examples)}")
+                processed_input = self._get_processed_example(example)
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
                 with utils.MatplotlibBackendMananger():
@@ -523,10 +531,11 @@ class Examples:
         # method to be called independently of the create() method
         blocks_config.fns.pop(self.load_input_event["id"])
 
-        def load_example(example_id):
-            processed_example = self.non_none_processed_examples[
-                example_id
-            ] + self.load_from_cache(example_id)
+        def load_example(example_tuple):
+            example_id, example_value = example_tuple
+            processed_example = self._get_processed_example(
+                example_value
+            ) + self.load_from_cache(example_id)
             return utils.resolve_singleton(processed_example)
 
         self.cache_event = self.load_input_event = self.dataset.click(
