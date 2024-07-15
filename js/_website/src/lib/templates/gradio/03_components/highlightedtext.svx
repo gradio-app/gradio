@@ -72,8 +72,8 @@ def predict(···) -> list[tuple[str, str | float | None]] | dict | None
 ```
 
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 

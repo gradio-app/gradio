@@ -69,7 +69,7 @@ demo.launch()
 ```
 {/if}
 
-<!--- Parameters -->
+<!--- Initialization -->
 ### Attributes
 <ParamTable parameters={obj.attributes} />
 

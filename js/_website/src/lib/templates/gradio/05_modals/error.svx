@@ -43,8 +43,8 @@ gr.Interface(divide, ["number", "number"], "number").launch()
 ```
 {/if}
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 

@@ -51,8 +51,8 @@ demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
 {/if}
 
 {#if (simple_csv_logger_obj.parameters.length > 0 && simple_csv_logger_obj.parameters[0].name != "self") || simple_csv_logger_obj.parameters.length > 1}
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={simple_csv_logger_obj.parameters} />
 {/if}
 
@@ -105,8 +105,8 @@ demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
 {/if}
 
 {#if (csv_logger_obj.parameters.length > 0 && csv_logger_obj.parameters[0].name != "self") || csv_logger_obj.parameters.length > 1}
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={csv_logger_obj.parameters} />
 {/if}
 
@@ -159,8 +159,8 @@ demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
 {/if}
 
 {#if (hf_dataset_saver_obj.parameters.length > 0 && hf_dataset_saver_obj.parameters[0].name != "self") || hf_dataset_saver_obj.parameters.length > 1}
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={hf_dataset_saver_obj.parameters} />
 {/if}
 

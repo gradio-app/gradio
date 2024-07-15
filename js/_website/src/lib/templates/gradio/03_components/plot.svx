@@ -70,8 +70,8 @@ def predict(···) -> Any
 ```
 
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 

@@ -35,8 +35,8 @@ with gr.Group():
 ```
 {/if}
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 

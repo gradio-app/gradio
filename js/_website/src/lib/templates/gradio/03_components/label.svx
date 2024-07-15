@@ -59,8 +59,8 @@ def predict(···) -> dict[str, float] | str | int | float | None
 ```
 
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 

@@ -41,8 +41,8 @@ io = gr.Interface(echo, "textbox", "textbox").launch()
 ```
 {/if}
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 

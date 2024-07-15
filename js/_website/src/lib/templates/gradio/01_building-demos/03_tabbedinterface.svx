@@ -24,8 +24,8 @@ gradio.TabbedInterface(interface_list, ···)
 ### Description
 ## {@html style_formatted_text(obj.description)}
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 

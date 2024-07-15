@@ -58,8 +58,8 @@ def predict(···) -> str | Path | tuple[str | Path, str | Path | None] | None
 ```
 
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 

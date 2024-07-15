@@ -40,8 +40,8 @@ with gr.Blocks() as demo:
 ```
 {/if}
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 

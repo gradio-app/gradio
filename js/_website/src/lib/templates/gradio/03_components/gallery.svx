@@ -65,8 +65,8 @@ def predict(···) -> list[GalleryImageType | CaptionedGalleryImageType] | None
 ```
 
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 

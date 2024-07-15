@@ -164,8 +164,8 @@ def predict(···) - > list[MessageDict] | list[ChatMessage]:
     ...
 ```
 
-<!--- Parameters -->
-### Parameters
+<!--- Initialization -->
+### Initialization
 <ParamTable parameters={obj.parameters} />
 
 
