@@ -18,12 +18,17 @@
 
     console.log(parameters);
 
+    function decode_html_entities(input: string): string {
+        const doc = new DOMParser().parseFromString(input, 'text/html');
+        return doc.documentElement.textContent || "";
+    }
+
     function convert_params(original_parameters: OriginalParam[]): Record<string, NewParam> {
         let new_parameters: Record<string, NewParam> = {};
         for (let param of original_parameters) {
             new_parameters[param.name] = {
                 type: param.annotation,
-                description: param.doc,
+                description: decode_html_entities(param.doc),
                 default: param.default || null
             };
         }
@@ -33,5 +38,5 @@
     console.log("new_parameters", new_parameters);
 </script>
 
-<ParamViewer docs={new_parameters} />
+<ParamViewer value={new_parameters} header="Parameters"/>
 

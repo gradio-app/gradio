@@ -13,10 +13,9 @@
 	}
 
 	export let docs: Record<string, Param>;
-	console.log(">>>docs", docs);
 	export let lang: "python" | "typescript" = "python";
 	export let linkify: string[] = [];
-	export let header: string | null = "Parameters";
+	export let header: string | null;
 
 	let component_root: HTMLElement;
 	let _docs: Param[];
