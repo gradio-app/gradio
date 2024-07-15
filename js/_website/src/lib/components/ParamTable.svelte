@@ -2,37 +2,36 @@
 	export let parameters = [] as any[];
 	import ParamViewer from "@gradio/paramviewer";
 
-	interface Param {
-    type: string | null;
-    description: string;
-    default: string | null;
-    name?: string;
-}
-
-function convert_parameters(parameters: any[]): Record<string, Param> {
-    if (!Array.isArray(parameters)) {
-        console.error('Invalid parameters: expected an array');
-        return {};
+	interface OriginalParam {
+        annotation: string | null;
+        doc: string;
+        default?: string | null;
+        name: string;
     }
 
-    const result: Record<string, Param> = {};
+	interface NewParam {
+        type: string | null;
+        description: string;
+        default: string | null;
+        name?: string;
+    }
 
-    for (const param of parameters) {
-        if (param && typeof param === 'object' && param.name && param.name !== "self") {
-            result[param.name] = {
-                type: param.annotation ? param.annotation.replace("Sequence[", "list[") : null,
-                description: param.doc || "",
-                default: param.default !== undefined ? String(param.default) : null,
-                name: param.name
+    console.log(parameters);
+
+    function convert_params(original_parameters: OriginalParam[]): Record<string, NewParam> {
+        let new_parameters: Record<string, NewParam> = {};
+        for (let param of original_parameters) {
+            new_parameters[param.name] = {
+                type: param.annotation,
+                description: param.doc,
+                default: param.default || null
             };
         }
+        return new_parameters;
     }
-
-    return result;
-}
-let docs = convert_parameters(parameters);
-
+    let new_parameters = convert_params(parameters)
+    console.log("new_parameters", new_parameters);
 </script>
 
-<ParamViewer {docs} />
+<ParamViewer docs={new_parameters} />
 

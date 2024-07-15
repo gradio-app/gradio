@@ -13,9 +13,10 @@
 	}
 
 	export let docs: Record<string, Param>;
+	console.log(">>>docs", docs);
 	export let lang: "python" | "typescript" = "python";
 	export let linkify: string[] = [];
-	export let header: string | null;
+	export let header: string | null = "Parameters";
 
 	let component_root: HTMLElement;
 	let _docs: Param[];
@@ -44,6 +45,9 @@
 		_docs: typeof docs,
 		lang: "python" | "typescript"
 	): Param[] {
+		if (!_docs) {
+			return [];
+		}
 		return Object.entries(_docs).map(
 			([name, { type, description, default: _default }]) => {
 				let highlighted_type = type ? highlight(type, lang) : null;
