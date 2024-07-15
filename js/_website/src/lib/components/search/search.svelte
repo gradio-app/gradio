@@ -45,13 +45,14 @@
 	}
 
 	function get_os(): string {
-		if (typeof navigator !== 'undefined') {
+		if (typeof navigator !== "undefined") {
 			const userAgent = navigator.userAgent.toLowerCase();
 			if (userAgent.indexOf("win") > -1) return "Windows";
 			if (userAgent.indexOf("mac") > -1) return "MacOS";
 			if (userAgent.indexOf("linux") > -1) return "Linux";
 			if (userAgent.indexOf("android") > -1) return "Android";
-			if (userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1) return "iOS";
+			if (userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1)
+				return "iOS";
 		}
 		return "Unknown";
 	}
