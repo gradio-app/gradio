@@ -309,6 +309,10 @@ strong {
 .embedded-component .gradio-container footer {
 	display: none !important;
 }
+.embedded-component:has(.loading) {
+	visibility: hidden;
+	height: 0;
+}
 
 .obj .codeblock {
 	@apply my-4;
