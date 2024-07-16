@@ -10,7 +10,7 @@ def xray_model(diseases, img):
 def ct_model(diseases, img):
     return [{disease: 0.1 for disease in diseases}]
 
-with gr.Blocks(fill_width=True) as demo:
+with gr.Blocks() as demo:
     gr.Markdown(
         """
 # Detect Disease From Scan
