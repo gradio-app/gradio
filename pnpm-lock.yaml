@@ -483,7 +483,7 @@ importers:
         specifier: workspace:^
         version: link:../statustracker
       '@gradio/utils':
-        specifier: workspace:0.5.0
+        specifier: workspace:0.5.1
         version: link:../utils
     devDependencies:
       '@gradio/preview':

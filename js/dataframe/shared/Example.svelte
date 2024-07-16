@@ -21,3 +21,9 @@
 		</tr>
 	{/if}
 </table>
+
+<style>
+	table {
+		border-collapse: separate;
+	}
+</style>

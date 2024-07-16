@@ -37,7 +37,7 @@
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
-	export let msg_format: "tuples" | "messages" = "tuples";
+	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let latex_delimiters: {
@@ -58,7 +58,7 @@
 	let _value: NormalisedMessage[] | null = [];
 
 	$: _value =
-		msg_format === "tuples"
+		type === "tuples"
 			? normalise_tuples(value as TupleFormat, root)
 			: normalise_messages(value as Message[], root);
 
@@ -124,6 +124,7 @@
 			upload={gradio.client.upload}
 			_fetch={gradio.client.fetch}
 			load_component={gradio.load_component}
+			msg_format={type}
 		/>
 	</div>
 </Block>

@@ -1,11 +1,11 @@
 name: "test / functional"
 
 on:
-  # workflow_run:
-  #   workflows: ["trigger"]
-  #   types:
-  #     - requested
-  pull_request: {}
+  workflow_run:
+    workflows: ["trigger"]
+    types:
+      - requested
+
 
 permissions:
   statuses: write
