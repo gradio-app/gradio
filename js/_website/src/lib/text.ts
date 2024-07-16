@@ -8,11 +8,11 @@ export function style_formatted_text(formatted_text: string | null): string {
 		.replace(regex_italic, "<em class='italic font-semibold'>$1</em>")
 		.replace(
 			regex_code,
-			"<code class='text-orange-500' style='font-family: monospace; font-size: large;'>$1</code>"
+			"<code class='text-orange-500' style='font-family: monospace; font-size: 0.9em;'>$1</code>"
 		)
 		.replace(
 			regex_curly_brackets,
-			"<code class='text-orange-500' style='font-family: monospace; font-size: large;'>$1</code>"
+			"<code class='text-orange-500' style='font-family: monospace; font-size: 0.9em;'>$1</code>"
 		)
 		.replace(
 			/\[(.*?)\]\((.*?)\)/g,

@@ -424,6 +424,9 @@ importers:
       '@gradio/code':
         specifier: workspace:^
         version: link:../code
+      '@gradio/paramviewer':
+        specifier: workspace:^
+        version: link:../paramviewer
       '@sindresorhus/slugify':
         specifier: ^2.2.0
         version: 2.2.0
