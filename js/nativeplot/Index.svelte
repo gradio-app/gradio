@@ -42,17 +42,25 @@
 	export let y_lim: [number, number] | null = null;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
-	$: _sort = Array.isArray(sort)
-		? sort
-		: sort === "x"
-			? "ascending"
-			: sort === "-x"
-				? "descending"
-				: sort === "y"
-					? { field: y, order: "ascending" }
-					: sort === "-y"
-						? { field: y, order: "descending" }
-						: undefined;
+	let _sort:
+		| "ascending"
+		| "descending"
+		| { field: string; order: "ascending" | "descending" }
+		| string[]
+		| undefined;
+	$: if (sort === "x") {
+		_sort === "ascending";
+	} else if (sort === "-x") {
+		_sort === "descending";
+	} else if (sort === "y") {
+		_sort = { field: y, order: "ascending" };
+	} else if (sort === "-y") {
+		_sort = { field: y, order: "descending" };
+	} else if (sort === null) {
+		_sort = undefined;
+	} else if (Array.isArray(sort)) {
+		_sort = sort;
+	}
 	export let _selectable = false;
 	export let target: HTMLDivElement;
 	let _data: {
