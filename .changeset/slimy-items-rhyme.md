@@ -7,4 +7,4 @@
 "gradio": minor
 ---
 
-feat:6503 imed dnd
+feat:Ensure all upload components have consistent upload regions.
