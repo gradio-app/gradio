@@ -104,16 +104,15 @@
 	let active_theme_mode: Exclude<ThemeMode, "system"> = "light";
 	let parent_container: HTMLDivElement;
 
+	let code_editor_container: HTMLDivElement;
 	onMount(() => {
-		var code_editors = document.getElementsByClassName("code-editor");
-		for (var i = 0; i < code_editors.length; i++) {
-			code_editors[i].addEventListener(
-				"keydown",
-				shortcut_run as EventListener,
-				true
-			);
-		}
 		active_theme_mode = handle_theme_mode(parent_container);
+
+		code_editor_container.addEventListener("keydown", shortcut_run, true);
+
+		return () => {
+			code_editor_container.removeEventListener("keydown", shortcut_run, true);
+		};
 	});
 
 	$: loading_text;
@@ -157,7 +156,11 @@
 			class:vertical={layout === "vertical"}
 			class="child-container"
 		>
-			<div class:code-editor-border={loaded} class="code-editor">
+			<div
+				class:code-editor-border={loaded}
+				class="code-editor"
+				bind:this={code_editor_container}
+			>
 				<Block variant={"solid"} padding={false}>
 					<Code
 						bind:value={code}
