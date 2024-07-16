@@ -93,7 +93,6 @@
 
 	function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
 		const dark_class_element = is_embed ? target.parentElement! : document.body;
-		const bg_element = is_embed ? target : target.parentElement!;
 		if (theme === "dark") {
 			dark_class_element.classList.add("dark");
 		} else {
