@@ -25,6 +25,8 @@
 	export let include_time = true;
 	$: if (value !== old_value) {
 		old_value = value;
+		entered_value = value;
+		datevalue = value;
 		gradio.dispatch("change");
 	}
 
@@ -49,7 +51,7 @@
 
 	let entered_value = value;
 	let datetime: HTMLInputElement;
-	let datevalue = "";
+	let datevalue = value;
 
 	const date_is_valid_format = (date: string): boolean => {
 		if (date === "") return false;

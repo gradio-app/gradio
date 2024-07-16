@@ -1,0 +1,480 @@
+<script lang="ts">
+	import type { Gradio, SelectData } from "@gradio/utils";
+	import { BlockTitle } from "@gradio/atoms";
+	import { Block } from "@gradio/atoms";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { LoadingStatus } from "@gradio/statustracker";
+	import { onMount } from "svelte";
+
+	import type { TopLevelSpec as Spec } from "vega-lite";
+	import vegaEmbed from "vega-embed";
+	import type { View } from "vega";
+
+	interface PlotData {
+		columns: string[];
+		data: [string | number][];
+		datatypes: Record<string, "quantitative" | "temporal" | "nominal">;
+		mark: "line" | "point" | "bar";
+	}
+	export let value: PlotData;
+	export let x: string;
+	export let y: string;
+	export let color: string | null = null;
+	$: unique_colors =
+		color && value.datatypes[color] === "nominal"
+			? Array.from(new Set(_data.map((d) => d[color])))
+			: [];
+
+	export let title: string | null = null;
+	export let x_title: string | null = null;
+	export let y_title: string | null = null;
+	export let color_title: string | null = null;
+	export let x_bin: string | number | null = null;
+	export let y_aggregate:
+		| "sum"
+		| "mean"
+		| "median"
+		| "min"
+		| "max"
+		| undefined = undefined;
+	export let color_map: Record<string, string> | null = null;
+	export let x_lim: [number, number] | null = null;
+	export let y_lim: [number, number] | null = null;
+	export let caption: string | null = null;
+	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
+	$: _sort = Array.isArray(sort)
+		? sort
+		: sort === "x"
+			? "ascending"
+			: sort === "-x"
+				? "descending"
+				: sort === "y"
+					? { field: y, order: "ascending" }
+					: sort === "-y"
+						? { field: y, order: "descending" }
+						: undefined;
+	export let _selectable = false;
+	export let target: HTMLDivElement;
+	let _data: {
+		[x: string]: string | number;
+	}[];
+	export let gradio: Gradio<{
+		select: SelectData;
+		clear_status: LoadingStatus;
+	}>;
+
+	$: x_temporal = value.datatypes[x] === "temporal";
+	$: _x_lim = x_lim && x_temporal ? [x_lim[0] * 1000, x_lim[1] * 1000] : x_lim;
+	let _x_bin: number | undefined;
+	let mouse_down_on_chart = false;
+	const SUFFIX_DURATION: Record<string, number> = {
+		s: 1,
+		m: 60,
+		h: 60 * 60,
+		d: 24 * 60 * 60
+	};
+	$: _x_bin = x_bin
+		? typeof x_bin === "string"
+			? 1000 *
+				parseInt(x_bin.substring(0, x_bin.length - 1)) *
+				SUFFIX_DURATION[x_bin[x_bin.length - 1]]
+			: x_bin
+		: undefined;
+	let _y_aggregate: typeof y_aggregate;
+	let aggregating: boolean;
+	$: {
+		if (value.mark === "point") {
+			aggregating = _x_bin !== undefined;
+			_y_aggregate = y_aggregate || aggregating ? "sum" : undefined;
+		} else {
+			aggregating = _x_bin !== undefined || value.datatypes[x] === "nominal";
+			_y_aggregate = y_aggregate ? y_aggregate : "sum";
+		}
+	}
+	$: {
+		let x_index = value.columns.indexOf(x);
+		let y_index = value.columns.indexOf(y);
+		let color_index = color ? value.columns.indexOf(color) : null;
+
+		_data = value.data.map((row) => {
+			const obj = {
+				[x]: row[x_index],
+				[y]: row[y_index]
+			};
+			if (color && color_index !== null) {
+				obj[color] = row[color_index];
+			}
+			return obj;
+		});
+	}
+
+	let chartElement: HTMLDivElement;
+	let computed_style = window.getComputedStyle(target);
+	let view: View;
+	let mounted = false;
+	let old_width: number;
+
+	const loadChart = () => {
+		if (view) {
+			view.finalize();
+		}
+		old_width = chartElement.offsetWidth;
+		const spec = createVegaLiteSpec();
+		let resizeObserver = new ResizeObserver(() => {
+			if (
+				old_width === 0 &&
+				chartElement.offsetWidth !== 0 &&
+				value.datatypes[x] === "nominal"
+			) {
+				// a bug where when a nominal chart is first loaded, the width is 0, it doesn't resize
+				loadChart();
+			} else {
+				view.signal("width", chartElement.offsetWidth).run();
+			}
+		});
+		vegaEmbed(chartElement, spec, { actions: false }).then(function (result) {
+			view = result.view;
+			resizeObserver.observe(chartElement);
+			var debounceTimeout: NodeJS.Timeout;
+			if (_selectable) {
+				view.addSignalListener("brush", function (_, value) {
+					if (Object.keys(value).length === 0) return;
+					clearTimeout(debounceTimeout);
+					let range: [number, number] = value[Object.keys(value)[0]];
+					if (x_temporal) {
+						range = [range[0] / 1000, range[1] / 1000];
+					}
+					let callback = () => {
+						gradio.dispatch("select", {
+							value: range,
+							index: range,
+							selected: true
+						});
+					};
+					if (mouse_down_on_chart) {
+						release_callback = callback;
+					} else {
+						debounceTimeout = setTimeout(function () {
+							gradio.dispatch("select", {
+								value: range,
+								index: range,
+								selected: true
+							});
+						}, 250);
+					}
+				});
+			}
+		});
+	};
+
+	let release_callback: (() => void) | null = null;
+	onMount(() => {
+		mounted = true;
+		chartElement.addEventListener("mousedown", () => {
+			mouse_down_on_chart = true;
+		});
+		chartElement.addEventListener("mouseup", () => {
+			mouse_down_on_chart = false;
+			if (release_callback) {
+				release_callback();
+				release_callback = null;
+			}
+		});
+	});
+
+	$: title,
+		x_title,
+		y_title,
+		color_title,
+		x,
+		y,
+		color,
+		x_bin,
+		_y_aggregate,
+		color_map,
+		x_lim,
+		y_lim,
+		caption,
+		sort,
+		mounted && loadChart();
+
+	function createVegaLiteSpec() {
+		let accentColor = computed_style.getPropertyValue("--color-accent");
+		let bodyTextColor = computed_style.getPropertyValue("--body-text-color");
+		let borderColorPrimary = computed_style.getPropertyValue(
+			"--border-color-primary"
+		);
+		let fontFamily = computed_style.fontFamily;
+		let titleWeight = computed_style.getPropertyValue(
+			"--block-title-text-weight"
+		) as
+			| "bold"
+			| "normal"
+			| 100
+			| 200
+			| 300
+			| 400
+			| 500
+			| 600
+			| 700
+			| 800
+			| 900;
+		const fontToPxVal = (font: string): number => {
+			return font.endsWith("px") ? parseFloat(font.slice(0, -2)) : 12;
+		};
+		let textSizeMd = fontToPxVal(computed_style.getPropertyValue("--text-md"));
+		let textSizeSm = fontToPxVal(computed_style.getPropertyValue("--text-sm"));
+
+		const spec: Spec = {
+			$schema: "https://vega.github.io/schema/vega-lite/v5.17.0.json",
+			background: "transparent",
+			config: {
+				autosize: { type: "fit", contains: "padding" },
+				axis: {
+					labelFont: fontFamily,
+					labelColor: bodyTextColor,
+					titleFont: fontFamily,
+					titleColor: bodyTextColor,
+					titlePadding: 8,
+					tickColor: borderColorPrimary,
+					labelFontSize: textSizeSm,
+					gridColor: borderColorPrimary,
+					titleFontWeight: "normal",
+					titleFontSize: textSizeSm,
+					labelFontWeight: "normal",
+					domain: false,
+					labelAngle: 0
+				},
+				legend: {
+					labelColor: bodyTextColor,
+					labelFont: fontFamily,
+					titleColor: bodyTextColor,
+					titleFont: fontFamily,
+					titleFontWeight: "normal",
+					titleFontSize: textSizeSm,
+					labelFontWeight: "normal",
+					offset: 2
+				},
+				title: {
+					color: bodyTextColor,
+					font: fontFamily,
+					fontSize: textSizeMd,
+					fontWeight: titleWeight,
+					anchor: "middle"
+				},
+				view: { stroke: borderColorPrimary },
+				mark: {
+					stroke: value.mark !== "bar" ? accentColor : undefined,
+					fill: value.mark === "bar" ? accentColor : undefined,
+					cursor: "crosshair"
+				}
+			},
+			data: { name: "data" },
+			datasets: {
+				data: _data
+			},
+			layer: ["plot"]
+				.concat(value.mark === "line" ? ["hover"] : [])
+				.map((mode) => {
+					return {
+						encoding: {
+							size:
+								value.mark === "line"
+									? mode == "plot"
+										? {
+												condition: {
+													empty: false,
+													param: "hoverPlot",
+													value: 3
+												},
+												value: 2
+											}
+										: {
+												condition: { empty: false, param: "hover", value: 100 },
+												value: 0
+											}
+									: undefined,
+							opacity:
+								mode === "plot"
+									? undefined
+									: {
+											condition: { empty: false, param: "hover", value: 1 },
+											value: 0
+										},
+							x: {
+								axis: {},
+								field: x,
+								title: x_title || x,
+								type: value.datatypes[x],
+								scale: _x_lim ? { domain: _x_lim } : undefined,
+								bin: _x_bin ? { step: _x_bin } : undefined,
+								sort: _sort
+							},
+							y: {
+								axis: {},
+								field: y,
+								title: y_title || y,
+								type: value.datatypes[y],
+								scale: y_lim ? { domain: y_lim } : undefined,
+								aggregate: aggregating ? _y_aggregate : undefined
+							},
+							color: color
+								? {
+										field: color,
+										legend: { orient: "bottom", title: color_title },
+										scale:
+											value.datatypes[color] === "nominal"
+												? {
+														domain: unique_colors,
+														range: color_map
+															? unique_colors.map((c) => color_map[c])
+															: undefined
+													}
+												: {
+														range: [
+															100, 200, 300, 400, 500, 600, 700, 800, 900
+														].map((n) =>
+															computed_style.getPropertyValue("--primary-" + n)
+														),
+														interpolate: "hsl"
+													},
+										type: value.datatypes[color]
+									}
+								: undefined,
+							tooltip: [
+								{
+									field: y,
+									type: value.datatypes[y],
+									aggregate: aggregating ? _y_aggregate : undefined,
+									title: y_title || y
+								},
+								{
+									field: x,
+									type: value.datatypes[x],
+									title: x_title || x,
+									format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
+									bin: _x_bin ? { step: _x_bin } : undefined
+								}
+							].concat(
+								color
+									? [
+											{
+												field: color,
+												type: value.datatypes[color]
+											}
+										]
+									: []
+							)
+						},
+						strokeDash: {},
+						mark: { clip: true, type: mode === "hover" ? "point" : value.mark },
+						name: mode
+					};
+				}),
+			params: (value.mark === "line"
+				? [
+						{
+							name: "hoverPlot",
+							select: {
+								clear: "mouseout",
+								fields: color ? [color] : [],
+								nearest: true,
+								on: "mouseover",
+								type: "point"
+							},
+							views: ["hover"]
+						},
+						{
+							name: "hover",
+							select: {
+								clear: "mouseout",
+								nearest: true,
+								on: "mouseover",
+								type: "point"
+							},
+							views: ["hover"]
+						}
+					]
+				: []
+			).concat(
+				_selectable
+					? [
+							{
+								name: "brush",
+								select: {
+									encodings: ["x"],
+									mark: { fill: "gray", fillOpacity: 0.3, stroke: "none" },
+									type: "interval"
+								},
+								views: ["plot"]
+							}
+						]
+					: []
+			),
+			width: chartElement.offsetWidth
+		};
+
+		if (title) {
+			spec.title = title;
+		}
+		console.log("init width", chartElement.offsetWidth, "for", value.mark);
+		return spec;
+	}
+
+	export let label = "Textbox";
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let show_label: boolean;
+	export let scale: number | null = null;
+	export let min_width: number | undefined = undefined;
+	export let loading_status: LoadingStatus | undefined = undefined;
+	export let height: number | undefined = undefined;
+</script>
+
+<Block
+	{visible}
+	{elem_id}
+	{elem_classes}
+	{scale}
+	{min_width}
+	allow_overflow={false}
+	padding={true}
+	{height}
+>
+	{#if loading_status}
+		<StatusTracker
+			autoscroll={gradio.autoscroll}
+			i18n={gradio.i18n}
+			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		/>
+	{/if}
+	<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
+	<div bind:this={chartElement}></div>
+	{#if caption}
+		<p class="caption">{caption}</p>
+	{/if}
+</Block>
+
+<style>
+	div {
+		width: 100%;
+	}
+	:global(#vg-tooltip-element) {
+		font-family: var(--font) !important;
+		font-size: var(--text-xs) !important;
+		box-shadow: none !important;
+		background-color: var(--block-background-fill) !important;
+		border: 1px solid var(--border-color-primary) !important;
+		color: var(--body-text-color) !important;
+	}
+	:global(#vg-tooltip-element .key) {
+		color: var(--body-text-color-subdued) !important;
+	}
+	.caption {
+		padding: 0 4px;
+		margin: 0;
+		text-align: center;
+	}
+</style>
