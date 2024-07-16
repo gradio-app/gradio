@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import fnmatch
 import os
-import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Literal
 
