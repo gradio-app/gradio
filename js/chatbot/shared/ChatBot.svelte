@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { format_chat_for_sharing, type NormalisedMessage } from "./utils";
+	import { format_chat_for_sharing, is_component_message } from "./utils";
+	import type { NormalisedMessage } from "../types";
 	import { Gradio, copy } from "@gradio/utils";
 
 	import { dequal } from "dequal/lite";
@@ -16,10 +17,16 @@
 
 	import { Clear } from "@gradio/icons";
 	import type { SelectData, LikeData } from "@gradio/utils";
+	import type { MessageRole, ComponentMessage, ComponentData } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
-	import { type FileData, type Client } from "@gradio/client";
+	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import Pending from "./Pending.svelte";
+	import MessageBox from "./MessageBox.svelte";
+
+	export let value: NormalisedMessage[] | null = [];
+	let old_value: NormalisedMessage[] | null = null;
+
 	import Component from "./Component.svelte";
 	import LikeButtons from "./ButtonPanel.svelte";
 	import type { LoadedComponent } from "../../app/src/types";
@@ -51,26 +58,18 @@
 
 	$: load_components(get_components_from_messages(value));
 
-	function get_components_from_messages(messages: typeof value): string[] {
+	function get_components_from_messages(
+		messages: NormalisedMessage[] | null
+	): string[] {
 		if (!messages) return [];
 		let components: Set<string> = new Set();
-		messages.forEach((message_pair) => {
-			message_pair.forEach((message) => {
-				if (
-					typeof message === "object" &&
-					message !== null &&
-					"component" in message
-				) {
-					components.add(message.component);
-				}
-			});
+		messages.forEach((message) => {
+			if (message.type === "component") {
+				components.add(message.content.component);
+			}
 		});
-
 		return Array.from(components);
 	}
-
-	export let value: [NormalisedMessage, NormalisedMessage][] | null = [];
-	let old_value: [NormalisedMessage, NormalisedMessage][] | null = null;
 
 	export let latex_delimiters: {
 		left: string;
@@ -93,6 +92,8 @@
 	export let layout: "bubble" | "panel" = "bubble";
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
+	export let msg_format: "tuples" | "messages" = "tuples";
+
 	let target = document.querySelector("div.gradio-container");
 
 	let div: HTMLDivElement;
@@ -173,45 +174,92 @@
 		}
 	}
 
-	function handle_select(
-		i: number,
-		j: number,
-		message: NormalisedMessage
-	): void {
+	$: groupedMessages = value && group_messages(value);
+
+	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
-			index: [i, j],
-			value: message
+			index: message.index,
+			value: message.content
 		});
 	}
 
 	function handle_like(
 		i: number,
-		j: number,
 		message: NormalisedMessage,
 		selected: string | null
 	): void {
-		dispatch("like", {
-			index: [i, j],
-			value: message,
-			liked: selected === "like"
-		});
+		if (msg_format === "tuples") {
+			dispatch("like", {
+				index: message.index,
+				value: message.content,
+				liked: selected === "like"
+			});
+		} else {
+			if (!groupedMessages) return;
+
+			const message_group = groupedMessages[i];
+			const [first, last] = [
+				message_group[0],
+				message_group[message_group.length - 1]
+			];
+
+			dispatch("like", {
+				index: [first.index, last.index] as [number, number],
+				value: message_group.map((m) => m.content),
+				liked: selected === "like"
+			});
+		}
 	}
 
 	function get_message_label_data(message: NormalisedMessage): string {
 		if (message.type === "text") {
-			return message.value;
-		} else if (message.type === "component") {
-			return `a component of type ${message.component}`;
-		} else if (message.type === "file") {
-			if (Array.isArray(message.file)) {
-				return `file of extension type: ${message.file[0].orig_name?.split(".").pop()}`;
+			return message.content;
+		} else if (
+			message.type === "component" &&
+			message.content.component === "file"
+		) {
+			if (Array.isArray(message.content.value)) {
+				return `file of extension type: ${message.content.value[0].orig_name?.split(".").pop()}`;
 			}
 			return (
-				`file of extension type: ${message.file?.orig_name?.split(".").pop()}` +
-				(message.file?.orig_name ?? "")
+				`file of extension type: ${message.content.value?.orig_name?.split(".").pop()}` +
+				(message.content.value?.orig_name ?? "")
 			);
 		}
-		return `a message of type ` + message.type ?? "unknown";
+		return `a component of type ${message.content.component ?? "unknown"}`;
+	}
+
+	function group_messages(
+		messages: NormalisedMessage[]
+	): NormalisedMessage[][] {
+		const groupedMessages: NormalisedMessage[][] = [];
+		let currentGroup: NormalisedMessage[] = [];
+		let currentRole: MessageRole | null = null;
+
+		for (const message of messages) {
+			if (msg_format === "tuples") {
+				currentRole = null;
+			}
+
+			if (!(message.role === "assistant" || message.role === "user")) {
+				continue;
+			}
+			if (message.role === currentRole) {
+				currentGroup.push(message);
+			} else {
+				if (currentGroup.length > 0) {
+					groupedMessages.push(currentGroup);
+				}
+				currentGroup = [message];
+				currentRole = message.role;
+			}
+		}
+
+		if (currentGroup.length > 0) {
+			groupedMessages.push(currentGroup);
+		}
+
+		return groupedMessages;
 	}
 </script>
 
@@ -236,133 +284,140 @@
 	aria-live="polite"
 >
 	<div class="message-wrap" use:copy>
-		{#if value !== null && value.length > 0}
-			{#each value as message_pair, i}
-				{#each message_pair as message, j}
-					{#if message.type !== "empty"}
-						{#if is_image_preview_open}
-							<div class="image-preview">
-								<img
-									src={image_preview_source}
-									alt={image_preview_source_alt}
-								/>
-								<button
-									class="image-preview-close-button"
-									on:click={() => {
-										is_image_preview_open = false;
-									}}><Clear /></button
-								>
-							</div>
-						{/if}
-						<div
-							class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}"
-							class:with_avatar={avatar_images[j] !== null}
-							class:with_opposite_avatar={avatar_images[j === 0 ? 1 : 0] !==
-								null}
+		{#if value !== null && value.length > 0 && groupedMessages !== null}
+			{#each groupedMessages as messages, i}
+				{@const role = messages[0].role === "user" ? "user" : "bot"}
+				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
+				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
+				{#if is_image_preview_open}
+					<div class="image-preview">
+						<img src={image_preview_source} alt={image_preview_source_alt} />
+						<button
+							class="image-preview-close-button"
+							on:click={() => {
+								is_image_preview_open = false;
+							}}><Clear /></button
 						>
-							{#if avatar_images[j] !== null}
-								<div class="avatar-container">
-									<Image
-										class="avatar-image"
-										src={avatar_images[j]?.url}
-										alt="{j == 0 ? 'user' : 'bot'} avatar"
-									/>
-								</div>
-							{/if}
-							<div class="flex-wrap">
-								<div
-									class="message {j == 0 ? 'user' : 'bot'} {typeof message ===
-										'object' &&
-									message !== null &&
-									'component' in message
-										? message?.component
-										: ''}"
-									class:message-fit={!bubble_full_width}
-									class:panel-full-width={true}
+					</div>
+				{/if}
+				<div
+					class="message-row {layout} {role}-row"
+					class:with_avatar={avatar_img !== null}
+					class:with_opposite_avatar={opposite_avatar_img !== null}
+				>
+					{#if avatar_img !== null}
+						<div class="avatar-container">
+							<Image
+								class="avatar-image"
+								src={avatar_img?.url}
+								alt="{role} avatar"
+							/>
+						</div>
+					{/if}
+					<div
+						class="flex-wrap {role} "
+						class:component-wrap={messages[0].type === "component"}
+					>
+						{#each messages as message, thought_index}
+							{@const msg_type = messages[0].type}
+							<div
+								class="message {role} {is_component_message(message)
+									? message?.content.component
+									: ''}"
+								class:message-fit={!bubble_full_width}
+								class:panel-full-width={true}
+								class:message-markdown-disabled={!render_markdown}
+								style:text-align={rtl && role === "user" ? "left" : "right"}
+								class:component={msg_type === "component"}
+								class:html={is_component_message(message) &&
+									message.content.component === "html"}
+								class:thought={thought_index > 0}
+							>
+								<button
+									data-testid={role}
+									class:latest={i === value.length - 1}
 									class:message-markdown-disabled={!render_markdown}
-									style:text-align={rtl && j == 0 ? "left" : "right"}
-									class:component={typeof message === "object" &&
-										message !== null &&
-										"component" in message}
-									class:html={typeof message === "object" &&
-										message !== null &&
-										"component" in message &&
-										message.component === "html"}
+									style:user-select="text"
+									class:selectable
+									style:text-align={rtl ? "right" : "left"}
+									on:click={() => handle_select(i, message)}
+									on:keydown={(e) => {
+										if (e.key === "Enter") {
+											handle_select(i, message);
+										}
+									}}
+									dir={rtl ? "rtl" : "ltr"}
+									aria-label={role +
+										"'s message: " +
+										get_message_label_data(message)}
 								>
-									<button
-										data-testid={j == 0 ? "user" : "bot"}
-										class:latest={i === value.length - 1}
-										class:message-markdown-disabled={!render_markdown}
-										style:user-select="text"
-										class:selectable
-										style:text-align={rtl ? "right" : "left"}
-										on:click={() => handle_select(i, j, message)}
-										on:keydown={(e) => {
-											if (e.key === "Enter") {
-												handle_select(i, j, message);
-											}
-										}}
-										dir={rtl ? "rtl" : "ltr"}
-										aria-label={(j == 0 ? "user" : "bot") +
-											"'s message: " +
-											get_message_label_data(message)}
-									>
-										{#if message.type === "text"}
+									{#if message.type === "text"}
+										{#if message.metadata.title}
+											<MessageBox title={message.metadata.title}>
+												<Markdown
+													message={message.content}
+													{latex_delimiters}
+													{sanitize_html}
+													{render_markdown}
+													{line_breaks}
+													on:load={scroll}
+												/>
+											</MessageBox>
+										{:else}
 											<Markdown
-												message={message.value}
+												message={message.content}
 												{latex_delimiters}
 												{sanitize_html}
 												{render_markdown}
 												{line_breaks}
 												on:load={scroll}
 											/>
-										{:else if message.type === "component" && message.component in _components}
-											<Component
-												{target}
-												{theme_mode}
-												props={message.props}
-												type={message.component}
-												components={_components}
-												value={message.value}
-												{i18n}
-												{upload}
-												{_fetch}
-												on:load={scroll}
-											/>
-										{:else if message.type === "component" && message.component === "file"}
-											<a
-												data-testid="chatbot-file"
-												class="file-pil"
-												href={message.value.url}
-												target="_blank"
-												download={window.__is_colab__
-													? null
-													: message.value?.orig_name ||
-														message.value?.path.split("/").pop() ||
-														"file"}
-											>
-												{message.value?.orig_name ||
-													message.value?.path.split("/").pop() ||
-													"file"}
-											</a>
 										{/if}
-									</button>
-								</div>
-								<LikeButtons
-									show={j === 1 && (likeable || show_copy_button)}
-									handle_action={(selected) =>
-										handle_like(i, j, message, selected)}
-									{likeable}
-									{show_copy_button}
-									{message}
-									position={j === 0 ? "right" : "left"}
-									avatar={avatar_images[j]}
-									{layout}
-								/>
+									{:else if message.type === "component" && message.content.component in _components}
+										<Component
+											{target}
+											{theme_mode}
+											props={message.content.props}
+											type={message.content.component}
+											components={_components}
+											value={message.content.value}
+											{i18n}
+											{upload}
+											{_fetch}
+											on:load={scroll}
+										/>
+									{:else if message.type === "component" && message.content.component === "file"}
+										<a
+											data-testid="chatbot-file"
+											class="file-pil"
+											href={message.content.value.url}
+											target="_blank"
+											download={window.__is_colab__
+												? null
+												: message.content.value?.orig_name ||
+													message.content.value?.path.split("/").pop() ||
+													"file"}
+										>
+											{message.content.value?.orig_name ||
+												message.content.value?.path.split("/").pop() ||
+												"file"}
+										</a>
+									{/if}
+								</button>
 							</div>
-						</div>
-					{/if}
-				{/each}
+						{/each}
+					</div>
+				</div>
+				<LikeButtons
+					show={likeable || show_copy_button}
+					handle_action={(selected) => handle_like(i, messages[0], selected)}
+					{likeable}
+					{show_copy_button}
+					message={msg_format === "tuples" ? messages[0] : messages}
+					position={role === "user" ? "right" : "left"}
+					avatar={avatar_img}
+					{layout}
+				/>
 			{/each}
 			{#if pending_message}
 				<Pending {layout} />
@@ -395,7 +450,6 @@
 	.bubble-wrap {
 		width: 100%;
 		overflow-y: auto;
-
 		height: 100%;
 		padding-top: var(--spacing-xxl);
 	}
@@ -430,22 +484,17 @@
 		overflow-wrap: break-word;
 	}
 
+	.thought {
+		margin-top: var(--spacing-xxl);
+	}
+
 	.message :global(.prose) {
 		font-size: var(--chatbot-body-text-size);
 	}
 
 	.message-bubble-border {
 		border-width: 1px;
-		border-radius: var(--radius-lg);
-	}
-
-	.bubble .user {
-		border-width: 1px;
-		border-radius: var(--radius-xl);
-		align-self: flex-start;
-		border-bottom-right-radius: 0;
-
-		box-shadow: var(--shadow-drop-lg);
+		border-radius: var(--radius-md);
 	}
 
 	.user {
@@ -463,11 +512,30 @@
 		white-space: pre-line;
 	}
 
-	.bubble .user {
+	.flex-wrap.user {
+		border-width: 1px;
+		border-radius: var(--radius-md);
 		align-self: flex-start;
 		border-bottom-right-radius: 0;
+		box-shadow: var(--shadow-drop);
+		align-self: flex-start;
 		text-align: right;
 		padding: var(--spacing-sm) var(--spacing-xl);
+		border-color: var(--border-color-accent-subdued);
+		background-color: var(--color-accent-soft);
+	}
+
+	:not(.component-wrap).flex-wrap.bot {
+		border-width: 1px;
+		border-radius: var(--radius-lg);
+		align-self: flex-start;
+		border-bottom-left-radius: 0;
+		box-shadow: var(--shadow-drop);
+		align-self: flex-start;
+		text-align: right;
+		padding: var(--spacing-sm) var(--spacing-xl);
+		border-color: var(--border-color-primary);
+		background-color: var(--background-fill-secondary);
 	}
 
 	.panel .user :global(*) {
@@ -477,11 +545,6 @@
 	/* Colors */
 	.bubble .bot {
 		border-color: var(--border-color-primary);
-	}
-
-	.bubble .user {
-		border-color: var(--border-color-accent-subdued);
-		background-color: var(--color-accent-soft);
 	}
 
 	.message-row {
@@ -495,6 +558,7 @@
 	}
 	.message-row.bubble {
 		margin: calc(var(--spacing-xl) * 3);
+		margin-bottom: var(--spacing-xl);
 	}
 
 	.with_avatar.message-row.panel {
@@ -529,7 +593,7 @@
 
 	.message-row.bubble.bot-row {
 		align-self: flex-start;
-		width: calc(100% - var(--spacing-xl) * 6);
+		max-width: calc(100% - var(--spacing-xl) * 6);
 	}
 
 	.message-row:last-of-type {
@@ -608,6 +672,37 @@
 	.message-wrap > .message :not(.image-button) :global(img) {
 		margin: var(--size-2);
 		max-height: 200px;
+	}
+
+	.message-wrap .message :global(a) {
+		color: var(--color-text-link);
+		text-decoration: underline;
+	}
+
+	.message-wrap .bot :global(table),
+	.message-wrap .bot :global(tr),
+	.message-wrap .bot :global(td),
+	.message-wrap .bot :global(th) {
+		border: 1px solid var(--border-color-primary);
+	}
+
+	.message-wrap .user :global(table),
+	.message-wrap .user :global(tr),
+	.message-wrap .user :global(td),
+	.message-wrap .user :global(th) {
+		border: 1px solid var(--border-color-accent);
+	}
+
+	/* Lists */
+	.message-wrap :global(ol),
+	.message-wrap :global(ul) {
+		padding-inline-start: 2em;
+	}
+
+	/* KaTeX */
+	.message-wrap :global(span.katex) {
+		font-size: var(--text-lg);
+		direction: ltr;
 	}
 
 	/* Copy button */

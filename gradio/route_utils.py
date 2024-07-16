@@ -42,7 +42,7 @@ from starlette.responses import PlainTextResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from gradio import processing_utils, utils
-from gradio.data_classes import PredictBody
+from gradio.data_classes import BlocksConfigDict, PredictBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.state_holder import SessionState
@@ -641,7 +641,7 @@ def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> N
         shutil.move(file, dest)
 
 
-def update_root_in_config(config: dict, root: str) -> dict:
+def update_root_in_config(config: BlocksConfigDict, root: str) -> BlocksConfigDict:
     """
     Updates the root "key" in the config dictionary to the new root url. If the
     root url has changed, all of the urls in the config that correspond to component
@@ -650,7 +650,7 @@ def update_root_in_config(config: dict, root: str) -> dict:
     previous_root = config.get("root")
     if previous_root is None or previous_root != root:
         config["root"] = root
-        config = processing_utils.add_root_url(config, root, previous_root)
+        config = processing_utils.add_root_url(config, root, previous_root)  # type: ignore
     return config
 
 
@@ -745,9 +745,8 @@ class CustomCORSMiddleware:
         message.setdefault("headers", [])
         headers = MutableHeaders(scope=message)
         headers.update(self.simple_headers)
-        has_cookie = "cookie" in request_headers
         origin = request_headers["Origin"]
-        if has_cookie or self.is_valid_origin(request_headers):
+        if self.is_valid_origin(request_headers):
             self.allow_explicit_origin(headers, origin)
         await send(message)
 
