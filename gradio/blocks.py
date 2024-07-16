@@ -1266,8 +1266,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
         return any(
-            isinstance(block, (components.LoginButton, components.LogoutButton))
-            for block in self.blocks.values()
+            isinstance(block, components.LoginButton) for block in self.blocks.values()
         )
 
     def unload(self, fn: Callable):
