@@ -69,6 +69,7 @@ class TestAudio:
             },
             "_selectable": False,
             "key": None,
+            "loop": False,
         }
         assert audio_input.preprocess(None) is None
 
