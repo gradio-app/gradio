@@ -125,6 +125,7 @@ class TestAudio:
             },
             "_selectable": False,
             "key": None,
+            "loop": False,
         }
 
         output1 = audio_output.postprocess(y_audio.name).model_dump()
