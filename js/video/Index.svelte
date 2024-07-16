@@ -53,6 +53,7 @@
 	export let interactive: boolean;
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
+	export let loop = false;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -157,6 +158,7 @@
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
 			i18n={gradio.i18n}
 			upload={gradio.client.upload}
+			{loop}
 		/>
 	</Block>
 {:else}
@@ -196,6 +198,7 @@
 			{include_audio}
 			{autoplay}
 			{root}
+			{loop}
 			{handle_reset_value}
 			on:clear={() => gradio.dispatch("clear")}
 			on:play={() => gradio.dispatch("play")}
