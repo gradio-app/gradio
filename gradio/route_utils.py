@@ -300,7 +300,7 @@ async def call_process_api(
                 app.get_blocks().pending_streams[session_hash].get(run_id, {})
             )
             for stream in pending_streams.values():
-                stream.append(None)
+                stream.end_stream()
         raise
 
     if batch_in_single_out:
@@ -865,6 +865,7 @@ async def receive_with_timeout(ws, timeout) -> dict | None:
 from collections import defaultdict
 
 from fastapi import WebSocket
+import uuid
 
 
 class StreamConnectionManager:
@@ -888,3 +889,26 @@ class StreamConnectionManager:
     async def broadcast(self, message: dict):
         for connection in self.active_connections:
             await StreamConnectionManager.send_msg(message, connection)
+
+
+class MediaStream:
+    def __init__(self):
+        self.segments = []
+        self.ended = False
+        self.event = asyncio.Event()
+        self.segment_index = 0
+        self.playlist = ""
+
+    async def add_segment(self, data: bytes, duration: float):
+        segment_id = str(uuid.uuid4())
+        self.segments.append({
+            'id': segment_id,
+            'duration': duration,
+            'data': data
+        })
+        self.event.set()
+        self.event.clear()
+
+    def end_stream(self):
+        self.ended = True
+        self.event.set()

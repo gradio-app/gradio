@@ -11,6 +11,8 @@
 	import type { WaveformOptions } from "../shared/types";
 	import { createEventDispatcher } from "svelte";
 
+	import Hls from "hls.js";
+
 	export let value: null | FileData = null;
 	$: url = value?.url;
 	export let label: string;
@@ -36,6 +38,7 @@
 	let audio_duration: number;
 
 	let trimDuration = 0;
+	let stream_active = false;
 
 	let show_volume_slider = false;
 
@@ -130,7 +133,48 @@
 		});
 	}
 
-	$: url && load_audio(url);
+	// $: url && load_audio(url);
+
+	function load_stream(value: FileData | null): void {
+		if (!value || !value.is_stream) return;
+		var audio = document.getElementById('audio');
+		console.log("audio", audio);
+		if (Hls.isSupported() && !stream_active) {
+			console.log("HLS supported");
+			var hls = new Hls();
+			console.log("value.url", value.url);
+			hls.loadSource(value.url);
+			hls.attachMedia(audio);
+			hls.on(Hls.Events.MANIFEST_PARSED, function() {
+				console.log("MANIFEST_PARSED");
+				audio.play();
+			});
+			hls.on(Hls.Events.ERROR, function(event, data) {
+            console.error('HLS error:', event, data);
+            if (data.fatal) {
+                switch(data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                        console.log('Fatal network error encountered, trying to recover');
+                        hls.startLoad();
+                        break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                        console.log('Fatal media error encountered, trying to recover');
+                        hls.recoverMediaError();
+                        break;
+                    default:
+                        console.log('Fatal error, cannot recover');
+                        hls.destroy();
+                        break;
+                }
+            }
+        });
+			stream_active = true;
+            }
+	}
+
+	$: load_stream(value)
+
+	$: console.log(stream_active)
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
@@ -144,18 +188,18 @@
 	});
 </script>
 
+<audio
+	class="standard-player"
+	controls
+	autoplay={waveform_settings.autoplay}
+	id="audio"
+	on:load
+/>
+
 {#if value === null}
 	<Empty size="small">
 		<Music />
 	</Empty>
-{:else if value.is_stream}
-	<audio
-		class="standard-player"
-		src={value.url}
-		controls
-		autoplay={waveform_settings.autoplay}
-		on:load
-	/>
 {:else}
 	<div
 		class="component-wrapper"

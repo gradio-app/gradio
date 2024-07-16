@@ -56,6 +56,7 @@ from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
+    Response,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -652,6 +653,77 @@ class App(FastAPI):
                 await ws.close()
                 print("error", e)
                 return
+
+        @app.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
+        async def hls_playlist(session_hash: str, run: int, component_id: int):
+            print("HERE")
+            stream: route_utils.MediaStream | None = (
+                app.get_blocks()
+                .pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
+
+            if not stream:
+                return Response(status_code=404)
+            
+            async def generate_playlist():
+                sequence = 0
+                # playlist = "#EXTM3U\n#EXT-X-VERSION:3\n"
+                # playlist += "#EXT-X-TARGETDURATION:6\n"  # Adjust based on your segment duration
+                # # playlist += "#EXT-X-PLAYLIST-TYPE:EVENT"
+                while True:
+                    playlist = ""
+                    new_segments = stream.segments[sequence:]
+                    for segment in new_segments:
+                        playlist = "#EXTM3U\n#EXT-X-VERSION:3\n"
+                        playlist += "#EXT-X-TARGETDURATION:6\n"  
+                        playlist += f"#EXT-X-MEDIA-SEQUENCE:{sequence}\n"
+                        playlist += f"#EXTINF:{segment['duration']:.3f},\n"
+                        playlist += f"{segment['id']}.aac\n"
+                    
+                    if stream.ended:
+                        playlist += "#EXT-X-ENDLIST\n"
+                        yield playlist.encode()
+                        print("Stream ended")
+                        break
+                    
+                    if new_segments:
+                        print("new segments")
+                        print("playlist", playlist)
+                        yield playlist.encode()
+                        sequence += len(new_segments)
+                    else:
+                        try:
+                            await asyncio.wait_for(stream.event.wait(), timeout=30)  # Wait up to 30 seconds for new segments
+                        except asyncio.TimeoutError:
+                            # If no new segments after 30 seconds, end the playlist
+                            playlist += "#EXT-X-ENDLIST\n"
+                            yield playlist.encode()
+                            break
+
+            return StreamingResponse(content=generate_playlist(), media_type="application/vnd.apple.mpegurl")
+
+
+        @app.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.aac")
+        async def hls_segment(session_hash: str, run: int, component_id: int, segment_id: str):
+            print("Segment files")
+            stream: route_utils.MediaStream | None = (
+                app.get_blocks()
+                .pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
+
+            if not stream:
+                return Response(status_code=404)
+
+            segment = next((s for s in stream.segments if s['id'] == segment_id), None)
+
+            if segment is None:
+                return Response(status_code=404)
+
+            return Response(content=segment['data'], media_type="audio/aac")
 
         @app.get(
             "/stream/{session_hash}/{run}/{component_id}",

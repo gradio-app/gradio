@@ -62,11 +62,12 @@ from gradio.helpers import create_tracker, skip, special_args
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
+from gradio.route_utils import MediaStream
 from gradio.tunneling import (
     BINARY_FILENAME,
     BINARY_FOLDER,
     BINARY_PATH,
-    BINARY_URL,
+    BINARY_URL, 
     CURRENT_TUNNELS,
 )
 from gradio.utils import (
@@ -1755,23 +1756,27 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         root_path: str | None = None,
+        final: bool = False
     ) -> list:
         if session_hash is None or run is None:
             return data
         if run not in self.pending_streams[session_hash]:
             self.pending_streams[session_hash][run] = {}
-        stream_run = self.pending_streams[session_hash][run]
+        stream_run: dict[int, MediaStream] = self.pending_streams[session_hash][run]
 
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
             if isinstance(block, components.StreamingOutput) and block.streaming:
+                if final:
+                    stream_run[output_id].end_stream()
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = block.stream_output(
-                    data[i], f"{session_hash}/{run}/{output_id}", first_chunk
+                    data[i], f"{session_hash}/{run}/{output_id}/playlist.m3u8", first_chunk
                 )
                 if first_chunk:
-                    stream_run[output_id] = []
-                self.pending_streams[session_hash][run][output_id].append(binary_data)
+                    stream_run[output_id] = MediaStream()
+                # hard code 2 seconds
+                await stream_run[output_id].add_segment(binary_data, 2)
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,
@@ -1933,6 +1938,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                     root_path=root_path,
+                    final=not is_generating,
                 )
                 data = self.handle_streaming_diffs(
                     block_fn,
