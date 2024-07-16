@@ -62,7 +62,7 @@
 	}
 
 	function handle_capture({
-		detail
+		detail,
 	}: CustomEvent<FileData | any | null>): void {
 		dispatch("change", detail);
 	}
@@ -153,6 +153,7 @@
 
 	.upload-container {
 		height: 100%;
+		width: 100%;
 	}
 
 	.video-container {

@@ -47,7 +47,7 @@
 	async function handle_save(img_blob: Blob | any): Promise<void> {
 		pending = true;
 		const f = await upload_input.load_files([
-			new File([img_blob], `webcam.png`)
+			new File([img_blob], `webcam.png`),
 		]);
 
 		value = f?.[0] || null;
@@ -86,7 +86,7 @@
 	}
 
 	async function handle_select_source(
-		source: (typeof sources)[number]
+		source: (typeof sources)[number],
 	): Promise<void> {
 		switch (source) {
 			case "clipboard":
@@ -178,6 +178,7 @@
 		height: 100%;
 		flex-shrink: 1;
 		max-height: 100%;
+		width: 100%;
 	}
 
 	.image-container {
