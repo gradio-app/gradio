@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hmac
 import math
 import sys
 import warnings
@@ -1185,7 +1186,7 @@ class App(FastAPI):
 
         @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
-            if key == app.analytics_key:
+            if hmac.compare_digest(key, app.analytics_key):
                 analytics_url = f"/monitoring/{app.analytics_key}/dashboard"
                 if not app.monitoring_enabled:
                     from gradio.monitoring_dashboard import data
