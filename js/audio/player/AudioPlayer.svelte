@@ -88,8 +88,12 @@
 	});
 
 	$: waveform?.on("finish", () => {
-		playing = false;
-		dispatch("stop");
+		if (loop) {
+			waveform?.play();
+		} else {
+			playing = false;
+			dispatch("stop");
+		}
 	});
 	$: waveform?.on("pause", () => {
 		playing = false;
