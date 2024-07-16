@@ -159,23 +159,13 @@
 		>
 			<div class:code-editor-border={loaded} class="code-editor">
 				<Block variant={"solid"} padding={false}>
-					{#if loaded}
-						<Code
-							bind:value={code}
-							language="python"
-							lines={10}
-							readonly={false}
-							dark_mode={active_theme_mode === "dark"}
-						/>
-					{:else}
-						<Code
-							bind:value={code}
-							language="python"
-							lines={10}
-							readonly={true}
-							dark_mode={active_theme_mode === "dark"}
-						/>
-					{/if}
+					<Code
+						bind:value={code}
+						language="python"
+						lines={10}
+						readonly={!loaded}
+						dark_mode={active_theme_mode === "dark"}
+					/>
 				</Block>
 			</div>
 			{#if loaded}
