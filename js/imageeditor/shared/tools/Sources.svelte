@@ -5,7 +5,7 @@
 	import {
 		Image as ImageIcon,
 		Webcam as WebcamIcon,
-		ImagePaste
+		ImagePaste,
 	} from "@gradio/icons";
 	import { Upload } from "@gradio/upload";
 	import { Webcam } from "@gradio/image";
@@ -21,7 +21,7 @@
 	export let sources: ("upload" | "webcam" | "clipboard")[] = [
 		"upload",
 		"webcam",
-		"clipboard"
+		"clipboard",
 	];
 	export let mirror_webcam = true;
 	export let i18n: I18nFormatter;
@@ -49,7 +49,7 @@
 				upload_component.open_file_upload();
 
 				$active_tool = "bg";
-			}
+			},
 		},
 		webcam: {
 			icon: WebcamIcon,
@@ -59,7 +59,7 @@
 			cb() {
 				active_mode = "webcam";
 				$active_tool = "bg";
-			}
+			},
 		},
 		clipboard: {
 			icon: ImagePaste,
@@ -69,8 +69,8 @@
 			cb() {
 				process_clipboard();
 				$active_tool = null;
-			}
-		}
+			},
+		},
 	} as const;
 
 	$: sources_list = sources
@@ -107,7 +107,7 @@
 				$pixi.background_container,
 				$pixi.renderer,
 				background,
-				$pixi.resize
+				$pixi.resize,
 			);
 			$dimensions = await add_image.start();
 
@@ -153,12 +153,12 @@
 				$pixi.renderer,
 				"black",
 				...$dimensions,
-				$pixi.resize
+				$pixi.resize,
 			);
 			$dimensions = add_image.start();
 			add_image.execute();
 		},
-		reset_fn: () => {}
+		reset_fn: () => {},
 	});
 </script>
 
@@ -181,12 +181,14 @@
 	</div>
 	<div
 		class="upload-container"
-		class:click-disabled={!!bg}
+		class:click-disabled={!!bg ||
+			active_mode === "webcam" ||
+			$active_tool !== "bg"}
 		style:height="{$editor_box.child_height +
 			($editor_box.child_top - $editor_box.parent_top)}px"
 	>
 		<Upload
-			hidden={bg || active_mode === "webcam"}
+			hidden={bg || active_mode === "webcam" || $active_tool !== "bg"}
 			bind:this={upload_component}
 			filetype="image/*"
 			on:load={handle_upload}

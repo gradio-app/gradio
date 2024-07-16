@@ -39,7 +39,6 @@ export function add_bg_image(
 	return {
 		async start() {
 			container.removeChildren();
-			console.log("background", background);
 			const img = await createImageBitmap(background);
 			const bitmap_texture = Texture.from(img);
 			sprite = new Sprite(bitmap_texture) as Sprite & DisplayObject;
