@@ -158,57 +158,53 @@
 			class="child-container"
 		>
 			<div class:code-editor-border={loaded} class="code-editor">
-				<div style="flex-grow: 1;">
-					<Block variant={"solid"} padding={false}>
-						{#if loaded}
-							<Code
-								bind:value={code}
-								language="python"
-								lines={10}
-								readonly={false}
-								dark_mode={active_theme_mode === "dark"}
-							/>
-						{:else}
-							<Code
-								bind:value={code}
-								language="python"
-								lines={10}
-								readonly={true}
-								dark_mode={active_theme_mode === "dark"}
-							/>
-						{/if}
-					</Block>
-				</div>
+				<Block variant={"solid"} padding={false}>
+					{#if loaded}
+						<Code
+							bind:value={code}
+							language="python"
+							lines={10}
+							readonly={false}
+							dark_mode={active_theme_mode === "dark"}
+						/>
+					{:else}
+						<Code
+							bind:value={code}
+							language="python"
+							lines={10}
+							readonly={true}
+							dark_mode={active_theme_mode === "dark"}
+						/>
+					{/if}
+				</Block>
 			</div>
 			{#if loaded}
 				<div class="preview">
-					<div class="flex-grow: 1;">
-						{#if !error_display}
-							<Index
-								{autoscroll}
-								{version}
-								{initial_height}
-								{app_mode}
-								{is_embed}
-								{theme_mode}
-								{control_page_title}
-								{container}
-								{info}
-								{eager}
-								{mount_css}
-								{Client}
-								bind:worker_proxy
-								{space}
-								{host}
-								{src}
-							/>
-						{:else}
-							<ErrorDisplay
-								is_embed={error_display.is_embed}
-								error={error_display.error}
-							/>
-						{/if}
-					</div>
+					{#if !error_display}
+						<Index
+							{autoscroll}
+							{version}
+							{initial_height}
+							{app_mode}
+							{is_embed}
+							{theme_mode}
+							{control_page_title}
+							{container}
+							{info}
+							{eager}
+							{mount_css}
+							{Client}
+							bind:worker_proxy
+							{space}
+							{host}
+							{src}
+						/>
+					{:else}
+						<ErrorDisplay
+							is_embed={error_display.is_embed}
+							error={error_display.error}
+						/>
+					{/if}
 				</div>
 			{/if}
 		</div>
