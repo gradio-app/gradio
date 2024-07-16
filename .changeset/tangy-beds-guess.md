@@ -1,9 +1,9 @@
 ---
-"@gradio/app": minor
-"@gradio/datetime": minor
-"@gradio/nativeplot": minor
-"gradio": minor
-"website": minor
+"@gradio/app": patch
+"@gradio/datetime": patch
+"@gradio/nativeplot": patch
+"gradio": patch
+"website": patch
 ---
 
-feat:Refactor plots
+fix:Refactor plots
