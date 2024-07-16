@@ -1,6 +1,9 @@
 ---
 "@gradio/app": minor
+"@gradio/datetime": minor
+"@gradio/nativeplot": minor
 "gradio": minor
+"website": minor
 ---
 
-feat:Allow app to fill width
+feat:Refactor plots
