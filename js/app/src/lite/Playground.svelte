@@ -4,7 +4,7 @@
 	import { mount_css as default_mount_css } from "../css";
 	import type { Client as ClientType } from "@gradio/client";
 	import type { WorkerProxy } from "@gradio/wasm";
-	import { SvelteComponent, createEventDispatcher, onMount } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 	import { Block } from "@gradio/atoms";
 	import { BaseCode as Code } from "@gradio/code";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
@@ -29,7 +29,7 @@
 	export let src: string | null;
 
 	export let code: string | undefined;
-	export let error_display: SvelteComponent | null;
+	export let error_display: { is_embed: boolean; error: Error } | null;
 	export let layout: string | null = null;
 
 	const dispatch = createEventDispatcher();
