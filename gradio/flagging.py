@@ -2,17 +2,12 @@ from __future__ import annotations
 
 import csv
 import datetime
-import json
 import os
 import time
-import uuid
 from abc import ABC, abstractmethod
-from collections import OrderedDict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import filelock
-import huggingface_hub
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
@@ -188,6 +183,7 @@ class CSVLogger(FlaggingCallback):
         with open(log_filepath, encoding="utf-8") as csvfile:
             line_count = len(list(csv.reader(csvfile))) - 1
         return line_count
+
 
 class FlagMethod:
     """

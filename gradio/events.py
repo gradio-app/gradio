@@ -511,7 +511,7 @@ class EventListener(str):
             )
             if _callback:
                 _callback(block)
-            return Dependency(block, dep.get_config(), dep_index, fn, timer)
+            return Dependency(block, dep.get_config(), dep_index, fn)
 
         event_trigger.event_name = _event_name
         event_trigger.has_trigger = _has_trigger
