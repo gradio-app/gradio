@@ -3,6 +3,7 @@
 	import { Plot as PlotIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 	import type { ThemeMode } from "js/app/src/components/types";
+	import type { Gradio, SelectData } from "@gradio/utils";
 
 	export let value;
 	export let target: HTMLElement;
@@ -11,6 +12,11 @@
 	export let caption: string;
 	export let bokeh_version: string | null;
 	export let show_actions_button: bool;
+	export let gradio: Gradio<{
+		select: SelectData;
+	}>;
+	export let x_lim: [number, number] | null = null;
+	export let _selectable: boolean;
 
 	let PlotComponent: any = null;
 	let _type = value?.type;
@@ -45,7 +51,11 @@
 		{caption}
 		{bokeh_version}
 		{show_actions_button}
+		{gradio}
+		{_selectable}
+		{x_lim}
 		on:load
+		on:select
 	/>
 {:else}
 	<Empty unpadded_box={true} size="large"><PlotIcon /></Empty>

@@ -685,6 +685,8 @@ export function submit(
 												endpoint: _endpoint,
 												fn_index
 											});
+
+											close();
 										}
 									}
 

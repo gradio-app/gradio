@@ -30,7 +30,7 @@ demo = gr.Interface(
         gr.Checkbox(label="Show Legend"),
         gr.Dropdown(["cross", "line", "circle"], label="Style"),
     ],
-    gr.Plot(label="forecast"),
+    gr.Plot(label="forecast", format="png"),
 )
 
 if __name__ == "__main__":

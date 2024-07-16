@@ -682,6 +682,25 @@ class TestClientPredictionsWithKwargs:
             ):
                 client.predict(num1=3, operation="add", api_name="/predict")
 
+    def test_chatbot_message_format(self, chatbot_message_format):
+        with connect(chatbot_message_format) as client:
+            _, history = client.predict("hello", [], api_name="/chat")
+            assert history[1]["role"] == "assistant"
+            assert history[1]["content"] in [
+                "How are you?",
+                "I love you",
+                "I'm very hungry",
+            ]
+            _, history = client.predict("hi", history, api_name="/chat")
+            assert history[2]["role"] == "user"
+            assert history[2]["content"] == "hi"
+            assert history[3]["role"] == "assistant"
+            assert history[3]["content"] in [
+                "How are you?",
+                "I love you",
+                "I'm very hungry",
+            ]
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")

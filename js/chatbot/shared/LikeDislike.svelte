@@ -6,6 +6,7 @@
 
 	export let handle_action: (selected: string | null) => void;
 	export let padded = false;
+	export let position: "right" | "left" = "left";
 
 	let selected: "like" | "dislike" | null = null;
 </script>
@@ -18,15 +19,13 @@
 	aria-label={selected === "dislike" ? "clicked dislike" : "dislike"}
 	class:padded
 	class:selected={selected === "dislike"}
-	class="dislike-button"
+	class="dislike-button {position}"
 >
-	<span>
-		{#if selected === "dislike"}
-			<ThumbDownActive />
-		{:else}
-			<ThumbDownDefault />
-		{/if}
-	</span>
+	{#if selected === "dislike"}
+		<ThumbDownActive />
+	{:else}
+		<ThumbDownDefault />
+	{/if}
 </button>
 
 <button
@@ -39,13 +38,11 @@
 	aria-label={selected === "like" ? "clicked like" : "like"}
 	class:selected={selected === "like"}
 >
-	<span>
-		{#if selected === "like"}
-			<ThumbUpActive />
-		{:else}
-			<ThumbUpDefault />
-		{/if}
-	</span>
+	{#if selected === "like"}
+		<ThumbUpActive />
+	{:else}
+		<ThumbUpDefault />
+	{/if}
 </button>
 
 <style>
@@ -55,11 +52,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-right: 7px !important;
-	}
-
-	span {
-		display: inline-block;
 	}
 
 	button:hover,
@@ -71,9 +63,5 @@
 	.selected:focus,
 	.selected:hover {
 		color: var(--color-accent);
-	}
-
-	.like-button {
-		transform: translateY(0px);
 	}
 </style>

@@ -88,6 +88,20 @@ from gradio_client import Client
 client = Client("https://bec81a83-5b5c-471e.gradio.live")
 ```
 
+## Connecting to a Gradio app with auth
+
+If the Gradio application you are connecting to [requires a username and password](/guides/sharing-your-app#authentication), then provide them as a tuple to the `auth` argument of the `Client` class:
+
+```python
+from gradio_client import Client
+
+Client(
+  space_name,
+  auth=[username, password]
+)
+```
+
+
 ## Inspecting the API endpoints
 
 Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `Client.view_api()` method. For the Whisper Space, we see the following:

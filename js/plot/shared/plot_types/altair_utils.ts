@@ -77,7 +77,7 @@ export function set_config(
 			}
 			break;
 		case "line":
-			spec.config.mark = { stroke: accentColor };
+			spec.config.mark = { stroke: accentColor, cursor: "crosshair" };
 			layer.forEach((d: any) => {
 				if (d.encoding.color) {
 					d.encoding.color.scale.range = d.encoding.color.scale.range.map(

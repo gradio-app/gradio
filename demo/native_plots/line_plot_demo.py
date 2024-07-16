@@ -65,7 +65,6 @@ def line_plot_fn(dataset):
             tooltip=['country', 'life_expect'],
             overlay_point=False,
             title="Life expectancy for countries",
-            stroke_dash_legend_title="Country Cluster",
         )
 
 

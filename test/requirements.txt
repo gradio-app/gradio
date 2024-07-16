@@ -6,7 +6,7 @@
 #
 aiofiles==23.2.1
     # via gradio
-altair==4.2.0
+altair>=5.0
     # via
     #   -r requirements.in
     #   gradio

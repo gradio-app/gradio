@@ -209,6 +209,11 @@ OVERRIDES = {
         python_file_name="multimodal_textbox.py",
         js_dir="multimodaltextbox",
     ),
+    "DownloadButton": ComponentFiles(
+        template="DownloadButton",
+        python_file_name="download_button.py",
+        js_dir="downloadbutton",
+    ),
 }
 
 

@@ -362,7 +362,7 @@ describe("handle_payload", () => {
 	it("should return an output payload without the state component value when with_null_state is false", () => {
 		const resolved_payload = ["hello", null];
 		const dependency = {
-			inputs: [2, 3]
+			outputs: [2, 3]
 		};
 		const components = [
 			{ id: 2, type: "textbox" },
@@ -383,7 +383,7 @@ describe("handle_payload", () => {
 	it("should return an ouput payload without the two state component values when with_null_state is false", () => {
 		const resolved_payload = ["hello", null, "world", null];
 		const dependency = {
-			inputs: [2, 3, 4, 5]
+			outputs: [2, 3, 4, 5]
 		};
 		const components = [
 			{ id: 2, type: "textbox" },
@@ -406,7 +406,7 @@ describe("handle_payload", () => {
 	it("should return an ouput payload with the two state component values when with_null_state is true", () => {
 		const resolved_payload = ["hello", null, "world", null];
 		const dependency = {
-			inputs: [2, 3, 4, 5]
+			outputs: [2, 3, 4, 5]
 		};
 		const components = [
 			{ id: 2, type: "textbox" },
@@ -441,6 +441,7 @@ describe("handle_payload", () => {
 			// @ts-ignore
 			dependency,
 			components,
+			"input",
 			with_null_state
 		);
 		expect(result).toEqual(["hello", "world"]);

@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.10.1
+
+### Fixes
+
+- [#8761](https://github.com/gradio-app/gradio/pull/8761) [`078663a`](https://github.com/gradio-app/gradio/commit/078663a3a4f9c19e86e415295e82be7103260f97) - Fix issue with virtual module in custom components.  Thanks @pngwn!
+
 ## 0.10.0
 
 ### Features

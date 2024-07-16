@@ -11,6 +11,7 @@
 	>;
 
 	export let linkify: string[] = [];
+	export let header: string | null = null;
 </script>
 
-<ParamViewer docs={value} {linkify} />
+<ParamViewer docs={value} {linkify} {header} />

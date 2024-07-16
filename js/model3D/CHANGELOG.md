@@ -1,5 +1,20 @@
 # @gradio/model3d
 
+## 0.11.0
+
+### Features
+
+- [#8687](https://github.com/gradio-app/gradio/pull/8687) [`bc1d45d`](https://github.com/gradio-app/gradio/commit/bc1d45d8745a677bbe2a32f8d7553fe0d4ef3fd7) - Model3D point cloud and wireframe display modes.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/client@1.3.0
+- @gradio/upload@0.11.5
+- @gradio/icons@0.6.0
+
 ## 0.10.12
 
 ### Dependency updates

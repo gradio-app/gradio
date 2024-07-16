@@ -12,7 +12,7 @@ import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Type
 
 import gradio_client.utils as client_utils
 
@@ -166,7 +166,7 @@ class Component(ComponentBase, Block):
         # This gets overridden when `select` is called
         self._selectable = False
         if not hasattr(self, "data_model"):
-            self.data_model: type[GradioDataModel] | None = None
+            self.data_model: Type[GradioDataModel] | None = None
 
         Block.__init__(
             self,
