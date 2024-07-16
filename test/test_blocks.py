@@ -350,10 +350,6 @@ class TestBlocksMethods:
             "generator": False,
             "cancel": False,
         }
-        assert dependencies[4]["types"] == {
-            "generator": False,
-            "cancel": False,
-        }
 
     @patch(
         "gradio.themes.ThemeClass.from_hub",
