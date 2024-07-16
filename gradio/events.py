@@ -536,7 +536,6 @@ def on(
     postprocess: bool = True,
     cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-    every: float | None = None,
     js: str | None = None,
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
@@ -640,19 +639,6 @@ def on(
         for trigger in triggers:
             if trigger.callback:
                 trigger.callback(trigger.__self__)
-
-    if every is not None:
-        from gradio.components import Timer
-
-        timer = Timer(every, active=False)
-        root_block.set_event_trigger(
-            methods,
-            lambda: Timer(active=True),
-            None,
-            timer,
-            show_api=False,
-        )
-        methods = [EventListenerMethod(timer, "tick")]
 
     dep, dep_index = root_block.set_event_trigger(
         methods,
