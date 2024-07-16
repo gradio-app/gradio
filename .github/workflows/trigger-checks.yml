@@ -4,9 +4,11 @@ on:
     types: [opened, synchronize, reopened, labeled, unlabeled]
     branches:
       - main
+      - 5.0-dev
   push:
     branches:
       - main
+      - 5.0-dev
 
 jobs:
   checks:
