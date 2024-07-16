@@ -148,6 +148,7 @@
 			{label}
 			{show_label}
 			{autoplay}
+			{loop}
 			{show_share_button}
 			{show_download_button}
 			on:play={() => gradio.dispatch("play")}
@@ -158,7 +159,6 @@
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
 			i18n={gradio.i18n}
 			upload={gradio.client.upload}
-			{loop}
 		/>
 	</Block>
 {:else}
