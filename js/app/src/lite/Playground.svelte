@@ -5,10 +5,10 @@
 	import type { Client as ClientType } from "@gradio/client";
 	import type { WorkerProxy } from "@gradio/wasm";
 	import { SvelteComponent, createEventDispatcher, onMount } from "svelte";
-	import Code from "@gradio/code";
+	import { Block } from "@gradio/atoms";
+	import { BaseCode as Code } from "@gradio/code";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import lightning from "../images/lightning.svg";
-	import type { LoadingStatus } from "js/statustracker";
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -33,19 +33,6 @@
 	export let layout: string | null = null;
 
 	const dispatch = createEventDispatcher();
-
-	let dummy_elem: any = { classList: { contains: () => false } };
-	let dummy_gradio: any = { dispatch: (_: any) => {} };
-	let dummy_loading_status: LoadingStatus = {
-		eta: 0,
-		queue_position: 0,
-		queue_size: 0,
-		status: "complete",
-		show_progress: "hidden",
-		scroll_to_output: false,
-		visible: false,
-		fn_index: 0
-	};
 
 	let loading_text = "";
 	export let loaded = false;
@@ -114,7 +101,7 @@
 		}
 	}
 
-	let active_theme_mode: ThemeMode;
+	let active_theme_mode: Exclude<ThemeMode, "system"> = "light";
 	let parent_container: HTMLDivElement;
 
 	onMount(() => {
@@ -172,29 +159,25 @@
 		>
 			<div class:code-editor-border={loaded} class="code-editor">
 				<div style="flex-grow: 1;">
-					{#if loaded}
-						<Code
-							bind:value={code}
-							label=""
-							language="python"
-							target={dummy_elem}
-							gradio={dummy_gradio}
-							lines={10}
-							interactive={true}
-							loading_status={dummy_loading_status}
-						/>
-					{:else}
-						<Code
-							bind:value={code}
-							label=""
-							language="python"
-							target={dummy_elem}
-							gradio={dummy_gradio}
-							lines={10}
-							interactive={false}
-							loading_status={dummy_loading_status}
-						/>
-					{/if}
+					<Block variant={"solid"} padding={false}>
+						{#if loaded}
+							<Code
+								bind:value={code}
+								language="python"
+								lines={10}
+								readonly={false}
+								dark_mode={active_theme_mode === "dark"}
+							/>
+						{:else}
+							<Code
+								bind:value={code}
+								language="python"
+								lines={10}
+								readonly={true}
+								dark_mode={active_theme_mode === "dark"}
+							/>
+						{/if}
+					</Block>
 				</div>
 			</div>
 			{#if loaded}
