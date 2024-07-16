@@ -116,10 +116,15 @@ class CheckboxGroup(FormComponent):
         Returns:
             Passes the list of checked checkboxes as a `list[str | int | float]` or their indices as a `list[int]` into the function, depending on `type`.
         """
+        choice_values = [value for _, value in self.choices]
         if self.type == "value":
+            for value in payload:
+                if value not in choice_values:
+                    raise ValueError(
+                        f"Value: {value} is not in the list of choices: {choice_values}"
+                    )
             return payload
         elif self.type == "index":
-            choice_values = [value for _, value in self.choices]
             return [
                 choice_values.index(choice) if choice in choice_values else None
                 for choice in payload
