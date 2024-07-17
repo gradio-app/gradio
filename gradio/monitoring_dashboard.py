@@ -5,7 +5,7 @@ import pandas as pd
 
 import gradio as gr
 
-data = {"data": {}}
+data = {"data": []}
 
 with gr.Blocks() as demo:
     gr.Markdown("# Monitoring Dashboard")
