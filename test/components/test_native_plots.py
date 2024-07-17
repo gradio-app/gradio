@@ -1,4 +1,3 @@
-
 import gradio as gr
 
 from .plot_data import barley, simple
