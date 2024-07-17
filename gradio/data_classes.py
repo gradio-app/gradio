@@ -104,12 +104,12 @@ class PredictBody(BaseModel):
     fn_index: Optional[int] = None
     trigger_id: Optional[int] = None
     simple_format: bool = False
-    batched: Optional[bool] = (
-        False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
-    )
-    request: Optional[Request] = (
-        None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
-    )
+    batched: Optional[
+        bool
+    ] = False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
+    request: Optional[
+        Request
+    ] = None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
 
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema, handler):
