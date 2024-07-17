@@ -79,7 +79,7 @@
 		s: 1,
 		m: 60,
 		h: 60 * 60,
-		d: 24 * 60 * 60
+		d: 24 * 60 * 60,
 	};
 	$: _x_bin = x_bin
 		? typeof x_bin === "string"
@@ -107,7 +107,7 @@
 		_data = value.data.map((row) => {
 			const obj = {
 				[x]: row[x_index],
-				[y]: row[y_index]
+				[y]: row[y_index],
 			};
 			if (color && color_index !== null) {
 				obj[color] = row[color_index];
@@ -156,7 +156,7 @@
 						gradio.dispatch("select", {
 							value: range,
 							index: range,
-							selected: true
+							selected: true,
 						});
 					};
 					if (mouse_down_on_chart) {
@@ -166,7 +166,7 @@
 							gradio.dispatch("select", {
 								value: range,
 								index: range,
-								selected: true
+								selected: true,
 							});
 						}, 250);
 					}
@@ -210,11 +210,11 @@
 		let accentColor = computed_style.getPropertyValue("--color-accent");
 		let bodyTextColor = computed_style.getPropertyValue("--body-text-color");
 		let borderColorPrimary = computed_style.getPropertyValue(
-			"--border-color-primary"
+			"--border-color-primary",
 		);
 		let fontFamily = computed_style.fontFamily;
 		let titleWeight = computed_style.getPropertyValue(
-			"--block-title-text-weight"
+			"--block-title-text-weight",
 		) as
 			| "bold"
 			| "normal"
@@ -251,7 +251,7 @@
 					titleFontSize: textSizeSm,
 					labelFontWeight: "normal",
 					domain: false,
-					labelAngle: 0
+					labelAngle: 0,
 				},
 				legend: {
 					labelColor: bodyTextColor,
@@ -261,29 +261,28 @@
 					titleFontWeight: "normal",
 					titleFontSize: textSizeSm,
 					labelFontWeight: "normal",
-					offset: 2
+					offset: 2,
 				},
 				title: {
 					color: bodyTextColor,
 					font: fontFamily,
 					fontSize: textSizeMd,
 					fontWeight: titleWeight,
-					anchor: "middle"
+					anchor: "middle",
 				},
 				view: { stroke: borderColorPrimary },
 				mark: {
 					stroke: value.mark !== "bar" ? accentColor : undefined,
 					fill: value.mark === "bar" ? accentColor : undefined,
-					cursor: "crosshair"
-				}
+					cursor: "crosshair",
+				},
 			},
 			data: { name: "data" },
 			datasets: {
-				data: _data
+				data: _data,
 			},
-			layer: ["plot"]
-				.concat(value.mark === "line" ? ["hover"] : [])
-				.map((mode) => {
+			layer: ["plot", ...(value.mark === "line" ? ["hover"] : [])].map(
+				(mode) => {
 					return {
 						encoding: {
 							size:
@@ -293,13 +292,13 @@
 												condition: {
 													empty: false,
 													param: "hoverPlot",
-													value: 3
+													value: 3,
 												},
-												value: 2
+												value: 2,
 											}
 										: {
 												condition: { empty: false, param: "hover", value: 100 },
-												value: 0
+												value: 0,
 											}
 									: undefined,
 							opacity:
@@ -307,7 +306,7 @@
 									? undefined
 									: {
 											condition: { empty: false, param: "hover", value: 1 },
-											value: 0
+											value: 0,
 										},
 							x: {
 								axis: {},
@@ -316,7 +315,7 @@
 								type: value.datatypes[x],
 								scale: _x_lim ? { domain: _x_lim } : undefined,
 								bin: _x_bin ? { step: _x_bin } : undefined,
-								sort: _sort
+								sort: _sort,
 							},
 							y: {
 								axis: {},
@@ -324,7 +323,7 @@
 								title: y_title || y,
 								type: value.datatypes[y],
 								scale: y_lim ? { domain: y_lim } : undefined,
-								aggregate: aggregating ? _y_aggregate : undefined
+								aggregate: aggregating ? _y_aggregate : undefined,
 							},
 							color: color
 								? {
@@ -336,17 +335,17 @@
 														domain: unique_colors,
 														range: color_map
 															? unique_colors.map((c) => color_map[c])
-															: undefined
+															: undefined,
 													}
 												: {
 														range: [
-															100, 200, 300, 400, 500, 600, 700, 800, 900
+															100, 200, 300, 400, 500, 600, 700, 800, 900,
 														].map((n) =>
-															computed_style.getPropertyValue("--primary-" + n)
+															computed_style.getPropertyValue("--primary-" + n),
 														),
-														interpolate: "hsl"
+														interpolate: "hsl",
 													},
-										type: value.datatypes[color]
+										type: value.datatypes[color],
 									}
 								: undefined,
 							tooltip: [
@@ -354,73 +353,74 @@
 									field: y,
 									type: value.datatypes[y],
 									aggregate: aggregating ? _y_aggregate : undefined,
-									title: y_title || y
+									title: y_title || y,
 								},
 								{
 									field: x,
 									type: value.datatypes[x],
 									title: x_title || x,
 									format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
-									bin: _x_bin ? { step: _x_bin } : undefined
-								}
-							].concat(
-								color
+									bin: _x_bin ? { step: _x_bin } : undefined,
+								},
+								...(color
 									? [
 											{
 												field: color,
-												type: value.datatypes[color]
-											}
+												type: value.datatypes[color],
+											},
 										]
-									: []
-							)
+									: []),
+							],
 						},
 						strokeDash: {},
 						mark: { clip: true, type: mode === "hover" ? "point" : value.mark },
-						name: mode
+						name: mode,
 					};
-				}),
-			params: (value.mark === "line"
-				? [
-						{
-							name: "hoverPlot",
-							select: {
-								clear: "mouseout",
-								fields: color ? [color] : [],
-								nearest: true,
-								on: "mouseover",
-								type: "point"
+				},
+			),
+			// @ts-ignore
+			params: [
+				...(value.mark === "line"
+					? [
+							{
+								name: "hoverPlot",
+								select: {
+									clear: "mouseout",
+									fields: color ? [color] : [],
+									nearest: true,
+									on: "mouseover",
+									type: "point" as "point",
+								},
+								views: ["hover"],
 							},
-							views: ["hover"]
-						},
-						{
-							name: "hover",
-							select: {
-								clear: "mouseout",
-								nearest: true,
-								on: "mouseover",
-								type: "point"
+							{
+								name: "hover",
+								select: {
+									clear: "mouseout",
+									nearest: true,
+									on: "mouseover",
+									type: "point" as "point",
+								},
+								views: ["hover"],
 							},
-							views: ["hover"]
-						}
-					]
-				: []
-			).concat(
-				_selectable
+						]
+					: []),
+				...(_selectable
 					? [
 							{
 								name: "brush",
 								select: {
 									encodings: ["x"],
 									mark: { fill: "gray", fillOpacity: 0.3, stroke: "none" },
-									type: "interval"
+									type: "interval" as "interval",
 								},
-								views: ["plot"]
-							}
+								views: ["plot"],
+							},
 						]
-					: []
-			),
+					: []),
+			],
 			width: chartElement.offsetWidth,
-			title: title || undefined
+			title: title || undefined,
 		};
 	}
 
