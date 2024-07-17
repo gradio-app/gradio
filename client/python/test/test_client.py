@@ -1137,19 +1137,19 @@ class TestAPIInfo:
             assert inputs[1]["python_type"] == {
                 "type": "filepath",
                 "description": "The FileData class is a subclass of the GradioModel class "
-                              "that represents a file object within a Gradio interface. It "
-                              "is used to store file data and metadata when a file is "
-                              "uploaded.\n"
-                              "\n"
-                              "Attributes:\n"
-                              "    path: The server file path where the file is stored.\n"
-                              "    url: The normalized server URL pointing to the file.\n"
-                              "    size: The size of the file in bytes.\n"
-                              "    orig_name: The original filename before upload.\n"
-                              "    mime_type: The MIME type of the file.\n"
-                              "    is_stream: Indicates whether the file is a stream.\n"
-                              "    meta: Additional metadata used internally (should not be "
-                              "changed)."
+                "that represents a file object within a Gradio interface. It "
+                "is used to store file data and metadata when a file is "
+                "uploaded.\n"
+                "\n"
+                "Attributes:\n"
+                "    path: The server file path where the file is stored.\n"
+                "    url: The normalized server URL pointing to the file.\n"
+                "    size: The size of the file in bytes.\n"
+                "    orig_name: The original filename before upload.\n"
+                "    mime_type: The MIME type of the file.\n"
+                "    is_stream: Indicates whether the file is a stream.\n"
+                "    meta: Additional metadata used internally (should not be "
+                "changed).",
             }
             assert isinstance(inputs[1]["example_input"], dict)
 
