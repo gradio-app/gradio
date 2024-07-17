@@ -1,7 +1,10 @@
 /// <reference lib="webworker" />
 /* eslint-env worker */
 
-import type { PyodideInterface } from "pyodide";
+import type {
+	PyodideInterface,
+	loadPyodide as loadPyodideValue
+} from "pyodide";
 import type { PyProxy } from "pyodide/ffi";
 import type {
 	InMessage,
@@ -29,6 +32,8 @@ type MessageTransceiver = DedicatedWorkerGlobalScope | MessagePort;
 
 let pyodide: PyodideInterface;
 let micropip: PyProxy;
+
+declare let loadPyodide: typeof loadPyodideValue; // This will be dynamically loaded by importScript.
 
 let call_asgi_app_from_js: (
 	appId: string,

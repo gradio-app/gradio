@@ -1,35 +1,16 @@
 <script lang="ts">
-	import Index from "../Index.svelte";
 	import type { ThemeMode } from "../types";
-	import { mount_css as default_mount_css } from "../css";
-	import type { Client as ClientType } from "@gradio/client";
 	import type { WorkerProxy } from "@gradio/wasm";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { Block } from "@gradio/atoms";
 	import { BaseCode as Code } from "@gradio/code";
-	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import lightning from "../images/lightning.svg";
 
-	export let autoscroll: boolean;
-	export let version: string;
-	export let initial_height: string;
-	export let app_mode: boolean;
 	export let is_embed: boolean;
 	export let theme_mode: ThemeMode | null = "system";
-	export let control_page_title: boolean;
-	export let container: boolean;
-	export let info: boolean;
-	export let eager: boolean;
-	export let mount_css: typeof default_mount_css = default_mount_css;
-	export let Client: typeof ClientType;
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 
-	export let space: string | null;
-	export let host: string | null;
-	export let src: string | null;
-
 	export let code: string | undefined;
-	export let error_display: { is_embed: boolean; error: Error } | null;
 	export let layout: string | null = null;
 
 	const dispatch = createEventDispatcher();
@@ -172,31 +153,7 @@
 			</div>
 			{#if loaded}
 				<div class="preview">
-					{#if !error_display}
-						<Index
-							{autoscroll}
-							{version}
-							{initial_height}
-							{app_mode}
-							{is_embed}
-							{theme_mode}
-							{control_page_title}
-							{container}
-							{info}
-							{eager}
-							{mount_css}
-							{Client}
-							bind:worker_proxy
-							{space}
-							{host}
-							{src}
-						/>
-					{:else}
-						<ErrorDisplay
-							is_embed={error_display.is_embed}
-							error={error_display.error}
-						/>
-					{/if}
+					<slot></slot>
 				</div>
 			{/if}
 		</div>

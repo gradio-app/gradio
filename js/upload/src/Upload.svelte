@@ -183,7 +183,16 @@
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);
 			return false;
 		});
-		await load_files(files_to_load);
+
+		if (format != "blob") {
+			await load_files(files_to_load);
+		} else {
+			if (file_count === "single") {
+				dispatch("load", files_to_load[0]);
+				return;
+			}
+			dispatch("load", files_to_load);
+		}
 	}
 </script>
 
