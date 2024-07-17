@@ -16,6 +16,7 @@
 	export let value: null | FileData = null;
 	export let label: string;
 	export let root: string;
+	export let loop: boolean;
 	export let show_label = true;
 	export let show_download_button = false;
 	export let sources:
@@ -276,6 +277,7 @@
 			{trim_region_settings}
 			{handle_reset_value}
 			{editable}
+			{loop}
 			interactive
 			on:stop
 			on:play
