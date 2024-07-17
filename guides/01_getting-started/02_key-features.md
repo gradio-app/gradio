@@ -93,9 +93,9 @@ Similarly, Gradio can handle streaming inputs, e.g. a live audio stream that can
 
 ## Alert modals
 
-You may wish to raise alerts to the user. To do so, raise a `gr.Error("custom message")` to display an error message. You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work.
+You may wish to raise alerts to the user. To do so, raise a `gr.Error(message)` to display an error message. You can also issue `gr.Warning(message)` and `gr.Info(messag")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. 
 
-Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are single lines.
+Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are regular Python functions. Note as well that the message string can include HTML, which will be rendered inside the alert modal.
 
 ```python
 def start_process(name):
@@ -104,7 +104,7 @@ def start_process(name):
         gr.Warning("Name is empty")
     ...
     if success == False:
-        raise gr.Error("Process failed")
+        raise gr.Error("Process <b>failed</b>")
 ```
 
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Error, Info, Warning } from "@gradio/icons";
+	import { MarkdownCode } from "@gradio/markdown";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { fade } from "svelte/transition";
 	import type { ToastMessage } from "./types";
@@ -55,7 +56,7 @@
 	<div class="toast-details {type}">
 		<div class="toast-title {type}">{type}</div>
 		<div class="toast-text {type}">
-			{message}
+			<MarkdownCode {message} chatbot={false} render_markdown={false} />
 		</div>
 	</div>
 
@@ -291,5 +292,9 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.toast-text :global(a) {
+		text-decoration: underline;
 	}
 </style>

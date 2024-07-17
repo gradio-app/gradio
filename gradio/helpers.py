@@ -1284,7 +1284,7 @@ def Warning(  # noqa: N802
     This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
     Demos: blocks_chained_events
     Parameters:
-        message: The warning message to be displayed to the user.
+        message: The warning message to be displayed to the user. Can be HTML, which will be rendered in the modal.
         duration: The duration in seconds that the warning message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
         visible: Whether the error message should be displayed in the UI.
     Example:
@@ -1310,7 +1310,7 @@ def Info(  # noqa: N802
     This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is gray by default and has the heading: "Info." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.
     Demos: blocks_chained_events
     Parameters:
-        message: The info message to be displayed to the user.
+        message: The info message to be displayed to the user. Can be HTML, which will be rendered in the modal.
         duration: The duration in seconds that the info message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
         visible: Whether the error message should be displayed in the UI.
     Example:
