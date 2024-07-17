@@ -155,6 +155,7 @@
 
 	.upload-container {
 		height: 100%;
+		width: 100%;
 	}
 
 	.video-container {

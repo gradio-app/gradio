@@ -48,6 +48,7 @@
 	export let realtime: boolean;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let dragging: boolean;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -221,6 +222,7 @@
 		<Layers layer_files={value?.layers || null} enable_layers={layers} />
 
 		<Sources
+			bind:dragging
 			{i18n}
 			{root}
 			{sources}

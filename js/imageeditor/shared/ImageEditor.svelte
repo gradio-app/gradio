@@ -357,7 +357,8 @@
 		<slot />
 	</div>
 	<div
-		class="border"
+		class="canvas"
+		class:no-border={!bg && $active_tool === "bg" && !history}
 		style:width="{$crop[2] * $editor_box.child_width + 1}px"
 		style:height="{$crop[3] * $editor_box.child_height + 1}px"
 		style:top="{$crop[1] * $editor_box.child_height +
@@ -378,11 +379,15 @@
 		justify-content: center;
 		align-items: flex-start;
 	}
-	.border {
+	.canvas {
 		position: absolute;
 		border: var(--block-border-color) 1px solid;
 		pointer-events: none;
 		border-radius: var(--radius-md);
+	}
+
+	.no-border {
+		border: none;
 	}
 
 	.stage-wrap {

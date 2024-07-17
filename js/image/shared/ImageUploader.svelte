@@ -178,6 +178,7 @@
 		height: 100%;
 		flex-shrink: 1;
 		max-height: 100%;
+		width: 100%;
 	}
 
 	.image-container {

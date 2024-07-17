@@ -27,6 +27,7 @@
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let dragging: boolean;
 
 	const { active_tool } = getContext<ToolContext>(TOOL_KEY);
 	const { pixi, dimensions, register_context, reset, editor_box } =
@@ -179,13 +180,21 @@
 		{/each}
 		<span class="sep"></span>
 	</div>
-	<div class="upload-container">
+	<div
+		class="upload-container"
+		class:click-disabled={!!bg ||
+			active_mode === "webcam" ||
+			$active_tool !== "bg"}
+		style:height="{$editor_box.child_height +
+			($editor_box.child_top - $editor_box.parent_top)}px"
+	>
 		<Upload
-			hidden={true}
+			hidden={bg || active_mode === "webcam" || $active_tool !== "bg"}
 			bind:this={upload_component}
 			filetype="image/*"
 			on:load={handle_upload}
 			on:error
+			bind:dragging
 			{root}
 			disable_click={!sources.includes("upload")}
 			format="blob"
@@ -249,5 +258,20 @@
 		align-items: center;
 		margin-left: var(--spacing-lg);
 		height: 100%;
+	}
+
+	.upload-container {
+		position: absolute;
+		height: 100%;
+		flex-shrink: 1;
+		max-height: 100%;
+		width: 100%;
+		left: 0;
+		top: 0;
+		/* background-color: pink; */
+	}
+
+	.upload-container.click-disabled {
+		pointer-events: none;
 	}
 </style>
