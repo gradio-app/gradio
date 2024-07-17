@@ -9,6 +9,8 @@
 	import type { TopLevelSpec as Spec } from "vega-lite";
 	import vegaEmbed from "vega-embed";
 	import type { View } from "vega";
+	import { LineChart as LabelIcon } from "@gradio/icons";
+	import { Empty } from "@gradio/atoms";
 
 	interface PlotData {
 		columns: string[];
@@ -16,12 +18,12 @@
 		datatypes: Record<string, "quantitative" | "temporal" | "nominal">;
 		mark: "line" | "point" | "bar";
 	}
-	export let value: PlotData;
+	export let value: PlotData | null;
 	export let x: string;
 	export let y: string;
 	export let color: string | null = null;
 	$: unique_colors =
-		color && value.datatypes[color] === "nominal"
+		color && value && value.datatypes[color] === "nominal"
 			? Array.from(new Set(_data.map((d) => d[color])))
 			: [];
 
@@ -71,7 +73,7 @@
 		clear_status: LoadingStatus;
 	}>;
 
-	$: x_temporal = value.datatypes[x] === "temporal";
+	$: x_temporal = value && value.datatypes[x] === "temporal";
 	$: _x_lim = x_lim && x_temporal ? [x_lim[0] * 1000, x_lim[1] * 1000] : x_lim;
 	let _x_bin: number | undefined;
 	let mouse_down_on_chart = false;
@@ -91,29 +93,33 @@
 	let _y_aggregate: typeof y_aggregate;
 	let aggregating: boolean;
 	$: {
-		if (value.mark === "point") {
-			aggregating = _x_bin !== undefined;
-			_y_aggregate = y_aggregate || aggregating ? "sum" : undefined;
-		} else {
-			aggregating = _x_bin !== undefined || value.datatypes[x] === "nominal";
-			_y_aggregate = y_aggregate ? y_aggregate : "sum";
+		if (value) {
+			if (value.mark === "point") {
+				aggregating = _x_bin !== undefined;
+				_y_aggregate = y_aggregate || aggregating ? "sum" : undefined;
+			} else {
+				aggregating = _x_bin !== undefined || value.datatypes[x] === "nominal";
+				_y_aggregate = y_aggregate ? y_aggregate : "sum";
+			}
 		}
 	}
 	$: {
-		let x_index = value.columns.indexOf(x);
-		let y_index = value.columns.indexOf(y);
-		let color_index = color ? value.columns.indexOf(color) : null;
+		if (value) {
+			let x_index = value.columns.indexOf(x);
+			let y_index = value.columns.indexOf(y);
+			let color_index = color ? value.columns.indexOf(color) : null;
 
-		_data = value.data.map((row) => {
-			const obj = {
-				[x]: row[x_index],
-				[y]: row[y_index]
-			};
-			if (color && color_index !== null) {
-				obj[color] = row[color_index];
-			}
-			return obj;
-		});
+			_data = value.data.map((row) => {
+				const obj = {
+					[x]: row[x_index],
+					[y]: row[y_index]
+				};
+				if (color && color_index !== null) {
+					obj[color] = row[color_index];
+				}
+				return obj;
+			});
+		}
 	}
 
 	let chartElement: HTMLDivElement;
@@ -126,8 +132,10 @@
 		if (view) {
 			view.finalize();
 		}
+		if (!value) return;
 		old_width = chartElement.offsetWidth;
 		const spec = createVegaLiteSpec();
+		if (!spec) return;
 		let resizeObserver = new ResizeObserver(() => {
 			if (
 				old_width === 0 &&
@@ -206,7 +214,8 @@
 		sort,
 		mounted && loadChart();
 
-	function createVegaLiteSpec(): Spec {
+	function createVegaLiteSpec(): Spec | null {
+		if (!value) return null;
 		let accentColor = computed_style.getPropertyValue("--color-accent");
 		let bodyTextColor = computed_style.getPropertyValue("--body-text-color");
 		let borderColorPrimary = computed_style.getPropertyValue(
@@ -455,8 +464,12 @@
 	{/if}
 	<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
 	<div bind:this={chartElement}></div>
-	{#if caption}
-		<p class="caption">{caption}</p>
+	{#if value}
+		{#if caption}
+			<p class="caption">{caption}</p>
+		{/if}
+	{:else}
+		<Empty unpadded_box={true}><LabelIcon /></Empty>
 	{/if}
 </Block>
 
