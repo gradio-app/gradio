@@ -83,7 +83,7 @@ class Error(Exception):
     ):
         """
         Parameters:
-            message: The error message to be displayed to the user.
+            message: The error message to be displayed to the user. Can be HTML, which will be rendered in the modal.
             duration: The duration in seconds to display the error message. If None or 0, the error message will be displayed until the user closes it.
             visible: Whether the error message should be displayed in the UI.
         """
