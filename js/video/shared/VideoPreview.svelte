@@ -16,6 +16,7 @@
 	export let autoplay: boolean;
 	export let show_share_button = true;
 	export let show_download_button = true;
+	export let loop: boolean;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 
@@ -65,6 +66,7 @@
 			on:load
 			mirror={false}
 			{label}
+			{loop}
 			interactive={false}
 			{upload}
 		/>

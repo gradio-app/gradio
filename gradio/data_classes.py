@@ -105,12 +105,12 @@ class PredictBody(BaseModel):
     fn_index: Optional[int] = None
     trigger_id: Optional[int] = None
     simple_format: bool = False
-    batched: Optional[
-        bool
-    ] = False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
-    request: Optional[
-        Request
-    ] = None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
+    batched: Optional[bool] = (
+        False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
+    )
+    request: Optional[Request] = (
+        None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
+    )
 
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema, handler):
@@ -226,13 +226,13 @@ class FileData(GradioModel):
     The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.
 
     Attributes:
-        path (str): The server file path where the file is stored.
-        url (Optional[str]): The normalized server URL pointing to the file.
-        size (Optional[int]): The size of the file in bytes.
-        orig_name (Optional[str]): The original filename before upload.
-        mime_type (Optional[str]): The MIME type of the file.
-        is_stream (bool): Indicates whether the file is a stream.
-        meta (dict): Additional metadata for the file, defaulting to {"_type": "gradio.FileData"}.
+        path: The server file path where the file is stored.
+        url: The normalized server URL pointing to the file.
+        size: The size of the file in bytes.
+        orig_name: The original filename before upload.
+        mime_type: The MIME type of the file.
+        is_stream: Indicates whether the file is a stream.
+        meta: Additional metadata used internally (should not be changed).
     """
 
     path: str  # server filepath
@@ -268,7 +268,7 @@ class FileData(GradioModel):
         Creates a FileData object from a given file path.
 
         Args:
-            path (str): The file path.
+            path: The file path.
 
         Returns:
             FileData: An instance of FileData representing the file at the specified path.
@@ -280,7 +280,7 @@ class FileData(GradioModel):
         Copies the file to a specified directory and returns a new FileData object representing the copied file.
 
         Args:
-            dir (str): The destination directory.
+            dir: The destination directory.
 
         Returns:
             FileData: A new FileData object representing the copied file.
@@ -303,7 +303,7 @@ class FileData(GradioModel):
         Checks if an object is a valid FileData instance.
 
         Args:
-            obj (Any): The object to check.
+            obj: The object to check.
 
         Returns:
             bool: True if the object is a valid FileData instance, False otherwise.
