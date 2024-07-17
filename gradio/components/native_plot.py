@@ -44,7 +44,8 @@ class NativePlot(Component):
         y_title: str | None = None,
         color_title: str | None = None,
         x_bin: str | float | None = None,
-        y_aggregate: Literal["sum", "mean", "median", "min", "max"] | None = None,
+        y_aggregate: Literal["sum", "mean", "median", "min", "max", "count"]
+        | None = None,
         color_map: dict[str, str] | None = None,
         x_lim: list[float] | None = None,
         y_lim: list[float] | None = None,
@@ -77,7 +78,7 @@ class NativePlot(Component):
             color_title: The title given to the color legend. By default, uses the value of color parameter.
             x_bin: Grouping used to cluster x values. If x column is numeric, should be number to bin the x values. If x column is datetime, should be string such as "1h", "15m", "10s", using "s", "m", "h", "d" suffixes.
             y_aggregate: Aggregation function used to aggregate y values, used if x_bin is provided or x is a string/category. Must be one of "sum", "mean", "median", "min", "max".
-            color_map: Mapping of series to color names or codes. For example, {"success": "red", "fail": "#FF8888"}.
+            color_map: Mapping of series to color names or codes. For example, {"success": "green", "fail": "#FF8888"}.
             height: The height of the plot in pixels.
             x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max]. If x column is datetime type, x_lim should be timestamps.
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
@@ -207,3 +208,48 @@ class NativePlot(Component):
 
     def api_info(self) -> dict[str, Any]:
         return {"type": {}, "description": "any valid json"}
+
+
+@document()
+class BarPlot(NativePlot):
+    """
+    Creates a bar plot component to display data from a pandas DataFrame.
+
+    Demos: native_plots
+    """
+
+    def get_block_name(self) -> str:
+        return "nativeplot"
+
+    def get_mark(self) -> str:
+        return "bar"
+
+
+@document()
+class LinePlot(NativePlot):
+    """
+    Creates a line plot component to display data from a pandas DataFrame.
+
+    Demos: native_plots
+    """
+
+    def get_block_name(self) -> str:
+        return "nativeplot"
+
+    def get_mark(self) -> str:
+        return "line"
+
+
+@document()
+class ScatterPlot(NativePlot):
+    """
+    Creates a scatter plot component to display data from a pandas DataFrame.
+
+    Demos: native_plots
+    """
+
+    def get_block_name(self) -> str:
+        return "nativeplot"
+
+    def get_mark(self) -> str:
+        return "point"
