@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, List, Literal
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Literal
 
 import pandas as pd
 from gradio_client.documentation import document
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class PlotData(GradioModel):
     columns: List[str]
     data: List[List[Any]]
-    datatypes: dict[str, Literal["quantitative", "nominal", "temporal"]]
+    datatypes: Dict[str, Literal["quantitative", "nominal", "temporal"]]
     mark: str
 
 
