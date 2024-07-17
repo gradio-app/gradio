@@ -18,7 +18,8 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/markdown": "workspace:^"
+		"dompurify": "^3.0.3",
+		"@types/dompurify": "^3.0.2"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
