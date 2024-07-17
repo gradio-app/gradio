@@ -6,4 +6,4 @@
 "website": patch
 ---
 
-fix:Refactor plots
+fix:Refactor plots to drop `altair` and use `vega.js` directly
