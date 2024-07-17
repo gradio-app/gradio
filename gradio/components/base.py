@@ -317,7 +317,9 @@ class Component(ComponentBase, Block):
         Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
         """
         if self.data_model is not None:
-            return self.data_model.model_json_schema()
+            schema = self.data_model.model_json_schema()
+            schema.pop("description", None)
+            return schema
         raise NotImplementedError(
             f"The api_info method has not been implemented for {self.get_block_name()}"
         )
