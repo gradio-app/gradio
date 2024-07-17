@@ -1,9 +1,9 @@
 ---
-"@gradio/app": patch
-"@gradio/datetime": patch
-"@gradio/nativeplot": patch
-"gradio": patch
-"website": patch
+"@gradio/app": minor
+"@gradio/datetime": minor
+"@gradio/nativeplot": minor
+"gradio": minor
+"website": minor
 ---
 
-fix:Refactor plots to drop `altair` and use `vega.js` directly
+feat:Refactor plots to drop `altair` and use `vega.js` directly
