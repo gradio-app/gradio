@@ -79,7 +79,6 @@ class NativePlot(Component):
             y_aggregate: Aggregation function used to aggregate y values, used if x_bin is provided or x is a string/category. Must be one of "sum", "mean", "median", "min", "max".
             color_map: Mapping of series to color names or codes. For example, {"success": "red", "fail": "#FF8888"}.
             height: The height of the plot in pixels.
-            width: The width of the plot in pixels. If None, expands to fit.
             x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max]. If x column is datetime type, x_lim should be timestamps.
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
@@ -143,6 +142,7 @@ class NativePlot(Component):
                 "interactive",
                 "show_actions_button",
                 "color_legend_title",
+                "width",
             ]:
                 warnings.warn(
                     f"Argument '{key}' has been deprecated.", DeprecationWarning
