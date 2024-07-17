@@ -156,3 +156,9 @@ export function normalise_tuples(
 	});
 	return msg.filter((message) => message != null) as NormalisedMessage[];
 }
+
+export function is_component_message(
+	message: NormalisedMessage
+): message is ComponentMessage {
+	return message.type === "component";
+}

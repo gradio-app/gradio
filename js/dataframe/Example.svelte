@@ -5,8 +5,7 @@
 	export let index: number;
 
 	let hovered = false;
-	let loaded_value: (string | number)[][] | string = value;
-	let loaded = Array.isArray(loaded_value);
+	let loaded = Array.isArray(value);
 </script>
 
 {#if loaded}
@@ -19,11 +18,11 @@
 		on:mouseenter={() => (hovered = true)}
 		on:mouseleave={() => (hovered = false)}
 	>
-		{#if typeof loaded_value === "string"}
-			{loaded_value}
+		{#if typeof value === "string"}
+			{value}
 		{:else}
 			<table class="">
-				{#each loaded_value.slice(0, 3) as row, i}
+				{#each value.slice(0, 3) as row, i}
 					<tr>
 						{#each row.slice(0, 3) as cell, j}
 							<td>{cell}</td>

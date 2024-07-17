@@ -1,5 +1,18 @@
 # @gradio/upload
 
+## 0.11.5
+
+### Fixes
+
+- [#8714](https://github.com/gradio-app/gradio/pull/8714) [`1b5b5b0`](https://github.com/gradio-app/gradio/commit/1b5b5b0b43e69ee84f3baad2aae59ffc9c4d995a) - Bind `fetch` and `stream` in JS client.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/client@1.3.0
+- @gradio/icons@0.6.0
+
 ## 0.11.4
 
 ### Fixes
