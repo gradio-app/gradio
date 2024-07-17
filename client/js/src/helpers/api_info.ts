@@ -1,4 +1,4 @@
-import type { Status } from "../types";
+import type { EndpointInfo, Status } from "../types";
 import {
 	HOST_URL,
 	INVALID_URL_MSG,
@@ -384,11 +384,9 @@ export function handle_message(
 
 export const map_data_to_params = (
 	data: unknown[] | Record<string, unknown> = [],
-	api_info: ApiInfo<JsApiData | ApiData>
+	endpoint_info: EndpointInfo<JsApiData | ApiData>
 ): unknown[] => {
-	const parameters = Object.values(api_info.named_endpoints).flatMap(
-		(values) => values.parameters
-	);
+	const parameters = endpoint_info.parameters;
 
 	if (Array.isArray(data)) {
 		if (data.length > parameters.length) {
