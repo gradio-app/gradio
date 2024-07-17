@@ -102,6 +102,7 @@ class Audio(
         min_length: int | None = None,
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
+        loop: bool = False,
     ):
         """
         Parameters:
@@ -130,6 +131,7 @@ class Audio(
             min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
+            loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -160,6 +162,7 @@ class Audio(
             )
         self.format = format
         self.autoplay = autoplay
+        self.loop = loop
         self.show_download_button = show_download_button
         self.show_share_button = (
             (utils.get_space() is not None)

@@ -368,6 +368,7 @@ class PlayableVideo(components.Video):
         show_download_button: bool | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
+        loop: bool = False,
     ):
         sources = ["upload"]
         super().__init__(
@@ -396,6 +397,7 @@ class PlayableVideo(components.Video):
             show_download_button=show_download_button,
             min_length=min_length,
             max_length=max_length,
+            loop=loop,
         )
 
 
@@ -437,6 +439,7 @@ class Microphone(components.Audio):
         min_length: int | None = None,
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
+        loop: bool = False,
     ):
         sources = ["microphone"]
         super().__init__(
@@ -465,6 +468,7 @@ class Microphone(components.Audio):
             min_length=min_length,
             max_length=max_length,
             waveform_options=waveform_options,
+            loop=loop,
         )
 
 

@@ -88,6 +88,7 @@ class Video(Component):
         show_download_button: bool | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
+        loop: bool = False,
     ):
         """
         Parameters:
@@ -116,6 +117,7 @@ class Video(Component):
             show_download_button: If True, will show a download icon in the corner of the component that allows user to download the output. If False, icon does not appear. By default, it will be True for output components and False for input components.
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
+            loop: If True, the video will loop when it reaches the end and continue playing from the beginning.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -137,6 +139,7 @@ class Video(Component):
         self.autoplay = autoplay
         self.height = height
         self.width = width
+        self.loop = loop
         self.mirror_webcam = mirror_webcam
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources

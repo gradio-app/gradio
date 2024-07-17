@@ -30,6 +30,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
+	export let loop = false;
 	export let show_download_button: boolean;
 	export let show_share_button = false;
 	export let editable = true;
@@ -162,6 +163,7 @@
 			{show_share_button}
 			{value}
 			{label}
+			{loop}
 			{waveform_settings}
 			{waveform_options}
 			{editable}
@@ -207,6 +209,7 @@
 			{active_source}
 			{pending}
 			{streaming}
+			{loop}
 			max_file_size={gradio.max_file_size}
 			{handle_reset_value}
 			{editable}

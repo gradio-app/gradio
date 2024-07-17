@@ -12,6 +12,7 @@
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
 	export let autoplay: boolean;
+	export let loop: boolean;
 	export let label = "test";
 	export let interactive = false;
 	export let handle_change: (video: FileData) => void = () => {};
@@ -96,6 +97,7 @@
 			{src}
 			preload="auto"
 			{autoplay}
+			{loop}
 			on:click={play_pause}
 			on:play
 			on:pause
