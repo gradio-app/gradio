@@ -55,7 +55,7 @@
 	<div class="toast-details {type}">
 		<div class="toast-title {type}">{type}</div>
 		<div class="toast-text {type}">
-			{message}
+			{@html message}
 		</div>
 	</div>
 
