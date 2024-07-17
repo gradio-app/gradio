@@ -27,6 +27,7 @@
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let dragging: boolean;
 
 	const { active_tool } = getContext<ToolContext>(TOOL_KEY);
 	const { pixi, dimensions, register_context, reset, editor_box } =
@@ -193,6 +194,7 @@
 			filetype="image/*"
 			on:load={handle_upload}
 			on:error
+			bind:dragging
 			{root}
 			disable_click={!sources.includes("upload")}
 			format="blob"

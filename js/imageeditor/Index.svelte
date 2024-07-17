@@ -4,7 +4,7 @@
 	import type { Brush, Eraser } from "./shared/tools/Brush.svelte";
 	import type {
 		EditorData,
-		ImageBlobs
+		ImageBlobs,
 	} from "./shared/InteractiveImageEditor.svelte";
 
 	import type { Gradio, SelectData } from "@gradio/utils";
@@ -21,7 +21,7 @@
 	export let value: EditorData | null = {
 		background: null,
 		layers: [],
-		composite: null
+		composite: null,
 	};
 	export let label: string;
 	export let show_label: boolean;
@@ -41,7 +41,7 @@
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
-		"webcam"
+		"webcam",
 	];
 	export let interactive: boolean;
 
@@ -117,12 +117,14 @@
 			tick().then((_) => (value_is_output = false));
 		}
 	}
+
+	$: has_value = value?.background || value?.layers?.length || value?.composite;
 </script>
 
 {#if !interactive}
 	<Block
 		{visible}
-		variant={"solid"}
+		variant={"dotted"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
@@ -156,7 +158,7 @@
 {:else}
 	<Block
 		{visible}
-		variant={value === null ? "dashed" : "solid"}
+		variant={has_value ? "solid" : "dashed"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
@@ -176,6 +178,7 @@
 		/>
 
 		<InteractiveImageEditor
+			bind:dragging
 			{canvas_size}
 			on:change={() => handle_history_change()}
 			bind:image_id
