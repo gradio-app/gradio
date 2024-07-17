@@ -1,5 +1,5 @@
 ---
-"website": minor
+"website": patch
 ---
 
-feat:Fix DateTime docs
+fix:Fix DateTime docs
