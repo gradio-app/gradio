@@ -118,6 +118,7 @@
 					{autoplay}
 					src={value.url}
 					subtitle={subtitle?.url}
+					is_stream={value?.is_stream}
 					on:play
 					on:pause
 					on:stop

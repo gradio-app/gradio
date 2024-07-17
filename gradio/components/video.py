@@ -13,7 +13,7 @@ from gradio_client.documentation import document
 
 import gradio as gr
 from gradio import processing_utils, utils, wasm_utils
-from gradio.components.base import Component
+from gradio.components.base import Component, StreamingOutput
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 
@@ -31,7 +31,7 @@ class VideoData(GradioModel):
 
 
 @document()
-class Video(Component):
+class Video(StreamingOutput, Component):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -88,6 +88,7 @@ class Video(Component):
         show_download_button: bool | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
+        streaming: bool = False,
     ):
         """
         Parameters:
@@ -149,6 +150,7 @@ class Video(Component):
         self.show_download_button = show_download_button
         self.min_length = min_length
         self.max_length = max_length
+        self.streaming = streaming
         super().__init__(
             label=label,
             every=every,
@@ -242,6 +244,8 @@ class Video(Component):
         Returns:
             VideoData object containing the video and subtitle files.
         """
+        if self.streaming:
+            return value
         if value is None or value == [None, None] or value == (None, None):
             return None
         if isinstance(value, (str, Path)):
@@ -370,3 +374,115 @@ class Video(Component):
 
     def example_value(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+
+    @staticmethod
+    def get_video_duration_ffprobe(filename):
+        import subprocess
+        import json
+    
+        result = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", filename],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        
+        data = json.loads(result.stdout)
+        
+        # The duration is usually in the format metadata, but let's check streams too just in case
+        duration = None
+        if "format" in data and "duration" in data["format"]:
+            duration = float(data["format"]["duration"])
+        else:
+            for stream in data.get("streams", []):
+                if "duration" in stream:
+                    duration = float(stream["duration"])
+                    break
+        
+        return duration
+
+    # @staticmethod
+    # def convert_mp4_to_ts(input_file, output_file):
+    #     import subprocess
+    #     command = [
+    #         'ffmpeg',
+    #         '-i', input_file,
+    #         '-c:v', 'mpeg2video',
+    #         '-c:a', 'mp2',
+    #         '-f', 'mpegts',
+    #         output_file
+    #     ]
+
+    #     subprocess.run(command, check=True)
+
+    @staticmethod
+    def convert_mp4_to_ts(mp4_file, ts_file):
+        import subprocess
+        cmd = [
+            'ffmpeg',
+            '-i', mp4_file,
+            '-c:v', 'libx264',
+            '-c:a', 'aac',
+            '-f', 'mpegts',
+            '-bsf:v', 'h264_mp4toannexb',
+            '-bsf:a', 'aac_adtstoasc',
+            ts_file
+        ]
+        subprocess.run(cmd, check=True)
+
+
+    # @staticmethod
+    # def segment_video(input_file: str, output_directory: str, segment_time: int = 6):
+    #     import ffmpeg
+    #     stream = ffmpeg.input(input_file)
+    #     stream = ffmpeg.output(stream, f"{output_directory}/segment_%03d.ts",
+    #                         format="hls",
+    #                         hls_time=segment_time,
+    #                         hls_list_size=0,
+    #                         hls_segment_filename=f"{output_directory}/segment_%03d.ts")
+    #     ffmpeg.run(stream)
+
+
+    # @staticmethod
+    # async def convert_mp4_to_ts(input_file, output_file):
+    #     import asyncio
+    #     command = [
+    #         'ffmpeg',
+    #         '-i', input_file,
+    #         '-c:v', 'mpeg2video',
+    #         '-c:a', 'mp2',
+    #         '-f', 'mpegts',
+    #         "-y",
+    #         output_file
+    #     ]
+
+    #     process = await asyncio.create_subprocess_exec(
+    #         *command,
+    #         stdout=asyncio.subprocess.PIPE,
+    #         stderr=asyncio.subprocess.PIPE
+    #     )
+
+    #     stdout, stderr = await process.communicate()
+    #     print("stdout", stdout)
+
+    #     if process.returncode != 0:
+    #         error_message = stderr.decode().strip()
+    #         raise RuntimeError(f"FFmpeg command failed: {error_message}")
+
+    #     return output_file
+
+    async def stream_output(
+        self, value: str | None, output_id: str, first_chunk: bool
+    ) -> tuple[bytes | None, Any]:
+        output_file = {
+            "video": {
+            "path": output_id,
+            "is_stream": True,
+            }
+        }
+        if value is None:
+            return None, output_file
+
+        output_file = value.replace(".mp4", ".ts")
+        self.convert_mp4_to_ts(value, output_file)
+        duration = self.get_video_duration_ffprobe(output_file)
+        print("duration", duration)
+        print("output_file", output_file)
+        return {"data": output_file, "duration": duration}, output_file
