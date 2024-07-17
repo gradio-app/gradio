@@ -30,7 +30,6 @@
 
 	$: message = DOMPurify.sanitize(message);
 
-
 	$: display = visible;
 	$: duration = duration || null;
 
