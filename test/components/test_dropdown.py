@@ -22,12 +22,14 @@ class TestDropdown:
         dropdown = gr.Dropdown(choices=["a", "b"], type="index")
         assert dropdown.preprocess("a") == 0
         assert dropdown.preprocess("b") == 1
-        assert dropdown.preprocess("c") is None
+        with pytest.raises(gr.Error):
+            dropdown.preprocess("c")
 
         dropdown = gr.Dropdown(choices=["a", "b"], type="index", multiselect=True)
         assert dropdown.preprocess(["a"]) == [0]
         assert dropdown.preprocess(["a", "b"]) == [0, 1]
-        assert dropdown.preprocess(["a", "b", "c"]) == [0, 1, None]
+        with pytest.raises(gr.Error):
+            dropdown.preprocess(["a", "b", "c"])
 
         dropdown_input_multiselect = gr.Dropdown(["a", "b", ("c", "c full")])
         assert dropdown_input_multiselect.preprocess(["a", "c full"]) == ["a", "c full"]

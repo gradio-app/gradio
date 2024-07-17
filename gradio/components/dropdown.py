@@ -164,9 +164,7 @@ class Dropdown(FormComponent):
             return None
 
         choice_values = [value for _, value in self.choices]
-        if self.multiselect:
-            if not isinstance(payload, list):
-                raise Error("Multiselect dropdown payload must be a list")
+        if isinstance(payload, list):
             for value in payload:
                 if value not in choice_values:
                     raise Error(
@@ -180,15 +178,9 @@ class Dropdown(FormComponent):
         if self.type == "value":
             return payload
         elif self.type == "index":
-            if self.multiselect:
-                if not isinstance(payload, list):
-                    raise Error("Multiselect dropdown payload must be a list")
+            if isinstance(payload, list):
                 return [choice_values.index(choice) for choice in payload]
             else:
-                if isinstance(payload, list):
-                    raise Error(
-                        "Dropdown payload cannot be a list unless multiselect is True"
-                    )
                 return choice_values.index(payload)
         else:
             raise ValueError(

@@ -121,7 +121,7 @@ class Radio(FormComponent):
         if self.type == "value":
             return payload
         elif self.type == "index":
-            choice_values.index(payload)
+            return choice_values.index(payload)
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
