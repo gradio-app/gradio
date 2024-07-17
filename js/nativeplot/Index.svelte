@@ -122,7 +122,7 @@
 	let mounted = false;
 	let old_width: number;
 
-	const loadChart = () => {
+	const loadChart = (): void => {
 		if (view) {
 			view.finalize();
 		}
@@ -152,7 +152,7 @@
 					if (x_temporal) {
 						range = [range[0] / 1000, range[1] / 1000];
 					}
-					let callback = () => {
+					let callback = (): void => {
 						gradio.dispatch("select", {
 							value: range,
 							index: range,
@@ -206,7 +206,7 @@
 		sort,
 		mounted && loadChart();
 
-	function createVegaLiteSpec() {
+	function createVegaLiteSpec(): Spec {
 		let accentColor = computed_style.getPropertyValue("--color-accent");
 		let bodyTextColor = computed_style.getPropertyValue("--body-text-color");
 		let borderColorPrimary = computed_style.getPropertyValue(
@@ -233,7 +233,7 @@
 		let textSizeMd = fontToPxVal(computed_style.getPropertyValue("--text-md"));
 		let textSizeSm = fontToPxVal(computed_style.getPropertyValue("--text-sm"));
 
-		const spec: Spec = {
+		return {
 			$schema: "https://vega.github.io/schema/vega-lite/v5.17.0.json",
 			background: "transparent",
 			config: {
@@ -419,14 +419,9 @@
 						]
 					: []
 			),
-			width: chartElement.offsetWidth
+			width: chartElement.offsetWidth,
+			title: title || undefined
 		};
-
-		if (title) {
-			spec.title = title;
-		}
-		console.log("init width", chartElement.offsetWidth, "for", value.mark);
-		return spec;
 	}
 
 	export let label = "Textbox";
