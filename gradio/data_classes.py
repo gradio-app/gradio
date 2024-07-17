@@ -11,6 +11,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, List, Literal, Optional, Tuple, TypedDict, Union
 
 from fastapi import Request
+from gradio_client.documentation import document
 from gradio_client.utils import traverse
 from typing_extensions import NotRequired
 
@@ -219,7 +220,21 @@ class FileDataDict(TypedDict):
     meta: dict
 
 
+@document()
 class FileData(GradioModel):
+    """
+    The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.
+
+    Attributes:
+        path: The server file path where the file is stored.
+        url: The normalized server URL pointing to the file.
+        size: The size of the file in bytes.
+        orig_name: The original filename before upload.
+        mime_type: The MIME type of the file.
+        is_stream: Indicates whether the file is a stream.
+        meta: Additional metadata used internally (should not be changed).
+    """
+
     path: str  # server filepath
     url: Optional[str] = None  # normalised server url
     size: Optional[int] = None  # size in bytes
@@ -229,7 +244,13 @@ class FileData(GradioModel):
     meta: dict = {"_type": "gradio.FileData"}
 
     @property
-    def is_none(self):
+    def is_none(self) -> bool:
+        """
+        Checks if the FileData object is empty, i.e., all attributes are None.
+
+        Returns:
+            bool: True if all attributes (except 'is_stream' and 'meta') are None, False otherwise.
+        """
         return all(
             f is None
             for f in [
@@ -243,9 +264,30 @@ class FileData(GradioModel):
 
     @classmethod
     def from_path(cls, path: str) -> FileData:
+        """
+        Creates a FileData object from a given file path.
+
+        Args:
+            path: The file path.
+
+        Returns:
+            FileData: An instance of FileData representing the file at the specified path.
+        """
         return cls(path=path)
 
     def _copy_to_dir(self, dir: str) -> FileData:
+        """
+        Copies the file to a specified directory and returns a new FileData object representing the copied file.
+
+        Args:
+            dir: The destination directory.
+
+        Returns:
+            FileData: A new FileData object representing the copied file.
+
+        Raises:
+            ValueError: If the source file path is not set.
+        """
         pathlib.Path(dir).mkdir(exist_ok=True)
         new_obj = dict(self)
 
@@ -256,7 +298,16 @@ class FileData(GradioModel):
         return self.__class__(**new_obj)
 
     @classmethod
-    def is_file_data(cls, obj: Any):
+    def is_file_data(cls, obj: Any) -> bool:
+        """
+        Checks if an object is a valid FileData instance.
+
+        Args:
+            obj: The object to check.
+
+        Returns:
+            bool: True if the object is a valid FileData instance, False otherwise.
+        """
         if isinstance(obj, dict):
             try:
                 return not FileData(**obj).is_none
