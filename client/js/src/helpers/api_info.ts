@@ -1,11 +1,17 @@
-import type { EndpointInfo, Status } from "../types";
 import {
 	HOST_URL,
 	INVALID_URL_MSG,
 	QUEUE_FULL_MSG,
 	SPACE_METADATA_ERROR_MSG
 } from "../constants";
-import type { ApiData, ApiInfo, Config, JsApiData } from "../types";
+import type {
+	ApiData,
+	ApiInfo,
+	Config,
+	JsApiData,
+	EndpointInfo,
+	Status
+} from "../types";
 import { determine_protocol } from "./init_helpers";
 
 export const RE_SPACE_NAME = /^[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+$/;
