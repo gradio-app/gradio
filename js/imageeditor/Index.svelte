@@ -117,6 +117,8 @@
 			tick().then((_) => (value_is_output = false));
 		}
 	}
+
+	$: has_value = value?.background || value?.layers?.length || value?.composite;
 </script>
 
 {#if !interactive}
@@ -156,7 +158,7 @@
 {:else}
 	<Block
 		{visible}
-		variant={value === null ? "dashed" : "solid"}
+		variant={has_value ? "solid" : "dashed"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}
@@ -176,6 +178,7 @@
 		/>
 
 		<InteractiveImageEditor
+			bind:dragging
 			{canvas_size}
 			on:change={() => handle_history_change()}
 			bind:image_id

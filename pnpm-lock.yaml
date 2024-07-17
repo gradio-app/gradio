@@ -1825,6 +1825,12 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
+      dompurify:
+        specifier: ^3.0.3
+        version: 3.0.3
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
