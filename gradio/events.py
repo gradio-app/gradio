@@ -366,7 +366,7 @@ class EventListener(str):
             callback,
             trigger_after,
             trigger_only_on_success,
-            protocol
+            protocol,
         )
         if doc and self.listener.__doc__:
             self.listener.__doc__ = doc + self.listener.__doc__
@@ -386,7 +386,7 @@ class EventListener(str):
             self.trigger_after,
             self.trigger_only_on_success,
             self.doc,
-            self.protocol # type: ignore
+            self.protocol,  # type: ignore
         )
 
     @staticmethod

@@ -69,7 +69,14 @@ export interface Dependency {
 	final_event: Payload | null;
 	show_api: boolean;
 	rendered_in: number | null;
-	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws" | "ws_stream";
+	protocol:
+		| "sse_v3"
+		| "sse_v2.1"
+		| "sse_v2"
+		| "sse_v1"
+		| "sse"
+		| "ws"
+		| "ws_stream";
 }
 
 interface TypeDescription {
