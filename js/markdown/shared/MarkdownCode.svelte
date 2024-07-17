@@ -24,7 +24,8 @@
 
 	const marked = create_marked({
 		header_links,
-		line_breaks
+		line_breaks,
+		latex_delimiters
 	});
 
 	const is_external_url = (link: string | null): boolean => {
@@ -45,13 +46,31 @@
 	});
 
 	function process_message(value: string): string {
+		let parsedValue = value;
+
 		if (render_markdown) {
-			value = marked.parse(value) as string;
+			const latexBlocks: string[] = [];
+			parsedValue = parsedValue.replace(
+				/\$\$([\s\S]+?)\$\$/g,
+				(match, p1, offset) => {
+					latexBlocks.push(match);
+					return `%%%LATEX_BLOCK_${latexBlocks.length - 1}%%%`;
+				}
+			);
+
+			parsedValue = marked.parse(parsedValue) as string;
+
+			parsedValue = parsedValue.replace(
+				/%%%LATEX_BLOCK_(\d+)%%%/g,
+				(match, p1) => latexBlocks[parseInt(p1, 10)]
+			);
 		}
+
 		if (sanitize_html) {
-			value = DOMPurify.sanitize(value);
+			parsedValue = DOMPurify.sanitize(parsedValue);
 		}
-		return value;
+
+		return parsedValue;
 	}
 
 	$: if (message && message.trim()) {
