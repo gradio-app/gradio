@@ -74,14 +74,15 @@ gradio.FileData(···)
 ```python
 from gradio_client import Client, FileData, handle_file
 
-def test(data: FileData):
-    print(data['path'])
+def get_url_on_server(data: FileData):
+    print(data['url'])
 
 client = Client("gradio/gif_maker_main", download_files=False)
-job = client.submit([handle_file("./rabbit.png")], api_name="/predict")
+job = client.submit([handle_file("./cheetah.jpg")], api_name="/predict")
 data = job.result()
+video: FileData = data['video']
 
-test(data['video'])
+get_url_on_server(video)
 ```
 
 <!--- Initialization -->
