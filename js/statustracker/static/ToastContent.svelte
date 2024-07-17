@@ -292,4 +292,8 @@
 	.hidden {
 		display: none;
 	}
+
+	.toast-text :global(a) {
+		text-decoration: underline;
+	}
 </style>
