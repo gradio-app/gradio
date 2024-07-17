@@ -68,6 +68,22 @@ gradio.FileData(···)
 ### Description
 ## {@html style_formatted_text(obj.description)}
 
+<!-- Example Usage --> 
+
+### Example Usage
+```python
+from gradio_client import Client, FileData, handle_file
+
+def test(data: FileData):
+    print(data['path'])
+
+client = Client("gradio/gif_maker_main", download_files=False)
+job = client.submit([handle_file("./rabbit.png")], api_name="/predict")
+data = job.result()
+
+test(data['video'])
+```
+
 <!--- Initialization -->
 ### Attributes
 <ParamTable parameters={obj.attributes} />

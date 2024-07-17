@@ -223,7 +223,7 @@ class FileDataDict(TypedDict):
 @document()
 class FileData(GradioModel):
     """
-    The FileData class is a subclass of Pydantic's BaseModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.
+    The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.
 
     Attributes:
         path (str): The server file path where the file is stored.
