@@ -1997,6 +1997,9 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      hls.js:
+        specifier: ^1.5.13
+        version: 1.5.13
       mrmime:
         specifier: ^2.0.0
         version: 2.0.0

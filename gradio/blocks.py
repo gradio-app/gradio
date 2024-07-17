@@ -1770,15 +1770,15 @@ Received outputs:
                 if final:
                     stream_run[output_id].end_stream()
                 first_chunk = output_id not in stream_run
-                binary_data, output_data = block.stream_output(
+                binary_data, output_data = await block.stream_output(
                     data[i],
                     f"{session_hash}/{run}/{output_id}/playlist.m3u8",
                     first_chunk,
                 )
                 if first_chunk:
                     stream_run[output_id] = MediaStream()
-                # hard code 2 seconds
-                await stream_run[output_id].add_segment(binary_data, 2)
+
+                await stream_run[output_id].add_segment(binary_data)
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,

@@ -9,6 +9,7 @@
 
 	export let root = "";
 	export let src: string;
+	export let is_stream: boolean | undefined;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
 	export let autoplay: boolean;
@@ -94,6 +95,7 @@
 	<div class="mirror-wrap" class:mirror>
 		<Video
 			{src}
+			{is_stream}
 			preload="auto"
 			{autoplay}
 			on:click={play_pause}

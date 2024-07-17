@@ -4,8 +4,11 @@
 	import { loaded } from "./utils";
 
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
+	import Hls from "hls.js";
+
 
 	export let src: HTMLVideoAttributes["src"] = undefined;
+	export let is_stream;
 
 	export let muted: HTMLVideoAttributes["muted"] = undefined;
 	export let playsinline: HTMLVideoAttributes["playsinline"] = undefined;
@@ -20,6 +23,7 @@
 	export let node: HTMLVideoElement | undefined = undefined;
 
 	export let processingVideo = false;
+	let stream_active = false;
 
 	let resolved_src: typeof src;
 
@@ -45,6 +49,51 @@
 	}
 
 	const dispatch = createEventDispatcher();
+
+	function load_stream(src: string | null, is_stream: boolean, node): void {
+		if (!src || !is_stream) return;
+		if (!node) return;
+		if (Hls.isSupported() && !stream_active) {
+			console.log("HLS supported");
+			var hls = new Hls();
+
+			hls.loadSource(src);
+			hls.attachMedia(node);
+			hls.on(Hls.Events.MANIFEST_PARSED, function () {
+				console.log("MANIFEST_PARSED");
+				console.log("value.url", src);
+				console.log("video_player", node);
+				(node as HTMLVideoElement).play();
+			});
+			hls.on(Hls.Events.ERROR, function (event, data) {
+				console.error("HLS error:", event, data);
+				if (data.fatal) {
+					switch (data.type) {
+						case Hls.ErrorTypes.NETWORK_ERROR:
+							console.log("Fatal network error encountered, trying to recover");
+							hls.startLoad();
+							break;
+						case Hls.ErrorTypes.MEDIA_ERROR:
+							console.log("Fatal media error encountered, trying to recover");
+							hls.recoverMediaError();
+							break;
+						default:
+							console.log("Fatal error, cannot recover");
+							hls.destroy();
+							break;
+					}
+				}
+			});
+			stream_active = true;
+		}
+	}
+
+	$: src, stream_active = false; 
+
+	$: console.log("VIDEO src", src);
+	$: console.log("VIDEO is_stream", is_stream)
+
+	$: load_stream(src, is_stream, node);
 </script>
 
 <!--

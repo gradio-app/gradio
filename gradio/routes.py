@@ -671,15 +671,20 @@ class App(FastAPI):
                 .get(component_id, None)
             )
 
+            if isinstance(app.get_blocks().get_component(component_id), gradio.Video):
+                extension = ".ts"
+            else:
+                extension = ".aac"
+
             if not stream:
                 return Response(status_code=404)
 
-            playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+            playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:3\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
             while not len(stream.segments) >= 3:
                 await asyncio.sleep(0.05)
             for segment in stream.segments:
                 playlist += f"#EXTINF:{segment['duration']:.3f},\n"
-                playlist += f"{segment['id']}.aac\n"
+                playlist += f"{segment['id']}{extension}\n"
 
             if stream.ended:
                 playlist += "#EXT-X-ENDLIST\n"
@@ -707,6 +712,25 @@ class App(FastAPI):
                 return Response(status_code=404)
 
             return Response(content=segment["data"], media_type="audio/aac")
+
+        @app.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.ts")
+        async def _(session_hash: str, run: int, component_id: int, segment_id: str):
+            print("segment_id", segment_id)
+            stream: route_utils.MediaStream | None = (
+                app.get_blocks()
+                .pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
+
+            if not stream:
+                return Response(status_code=404)
+
+            segment = next((s for s in stream.segments if s["id"] == segment_id), None)
+
+            if segment is None:
+                return Response(status_code=404)
+            return Response(content=Path(segment['data']).read_bytes(), media_type="video/MP2T")
 
         @app.get(
             "/stream/{session_hash}/{run}/{component_id}",
