@@ -56,7 +56,7 @@
 	<div class="toast-details {type}">
 		<div class="toast-title {type}">{type}</div>
 		<div class="toast-text {type}">
-			<MarkdownCode {message} chatbot={false} render_markdown={false}/>
+			<MarkdownCode {message} chatbot={false} render_markdown={false} />
 		</div>
 	</div>
 
@@ -296,5 +296,5 @@
 
 	.toast-text :global(a) {
 		text-decoration: underline;
-	}	
+	}
 </style>
