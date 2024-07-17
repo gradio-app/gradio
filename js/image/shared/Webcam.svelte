@@ -109,7 +109,7 @@
 			}
 
 			if (streaming) {
-				const image_data = canvas.toDataURL('image/jpeg')
+				const image_data = canvas.toDataURL("image/jpeg");
 				dispatch("stream", image_data);
 				return;
 			}

@@ -15,7 +15,6 @@ else:
     from importlib_resources import files
 import hashlib
 import inspect
-import anyio
 import json
 import mimetypes
 import os
@@ -36,21 +35,14 @@ from typing import (
     Optional,
     Type,
     Union,
-    cast,
 )
 
+import anyio
 import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    HTTPException,
-    status,
-    WebSocket
-)
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, status
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -70,7 +62,7 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse, StreamingResponse
 
 import gradio
-from gradio import ranged_response, route_utils, utils, wasm_utils, processing_utils
+from gradio import processing_utils, ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import (
     CancelBody,
@@ -598,7 +590,9 @@ class App(FastAPI):
         async def _(ws: WebSocket):
             await app.stream_connection_manager.connect(ws)
             try:
-                success = await route_utils.send_with_timeout(ws, {"msg": "send_data"}, 5)
+                success = await route_utils.send_with_timeout(
+                    ws, {"msg": "send_data"}, 5
+                )
                 if not success:
                     app.stream_connection_manager.disconnect(ws)
                     return
@@ -607,14 +601,18 @@ class App(FastAPI):
                     app.stream_connection_manager.disconnect(ws)
                     return
                 dep = app.blocks.fns[message.fn_index]
-                app.stream_connection_manager.fn_id_to_run_time[message.fn_index] = dep.total_runtime
+                app.stream_connection_manager.fn_id_to_run_time[message.fn_index] = (
+                    dep.total_runtime
+                )
                 run_time = 0
                 print("dep.time_limit", dep.time_limit)
                 while True:
                     send_data_start = time.monotonic()
-                    success = await route_utils.send_with_timeout(ws, {"msg": "send_data"}, 5)
+                    success = await route_utils.send_with_timeout(
+                        ws, {"msg": "send_data"}, 5
+                    )
                     send_data_end = time.monotonic()
-                    #print("send_data time", send_data_end - send_data_start)
+                    # print("send_data time", send_data_end - send_data_start)
                     recieve_start = time.monotonic()
                     msg = await route_utils.receive_with_timeout(ws, None)
                     receieve_end = time.monotonic()
@@ -629,33 +627,42 @@ class App(FastAPI):
                         return
                     data = message.data
                     pred_start = time.monotonic()
-                    data[0] = processing_utils.decode_base64_to_image_array(data[0]['path'])
+                    data[0] = processing_utils.decode_base64_to_image_array(
+                        data[0]["path"]
+                    )
                     if inspect.iscoroutinefunction(dep.fn):
                         prediction = await dep.fn(*data)
                     else:
                         prediction = await anyio.to_thread.run_sync(
                             dep.fn, *data, limiter=app.blocks.limiter
                         )
-                    prediction = {"url": processing_utils.encode_array_to_base64(prediction)}
+                    prediction = {
+                        "url": processing_utils.encode_array_to_base64(prediction)
+                    }
                     pred_end = time.monotonic()
-                    run_time += (pred_end - pred_start)
-                    #print("total run_time", run_time)
-                    #print("run_time", (pred_end - pred_start))
+                    run_time += pred_end - pred_start
+                    # print("total run_time", run_time)
+                    # print("run_time", (pred_end - pred_start))
 
                     send_start = time.monotonic()
-                    message = {"msg": "process_generating", "output": {"data": [prediction]}, "success": True}
+                    message = {
+                        "msg": "process_generating",
+                        "output": {"data": [prediction]},
+                        "success": True,
+                    }
                     await app.stream_connection_manager.send_msg(message, ws)
                     send_end = time.monotonic()
-                    #print("send time", send_end - send_start)
+                    # print("send time", send_end - send_start)
             except Exception as e:
                 import traceback
+
                 traceback.print_exc()
                 await ws.close()
                 print("error", e)
                 return
 
         @app.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
-        async def hls_playlist(session_hash: str, run: int, component_id: int):
+        async def _(session_hash: str, run: int, component_id: int):
             print("HERE")
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
@@ -666,48 +673,24 @@ class App(FastAPI):
 
             if not stream:
                 return Response(status_code=404)
-            
-            async def generate_playlist():
-                sequence = 0
-                # playlist = "#EXTM3U\n#EXT-X-VERSION:3\n"
-                # playlist += "#EXT-X-TARGETDURATION:6\n"  # Adjust based on your segment duration
-                # # playlist += "#EXT-X-PLAYLIST-TYPE:EVENT"
-                while True:
-                    playlist = ""
-                    new_segments = stream.segments[sequence:]
-                    for segment in new_segments:
-                        playlist = "#EXTM3U\n#EXT-X-VERSION:3\n"
-                        playlist += "#EXT-X-TARGETDURATION:6\n"  
-                        playlist += f"#EXT-X-MEDIA-SEQUENCE:{sequence}\n"
-                        playlist += f"#EXTINF:{segment['duration']:.3f},\n"
-                        playlist += f"{segment['id']}.aac\n"
-                    
-                    if stream.ended:
-                        playlist += "#EXT-X-ENDLIST\n"
-                        yield playlist.encode()
-                        print("Stream ended")
-                        break
-                    
-                    if new_segments:
-                        print("new segments")
-                        print("playlist", playlist)
-                        yield playlist.encode()
-                        sequence += len(new_segments)
-                    else:
-                        try:
-                            await asyncio.wait_for(stream.event.wait(), timeout=30)  # Wait up to 30 seconds for new segments
-                        except asyncio.TimeoutError:
-                            # If no new segments after 30 seconds, end the playlist
-                            playlist += "#EXT-X-ENDLIST\n"
-                            yield playlist.encode()
-                            break
 
-            return StreamingResponse(content=generate_playlist(), media_type="application/vnd.apple.mpegurl")
+            playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+            while not len(stream.segments) >= 3:
+                await asyncio.sleep(0.05)
+            for segment in stream.segments:
+                playlist += f"#EXTINF:{segment['duration']:.3f},\n"
+                playlist += f"{segment['id']}.aac\n"
 
+            if stream.ended:
+                playlist += "#EXT-X-ENDLIST\n"
+
+            return Response(
+                content=playlist, media_type="application/vnd.apple.mpegurl"
+            )
 
         @app.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.aac")
-        async def hls_segment(session_hash: str, run: int, component_id: int, segment_id: str):
-            print("Segment files")
+        async def _(session_hash: str, run: int, component_id: int, segment_id: str):
+            print("segment_id", segment_id)
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
                 .pending_streams[session_hash]
@@ -718,12 +701,12 @@ class App(FastAPI):
             if not stream:
                 return Response(status_code=404)
 
-            segment = next((s for s in stream.segments if s['id'] == segment_id), None)
+            segment = next((s for s in stream.segments if s["id"] == segment_id), None)
 
             if segment is None:
                 return Response(status_code=404)
 
-            return Response(content=segment['data'], media_type="audio/aac")
+            return Response(content=segment["data"], media_type="audio/aac")
 
         @app.get(
             "/stream/{session_hash}/{run}/{component_id}",

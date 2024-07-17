@@ -749,9 +749,7 @@ export function submit(
 						time: new Date()
 					});
 
-					let url = new URL(
-						`${ws_protocol}://${host}/stream`
-					);
+					let url = new URL(`${ws_protocol}://${host}/stream`);
 
 					if (this.jwt) {
 						url.searchParams.set("__sign", this.jwt);
@@ -794,8 +792,10 @@ export function submit(
 								websocket.close();
 							}
 						} else if (type === "data") {
-							console.log("app.payload", that.current_payload)
-							websocket.send(JSON.stringify({ ...that.current_payload, session_hash }));
+							console.log("app.payload", that.current_payload);
+							websocket.send(
+								JSON.stringify({ ...that.current_payload, session_hash })
+							);
 						} else if (type === "complete") {
 							complete = status;
 						} else if (type === "log") {

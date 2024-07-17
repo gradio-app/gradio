@@ -59,15 +59,15 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.route_utils import MediaStream
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
-from gradio.route_utils import MediaStream
 from gradio.tunneling import (
     BINARY_FILENAME,
     BINARY_FOLDER,
     BINARY_PATH,
-    BINARY_URL, 
+    BINARY_URL,
     CURRENT_TUNNELS,
 )
 from gradio.utils import (
@@ -680,7 +680,7 @@ class BlocksConfig:
         show_api: bool = True,
         renderable: Renderable | None = None,
         is_cancel_function: bool = False,
-        protocol:  Literal["ws_stream", "sse_v3"] = "sse_v3",
+        protocol: Literal["ws_stream", "sse_v3"] = "sse_v3",
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -821,7 +821,7 @@ class BlocksConfig:
             renderable=renderable,
             rendered_in=rendered_in,
             is_cancel_function=is_cancel_function,
-            protocol=protocol
+            protocol=protocol,
         )
 
         self.fns[self.fn_id] = block_fn
@@ -1756,7 +1756,7 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         root_path: str | None = None,
-        final: bool = False
+        final: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1771,7 +1771,9 @@ Received outputs:
                     stream_run[output_id].end_stream()
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = block.stream_output(
-                    data[i], f"{session_hash}/{run}/{output_id}/playlist.m3u8", first_chunk
+                    data[i],
+                    f"{session_hash}/{run}/{output_id}/playlist.m3u8",
+                    first_chunk,
                 )
                 if first_chunk:
                     stream_run[output_id] = MediaStream()

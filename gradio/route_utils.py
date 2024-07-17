@@ -862,10 +862,10 @@ async def receive_with_timeout(ws, timeout) -> dict | None:
         return
 
 
+import uuid
 from collections import defaultdict
 
 from fastapi import WebSocket
-import uuid
 
 
 class StreamConnectionManager:
@@ -897,18 +897,38 @@ class MediaStream:
         self.ended = False
         self.event = asyncio.Event()
         self.segment_index = 0
-        self.playlist = ""
+        self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+
+    @staticmethod
+    def _convert_to_adts(data: bytes):
+        import io
+
+        from pydub import AudioSegment
+
+        segment = AudioSegment.from_file(io.BytesIO(data))
+
+        buffer = io.BytesIO()
+        segment.export(buffer, format="adts")  # ADTS is a container format for AAC
+        aac_data = buffer.getvalue()
+        return aac_data, len(segment) / 1000.0
+
+    @staticmethod
+    async def covert_to_adts(data: bytes):
+        return await anyio.to_thread.run_sync(MediaStream._convert_to_adts, data)
 
     async def add_segment(self, data: bytes, duration: float):
+        print("Add segment")
+        if not data:
+            print("empty data")
+            return
+
+        aac_data, duration = await MediaStream.covert_to_adts(data)
+
         segment_id = str(uuid.uuid4())
-        self.segments.append({
-            'id': segment_id,
-            'duration': duration,
-            'data': data
-        })
-        self.event.set()
-        self.event.clear()
+        self.segments.append({"id": segment_id, "duration": duration, "data": aac_data})
+        # self.event.set()
+        # self.event.clear()
 
     def end_stream(self):
         self.ended = True
-        self.event.set()
+        # self.event.set()

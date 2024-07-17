@@ -41,6 +41,7 @@
 	let stream_active = false;
 
 	let show_volume_slider = false;
+	let audio_player: HTMLAudioElement;
 
 	const dispatch = createEventDispatcher<{
 		stop: undefined;
@@ -127,54 +128,53 @@
 	};
 
 	async function load_audio(data: string): Promise<void> {
+		stream_active = false;
 		await resolve_wasm_src(data).then((resolved_src) => {
 			if (!resolved_src || value?.is_stream) return;
 			return waveform?.load(resolved_src);
 		});
 	}
 
-	// $: url && load_audio(url);
+	$: url && load_audio(url);
 
 	function load_stream(value: FileData | null): void {
 		if (!value || !value.is_stream) return;
-		var audio = document.getElementById('audio');
-		console.log("audio", audio);
+		if (!audio_player) return;
 		if (Hls.isSupported() && !stream_active) {
 			console.log("HLS supported");
 			var hls = new Hls();
 			console.log("value.url", value.url);
+			console.log("audio_player", audio_player);
 			hls.loadSource(value.url);
-			hls.attachMedia(audio);
-			hls.on(Hls.Events.MANIFEST_PARSED, function() {
+			hls.attachMedia(audio_player);
+			hls.on(Hls.Events.MANIFEST_PARSED, function () {
 				console.log("MANIFEST_PARSED");
-				audio.play();
+				audio_player.play();
 			});
-			hls.on(Hls.Events.ERROR, function(event, data) {
-            console.error('HLS error:', event, data);
-            if (data.fatal) {
-                switch(data.type) {
-                    case Hls.ErrorTypes.NETWORK_ERROR:
-                        console.log('Fatal network error encountered, trying to recover');
-                        hls.startLoad();
-                        break;
-                    case Hls.ErrorTypes.MEDIA_ERROR:
-                        console.log('Fatal media error encountered, trying to recover');
-                        hls.recoverMediaError();
-                        break;
-                    default:
-                        console.log('Fatal error, cannot recover');
-                        hls.destroy();
-                        break;
-                }
-            }
-        });
+			hls.on(Hls.Events.ERROR, function (event, data) {
+				console.error("HLS error:", event, data);
+				if (data.fatal) {
+					switch (data.type) {
+						case Hls.ErrorTypes.NETWORK_ERROR:
+							console.log("Fatal network error encountered, trying to recover");
+							hls.startLoad();
+							break;
+						case Hls.ErrorTypes.MEDIA_ERROR:
+							console.log("Fatal media error encountered, trying to recover");
+							hls.recoverMediaError();
+							break;
+						default:
+							console.log("Fatal error, cannot recover");
+							hls.destroy();
+							break;
+					}
+				}
+			});
 			stream_active = true;
-            }
+		}
 	}
 
-	$: load_stream(value)
-
-	$: console.log(stream_active)
+	$: load_stream(value);
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
@@ -186,21 +186,23 @@
 			}
 		});
 	});
+
+	$: console.log("audio_player", audio_player);
 </script>
 
 <audio
 	class="standard-player"
+	class:hidden={!value || !value.is_stream}
 	controls
 	autoplay={waveform_settings.autoplay}
-	id="audio"
 	on:load
+	bind:this={audio_player}
 />
-
 {#if value === null}
 	<Empty size="small">
 		<Music />
 	</Empty>
-{:else}
+{:else if !value.is_stream}
 	<div
 		class="component-wrapper"
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
@@ -287,5 +289,9 @@
 	.standard-player {
 		width: 100%;
 		padding: var(--size-2);
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>
