@@ -164,24 +164,30 @@ class Dropdown(FormComponent):
             return None
 
         choice_values = [value for _, value in self.choices]
-        if isinstance(payload, list):
-            for value in payload:
-                if value not in choice_values:
-                    raise Error(
-                        f"Value: {value} is not in the list of choices: {choice_values}"
-                    )
-        elif payload not in choice_values:
-            raise Error(
-                f"Value: {payload} is not in the list of choices: {choice_values}"
-            )
+        if not self.allow_custom_value:
+            if isinstance(payload, list):
+                for value in payload:
+                    if value not in choice_values:
+                        raise Error(
+                            f"Value: {value} is not in the list of choices: {choice_values}"
+                        )
+            elif payload not in choice_values:
+                raise Error(
+                    f"Value: {payload} is not in the list of choices: {choice_values}"
+                )
 
         if self.type == "value":
             return payload
         elif self.type == "index":
             if isinstance(payload, list):
-                return [choice_values.index(choice) for choice in payload]
+                return [
+                    choice_values.index(choice) if choice in choice_values else None
+                    for choice in payload
+                ]
             else:
-                return choice_values.index(payload)
+                return (
+                    choice_values.index(payload) if payload in choice_values else None
+                )
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
