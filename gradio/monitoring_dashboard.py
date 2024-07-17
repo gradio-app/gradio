@@ -30,7 +30,7 @@ with gr.Blocks() as demo:
     with gr.Group():
         with gr.Row():
             unique_users = gr.Label(label="Unique Users")
-            unique_requests = gr.Label(label="Unique Requests")
+            total_requests = gr.Label(label="Total Requests")
             process_time = gr.Label(label="Avg Process Time")
 
     plot = gr.BarPlot(
@@ -52,7 +52,7 @@ with gr.Blocks() as demo:
     @gr.on(
         [demo.load, timer.tick, start.change, end.change, selected_fn.change],
         inputs=[start, end, selected_fn],
-        outputs=[plot, unique_users, unique_requests, process_time],
+        outputs=[plot, unique_users, total_requests, process_time],
     )
     def gen_plot(start, end, selected_fn):
         df = pd.DataFrame(data["data"])
@@ -62,7 +62,7 @@ with gr.Blocks() as demo:
         df["time"] = pd.to_datetime(df["time"], unit="s")
 
         unique_users = len(df["session_hash"].unique())
-        unique_requests = len(df)
+        total_requests = len(df)
         process_time = round(df["process_time"].mean(), 2)
 
         duration = end - start
@@ -77,7 +77,7 @@ with gr.Blocks() as demo:
         return (
             gr.BarPlot(value=df, x_bin=x_bin, x_lim=[start, end]),
             unique_users,
-            unique_requests,
+            total_requests,
             process_time,
         )
 
