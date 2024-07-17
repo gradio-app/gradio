@@ -50,7 +50,7 @@
             {
                 name: "meta",
                 annotation: "dict",
-                doc: "Additional metadata for the file, defaulting to {\"_type\": \"gradio.FileData\"}.",
+                doc: "Additional metadata used internally (should not be changed).",
                 kwargs: null
             }
         ]    
