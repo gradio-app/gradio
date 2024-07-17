@@ -1186,7 +1186,7 @@ class App(FastAPI):
 
         @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
-            if hmac.compare_digest(key, app.analytics_key):
+            if compare_passwords_securely(key, app.analytics_key):
                 analytics_url = f"/monitoring/{app.analytics_key}/dashboard"
                 if not app.monitoring_enabled:
                     from gradio.monitoring_dashboard import data
