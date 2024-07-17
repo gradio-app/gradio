@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Use constant-time comparison when checking user-provided analytics key
+feat:Use constant-time comparison when checking user provided analytics key
