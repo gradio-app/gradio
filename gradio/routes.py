@@ -586,80 +586,125 @@ class App(FastAPI):
 
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
+        @app.post("/stream/{event_id}")
+        async def _(event_id: str, body: PredictBody):
+            print("HERE")
+            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event.data = body
+            return {"msg": "success"}
+
         @app.websocket("/stream")
         async def _(ws: WebSocket):
             await app.stream_connection_manager.connect(ws)
+            success = await route_utils.send_with_timeout(
+                ws, {"msg": "send_data"}, 5
+            )
+            if not success:
+                app.stream_connection_manager.disconnect(ws)
+                return
+            body = PredictBody(**(await route_utils.receive_with_timeout(ws, 5)))
+            if body is None:
+                app.stream_connection_manager.disconnect(ws)
+                return
+            username = ""
+            event_id = (await queue_join_helper(body, ws, username))["event_id"]
+            event = app.get_blocks()._queue.event_ids_to_events[event_id]
             try:
-                success = await route_utils.send_with_timeout(
-                    ws, {"msg": "send_data"}, 5
-                )
-                if not success:
-                    app.stream_connection_manager.disconnect(ws)
-                    return
-                message = PredictBody(**(await route_utils.receive_with_timeout(ws, 5)))
-                if message is None:
-                    app.stream_connection_manager.disconnect(ws)
-                    return
-                dep = app.blocks.fns[message.fn_index]
-                app.stream_connection_manager.fn_id_to_run_time[message.fn_index] = (
-                    dep.total_runtime
-                )
-                run_time = 0
-                print("dep.time_limit", dep.time_limit)
-                while True:
-                    send_data_start = time.monotonic()
+                while not event.finished:
+                    start = time.monotonic()
                     success = await route_utils.send_with_timeout(
                         ws, {"msg": "send_data"}, 5
                     )
-                    send_data_end = time.monotonic()
-                    # print("send_data time", send_data_end - send_data_start)
-                    recieve_start = time.monotonic()
-                    msg = await route_utils.receive_with_timeout(ws, None)
-                    receieve_end = time.monotonic()
-                    print("recieve time", receieve_end - recieve_start)
-                    message = PredictBody(**msg)
-                    if run_time > dep.time_limit:
-                        print("HERE")
-                        break
-                    if message is None:
-                        print("message none")
+                    if not success:
                         app.stream_connection_manager.disconnect(ws)
                         return
-                    data = message.data
-                    pred_start = time.monotonic()
-                    data[0] = processing_utils.decode_base64_to_image_array(
-                        data[0]["path"]
-                    )
-                    if inspect.iscoroutinefunction(dep.fn):
-                        prediction = await dep.fn(*data)
-                    else:
-                        prediction = await anyio.to_thread.run_sync(
-                            dep.fn, *data, limiter=app.blocks.limiter
-                        )
-                    prediction = {
-                        "url": processing_utils.encode_array_to_base64(prediction)
-                    }
-                    pred_end = time.monotonic()
-                    run_time += pred_end - pred_start
-                    # print("total run_time", run_time)
-                    # print("run_time", (pred_end - pred_start))
-
-                    send_start = time.monotonic()
-                    message = {
-                        "msg": "process_generating",
-                        "output": {"data": [prediction]},
-                        "success": True,
-                    }
+                    body = PredictBody(**(await route_utils.receive_with_timeout(ws, 50)))
+                    event.data = body
+                    message = await app.get_blocks()._queue.event_ids_to_messages[event_id].get()
+                    print('message', message['msg'])
                     await app.stream_connection_manager.send_msg(message, ws)
-                    send_end = time.monotonic()
-                    # print("send time", send_end - send_start)
+                    end = time.monotonic()
+                    print("loop time", end - start)
             except Exception as e:
                 import traceback
-
                 traceback.print_exc()
+            finally:
+                pass
+                # if not ws.state.
                 await ws.close()
-                print("error", e)
-                return
+
+
+            # try:
+            #     from gradio import image_utils
+            #     success = await route_utils.send_with_timeout(
+            #         ws, {"msg": "send_data"}, 5
+            #     )
+            #     if not success:
+            #         app.stream_connection_manager.disconnect(ws)
+            #         return
+            #     message = PredictBody(**(await route_utils.receive_with_timeout(ws, 5)))
+            #     if message is None:
+            #         app.stream_connection_manager.disconnect(ws)
+            #         return
+            #     dep = app.blocks.fns[message.fn_index]
+            #     app.stream_connection_manager.fn_id_to_run_time[message.fn_index] = (
+            #         dep.total_runtime
+            #     )
+            #     run_time = 0
+            #     print("dep.time_limit", dep.time_limit)
+            #     while True:
+            #         start = time.monotonic()
+            #         success = await route_utils.send_with_timeout(
+            #             ws, {"msg": "send_data"}, 5
+            #         )
+            #         send_data_end = time.monotonic()
+            #         # print("send_data time", send_data_end - send_data_start)
+            #         recieve_start = time.monotonic()
+            #         msg = await route_utils.receive_with_timeout(ws, None)
+            #         receieve_end = time.monotonic()
+            #         message = PredictBody(**msg)
+            #         if run_time > dep.time_limit:
+            #             print("HERE")
+            #             break
+            #         if message is None:
+            #             print("message none")
+            #             app.stream_connection_manager.disconnect(ws)
+            #             return
+            #         data = message.data
+            #         pred_start = time.monotonic()
+            #         data[0] = image_utils.decode_base64_to_image_array(
+            #             data[0]["data"]
+            #         )
+            #         if inspect.iscoroutinefunction(dep.fn):
+            #             prediction = await dep.fn(*data)
+            #         else:
+            #             prediction = await anyio.to_thread.run_sync(
+            #                 dep.fn, *data, limiter=app.blocks.limiter
+            #             )
+            #         prediction = {
+            #             "url": image_utils.encode_image_array_to_base64(prediction)
+            #         }
+            #         pred_end = time.monotonic()
+            #         run_time += pred_end - pred_start
+            #         # print("total run_time", run_time)
+            #         # print("run_time", (pred_end - pred_start))
+
+            #         send_start = time.monotonic()
+            #         message = {
+            #             "msg": "process_generating",
+            #             "output": {"data": [prediction]},
+            #             "success": True,
+            #         }
+            #         await app.stream_connection_manager.send_msg(message, ws)
+            #         send_end = time.monotonic()
+            #         print("loop time", send_end - start)
+            # except Exception as e:
+            #     import traceback
+
+            #     traceback.print_exc()
+            #     await ws.close()
+            #     print("error", e)
+            #     return
 
         @app.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
         async def _(session_hash: str, run: int, component_id: int):
@@ -680,8 +725,8 @@ class App(FastAPI):
                 return Response(status_code=404)
 
             playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:3\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
-            while not len(stream.segments) >= 3:
-                await asyncio.sleep(0.05)
+            # while not len(stream.segments) >= 1:
+            #     await asyncio.sleep(0.05)
             for segment in stream.segments:
                 playlist += f"#EXTINF:{segment['duration']:.3f},\n"
                 playlist += f"{segment['id']}{extension}\n"
@@ -927,7 +972,7 @@ class App(FastAPI):
 
         async def queue_join_helper(
             body: PredictBody,
-            request: fastapi.Request,
+            request: fastapi.Request | WebSocket,
             username: str,
         ):
             blocks = app.get_blocks()

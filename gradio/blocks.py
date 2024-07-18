@@ -539,7 +539,7 @@ class BlockFunction:
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
-        self.time_limit = 30
+        self.time_limit = 300
         self.protocol = protocol
 
         self.spaces_auto_wrap()

@@ -102,6 +102,7 @@ export type client_return = {
 export interface SubmitIterable<T> extends AsyncIterable<T> {
 	[Symbol.asyncIterator](): AsyncIterator<T>;
 	cancel: () => Promise<void>;
+	event_id: () => string;
 }
 
 export type PredictReturn = {

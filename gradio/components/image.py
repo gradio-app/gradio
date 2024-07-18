@@ -163,6 +163,8 @@ class Image(StreamingInput, Component):
         """
         if payload is None:
             return payload
+        if payload.data:
+            return image_utils.decode_base64_to_image_array(payload.data)
         file_path = Path(payload.path)
         if payload.orig_name:
             p = Path(payload.orig_name)
@@ -210,6 +212,8 @@ class Image(StreamingInput, Component):
         """
         if value is None:
             return None
+        if self.format == "base64":
+            return FileData(path="", data=image_utils.encode_image_array_to_base64(value))
         if isinstance(value, str) and value.lower().endswith(".svg"):
             return FileData(path=value, orig_name=Path(value).name)
         saved = image_utils.save_image(value, self.GRADIO_CACHE, self.format)
