@@ -22,7 +22,6 @@ class PlotData(GradioModel):
     mark: str
 
 
-@document()
 class NativePlot(Component):
     """
     Creates a line plot component to display data from a pandas DataFrame.
