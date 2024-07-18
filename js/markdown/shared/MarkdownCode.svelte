@@ -45,24 +45,33 @@
 		}
 	});
 
+	function escapeRegExp(string: string): string {
+		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	}
+
 	function process_message(value: string): string {
 		let parsedValue = value;
 
 		if (render_markdown) {
 			const latexBlocks: string[] = [];
-			parsedValue = parsedValue.replace(
-				/\$\$([\s\S]+?)\$\$/g,
-				(match, p1, offset) => {
+			latex_delimiters.forEach((delimiter, index) => {
+				const leftDelimiter = escapeRegExp(delimiter.left);
+				const rightDelimiter = escapeRegExp(delimiter.right);
+				const regex = new RegExp(
+					`${leftDelimiter}([\\s\\S]+?)${rightDelimiter}`,
+					"g"
+				);
+				parsedValue = parsedValue.replace(regex, (match) => {
 					latexBlocks.push(match);
 					return `%%%LATEX_BLOCK_${latexBlocks.length - 1}%%%`;
-				}
-			);
+				});
+			});
 
 			parsedValue = marked.parse(parsedValue) as string;
 
 			parsedValue = parsedValue.replace(
 				/%%%LATEX_BLOCK_(\d+)%%%/g,
-				(match, p1) => latexBlocks[parseInt(p1, 10)]
+				(p1) => latexBlocks[parseInt(p1, 10)]
 			);
 		}
 
