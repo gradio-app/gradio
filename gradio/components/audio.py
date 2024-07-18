@@ -286,13 +286,13 @@ class Audio(
 
     def stream_output(
         self, value, output_id: str, first_chunk: bool
-    ) -> tuple[bytes | None, Any]:
+    ) -> tuple[bytes, Any]:
         output_file = {
             "path": output_id,
             "is_stream": True,
         }
         if value is None:
-            return None, output_file
+            return b"", output_file
         if isinstance(value, bytes):
             return value, output_file
         if client_utils.is_http_url_like(value["path"]):

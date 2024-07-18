@@ -138,7 +138,7 @@ class Block:
             self.render()
 
     @property
-    def stateful(self):
+    def stateful(self) -> bool:
         return False
 
     @property
