@@ -44,16 +44,25 @@
 		el.focus();
 	}
 
-	function get_os() {
+	function get_os(): string {
 		// @ts-ignore - userAgentData is not yet in the TS types as it is currently experimental
-		return navigator.userAgentData.platform ?? navigator.userAgent;
+		if (typeof navigator !== "undefined") {
+			const userAgent = navigator.userAgent.toLowerCase();
+			if (userAgent.indexOf("win") > -1) return "Windows";
+			if (userAgent.indexOf("mac") > -1) return "MacOS";
+			if (userAgent.indexOf("linux") > -1) return "Linux";
+			if (userAgent.indexOf("android") > -1) return "Android";
+			if (userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1)
+				return "iOS";
+		}
+		return "Unknown";
 	}
 
 	let meta_key = "⌘";
 
 	$: if (browser && navigator) {
 		let os = get_os();
-		meta_key = os.includes("Mac") || os.includes("mac") ? "⌘" : "CTRL+";
+		meta_key = os === "MacOS" || os === "iOS" ? "⌘" : "CTRL+";
 	}
 
 	function handle_key_down(e: KeyboardEvent): void {
