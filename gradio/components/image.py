@@ -38,7 +38,7 @@ class Image(StreamingInput, Component):
         Events.stream,
         Events.select,
         Events.upload,
-        Events.input
+        Events.input,
     ]
 
     data_model = FileData
