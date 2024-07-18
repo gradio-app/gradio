@@ -25,7 +25,7 @@ function convert_to_pypi_prerelease(version: string) {
 			} else if (tag === "alpha") {
 				return `${v}a${tag_version}`;
 			} else {
-				return client_version_raw;
+				return version;
 			}
 		}
 	);
