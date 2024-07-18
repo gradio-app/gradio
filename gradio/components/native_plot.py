@@ -27,7 +27,7 @@ class NativePlot(Component):
     """
     Creates a native Gradio plot component to display data from a pandas DataFrame. Supports interactivity and updates.
 
-    Demos: live_dashboard
+    Demos: native_plots
     """
 
     EVENTS = [Events.select]
