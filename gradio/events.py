@@ -532,9 +532,9 @@ class EventListener(str):
                 _callback(block)
             return Dependency(block, dep.get_config(), dep_index, fn, timer)
 
-        event_trigger.event_name = _event_name
-        event_trigger.has_trigger = _has_trigger
-        event_trigger.callback = _callback
+        event_trigger.event_name = _event_name  # type: ignore
+        event_trigger.has_trigger = _has_trigger  # type: ignore
+        event_trigger.callback = _callback  # type: ignore
         return event_trigger
 
 
@@ -659,8 +659,8 @@ def on(
         ]
     if triggers:
         for trigger in triggers:
-            if trigger.callback:
-                trigger.callback(trigger.__self__)
+            if trigger.callback:  # type: ignore
+                trigger.callback(trigger.__self__)  # type: ignore
 
     if every is not None:
         from gradio.components import Timer

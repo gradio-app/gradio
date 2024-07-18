@@ -54,15 +54,15 @@ class ProcessGeneratingMessage(BaseMessage):
     success: bool
 
 
-class HeartbeatMessage(BaseModel):
+class HeartbeatMessage(BaseMessage):
     msg: Literal[ServerMessage.heartbeat] = ServerMessage.heartbeat
 
 
-class CloseStreamMessage(BaseModel):
+class CloseStreamMessage(BaseMessage):
     msg: Literal[ServerMessage.close_stream] = ServerMessage.close_stream
 
 
-class UnexpectedErrorMessage(BaseModel):
+class UnexpectedErrorMessage(BaseMessage):
     msg: Literal[ServerMessage.unexpected_error] = ServerMessage.unexpected_error
     message: str
     success: Literal[False] = False
