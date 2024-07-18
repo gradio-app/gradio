@@ -67,7 +67,7 @@ jobs:
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: deploy json to aws
-        if: needs.changes.outputs.source_branch == 'changeset-release/main' && needs.changes.outputs.source_repo == 'gradio-app/gradio'
+        if: startsWith(needs.changes.outputs.source_branch, 'changeset-release/') && needs.changes.outputs.source_repo == 'gradio-app/gradio'
         run: |
           export AWS_ACCESS_KEY_ID=${{ secrets.AWSACCESSKEYID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWSSECRETKEY }}
