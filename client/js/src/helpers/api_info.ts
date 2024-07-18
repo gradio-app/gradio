@@ -392,7 +392,9 @@ export const map_data_to_params = (
 	data: unknown[] | Record<string, unknown> = [],
 	endpoint_info: EndpointInfo<JsApiData | ApiData>
 ): unknown[] => {
-	const parameters = endpoint_info.parameters;
+	// Workaround for the case where the endpoint_info is undefined
+	// See https://github.com/gradio-app/gradio/pull/8820#issuecomment-2237381761
+	const parameters = endpoint_info ? endpoint_info.parameters : [];
 
 	if (Array.isArray(data)) {
 		if (data.length > parameters.length) {
