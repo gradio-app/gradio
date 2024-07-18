@@ -66,6 +66,8 @@ export function submit(
 		let websocket: WebSocket;
 		let stream: EventSource | null;
 		let protocol = (dependency.protocol || config.protocol) ?? "ws";
+		let event_id_final = "";
+		let event_id_cb: () => string = () => event_id_final;
 		console.log("protocol", protocol);
 
 		const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
@@ -451,6 +453,7 @@ export function submit(
 							}
 						} else if (type === "data") {
 							event_id = _data.event_id as string;
+							event_id_cb = () => event_id!;
 							let [_, status] = await post_data(`${config.root}/queue/data`, {
 								...payload,
 								session_hash,
@@ -528,7 +531,7 @@ export function submit(
 					protocol == "sse_v1" ||
 					protocol == "sse_v2" ||
 					protocol == "sse_v2.1" ||
-					protocol == "sse_v3"
+					protocol == "sse_v3" || protocol == "ws_stream"
 				) {
 					// latest API format. v2 introduces sending diffs for intermediate outputs in generative functions, which makes payloads lighter.
 					// v3 only closes the stream when the backend sends the close stream message.
@@ -595,6 +598,10 @@ export function submit(
 							});
 						} else {
 							event_id = response.event_id as string;
+							event_id_final = event_id;
+							console.log("event_id_final", event_id_final);
+							console.log("event_id_cb", event_id_cb);
+							console.log("event_id from cb", event_id_cb())
 							let callback = async function (_data: object): Promise<void> {
 								try {
 									const { type, status, data } = handle_message(
@@ -907,7 +914,8 @@ export function submit(
 				close();
 				return next();
 			},
-			cancel
+			cancel,
+			event_id: event_id_cb
 		};
 
 		return iterator;

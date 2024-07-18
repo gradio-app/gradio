@@ -438,6 +438,9 @@ async def async_move_files_to_cache(
 
     async def _move_to_cache(d: dict):
         payload = FileData(**d)
+        if payload.data is not None:
+            payload.url = payload.data
+            return payload.model_dump()
         # If the gradio app developer is returning a URL from
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
@@ -489,6 +492,8 @@ async def async_move_files_to_cache(
 
 def add_root_url(data: dict | list, root_url: str, previous_root_url: str | None):
     def _add_root_url(file_dict: dict):
+        if file_dict.get('data') is not None:
+            return file_dict
         if previous_root_url and file_dict["url"].startswith(previous_root_url):
             file_dict["url"] = file_dict["url"][len(previous_root_url) :]
         elif client_utils.is_http_url_like(file_dict["url"]):
@@ -979,32 +984,3 @@ def get_video_length(video_path: str | Path):
     duration_float = float(duration_str)
 
     return duration_float
-
-
-def encode_array_to_base64(image_array):
-    with BytesIO() as output_bytes:
-        pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
-        pil_image.save(output_bytes, "JPEG")
-        bytes_data = output_bytes.getvalue()
-    base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return "data:image/png;base64," + base64_str
-
-
-def decode_base64_to_image(encoding: str) -> Image.Image:
-    image_encoded = extract_base64_data(encoding)
-    img = Image.open(BytesIO(base64.b64decode(image_encoded)))
-    try:
-        if hasattr(ImageOps, "exif_transpose"):
-            img = ImageOps.exif_transpose(img)
-    except Exception:
-        log.warning(
-            "Failed to transpose image %s based on EXIF data.",
-            img,
-            exc_info=True,
-        )
-    return img
-
-
-def decode_base64_to_image_array(encoding: str) -> np.ndarray:
-    img = decode_base64_to_image(encoding)
-    return np.asarray(img)

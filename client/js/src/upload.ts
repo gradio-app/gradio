@@ -59,6 +59,7 @@ export async function prepare_files(
 				blob: f,
 				size: f.size,
 				mime_type: f.type,
+				data: "",
 				is_stream
 			})
 	);
@@ -73,6 +74,7 @@ export class FileData {
 	is_stream?: boolean;
 	mime_type?: string;
 	alt_text?: string;
+	data?: any;
 	readonly meta = { _type: "gradio.FileData" };
 
 	constructor({
@@ -83,7 +85,8 @@ export class FileData {
 		blob,
 		is_stream,
 		mime_type,
-		alt_text
+		alt_text,
+		data,
 	}: {
 		path: string;
 		url?: string;
@@ -93,6 +96,7 @@ export class FileData {
 		is_stream?: boolean;
 		mime_type?: string;
 		alt_text?: string;
+		data?: string;
 	}) {
 		this.path = path;
 		this.url = url;
@@ -102,5 +106,6 @@ export class FileData {
 		this.is_stream = is_stream;
 		this.mime_type = mime_type;
 		this.alt_text = alt_text;
+		this.data = data;
 	}
 }

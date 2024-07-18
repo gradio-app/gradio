@@ -279,6 +279,7 @@
 			let submission: ReturnType<typeof app.submit>;
 			if (streaming && submit_map.has(dep_index)) {
 				app.current_payload = payload;
+				await app.post_data(`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`, payload)
 				console.log("Current payload", app.current_payload);
 				return;
 			}
