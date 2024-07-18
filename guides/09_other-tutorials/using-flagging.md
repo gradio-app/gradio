@@ -28,7 +28,6 @@ There are [four parameters](https://gradio.app/docs/interface#initialization) in
 - `flagging_callback`: this parameter takes an instance of a subclass of the `FlaggingCallback` class
   - Using this parameter allows you to write custom code that gets run when the flag button is clicked
   - By default, this is set to an instance of `gr.CSVLogger`
-  - One example is setting it to an instance of `gr.HuggingFaceDatasetSaver` which can allow you to pipe any flagged data into a HuggingFace Dataset. (See more below.)
 
 ## What happens to flagged data?
 
@@ -126,49 +125,6 @@ num1,operation,num2,Output,flag,timestamp
 5,add,7,-12,wrong sign,2022-02-04 11:40:51.093412
 6,subtract,1.5,3.5,off by one,2022-02-04 11:42:32.062512
 ```
-
-## The HuggingFaceDatasetSaver Callback
-
-Sometimes, saving the data to a local CSV file doesn't make sense. For example, on Hugging Face
-Spaces, developers typically don't have access to the underlying ephemeral machine hosting the Gradio
-demo. That's why, by default, flagging is turned off in Hugging Face Space. However,
-you may want to do something else with the flagged data.
-
-We've made this super easy with the `flagging_callback` parameter.
-
-For example, below we're going to pipe flagged data from our calculator example into a Hugging Face Dataset, e.g. so that we can build a "crowd-sourced" dataset:
-
-```python
-import os
-
-HF_TOKEN = os.getenv('HF_TOKEN')
-hf_writer = gr.HuggingFaceDatasetSaver(HF_TOKEN, "crowdsourced-calculator-demo")
-
-iface = gr.Interface(
-    calculator,
-    ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
-    "number",
-    description="Check out the crowd-sourced dataset at: [https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo)",
-    allow_flagging="manual",
-    flagging_options=["wrong sign", "off by one", "other"],
-    flagging_callback=hf_writer
-)
-
-iface.launch()
-```
-
-Notice that we define our own
-instance of `gradio.HuggingFaceDatasetSaver` using our Hugging Face token and
-the name of a dataset we'd like to save samples to. In addition, we also set `allow_flagging="manual"`
-because on Hugging Face Spaces, `allow_flagging` is set to `"never"` by default. Here's our demo:
-
-<gradio-app space="gradio/calculator-flagging-crowdsourced/"></gradio-app>
-
-You can now see all the examples flagged above in this [public Hugging Face dataset](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo).
-
-![flagging callback hf](https://github.com/gradio-app/gradio/blob/main/guides/assets/flagging-callback-hf.png?raw=true)
-
-We created the `gradio.HuggingFaceDatasetSaver` class, but you can pass your own custom class as long as it inherits from `FLaggingCallback` defined in [this file](https://github.com/gradio-app/gradio/blob/master/gradio/flagging.py). If you create a cool callback, contribute it to the repo!
 
 ## Flagging with Blocks
 

@@ -331,7 +331,7 @@ class TestBlocksMethods:
 
             greet_btn.click(lambda: "Hello!", inputs=None, outputs=[greeting])
             generator_btn.click(generator_function, inputs=None, outputs=[counter])
-            demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
+            demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life])
 
         dependencies = demo.config["dependencies"]
         assert dependencies[0]["types"] == {
@@ -347,10 +347,6 @@ class TestBlocksMethods:
             "cancel": False,
         }
         assert dependencies[3]["types"] == {
-            "generator": False,
-            "cancel": False,
-        }
-        assert dependencies[4]["types"] == {
             "generator": False,
             "cancel": False,
         }
@@ -1630,13 +1626,6 @@ def test_recover_kwargs():
         ["value"],
     )
     assert props == {"format": "wav", "autoplay": False}
-
-
-def test_deprecation_warning_emitted_when_concurrency_count_set():
-    with pytest.raises(DeprecationWarning):
-        gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox()).queue(
-            concurrency_count=12
-        )
 
 
 def test_postprocess_update_dict():

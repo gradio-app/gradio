@@ -1003,7 +1003,7 @@ class TestShowAPI:
 def test_component_server_endpoints(connect):
     here = os.path.dirname(os.path.abspath(__file__))
     with gr.Blocks() as demo:
-        file_explorer = gr.FileExplorer(root=here)
+        file_explorer = gr.FileExplorer(root_dir=here)
 
     with closing(demo) as io:
         app, _, _ = io.launch(prevent_thread_lock=True)
