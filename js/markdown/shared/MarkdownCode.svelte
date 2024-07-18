@@ -61,7 +61,7 @@
 					`${leftDelimiter}([\\s\\S]+?)${rightDelimiter}`,
 					"g"
 				);
-				parsedValue = parsedValue.replace(regex, (match) => {
+				parsedValue = parsedValue.replace(regex, (match, p1) => {
 					latexBlocks.push(match);
 					return `%%%LATEX_BLOCK_${latexBlocks.length - 1}%%%`;
 				});
@@ -71,7 +71,7 @@
 
 			parsedValue = parsedValue.replace(
 				/%%%LATEX_BLOCK_(\d+)%%%/g,
-				(p1) => latexBlocks[parseInt(p1, 10)]
+				(match, p1) => latexBlocks[parseInt(p1, 10)]
 			);
 		}
 
