@@ -1193,7 +1193,7 @@ class App(FastAPI):
 
                     mount_gradio_app(app, dashboard, path=analytics_url)
                     dashboard._queue.start()
-                    analytics = list(app.get_blocks()._queue.event_analytics.values())
+                    analytics = app.get_blocks()._queue.event_analytics
                     data["data"] = analytics
                     app.monitoring_enabled = True
                 return RedirectResponse(

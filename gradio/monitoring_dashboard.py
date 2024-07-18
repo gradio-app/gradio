@@ -5,7 +5,7 @@ import pandas as pd
 
 import gradio as gr
 
-data = {"data": []}
+data = {"data": {}}
 
 with gr.Blocks() as demo:
     gr.Markdown("# Monitoring Dashboard")
@@ -21,7 +21,8 @@ with gr.Blocks() as demo:
         )
         demo.load(
             lambda: gr.Dropdown(
-                choices=["All"] + list({row["function"] for row in data["data"]})  # type: ignore
+                choices=["All"]
+                + list({row["function"] for row in data["data"].values()})  # type: ignore
             ),
             None,
             selected_fn,
@@ -55,7 +56,7 @@ with gr.Blocks() as demo:
         outputs=[plot, unique_users, total_requests, process_time],
     )
     def gen_plot(start, end, selected_fn):
-        df = pd.DataFrame(data["data"])
+        df = pd.DataFrame(list(data["data"].values()))
         if selected_fn != "All":
             df = df[df["function"] == selected_fn]
         df = df[(df["time"] >= start) & (df["time"] <= end)]
@@ -83,21 +84,19 @@ with gr.Blocks() as demo:
 
 
 if __name__ == "__main__":
-    data["data"] = []
+    data["data"] = {}
     for _ in range(random.randint(300, 500)):
         timedelta = random.randint(0, 60 * 60 * 24 * 3)
-        data["data"].append(
-            {
-                "time": time.time() - timedelta,
-                "status": random.choice(
-                    ["success", "success", "failure"]
-                    if timedelta > 30 * 60
-                    else ["queued", "pending"]
-                ),
-                "function": random.choice(["predict", "chat", "chat"]),
-                "process_time": random.randint(0, 10),
-                "session_hash": str(random.randint(0, 4)),
-            }
-        )
+        data["data"][random.randint(1, 100000)] = {
+            "time": time.time() - timedelta,
+            "status": random.choice(
+                ["success", "success", "failure"]
+                if timedelta > 30 * 60
+                else ["queued", "pending"]
+            ),
+            "function": random.choice(["predict", "chat", "chat"]),
+            "process_time": random.randint(0, 10),
+            "session_hash": str(random.randint(0, 4)),
+        }
 
     demo.launch()
