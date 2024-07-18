@@ -31,7 +31,6 @@
 	}>();
 
 	$: value && dispatch("change", value);
-	// $: console.log("videopreview is_stream", value?.is_stream);
 
 	afterUpdate(async () => {
 		// needed to bust subtitle caching issues on Chrome
