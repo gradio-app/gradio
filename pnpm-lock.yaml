@@ -270,6 +270,9 @@ importers:
       '@gradio/multimodaltextbox':
         specifier: workspace:^
         version: link:js/multimodaltextbox
+      '@gradio/nativeplot':
+        specifier: workspace:^
+        version: link:js/nativeplot
       '@gradio/number':
         specifier: workspace:^
         version: link:js/number
