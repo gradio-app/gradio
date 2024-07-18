@@ -70,6 +70,7 @@ class Audio(
         Events.pause_recording,
         Events.stop_recording,
         Events.upload,
+        Events.input
     ]
 
     data_model = FileData
