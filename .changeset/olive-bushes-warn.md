@@ -1,7 +1,7 @@
 ---
-"@gradio/audio": minor
-"@gradio/image": minor
-"gradio": minor
+"@gradio/audio": patch
+"@gradio/image": patch
+"gradio": patch
 ---
 
-feat:Add `.input()` events to `gr.Audio` and `gr.Image`
+fix:Add `.input()` events to `gr.Audio` and `gr.Image`
