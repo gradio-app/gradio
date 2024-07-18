@@ -56,7 +56,6 @@
 		if (Hls.isSupported() && !stream_active) {
 			console.log("HLS supported");
 			var hls = new Hls();
-
 			hls.loadSource(src);
 			hls.attachMedia(node);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -89,9 +88,6 @@
 	}
 
 	$: src, stream_active = false; 
-
-	$: console.log("VIDEO src", src);
-	$: console.log("VIDEO is_stream", is_stream)
 
 	$: load_stream(src, is_stream, node);
 </script>

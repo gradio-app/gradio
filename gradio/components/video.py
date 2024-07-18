@@ -427,46 +427,34 @@ class Video(StreamingOutput, Component):
         ]
         subprocess.run(cmd, check=True)
 
+    @staticmethod
+    async def async_convert_mp4_to_ts(mp4_file, ts_file):
+        import asyncio
+        command = [
+            'ffmpeg',
+            '-i', mp4_file,
+            '-c:v', 'libx264',
+            '-c:a', 'aac',
+            '-f', 'mpegts',
+            '-bsf:v', 'h264_mp4toannexb',
+            '-bsf:a', 'aac_adtstoasc',
+            ts_file
+        ]
 
-    # @staticmethod
-    # def segment_video(input_file: str, output_directory: str, segment_time: int = 6):
-    #     import ffmpeg
-    #     stream = ffmpeg.input(input_file)
-    #     stream = ffmpeg.output(stream, f"{output_directory}/segment_%03d.ts",
-    #                         format="hls",
-    #                         hls_time=segment_time,
-    #                         hls_list_size=0,
-    #                         hls_segment_filename=f"{output_directory}/segment_%03d.ts")
-    #     ffmpeg.run(stream)
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
 
+        stdout, stderr = await process.communicate()
+        print("stdout", stdout)
 
-    # @staticmethod
-    # async def convert_mp4_to_ts(input_file, output_file):
-    #     import asyncio
-    #     command = [
-    #         'ffmpeg',
-    #         '-i', input_file,
-    #         '-c:v', 'mpeg2video',
-    #         '-c:a', 'mp2',
-    #         '-f', 'mpegts',
-    #         "-y",
-    #         output_file
-    #     ]
+        if process.returncode != 0:
+            error_message = stderr.decode().strip()
+            raise RuntimeError(f"FFmpeg command failed: {error_message}")
 
-    #     process = await asyncio.create_subprocess_exec(
-    #         *command,
-    #         stdout=asyncio.subprocess.PIPE,
-    #         stderr=asyncio.subprocess.PIPE
-    #     )
-
-    #     stdout, stderr = await process.communicate()
-    #     print("stdout", stdout)
-
-    #     if process.returncode != 0:
-    #         error_message = stderr.decode().strip()
-    #         raise RuntimeError(f"FFmpeg command failed: {error_message}")
-
-    #     return output_file
+        return ts_file
 
     async def stream_output(
         self, value: str | None, output_id: str, first_chunk: bool
@@ -480,9 +468,12 @@ class Video(StreamingOutput, Component):
         if value is None:
             return None, output_file
 
-        output_file = value.replace(".mp4", ".ts")
-        self.convert_mp4_to_ts(value, output_file)
-        duration = self.get_video_duration_ffprobe(output_file)
+        ts_file = value
+        if not value.endswith(".ts"):
+            ts_file = value.replace(".mp4", ".ts")
+            await self.async_convert_mp4_to_ts(value, ts_file)
+
+        duration = self.get_video_duration_ffprobe(ts_file)
         print("duration", duration)
-        print("output_file", output_file)
-        return {"data": output_file, "duration": duration}, output_file
+        print("output_file", ts_file)
+        return {"data": ts_file, "duration": duration}, output_file
