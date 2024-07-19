@@ -398,8 +398,14 @@ class EventListener(str):
         def event_trigger(
             block: Block | None,
             fn: Callable | None | Literal["decorator"] = "decorator",
-            inputs: Component | BlockContext | Sequence[Component | BlockContext] | AbstractSet[Component | BlockContext] = None,
-            outputs: Component | BlockContext | Sequence[Component | BlockContext] | AbstractSet[Component | BlockContext] = None,
+            inputs: Component
+            | BlockContext
+            | Sequence[Component | BlockContext]
+            | AbstractSet[Component | BlockContext] = None,
+            outputs: Component
+            | BlockContext
+            | Sequence[Component | BlockContext]
+            | AbstractSet[Component | BlockContext] = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
@@ -543,8 +549,14 @@ class EventListener(str):
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
-    inputs: Component | BlockContext | Sequence[Component | BlockContext] | AbstractSet[Component | BlockContext] = None,
-    outputs: Component | BlockContext | Sequence[Component | BlockContext] | AbstractSet[Component | BlockContext] = None,
+    inputs: Component
+    | BlockContext
+    | Sequence[Component | BlockContext]
+    | AbstractSet[Component | BlockContext] = None,
+    outputs: Component
+    | BlockContext
+    | Sequence[Component | BlockContext]
+    | AbstractSet[Component | BlockContext] = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,

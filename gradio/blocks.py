@@ -661,8 +661,14 @@ class BlocksConfig:
         self,
         targets: Sequence[EventListenerMethod],
         fn: Callable | None,
-        inputs: Component | BlockContext | Sequence[Component | BlockContext] | AbstractSet[Component | BlockContext],
-        outputs: Component | BlockContext | Sequence[Component | BlockContext] | AbstractSet[Component | BlockContext],
+        inputs: Component
+        | BlockContext
+        | Sequence[Component | BlockContext]
+        | AbstractSet[Component | BlockContext],
+        outputs: Component
+        | BlockContext
+        | Sequence[Component | BlockContext]
+        | AbstractSet[Component | BlockContext],
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
