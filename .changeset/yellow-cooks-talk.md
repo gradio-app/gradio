@@ -1,9 +1,9 @@
 ---
-"@gradio/atoms": minor
-"@gradio/image": minor
-"@gradio/imageeditor": minor
-"@gradio/simpleimage": minor
-"gradio": minor
+"@gradio/atoms": patch
+"@gradio/image": patch
+"@gradio/imageeditor": patch
+"@gradio/simpleimage": patch
+"gradio": patch
 ---
 
-feat:Fix gr.Image height inconsistencies
+fix:Fix gr.Image height inconsistencies
