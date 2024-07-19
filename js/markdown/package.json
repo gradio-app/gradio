@@ -15,6 +15,7 @@
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@types/dompurify": "^3.0.2",
