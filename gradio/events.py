@@ -7,6 +7,7 @@ import dataclasses
 from functools import partial, wraps
 from typing import (
     TYPE_CHECKING,
+    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -397,8 +398,8 @@ class EventListener(str):
         def event_trigger(
             block: Block | None,
             fn: Callable | None | Literal["decorator"] = "decorator",
-            inputs: Block | Sequence[Block] | set[Block] | None = None,
-            outputs: Block | Sequence[Block] | set[Block] | None = None,
+            inputs: Component | Sequence[Component] | AbstractSet[Component] | BlockContext | Sequence[BlockContext] | AbstractSet[BlockContext] | None = None,
+            outputs: Component | Sequence[Component] | AbstractSet[Component] | BlockContext | Sequence[BlockContext] | AbstractSet[BlockContext] | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
@@ -542,8 +543,8 @@ class EventListener(str):
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
-    inputs: Block | Sequence[Block] | set[Block] | None = None,
-    outputs: Block | Sequence[Block] | set[Block] | None = None,
+    inputs: Component | Sequence[Component] | AbstractSet[Component] | BlockContext | Sequence[BlockContext] | AbstractSet[BlockContext] | None = None,
+    outputs: Component | Sequence[Component] | AbstractSet[Component] | BlockContext | Sequence[BlockContext] | AbstractSet[BlockContext] | None = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
