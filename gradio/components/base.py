@@ -105,7 +105,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
 
     @property
     @abstractmethod
-    def skip_api(self):
+    def skip_api(self) -> bool:
         """Whether this component should be skipped from the api return value"""
 
     @classmethod
@@ -368,7 +368,7 @@ class StreamingOutput(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def stream_output(
         self, value, output_id: str, first_chunk: bool
-    ) -> tuple[bytes, Any]:
+    ) -> tuple[bytes | None, Any]:
         pass
 
 

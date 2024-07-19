@@ -213,7 +213,7 @@ class Video(Component):
                 raise wasm_utils.WasmUnsupportedError(
                     "Video formatting is not supported in the Wasm mode."
                 )
-            ff = FFmpeg(
+            ff = FFmpeg(  # type: ignore
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
             )
@@ -227,7 +227,7 @@ class Video(Component):
                 raise wasm_utils.WasmUnsupportedError(
                     "include_audio=False is not supported in the Wasm mode."
                 )
-            ff = FFmpeg(
+            ff = FFmpeg(  # type: ignore
                 inputs={str(file_name): None},
                 outputs={output_file_name: ["-an"]},
             )
@@ -315,7 +315,7 @@ class Video(Component):
                     "Returning a video in a different format is not supported in the Wasm mode."
                 )
             output_file_name = video[0 : video.rindex(".") + 1] + self.format
-            ff = FFmpeg(
+            ff = FFmpeg(  # type: ignore
                 inputs={video: None},
                 outputs={output_file_name: None},
                 global_options="-y",

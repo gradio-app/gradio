@@ -138,11 +138,11 @@ class Block:
             self.render()
 
     @property
-    def stateful(self):
+    def stateful(self) -> bool:
         return False
 
     @property
-    def skip_api(self):
+    def skip_api(self) -> bool:
         return False
 
     @property
@@ -236,7 +236,7 @@ class Block:
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
                 if dataclasses.is_dataclass(value):
-                    value = dataclasses.asdict(value)
+                    value = dataclasses.asdict(value)  # type: ignore
                 config[parameter.name] = value
         for e in self.events:
             to_add = e.config_data()
@@ -1153,11 +1153,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             # ID 0 should be the root Blocks component
             original_mapping[0] = root_block = Context.root_block or blocks
 
-            iterate_over_children(config["layout"]["children"])
+            if "layout" in config:
+                iterate_over_children(config["layout"]["children"])  #
 
             first_dependency = None
 
             # add the event triggers
+            if "dependencies" not in config:
+                raise ValueError(
+                    "This config is missing the 'dependencies' field and cannot be loaded."
+                )
             for dependency, fn in zip(config["dependencies"], fns):
                 # We used to add a "fake_event" to the config to cache examples
                 # without removing it. This was causing bugs in calling gr.load
@@ -1480,7 +1485,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             if inspect.iscoroutinefunction(fn):
                 prediction = await fn(*processed_input)
             else:
-                prediction = await anyio.to_thread.run_sync(
+                prediction = await anyio.to_thread.run_sync(  # type: ignore
                     fn, *processed_input, limiter=self.limiter
                 )
         else:

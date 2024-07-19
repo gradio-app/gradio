@@ -107,6 +107,9 @@ exclude = [
   "gradio/node/*.py",
   "gradio/_frontend_code/*.py",
 ]
+stubPath = "gradio/stubs"
+extraPaths = ["gradio/stubs"]
+
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]

@@ -1,5 +1,6 @@
 aiofiles>=22.0,<24.0
 altair>=5.0,<6.0
+anyio>=3.0,<5.0
 fastapi
 ffmpy
 gradio_client==1.1.0
