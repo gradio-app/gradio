@@ -47,16 +47,13 @@ class Event:
         self,
         session_hash: str | None,
         fn: BlockFunction,
-        request: fastapi.Request | fastapi.WebSocket,
+        request: fastapi.Request,
         username: str | None,
     ):
         self._id = uuid.uuid4().hex
         self.session_hash: str = session_hash or self._id
         self.fn = fn
         self.request = request
-        self.websocket = None
-        if isinstance(request, fastapi.WebSocket):
-            self.websocket = request
         self.username = username
         self.concurrency_id = fn.concurrency_id
         self.data: PredictBody | None = None
@@ -115,7 +112,6 @@ class Queue:
             LRUCache(2000)
         )
         self.pending_event_ids_session: dict[str, set[str]] = {}
-        self.event_ids_to_messages: dict[str, AsyncQueue] = defaultdict(AsyncQueue)
         self.event_ids_to_events: dict[str, Event] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
@@ -177,9 +173,6 @@ class Queue:
         event_message: EventMessage,
     ):
         if not event.alive:
-            return
-        if event.websocket is not None and event_message.msg == "process_generating":
-            self.event_ids_to_messages[event._id].put_nowait(event_message.model_dump())
             return
         event_message.event_id = event._id
         messages = self.pending_messages_per_session[event.session_hash]
