@@ -168,6 +168,7 @@ All of the website code lives in the `js/_website/` directory.
 To start the website on dev mode simply cd into this directory and run: 
 
 ```
+pnpm i 
 pnpm dev
 ```
 
