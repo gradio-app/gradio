@@ -404,7 +404,7 @@
 		);
 	}
 
-	$: mount_space_header(app.config, is_embed);
+	$: app && mount_space_header(app.config, is_embed);
 
 	function mount_space_header(
 		config: client_return["config"],
