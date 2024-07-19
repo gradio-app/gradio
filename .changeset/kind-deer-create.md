@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:add copy button to markdown
+feat:Add copy button to `gr.Markdown`
