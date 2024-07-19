@@ -27,8 +27,6 @@
 	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
 
-	$: console.log("value", value);
-
 	import Component from "./Component.svelte";
 	import LikeButtons from "./ButtonPanel.svelte";
 	import type { LoadedComponent } from "../../app/src/types";
