@@ -57,17 +57,17 @@ with gr.Blocks() as demo:
         df_filtered = df if function == "All" else df[df["function"] == function]
         if timespan != "All Time":
             df_filtered = df_filtered[
-                df_filtered["time"] > pd.Timestamp.now() - pd.Timedelta(timespan)
+                df_filtered["time"] > pd.Timestamp.now() - pd.Timedelta(timespan)  # type: ignore
             ]
 
-        df_filtered["time"] = df_filtered["time"].dt.floor("min")
+        df_filtered["time"] = df_filtered["time"].dt.floor("min")  # type: ignore
         plot = df_filtered.groupby(["time", "status"]).size().reset_index(name="count")  # type: ignore
         mean_process_time_for_success = df_filtered[df_filtered["status"] == "success"][
             "process_time"
         ].mean()
 
         return (
-            df_filtered["session_hash"].nunique(),
+            df_filtered["session_hash"].nunique(),  # type: ignore
             df_filtered.shape[0],
             round(mean_process_time_for_success, 2),
             plot,

@@ -4,7 +4,7 @@ import type { Dependency, PredictReturn } from "../types";
 export async function predict(
 	this: Client,
 	endpoint: string | number,
-	data: unknown[] | Record<string, unknown>
+	data: unknown[] | Record<string, unknown> = {}
 ): Promise<PredictReturn> {
 	let data_returned = false;
 	let status_complete = false;

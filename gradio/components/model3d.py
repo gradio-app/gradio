@@ -126,8 +126,8 @@ class Model3D(Component):
             return value
         return FileData(path=str(value), orig_name=Path(value).name)
 
-    def process_example(self, input_data: str | Path | None) -> str:
-        return Path(input_data).name if input_data else ""
+    def process_example(self, value: str | Path | None) -> str:
+        return Path(value).name if value else ""
 
     def example_payload(self):
         return handle_file(
