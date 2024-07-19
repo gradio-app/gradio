@@ -718,14 +718,14 @@ class BlocksConfig:
             inputs_as_dict = False
             if inputs is None:
                 inputs = []
-            elif not isinstance(inputs, list):
+            elif not isinstance(inputs, Sequence):
                 inputs = [inputs]
 
         if isinstance(outputs, set):
             outputs = sorted(outputs, key=lambda x: x._id)
         elif outputs is None:
             outputs = []
-        elif not isinstance(outputs, list):
+        elif not isinstance(outputs, Sequence):
             outputs = [outputs]
 
         if fn is not None and not cancels:

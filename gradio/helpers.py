@@ -172,9 +172,9 @@ class Examples:
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
         self._defer_caching = _defer_caching
 
-        if not isinstance(inputs, list):
+        if not isinstance(inputs, Sequence):
             inputs = [inputs]
-        if outputs and not isinstance(outputs, list):
+        if outputs and not isinstance(outputs, Sequence):
             outputs = [outputs]
 
         working_directory = Path().absolute()
@@ -408,7 +408,7 @@ class Examples:
             lazy_cache_fn = self.sync_lazy_cache
         self.cache_event = self.load_input_event.then(
             lazy_cache_fn,
-            inputs=[self.dataset] + self.inputs,
+            inputs=[self.dataset] + list(self.inputs),
             outputs=self.outputs,
             postprocess=False,
             api_name=self.api_name,

@@ -193,7 +193,13 @@ class Interface(Blocks):
             inputs = []
             self.interface_type = InterfaceTypes.OUTPUT_ONLY
         if additional_inputs is None:
-            additional_inputs = []
+            self.additional_inputs = []
+        else:
+            if not isinstance(additional_inputs, Sequence):
+                additional_inputs = [additional_inputs]
+            self.additional_input_components = [
+                get_component_instance(i, unrender=True) for i in additional_inputs
+            ]
 
         if not isinstance(inputs, (str, list, Component)):
             raise TypeError(
@@ -208,8 +214,6 @@ class Interface(Blocks):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-        if not isinstance(additional_inputs, list):
-            additional_inputs = [additional_inputs]
 
         self.cache_examples = cache_examples
 
@@ -248,9 +252,7 @@ class Interface(Blocks):
         self.main_input_components = [
             get_component_instance(i, unrender=True) for i in inputs
         ]
-        self.additional_input_components = [
-            get_component_instance(i, unrender=True) for i in additional_inputs
-        ]
+
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
                 "label": "Additional Inputs",
