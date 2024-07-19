@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gradio import ChatMessage
 from transformers.agents import ReactCodeAgent, agent_types
 from typing import Generator
