@@ -510,7 +510,7 @@ class GradioMultiPartParser:
             self.items.append(
                 (
                     self._current_part.field_name,
-                    _user_safe_decode(self._current_part.data, self._charset),
+                    _user_safe_decode(self._current_part.data, str(self._charset)),
                 )
             )
         else:

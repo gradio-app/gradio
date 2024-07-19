@@ -57,27 +57,6 @@ class MessageDict(TypedDict):
     metadata: NotRequired[MetadataDict]
 
 
-TupleFormat = List[List[Union[str, Tuple[str], Tuple[str, str], None]]]
-
-if TYPE_CHECKING:
-    from gradio.components import Timer
-
-
-def import_component_and_data(
-    component_name: str,
-) -> GradioComponent | ComponentMeta | Any | None:
-    try:
-        for component in utils.get_all_components():
-            if component_name == component.__name__ and isinstance(
-                component, ComponentMeta
-            ):
-                return component
-    except ModuleNotFoundError as e:
-        raise ValueError(f"Error importing {component_name}: {e}") from e
-    except AttributeError:
-        pass
-
-
 class FileMessage(GradioModel):
     file: FileData
     alt_text: Optional[str] = None
@@ -118,6 +97,27 @@ class ChatMessage:
 
 class ChatbotDataMessages(GradioRootModel):
     root: List[Message]
+
+
+TupleFormat = List[List[Union[str, Tuple[str], Tuple[str, str], None]]]
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
+
+
+def import_component_and_data(
+    component_name: str,
+) -> GradioComponent | ComponentMeta | Any | None:
+    try:
+        for component in utils.get_all_components():
+            if component_name == component.__name__ and isinstance(
+                component, ComponentMeta
+            ):
+                return component
+    except ModuleNotFoundError as e:
+        raise ValueError(f"Error importing {component_name}: {e}") from e
+    except AttributeError:
+        pass
 
 
 @document()

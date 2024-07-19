@@ -1,51 +1,19 @@
 <script lang="ts">
-	import Index from "../Index.svelte";
 	import type { ThemeMode } from "../types";
-	import { mount_css as default_mount_css } from "../css";
-	import type { Client as ClientType } from "@gradio/client";
 	import type { WorkerProxy } from "@gradio/wasm";
-	import { SvelteComponent, createEventDispatcher, onMount } from "svelte";
-	import Code from "@gradio/code";
-	import ErrorDisplay from "./ErrorDisplay.svelte";
+	import { createEventDispatcher, onMount } from "svelte";
+	import { Block } from "@gradio/atoms";
+	import { BaseCode as Code } from "@gradio/code";
 	import lightning from "../images/lightning.svg";
-	import type { LoadingStatus } from "js/statustracker";
 
-	export let autoscroll: boolean;
-	export let version: string;
-	export let initial_height: string;
-	export let app_mode: boolean;
 	export let is_embed: boolean;
 	export let theme_mode: ThemeMode | null = "system";
-	export let control_page_title: boolean;
-	export let container: boolean;
-	export let info: boolean;
-	export let eager: boolean;
-	export let mount_css: typeof default_mount_css = default_mount_css;
-	export let Client: typeof ClientType;
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 
-	export let space: string | null;
-	export let host: string | null;
-	export let src: string | null;
-
 	export let code: string | undefined;
-	export let error_display: SvelteComponent | null;
 	export let layout: string | null = null;
 
 	const dispatch = createEventDispatcher();
-
-	let dummy_elem: any = { classList: { contains: () => false } };
-	let dummy_gradio: any = { dispatch: (_: any) => {} };
-	let dummy_loading_status: LoadingStatus = {
-		eta: 0,
-		queue_position: 0,
-		queue_size: 0,
-		status: "complete",
-		show_progress: "hidden",
-		scroll_to_output: false,
-		visible: false,
-		fn_index: 0
-	};
 
 	let loading_text = "";
 	export let loaded = false;
@@ -106,7 +74,6 @@
 
 	function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
 		const dark_class_element = is_embed ? target.parentElement! : document.body;
-		const bg_element = is_embed ? target : target.parentElement!;
 		if (theme === "dark") {
 			dark_class_element.classList.add("dark");
 		} else {
@@ -114,19 +81,18 @@
 		}
 	}
 
-	let active_theme_mode: ThemeMode;
+	let active_theme_mode: Exclude<ThemeMode, "system"> = "light";
 	let parent_container: HTMLDivElement;
 
+	let code_editor_container: HTMLDivElement;
 	onMount(() => {
-		var code_editors = document.getElementsByClassName("code-editor");
-		for (var i = 0; i < code_editors.length; i++) {
-			code_editors[i].addEventListener(
-				"keydown",
-				shortcut_run as EventListener,
-				true
-			);
-		}
 		active_theme_mode = handle_theme_mode(parent_container);
+
+		code_editor_container.addEventListener("keydown", shortcut_run, true);
+
+		return () => {
+			code_editor_container.removeEventListener("keydown", shortcut_run, true);
+		};
 	});
 
 	$: loading_text;
@@ -170,62 +136,24 @@
 			class:vertical={layout === "vertical"}
 			class="child-container"
 		>
-			<div class:code-editor-border={loaded} class="code-editor">
-				<div style="flex-grow: 1;">
-					{#if loaded}
-						<Code
-							bind:value={code}
-							label=""
-							language="python"
-							target={dummy_elem}
-							gradio={dummy_gradio}
-							lines={10}
-							interactive={true}
-							loading_status={dummy_loading_status}
-						/>
-					{:else}
-						<Code
-							bind:value={code}
-							label=""
-							language="python"
-							target={dummy_elem}
-							gradio={dummy_gradio}
-							lines={10}
-							interactive={false}
-							loading_status={dummy_loading_status}
-						/>
-					{/if}
-				</div>
+			<div
+				class:code-editor-border={loaded}
+				class="code-editor"
+				bind:this={code_editor_container}
+			>
+				<Block variant={"solid"} padding={false}>
+					<Code
+						bind:value={code}
+						language="python"
+						lines={10}
+						readonly={!loaded}
+						dark_mode={active_theme_mode === "dark"}
+					/>
+				</Block>
 			</div>
 			{#if loaded}
 				<div class="preview">
-					<div class="flex-grow: 1;">
-						{#if !error_display}
-							<Index
-								{autoscroll}
-								{version}
-								{initial_height}
-								{app_mode}
-								{is_embed}
-								{theme_mode}
-								{control_page_title}
-								{container}
-								{info}
-								{eager}
-								{mount_css}
-								{Client}
-								bind:worker_proxy
-								{space}
-								{host}
-								{src}
-							/>
-						{:else}
-							<ErrorDisplay
-								is_embed={error_display.is_embed}
-								error={error_display.error}
-							/>
-						{/if}
-					</div>
+					<slot></slot>
 				</div>
 			{/if}
 		</div>

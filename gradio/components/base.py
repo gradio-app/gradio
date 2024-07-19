@@ -105,7 +105,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
 
     @property
     @abstractmethod
-    def skip_api(self):
+    def skip_api(self) -> bool:
         """Whether this component should be skipped from the api return value"""
 
     @classmethod
@@ -317,7 +317,9 @@ class Component(ComponentBase, Block):
         Keys of the dictionary are: raw_input, raw_output, serialized_input, serialized_output
         """
         if self.data_model is not None:
-            return self.data_model.model_json_schema()
+            schema = self.data_model.model_json_schema()
+            schema.pop("description", None)
+            return schema
         raise NotImplementedError(
             f"The api_info method has not been implemented for {self.get_block_name()}"
         )
@@ -366,7 +368,7 @@ class StreamingOutput(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     async def stream_output(
         self, value, output_id: str, first_chunk: bool
-    ) -> tuple[bytes, Any]:
+    ) -> tuple[bytes | None, Any]:
         pass
 
 

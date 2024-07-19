@@ -1,43 +1,61 @@
 <script lang="ts">
 	export let parameters = [] as any[];
-	import { style_formatted_text } from "$lib/text";
+	import ParamViewer from "@gradio/paramviewer";
+
+	interface OriginalParam {
+		annotation: string | null;
+		doc: string;
+		default?: string | null;
+		name: string;
+	}
+
+	interface NewParam {
+		type: string | null;
+		description: string;
+		default: string | null;
+		name?: string;
+	}
+
+	function decode_html_entities(text: string | null): string {
+		if (text == null) {
+			return "";
+		}
+
+		const entities: { [key: string]: string } = {
+			"&quot;": '"',
+			"&apos;": "'",
+			"&amp;": "&",
+			"&lt;": "<",
+			"&gt;": ">",
+			"&nbsp;": " ",
+			"&iexcl;": "¡"
+		};
+
+		const decimal_regex = /&#(\d+);/g;
+		const hex_regex = /&#x([0-9A-Fa-f]+);/g;
+		const named_regex = new RegExp(Object.keys(entities).join("|"), "g");
+
+		return text
+			.replace(decimal_regex, (_, code) =>
+				String.fromCharCode(parseInt(code, 10))
+			)
+			.replace(hex_regex, (_, code) => String.fromCharCode(parseInt(code, 16)))
+			.replace(named_regex, (match) => entities[match]);
+	}
+	function convert_params(
+		original_parameters: OriginalParam[]
+	): Record<string, NewParam> {
+		let new_parameters: Record<string, NewParam> = {};
+		for (let param of original_parameters) {
+			new_parameters[param.name] = {
+				type: param.annotation,
+				description: decode_html_entities(param.doc),
+				default: param.default || null
+			};
+		}
+		return new_parameters;
+	}
+	let new_parameters = convert_params(parameters);
 </script>
 
-{#if (parameters.length > 0 && parameters[0].name != "self") || parameters.length > 1}
-	<table class="table-fixed w-full leading-loose">
-		<thead class="text-left">
-			<tr>
-				<th class="px-3 pb-3 w-2/5 text-gray-700 font-semibold">Parameter</th>
-				<th class="px-3 pb-3 text-gray-700 font-semibold">Description</th>
-			</tr>
-		</thead>
-		<tbody
-			class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y"
-		>
-			{#each parameters as param}
-				{#if param["name"] != "self"}
-					<tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-						<td class="p-3 w-2/5 break-words">
-							<code class="block">
-								{param["name"]}
-							</code>
-							<p class="text-gray-500 italic">
-								{param["annotation"].replace("Sequence[", "list[")}
-							</p>
-							{#if "default" in param}
-								<p class="text-gray-500 font-semibold">
-									default: {param["default"]}
-								</p>
-							{:else if !("kwargs" in param)}
-								<p class="text-orange-600 font-semibold italic">required</p>
-							{/if}
-						</td>
-						<td class="p-3 text-gray-700 break-words">
-							<p>{@html style_formatted_text(param["doc"]) || ""}</p>
-						</td>
-					</tr>
-				{/if}
-			{/each}
-		</tbody>
-	</table>
-{/if}
+<ParamViewer value={new_parameters} header="Parameters" />

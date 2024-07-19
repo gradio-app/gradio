@@ -53,6 +53,7 @@
 	export let interactive: boolean;
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
+	export let loop = false;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -147,6 +148,7 @@
 			{label}
 			{show_label}
 			{autoplay}
+			{loop}
 			{show_share_button}
 			{show_download_button}
 			on:play={() => gradio.dispatch("play")}
@@ -196,6 +198,7 @@
 			{include_audio}
 			{autoplay}
 			{root}
+			{loop}
 			{handle_reset_value}
 			on:clear={() => gradio.dispatch("clear")}
 			on:play={() => gradio.dispatch("play")}
