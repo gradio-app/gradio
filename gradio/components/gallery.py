@@ -60,7 +60,9 @@ class Gallery(Component):
     def __init__(
         self,
         value: (
-            list[np.ndarray | PIL.Image.Image | str | Path | tuple] | Callable | None
+            Sequence[np.ndarray | PIL.Image.Image | str | Path | tuple]
+            | Callable
+            | None
         ) = None,
         *,
         format: str = "webp",
