@@ -53,7 +53,7 @@ class State(Component):
         super().__init__(value=self.value, render=render)
 
     @property
-    def stateful(self):
+    def stateful(self) -> bool:
         return True
 
     def preprocess(self, payload: Any) -> Any:
