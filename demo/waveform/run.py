@@ -13,7 +13,7 @@ def audio_waveform(audio, image):
         audio,
         gr.make_waveform(audio),
         gr.make_waveform(audio, animate=True),
-        gr.make_waveform(audio, bg_image=image, bars_color=random.choice(COLORS)),
+        gr.make_waveform(audio, bg_image=image, bars_color=str(random.choice(COLORS))),
     )
 
 

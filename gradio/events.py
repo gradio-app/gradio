@@ -397,8 +397,8 @@ class EventListener(str):
         def event_trigger(
             block: Block | None,
             fn: Callable | None | Literal["decorator"] = "decorator",
-            inputs: Component | list[Component] | set[Component] | None = None,
-            outputs: Block | list[Block] | list[Component] | None = None,
+            inputs: Component | Sequence[Component] | set[Component] | None = None,
+            outputs: Block | Sequence[Block] | Sequence[Component] | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
@@ -542,8 +542,8 @@ class EventListener(str):
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
-    inputs: Component | list[Component] | set[Component] | None = None,
-    outputs: Block | list[Block] | list[Component] | None = None,
+    inputs: Component | Sequence[Component] | set[Component] | None = None,
+    outputs: Block | Sequence[Block] | Sequence[Component] | None = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,

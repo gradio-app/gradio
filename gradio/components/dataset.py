@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 
 from gradio_client.documentation import document
 
@@ -28,7 +28,7 @@ class Dataset(Component):
         self,
         *,
         label: str | None = None,
-        components: list[Component] | list[str] | None = None,
+        components: Sequence[Component] | list[str] | None = None,
         component_props: list[dict[str, Any]] | None = None,
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
