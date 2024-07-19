@@ -57,7 +57,7 @@ with gr.Blocks() as demo:
         df_filtered = df if function == "All" else df[df["function"] == function]
         if timespan != "All Time":
             df_filtered = df_filtered[
-                df_filtered["time"] > pd.Timestamp.now() - pd.Timedelta(timespan)
+                df_filtered["time"] > pd.Timestamp.now() - pd.Timedelta(timespan)  # type: ignore
             ]
 
         df_filtered["time"] = df_filtered["time"].dt.floor("min")  # type: ignore
