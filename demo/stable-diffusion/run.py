@@ -48,7 +48,6 @@ with block:
             show_label=False,
             elem_id="gallery",
             columns=[2],
-            height="auto",
         )
 
         advanced_button = gr.Button("Advanced options", elem_id="advanced-btn")

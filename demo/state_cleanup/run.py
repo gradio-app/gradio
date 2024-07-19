@@ -15,7 +15,7 @@ def generate_random_img(history: list[Image.Image], request: gr.Request):
     color = colors[np.random.randint(0, len(colors))]
     img = Image.new('RGB', (100, 100), color)
 
-    user_dir: Path = current_dir / request.session_hash
+    user_dir: Path = current_dir / str(request.session_hash)
     user_dir.mkdir(exist_ok=True)
     path = user_dir / f"{secrets.token_urlsafe(8)}.webp"
 

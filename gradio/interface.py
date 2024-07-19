@@ -912,7 +912,7 @@ class TabbedInterface(Blocks):
 
     def __init__(
         self,
-        interface_list: list[Interface],
+        interface_list: Sequence[Blocks],
         tab_names: list[str] | None = None,
         title: str | None = None,
         theme: Theme | str | None = None,
