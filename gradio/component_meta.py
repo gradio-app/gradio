@@ -17,7 +17,7 @@ INTERFACE_TEMPLATE = '''
 
     {% for event in events %}
     def {{ event }}(self,
-        fn: Callable | None,
+        fn: Callable | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         outputs: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,

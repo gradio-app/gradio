@@ -78,7 +78,7 @@ class Gallery(Component):
         key: int | str | None = None,
         columns: int | list[int] | None = 2,
         rows: int | list[int] | None = None,
-        height: int | float | None = None,
+        height: int | float | str | None = None,
         allow_preview: bool = True,
         preview: bool | None = None,
         selected_index: int | None = None,

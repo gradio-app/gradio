@@ -25,7 +25,8 @@ class Radio(FormComponent):
 
     def __init__(
         self,
-        choices: Sequence[str | int | float | tuple[str, str | int | float]] | None = None,
+        choices: Sequence[str | int | float | tuple[str, str | int | float]]
+        | None = None,
         *,
         value: str | int | float | Callable | None = None,
         type: str = "value",
