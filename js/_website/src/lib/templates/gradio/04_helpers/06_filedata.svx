@@ -1,0 +1,109 @@
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("filedata");
+
+    obj["attributes"] = [
+            {
+                name: "path",
+                annotation: "str",
+                doc: "The server file path where the file is stored.",
+                kwargs: null
+            },
+            {
+                name: "url",
+                annotation: "Optional[str]",
+                doc: "The normalized server URL pointing to the file.",
+                kwargs: null
+            },
+            {
+                name: "size",
+                annotation: "Optional[int]",
+                doc: "The size of the file in bytes.",
+                kwargs: null
+            },
+            {
+                name: "orig_name",
+                annotation: "Optional[str]",
+                doc: "The original filename before upload.",
+                kwargs: null
+            },
+            {
+                name: "mime_type",
+                annotation: "Optional[str]",
+                doc: "The MIME type of the file.",
+                kwargs: null
+            },
+            {
+                name: "is_stream",
+                annotation: "bool",
+                doc: "Indicates whether the file is a stream.",
+                kwargs: null
+            },
+            {
+                name: "meta",
+                annotation: "dict",
+                doc: "Additional metadata used internally (should not be changed).",
+                kwargs: null
+            }
+        ]    
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.FileData(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+### Example Usage
+```python
+from gradio_client import Client, FileData, handle_file
+
+def get_url_on_server(data: FileData):
+    print(data['url'])
+
+client = Client("gradio/gif_maker_main", download_files=False)
+job = client.submit([handle_file("./cheetah.jpg")], api_name="/predict")
+data = job.result()
+video: FileData = data['video']
+
+get_url_on_server(video)
+```
+
+<!--- Initialization -->
+### Attributes
+<ParamTable parameters={obj.attributes} />
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}

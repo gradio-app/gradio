@@ -1,7 +1,10 @@
 /// <reference lib="webworker" />
 /* eslint-env worker */
 
-import type { PyodideInterface } from "pyodide";
+import type {
+	PyodideInterface,
+	loadPyodide as loadPyodideValue
+} from "pyodide";
 import type { PyProxy } from "pyodide/ffi";
 import type {
 	InMessage,
@@ -29,6 +32,8 @@ type MessageTransceiver = DedicatedWorkerGlobalScope | MessagePort;
 
 let pyodide: PyodideInterface;
 let micropip: PyProxy;
+
+declare let loadPyodide: typeof loadPyodideValue; // This will be dynamically loaded by importScript.
 
 let call_asgi_app_from_js: (
 	appId: string,
@@ -75,7 +80,6 @@ async function initializeEnvironment(
 	updateProgress("Loading Gradio wheels");
 	await pyodide.loadPackage(["ssl", "setuptools"]);
 	await micropip.add_mock_package("ffmpy", "0.3.0");
-	await micropip.add_mock_package("pydantic", "2.4.2"); // PydanticV2 is not supported on Pyodide yet. Mock it here for installing the `gradio` package to pass the version check. Then, install PydanticV1 below.
 	await micropip.install.callKwargs(
 		[
 			"typing-extensions>=4.8.0", // Typing extensions needs to be installed first otherwise the versions from the pyodide lockfile is used which is incompatible with the latest fastapi.
@@ -88,8 +92,6 @@ async function initializeEnvironment(
 	await micropip.install.callKwargs(gradioWheelUrls, {
 		keep_going: true
 	});
-	await micropip.remove_mock_package("pydantic");
-	await micropip.install(["pydantic==1.*"]); // Pydantic is necessary for `gradio` to run, so install v1 here as a fallback. Some tricks has been introduced in `gradio/data_classes.py` to make it work with v1.
 	console.debug("Gradio wheels are loaded.");
 
 	console.debug("Mocking os module methods.");

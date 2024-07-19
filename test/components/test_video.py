@@ -67,6 +67,7 @@ class TestVideo:
             "max_length": None,
             "_selectable": False,
             "key": None,
+            "loop": False,
         }
         assert video_input.preprocess(None) is None
         video_input = gr.Video(format="avi")

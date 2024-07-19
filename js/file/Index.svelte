@@ -57,7 +57,7 @@
 
 <Block
 	{visible}
-	variant={value === null ? "dashed" : "solid"}
+	variant={value ? "solid" : "dashed"}
 	border_mode={dragging ? "focus" : "base"}
 	padding={false}
 	{elem_id}

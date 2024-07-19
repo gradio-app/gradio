@@ -26,7 +26,7 @@ import { Client } from "../client";
 export function submit(
 	this: Client,
 	endpoint: string | number,
-	data: unknown[] | Record<string, unknown>,
+	data: unknown[] | Record<string, unknown> = {},
 	event_data?: unknown,
 	trigger_id?: number | null,
 	all_events?: boolean

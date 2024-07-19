@@ -19,6 +19,7 @@
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions;
 	export let editable = true;
+	export let loop: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -67,6 +68,7 @@
 		{waveform_settings}
 		{waveform_options}
 		{editable}
+		{loop}
 		on:pause
 		on:play
 		on:stop

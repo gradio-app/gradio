@@ -7,13 +7,13 @@
 
 {#if event_listeners}
 	{#if fns && fns.length > 0}
-		<div class="flex flex-col gap-8 pl-12">
+		<div class="flex flex-col pl-12">
 			<EventListeners {fns} />
 			<div class="ml-12" />
 		</div>
 	{/if}
 {:else}
-	<div class="flex flex-col gap-8 pl-12">
+	<div class="flex flex-col pl-12">
 		{#each fns as fn}
 			<FunctionDoc {fn} />
 		{/each}

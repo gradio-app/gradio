@@ -89,6 +89,7 @@ class Video(StreamingOutput, Component):
         min_length: int | None = None,
         max_length: int | None = None,
         streaming: bool = False,
+        loop: bool = False,
     ):
         """
         Parameters:
@@ -117,6 +118,7 @@ class Video(StreamingOutput, Component):
             show_download_button: If True, will show a download icon in the corner of the component that allows user to download the output. If False, icon does not appear. By default, it will be True for output components and False for input components.
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
+            loop: If True, the video will loop when it reaches the end and continue playing from the beginning.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -138,6 +140,7 @@ class Video(StreamingOutput, Component):
         self.autoplay = autoplay
         self.height = height
         self.width = width
+        self.loop = loop
         self.mirror_webcam = mirror_webcam
         self.include_audio = (
             include_audio if include_audio is not None else "upload" in self.sources
@@ -212,7 +215,7 @@ class Video(StreamingOutput, Component):
                 raise wasm_utils.WasmUnsupportedError(
                     "Video formatting is not supported in the Wasm mode."
                 )
-            ff = FFmpeg(
+            ff = FFmpeg(  # type: ignore
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
             )
@@ -226,7 +229,7 @@ class Video(StreamingOutput, Component):
                 raise wasm_utils.WasmUnsupportedError(
                     "include_audio=False is not supported in the Wasm mode."
                 )
-            ff = FFmpeg(
+            ff = FFmpeg(  # type: ignore
                 inputs={str(file_name): None},
                 outputs={output_file_name: ["-an"]},
             )
@@ -316,7 +319,7 @@ class Video(StreamingOutput, Component):
                     "Returning a video in a different format is not supported in the Wasm mode."
                 )
             output_file_name = video[0 : video.rindex(".") + 1] + self.format
-            ff = FFmpeg(
+            ff = FFmpeg(  # type: ignore
                 inputs={video: None},
                 outputs={output_file_name: None},
                 global_options="-y",

@@ -10,8 +10,10 @@ __pycache__/
 build/
 __tmp/*
 *.pyi
+!gradio/stubs/**/*.pyi
 py.typed
 .ipynb_checkpoints/
+.python-version
 
 # JS build
 gradio/templates/*

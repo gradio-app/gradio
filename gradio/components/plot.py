@@ -24,7 +24,7 @@ class PlotData(GradioModel):
 
 class AltairPlotData(PlotData):
     chart: Literal["bar", "line", "scatter"]
-    type: Literal["altair"] = "altair"
+    type: Literal["altair"] = "altair"  # type: ignore
 
 
 @document()

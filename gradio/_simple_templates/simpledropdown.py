@@ -116,5 +116,5 @@ class SimpleDropdown(FormComponent):
         self._warn_if_invalid_choice(value)
         return value
 
-    def process_example(self, input_data):
-        return next((c[0] for c in self.choices if c[1] == input_data), None)
+    def process_example(self, value):
+        return next((c[0] for c in self.choices if c[1] == value), None)

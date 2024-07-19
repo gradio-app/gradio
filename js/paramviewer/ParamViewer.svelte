@@ -44,6 +44,9 @@
 		_docs: typeof docs,
 		lang: "python" | "typescript"
 	): Param[] {
+		if (!_docs) {
+			return [];
+		}
 		return Object.entries(_docs).map(
 			([name, { type, description, default: _default }]) => {
 				let highlighted_type = type ? highlight(type, lang) : null;
