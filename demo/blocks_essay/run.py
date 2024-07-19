@@ -32,6 +32,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         country = gr.Dropdown(list(countries_cities_dict.keys()), label="Country")
         cities = gr.Dropdown([], label="Cities")
+        first_letter = gr.Textbox(label="First Letter")
         
     @country.change(inputs=country, outputs=cities)
     def update_cities(country):
@@ -49,6 +50,10 @@ with gr.Blocks() as demo:
         outputs=num,
     )
     num.submit(lambda x: x, num, out)
+
+    cities.change(
+        lambda x: x[0], cities, first_letter
+    )
 
 
 
