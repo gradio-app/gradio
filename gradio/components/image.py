@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Sequence, cast
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence, cast
 
 import numpy as np
 import PIL.Image
@@ -45,7 +45,7 @@ class Image(StreamingInput, Component):
 
     def __init__(
         self,
-        value: str | PIL.Image.Image | np.ndarray | None = None,
+        value: str | PIL.Image.Image | np.ndarray | Callable | None = None,
         *,
         format: str = "webp",
         height: int | str | None = None,
