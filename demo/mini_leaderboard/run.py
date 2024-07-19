@@ -115,7 +115,7 @@ def filter_queries(query: str, filtered_df: pd.DataFrame) -> pd.DataFrame:
                     final_df.append(temp_filtered_df)
         if len(final_df) > 0:
             filtered_df = pd.concat(final_df)
-            filtered_df = filtered_df.drop_duplicates(
+            filtered_df = filtered_df.drop_duplicates(  # type: ignore
                 subset=["Model", "Precision", "Model sha"]
             )
 
