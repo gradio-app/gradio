@@ -137,8 +137,10 @@ class Chatbot(Component):
     def __init__(
         self,
         value: (
-            list[
-                list[str | GradioComponent | tuple[str] | tuple[str | Path, str] | None]
+            Sequence[
+                Sequence[
+                    str | GradioComponent | tuple[str] | tuple[str | Path, str] | None
+                ]
             ]
             | Callable
             | None

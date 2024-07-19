@@ -76,7 +76,7 @@ class Gallery(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        columns: int | list[int] | None = 2,
+        columns: int | list[int] | Tuple[int, ...] | None = 2,
         rows: int | list[int] | None = None,
         height: int | float | str | None = None,
         allow_preview: bool = True,
