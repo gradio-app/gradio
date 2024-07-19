@@ -155,18 +155,18 @@ class Dataset(Component):
         elif self.type == "tuple":
             return payload, self.raw_samples[payload]
 
-    def postprocess(self, sample: int | list | None) -> int | None:
+    def postprocess(self, value: int | list | None) -> int | None:
         """
         Parameters:
-            sample: Expects an `int` index or `list` of sample data. Returns the index of the sample in the dataset or `None` if the sample is not found.
+            value: Expects an `int` index or `list` of sample data. Returns the index of the sample in the dataset or `None` if the sample is not found.
         Returns:
             Returns the index of the sample in the dataset.
         """
-        if sample is None or isinstance(sample, int):
-            return sample
-        if isinstance(sample, list):
+        if value is None or isinstance(value, int):
+            return value
+        if isinstance(value, list):
             try:
-                index = self.samples.index(sample)
+                index = self.samples.index(value)
             except ValueError:
                 index = None
                 warnings.warn(
