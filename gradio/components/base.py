@@ -368,7 +368,7 @@ class StreamingOutput(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def stream_output(
         self, value, output_id: str, first_chunk: bool
-    ) -> tuple[bytes, Any]:
+    ) -> tuple[bytes | None, Any]:
         pass
 
 
