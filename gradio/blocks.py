@@ -17,7 +17,16 @@ import webbrowser
 from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequence, cast
+from typing import (
+    TYPE_CHECKING,
+    AbstractSet,
+    Any,
+    AsyncIterator,
+    Callable,
+    Literal,
+    Sequence,
+    cast,
+)
 from urllib.parse import urlparse, urlunparse
 
 import anyio
@@ -473,8 +482,8 @@ class BlockFunction:
     def __init__(
         self,
         fn: Callable | None,
-        inputs: Sequence[Component],
-        outputs: Sequence[Block] | Sequence[Component],
+        inputs: Sequence[Block],
+        outputs: Sequence[Block],
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
@@ -652,8 +661,8 @@ class BlocksConfig:
         self,
         targets: Sequence[EventListenerMethod],
         fn: Callable | None,
-        inputs: Component | Sequence[Component] | set[Component] | None,
-        outputs: Block | Sequence[Block] | Sequence[Component] | None,
+        inputs: Block | Sequence[Block] | AbstractSet[Block] | None,
+        outputs: Block | Sequence[Block] | AbstractSet[Block] | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
@@ -711,7 +720,7 @@ class BlocksConfig:
             )
             for target in targets
         ]
-        if isinstance(inputs, set):
+        if isinstance(inputs, AbstractSet):
             inputs_as_dict = True
             inputs = sorted(inputs, key=lambda x: x._id)
         else:
@@ -721,7 +730,7 @@ class BlocksConfig:
             elif not isinstance(inputs, Sequence):
                 inputs = [inputs]
 
-        if isinstance(outputs, set):
+        if isinstance(outputs, AbstractSet):
             outputs = sorted(outputs, key=lambda x: x._id)
         elif outputs is None:
             outputs = []

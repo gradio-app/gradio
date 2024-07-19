@@ -397,8 +397,8 @@ class EventListener(str):
         def event_trigger(
             block: Block | None,
             fn: Callable | None | Literal["decorator"] = "decorator",
-            inputs: Component | Sequence[Component] | set[Component] | None = None,
-            outputs: Block | Sequence[Block] | Sequence[Component] | None = None,
+            inputs: Block | Sequence[Block] | set[Block] | None = None,
+            outputs: Block | Sequence[Block] | set[Block] | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
@@ -542,8 +542,8 @@ class EventListener(str):
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
-    inputs: Component | Sequence[Component] | set[Component] | None = None,
-    outputs: Block | Sequence[Block] | Sequence[Component] | None = None,
+    inputs: Block | Sequence[Block] | set[Block] | None = None,
+    outputs: Block | Sequence[Block] | set[Block] | None = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
@@ -601,13 +601,13 @@ def on(
             )
         demo.launch()
     """
-    from gradio.components.base import Component
+    from gradio.blocks import Block
 
     if not isinstance(triggers, Sequence) and triggers is not None:
         triggers = [triggers]
     triggers_typed = cast(Sequence[EventListener], triggers)
 
-    if isinstance(inputs, Component):
+    if isinstance(inputs, Block):
         inputs = [inputs]
 
     if fn == "decorator":
