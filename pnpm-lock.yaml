@@ -688,6 +688,9 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      '@huggingface/space-header':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@types/eventsource':
         specifier: ^1.1.15
         version: 1.1.15
@@ -3315,6 +3318,9 @@ packages:
 
   '@formatjs/intl-localematcher@0.5.4':
     resolution: {integrity: sha512-zTwEpWOzZ2CiKcB93BLngUX59hQkuZjT2+SAQEscSm52peDW/getsawMcWF1rGRpMCX6D7nSJA3CzJ8gn13N/g==}
+
+  '@huggingface/space-header@1.0.2':
+    resolution: {integrity: sha512-jaubcoR63HmxFtx1VttFYA3g36NnQgvKu9Xtz8PgVhXG5auv69QJkkYUPyvEFgxtyEvkRyJotoLwEPabQmHOBA==}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -11080,6 +11086,8 @@ snapshots:
   '@formatjs/intl-localematcher@0.5.4':
     dependencies:
       tslib: 2.6.2
+
+  '@huggingface/space-header@1.0.2': {}
 
   '@humanwhocodes/config-array@0.13.0':
     dependencies:
