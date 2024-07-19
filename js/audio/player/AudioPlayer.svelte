@@ -147,7 +147,14 @@
 		if (!audio_player) return;
 		if (Hls.isSupported() && !stream_active) {
 			console.log("HLS supported");
-			var hls = new Hls();
+			const hls = new Hls(
+				{
+					maxBufferLength: 1, // 0.5 seconds (500 ms)
+					maxMaxBufferLength: 1, // Maximum max buffer length in seconds
+					lowLatencyMode: true, // Enable low latency mode
+					// liveSyncDuration: 0.5, // optional, but recommended for low-latency playback
+					// liveMaxLatencyDuration: 1, // optional, but recommended for low-latency playback
+				},);
 			console.log("value.url", value.url);
 			console.log("audio_player", audio_player);
 			hls.loadSource(value.url);
