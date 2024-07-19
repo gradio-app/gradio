@@ -25,6 +25,7 @@
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions;
 	export let mode = "";
+	export let loop: boolean;
 	export let handle_reset_value: () => void = () => {};
 
 	let container: HTMLDivElement;
@@ -87,8 +88,12 @@
 	});
 
 	$: waveform?.on("finish", () => {
-		playing = false;
-		dispatch("stop");
+		if (loop) {
+			waveform?.play();
+		} else {
+			playing = false;
+			dispatch("stop");
+		}
 	});
 	$: waveform?.on("pause", () => {
 		playing = false;
@@ -154,6 +159,7 @@
 		src={value.url}
 		controls
 		autoplay={waveform_settings.autoplay}
+		{loop}
 		on:load
 	/>
 {:else}

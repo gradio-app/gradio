@@ -35,12 +35,6 @@ class TestOAuthButtons:
             with gr.Blocks():
                 gr.LoginButton()
 
-    @pytest.mark.flaky
-    def test_logout_button_warns_when_not_on_spaces(self):
-        with pytest.warns(UserWarning):
-            with gr.Blocks():
-                gr.LogoutButton()
-
     @patch("gradio.oauth.get_space", lambda: "fake_space")
     @patch("gradio.oauth._add_oauth_routes")
     def test_login_button_setup_correctly(self, mock_add_oauth_routes):

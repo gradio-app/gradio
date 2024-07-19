@@ -16,6 +16,23 @@ const version_raw = JSON.parse(
 ).version.trim();
 const version = version_raw.replace(/\./g, "-");
 
+function convert_to_pypi_prerelease(version: string) {
+	return version.replace(
+		/(\d+\.\d+\.\d+)-([-a-z]+)\.(\d+)/,
+		(match, v, tag, tag_version) => {
+			if (tag === "beta") {
+				return `${v}b${tag_version}`;
+			} else if (tag === "alpha") {
+				return `${v}a${tag_version}`;
+			} else {
+				return version;
+			}
+		}
+	);
+}
+
+const python_version = convert_to_pypi_prerelease(version_raw);
+
 const client_version_path = resolve(
 	__dirname,
 	"../../client/python/gradio_client/package.json"
@@ -25,6 +42,8 @@ const client_version_raw = JSON.parse(
 		encoding: "utf-8"
 	})
 ).version.trim();
+
+const client_python_version = convert_to_pypi_prerelease(client_version_raw);
 
 import {
 	inject_ejs,
@@ -185,11 +204,11 @@ export default defineConfig(({ mode }) => {
 				// For the Wasm app to import the wheel file URLs.
 				"gradio.whl": resolve(
 					__dirname,
-					`../../dist-lite/gradio-${version_raw}-py3-none-any.whl`
+					`../../dist-lite/gradio-${python_version}-py3-none-any.whl`
 				),
 				"gradio_client.whl": resolve(
 					__dirname,
-					`../../client/python/dist/gradio_client-${client_version_raw}-py3-none-any.whl`
+					`../../client/python/dist/gradio_client-${client_python_version}-py3-none-any.whl`
 				)
 			}
 		},

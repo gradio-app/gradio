@@ -8,79 +8,18 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, List, Literal, Optional, Tuple, TypedDict, Union
+from typing import Any, List, Literal, Optional, Tuple, TypedDict, Union
 
 from fastapi import Request
+from gradio_client.documentation import document
 from gradio_client.utils import traverse
+from pydantic import BaseModel, RootModel, ValidationError
 from typing_extensions import NotRequired
 
-from . import wasm_utils
-
-if not wasm_utils.IS_WASM or TYPE_CHECKING:
-    from pydantic import BaseModel, RootModel, ValidationError
-
-    try:
-        from pydantic import JsonValue
-    except ImportError:
-        JsonValue = Any
-else:
-    # XXX: Currently Pyodide V2 is not available on Pyodide,
-    # so we install V1 for the Wasm version.
-    from typing import Generic, TypeVar
-
-    from pydantic import BaseModel as BaseModelV1
-    from pydantic import ValidationError, schema_of
-
+try:
+    from pydantic import JsonValue
+except ImportError:
     JsonValue = Any
-
-    # Map V2 method calls to V1 implementations.
-    # Ref: https://docs.pydantic.dev/latest/migration/#changes-to-pydanticbasemodel
-    class BaseModelMeta(type(BaseModelV1)):
-        def __new__(cls, name, bases, dct):
-            # Override `dct` to dynamically create a `Config` class based on `model_config`.
-            if "model_config" in dct:
-                config_class = type("Config", (), {})
-                for key, value in dct["model_config"].items():
-                    setattr(config_class, key, value)
-                dct["Config"] = config_class
-                del dct["model_config"]
-
-            model_class = super().__new__(cls, name, bases, dct)
-            return model_class
-
-    class BaseModel(BaseModelV1, metaclass=BaseModelMeta):
-        pass
-
-    BaseModel.model_dump = BaseModel.dict  # type: ignore
-    BaseModel.model_json_schema = BaseModel.schema  # type: ignore
-
-    # RootModel is not available in V1, so we create a dummy class.
-    PydanticUndefined = object()
-    RootModelRootType = TypeVar("RootModelRootType")
-
-    class RootModel(BaseModel, Generic[RootModelRootType]):
-        root: RootModelRootType
-
-        def __init__(self, root: RootModelRootType = PydanticUndefined, **data):
-            if data:
-                if root is not PydanticUndefined:
-                    raise ValueError(
-                        '"RootModel.__init__" accepts either a single positional argument or arbitrary keyword arguments'
-                    )
-                root = data  # type: ignore
-            # XXX: No runtime validation is executed.
-            super().__init__(root=root)  # type: ignore
-
-        def dict(self, **kwargs):
-            return super().dict(**kwargs)["root"]
-
-        @classmethod
-        def schema(cls, **_kwargs):
-            # XXX: kwargs are ignored.
-            return schema_of(cls.__fields__["root"].type_)  # type: ignore
-
-    RootModel.model_dump = RootModel.dict  # type: ignore
-    RootModel.model_json_schema = RootModel.schema  # type: ignore
 
 
 class CancelBody(BaseModel):
@@ -219,7 +158,21 @@ class FileDataDict(TypedDict):
     meta: dict
 
 
+@document()
 class FileData(GradioModel):
+    """
+    The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.
+
+    Attributes:
+        path: The server file path where the file is stored.
+        url: The normalized server URL pointing to the file.
+        size: The size of the file in bytes.
+        orig_name: The original filename before upload.
+        mime_type: The MIME type of the file.
+        is_stream: Indicates whether the file is a stream.
+        meta: Additional metadata used internally (should not be changed).
+    """
+
     path: str  # server filepath
     url: Optional[str] = None  # normalised server url
     size: Optional[int] = None  # size in bytes
@@ -229,7 +182,13 @@ class FileData(GradioModel):
     meta: dict = {"_type": "gradio.FileData"}
 
     @property
-    def is_none(self):
+    def is_none(self) -> bool:
+        """
+        Checks if the FileData object is empty, i.e., all attributes are None.
+
+        Returns:
+            bool: True if all attributes (except 'is_stream' and 'meta') are None, False otherwise.
+        """
         return all(
             f is None
             for f in [
@@ -243,9 +202,30 @@ class FileData(GradioModel):
 
     @classmethod
     def from_path(cls, path: str) -> FileData:
+        """
+        Creates a FileData object from a given file path.
+
+        Args:
+            path: The file path.
+
+        Returns:
+            FileData: An instance of FileData representing the file at the specified path.
+        """
         return cls(path=path)
 
     def _copy_to_dir(self, dir: str) -> FileData:
+        """
+        Copies the file to a specified directory and returns a new FileData object representing the copied file.
+
+        Args:
+            dir: The destination directory.
+
+        Returns:
+            FileData: A new FileData object representing the copied file.
+
+        Raises:
+            ValueError: If the source file path is not set.
+        """
         pathlib.Path(dir).mkdir(exist_ok=True)
         new_obj = dict(self)
 
@@ -256,7 +236,16 @@ class FileData(GradioModel):
         return self.__class__(**new_obj)
 
     @classmethod
-    def is_file_data(cls, obj: Any):
+    def is_file_data(cls, obj: Any) -> bool:
+        """
+        Checks if an object is a valid FileData instance.
+
+        Args:
+            obj: The object to check.
+
+        Returns:
+            bool: True if the object is a valid FileData instance, False otherwise.
+        """
         if isinstance(obj, dict):
             try:
                 return not FileData(**obj).is_none

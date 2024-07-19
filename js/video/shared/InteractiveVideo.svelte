@@ -31,6 +31,7 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let loop: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
@@ -126,6 +127,7 @@
 					{label}
 					{handle_change}
 					{handle_reset_value}
+					{loop}
 				/>
 			{/key}
 		{:else if value.size}
@@ -153,6 +155,7 @@
 
 	.upload-container {
 		height: 100%;
+		width: 100%;
 	}
 
 	.video-container {
