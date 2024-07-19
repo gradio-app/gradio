@@ -401,11 +401,13 @@ class EventListener(str):
             inputs: Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext] = None,
+            | AbstractSet[Component | BlockContext]
+            | None = None,
             outputs: Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext] = None,
+            | AbstractSet[Component | BlockContext]
+            | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
@@ -552,11 +554,13 @@ def on(
     inputs: Component
     | BlockContext
     | Sequence[Component | BlockContext]
-    | AbstractSet[Component | BlockContext] = None,
+    | AbstractSet[Component | BlockContext]
+    | None = None,
     outputs: Component
     | BlockContext
     | Sequence[Component | BlockContext]
-    | AbstractSet[Component | BlockContext] = None,
+    | AbstractSet[Component | BlockContext]
+    | None = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,

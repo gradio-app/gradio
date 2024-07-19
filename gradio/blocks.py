@@ -664,11 +664,13 @@ class BlocksConfig:
         inputs: Component
         | BlockContext
         | Sequence[Component | BlockContext]
-        | AbstractSet[Component | BlockContext],
+        | AbstractSet[Component | BlockContext]
+        | None,
         outputs: Component
         | BlockContext
         | Sequence[Component | BlockContext]
-        | AbstractSet[Component | BlockContext],
+        | AbstractSet[Component | BlockContext]
+        | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
