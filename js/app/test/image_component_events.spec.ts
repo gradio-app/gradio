@@ -1,7 +1,7 @@
 import { test, expect, drag_and_drop_file } from "@gradio/tootils";
 import fs from "fs";
 
-test("Image click-to-upload uploads image successfuly. Clear button dispatches event correctly. Downloading the file works and has the correct name.", async ({
+test("Image events are dispatched correctly. Downloading the file works and has the correct name.", async ({
 	page
 }) => {
 	await page.getByRole("button", { name: "Drop Image Here" }).click();
@@ -9,6 +9,7 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 	const change_counter = await page.getByLabel("# Change Events", {
 		exact: true
 	});
+	const input_counter = await page.getByLabel("# Input Events");
 	const clear_counter = await page.getByLabel("# Clear Events");
 	const upload_counter = await page.getByLabel("# Upload Events");
 	const change_output_counter = await page.getByLabel("# Change Events Output");
@@ -16,6 +17,7 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 	await uploader.setInputFiles("./test/files/cheetah1.jpg");
 
 	await expect(change_counter).toHaveValue("1");
+	await expect(input_counter).toHaveValue("1");
 	await expect(upload_counter).toHaveValue("1");
 	await expect(change_output_counter).toHaveValue("1");
 
@@ -28,10 +30,12 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 	await page.getByLabel("Remove Image").click();
 	await expect(clear_counter).toHaveValue("1");
 	await expect(change_counter).toHaveValue("2");
+	await expect(input_counter).toHaveValue("2");
 	await expect(upload_counter).toHaveValue("1");
 
 	await uploader.setInputFiles("./test/files/gradio-logo.svg");
 	await expect(change_counter).toHaveValue("3");
+	await expect(input_counter).toHaveValue("3");
 	await expect(upload_counter).toHaveValue("2");
 	await expect(change_output_counter).toHaveValue("2");
 
