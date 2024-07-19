@@ -5,6 +5,7 @@
 
 	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import { afterUpdate } from "svelte";
 
 	import StaticAudio from "./static/StaticAudio.svelte";
 	import InteractiveAudio from "./interactive/InteractiveAudio.svelte";
@@ -12,6 +13,7 @@
 	import { Block, UploadText } from "@gradio/atoms";
 	import type { WaveformOptions } from "./shared/types";
 
+	export let value_is_output = false;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -38,6 +40,7 @@
 	export let pending: boolean;
 	export let streaming: boolean;
 	export let gradio: Gradio<{
+		input: never;
 		change: typeof value;
 		stream: typeof value;
 		error: string;
@@ -78,6 +81,9 @@
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
 			gradio.dispatch("change");
+			if (!value_is_output) {
+				gradio.dispatch("input");
+			}
 		}
 	}
 
@@ -134,6 +140,10 @@
 		loading_status.message = detail;
 		gradio.dispatch(level as "error" | "warning", detail);
 	}
+
+	afterUpdate(() => {
+		value_is_output = false;
+	});
 </script>
 
 {#if !interactive}
