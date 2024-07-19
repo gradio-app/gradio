@@ -24,7 +24,7 @@ from jinja2 import Template
 from gradio.data_classes import FileData, FileDataDict
 
 if TYPE_CHECKING:
-    from gradio.blocks import Block, Component
+    from gradio.blocks import Block, BlockContext, Component
     from gradio.components import Timer
 
 from gradio.context import get_blocks_context
