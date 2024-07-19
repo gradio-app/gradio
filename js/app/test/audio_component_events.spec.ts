@@ -1,7 +1,7 @@
 import { test, expect, drag_and_drop_file } from "@gradio/tootils";
 import { chromium } from "playwright";
 
-test("Audio click-to-upload uploads audio successfuly. File downloading works and file has correct name.", async ({
+test("Audio events are dispatched correctly. File downloading works and file has correct name.", async ({
 	page
 }) => {
 	await page
@@ -11,10 +11,12 @@ test("Audio click-to-upload uploads audio successfuly. File downloading works an
 	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
 
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("1");
+	await expect(page.getByLabel("# Input Input Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("1");
 
 	await page.getByLabel("Clear").click();
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("2");
+	await expect(page.getByLabel("# Input Input Events")).toHaveValue("2");
 	await page
 		.getByRole("button", { name: "Drop Audio Here - or - Click to Upload" })
 		.click();
@@ -22,6 +24,7 @@ test("Audio click-to-upload uploads audio successfuly. File downloading works an
 	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
 
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("3");
+	await expect(page.getByLabel("# Input Input Events")).toHaveValue("3");
 	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("2");
 
 	const downloadPromise = page.waitForEvent("download");

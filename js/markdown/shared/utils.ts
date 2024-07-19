@@ -66,6 +66,53 @@ function escape(html: string, encode?: boolean): string {
 
 	return html;
 }
+interface LatexTokenizer {
+	name: string;
+	level: string;
+	start: (src: string) => number | undefined;
+	tokenizer: (src: string, tokens: any) => any;
+	renderer: (token: any) => string;
+}
+
+function createLatexTokenizer(
+	delimiters: { left: string; right: string; display: boolean }[]
+): LatexTokenizer {
+	const delimiterPatterns = delimiters.map((delimiter) => ({
+		start: new RegExp(delimiter.left.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")),
+		end: new RegExp(delimiter.right.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"))
+	}));
+
+	return {
+		name: "latex",
+		level: "block",
+		start(src: string) {
+			for (const pattern of delimiterPatterns) {
+				const match = src.match(pattern.start);
+				if (match) {
+					return match.index;
+				}
+			}
+			return -1;
+		},
+		tokenizer(src: string, tokens: any) {
+			for (const pattern of delimiterPatterns) {
+				const match = new RegExp(
+					`${pattern.start.source}([\\s\\S]+?)${pattern.end.source}`
+				).exec(src);
+				if (match) {
+					return {
+						type: "latex",
+						raw: match[0],
+						text: match[1].trim()
+					};
+				}
+			}
+		},
+		renderer(token: any) {
+			return `<div class="latex-block">${token.text}</div>`;
+		}
+	};
+}
 
 const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 	code(
@@ -102,10 +149,12 @@ const slugger = new GithubSlugger();
 
 export function create_marked({
 	header_links,
-	line_breaks
+	line_breaks,
+	latex_delimiters
 }: {
 	header_links: boolean;
 	line_breaks: boolean;
+	latex_delimiters: { left: string; right: string; display: boolean }[];
 }): typeof marked {
 	const marked = new Marked();
 
@@ -148,6 +197,10 @@ export function create_marked({
 			]
 		});
 	}
+	const latexTokenizer = createLatexTokenizer(latex_delimiters);
+	marked.use({
+		extensions: [latexTokenizer]
+	});
 
 	return marked;
 }
