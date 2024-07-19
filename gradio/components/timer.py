@@ -51,7 +51,7 @@ class Timer(Component):
     def postprocess(self, value: float | None) -> float | None:
         """
         Parameters:
-            payload: The interval of the timer as a float or None.
+            value: The interval of the timer as a float or None.
         Returns:
             The interval of the timer as a float.
         """
