@@ -188,7 +188,7 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
 
 def handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     try:
-        import diffusers  # type: ignore
+        import diffusers
     except ImportError as ie:
         raise ImportError(
             "diffusers not installed. Please try `pip install diffusers`"

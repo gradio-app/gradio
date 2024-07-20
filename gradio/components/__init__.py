@@ -91,7 +91,6 @@ __all__ = [
     "Label",
     "LinePlot",
     "LoginButton",
-    "LogoutButton",
     "Markdown",
     "MessageDict",
     "Textbox",

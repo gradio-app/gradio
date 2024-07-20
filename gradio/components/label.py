@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import operator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Sequence, Union
 
 from gradio_client.documentation import document
 
@@ -47,7 +47,7 @@ class Label(Component):
         num_top_classes: int | None = None,
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,

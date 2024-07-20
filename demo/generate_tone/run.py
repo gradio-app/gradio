@@ -17,7 +17,7 @@ demo = gr.Interface(
     [
         gr.Dropdown(notes, type="index"),
         gr.Slider(4, 6, step=1),
-        gr.Textbox(value=1, label="Duration in seconds"),
+        gr.Textbox(value="1", label="Duration in seconds"),
     ],
     "audio",
 )

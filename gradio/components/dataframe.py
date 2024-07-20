@@ -11,6 +11,7 @@ from typing import (
     List,
     Literal,
     Optional,
+    Sequence,
     Tuple,
     Union,
 )
@@ -83,7 +84,7 @@ class Dataframe(Component):
         label: str | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         height: int = 500,
         scale: int | None = None,
         min_width: int = 160,

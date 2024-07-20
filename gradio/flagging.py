@@ -6,7 +6,7 @@ import os
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Sequence
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
@@ -24,7 +24,7 @@ class FlaggingCallback(ABC):
     """
 
     @abstractmethod
-    def setup(self, components: list[Component], flagging_dir: str):
+    def setup(self, components: Sequence[Component], flagging_dir: str):
         """
         This method should be overridden and ensure that everything is set up correctly for flag().
         This method gets called once at the beginning of the Interface.launch() method.
@@ -72,7 +72,7 @@ class SimpleCSVLogger(FlaggingCallback):
     def __init__(self):
         pass
 
-    def setup(self, components: list[Component], flagging_dir: str | Path):
+    def setup(self, components: Sequence[Component], flagging_dir: str | Path):
         self.components = components
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
@@ -127,7 +127,7 @@ class CSVLogger(FlaggingCallback):
 
     def setup(
         self,
-        components: list[Component],
+        components: Sequence[Component],
         flagging_dir: str | Path,
     ):
         self.components = components

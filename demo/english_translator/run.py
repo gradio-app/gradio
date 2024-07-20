@@ -6,7 +6,7 @@ pipe = pipeline("translation", model="t5-base")
 
 
 def translate(text):
-    return pipe(text)[0]["translation_text"]
+    return pipe(text)[0]["translation_text"]  # type: ignore
 
 
 with gr.Blocks() as demo:

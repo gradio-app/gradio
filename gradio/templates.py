@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Sequence
 
 import numpy as np
 import PIL.Image
@@ -32,7 +32,7 @@ class TextArea(components.Textbox):
         info: str | None = None,
         every: Timer | float | None = None,
         inputs: components.Component
-        | list[components.Component]
+        | Sequence[components.Component]
         | set[components.Component]
         | None = None,
         show_label: bool | None = None,
@@ -101,7 +101,7 @@ class Sketchpad(components.ImageEditor):
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: components.Component
-        | list[components.Component]
+        | Sequence[components.Component]
         | set[components.Component]
         | None = None,
         show_label: bool | None = None,
@@ -183,7 +183,7 @@ class Paint(components.ImageEditor):
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: components.Component
-        | list[components.Component]
+        | Sequence[components.Component]
         | set[components.Component]
         | None = None,
         show_label: bool | None = None,
@@ -253,7 +253,7 @@ class ImageMask(components.ImageEditor):
         self,
         value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
-        height: int | None = None,
+        height: int | str | None = None,
         width: int | str | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
@@ -267,7 +267,7 @@ class ImageMask(components.ImageEditor):
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: components.Component
-        | list[components.Component]
+        | Sequence[components.Component]
         | set[components.Component]
         | None = None,
         show_label: bool | None = None,
@@ -348,7 +348,7 @@ class PlayableVideo(components.Video):
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: components.Component
-        | list[components.Component]
+        | Sequence[components.Component]
         | set[components.Component]
         | None = None,
         show_label: bool | None = None,
@@ -417,7 +417,7 @@ class Microphone(components.Audio):
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: components.Component
-        | list[components.Component]
+        | Sequence[components.Component]
         | set[components.Component]
         | None = None,
         show_label: bool | None = None,
@@ -489,7 +489,7 @@ class Files(components.File):
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: components.Component
-        | list[components.Component]
+        | Sequence[components.Component]
         | set[components.Component]
         | None = None,
         show_label: bool | None = None,
@@ -547,7 +547,7 @@ class Numpy(components.Dataframe):
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: components.Component
-        | list[components.Component]
+        | Sequence[components.Component]
         | set[components.Component]
         | None = None,
         height: int = 500,
@@ -611,7 +611,7 @@ class Matrix(components.Dataframe):
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: components.Component
-        | list[components.Component]
+        | Sequence[components.Component]
         | set[components.Component]
         | None = None,
         height: int = 500,
@@ -675,7 +675,7 @@ class List(components.Dataframe):
         show_label: bool | None = None,
         every: Timer | float | None = None,
         inputs: components.Component
-        | list[components.Component]
+        | Sequence[components.Component]
         | set[components.Component]
         | None = None,
         height: int = 500,
