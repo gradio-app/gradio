@@ -76,14 +76,14 @@ export class Command {
 
 export type SubmitFunction = (
 	endpoint: string | number,
-	data: unknown[] | Record<string, unknown>,
+	data?: unknown[] | Record<string, unknown>,
 	event_data?: unknown,
 	trigger_id?: number | null
 ) => SubmitIterable<GradioEvent>;
 
 export type PredictFunction = (
 	endpoint: string | number,
-	data: unknown[] | Record<string, unknown>,
+	data?: unknown[] | Record<string, unknown>,
 	event_data?: unknown
 ) => Promise<PredictReturn>;
 
