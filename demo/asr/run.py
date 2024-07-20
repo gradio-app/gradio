@@ -9,7 +9,7 @@ def transcribe(audio):
     y = y.astype(np.float32)
     y /= np.max(np.abs(y))
 
-    return transcriber({"sampling_rate": sr, "raw": y})["text"]
+    return transcriber({"sampling_rate": sr, "raw": y})["text"]  # type: ignore
 
 
 demo = gr.Interface(

@@ -1,7 +1,7 @@
 import gradio as gr
 import pandas as pd
 import plotly.express as px
-from helpers import *
+from helpers import retrieve_pip_installs, retrieve_stars, retrieve_issues
 
 
 LIBRARIES = ["accelerate", "datasets", "diffusers", "evaluate", "gradio", "hub_docs",

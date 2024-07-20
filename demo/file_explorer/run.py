@@ -17,13 +17,13 @@ with gr.Blocks() as demo:
         file = gr.FileExplorer(
             glob="**/components/*.py",
             # value=["themes/utils"],
-            root=absolute_path,
+            root_dir=absolute_path,
             ignore_glob="**/__init__.py",
         )
 
         file2 = gr.FileExplorer(
             glob="**/components/**/*.py",
-            root=absolute_path,
+            root_dir=absolute_path,
             ignore_glob="**/__init__.py",
         )
     submit_btn.click(lambda x: x, file, file2)
@@ -37,7 +37,7 @@ with gr.Blocks() as demo:
                 glob="**/components/**/*.py",
                 value=["themes/utils"],
                 file_count="single",
-                root=absolute_path,
+                root_dir=absolute_path,
                 ignore_glob="**/__init__.py",
                 elem_id="file",
             )

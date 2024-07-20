@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Mapping, TypedDict
+from typing import TYPE_CHECKING, Literal, Mapping, Sequence, TypedDict
 
 from gradio_client.documentation import document
 
@@ -37,7 +37,7 @@ class ParamViewer(Component):
         language: Literal["python", "typescript"] = "python",
         linkify: list[str] | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         render: bool = True,
         key: int | str | None = None,
         header: str | None = "Parameters",

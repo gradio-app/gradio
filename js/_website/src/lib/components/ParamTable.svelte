@@ -48,7 +48,10 @@
 		let new_parameters: Record<string, NewParam> = {};
 		for (let param of original_parameters) {
 			new_parameters[param.name] = {
-				type: param.annotation,
+				type: param.annotation
+					.replaceAll("Sequence[", "list[")
+					.replaceAll("AbstractSet[", "set[")
+					.replaceAll("Mapping[", "dict["),
 				description: decode_html_entities(param.doc),
 				default: param.default || null
 			};

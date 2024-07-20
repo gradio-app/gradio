@@ -1,2 +1,0 @@
-altair
-vega_datasets

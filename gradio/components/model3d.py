@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal
+from typing import TYPE_CHECKING, Callable, Literal, Sequence
 
 from gradio_client import handle_file
 from gradio_client.documentation import document
@@ -47,7 +47,7 @@ class Model3D(Component):
         label: str | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,

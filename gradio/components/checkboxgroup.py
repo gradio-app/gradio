@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document
 
@@ -24,14 +24,15 @@ class CheckboxGroup(FormComponent):
 
     def __init__(
         self,
-        choices: list[str | int | float | tuple[str, str | int | float]] | None = None,
+        choices: Sequence[str | int | float | tuple[str, str | int | float]]
+        | None = None,
         *,
-        value: list[str | float | int] | str | float | int | Callable | None = None,
+        value: Sequence[str | float | int] | str | float | int | Callable | None = None,
         type: Literal["value", "index"] = "value",
         label: str | None = None,
         info: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,

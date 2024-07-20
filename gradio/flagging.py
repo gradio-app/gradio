@@ -9,7 +9,7 @@ import uuid
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Sequence
 
 import filelock
 import huggingface_hub
@@ -29,7 +29,7 @@ class FlaggingCallback(ABC):
     """
 
     @abstractmethod
-    def setup(self, components: list[Component], flagging_dir: str):
+    def setup(self, components: Sequence[Component], flagging_dir: str):
         """
         This method should be overridden and ensure that everything is set up correctly for flag().
         This method gets called once at the beginning of the Interface.launch() method.
@@ -77,7 +77,7 @@ class SimpleCSVLogger(FlaggingCallback):
     def __init__(self):
         pass
 
-    def setup(self, components: list[Component], flagging_dir: str | Path):
+    def setup(self, components: Sequence[Component], flagging_dir: str | Path):
         self.components = components
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
@@ -132,7 +132,7 @@ class CSVLogger(FlaggingCallback):
 
     def setup(
         self,
-        components: list[Component],
+        components: Sequence[Component],
         flagging_dir: str | Path,
     ):
         self.components = components
@@ -227,7 +227,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.info_filename = info_filename
         self.separate_dirs = separate_dirs
 
-    def setup(self, components: list[Component], flagging_dir: str):
+    def setup(self, components: Sequence[Component], flagging_dir: str):
         """
         Params:
         flagging_dir (str): local directory where the dataset is cloned,
