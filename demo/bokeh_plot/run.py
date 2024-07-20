@@ -15,7 +15,7 @@ def get_plot(plot_type):
             x_axis_type="mercator",
             y_axis_type="mercator",
         )
-        plot.add_tile(xyz.OpenStreetMap.Mapnik)
+        plot.add_tile(xyz.OpenStreetMap.Mapnik)  # type: ignore
         return plot
     elif plot_type == "whisker":
         classes = list(sorted(df["class"].unique()))

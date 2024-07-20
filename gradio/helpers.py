@@ -15,7 +15,7 @@ import tempfile
 import warnings
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional, Sequence
 
 import numpy as np
 import PIL
@@ -39,8 +39,8 @@ LOG_FILE = "log.csv"
 
 def create_examples(
     examples: list[Any] | list[list[Any]] | str,
-    inputs: Component | list[Component],
-    outputs: Component | list[Component] | None = None,
+    inputs: Component | Sequence[Component],
+    outputs: Component | Sequence[Component] | None = None,
     fn: Callable | None = None,
     cache_examples: bool | Literal["lazy"] | None = None,
     examples_per_page: int = 10,
@@ -97,8 +97,8 @@ class Examples:
     def __init__(
         self,
         examples: list[Any] | list[list[Any]] | str,
-        inputs: Component | list[Component],
-        outputs: Component | list[Component] | None = None,
+        inputs: Component | Sequence[Component],
+        outputs: Component | Sequence[Component] | None = None,
         fn: Callable | None = None,
         cache_examples: bool | Literal["lazy"] | None = None,
         examples_per_page: int = 10,
@@ -172,9 +172,9 @@ class Examples:
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
         self._defer_caching = _defer_caching
 
-        if not isinstance(inputs, list):
+        if not isinstance(inputs, Sequence):
             inputs = [inputs]
-        if outputs and not isinstance(outputs, list):
+        if outputs and not isinstance(outputs, Sequence):
             outputs = [outputs]
 
         working_directory = Path().absolute()
@@ -408,7 +408,7 @@ class Examples:
             lazy_cache_fn = self.sync_lazy_cache
         self.cache_event = self.load_input_event.then(
             lazy_cache_fn,
-            inputs=[self.dataset] + self.inputs,
+            inputs=[self.dataset] + list(self.inputs),
             outputs=self.outputs,
             postprocess=False,
             api_name=self.api_name,
@@ -580,7 +580,7 @@ class Examples:
 
 
 def merge_generated_values_into_output(
-    components: list[Component], generated_values: list, output: list
+    components: Sequence[Component], generated_values: list, output: list
 ):
     from gradio.components.base import StreamingOutput
 

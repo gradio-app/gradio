@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document
 
@@ -82,7 +82,7 @@ class LinePlot(Plot):
         scale: int | None = None,
         min_width: int = 160,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,

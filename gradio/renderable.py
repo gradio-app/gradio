@@ -18,7 +18,7 @@ class Renderable:
     def __init__(
         self,
         fn: Callable,
-        inputs: list[Component],
+        inputs: Sequence[Component],
         triggers: list[tuple[Block | None, str]],
         concurrency_limit: int | None | Literal["default"],
         concurrency_id: str | None,
@@ -79,7 +79,7 @@ class Renderable:
 
 @document()
 def render(
-    inputs: list[Component] | Component | None = None,
+    inputs: Sequence[Component] | Component | None = None,
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     *,
     queue: bool = True,
