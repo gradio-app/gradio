@@ -101,7 +101,8 @@ include = [
 [tool.pyright]
 include = [
   "gradio/**/*.py",
-  "demo/**/*.py"
+  "demo/**/*.py",
+  "test/**/*.py",
 ]
 exclude = [
   "gradio/themes/",
