@@ -193,7 +193,7 @@ class Interface(Blocks):
             inputs = []
             self.interface_type = InterfaceTypes.OUTPUT_ONLY
         if additional_inputs is None:
-            self.additional_inputs = []
+            self.additional_input_components = []
         else:
             if not isinstance(additional_inputs, Sequence):
                 additional_inputs = [additional_inputs]
