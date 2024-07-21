@@ -7,7 +7,7 @@ from uuid import UUID
 
 import pytest
 from gradio_client.utils import json_schema_to_python_type
-from pydantic import Field, confloat, conint, conlist
+from pydantic import Field
 from pydantic.networks import AnyUrl, EmailStr, IPvAnyAddress
 
 from gradio.data_classes import GradioModel, GradioRootModel
@@ -176,6 +176,7 @@ class ShoppingCartModel(GradioModel):
 class CoordinateModel(GradioModel):
     latitude: float
     longitude: float
+
 
 class TupleListModel(GradioModel):
     data: List[Tuple[int, str]]

@@ -1549,9 +1549,9 @@ class TestAddRequests:
         event_data = SelectData(target=target, data={"index": 24, "value": "foo"})
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = helpers.special_args(
-            moo, copy.deepcopy(inputs), request, event_data
-        )[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request, event_data)[
+            0
+        ]
         assert len(inputs_) == 4
         new_event_data = inputs_[2]
         assert inputs_ == inputs + [new_event_data, 42]

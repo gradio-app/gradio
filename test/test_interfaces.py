@@ -166,7 +166,8 @@ class TestInterface:
     def test_api_name(self):
         io = Interface(lambda x: x, "textbox", "textbox", api_name="echo")
         assert next(
-            (d for d in io.config["dependencies"] if d["api_name"] == "echo"), None  # type: ignore
+            (d for d in io.config["dependencies"] if d["api_name"] == "echo"),  # type: ignore
+            None,
         )
 
     def test_interface_in_blocks_does_not_error(self):
@@ -202,7 +203,8 @@ class TestTabbedInterface:
         tabbed_interface = TabbedInterface([interface3, interface4], ["tab1", "tab2"])
 
         assert assert_configs_are_equivalent_besides_ids(
-            demo.get_config_file(), tabbed_interface.get_config_file()  # type: ignore
+            demo.get_config_file(),  # type: ignore
+            tabbed_interface.get_config_file(),  # type: ignore
         )
 
 

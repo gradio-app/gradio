@@ -90,7 +90,8 @@ class TestAudio:
         )
         audio_output = gr.Audio(type="filepath")
         assert filecmp.cmp(
-            y_audio.name, audio_output.postprocess(y_audio.name).model_dump()["path"]  # type: ignore
+            y_audio.name,
+            audio_output.postprocess(y_audio.name).model_dump()["path"],  # type: ignore
         )
         assert audio_output.get_config() == {
             "autoplay": False,
