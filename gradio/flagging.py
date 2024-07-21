@@ -2,12 +2,17 @@ from __future__ import annotations
 
 import csv
 import datetime
+import json
 import os
 import time
+import uuid
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Sequence
 
+import filelock
+import huggingface_hub
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
@@ -185,8 +190,6 @@ class CSVLogger(FlaggingCallback):
         return line_count
 
 
-<<<<<<< HEAD
-=======
 @document()
 class HuggingFaceDatasetSaver(FlaggingCallback):
     """
@@ -458,7 +461,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         return features, row
 
 
->>>>>>> main
 class FlagMethod:
     """
     Helper class that contains the flagging options and calls the flagging method. Also

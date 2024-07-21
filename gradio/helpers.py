@@ -32,7 +32,6 @@ from gradio.flagging import CSVLogger
 from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.blocks import BlockContext
     from gradio.components import Component
 
 LOG_FILE = "log.csv"
@@ -41,7 +40,7 @@ LOG_FILE = "log.csv"
 def create_examples(
     examples: list[Any] | list[list[Any]] | str,
     inputs: Component | Sequence[Component],
-    outputs: Component | BlockContext | Sequence[Component | BlockContext] | None = None,
+    outputs: Component | Sequence[Component] | None = None,
     fn: Callable | None = None,
     cache_examples: bool | Literal["lazy"] | None = None,
     examples_per_page: int = 10,
@@ -99,7 +98,7 @@ class Examples:
         self,
         examples: list[Any] | list[list[Any]] | str,
         inputs: Component | Sequence[Component],
-        outputs: Component | BlockContext | Sequence[Component | BlockContext] | None = None,
+        outputs: Component | Sequence[Component] | None = None,
         fn: Callable | None = None,
         cache_examples: bool | Literal["lazy"] | None = None,
         examples_per_page: int = 10,
