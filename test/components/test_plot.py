@@ -53,7 +53,8 @@ class TestPlot:
                 color="Origin",
             )
         )
-        out = gr.Plot().postprocess(chart).model_dump()
+        assert (out := gr.Plot().postprocess(chart))
+        out = out.model_dump()
         assert isinstance(out["plot"], str)
         assert out["plot"] == chart.to_json()
 
@@ -68,4 +69,5 @@ class TestPlot:
             plt.plot([1, 2, 3], [1, 2, 3])
 
         component = gr.Plot(format="jpeg")
-        assert component.postprocess(fig).plot.startswith("data:image/jpeg")
+        assert (result := component.postprocess(fig))
+        assert result.plot.startswith("data:image/jpeg")
