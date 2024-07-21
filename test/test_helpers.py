@@ -709,6 +709,7 @@ class TestProgressBar:
 
             button.click(greet, name, greeting)
         demo.queue(max_size=1).launch(prevent_thread_lock=True)
+        assert demo.local_url
 
         client = grc.Client(demo.local_url)
         job = client.submit("Gradio")
@@ -754,6 +755,7 @@ class TestProgressBar:
 
             button.click(greet, name, greeting)
         demo.queue(max_size=1).launch(prevent_thread_lock=True)
+        assert demo.local_url
 
         client = grc.Client(demo.local_url)
         job = client.submit("Gradio")
@@ -795,6 +797,7 @@ class TestProgressBar:
 
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
+        assert demo.local_url
 
         client = grc.Client(demo.local_url)
         job = client.submit("Gradio")
@@ -834,6 +837,7 @@ class TestProgressBar:
 
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
+        assert demo.local_url
 
         client = grc.Client(demo.local_url)
         job = client.submit("Jon")
@@ -880,6 +884,7 @@ async def test_info_isolation(async_handler: bool):
     demo.launch(prevent_thread_lock=True)
 
     async def session_interaction(name, delay=0):
+        assert demo.local_url
         client = grc.Client(demo.local_url)
         job = client.submit(name)
 
