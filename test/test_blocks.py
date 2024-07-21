@@ -1482,13 +1482,13 @@ class TestAddRequests:
     def test_default_args_with_progress(self):
         pr = gr.Progress()
 
-        def moo(a, b, c=42, pr=pr):
+        def moo2(a, b, c=42, pr=pr):
             return a + b + c
 
         inputs = [1, 2]
         request = gr.Request()
         inputs_, progress_index, _ = helpers.special_args(
-            moo, copy.deepcopy(inputs), request
+            moo2, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [42, pr]
         assert progress_index == 3
