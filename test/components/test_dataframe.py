@@ -57,7 +57,7 @@ class TestDataframe:
         }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(DataframeData(**x_data))
-        assert output["Age"][1] == 24
+        assert output["Age"][1] == 24  # type: ignore
 
         x_data = {
             "data": [["Tim", 12, False], ["Jan", 24, True]],
@@ -67,7 +67,7 @@ class TestDataframe:
         dataframe_input.preprocess(DataframeData(**x_data))
 
         with pytest.raises(ValueError):
-            gr.Dataframe(type="unknown")
+            gr.Dataframe(type="unknown")  # type: ignore
 
         dataframe_output = gr.Dataframe()
         assert dataframe_output.get_config() == {
@@ -127,7 +127,7 @@ class TestDataframe:
             "metadata": None,
         }
         output = dataframe_output.postprocess(
-            pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
+            pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])  # type: ignore
         ).model_dump()
         assert output == {
             "headers": ["num", "prime"],
@@ -135,7 +135,7 @@ class TestDataframe:
             "metadata": None,
         }
         with pytest.raises(ValueError):
-            gr.Dataframe(type="unknown")
+            gr.Dataframe(type="unknown")  # type: ignore
 
         # When the headers don't match the data
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])

@@ -29,7 +29,7 @@ class TestDateTime:
         assert within_range(dt.preprocess("now - 3h"), now - 3 * 60 * 60)
         assert within_range(dt.preprocess("now - 12d"), now - 12 * 24 * 60 * 60)
         assert dt4.preprocess("2020-02-01 08:10:25") == "2020-02-01 08:10:25"
-        assert len(dt4.preprocess("now - 10m")) == 19
+        assert len(dt4.preprocess("now - 10m")) == 19  # type: ignore
 
         assert dt.postprocess(1500000000) == "2017-07-13 19:40:00"
         assert dt2.postprocess(1500000000) == "2017-07-14 04:40:00"

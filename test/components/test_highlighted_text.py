@@ -30,9 +30,7 @@ class TestHighlightedText:
             {"entity": "PER", "start": 0, "end": 8},
             {"entity": "LOC", "start": 18, "end": 24},
         ]
-        assert (result_ := component.postprocess(
-            {"text": text, "entities": entities}
-        ))
+        assert (result_ := component.postprocess({"text": text, "entities": entities}))
         result_ = result_.model_dump()
         assert result == result_
 
@@ -41,9 +39,7 @@ class TestHighlightedText:
             {"entity_group": "PER", "start": 0, "end": 8},
             {"entity": "LOC", "start": 18, "end": 24},
         ]
-        assert (result_ := component.postprocess(
-            {"text": text, "entities": entities}
-        ))
+        assert (result_ := component.postprocess({"text": text, "entities": entities}))
         result_ = result_.model_dump()
         assert result == result_
 
@@ -61,17 +57,13 @@ class TestHighlightedText:
             {"token": " lives in ", "class_or_confidence": None},
             {"token": "Berlin", "class_or_confidence": "LOC"},
         ]
-        assert (result_ := component.postprocess(
-            {"text": text, "entities": entities}
-        ))
+        assert (result_ := component.postprocess({"text": text, "entities": entities}))
         result_ = result_.model_dump()
         assert result != result_
         assert result_after_merge != result_
 
         component = gr.HighlightedText(combine_adjacent=True)
-        assert (result_ := component.postprocess(
-            {"text": text, "entities": entities}
-        ))
+        assert (result_ := component.postprocess({"text": text, "entities": entities}))
         result_ = result_.model_dump()
         assert result_after_merge == result_
 
@@ -82,17 +74,13 @@ class TestHighlightedText:
             {"entity": "LOC", "start": 18, "end": 24},
             {"entity": "PER", "start": 0, "end": 8},
         ]
-        assert(result_ := component.postprocess(
-            {"text": text, "entities": entities}
-        ))
+        assert (result_ := component.postprocess({"text": text, "entities": entities}))
         result_ = result_.model_dump()
         assert result == result_
 
         text = "I live there"
         entities = []
-        assert (result_ := component.postprocess(
-            {"text": text, "entities": entities}
-        ))
+        assert (result_ := component.postprocess({"text": text, "entities": entities}))
         result_ = result_.model_dump()
         assert [{"token": text, "class_or_confidence": None}] == result_
 
@@ -100,9 +88,7 @@ class TestHighlightedText:
         entities = [
             {"entity": "PER", "start": 0, "end": 8},
         ]
-        assert (result_ := component.postprocess(
-            {"text": text, "entities": entities}
-        ))
+        assert (result_ := component.postprocess({"text": text, "entities": entities}))
         result_ = result_.model_dump()
         assert [
             {"token": "", "class_or_confidence": None},

@@ -104,8 +104,7 @@ class TestGallery:
         gallery = gr.Gallery(type="numpy")
         assert (preprocessed := gallery.preprocess(data))
         assert (
-            preprocessed[0][0]
-            == np.array(PIL.Image.open("test/test_files/bus.png"))  # type: ignore
+            preprocessed[0][0] == np.array(PIL.Image.open("test/test_files/bus.png"))  # type: ignore
         ).all()  # type: ignore
 
         gallery = gr.Gallery(type="pil")
