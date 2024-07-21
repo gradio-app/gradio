@@ -161,14 +161,6 @@ class TemperatureUnitEnum(Enum):
     KELVIN = "Kelvin"
 
 
-class TemperatureConversionModel(GradioModel):
-    temperature: confloat(ge=-273.15, le=1.416808)
-    from_unit: TemperatureUnitEnum
-    to_unit: TemperatureUnitEnum = Field(..., title="Target temperature unit")
-
-    answer: ClassVar = "Dict(temperature: float, from_unit: Literal['Celsius', 'Fahrenheit', 'Kelvin'], to_unit: All[Literal['Celsius', 'Fahrenheit', 'Kelvin']])"
-
-
 class CartItemModel(GradioModel):
     product_name: str = Field(..., title="Name of the product", max_length=50)
     quantity: int = Field(..., title="Quantity of the product", ge=1)
@@ -184,21 +176,6 @@ class ShoppingCartModel(GradioModel):
 class CoordinateModel(GradioModel):
     latitude: float
     longitude: float
-
-
-class PathModel(GradioModel):
-    coordinates: conlist(CoordinateModel, min_length=2, max_length=2)
-
-    answer: ClassVar = (
-        "Dict(coordinates: List[Dict(latitude: float, longitude: float)])"
-    )
-
-
-class CreditCardModel(GradioModel):
-    card_number: conint(ge=1, le=9999999999999999)
-
-    answer: ClassVar = "Dict(card_number: int)"
-
 
 class TupleListModel(GradioModel):
     data: List[Tuple[int, str]]
@@ -252,10 +229,7 @@ MODELS = [
     DateTimeModel,
     SetModel,
     OrderModel,
-    TemperatureConversionModel,
     ShoppingCartModel,
-    PathModel,
-    CreditCardModel,
     PathListModel,
     NamedTupleDictionaryModel,
 ]

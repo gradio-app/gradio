@@ -88,8 +88,7 @@ class TestBlocksMethods:
         for component in config1["components"]:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
-
-        assert assert_configs_are_equivalent_besides_ids(config1, config2)
+        assert assert_configs_are_equivalent_besides_ids(config1, config2)  # type: ignore
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
@@ -313,7 +312,7 @@ class TestBlocksMethods:
             io.close()
             io.launch(server_port=9441, prevent_thread_lock=True)
         finally:
-            io.close()
+            io.close()  # type: ignore
 
     def test_function_types_documented_in_config(self):
         def continuous_fn():
@@ -334,6 +333,7 @@ class TestBlocksMethods:
             generator_btn.click(generator_function, inputs=None, outputs=[counter])
             demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
 
+        assert "dependencies" in demo.config
         dependencies = demo.config["dependencies"]
         assert dependencies[0]["types"] == {
             "generator": False,
@@ -371,7 +371,9 @@ class TestBlocksMethods:
         with gr.Blocks() as demo:
             gr.Textbox(uuid.uuid4)
         demo.launch(prevent_thread_lock=True)
-        assert len(demo.get_config_file()["dependencies"]) == 1
+        config = demo.get_config_file()
+        assert "dependencies" in config
+        assert len(config["dependencies"]) == 1
 
 
 class TestTempFile:
