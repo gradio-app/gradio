@@ -1496,7 +1496,7 @@ class TestAddRequests:
         inputs = [1, 2, 24]
         request = gr.Request()
         inputs_, progress_index, _ = helpers.special_args(
-            moo, copy.deepcopy(inputs), request
+            moo2, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [pr]
         assert progress_index == 3
