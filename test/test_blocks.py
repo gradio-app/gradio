@@ -1397,6 +1397,7 @@ class TestGetAPIInfo:
             t1.change(lambda x: x, t1, t2, api_name=False)
 
         api_info = demo.get_api_info()
+        assert api_info
         assert len(api_info["named_endpoints"]) == 0
         assert len(api_info["unnamed_endpoints"]) == 0
 
@@ -1554,13 +1555,13 @@ class TestAddRequests:
         assert new_event_data.index == 24
         assert new_event_data.value == "foo"
 
-        def moo(a, b, ed: SelectData, c=42, pr=pr):
+        def moo2(a, b, ed: SelectData, c=42, pr=pr):
             return a + b + c
 
         inputs = [1, 2]
         request = gr.Request()
         inputs_, progress_index, _ = helpers.special_args(
-            moo, copy.deepcopy(inputs), request, event_data
+            moo2, copy.deepcopy(inputs), request, event_data
         )
         assert len(inputs_) == 5
         new_event_data = inputs_[2]
