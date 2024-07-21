@@ -38,7 +38,7 @@
 	</div>
 	<div
 		class:border={show_nav}
-		class="w-[95%] mx-auto border-gray-400 rounded-lg p-2 mt-2 flex flex-wrap justify-between flex-row relative items-center text-lg z-50 lg:px-4 lg:py-5 lg:gap-6 lg:container lg:border-none"
+		class="w-[95%] mx-auto border-gray-300 rounded-lg p-2 mt-2 flex flex-wrap justify-between flex-row relative items-center text-lg z-50 lg:px-4 lg:py-5 lg:gap-6 lg:container lg:border-none"
 	>
 		<a href="/">
 			<img src={gradio_logo} alt="Gradio logo" />
