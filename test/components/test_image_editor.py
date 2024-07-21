@@ -1,5 +1,5 @@
 import gradio as gr
-from gradio.components.image_editor import EditorData
+from gradio.components.image_editor import EditorData, EditorValue
 from gradio.data_classes import FileData
 
 
@@ -10,7 +10,7 @@ class TestImageEditor:
         image_editor_data = EditorData(
             background=image_data, layers=[image_data, image_data], composite=image_data
         )
-        payload = {
+        payload: EditorValue = {
             "background": test_image_path,
             "layers": [test_image_path, test_image_path],
             "composite": test_image_path,

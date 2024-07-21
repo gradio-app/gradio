@@ -90,13 +90,8 @@ class TestVideo:
         assert output1 == output2
         output3 = video_output.postprocess(y_vid_path)
         assert output3
-        assert (
-            output3.model_dump()["video"]["orig_name"]
-            == "video_sample.mp4"
-        )
-        output_with_subtitles = video_output.postprocess(
-            (y_vid_path, subtitles_path)
-        )
+        assert output3.model_dump()["video"]["orig_name"] == "video_sample.mp4"
+        output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
         assert output_with_subtitles
         output_with_subtitles = output_with_subtitles.model_dump()
         assert output_with_subtitles["subtitles"]["path"].endswith(".vtt")
@@ -110,7 +105,9 @@ class TestVideo:
             (Path(y_vid_path), Path(subtitles_path))
         )
         assert postprocessed_video_with_subtitle
-        postprocessed_video_with_subtitle = postprocessed_video_with_subtitle.model_dump()
+        postprocessed_video_with_subtitle = (
+            postprocessed_video_with_subtitle.model_dump()
+        )
 
         processed_video = {
             "video": {

@@ -101,25 +101,29 @@ class TestImage:
     def test_images_upright_after_preprocess(self):
         component = gr.Image(type="pil")
         file_path = "test/test_files/rotated_image.jpeg"
-        im = PIL.Image.open(file_path)
+        im = PIL.Image.open(file_path)  # type: ignore
         assert im.getexif().get(274) != 1
         image = component.preprocess(FileData(path=file_path))
-        assert image == PIL.ImageOps.exif_transpose(im)
+        assert image == PIL.ImageOps.exif_transpose(im)  # type: ignore
 
     def test_image_format_parameter(self):
         component = gr.Image(type="filepath", format="jpeg")
         file_path = "test/test_files/bus.png"
-        image = component.postprocess(file_path)
+        assert (image := component.postprocess(file_path))
         assert image.path.endswith("png")
-        image = component.postprocess(
-            np.random.randint(0, 256, (100, 100, 3), dtype=np.uint8)
+        assert (
+            image := component.postprocess(
+                np.random.randint(0, 256, (100, 100, 3), dtype=np.uint8)
+            )
         )
         assert image.path.endswith("jpeg")
 
-        image_pre = component.preprocess(FileData(path=file_path))
+        assert (image_pre := component.preprocess(FileData(path=file_path)))
+        assert isinstance(image_pre, str)
         assert image_pre.endswith("webp")
 
         image_pre = component.preprocess(
             FileData(path="test/test_files/cheetah1.jpg", orig_name="cheetah1.jpg")
         )
+        assert isinstance(image_pre, str)
         assert image_pre.endswith("jpeg")

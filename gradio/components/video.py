@@ -65,7 +65,9 @@ class Video(Component):
         | None = None,
         *,
         format: str | None = None,
-        sources: list[Literal["upload", "webcam"]] | None = None,
+        sources: list[Literal["upload", "webcam"]]
+        | Literal["upload", "webcam"]
+        | None = None,
         height: int | str | None = None,
         width: int | str | None = None,
         label: str | None = None,
