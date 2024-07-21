@@ -229,7 +229,7 @@ class TestDataframe:
             }
         )
         s = df.style.format(precision=1, decimal=",")
-        output = component.postprocess(s).model_dump()
+        output = component.postprocess(s).model_dump()  # type: ignore
         assert output == {
             "data": [
                 ["Adam", 1.1, 800],
