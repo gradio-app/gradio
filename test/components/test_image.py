@@ -61,19 +61,19 @@ class TestImage:
         file_image = gr.Image(type="filepath")
         assert isinstance(file_image.preprocess(img), str)
         with pytest.raises(ValueError):
-            gr.Image(type="unknown")
+            gr.Image(type="unknown")  # type: ignore
 
         string_source = gr.Image(sources="upload")
         assert string_source.sources == ["upload"]
         # Output functionalities
         image_output = gr.Image(type="pil")
         processed_image = image_output.postprocess(
-            PIL.Image.open(img.path)
-        ).model_dump()
+            PIL.Image.open(img.path)  # type: ignore
+        ).model_dump()  # type: ignore
         assert processed_image is not None
         if processed_image is not None:
-            processed = PIL.Image.open(cast(dict, processed_image).get("path", ""))
-            source = PIL.Image.open(img.path)
+            processed = PIL.Image.open(cast(dict, processed_image).get("path", ""))  # type: ignore
+            source = PIL.Image.open(img.path)  # type: ignore
             assert processed.size == source.size
 
     def test_in_interface_as_output(self):
