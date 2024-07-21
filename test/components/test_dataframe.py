@@ -19,8 +19,8 @@ class TestDataframe:
         x_payload = DataframeData(**x_data)
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
         output = dataframe_input.preprocess(x_payload)
-        assert output["Age"][1] == 24
-        assert not output["Member"][0]
+        assert output["Age"][1] == 24  # type: ignore
+        assert not output["Member"][0]  # type: ignore
         assert dataframe_input.postprocess(output) == x_payload
 
         dataframe_input = gr.Dataframe(
