@@ -21,6 +21,7 @@ from gradio_client import Client, media_data
 from PIL import Image
 
 import gradio as gr
+from gradio import blocks, helpers
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
@@ -1407,12 +1408,12 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
         boo = partial(moo, a=1)
         inputs = [2]
-        inputs_ = gr.helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_no_type_hints_with_request(self):
@@ -1421,12 +1422,12 @@ class TestAddRequests:
 
         inputs = ["abc", 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
         boo = partial(moo, a="def")
         inputs = [2]
-        inputs_ = gr.helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_type_hints_with_request(self):
@@ -1435,7 +1436,7 @@ class TestAddRequests:
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request]
 
         def moo(a: gr.Request, b, c: int):
@@ -1443,7 +1444,7 @@ class TestAddRequests:
 
         inputs = ["abc", 5]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs
 
     def test_type_hints_with_multiple_requests(self):
@@ -1452,7 +1453,7 @@ class TestAddRequests:
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request, request]
 
         def moo(a: gr.Request, b, c: int, d: gr.Request):
@@ -1460,7 +1461,7 @@ class TestAddRequests:
 
         inputs = ["abc", 5]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs + [request]
 
     def test_default_args(self):
@@ -1469,12 +1470,12 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [42]
 
         inputs = [1, 2, 24]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_default_args_with_progress(self):
@@ -1485,7 +1486,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(
+        inputs_, progress_index, _ = helpers.special_args(
             moo, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [42, pr]
@@ -1493,7 +1494,7 @@ class TestAddRequests:
 
         inputs = [1, 2, 24]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(
+        inputs_, progress_index, _ = helpers.special_args(
             moo, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [pr]
@@ -1504,7 +1505,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(
+        inputs_, progress_index, _ = helpers.special_args(
             moo, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [pr, 42]
@@ -1518,7 +1519,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request, 42]
 
         def moo(a, b, req: gr.Request, c=42, pr=pr):
@@ -1526,7 +1527,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(
+        inputs_, progress_index, _ = helpers.special_args(
             moo, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [request, 42, pr]
@@ -1542,7 +1543,7 @@ class TestAddRequests:
         event_data = SelectData(target=target, data={"index": 24, "value": "foo"})
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(
+        inputs_ = helpers.special_args(
             moo, copy.deepcopy(inputs), request, event_data
         )[0]
         assert len(inputs_) == 4
@@ -1558,7 +1559,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(
+        inputs_, progress_index, _ = helpers.special_args(
             moo, copy.deepcopy(inputs), request, event_data
         )
         assert len(inputs_) == 5
@@ -1642,7 +1643,7 @@ def test_deprecation_warning_emitted_when_concurrency_count_set():
 def test_postprocess_update_dict():
     block = gr.Textbox()
     update_dict = {"value": 2.0, "visible": True, "invalid_arg": "hello"}
-    assert gr.blocks.postprocess_update_dict(block, update_dict, True) == {
+    assert blocks.postprocess_update_dict(block, update_dict, True) == {
         "__type__": "update",
         "value": "2.0",
         "visible": True,
@@ -1650,7 +1651,7 @@ def test_postprocess_update_dict():
 
     block = gr.Textbox(lines=10)
     update_dict = {"value": 2.0, "lines": 10}
-    assert gr.blocks.postprocess_update_dict(block, update_dict, False) == {
+    assert blocks.postprocess_update_dict(block, update_dict, False) == {
         "__type__": "update",
         "value": 2.0,
         "lines": 10,
@@ -1661,7 +1662,7 @@ def test_postprocess_update_dict():
         "value": "New Country A",
         "choices": ["New Country A", "New Country B"],
     }
-    assert gr.blocks.postprocess_update_dict(block, update_dict, False) == {
+    assert blocks.postprocess_update_dict(block, update_dict, False) == {
         "__type__": "update",
         "value": "New Country A",
         "choices": [
@@ -1802,7 +1803,7 @@ def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
         assert "deleted 3" in captured.out
         for client in [client_1, client_2]:
             assert (
-                len(app.state_holder.session_data[client.session_hash].state_data) == 0
+                len(app.state_holder.session_data[client.session_hash].state_data) == 0  # type: ignore
             )
     finally:
         demo.close()
