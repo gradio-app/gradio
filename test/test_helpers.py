@@ -503,7 +503,7 @@ class TestProcessExamples:
                 [["John"], ["Mary"]],
                 fn=predict,
                 inputs=[t1],
-                outputs=[t2, c],
+                outputs=[t2, c],  # type: ignore
                 cache_examples=True,
             )
 
