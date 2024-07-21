@@ -473,10 +473,11 @@ class TestComponentsInBlocks:
             )
         for component in demo.blocks.values():
             if isinstance(component, gr.components.Component):
-                if "Non-random" in component.label:
+                if "Non-random" in component.label:  # type: ignore
                     assert not component.load_event_to_attach
                 else:
                     assert component.load_event_to_attach
+        assert "dependencies" in demo.config
         dependencies_on_load = [
             dep["targets"][0][1] == "load" for dep in demo.config["dependencies"]
         ]
@@ -489,7 +490,7 @@ class TestComponentsInBlocks:
             inputs=[comp(value=lambda: None, every=1) for comp in io_components],
             outputs=None,
         )
-
+        assert "dependencies" in interface.config
         dependencies_on_load = [
             dep
             for dep in interface.config["dependencies"]
@@ -508,6 +509,7 @@ class TestComponentsInBlocks:
         with gr.Blocks() as demo:
             for component in io_components:
                 components.append(component(value=lambda: None, every=1))
+        assert "dependencies" in demo.config
         assert all(
             comp.load_event in demo.config["dependencies"] for comp in components
         )
@@ -713,7 +715,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(demo.fns[0], predictions=1, state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=[1], state=None)
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_tuple_output(self):
@@ -730,7 +732,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(demo.fns[0], predictions=(1, 2), state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=[1, 2], state=None)
 
     @pytest.mark.asyncio
     async def test_dataset_is_updated(self):
@@ -1387,6 +1389,7 @@ class TestGetAPIInfo:
             t4.change(lambda x: x, t4, t5, api_name=False)
 
         api_info = demo.get_api_info()
+        assert api_info
         assert len(api_info["named_endpoints"]) == 2
         assert len(api_info["unnamed_endpoints"]) == 0
 
@@ -1432,12 +1435,12 @@ class TestAddRequests:
         assert inputs_ == inputs
 
     def test_type_hints_with_request(self):
-        def moo(a: str, b: gr.Request):
+        def moo2(a: str, b: gr.Request):
             return a
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo2, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request]
 
         def moo(a: gr.Request, b, c: int):
@@ -1449,12 +1452,12 @@ class TestAddRequests:
         assert inputs_ == [request] + inputs
 
     def test_type_hints_with_multiple_requests(self):
-        def moo(a: str, b: gr.Request, c: gr.Request):
+        def moo2(a: str, b: gr.Request, c: gr.Request):
             return a
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo2, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request, request]
 
         def moo(a: gr.Request, b, c: int, d: gr.Request):
