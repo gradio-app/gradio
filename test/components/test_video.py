@@ -103,7 +103,9 @@ class TestVideo:
 
         p_video = gr.Video()
         video_with_subtitle = gr.Video()
-        postprocessed_video = p_video.postprocess(Path(y_vid_path)).model_dump()
+        postprocessed_video = p_video.postprocess(Path(y_vid_path))
+        assert postprocessed_video
+        postprocessed_video = postprocessed_video.model_dump()
         postprocessed_video_with_subtitle = video_with_subtitle.postprocess(
             (Path(y_vid_path), Path(subtitles_path))
         )
@@ -191,7 +193,9 @@ class TestVideo:
             bad_vid = str(test_file_dir / "playable_but_bad_container.mkv")
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
-            output = gr.Video().postprocess(tmp_not_playable_vid.name).model_dump()
+            output = gr.Video().postprocess(tmp_not_playable_vid.name)
+            assert output
+            output = output.model_dump()
             assert processing_utils.video_is_playable(output["video"]["path"])
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
