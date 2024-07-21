@@ -1515,12 +1515,12 @@ class TestAddRequests:
     def test_default_args_with_request(self):
         pr = gr.Progress()
 
-        def moo(a, b, req: gr.Request, c=42):
+        def moo2(a, b, req: gr.Request, c=42):
             return a + b + c
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo2, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request, 42]
 
         def moo(a, b, req: gr.Request, c=42, pr=pr):
