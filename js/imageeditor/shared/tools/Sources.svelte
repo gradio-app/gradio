@@ -268,7 +268,6 @@
 		width: 100%;
 		left: 0;
 		top: 0;
-		/* background-color: pink; */
 	}
 
 	.upload-container.click-disabled {

@@ -8,13 +8,16 @@ import gradio as gr
 data = {"data": {}}
 
 with gr.Blocks() as demo:
+    gr.Markdown("# Monitoring Dashboard")
+    timer = gr.Timer(5)
     with gr.Row():
-        selected_function = gr.Dropdown(
+        start = gr.DateTime("now - 24h", label="Start Time")
+        end = gr.DateTime("now", label="End Time")
+        selected_fn = gr.Dropdown(
             ["All"],
             value="All",
             label="Endpoint",
             info="Select the function to see analytics for, or 'All' for aggregate.",
-            scale=2,
         )
         demo.load(
             lambda: gr.Dropdown(
@@ -22,70 +25,78 @@ with gr.Blocks() as demo:
                 + list({row["function"] for row in data["data"].values()})  # type: ignore
             ),
             None,
-            selected_function,
+            selected_fn,
         )
-        timespan = gr.Dropdown(
-            ["All Time", "24 hours", "1 hours", "10 minutes"],
-            value="All Time",
-            label="Timespan",
-            info="Duration to see data for.",
-        )
+
     with gr.Group():
         with gr.Row():
             unique_users = gr.Label(label="Unique Users")
-            unique_requests = gr.Label(label="Unique Requests")
+            total_requests = gr.Label(label="Total Requests")
             process_time = gr.Label(label="Avg Process Time")
+
     plot = gr.BarPlot(
         x="time",
-        y="count",
+        y="function",
         color="status",
         title="Requests over Time",
         y_title="Requests",
-        width=600,
+        x_bin="1m",
+        y_aggregate="count",
+        color_map={
+            "success": "#22c55e",
+            "failure": "#ef4444",
+            "pending": "#eab308",
+            "queued": "#3b82f6",
+        },
     )
 
     @gr.on(
-        [demo.load, selected_function.change, timespan.change],
-        inputs=[selected_function, timespan],
-        outputs=[unique_users, unique_requests, process_time, plot],
+        [demo.load, timer.tick, start.change, end.change, selected_fn.change],
+        inputs=[start, end, selected_fn],
+        outputs=[plot, unique_users, total_requests, process_time],
     )
-    def load_dfs(function, timespan):
-        df = pd.DataFrame(data["data"].values())
-        if df.empty:
-            return 0, 0, 0, gr.skip()
+    def gen_plot(start, end, selected_fn):
+        df = pd.DataFrame(list(data["data"].values()))
+        if selected_fn != "All":
+            df = df[df["function"] == selected_fn]
+        df = df[(df["time"] >= start) & (df["time"] <= end)]
         df["time"] = pd.to_datetime(df["time"], unit="s")
-        df_filtered = df if function == "All" else df[df["function"] == function]
-        if timespan != "All Time":
-            df_filtered = df_filtered[
-                df_filtered["time"] > pd.Timestamp.now() - pd.Timedelta(timespan)  # type: ignore
-            ]
 
-        df_filtered["time"] = df_filtered["time"].dt.floor("min")  # type: ignore
-        plot = df_filtered.groupby(["time", "status"]).size().reset_index(name="count")  # type: ignore
-        mean_process_time_for_success = df_filtered[df_filtered["status"] == "success"][
-            "process_time"
-        ].mean()
+        unique_users = len(df["session_hash"].unique())
+        total_requests = len(df)
+        process_time = round(df["process_time"].mean(), 2)
 
+        duration = end - start
+        x_bin = (
+            "1h"
+            if duration >= 60 * 60 * 24
+            else "15m"
+            if duration >= 60 * 60 * 3
+            else "1m"
+        )
+        df = df.drop(columns=["session_hash"])
         return (
-            df_filtered["session_hash"].nunique(),  # type: ignore
-            df_filtered.shape[0],
-            round(mean_process_time_for_success, 2),
-            plot,
+            gr.BarPlot(value=df, x_bin=x_bin, x_lim=[start, end]),
+            unique_users,
+            total_requests,
+            process_time,
         )
 
 
 if __name__ == "__main__":
-    data["data"] = {
-        random.randint(0, 1000000): {
-            "time": time.time() - random.randint(0, 60 * 60 * 24 * 3),
+    data["data"] = {}
+    for _ in range(random.randint(300, 500)):
+        timedelta = random.randint(0, 60 * 60 * 24 * 3)
+        data["data"][random.randint(1, 100000)] = {
+            "time": time.time() - timedelta,
             "status": random.choice(
-                ["success", "success", "failure", "pending", "queued"]
+                ["success", "success", "failure"]
+                if timedelta > 30 * 60
+                else ["queued", "pending"]
             ),
             "function": random.choice(["predict", "chat", "chat"]),
             "process_time": random.randint(0, 10),
             "session_hash": str(random.randint(0, 4)),
         }
-        for r in range(random.randint(100, 200))
-    }
 
     demo.launch()
