@@ -32,7 +32,7 @@
 	}[];
 	export let header_links = false;
 	export let height: number | string | undefined = undefined;
-	export let show_copy_button = true;
+	export let show_copy_button = false;
 
 	$: label, gradio.dispatch("change");
 </script>
