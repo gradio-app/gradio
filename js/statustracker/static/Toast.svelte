@@ -5,6 +5,8 @@
 
 	export let messages: ToastMessage[] = [];
 
+	$: console.log("messages", messages);
+
 	$: scroll_to_top(messages);
 
 	function scroll_to_top(_messages: ToastMessage[]): void {

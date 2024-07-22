@@ -146,21 +146,15 @@
 		if (!value || !value.is_stream) return;
 		if (!audio_player) return;
 		if (Hls.isSupported() && !stream_active) {
-			console.log("HLS supported");
 			const hls = new Hls(
 				{
 					maxBufferLength: 1, // 0.5 seconds (500 ms)
 					maxMaxBufferLength: 1, // Maximum max buffer length in seconds
-					lowLatencyMode: true, // Enable low latency mode
-					// liveSyncDuration: 0.5, // optional, but recommended for low-latency playback
-					// liveMaxLatencyDuration: 1, // optional, but recommended for low-latency playback
+					lowLatencyMode: true, // Enable low latency modez
 				},);
-			console.log("value.url", value.url);
-			console.log("audio_player", audio_player);
 			hls.loadSource(value.url);
 			hls.attachMedia(audio_player);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				console.log("MANIFEST_PARSED");
 				audio_player.play();
 			});
 			hls.on(Hls.Events.ERROR, function (event, data) {
@@ -168,15 +162,15 @@
 				if (data.fatal) {
 					switch (data.type) {
 						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.log("Fatal network error encountered, trying to recover");
+							console.error("Fatal network error encountered, trying to recover");
 							hls.startLoad();
 							break;
 						case Hls.ErrorTypes.MEDIA_ERROR:
-							console.log("Fatal media error encountered, trying to recover");
+							console.error("Fatal media error encountered, trying to recover");
 							hls.recoverMediaError();
 							break;
 						default:
-							console.log("Fatal error, cannot recover");
+							console.error("Fatal error, cannot recover");
 							hls.destroy();
 							break;
 					}
@@ -199,7 +193,6 @@
 		});
 	});
 
-	$: console.log("audio_player", audio_player);
 </script>
 
 <audio

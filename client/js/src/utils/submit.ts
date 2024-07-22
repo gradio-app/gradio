@@ -65,7 +65,7 @@ export function submit(
 
 		let websocket: WebSocket;
 		let stream: EventSource | null;
-		let protocol = (dependency.protocol || config.protocol) ?? "ws";
+		let protocol = config.protocol ?? "ws";
 		let event_id_final = "";
 		let event_id_cb: () => string = () => event_id_final;
 		console.log("protocol", protocol);
@@ -658,7 +658,7 @@ export function submit(
 											fn_index
 										});
 										if (
-											data &&
+											data && dependency.connection !== "stream" &&
 											["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
 										) {
 											apply_diff_stream(pending_diff_streams, event_id!, data);

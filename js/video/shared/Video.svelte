@@ -55,14 +55,15 @@
 		if (!src || !is_stream) return;
 		if (!node) return;
 		if (Hls.isSupported() && !stream_active) {
-			console.log("HLS supported");
-			var hls = new Hls();
+			const hls = new Hls(
+				{
+					maxBufferLength: 1, // 0.5 seconds (500 ms)
+					maxMaxBufferLength: 1, // Maximum max buffer length in seconds
+					lowLatencyMode: true, // Enable low latency modez
+				},);
 			hls.loadSource(src);
 			hls.attachMedia(node);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				console.log("MANIFEST_PARSED");
-				console.log("value.url", src);
-				console.log("video_player", node);
 				(node as HTMLVideoElement).play();
 			});
 			hls.on(Hls.Events.ERROR, function (event, data) {
@@ -70,15 +71,15 @@
 				if (data.fatal) {
 					switch (data.type) {
 						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.log("Fatal network error encountered, trying to recover");
+							console.error("Fatal network error encountered, trying to recover");
 							hls.startLoad();
 							break;
 						case Hls.ErrorTypes.MEDIA_ERROR:
-							console.log("Fatal media error encountered, trying to recover");
+							console.error("Fatal media error encountered, trying to recover");
 							hls.recoverMediaError();
 							break;
 						default:
-							console.log("Fatal error, cannot recover");
+							console.error("Fatal error, cannot recover");
 							hls.destroy();
 							break;
 					}

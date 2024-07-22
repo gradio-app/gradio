@@ -19,6 +19,7 @@
 	export let streaming = false;
 	export let pending = false;
 	export let root = "";
+	export let stream_frequency: number;
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
@@ -198,7 +199,7 @@
 			if (video_source && !pending) {
 				take_picture();
 			}
-		}, 100);
+		}, (1/stream_frequency) * 1000);
 	}
 
 	let options_open = false;

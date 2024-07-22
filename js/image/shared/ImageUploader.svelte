@@ -28,6 +28,7 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let stream_frequency: number;
 
 	let upload_input: Upload;
 	let uploading = false;
@@ -142,6 +143,7 @@
 				on:drag
 				on:upload={(e) => handle_save(e.detail)}
 				{mirror_webcam}
+				{stream_frequency}
 				{streaming}
 				mode="image"
 				include_audio={false}
