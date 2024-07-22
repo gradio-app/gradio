@@ -66,7 +66,7 @@ class TestDropdown:
             "info": None,
         }
         with pytest.raises(ValueError):
-            gr.Dropdown(["a"], type="unknown")
+            gr.Dropdown(["a"], type="unknown")  # type: ignore
 
         dropdown = gr.Dropdown(choices=["a", "b"], value="c")
         assert dropdown.get_config()["value"] == "c"

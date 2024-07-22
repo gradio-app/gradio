@@ -12,7 +12,7 @@ question = "Which continent is the Amazon rainforest in?"
 
 def predict(context, question):
     res = nlp({"question": question, "context": context})
-    return res["answer"], res["score"]
+    return res["answer"], res["score"]  # type: ignore
 
 
 gr.Interface(

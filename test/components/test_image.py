@@ -61,19 +61,19 @@ class TestImage:
         file_image = gr.Image(type="filepath")
         assert isinstance(file_image.preprocess(img), str)
         with pytest.raises(ValueError):
-            gr.Image(type="unknown")
+            gr.Image(type="unknown")  # type: ignore
 
         string_source = gr.Image(sources="upload")
         assert string_source.sources == ["upload"]
         # Output functionalities
         image_output = gr.Image(type="pil")
         processed_image = image_output.postprocess(
-            PIL.Image.open(img.path)
-        ).model_dump()
+            PIL.Image.open(img.path)  # type: ignore
+        ).model_dump()  # type: ignore
         assert processed_image is not None
         if processed_image is not None:
-            processed = PIL.Image.open(cast(dict, processed_image).get("path", ""))
-            source = PIL.Image.open(img.path)
+            processed = PIL.Image.open(cast(dict, processed_image).get("path", ""))  # type: ignore
+            source = PIL.Image.open(img.path)  # type: ignore
             assert processed.size == source.size
 
     def test_in_interface_as_output(self):
@@ -101,25 +101,29 @@ class TestImage:
     def test_images_upright_after_preprocess(self):
         component = gr.Image(type="pil")
         file_path = "test/test_files/rotated_image.jpeg"
-        im = PIL.Image.open(file_path)
+        im = PIL.Image.open(file_path)  # type: ignore
         assert im.getexif().get(274) != 1
         image = component.preprocess(FileData(path=file_path))
-        assert image == PIL.ImageOps.exif_transpose(im)
+        assert image == PIL.ImageOps.exif_transpose(im)  # type: ignore
 
     def test_image_format_parameter(self):
         component = gr.Image(type="filepath", format="jpeg")
         file_path = "test/test_files/bus.png"
-        image = component.postprocess(file_path)
+        assert (image := component.postprocess(file_path))
         assert image.path.endswith("png")
-        image = component.postprocess(
-            np.random.randint(0, 256, (100, 100, 3), dtype=np.uint8)
+        assert (
+            image := component.postprocess(
+                np.random.randint(0, 256, (100, 100, 3), dtype=np.uint8)
+            )
         )
         assert image.path.endswith("jpeg")
 
-        image_pre = component.preprocess(FileData(path=file_path))
+        assert (image_pre := component.preprocess(FileData(path=file_path)))
+        assert isinstance(image_pre, str)
         assert image_pre.endswith("webp")
 
         image_pre = component.preprocess(
             FileData(path="test/test_files/cheetah1.jpg", orig_name="cheetah1.jpg")
         )
+        assert isinstance(image_pre, str)
         assert image_pre.endswith("jpeg")

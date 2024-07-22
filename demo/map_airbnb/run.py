@@ -1,3 +1,4 @@
+# type: ignore
 import gradio as gr
 import plotly.graph_objects as go
 from datasets import load_dataset

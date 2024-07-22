@@ -157,30 +157,94 @@ If you have made any significant visual changes to a component, we encourage you
 pnpm storybook
 ```
 
-## 🕸️ Gradio Website
+## ✍️ Gradio Website & Docs 
 
-We also welcome any contributions to our [website](https://www.gradio.app). 
+We also welcome any contributions to our [website](https://www.gradio.app) and [docs](https://www.gradio.app/docs). 
 
-First, build the website:
+### Building The Website
+
+All of the website code lives in the `js/_website/` directory. 
+
+To start the website on dev mode simply cd into this directory and run: 
 
 ```
-pnpm build:cdn-local
-```
-then serve the website build:
-```
-pnpm preview:cdn-local
-```
-
-This will serve a build of `gradio.js` on port `4321`. You can then navigate to `js/_website/src/routes/+layout.svelte` and replace the source of the website build from:
-```
-<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/{version}/gradio.js"></script>
-```
-to 
-```
-<script type="module" src="http://localhost:4321/gradio.js"></script>
+pnpm i 
+pnpm dev
 ```
 
-You should now be able to view a local version of the website at `http://localhost:4321`. 
+This will serve the website on `http://localhost:5173/` (or the next available port). 
+
+When you're done with changes and want to build the website you can run: 
+
+```
+pnpm build && pnpm preview 
+```
+
+This will serve the website on `http://localhost:4173/` (or the next available port). 
+
+### Documentation
+#### API Reference 
+
+Gradio's [API reference](https://www.gradio.app/docs/gradio/interface) is built from templates written in [mdsvex](https://mdsvex.pngwn.io/). You can find all the templates in this directory: 
+
+```
+js/_website/src/lib/templates/gradio
+```
+
+The templates directory is structured as follows: 
+
+```
+├── gradio/
+│   ├── 01_building-demos/
+│   │   ├── 01_interface.svx
+│   │   ├── 02_chatinterface.svx
+│   │   ├── 03_tabbedinterface.svx
+│   │   ├── 04_blocks.svx
+│   ├── 02_blocks-layout/
+│   ├── 03_components/
+│   ├── 04_helpers/
+│   ├── 05_modals/
+│   ├── 06_routes/
+│   ├── other/
+```
+
+This structure defines the pages' ordering. You can use a numeral prefix (XX_) before a name to dictate where a page is listed, but it's otherwise ignored in the url route. Note that the folder names (01_building-demos, etc) are only used for the navbar and are not in the url.
+
+The mdsvex files use a combination of markdown and svelte. They also pull documentation directly from the source code. Adding a `@document()` wrapper around any class or function in the source code will make its docstrings available in the templates. 
+
+Here's an example: the template for [Image docs](https://www.gradio.app/docs/gradio/image) is [here](https://github.com/gradio-app/gradio/blob/main/js/_website/src/lib/templates/gradio/03_components/image.svx). You can see the initialization section references `obj.parameters`. So to edit the description of a parameter you'll have to edit the docstring in the [source code](https://github.com/gradio-app/gradio/blob/main/gradio/components/image.py). But the page also includes a section titled 'GIF and SVG Image Formats' which is written in plain markdown and can be edited directly on the template. 
+
+If you are making changes to docstrings and want to see them on the website you have to make sure you're on an editable install of the gradio library. Just run this command from root:
+
+```
+pip install -e . 
+```
+
+And then from the website directory: 
+
+```
+pnpm dev
+```
+
+#### Guides 
+
+Guides like [Quickstart](https://www.gradio.app/guides/quickstart) are built from this directory: `/guides`. The directory follows the same structure as the API reference templates, with nested folders and numerical prefixes for ordering, but the files are standard markdown files. After adding a new guide, or editing an existing one, to see the changes on the website make sure you are on an editable install of the gradio library. Run this command from root: 
+
+```
+pip install -e . 
+```
+
+and then from the website directory: 
+
+```
+pnpm dev
+```
+
+#### Main vs Released 
+
+The website supports documentation for both the latest released version on pypi as well as the main build on github. You can switch between them on the website by using the toggle on any page or by prefixing '/main' before the route in the url. For example: https://www.gradio.app/main/guides/quickstart 
+
+If you're making changes to documentation and are wondering why they're not showing up, make sure you're looking at the 'main' version of the page. Since they haven't been included in a release yet, they will only be visible there. 
 
 ## 🌎 Gradio-Lite
 

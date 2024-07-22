@@ -57,6 +57,7 @@ class TestAnalytics:
         # Ref: https://superfastpython.com/asyncio-wait-for-tasks/#How_to_Wait_for_All_Background_Tasks
         all_tasks = asyncio.all_tasks(loop)
         current_task = asyncio.current_task()
+        assert current_task
         all_tasks.remove(current_task)
         await asyncio.wait(all_tasks)
 

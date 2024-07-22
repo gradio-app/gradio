@@ -23,10 +23,7 @@ def random_color(is_light=True):
 
 
 def switch_color(color_style):
-    if color_style == "light":
-        is_light = True
-    elif color_style == "dark":
-        is_light = False
+    is_light = color_style == "light"
     back_color_ = random_color(is_light)  # Randomly generate colors
     back_color = RGB_to_Hex(back_color_)  # Convert to hexadecimal
 

@@ -12,8 +12,8 @@ from gradio.pipelines_utils import (
 )
 
 if TYPE_CHECKING:
-    import diffusers  # type: ignore
-    import transformers  # type: ignore
+    import diffusers
+    import transformers
 
 
 def load_from_pipeline(

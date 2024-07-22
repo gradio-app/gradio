@@ -11,15 +11,14 @@ import gradio as gr
 from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel, GradioRootModel
+from gradio.templates import TextArea
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestGettingComponents:
     def test_component_function(self):
-        assert isinstance(
-            gr.components.component("textarea", render=False), gr.templates.TextArea
-        )
+        assert isinstance(gr.components.component("textarea", render=False), TextArea)
 
     @pytest.mark.parametrize(
         "component, render, unrender, should_be_rendered",

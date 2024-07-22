@@ -463,7 +463,7 @@ class TestRoutes:
         assert response.status_code == 403  # not a 404
 
     def test_proxy_route_is_restricted_to_load_urls(self):
-        gr.context.Context.hf_token = "abcdef"
+        gr.context.Context.hf_token = "abcdef"  # type: ignore
         app = routes.App()
         interface = gr.Interface(lambda x: x, "text", "text")
         app.configure_app(interface)
@@ -481,7 +481,7 @@ class TestRoutes:
         )
 
     def test_proxy_does_not_leak_hf_token_externally(self):
-        gr.context.Context.hf_token = "abcdef"
+        gr.context.Context.hf_token = "abcdef"  # type: ignore
         app = routes.App()
         interface = gr.Interface(lambda x: x, "text", "text")
         interface.proxy_urls = {
@@ -499,7 +499,7 @@ class TestRoutes:
     def test_can_get_config_that_includes_non_pickle_able_objects(self):
         my_dict = {"a": 1, "b": 2, "c": 3}
         with Blocks() as demo:
-            gr.JSON(my_dict.keys())
+            gr.JSON(my_dict.keys())  # type: ignore
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
@@ -664,8 +664,7 @@ class TestQueueRoutes:
     async def test_queue_join_routes_sets_app_if_none_set(self):
         io = Interface(lambda x: x, "text", "text").queue()
         io.launch(prevent_thread_lock=True)
-        io._queue.server_path = None
-
+        assert io.local_url
         client = grc.Client(io.local_url)
         client.predict("test")
 
@@ -687,7 +686,7 @@ class TestDevMode:
         gradio_fast_api = next(
             route for route in app.routes if isinstance(route, starlette.routing.Mount)
         )
-        assert not gradio_fast_api.app.blocks.dev_mode
+        assert not gradio_fast_api.app.blocks.dev_mode  # type: ignore
 
 
 class TestPassingRequest:
@@ -1003,7 +1002,7 @@ class TestShowAPI:
 def test_component_server_endpoints(connect):
     here = os.path.dirname(os.path.abspath(__file__))
     with gr.Blocks() as demo:
-        file_explorer = gr.FileExplorer(root=here)
+        file_explorer = gr.FileExplorer(root_dir=here)
 
     with closing(demo) as io:
         app, _, _ = io.launch(prevent_thread_lock=True)

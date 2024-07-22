@@ -1,6 +1,6 @@
 import gradio as gr
 from gradio import ChatMessage
-from transformers import load_tool, ReactCodeAgent, HfEngine
+from transformers import load_tool, ReactCodeAgent, HfEngine  # type: ignore
 from utils import stream_from_transformers_agent
 
 # Import tool from Hub

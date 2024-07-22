@@ -4,7 +4,17 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Literal, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 from urllib.parse import urlparse
 
 import numpy as np
@@ -50,13 +60,15 @@ class Gallery(Component):
     def __init__(
         self,
         value: (
-            list[np.ndarray | PIL.Image.Image | str | Path | tuple] | Callable | None
+            Sequence[np.ndarray | PIL.Image.Image | str | Path | tuple]
+            | Callable
+            | None
         ) = None,
         *,
         format: str = "webp",
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -66,9 +78,9 @@ class Gallery(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        columns: int | tuple | None = 2,
-        rows: int | tuple | None = None,
-        height: int | float | None = None,
+        columns: int | list[int] | Tuple[int, ...] | None = 2,
+        rows: int | list[int] | None = None,
+        height: int | float | str | None = None,
         allow_preview: bool = True,
         preview: bool | None = None,
         selected_index: int | None = None,

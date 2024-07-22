@@ -6,7 +6,7 @@ import fnmatch
 import os
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Literal
+from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence
 
 from gradio_client.documentation import document
 
@@ -43,7 +43,7 @@ class FileExplorer(Component):
         ignore_glob: str | None = None,
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,

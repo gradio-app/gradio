@@ -20,8 +20,9 @@ class TestFile:
 
         input1 = file_input.preprocess(x_file)
         input2 = file_input.preprocess(x_file)
-        assert input1 == input1.name  # Testing backwards compatibility
+        assert input1 == input1.name  # type: ignore # Testing backwards compatibility
         assert input1 == input2
+        assert isinstance(input1, str)
         assert Path(input1).name == "sample_file.pdf"
 
         file_input = gr.File(label="Upload Your File")
@@ -50,7 +51,8 @@ class TestFile:
 
         zero_size_file = FileData(path="document.txt", size=0)
         temp_file = file_input.preprocess(zero_size_file)
-        assert not Path(temp_file.name).exists()
+        assert isinstance(temp_file, str)
+        assert not Path(temp_file).exists()
 
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
@@ -72,7 +74,7 @@ class TestFile:
         with pytest.raises(
             ValueError, match="Parameter file_types must be a list. Received str"
         ):
-            gr.File(file_types=".json")
+            gr.File(file_types=".json")  # type: ignore
 
     def test_in_interface_as_input(self):
         """

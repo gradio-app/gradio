@@ -76,7 +76,7 @@ class TestHuggingFaceDatasetSaver:
     def test_saver_setup(self, metadata_update, mock_download, mock_create):
         flagger = flagging.HuggingFaceDatasetSaver("test_token", "test")
         with tempfile.TemporaryDirectory() as tmpdirname:
-            flagger.setup([gr.Audio, gr.Textbox], tmpdirname)
+            flagger.setup([gr.Audio(), gr.Textbox()], tmpdirname)
         mock_create.assert_called_once()
         mock_download.assert_called()
 
