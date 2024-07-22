@@ -932,6 +932,33 @@ def video_is_playable(video_filepath: str) -> bool:
     except (FFRuntimeError, IndexError, KeyError):
         return True
 
+def add_watermark(video_path: str, watermark_path: str) -> str:
+    """Add a watermark image to the video.
+    If something goes wrong, return the original video.
+
+    Based on command-line example:
+        ffmpeg -i input.mp4 -i watermark.png - filter_complex"[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]overlay=(main_w-overlay_w):(main_h-overlay_h)" output_bottom_right.mp4
+    """
+    from ffmpy import FFmpeg, FFRuntimeError
+    filter_complex = "[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]overlay=(main_w-overlay_w):(main_h-overlay_h)"
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            video_path_tmp = Path(video_path).stem + "_watermarked"
+            output_path = Path(video_path_tmp).with_suffix(".mp4")
+            shutil.copy2(video_path, tmp_file.name)
+            ff = FFmpeg(
+                inputs={str(tmp_file.name): None, str(watermark_path): None},
+                outputs={str(output_path): None},
+                global_options="-y -loglevel quiet -filter_complex " + filter_complex,
+            )
+            ff.run()
+    except FFRuntimeError as e:
+        print(f"Error adding watermark: {str(e)}")
+        output_path = video_path
+    finally:
+        # Remove temp file
+        os.remove(tmp_file.name)
+    return str(output_path)
 
 def convert_video_to_playable_mp4(video_path: str) -> str:
     """Convert the video to mp4. If something goes wrong return the original video."""
