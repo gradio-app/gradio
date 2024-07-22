@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
 	import { mount_css as default_mount_css, prefix_css } from "./css";
-	import type { client_return, Client as ClientType } from "@gradio/client";
+	import type { Client as ClientType } from "@gradio/client";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
@@ -74,7 +74,7 @@
 	import { setupi18n } from "./i18n";
 	import type { WorkerProxy } from "@gradio/wasm";
 	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
-	import { init } from "../../../../huggingface.js/packages/space-header/";
+	import { init } from "@huggingface/space-header";
 
 	setupi18n();
 
