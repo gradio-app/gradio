@@ -2,7 +2,16 @@ from __future__ import annotations
 
 import json
 import warnings
-from typing import TYPE_CHECKING, AbstractSet, Any, Callable, Dict, List, Literal, Sequence
+from typing import (
+    TYPE_CHECKING,
+    AbstractSet,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Sequence,
+)
 
 import pandas as pd
 from gradio_client.documentation import document
