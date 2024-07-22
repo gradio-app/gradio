@@ -44,11 +44,11 @@ test("gradio dev mode correctly reloads the page", async ({ page }) => {
 	test.setTimeout(20 * 1000);
 
 	try {
-		const port = 7880;
-		const { _process: server_process } = await launch_app_background(
-			`GRADIO_SERVER_PORT=${port} gradio ${join(process.cwd(), "run.py")}`,
-			process.cwd()
-		);
+		const { _process: server_process, port: port } =
+			await launch_app_background(
+				`gradio ${join(process.cwd(), "run.py")}`,
+				process.cwd()
+			);
 		_process = server_process;
 		console.log("Connected to port", port);
 		const demo = `
