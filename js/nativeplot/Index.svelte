@@ -133,7 +133,7 @@
 	let mounted = false;
 	let old_width: number;
 
-	const load_chart = (): void => {
+	function load_chart(): void {
 		if (view) {
 			view.finalize();
 		}
@@ -186,7 +186,7 @@
 				});
 			}
 		});
-	};
+	}
 
 	let release_callback: (() => void) | null = null;
 	onMount(() => {
