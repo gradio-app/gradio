@@ -573,31 +573,33 @@ describe("map_data_params", () => {
 		}
 	];
 
+	let endpoint_info = test_data.named_endpoints["/predict"];
+
 	it("should return an array of data when data is an array", () => {
 		const data = [1, 2];
 
-		const result = map_data_to_params(data, transformed_api_info);
+		const result = map_data_to_params(data, endpoint_info);
 		expect(result).toEqual(data);
 	});
 
 	it("should return an empty array when data is an empty array", () => {
 		const data = [];
 
-		const result = map_data_to_params(data, transformed_api_info);
+		const result = map_data_to_params(data, endpoint_info);
 		expect(result).toEqual(data);
 	});
 
 	it("should return an empty array when data is not defined", () => {
 		const data = undefined;
 
-		const result = map_data_to_params(data, transformed_api_info);
+		const result = map_data_to_params(data, endpoint_info);
 		expect(result).toEqual([]);
 	});
 
 	it("should return the data when too many arguments are provided for the endpoint", () => {
 		const data = [1, 2, 3, 4];
 
-		const result = map_data_to_params(data, transformed_api_info);
+		const result = map_data_to_params(data, endpoint_info);
 		expect(result).toEqual(data);
 	});
 
@@ -608,7 +610,7 @@ describe("map_data_params", () => {
 			param3: 3
 		};
 
-		const result = map_data_to_params(data, transformed_api_info);
+		const result = map_data_to_params(data, endpoint_info);
 		expect(result).toEqual([1, 2, 3]);
 	});
 
@@ -618,7 +620,7 @@ describe("map_data_params", () => {
 			param2: 2
 		};
 
-		const result = map_data_to_params(data, transformed_api_info);
+		const result = map_data_to_params(data, endpoint_info);
 		expect(result).toEqual([1, 2, 3]);
 	});
 
@@ -630,7 +632,7 @@ describe("map_data_params", () => {
 			param4: 4
 		};
 
-		expect(() => map_data_to_params(data, transformed_api_info)).toThrowError(
+		expect(() => map_data_to_params(data, endpoint_info)).toThrowError(
 			"Parameter `param4` is not a valid keyword argument. Please refer to the API for usage."
 		);
 	});
@@ -638,7 +640,7 @@ describe("map_data_params", () => {
 	it("should throw an error when no value is provided for a required parameter", () => {
 		const data = {};
 
-		expect(() => map_data_to_params(data, transformed_api_info)).toThrowError(
+		expect(() => map_data_to_params(data, endpoint_info)).toThrowError(
 			"No value provided for required parameter: param1"
 		);
 	});
