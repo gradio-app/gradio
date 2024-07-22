@@ -229,7 +229,9 @@ class Client:
     ) -> None:
         try:
             with httpx.Client(
-                auth=self.httpx_auth, timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify
+                auth=self.httpx_auth,
+                timeout=httpx.Timeout(timeout=None),
+                verify=self.ssl_verify,
             ) as client:
                 with client.stream(
                     "GET",
@@ -1389,7 +1391,9 @@ class Endpoint:
 
     def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
         with httpx.Client(
-            auth=self.client.httpx_auth, timeout=httpx.Timeout(timeout=None), verify=self.client.ssl_verify
+            auth=self.client.httpx_auth,
+            timeout=httpx.Timeout(timeout=None),
+            verify=self.client.ssl_verify,
         ) as client:
             return utils.get_pred_from_sse_v0(
                 client,
