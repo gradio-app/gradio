@@ -11,6 +11,7 @@ from typing import (
     List,
     Literal,
     Optional,
+    Sequence,
     Tuple,
     Union,
 )
@@ -83,7 +84,7 @@ class Dataframe(Component):
         label: str | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
@@ -205,7 +206,7 @@ class Dataframe(Component):
             if payload.headers is not None:
                 return pd.DataFrame(
                     [] if payload.data == [[]] else payload.data,
-                    columns=payload.headers,
+                    columns=payload.headers,  # type: ignore
                 )
             else:
                 return pd.DataFrame(payload.data)
@@ -294,8 +295,8 @@ class Dataframe(Component):
             )
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
             if len(value) == 0:
-                return DataframeData(headers=list(value.to_dict().keys()), data=[[]])
-            df_dict = value.to_dict()
+                return DataframeData(headers=list(value.to_dict().keys()), data=[[]])  # type: ignore
+            df_dict = value.to_dict()  # type: ignore
             headers = list(df_dict.keys())
             data = list(zip(*df_dict.values()))
             return DataframeData(headers=headers, data=data)
@@ -383,7 +384,7 @@ class Dataframe(Component):
         if value is None:
             return ""
         value_df_data = self.postprocess(value)
-        value_df = pd.DataFrame(value_df_data.data, columns=value_df_data.headers)
+        value_df = pd.DataFrame(value_df_data.data, columns=value_df_data.headers)  # type: ignore
         return value_df.head(n=5).to_dict(orient="split")["data"]
 
     def example_payload(self) -> Any:

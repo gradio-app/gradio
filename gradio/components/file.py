@@ -5,7 +5,7 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 import gradio_client.utils as client_utils
 from gradio_client import handle_file
@@ -40,7 +40,7 @@ class File(Component):
         type: Literal["filepath", "binary"] = "filepath",
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -205,13 +205,13 @@ class File(Component):
                 size=Path(value).stat().st_size,
             )
 
-    def process_example(self, input_data: str | list | None) -> str:
-        if input_data is None:
+    def process_example(self, value: str | list | None) -> str:
+        if value is None:
             return ""
-        elif isinstance(input_data, list):
-            return ", ".join([Path(file).name for file in input_data])
+        elif isinstance(value, list):
+            return ", ".join([Path(file).name for file in value])
         else:
-            return Path(input_data).name
+            return Path(value).name
 
     def example_payload(self) -> Any:
         if self.file_count == "single":

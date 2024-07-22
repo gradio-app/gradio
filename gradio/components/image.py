@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence, cast
 
 import numpy as np
 import PIL.Image
@@ -38,13 +38,14 @@ class Image(StreamingInput, Component):
         Events.stream,
         Events.select,
         Events.upload,
+        Events.input,
     ]
 
     data_model = FileData
 
     def __init__(
         self,
-        value: str | PIL.Image.Image | np.ndarray | None = None,
+        value: str | PIL.Image.Image | np.ndarray | Callable | None = None,
         *,
         format: str = "webp",
         height: int | str | None = None,
@@ -52,11 +53,13 @@ class Image(StreamingInput, Component):
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGB",
-        sources: list[Literal["upload", "webcam", "clipboard"]] | None = None,
+        sources: list[Literal["upload", "webcam", "clipboard"]]
+        | Literal["upload", "webcam", "clipboard"]
+        | None = None,
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,

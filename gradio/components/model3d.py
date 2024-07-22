@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal
+from typing import TYPE_CHECKING, Callable, Literal, Sequence
 
 from gradio_client import handle_file
 from gradio_client.documentation import document
@@ -47,7 +47,7 @@ class Model3D(Component):
         label: str | None = None,
         show_label: bool | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -126,8 +126,8 @@ class Model3D(Component):
             return value
         return FileData(path=str(value), orig_name=Path(value).name)
 
-    def process_example(self, input_data: str | Path | None) -> str:
-        return Path(input_data).name if input_data else ""
+    def process_example(self, value: str | Path | None) -> str:
+        return Path(value).name if value else ""
 
     def example_payload(self):
         return handle_file(

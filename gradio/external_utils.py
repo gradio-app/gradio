@@ -49,7 +49,7 @@ def get_tabular_examples(model_name: str) -> dict[str, list[float]]:
 
 
 def cols_to_rows(
-    example_data: dict[str, list[float]],
+    example_data: dict[str, list[float | str] | None],
 ) -> tuple[list[str], list[list[float]]]:
     headers = list(example_data.keys())
     n_rows = max(len(example_data[header] or []) for header in headers)

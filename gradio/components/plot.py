@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Sequence
 
 from gradio_client.documentation import document
 
@@ -24,7 +24,7 @@ class PlotData(GradioModel):
 
 class AltairPlotData(PlotData):
     chart: Literal["bar", "line", "scatter"]
-    type: Literal["altair"] = "altair"
+    type: Literal["altair"] = "altair"  # type: ignore
 
 
 @document()
@@ -49,7 +49,7 @@ class Plot(Component):
         else "webp",  # webp is a good default for speed (see #7845) but can't be used in Wasm because the the version of matplotlib used in Wasm (3.5.2 in the case of Pyodide 0.26.1) doesn't support it.
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,

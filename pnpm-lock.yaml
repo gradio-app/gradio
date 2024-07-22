@@ -1440,6 +1440,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker

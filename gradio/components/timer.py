@@ -48,14 +48,14 @@ class Timer(Component):
         """
         return payload
 
-    def postprocess(self, payload: float | None) -> float | None:
+    def postprocess(self, value: float | None) -> float | None:
         """
         Parameters:
-            payload: The interval of the timer as a float or None.
+            value: The interval of the timer as a float or None.
         Returns:
             The interval of the timer as a float.
         """
-        return payload
+        return value
 
     def api_info(self) -> dict:
         return {"type": "number"}

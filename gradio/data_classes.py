@@ -8,7 +8,7 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Any, List, Literal, Optional, Tuple, TypedDict, Union
+from typing import Any, Iterator, List, Literal, Optional, Tuple, TypedDict, Union
 
 from fastapi import Request
 from gradio_client.documentation import document
@@ -260,7 +260,7 @@ class ListFiles(GradioRootModel):
     def __getitem__(self, index):
         return self.root[index]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[FileData]:  # type: ignore[override]
         return iter(self.root)
 
 

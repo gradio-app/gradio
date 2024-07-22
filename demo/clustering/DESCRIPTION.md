@@ -1,1 +1,0 @@
-This demo built with Blocks generates 9 plots based on the input.

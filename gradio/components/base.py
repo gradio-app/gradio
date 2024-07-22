@@ -12,7 +12,7 @@ import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Type
+from typing import TYPE_CHECKING, Any, Callable, Sequence, Type
 
 import gradio_client.utils as client_utils
 
@@ -105,7 +105,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
 
     @property
     @abstractmethod
-    def skip_api(self):
+    def skip_api(self) -> bool:
         """Whether this component should be skipped from the api return value"""
 
     @classmethod
@@ -148,7 +148,7 @@ class Component(ComponentBase, Block):
         key: int | str | None = None,
         load_fn: Callable | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
     ):
         self.server_fns = [
             getattr(self, value)
@@ -204,7 +204,7 @@ class Component(ComponentBase, Block):
             | tuple[
                 Callable,
                 list[tuple[Block, str]],
-                Component | list[Component] | set[Component] | None,
+                Component | Sequence[Component] | set[Component] | None,
             ]
         ) = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value, inputs)
@@ -255,7 +255,7 @@ class Component(ComponentBase, Block):
         self,
         callable: Callable,
         every: Timer | float | None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
     ):
         """Add an event that runs `callable`, optionally at interval specified by `every`."""
         if isinstance(inputs, Component):
@@ -368,7 +368,7 @@ class StreamingOutput(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def stream_output(
         self, value, output_id: str, first_chunk: bool
-    ) -> tuple[bytes, Any]:
+    ) -> tuple[bytes | None, Any]:
         pass
 
 

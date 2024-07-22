@@ -5,7 +5,7 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, Sequence
 
 from gradio_client import handle_file
 from gradio_client import utils as client_utils
@@ -65,12 +65,14 @@ class Video(Component):
         | None = None,
         *,
         format: str | None = None,
-        sources: list[Literal["upload", "webcam"]] | None = None,
+        sources: list[Literal["upload", "webcam"]]
+        | Literal["upload", "webcam"]
+        | None = None,
         height: int | str | None = None,
         width: int | str | None = None,
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -213,7 +215,7 @@ class Video(Component):
                 raise wasm_utils.WasmUnsupportedError(
                     "Video formatting is not supported in the Wasm mode."
                 )
-            ff = FFmpeg(
+            ff = FFmpeg(  # type: ignore
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
             )
@@ -227,7 +229,7 @@ class Video(Component):
                 raise wasm_utils.WasmUnsupportedError(
                     "include_audio=False is not supported in the Wasm mode."
                 )
-            ff = FFmpeg(
+            ff = FFmpeg(  # type: ignore
                 inputs={str(file_name): None},
                 outputs={output_file_name: ["-an"]},
             )
@@ -315,7 +317,7 @@ class Video(Component):
                     "Returning a video in a different format is not supported in the Wasm mode."
                 )
             output_file_name = video[0 : video.rindex(".") + 1] + self.format
-            ff = FFmpeg(
+            ff = FFmpeg(  # type: ignore
                 inputs={video: None},
                 outputs={output_file_name: None},
                 global_options="-y",

@@ -13,6 +13,7 @@ from typing import (
     List,
     Literal,
     Optional,
+    Sequence,
     Tuple,
     Type,
     TypedDict,
@@ -57,27 +58,6 @@ class MessageDict(TypedDict):
     metadata: NotRequired[MetadataDict]
 
 
-TupleFormat = List[List[Union[str, Tuple[str], Tuple[str, str], None]]]
-
-if TYPE_CHECKING:
-    from gradio.components import Timer
-
-
-def import_component_and_data(
-    component_name: str,
-) -> GradioComponent | ComponentMeta | Any | None:
-    try:
-        for component in utils.get_all_components():
-            if component_name == component.__name__ and isinstance(
-                component, ComponentMeta
-            ):
-                return component
-    except ModuleNotFoundError as e:
-        raise ValueError(f"Error importing {component_name}: {e}") from e
-    except AttributeError:
-        pass
-
-
 class FileMessage(GradioModel):
     file: FileData
     alt_text: Optional[str] = None
@@ -120,6 +100,27 @@ class ChatbotDataMessages(GradioRootModel):
     root: List[Message]
 
 
+TupleFormat = List[List[Union[str, Tuple[str], Tuple[str, str], None]]]
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
+
+
+def import_component_and_data(
+    component_name: str,
+) -> GradioComponent | ComponentMeta | Any | None:
+    try:
+        for component in utils.get_all_components():
+            if component_name == component.__name__ and isinstance(
+                component, ComponentMeta
+            ):
+                return component
+    except ModuleNotFoundError as e:
+        raise ValueError(f"Error importing {component_name}: {e}") from e
+    except AttributeError:
+        pass
+
+
 @document()
 class Chatbot(Component):
     """
@@ -136,8 +137,10 @@ class Chatbot(Component):
     def __init__(
         self,
         value: (
-            list[
-                list[str | GradioComponent | tuple[str] | tuple[str | Path, str] | None]
+            Sequence[
+                Sequence[
+                    str | GradioComponent | tuple[str] | tuple[str | Path, str] | None
+                ]
             ]
             | Callable
             | None
@@ -146,7 +149,7 @@ class Chatbot(Component):
         type: Literal["messages", "tuples"] = "tuples",
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
