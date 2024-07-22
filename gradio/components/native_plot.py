@@ -57,7 +57,7 @@ class NativePlot(Component):
         scale: int | None = None,
         min_width: int = 160,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | AbstractSet[Component] | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
