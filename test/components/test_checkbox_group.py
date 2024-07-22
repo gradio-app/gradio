@@ -47,7 +47,7 @@ class TestCheckboxGroup:
             "info": None,
         }
         with pytest.raises(ValueError):
-            gr.CheckboxGroup(["a"], type="unknown")
+            gr.CheckboxGroup(["a"], type="unknown")  # type: ignore
 
         cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
         assert cbox.get_config()["value"] == ["c"]
