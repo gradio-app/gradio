@@ -66,7 +66,7 @@ class Event:
 
     @property
     def streaming(self):
-        return self.fn.protocol == "ws_stream"
+        return self.fn.connection == "stream"
 
     @property
     def is_finished(self):
@@ -207,7 +207,7 @@ class Queue:
         return total_len
 
     async def push(
-        self, body: PredictBody, request: fastapi.Request | fastapi.WebSocket, username: str | None
+        self, body: PredictBody, request: fastapi.Request, username: str | None
     ) -> tuple[bool, str]:
         if body.fn_index is None:
             return False, "No function index provided."
@@ -563,6 +563,7 @@ class Queue:
                     event.n_calls += 1
                     if event.streaming:
                         response["is_generating"] = not event.is_finished
+                    print("RESPONSE", response['is_generating'])
 
             except Exception as e:
                 traceback.print_exc()
@@ -596,6 +597,7 @@ class Queue:
                     if not awake_events:
                         return
                     try:
+                        start = time.monotonic()
                         body = awake_events[0].data
                         response = await route_utils.call_process_api(
                             app=app,
@@ -604,18 +606,29 @@ class Queue:
                             fn=fn,
                             root_path=root_path,
                         )
-                        event.run_time += end - start
+                        end = time.monotonic()
+                        event.run_time += (end - start)
                         event.n_calls += 1
                         if event.streaming:
                             print("Adding response")
+                            print("event.run_time", event.run_time)
+                            print("event.time_limit", event.fn.time_limit)
                             response["is_generating"] = not event.is_finished
+                            if event.is_finished:
+                                print("EVENT is finished")
+                                self.log_message(
+                                    event._id,
+                                    "Time limit reached! Please join the queue again.",
+                                    "info",
+                                    duration=10,
+                                )
                             print("response", response['is_generating'])
                     except Exception as e:
                         traceback.print_exc()
                         response = None
                         err = e
-                    end = time.monotonic()
-                    print("queue loop time", end - start)
+                    # end = time.monotonic()
+                    # print("queue loop time", end - start)
                 if response:
                     success = True
                     output = response

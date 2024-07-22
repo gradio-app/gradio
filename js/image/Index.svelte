@@ -35,6 +35,7 @@
 
 	export let height: number | undefined;
 	export let width: number | undefined;
+	export let stream_frequency: number;
 
 	export let _selectable = false;
 	export let container = true;
@@ -163,6 +164,7 @@
 			{pending}
 			{streaming}
 			{mirror_webcam}
+			{stream_frequency}
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
 			upload={gradio.client.upload}

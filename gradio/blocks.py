@@ -509,7 +509,8 @@ class BlockFunction:
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
         is_cancel_function: bool = False,
-        protocol: Literal["ws_stream", "sse_v3"] = "sse_v3",
+        connection: Literal["stream", "sse"] = "sse",
+        time_limit: int = 300,
     ):
         self.fn = fn
         self._id = _id
@@ -548,8 +549,8 @@ class BlockFunction:
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
-        self.time_limit = 300
-        self.protocol = protocol
+        self.time_limit = time_limit
+        self.connection = connection
 
         self.spaces_auto_wrap()
 
@@ -598,7 +599,7 @@ class BlockFunction:
             "show_api": self.show_api,
             "zerogpu": self.zero_gpu,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
-            "protocol": self.protocol,
+            "connection": self.connection,
             "time_limit": self.time_limit,
         }
 
@@ -697,7 +698,8 @@ class BlocksConfig:
         show_api: bool = True,
         renderable: Renderable | None = None,
         is_cancel_function: bool = False,
-        protocol: Literal["ws_stream", "sse_v3"] = "sse_v3",
+        connection: Literal["stream", "sse"] = "sse",
+        time_limit: int = 300,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -725,6 +727,8 @@ class BlocksConfig:
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
             show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             is_cancel_function: whether this event cancels another running event.
+            connection: The connection format, either "sse" or "stream".
+            time_limit: The time limit for the function to run. Only applies if connection is "stream".
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -838,7 +842,8 @@ class BlocksConfig:
             renderable=renderable,
             rendered_in=rendered_in,
             is_cancel_function=is_cancel_function,
-            protocol=protocol,
+            connection=connection,
+            time_limit=time_limit,
         )
 
         self.fns[self.fn_id] = block_fn

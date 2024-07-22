@@ -588,7 +588,6 @@ class App(FastAPI):
 
         @app.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody):
-            print("HERE")
             event = app.get_blocks()._queue.event_ids_to_events[event_id]
             event.data = body
             return {"msg": "success"}

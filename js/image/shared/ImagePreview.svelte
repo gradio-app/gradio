@@ -32,7 +32,6 @@
 		}
 	};
 
-	$: console.log("value", value)
 </script>
 
 <BlockLabel

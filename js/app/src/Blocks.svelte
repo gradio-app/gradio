@@ -255,12 +255,12 @@
 			if (dep.backend_fn) {
 				if (dep.trigger_mode === "once") {
 					if (!dep.pending_request)
-						make_prediction(payload, dep.protocol == "ws_stream");
+						make_prediction(payload, dep.connection == "stream");
 				} else if (dep.trigger_mode === "multiple") {
-					make_prediction(payload, dep.protocol == "ws_stream");
+					make_prediction(payload, dep.connection == "stream");
 				} else if (dep.trigger_mode === "always_last") {
 					if (!dep.pending_request) {
-						make_prediction(payload, dep.protocol == "ws_stream");
+						make_prediction(payload, dep.connection == "stream");
 					} else {
 						dep.final_event = payload;
 					}
@@ -280,7 +280,6 @@
 			if (streaming && submit_map.has(dep_index)) {
 				app.current_payload = payload;
 				await app.post_data(`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`, payload)
-				console.log("Current payload", app.current_payload);
 				return;
 			}
 			try {
@@ -315,6 +314,7 @@
 				} else if (message.type === "status") {
 					handle_status_update(message);
 				} else if (message.type === "log") {
+					console.log("log message", message);
 					handle_log(message);
 				}
 			}
