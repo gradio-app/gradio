@@ -233,7 +233,11 @@
 		class:hide={!webcam_accessed}
 	/>
 	{#if !webcam_accessed}
-		<div in:fade={{ delay: 100, duration: 200 }} title="grant webcam access">
+		<div
+			in:fade={{ delay: 100, duration: 200 }}
+			title="grant webcam access"
+			style="height: 100%"
+		>
 			<WebcamPermissions on:click={async () => access_webcam()} />
 		</div>
 	{:else}
