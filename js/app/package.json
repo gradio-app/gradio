@@ -79,7 +79,7 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/video": "workspace:^",
 		"@gradio/wasm": "workspace:^",
-		"@huggingface/space-header": "^1.0.2",
+		"@huggingface/space-header": "^1.0.3",
 		"@types/eventsource": "^1.1.15",
 		"cross-env": "^7.0.3",
 		"d3-dsv": "^3.0.1",

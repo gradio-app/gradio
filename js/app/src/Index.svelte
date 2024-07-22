@@ -65,7 +65,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, createEventDispatcher } from "svelte";
+	import { onMount, createEventDispatcher, onDestroy } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
@@ -74,7 +74,7 @@
 	import { setupi18n } from "./i18n";
 	import type { WorkerProxy } from "@gradio/wasm";
 	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
-	import { init } from "@huggingface/space-header";
+	import { init } from "../../../../huggingface.js/packages/space-header/";
 
 	setupi18n();
 
@@ -404,16 +404,30 @@
 		);
 	}
 
-	$: app && mount_space_header(app.config, is_embed);
+	$: app?.config && mount_space_header(app?.config?.space_id, is_embed);
+	let spaceheader: HTMLElement | undefined;
 
-	function mount_space_header(
-		config: client_return["config"],
+	async function mount_space_header(
+		space_id: string | null | undefined,
 		is_embed: boolean
-	): void {
-		if (config?.space_id && !is_embed) {
-			init(config?.space_id);
+	): Promise<void> {
+		if (space_id && !is_embed && window.self !== window.top) {
+			if (spaceheader) {
+				spaceheader.remove();
+				spaceheader = undefined;
+			}
+			const header = await init({
+				id: "pngwn/hello",
+				likes: 27,
+				author: "pngwn"
+			});
+			if (header) spaceheader = header.element;
 		}
 	}
+
+	onDestroy(() => {
+		spaceheader?.remove();
+	});
 </script>
 
 <Embed
