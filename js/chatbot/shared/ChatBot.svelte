@@ -152,7 +152,7 @@
 	let is_image_preview_open = false;
 
 	$: if (value || autoscroll || _components) {
-			scroll();
+		scroll();
 	}
 	afterUpdate(() => {
 		div.querySelectorAll("img").forEach((n) => {
