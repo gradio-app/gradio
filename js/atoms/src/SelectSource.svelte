@@ -68,12 +68,10 @@
 		align-items: center;
 		justify-content: center;
 		border-top: 1px solid var(--border-color-primary);
-		width: 95%;
-		bottom: 0;
-		left: 0;
-		right: 0;
+		width: 100%;
 		margin-left: auto;
 		margin-right: auto;
+		height: var(--size-10);
 	}
 
 	.icon {
