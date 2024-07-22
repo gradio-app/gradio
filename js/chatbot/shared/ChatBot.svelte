@@ -151,10 +151,10 @@
 	let image_preview_source_alt: string;
 	let is_image_preview_open = false;
 
-	afterUpdate(() => {
-		if (autoscroll || _components) {
+	$: if (value || autoscroll || _components) {
 			scroll();
-		}
+	}
+	afterUpdate(() => {
 		div.querySelectorAll("img").forEach((n) => {
 			n.addEventListener("click", (e) => {
 				const target = e.target as HTMLImageElement;
