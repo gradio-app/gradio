@@ -417,11 +417,7 @@
 				spaceheader.remove();
 				spaceheader = undefined;
 			}
-			const header = await init({
-				id: "pngwn/hello",
-				likes: 27,
-				author: "pngwn"
-			});
+			const header = await init(space_id);
 			if (header) spaceheader = header.element;
 		}
 	}
