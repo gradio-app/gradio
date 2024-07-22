@@ -54,6 +54,7 @@ if TYPE_CHECKING:
 
 config_lock = threading.Lock()
 
+
 class Obj:
     """
     Using a class to convert dictionaries into objects. Used by the `Request` class.
