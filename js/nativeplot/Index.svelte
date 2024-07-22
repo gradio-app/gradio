@@ -44,25 +44,30 @@
 	export let y_lim: [number, number] | null = null;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
-	let _sort:
+	function reformat_sort(
+		_sort: typeof sort
+	):
+		| string
 		| "ascending"
 		| "descending"
 		| { field: string; order: "ascending" | "descending" }
 		| string[]
-		| undefined;
-	$: if (sort === "x") {
-		_sort === "ascending";
-	} else if (sort === "-x") {
-		_sort === "descending";
-	} else if (sort === "y") {
-		_sort = { field: y, order: "ascending" };
-	} else if (sort === "-y") {
-		_sort = { field: y, order: "descending" };
-	} else if (sort === null) {
-		_sort = undefined;
-	} else if (Array.isArray(sort)) {
-		_sort = sort;
+		| undefined {
+		if (_sort === "x") {
+			return "ascending";
+		} else if (_sort === "-x") {
+			return "descending";
+		} else if (_sort === "y") {
+			return { field: y, order: "ascending" };
+		} else if (_sort === "-y") {
+			return { field: y, order: "descending" };
+		} else if (_sort === null) {
+			return undefined;
+		} else if (Array.isArray(_sort)) {
+			return _sort;
+		}
 	}
+	$: _sort = reformat_sort(sort);
 	export let _selectable = false;
 	export let target: HTMLDivElement;
 	let _data: {
@@ -103,54 +108,54 @@
 			}
 		}
 	}
-	$: {
-		if (value) {
-			let x_index = value.columns.indexOf(x);
-			let y_index = value.columns.indexOf(y);
-			let color_index = color ? value.columns.indexOf(color) : null;
-
-			_data = value.data.map((row) => {
-				const obj = {
-					[x]: row[x_index],
-					[y]: row[y_index]
-				};
-				if (color && color_index !== null) {
-					obj[color] = row[color_index];
-				}
-				return obj;
-			});
-		}
+	function reformat_data(data: PlotData): {
+		[x: string]: string | number;
+	}[] {
+		let x_index = data.columns.indexOf(x);
+		let y_index = data.columns.indexOf(y);
+		let color_index = color ? data.columns.indexOf(color) : null;
+		return data.data.map((row) => {
+			const obj = {
+				[x]: row[x_index],
+				[y]: row[y_index]
+			};
+			if (color && color_index !== null) {
+				obj[color] = row[color_index];
+			}
+			return obj;
+		});
 	}
+	$: _data = value ? reformat_data(value) : [];
 
-	let chartElement: HTMLDivElement;
+	let chart_element: HTMLDivElement;
 	let computed_style = window.getComputedStyle(target);
 	let view: View;
 	let mounted = false;
 	let old_width: number;
 
-	const loadChart = (): void => {
+	const load_chart = (): void => {
 		if (view) {
 			view.finalize();
 		}
 		if (!value) return;
-		old_width = chartElement.offsetWidth;
-		const spec = createVegaLiteSpec();
+		old_width = chart_element.offsetWidth;
+		const spec = create_vega_lite_spec();
 		if (!spec) return;
 		let resizeObserver = new ResizeObserver(() => {
 			if (
 				old_width === 0 &&
-				chartElement.offsetWidth !== 0 &&
+				chart_element.offsetWidth !== 0 &&
 				value.datatypes[x] === "nominal"
 			) {
 				// a bug where when a nominal chart is first loaded, the width is 0, it doesn't resize
-				loadChart();
+				load_chart();
 			} else {
-				view.signal("width", chartElement.offsetWidth).run();
+				view.signal("width", chart_element.offsetWidth).run();
 			}
 		});
-		vegaEmbed(chartElement, spec, { actions: false }).then(function (result) {
+		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
-			resizeObserver.observe(chartElement);
+			resizeObserver.observe(chart_element);
 			var debounceTimeout: NodeJS.Timeout;
 			if (_selectable) {
 				view.addSignalListener("brush", function (_, value) {
@@ -186,10 +191,10 @@
 	let release_callback: (() => void) | null = null;
 	onMount(() => {
 		mounted = true;
-		chartElement.addEventListener("mousedown", () => {
+		chart_element.addEventListener("mousedown", () => {
 			mouse_down_on_chart = true;
 		});
-		chartElement.addEventListener("mouseup", () => {
+		chart_element.addEventListener("mouseup", () => {
 			mouse_down_on_chart = false;
 			if (release_callback) {
 				release_callback();
@@ -212,17 +217,17 @@
 		y_lim,
 		caption,
 		sort,
-		mounted && loadChart();
+		mounted && load_chart();
 
-	function createVegaLiteSpec(): Spec | null {
+	function create_vega_lite_spec(): Spec | null {
 		if (!value) return null;
-		let accentColor = computed_style.getPropertyValue("--color-accent");
-		let bodyTextColor = computed_style.getPropertyValue("--body-text-color");
+		let accent_color = computed_style.getPropertyValue("--color-accent");
+		let body_text_color = computed_style.getPropertyValue("--body-text-color");
 		let borderColorPrimary = computed_style.getPropertyValue(
 			"--border-color-primary"
 		);
-		let fontFamily = computed_style.fontFamily;
-		let titleWeight = computed_style.getPropertyValue(
+		let font_family = computed_style.fontFamily;
+		let title_weight = computed_style.getPropertyValue(
 			"--block-title-text-weight"
 		) as
 			| "bold"
@@ -236,11 +241,15 @@
 			| 700
 			| 800
 			| 900;
-		const fontToPxVal = (font: string): number => {
+		const font_to_px_val = (font: string): number => {
 			return font.endsWith("px") ? parseFloat(font.slice(0, -2)) : 12;
 		};
-		let textSizeMd = fontToPxVal(computed_style.getPropertyValue("--text-md"));
-		let textSizeSm = fontToPxVal(computed_style.getPropertyValue("--text-sm"));
+		let text_size_md = font_to_px_val(
+			computed_style.getPropertyValue("--text-md")
+		);
+		let text_size_sm = font_to_px_val(
+			computed_style.getPropertyValue("--text-sm")
+		);
 
 		return {
 			$schema: "https://vega.github.io/schema/vega-lite/v5.17.0.json",
@@ -248,41 +257,41 @@
 			config: {
 				autosize: { type: "fit", contains: "padding" },
 				axis: {
-					labelFont: fontFamily,
-					labelColor: bodyTextColor,
-					titleFont: fontFamily,
-					titleColor: bodyTextColor,
+					labelFont: font_family,
+					labelColor: body_text_color,
+					titleFont: font_family,
+					titleColor: body_text_color,
 					titlePadding: 8,
 					tickColor: borderColorPrimary,
-					labelFontSize: textSizeSm,
+					labelFontSize: text_size_sm,
 					gridColor: borderColorPrimary,
 					titleFontWeight: "normal",
-					titleFontSize: textSizeSm,
+					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
 					domain: false,
 					labelAngle: 0
 				},
 				legend: {
-					labelColor: bodyTextColor,
-					labelFont: fontFamily,
-					titleColor: bodyTextColor,
-					titleFont: fontFamily,
+					labelColor: body_text_color,
+					labelFont: font_family,
+					titleColor: body_text_color,
+					titleFont: font_family,
 					titleFontWeight: "normal",
-					titleFontSize: textSizeSm,
+					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
 					offset: 2
 				},
 				title: {
-					color: bodyTextColor,
-					font: fontFamily,
-					fontSize: textSizeMd,
-					fontWeight: titleWeight,
+					color: body_text_color,
+					font: font_family,
+					fontSize: text_size_md,
+					fontWeight: title_weight,
 					anchor: "middle"
 				},
 				view: { stroke: borderColorPrimary },
 				mark: {
-					stroke: value.mark !== "bar" ? accentColor : undefined,
-					fill: value.mark === "bar" ? accentColor : undefined,
+					stroke: value.mark !== "bar" ? accent_color : undefined,
+					fill: value.mark === "bar" ? accent_color : undefined,
 					cursor: "crosshair"
 				}
 			},
@@ -428,7 +437,7 @@
 						]
 					: [])
 			],
-			width: chartElement.offsetWidth,
+			width: chart_element.offsetWidth,
 			title: title || undefined
 		};
 	}
@@ -463,7 +472,7 @@
 		/>
 	{/if}
 	<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
-	<div bind:this={chartElement}></div>
+	<div bind:this={chart_element}></div>
 	{#if value}
 		{#if caption}
 			<p class="caption">{caption}</p>
