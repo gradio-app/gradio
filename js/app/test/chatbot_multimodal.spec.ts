@@ -73,18 +73,16 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("textbox").click();
 		await page.keyboard.press("Enter");
 
-		const user_message = await page
-			.getByTestId("user")
-			.first()
-			.locator("audio");
 		const bot_message = await page
 			.getByTestId("bot")
 			.first()
 			.getByRole("paragraph")
 			.textContent();
-		const audio_data = await user_message.getAttribute("src");
-		await expect(audio_data).toBeTruthy();
-		await expect(bot_message).toBeTruthy();
+
+		await expect(
+			page.getByTestId("user").getByTestId("unlabelled-audio")
+		).toBeVisible();
+		expect(bot_message).toBeTruthy();
 	});
 
 	test(`message format ${msg_format} - videos uploaded by a user should be shown in the chatbot`, async ({
