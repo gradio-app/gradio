@@ -99,7 +99,11 @@ include = [
 ]
 
 [tool.pyright]
-include = ["gradio/**/*.py"]
+include = [
+  "gradio/**/*.py",
+  "demo/**/*.py",
+  "test/**/*.py",
+]
 exclude = [
   "gradio/themes/",
   "gradio/_frontend_code/",
@@ -109,7 +113,7 @@ exclude = [
 ]
 stubPath = "gradio/stubs"
 extraPaths = ["gradio/stubs"]
-
+reportMissingImports = false
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]

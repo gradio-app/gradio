@@ -9,7 +9,7 @@ import json
 import os
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Literal, cast
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence, cast
 
 from gradio_client.documentation import document
 
@@ -96,8 +96,8 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable,
-        inputs: str | Component | list[str | Component] | None,
-        outputs: str | Component | list[str | Component] | None,
+        inputs: str | Component | Sequence[str | Component] | None,
+        outputs: str | Component | Sequence[str | Component] | None,
         examples: list[Any] | list[list[Any]] | str | None = None,
         cache_examples: bool | Literal["lazy"] | None = None,
         examples_per_page: int = 10,
@@ -124,7 +124,7 @@ class Interface(Blocks):
         concurrency_limit: int | None | Literal["default"] = "default",
         js: str | None = None,
         head: str | None = None,
-        additional_inputs: str | Component | list[str | Component] | None = None,
+        additional_inputs: str | Component | Sequence[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
         *,
         submit_btn: str | Button = "Submit",
@@ -193,7 +193,13 @@ class Interface(Blocks):
             inputs = []
             self.interface_type = InterfaceTypes.OUTPUT_ONLY
         if additional_inputs is None:
-            additional_inputs = []
+            self.additional_input_components = []
+        else:
+            if not isinstance(additional_inputs, Sequence):
+                additional_inputs = [additional_inputs]
+            self.additional_input_components = [
+                get_component_instance(i, unrender=True) for i in additional_inputs
+            ]
 
         if not isinstance(inputs, (str, list, Component)):
             raise TypeError(
@@ -208,8 +214,6 @@ class Interface(Blocks):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-        if not isinstance(additional_inputs, list):
-            additional_inputs = [additional_inputs]
 
         self.cache_examples = cache_examples
 
@@ -248,9 +252,7 @@ class Interface(Blocks):
         self.main_input_components = [
             get_component_instance(i, unrender=True) for i in inputs
         ]
-        self.additional_input_components = [
-            get_component_instance(i, unrender=True) for i in additional_inputs
-        ]
+
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
                 "label": "Additional Inputs",
@@ -912,7 +914,7 @@ class TabbedInterface(Blocks):
 
     def __init__(
         self,
-        interface_list: list[Interface],
+        interface_list: Sequence[Blocks],
         tab_names: list[str] | None = None,
         title: str | None = None,
         theme: Theme | str | None = None,

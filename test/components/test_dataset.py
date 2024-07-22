@@ -21,6 +21,7 @@ class TestDataset:
         )
 
         row = dataset.preprocess(1)
+        assert isinstance(row, list)
         assert row[0] == 15
         assert row[1] == "hi"
         assert row[2].endswith("bus.png")

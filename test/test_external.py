@@ -42,6 +42,7 @@ class TestLoadInterface:
             alias=model_type,
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Audio)
         assert isinstance(interface.output_components[0], gr.Audio)
 
@@ -53,6 +54,7 @@ class TestLoadInterface:
             alias=model_type,
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Image)
         assert isinstance(interface.output_components[0], gr.Label)
 
@@ -62,6 +64,7 @@ class TestLoadInterface:
             "models/gpt2", alias=model_type, description="This is a test description"
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Textbox)
         assert any(
@@ -75,6 +78,7 @@ class TestLoadInterface:
             "models/facebook/bart-large-cnn", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Textbox)
 
@@ -84,6 +88,7 @@ class TestLoadInterface:
             "models/facebook/bart-large-cnn", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Textbox)
 
@@ -93,6 +98,7 @@ class TestLoadInterface:
             "models/sshleifer/tiny-mbart", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Textbox)
 
@@ -104,6 +110,7 @@ class TestLoadInterface:
             alias=model_type,
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Label)
 
@@ -111,6 +118,7 @@ class TestLoadInterface:
         model_type = "fill-mask"
         interface = gr.load("models/bert-base-uncased", hf_token=None, alias=model_type)
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Label)
 
@@ -120,6 +128,7 @@ class TestLoadInterface:
             "models/facebook/bart-large-mnli", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.input_components[1], gr.Textbox)
         assert isinstance(interface.input_components[2], gr.Checkbox)
@@ -131,6 +140,7 @@ class TestLoadInterface:
             "models/facebook/wav2vec2-base-960h", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Audio)
         assert isinstance(interface.output_components[0], gr.Textbox)
 
@@ -140,6 +150,7 @@ class TestLoadInterface:
             "models/google/vit-base-patch16-224", hf_token=None, alias=model_type
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Image)
         assert isinstance(interface.output_components[0], gr.Label)
 
@@ -151,6 +162,7 @@ class TestLoadInterface:
             alias=model_type,
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Dataframe)
 
@@ -162,6 +174,7 @@ class TestLoadInterface:
             alias=model_type,
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Audio)
 
@@ -173,6 +186,7 @@ class TestLoadInterface:
             alias=model_type,
         )
         assert interface.__name__ == model_type
+        assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Audio)
 
@@ -183,6 +197,7 @@ class TestLoadInterface:
     def test_english_to_spanish_v4(self):
         with pytest.warns(UserWarning):
             io = gr.load("spaces/gradio-tests/english_to_spanishv4-sse", title="hi")
+        assert io.input_components and io.output_components
         assert isinstance(io.input_components[0], gr.Textbox)
         assert isinstance(io.output_components[0], gr.Textbox)
 
@@ -248,7 +263,7 @@ class TestLoadInterface:
         output = response.json()
         assert isinstance(output["data"], list)
         assert isinstance(output["data"][0], str)
-        assert "foo" in app.state_holder
+        assert "foo" in app.state_holder  # type: ignore
 
     def test_speech_recognition_model(self):
         io = gr.load("models/facebook/wav2vec2-base-960h")

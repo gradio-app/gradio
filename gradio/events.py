@@ -7,6 +7,7 @@ import dataclasses
 from functools import partial, wraps
 from typing import (
     TYPE_CHECKING,
+    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -23,7 +24,7 @@ from jinja2 import Template
 from gradio.data_classes import FileData, FileDataDict
 
 if TYPE_CHECKING:
-    from gradio.blocks import Block, Component
+    from gradio.blocks import Block, BlockContext, Component
     from gradio.components import Timer
 
 from gradio.context import get_blocks_context
@@ -45,7 +46,7 @@ def set_cancel_events(
         cancels = [cancels]
 
     regular_cancels: list[dict[str, Any]] = []
-    timers_to_cancel: list[Block] = []
+    timers_to_cancel: list[Component] = []
     for cancel in cancels:
         associated_timer = getattr(cancel, "associated_timer", None)
         if associated_timer:
@@ -185,7 +186,7 @@ class SelectData(EventData):
 
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
-        self.index: int | tuple[int, int] = data["index"]
+        self.index: Any = data["index"]
         """
         The index of the selected item. Is a tuple if the component is two dimensional or selection is a range.
         """
@@ -402,8 +403,16 @@ class EventListener(str):
         def event_trigger(
             block: Block | None,
             fn: Callable | None | Literal["decorator"] = "decorator",
-            inputs: Component | list[Component] | set[Component] | None = None,
-            outputs: Block | list[Block] | list[Component] | None = None,
+            inputs: Component
+            | BlockContext
+            | Sequence[Component | BlockContext]
+            | AbstractSet[Component | BlockContext]
+            | None = None,
+            outputs: Component
+            | BlockContext
+            | Sequence[Component | BlockContext]
+            | AbstractSet[Component | BlockContext]
+            | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
@@ -548,8 +557,16 @@ class EventListener(str):
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
-    inputs: Component | list[Component] | set[Component] | None = None,
-    outputs: Block | list[Block] | list[Component] | None = None,
+    inputs: Component
+    | BlockContext
+    | Sequence[Component | BlockContext]
+    | AbstractSet[Component | BlockContext]
+    | None = None,
+    outputs: Component
+    | BlockContext
+    | Sequence[Component | BlockContext]
+    | AbstractSet[Component | BlockContext]
+    | None = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
@@ -607,13 +624,13 @@ def on(
             )
         demo.launch()
     """
-    from gradio.components.base import Component
+    from gradio.blocks import Block
 
     if not isinstance(triggers, Sequence) and triggers is not None:
         triggers = [triggers]
     triggers_typed = cast(Sequence[EventListener], triggers)
 
-    if isinstance(inputs, Component):
+    if isinstance(inputs, Block):
         inputs = [inputs]
 
     if fn == "decorator":

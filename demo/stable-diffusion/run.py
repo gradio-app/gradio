@@ -1,6 +1,6 @@
 import gradio as gr
 import torch
-from diffusers import StableDiffusionPipeline
+from diffusers import StableDiffusionPipeline  # type: ignore
 from PIL import Image
 import os
 
@@ -15,7 +15,7 @@ pipe = pipe.to(device)
 
 def infer(prompt, samples, steps, scale, seed):
     generator = torch.Generator(device=device).manual_seed(seed)
-    images_list = pipe(
+    images_list = pipe(  # type: ignore
         [prompt] * samples,
         num_inference_steps=steps,
         guidance_scale=scale,
@@ -23,8 +23,8 @@ def infer(prompt, samples, steps, scale, seed):
     )
     images = []
     safe_image = Image.open(r"unsafe.png")
-    for i, image in enumerate(images_list["sample"]):
-        if images_list["nsfw_content_detected"][i]:
+    for i, image in enumerate(images_list["sample"]):  # type: ignore
+        if images_list["nsfw_content_detected"][i]:  # type: ignore
             images.append(safe_image)
         else:
             images.append(image)
@@ -48,7 +48,6 @@ with block:
             show_label=False,
             elem_id="gallery",
             columns=[2],
-            height="auto",
         )
 
         advanced_button = gr.Button("Advanced options", elem_id="advanced-btn")
