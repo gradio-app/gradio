@@ -17,9 +17,9 @@ INTERFACE_TEMPLATE = '''
 
     {% for event in events %}
     def {{ event }}(self,
-        fn: Callable | None,
-        inputs: Component | Sequence[Component] | set[Component] | None = None,
-        outputs: Component | Sequence[Component] | None = None,
+        fn: Callable | None = None,
+        inputs: Block | Sequence[Block] | set[Block] | None = None,
+        outputs: Block | Sequence[Block] | None = None,
         api_name: str | None | Literal[False] = None,
         scroll_to_output: bool = False,
         show_progress: Literal["full", "minimal", "hidden"] = "full",

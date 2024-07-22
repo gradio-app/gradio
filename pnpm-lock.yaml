@@ -270,6 +270,9 @@ importers:
       '@gradio/multimodaltextbox':
         specifier: workspace:^
         version: link:js/multimodaltextbox
+      '@gradio/nativeplot':
+        specifier: workspace:^
+        version: link:js/nativeplot
       '@gradio/number':
         specifier: workspace:^
         version: link:js/number
@@ -625,6 +628,9 @@ importers:
       '@gradio/multimodaltextbox':
         specifier: workspace:^
         version: link:../multimodaltextbox
+      '@gradio/nativeplot':
+        specifier: workspace:^
+        version: link:../nativeplot
       '@gradio/number':
         specifier: workspace:^
         version: link:../number
@@ -1434,6 +1440,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
@@ -1541,6 +1550,37 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/nativeplot:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/theme':
+        specifier: workspace:^
+        version: link:../theme
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      vega:
+        specifier: ^5.23.0
+        version: 5.23.0
+      vega-embed:
+        specifier: ^6.25.0
+        version: 6.25.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0)
+      vega-lite:
+        specifier: ^5.12.0
+        version: 5.12.0(vega@5.23.0)
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -6021,10 +6061,6 @@ packages:
     resolution: {integrity: sha512-eyK64lASNug3Wo2+bQEBnYngjh9rkXUfOus403+OeVZteMon6moIhcEYbrSvcgBN6RsrRWCMoWcKDDK6UEsTOQ==}
     engines: {node: '>=12'}
     hasBin: true
-
-  escalade@3.1.1:
-    resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
-    engines: {node: '>=6'}
 
   escalade@3.1.2:
     resolution: {integrity: sha512-ErCHMCae19vR8vQGe50xIsVomy19rg6gFu3+r3jkEO46suLMWBksvVyoGgQV+jOfl84ZSOSlmv6Gxa89PmTGmA==}
@@ -14419,8 +14455,6 @@ snapshots:
       '@esbuild/win32-ia32': 0.21.0
       '@esbuild/win32-x64': 0.21.0
 
-  escalade@3.1.1: {}
-
   escalade@3.1.2: {}
 
   escape-html@1.0.3: {}
@@ -18214,7 +18248,7 @@ snapshots:
       d3-timer: 3.0.1
       vega-dataflow: 5.7.5
       vega-format: 1.1.1
-      vega-functions: 5.13.2
+      vega-functions: 5.14.0
       vega-runtime: 6.1.4
       vega-scenegraph: 4.10.2
       vega-util: 1.17.2
@@ -18562,7 +18596,7 @@ snapshots:
   yargs@17.7.2:
     dependencies:
       cliui: 8.0.1
-      escalade: 3.1.1
+      escalade: 3.1.2
       get-caller-file: 2.0.5
       require-directory: 2.1.1
       string-width: 4.2.3

@@ -17,11 +17,11 @@ def process_image(image_path):
         Image.Resampling.LANCZOS)
 
     # prepare image for the model
-    encoding = feature_extractor(image, return_tensors="pt")
+    encoding = feature_extractor(image, return_tensors="pt")  # type: ignore
 
     # forward pass
     with torch.no_grad():
-        outputs = model(**encoding)
+        outputs = model(**encoding)  # type: ignore
         predicted_depth = outputs.predicted_depth
 
     # interpolate to original size
@@ -105,8 +105,8 @@ iface = gr.Interface(fn=process_image,
                      inputs=[gr.Image(
                          type="filepath", label="Input Image")],
                      outputs=[gr.Image(label="predicted depth", type="pil"),
-                              gr.Model3D(label="3d mesh reconstruction", clear_color=[
-                                                 1.0, 1.0, 1.0, 1.0]),
+                              gr.Model3D(label="3d mesh reconstruction", clear_color=(
+                                                 1.0, 1.0, 1.0, 1.0)),
                               gr.File(label="3d gLTF")],
                      title=title,
                      description=description,

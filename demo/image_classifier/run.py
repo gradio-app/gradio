@@ -18,7 +18,7 @@ def classify_image(inp):
     return {labels[i]: float(prediction[i]) for i in range(1000)}
 
 
-image = gr.Image(shape=(224, 224))
+image = gr.Image()
 label = gr.Label(num_top_classes=3)
 
 demo = gr.Interface(

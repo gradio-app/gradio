@@ -1,3 +1,4 @@
+# type: ignore
 import collections
 from datetime import datetime
 
