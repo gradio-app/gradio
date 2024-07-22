@@ -314,7 +314,6 @@
 				} else if (message.type === "status") {
 					handle_status_update(message);
 				} else if (message.type === "log") {
-					console.log("log message", message);
 					handle_log(message);
 				}
 			}
