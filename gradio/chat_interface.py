@@ -614,11 +614,9 @@ class ChatInterface(Blocks):
         else:
             new_response = response
 
-        if self.multimodal and isinstance(message, MultimodalData):
-            self._append_multimodal_history(message, new_response, history)  # type: ignore
-        elif isinstance(message, str) and self.type == "tuples":
+        if self.type == "tuples":
             history_with_input[-1][1] = new_response  # type: ignore
-        elif isinstance(message, str) and self.type == "messages":
+        elif self.type == "messages":
             history_with_input.append(new_response)  # type: ignore
         return history_with_input  # type: ignore
 
