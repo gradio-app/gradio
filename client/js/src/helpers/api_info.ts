@@ -1,11 +1,17 @@
-import type { Status } from "../types";
 import {
 	HOST_URL,
 	INVALID_URL_MSG,
 	QUEUE_FULL_MSG,
 	SPACE_METADATA_ERROR_MSG
 } from "../constants";
-import type { ApiData, ApiInfo, Config, JsApiData } from "../types";
+import type {
+	ApiData,
+	ApiInfo,
+	Config,
+	JsApiData,
+	EndpointInfo,
+	Status
+} from "../types";
 import { determine_protocol } from "./init_helpers";
 
 export const RE_SPACE_NAME = /^[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+$/;
@@ -384,11 +390,11 @@ export function handle_message(
 
 export const map_data_to_params = (
 	data: unknown[] | Record<string, unknown> = [],
-	api_info: ApiInfo<JsApiData | ApiData>
+	endpoint_info: EndpointInfo<JsApiData | ApiData>
 ): unknown[] => {
-	const parameters = Object.values(api_info.named_endpoints).flatMap(
-		(values) => values.parameters
-	);
+	// Workaround for the case where the endpoint_info is undefined
+	// See https://github.com/gradio-app/gradio/pull/8820#issuecomment-2237381761
+	const parameters = endpoint_info ? endpoint_info.parameters : [];
 
 	if (Array.isArray(data)) {
 		if (data.length > parameters.length) {

@@ -38,6 +38,9 @@
 {/if}
 
 <style>
+	.image-container {
+		height: 100%;
+	}
 	.image-container :global(img),
 	button {
 		width: var(--size-full);

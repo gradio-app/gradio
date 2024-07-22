@@ -115,7 +115,7 @@
 			}}
 		/>
 	{/if}
-	<div class="upload-container">
+	<div class="upload-container" class:reduced-height={sources.length > 1}>
 		<Upload
 			hidden={value !== null || active_source === "webcam"}
 			bind:this={upload_input}
@@ -172,7 +172,7 @@
 	.image-frame :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: cover;
+		object-fit: contain;
 	}
 
 	.image-frame {
@@ -186,6 +186,10 @@
 		flex-shrink: 1;
 		max-height: 100%;
 		width: 100%;
+	}
+
+	.reduced-height {
+		height: calc(100% - var(--size-10));
 	}
 
 	.image-container {
