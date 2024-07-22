@@ -1,111 +1,77 @@
 import gradio as gr
-import pandas as pd
+import numpy as np
+from data import temp_sensor_data, food_rating_data
 
-from vega_datasets import data
+with gr.Blocks() as bar_plots:
+    with gr.Row():
+        start = gr.DateTime("2021-01-01 00:00:00", label="Start")
+        end = gr.DateTime("2021-01-05 00:00:00", label="End")
+        apply_btn = gr.Button("Apply", scale=0)
+    with gr.Row():
+        group_by = gr.Radio(["None", "30m", "1h", "4h", "1d"], value="None", label="Group by")
+        aggregate = gr.Radio(["sum", "mean", "median", "min", "max"], value="sum", label="Aggregation")
 
-barley = data.barley()
-simple = pd.DataFrame({
-    'a': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
-    'b': [28, 55, 43, 91, 81, 53, 19, 87, 52]
-})
-
-def bar_plot_fn(display):
-    if display == "simple":
-        return gr.BarPlot(
-            simple,
-            x="a",
-            y="b",
-            color=None,
-            group=None,
-            title="Simple Bar Plot with made up data",
-            tooltip=['a', 'b'],
-            y_lim=[20, 100],
-            x_title=None,
-            y_title=None,
-            vertical=True,
-        )
-    elif display == "stacked":
-        return gr.BarPlot(
-            barley,
-            x="variety",
-            y="yield",
-            color="site",
-            group=None,
-            title="Barley Yield Data",
-            tooltip=['variety', 'site'],
-            y_lim=None,
-            x_title=None,
-            y_title=None,
-            vertical=True,
-        )
-    elif display == "grouped":
-        return gr.BarPlot(
-            barley.astype({"year": str}),
-            x="year",
-            y="yield",
-            color="year",
-            group="site",
-            title="Barley Yield by Year and Site",
-            tooltip=["yield", "site", "year"],
-            y_lim=None,
-            x_title=None,
-            y_title=None,
-            vertical=True,
-        )
-    elif display == "simple-horizontal":
-        return gr.BarPlot(
-            simple,
-            x="a",
-            y="b",
-            color=None,
-            group=None,
-            title="Simple Bar Plot with made up data",
-            tooltip=['a', 'b'],
-            y_lim=[20, 100],
-            x_title="Variable A",
-            y_title="Variable B",
-            vertical=False,
-        )
-    elif display == "stacked-horizontal":
-        return gr.BarPlot(
-            barley,
-            x="variety",
-            y="yield",
-            color="site",
-            group=None,
-            title="Barley Yield Data",
-            tooltip=['variety', 'site'],
-            y_lim=None,
-            x_title=None,
-            y_title=None,
-            vertical=False,
-        )
-    elif display == "grouped-horizontal":
-        return gr.BarPlot(
-            barley.astype({"year": str}),
-            x="year",
-            y="yield",
-            color="year",
-            group="site",
-            title="Barley Yield by Year and Site",
-            group_title="",
-            tooltip=["yield", "site", "year"],
-            y_lim=None,
-            x_title=None,
-            y_title=None,
-            vertical=False
-        )
-
-
-with gr.Blocks() as bar_plot:
-    display = gr.Dropdown(
-        choices=["simple", "stacked", "grouped", "simple-horizontal", "stacked-horizontal", "grouped-horizontal"],
-        value="simple",
-        label="Type of Bar Plot"
+    temp_by_time = gr.BarPlot(
+        temp_sensor_data,
+        x="time",
+        y="temperature",
     )
-    plot = gr.BarPlot(show_label=False)
-    display.change(bar_plot_fn, inputs=display, outputs=plot)
-    bar_plot.load(fn=bar_plot_fn, inputs=display, outputs=plot)
+    temp_by_time_location = gr.BarPlot(
+        temp_sensor_data,
+        x="time",
+        y="temperature",
+        color="location",
+    )
+
+    time_graphs = [temp_by_time, temp_by_time_location]
+    group_by.change(
+        lambda group: [gr.BarPlot(x_bin=None if group == "None" else group)] * len(time_graphs), 
+        group_by, 
+        time_graphs
+    )
+    aggregate.change(
+        lambda aggregate: [gr.BarPlot(y_aggregate=aggregate)] * len(time_graphs), 
+        aggregate, 
+        time_graphs
+    )
+
+
+    def rescale(select: gr.SelectData):
+        return select.index
+    rescale_evt = gr.on([plot.select for plot in time_graphs], rescale, None, [start, end])
+
+    for trigger in [apply_btn.click, rescale_evt.then]:
+        trigger(
+            lambda start, end: [gr.BarPlot(x_lim=[start, end])] * len(time_graphs), [start, end], time_graphs
+        )
+
+    with gr.Row():
+        price_by_cuisine = gr.BarPlot(
+            food_rating_data,
+            x="cuisine",
+            y="price",
+        )
+        with gr.Column(scale=0):
+            gr.Button("Sort $ > $$$").click(lambda: gr.BarPlot(sort="y"), None, price_by_cuisine)
+            gr.Button("Sort $$$ > $").click(lambda: gr.BarPlot(sort="-y"), None, price_by_cuisine)
+            gr.Button("Sort A > Z").click(lambda: gr.BarPlot(sort=["Chinese", "Italian", "Mexican"]), None, price_by_cuisine)
+
+    with gr.Row():
+        price_by_rating = gr.BarPlot(
+            food_rating_data,
+            x="rating",
+            y="price",
+            x_bin=1,
+        )
+        price_by_rating_color = gr.BarPlot(
+            food_rating_data,
+            x="rating",
+            y="price",
+            color="cuisine",
+            x_bin=1,
+            color_map={"Italian": "red", "Mexican": "green", "Chinese": "blue"},
+        )
+
 
 if __name__ == "__main__":
-    bar_plot.launch()
+    bar_plots.launch()
