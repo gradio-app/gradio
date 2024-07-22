@@ -59,7 +59,7 @@ class TestScatterPlot:
             title="Car Data",
             x_title="Horse",
         )
-        output = plot.postprocess(cars).model_dump()
+        output = plot.postprocess(cars).model_dump()  # type: ignore
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["encoding"]["x"]["field"] == "Horsepower"
@@ -73,7 +73,7 @@ class TestScatterPlot:
         plot = gr.ScatterPlot(
             x="Horsepower", y="Miles_per_Gallon", tooltip="Name", interactive=False
         )
-        output = plot.postprocess(cars).model_dump()
+        output = plot.postprocess(cars).model_dump()  # type: ignore
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert "selection" not in config
@@ -82,7 +82,7 @@ class TestScatterPlot:
         plot = gr.ScatterPlot(
             x="Horsepower", y="Miles_per_Gallon", height=100, width=200
         )
-        output = plot.postprocess(cars).model_dump()
+        output = plot.postprocess(cars).model_dump()  # type: ignore
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
@@ -92,7 +92,7 @@ class TestScatterPlot:
         plot = gr.ScatterPlot(
             x="Horsepower", y="Miles_per_Gallon", x_lim=[200, 400], y_lim=[300, 500]
         )
-        output = plot.postprocess(cars).model_dump()
+        output = plot.postprocess(cars).model_dump()  # type: ignore
         config = json.loads(output["plot"])
         assert config["encoding"]["x"]["scale"] == {"domain": [200, 400]}
         assert config["encoding"]["y"]["scale"] == {"domain": [300, 500]}
@@ -105,7 +105,7 @@ class TestScatterPlot:
             title="Car Data",
             color="Origin",
         )
-        output = plot.postprocess(cars).model_dump()
+        output = plot.postprocess(cars).model_dump()  # type: ignore
         config = json.loads(output["plot"])
         assert config["encoding"]["color"]["field"] == "Origin"
         assert config["encoding"]["color"]["scale"] == {
@@ -123,7 +123,7 @@ class TestScatterPlot:
             color="Acceleration",
             shape="Origin",
         )
-        output = plot.postprocess(cars).model_dump()
+        output = plot.postprocess(cars).model_dump()  # type: ignore
         config = json.loads(output["plot"])
         assert config["encoding"]["color"]["field"] == "Acceleration"
         assert config["encoding"]["color"]["scale"] == {
@@ -151,7 +151,7 @@ class TestScatterPlot:
             size_legend_title="Accel",
             size_legend_position="none",
         )
-        output = plot.postprocess(cars).model_dump()
+        output = plot.postprocess(cars).model_dump()  # type: ignore
         config = json.loads(output["plot"])
         assert config["encoding"]["color"]["legend"] is None
         assert config["encoding"]["shape"]["legend"] is None

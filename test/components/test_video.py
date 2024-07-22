@@ -72,6 +72,7 @@ class TestVideo:
         assert video_input.preprocess(None) is None
         video_input = gr.Video(format="avi")
         output_video = video_input.preprocess(x_video)
+        assert output_video
         assert output_video[-3:] == "avi"
         assert "flip" not in output_video
 
@@ -79,25 +80,34 @@ class TestVideo:
         y_vid_path = "test/test_files/video_sample.mp4"
         subtitles_path = "test/test_files/s1.srt"
         video_output = gr.Video()
-        output1 = video_output.postprocess(y_vid_path).model_dump()["video"]["path"]
+        output1 = video_output.postprocess(y_vid_path)
+        assert output1
+        output1 = output1.model_dump()["video"]["path"]
         assert output1.endswith("mp4")
-        output2 = video_output.postprocess(y_vid_path).model_dump()["video"]["path"]
+        output2 = video_output.postprocess(y_vid_path)
+        assert output2
+        output2 = output2.model_dump()["video"]["path"]
         assert output1 == output2
-        assert (
-            video_output.postprocess(y_vid_path).model_dump()["video"]["orig_name"]
-            == "video_sample.mp4"
-        )
-        output_with_subtitles = video_output.postprocess(
-            (y_vid_path, subtitles_path)
-        ).model_dump()
+        output3 = video_output.postprocess(y_vid_path)
+        assert output3
+        assert output3.model_dump()["video"]["orig_name"] == "video_sample.mp4"
+        output_with_subtitles = video_output.postprocess((y_vid_path, subtitles_path))
+        assert output_with_subtitles
+        output_with_subtitles = output_with_subtitles.model_dump()
         assert output_with_subtitles["subtitles"]["path"].endswith(".vtt")
 
         p_video = gr.Video()
         video_with_subtitle = gr.Video()
-        postprocessed_video = p_video.postprocess(Path(y_vid_path)).model_dump()
+        postprocessed_video = p_video.postprocess(Path(y_vid_path))
+        assert postprocessed_video
+        postprocessed_video = postprocessed_video.model_dump()
         postprocessed_video_with_subtitle = video_with_subtitle.postprocess(
             (Path(y_vid_path), Path(subtitles_path))
-        ).model_dump()
+        )
+        assert postprocessed_video_with_subtitle
+        postprocessed_video_with_subtitle = (
+            postprocessed_video_with_subtitle.model_dump()
+        )
 
         processed_video = {
             "video": {
@@ -168,7 +178,9 @@ class TestVideo:
             bad_vid = str(test_file_dir / "bad_video_sample.mp4")
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
-            output = gr.Video().postprocess(tmp_not_playable_vid.name).model_dump()
+            output = gr.Video().postprocess(tmp_not_playable_vid.name)
+            assert output
+            output = output.model_dump()
             assert processing_utils.video_is_playable(output["video"]["path"])
 
         # This file has a playable codec but not a playable container
@@ -178,7 +190,9 @@ class TestVideo:
             bad_vid = str(test_file_dir / "playable_but_bad_container.mkv")
             assert not processing_utils.video_is_playable(bad_vid)
             shutil.copy(bad_vid, tmp_not_playable_vid.name)
-            output = gr.Video().postprocess(tmp_not_playable_vid.name).model_dump()
+            output = gr.Video().postprocess(tmp_not_playable_vid.name)
+            assert output
+            output = output.model_dump()
             assert processing_utils.video_is_playable(output["video"]["path"])
 
     @patch("pathlib.Path.exists", MagicMock(return_value=False))
@@ -210,6 +224,7 @@ class TestVideo:
         output_file = gr.Video(
             sources=["webcam"], mirror_webcam=True, format="avi"
         ).preprocess(x_video)
+        assert output_file
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert "hflip" in list(output_params.values())[0]
         assert "flip" in list(output_params.keys())[0]
@@ -220,6 +235,7 @@ class TestVideo:
         output_file = gr.Video(
             sources=["webcam"], mirror_webcam=False, format="avi", include_audio=False
         ).preprocess(x_video)
+        assert output_file
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert list(output_params.values())[0] == ["-an"]
         assert "flip" not in Path(list(output_params.keys())[0]).name

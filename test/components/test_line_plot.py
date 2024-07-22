@@ -56,7 +56,7 @@ class TestLinePlot:
             title="Stock Performance",
             x_title="Trading Day",
         )
-        output = plot.postprocess(stocks).model_dump()
+        output = plot.postprocess(stocks).model_dump()  # type: ignore
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         for layer in config["layer"]:
@@ -71,7 +71,7 @@ class TestLinePlot:
 
     def test_height_width(self):
         plot = gr.LinePlot(x="date", y="price", height=100, width=200)
-        output = plot.postprocess(stocks).model_dump()
+        output = plot.postprocess(stocks).model_dump()  # type: ignore
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
@@ -79,7 +79,7 @@ class TestLinePlot:
 
     def test_xlim_ylim(self):
         plot = gr.LinePlot(x="date", y="price", x_lim=[200, 400], y_lim=[300, 500])
-        output = plot.postprocess(stocks).model_dump()
+        output = plot.postprocess(stocks).model_dump()  # type: ignore
         config = json.loads(output["plot"])
         for layer in config["layer"]:
             assert layer["encoding"]["x"]["scale"] == {"domain": [200, 400]}
@@ -89,7 +89,7 @@ class TestLinePlot:
         plot = gr.LinePlot(
             x="date", y="price", tooltip="symbol", color="symbol", overlay_point=True
         )
-        output = plot.postprocess(stocks).model_dump()
+        output = plot.postprocess(stocks).model_dump()  # type: ignore
         config = json.loads(output["plot"])
         for layer in config["layer"]:
             assert layer["encoding"]["color"]["field"] == "symbol"

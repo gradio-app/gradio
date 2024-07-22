@@ -113,7 +113,7 @@ class Label(Component):
         }
 
     def postprocess(
-        self, value: dict[str, float] | str | int | float | None
+        self, value: dict[str | float, float] | str | int | float | None
     ) -> LabelData | dict | None:
         """
         Parameters:

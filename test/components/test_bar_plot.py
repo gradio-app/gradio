@@ -56,7 +56,8 @@ class TestBarPlot:
             x_title="Variable A",
             sort="x",
         )
-        output = plot.postprocess(simple).model_dump()
+        assert (output := plot.postprocess(simple))
+        output = output.model_dump()
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         assert output["chart"] == "bar"
         config = json.loads(output["plot"])
@@ -72,7 +73,8 @@ class TestBarPlot:
 
     def test_height_width(self):
         plot = gr.BarPlot(x="a", y="b", height=100, width=200)
-        output = plot.postprocess(simple).model_dump()
+        assert (output := plot.postprocess(simple))
+        output = output.model_dump()
         assert sorted(output.keys()) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert config["height"] == 100
@@ -80,7 +82,8 @@ class TestBarPlot:
 
     def test_ylim(self):
         plot = gr.BarPlot(x="a", y="b", y_lim=[15, 100])
-        output = plot.postprocess(simple).model_dump()
+        assert (output := plot.postprocess(simple))
+        output = output.model_dump()
         config = json.loads(output["plot"])
         assert config["encoding"]["y"]["scale"] == {"domain": [15, 100]}
 

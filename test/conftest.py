@@ -51,7 +51,7 @@ def connect():
             client = Client(local_url)
             yield client
         finally:
-            client.close()
+            client.close()  # type: ignore
             demo.close()
 
     return _connect

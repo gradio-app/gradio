@@ -29,7 +29,6 @@ from collections.abc import MutableMapping
 from contextlib import contextmanager
 from functools import wraps
 from io import BytesIO
-from numbers import Number
 from pathlib import Path
 from types import ModuleType
 from typing import (
@@ -683,12 +682,12 @@ def no_raise_exception():
         pass
 
 
-def sanitize_value_for_csv(value: str | Number) -> str | Number:
+def sanitize_value_for_csv(value: str | float) -> str | float:
     """
     Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.
     Reference: https://owasp.org/www-community/attacks/CSV_Injection
     """
-    if isinstance(value, Number):
+    if isinstance(value, (float, int)):
         return value
     unsafe_prefixes = ["=", "+", "-", "@", "\t", "\n"]
     unsafe_sequences = [",=", ",+", ",-", ",@", ",\t", ",\n"]

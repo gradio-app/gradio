@@ -52,7 +52,7 @@ class TestFileExplorer:
         (Path(tmpdir) / "foo" / "img.png").touch()
         (Path(tmpdir) / "foo" / "bar" / "bar.txt").touch()
 
-        file_explorer = gr.FileExplorer(glob="*.txt", root=Path(tmpdir))
+        file_explorer = gr.FileExplorer(glob="*.txt", root_dir=Path(tmpdir))
         tree = file_explorer.ls(["foo"])
 
         answer = [

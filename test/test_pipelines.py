@@ -4,13 +4,13 @@ from unittest.mock import MagicMock
 import pytest
 import transformers
 from diffusers import (
-    StableDiffusionDepth2ImgPipeline,
-    StableDiffusionImageVariationPipeline,
-    StableDiffusionImg2ImgPipeline,
-    StableDiffusionInpaintPipeline,
-    StableDiffusionInstructPix2PixPipeline,
-    StableDiffusionPipeline,
-    StableDiffusionUpscalePipeline,
+    StableDiffusionDepth2ImgPipeline,  # type: ignore
+    StableDiffusionImageVariationPipeline,  # type: ignore
+    StableDiffusionImg2ImgPipeline,  # type: ignore
+    StableDiffusionInpaintPipeline,  # type: ignore
+    StableDiffusionInstructPix2PixPipeline,  # type: ignore
+    StableDiffusionPipeline,  # type: ignore
+    StableDiffusionUpscalePipeline,  # type: ignore
 )
 from transformers import (
     AudioClassificationPipeline,

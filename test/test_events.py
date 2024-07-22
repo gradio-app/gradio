@@ -20,6 +20,7 @@ class TestEvent:
 
             img.clear(fn_img_cleared, [], [])
 
+        assert "dependencies" in demo.config
         assert demo.config["dependencies"][0]["targets"][0][1] == "clear"
 
     def test_event_data(self):
@@ -66,6 +67,7 @@ class TestEvent:
             txt0.submit(lambda x: x, txt0, txt0)
             child.render()
 
+        assert "dependencies" in parent.config
         assert parent.config["dependencies"][1]["trigger_after"] is None
         assert parent.config["dependencies"][2]["trigger_after"] == 1
         assert parent.config["dependencies"][3]["trigger_after"] == 2
@@ -99,6 +101,7 @@ class TestEvent:
             def sum(a, b, c):
                 return a + b + c
 
+        assert "dependencies" in demo.config
         assert demo.config["dependencies"][0]["targets"] == [
             (name._id, "submit"),
             (greet_btn._id, "click"),
@@ -124,6 +127,7 @@ class TestEvent:
                 increment, inputs=None, outputs=out
             )
 
+        assert "dependencies" in demo.config
         assert demo.config["dependencies"][0]["targets"][0][1] == "load"
         assert demo.config["dependencies"][0]["trigger_after"] is None
         assert demo.config["dependencies"][1]["targets"][0][1] == "then"
@@ -145,7 +149,7 @@ class TestEvent:
 
         with gr.Blocks() as demo2:
             demo.render()
-
+        assert "dependencies" in demo2.config
         assert demo2.config["dependencies"][0]["targets"][0][1] == "load"
         assert demo2.config["dependencies"][0]["trigger_after"] is None
         assert demo2.config["dependencies"][1]["targets"][0][1] == "then"

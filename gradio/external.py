@@ -330,7 +330,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     # example model: rajistics/autotrain-Adult-934630783
     elif p in ["tabular-classification", "tabular-regression"]:
         examples = external_utils.get_tabular_examples(model_name)
-        col_names, examples = external_utils.cols_to_rows(examples)
+        col_names, examples = external_utils.cols_to_rows(examples)  # type: ignore
         examples = [[examples]] if examples else None
         inputs = components.Dataframe(
             label="Input Rows",
