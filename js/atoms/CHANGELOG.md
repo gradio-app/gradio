@@ -1,5 +1,11 @@
 # @gradio/atoms
 
+## 0.7.7
+
+### Fixes
+
+- [#8852](https://github.com/gradio-app/gradio/pull/8852) [`16b8200`](https://github.com/gradio-app/gradio/commit/16b820038df43905447ab7623d39d91ceb0d6238) - Fix gr.Image height inconsistencies.  Thanks @hannahblair!
+
 ## 0.7.6
 
 ### Dependency updates
