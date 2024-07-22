@@ -5,7 +5,7 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 import gradio_client.utils as client_utils
 from gradio_client import handle_file
@@ -37,7 +37,7 @@ class UploadButton(Component):
         value: str | list[str] | Callable | None = None,
         *,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
         size: Literal["sm", "lg"] | None = None,

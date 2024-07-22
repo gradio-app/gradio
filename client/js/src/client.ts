@@ -107,14 +107,14 @@ export class Client {
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
-		data: unknown[] | Record<string, unknown>,
+		data: unknown[] | Record<string, unknown> | undefined,
 		event_data?: unknown,
 		trigger_id?: number | null,
 		all_events?: boolean
 	) => SubmitIterable<GradioEvent>;
 	predict: (
 		endpoint: string | number,
-		data: unknown[] | Record<string, unknown>,
+		data: unknown[] | Record<string, unknown> | undefined,
 		event_data?: unknown
 	) => Promise<PredictReturn>;
 	open_stream: () => Promise<void>;

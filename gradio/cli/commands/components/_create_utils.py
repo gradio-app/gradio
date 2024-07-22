@@ -87,7 +87,7 @@ OVERRIDES = {
     "Plot": ComponentFiles(template="Plot", demo_code=static_only_demo_code),
     "BarPlot": ComponentFiles(
         template="BarPlot",
-        python_file_name="bar_plot.py",
+        python_file_name="native_plot.py",
         js_dir="plot",
         demo_code=static_only_demo_code,
     ),
@@ -121,7 +121,7 @@ OVERRIDES = {
     ),
     "LinePlot": ComponentFiles(
         template="LinePlot",
-        python_file_name="line_plot.py",
+        python_file_name="native_plot.py",
         js_dir="plot",
         demo_code=static_only_demo_code,
     ),
@@ -139,7 +139,7 @@ OVERRIDES = {
     ),
     "ScatterPlot": ComponentFiles(
         template="ScatterPlot",
-        python_file_name="scatter_plot.py",
+        python_file_name="native_plot.py",
         js_dir="plot",
         demo_code=static_only_demo_code,
     ),

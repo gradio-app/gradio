@@ -17,7 +17,16 @@ import webbrowser
 from collections import defaultdict
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequence, cast
+from typing import (
+    TYPE_CHECKING,
+    AbstractSet,
+    Any,
+    AsyncIterator,
+    Callable,
+    Literal,
+    Sequence,
+    cast,
+)
 from urllib.parse import urlparse, urlunparse
 
 import anyio
@@ -473,8 +482,8 @@ class BlockFunction:
     def __init__(
         self,
         fn: Callable | None,
-        inputs: list[Component],
-        outputs: list[Block] | list[Component],
+        inputs: Sequence[Component | BlockContext],
+        outputs: Sequence[Component | BlockContext],
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
@@ -652,8 +661,16 @@ class BlocksConfig:
         self,
         targets: Sequence[EventListenerMethod],
         fn: Callable | None,
-        inputs: Component | list[Component] | set[Component] | None,
-        outputs: Block | list[Block] | list[Component] | None,
+        inputs: Component
+        | BlockContext
+        | Sequence[Component | BlockContext]
+        | AbstractSet[Component | BlockContext]
+        | None,
+        outputs: Component
+        | BlockContext
+        | Sequence[Component | BlockContext]
+        | AbstractSet[Component | BlockContext]
+        | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
@@ -711,21 +728,21 @@ class BlocksConfig:
             )
             for target in targets
         ]
-        if isinstance(inputs, set):
+        if isinstance(inputs, AbstractSet):
             inputs_as_dict = True
             inputs = sorted(inputs, key=lambda x: x._id)
         else:
             inputs_as_dict = False
             if inputs is None:
                 inputs = []
-            elif not isinstance(inputs, list):
+            elif not isinstance(inputs, Sequence):
                 inputs = [inputs]
 
-        if isinstance(outputs, set):
+        if isinstance(outputs, AbstractSet):
             outputs = sorted(outputs, key=lambda x: x._id)
         elif outputs is None:
             outputs = []
-        elif not isinstance(outputs, list):
+        elif not isinstance(outputs, Sequence):
             outputs = [outputs]
 
         if fn is not None and not cancels:
@@ -925,6 +942,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         js: str | None = None,
         head: str | None = None,
         fill_height: bool = False,
+        fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
         **kwargs,
     ):
@@ -938,6 +956,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             js: Custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
             head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
+            fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
         self.limiter = None
@@ -971,6 +990,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.show_error = True
         self.head = head
         self.fill_height = fill_height
+        self.fill_width = fill_width
         self.delete_cache = delete_cache
         if css is not None and os.path.exists(css):
             with open(css, encoding="utf-8") as css_file:
@@ -2019,6 +2039,7 @@ Received outputs:
                 ),
             },
             "fill_height": self.fill_height,
+            "fill_width": self.fill_width,
             "theme_hash": self.theme_hash,
         }
         config.update(self.default_config.get_config())  # type: ignore

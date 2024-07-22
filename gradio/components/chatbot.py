@@ -13,6 +13,7 @@ from typing import (
     List,
     Literal,
     Optional,
+    Sequence,
     Tuple,
     Type,
     TypedDict,
@@ -136,8 +137,10 @@ class Chatbot(Component):
     def __init__(
         self,
         value: (
-            list[
-                list[str | GradioComponent | tuple[str] | tuple[str | Path, str] | None]
+            Sequence[
+                Sequence[
+                    str | GradioComponent | tuple[str] | tuple[str | Path, str] | None
+                ]
             ]
             | Callable
             | None
@@ -146,7 +149,7 @@ class Chatbot(Component):
         type: Literal["messages", "tuples"] = "tuples",
         label: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,

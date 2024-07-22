@@ -122,6 +122,7 @@
 		"@gradio/markdown": "workspace:^",
 		"@gradio/model3d": "workspace:^",
 		"@gradio/multimodaltextbox": "workspace:^",
+		"@gradio/nativeplot": "workspace:^",
 		"@gradio/number": "workspace:^",
 		"@gradio/paramviewer": "workspace:^",
 		"@gradio/plot": "workspace:^",

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence, TypedDict
 
 import gradio_client.utils as client_utils
 from gradio_client.documentation import document
@@ -65,7 +65,7 @@ class MultimodalTextbox(FormComponent):
         label: str | None = None,
         info: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
