@@ -79,6 +79,7 @@ class Client:
         max_workers: int = 40,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
+        httpx_kwargs: dict[str, Any] | None = None,
         *,
         headers: dict[str, str] | None = None,
         download_files: str | Path | Literal[False] = DEFAULT_TEMP_DIR,
@@ -94,6 +95,7 @@ class Client:
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
             download_files: Directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
             ssl_verify: If False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
+            httpx_kwargs: Additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
         """
         self.verbose = verbose
         self.hf_token = hf_token
@@ -143,6 +145,7 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
+        self.httpx_kwargs = {} if httpx_kwargs is None else httpx_kwargs
         if auth is not None:
             self._login(auth)
 
@@ -202,13 +205,15 @@ class Client:
         while True:
             url = self.heartbeat_url.format(session_hash=self.session_hash)
             try:
+                httpx_kwargs = self.httpx_kwargs.copy()
+                httpx_kwargs.setdefault("timeout", 20)
                 with httpx.stream(
                     "GET",
                     url,
                     headers=self.headers,
                     cookies=self.cookies,
                     verify=self.ssl_verify,
-                    timeout=20,
+                    **httpx_kwargs,
                 ) as response:
                     for _ in response.iter_lines():
                         if self._refresh_heartbeat.is_set():
@@ -223,8 +228,11 @@ class Client:
         self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
     ) -> None:
         try:
+            httpx_kwargs = self.httpx_kwargs.copy()
+            httpx_kwargs.setdefault("timeout", httpx.Timeout(timeout=None))
             with httpx.Client(
-                timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify
+                verify=self.ssl_verify,
+                **httpx_kwargs,
             ) as client:
                 with client.stream(
                     "GET",
@@ -284,6 +292,7 @@ class Client:
             headers=self.headers,
             cookies=self.cookies,
             verify=self.ssl_verify,
+            **self.httpx_kwargs,
         )
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
@@ -549,6 +558,7 @@ class Client:
                 headers=self.headers,
                 cookies=self.cookies,
                 verify=self.ssl_verify,
+                **self.httpx_kwargs,
             )
             if r.is_success:
                 info = r.json()
@@ -561,6 +571,7 @@ class Client:
                     "config": json.dumps(self.config),
                     "serialize": False,
                 },
+                **self.httpx_kwargs,
             )
             if fetch.is_success:
                 info = fetch.json()["api"]
@@ -823,6 +834,7 @@ class Client:
             urllib.parse.urljoin(self.src, utils.LOGIN_URL),
             data={"username": auth[0], "password": auth[1]},
             verify=self.ssl_verify,
+            **self.httpx_kwargs,
         )
         if not resp.is_success:
             if resp.status_code == 401:
@@ -841,6 +853,7 @@ class Client:
             headers=self.headers,
             cookies=self.cookies,
             verify=self.ssl_verify,
+            **self.httpx_kwargs,
         )
         if r.is_success:
             return r.json()
@@ -854,6 +867,7 @@ class Client:
                 headers=self.headers,
                 cookies=self.cookies,
                 verify=self.ssl_verify,
+                **self.httpx_kwargs,
             )
             if not r.is_success:
                 raise ValueError(f"Could not fetch config for {self.src}")
@@ -1185,6 +1199,7 @@ class Endpoint:
                     headers=self.client.headers,
                     cookies=self.client.cookies,
                     verify=self.client.ssl_verify,
+                    **self.client.httpx_kwargs,
                 )
 
         return _cancel
@@ -1331,6 +1346,7 @@ class Endpoint:
                     cookies=self.client.cookies,
                     verify=self.client.ssl_verify,
                     files=files,
+                    **self.client.httpx_kwargs,
                 )
             r.raise_for_status()
             result = r.json()
@@ -1360,6 +1376,7 @@ class Endpoint:
             cookies=self.client.cookies,
             verify=self.client.ssl_verify,
             follow_redirects=True,
+            **self.client.httpx_kwargs,
         ) as response:
             response.raise_for_status()
             with open(temp_dir / Path(url_path).name, "wb") as f:
@@ -1375,7 +1392,9 @@ class Endpoint:
 
     def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
         with httpx.Client(
-            timeout=httpx.Timeout(timeout=None), verify=self.client.ssl_verify
+            timeout=httpx.Timeout(timeout=None),
+            verify=self.client.ssl_verify,
+            **self.client.httpx_kwargs,
         ) as client:
             return utils.get_pred_from_sse_v0(
                 client,
