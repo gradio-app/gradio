@@ -22,7 +22,7 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Dict, Literal
+from typing import Any, Callable, Literal
 
 import httpx
 import huggingface_hub
@@ -79,7 +79,7 @@ class Client:
         max_workers: int = 40,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
-        httpx_kwargs: Dict[str, Any] | None = None,
+        httpx_kwargs: dict[str, Any] | None = None,
         *,
         headers: dict[str, str] | None = None,
         download_files: str | Path | Literal[False] = DEFAULT_TEMP_DIR,
@@ -95,7 +95,7 @@ class Client:
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
             download_files: Directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
             ssl_verify: If False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
-            httpx_kwargs: Arguments to forward to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`.
+            httpx_kwargs: Additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
         """
         self.verbose = verbose
         self.hf_token = hf_token
@@ -205,14 +205,15 @@ class Client:
         while True:
             url = self.heartbeat_url.format(session_hash=self.session_hash)
             try:
+                httpx_kwargs = self.httpx_kwargs.copy()
+                httpx_kwargs.setdefault("timeout", 20)
                 with httpx.stream(
                     "GET",
                     url,
                     headers=self.headers,
                     cookies=self.cookies,
                     verify=self.ssl_verify,
-                    timeout=20,
-                    **self.httpx_kwargs,
+                    **httpx_kwargs,
                 ) as response:
                     for _ in response.iter_lines():
                         if self._refresh_heartbeat.is_set():
@@ -227,8 +228,9 @@ class Client:
         self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
     ) -> None:
         try:
+            httpx_kwargs = self.httpx_kwargs.copy()
+            httpx_kwargs.setdefault("timeout", httpx.Timeout(timeout=None))
             with httpx.Client(
-                timeout=httpx.Timeout(timeout=None),
                 verify=self.ssl_verify,
                 **self.httpx_kwargs,
             ) as client:
