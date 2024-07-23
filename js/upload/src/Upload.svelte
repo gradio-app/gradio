@@ -50,15 +50,36 @@
 		return "." + type;
 	};
 
-	$: if (filetype == null) {
-		accept_file_types = null;
-	} else if (typeof filetype === "string") {
-		accept_file_types = processFileType(filetype);
-	} else {
-		filetype = filetype.map(processFileType);
-		accept_file_types = filetype.join(", ");
+	function get_ios_accept_string(type: string): string {
+		if (type.startsWith(".")) {
+			// convert extension to MIME type for iOS
+			const mimeType = {
+				".png": "image/png",
+				".jpg": "image/jpeg",
+				".jpeg": "image/jpeg",
+				".gif": "image/gif",
+				".pdf": "application/pdf",
+				".txt": "text/plain"
+			}[type.toLowerCase()];
+			return mimeType || `application/${type.slice(1)}`;
+		}
+		return type;
 	}
 
+	$: {
+		if (filetype == null) {
+			accept_file_types = null;
+		} else if (typeof filetype === "string") {
+			accept_file_types = is_ios
+				? get_ios_accept_string(processFileType(filetype))
+				: processFileType(filetype);
+		} else {
+			const processedTypes = filetype.map(processFileType);
+			accept_file_types = is_ios
+				? processedTypes.map(get_ios_accept_string).join(", ")
+				: processedTypes.join(", ");
+		}
+	}
 	function update_dragging(): void {
 		dragging = !dragging;
 	}
@@ -129,19 +150,6 @@
 	async function load_files_from_upload(e: Event): Promise<void> {
 		const target = e.target as HTMLInputElement;
 		if (!target.files) return;
-		// Client-side validation for iOS
-		if (is_ios && filetype) {
-			const validFiles = Array.from(target.files).filter((file) => {
-				const fileExtension = "." + file.name.split(".").pop();
-				return is_valid_mimetype(accept_file_types, fileExtension, file.type);
-			});
-
-			if (validFiles.length !== target.files.length) {
-				dispatch("error", `Invalid file type(s). Only ${filetype} allowed.`);
-				return;
-			}
-		}
-
 		if (format != "blob") {
 			await load_files(Array.from(target.files));
 		} else {
@@ -265,7 +273,7 @@
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
-			accept={!is_ios ? accept_file_types : undefined}
+			accept={accept_file_types}
 			multiple={file_count === "multiple" || undefined}
 			webkitdirectory={file_count === "directory" || undefined}
 			mozdirectory={file_count === "directory" || undefined}
