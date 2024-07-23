@@ -31,7 +31,6 @@
 			dispatch("select", { index: coordinates, value: null });
 		}
 	};
-
 </script>
 
 <BlockLabel

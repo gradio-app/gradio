@@ -37,6 +37,11 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let stream_frequency: number;
+
+	export const close_stream: () => void = () => {
+		stop();
+	};
 
 	$: dispatch("drag", dragging);
 
@@ -50,7 +55,6 @@
 	let submit_pending_stream_on_pending_end = false;
 	let inited = false;
 
-	const STREAM_TIMESLICE = 500;
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
 	let module_promises: [
@@ -98,6 +102,7 @@
 			) as FileData[]
 		)[0];
 
+		console.log("current time", new Date().toUTCString());
 		dispatch(event, value);
 	};
 
@@ -176,7 +181,7 @@
 		if (!inited) await prepare_audio();
 		header = undefined;
 		if (streaming) {
-			recorder.start(STREAM_TIMESLICE);
+			recorder.start((1 / stream_frequency) * 1000);
 		}
 	}
 

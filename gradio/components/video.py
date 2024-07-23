@@ -382,15 +382,27 @@ class Video(StreamingOutput, Component):
 
     @staticmethod
     def get_video_duration_ffprobe(filename):
-        import subprocess
         import json
-    
-        result = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", filename],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        
+        import subprocess
+
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "quiet",
+                "-print_format",
+                "json",
+                "-show_format",
+                "-show_streams",
+                filename,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+
         data = json.loads(result.stdout)
-        
+
         # The duration is usually in the format metadata, but let's check streams too just in case
         duration = None
         if "format" in data and "duration" in data["format"]:
@@ -400,7 +412,7 @@ class Video(StreamingOutput, Component):
                 if "duration" in stream:
                     duration = float(stream["duration"])
                     break
-        
+
         return duration
 
     # @staticmethod
@@ -420,36 +432,48 @@ class Video(StreamingOutput, Component):
     @staticmethod
     def convert_mp4_to_ts(mp4_file, ts_file):
         import subprocess
+
         cmd = [
-            'ffmpeg',
-            '-i', mp4_file,
-            '-c:v', 'libx264',
-            '-c:a', 'aac',
-            '-f', 'mpegts',
-            '-bsf:v', 'h264_mp4toannexb',
-            '-bsf:a', 'aac_adtstoasc',
-            ts_file
+            "ffmpeg",
+            "-i",
+            mp4_file,
+            "-c:v",
+            "libx264",
+            "-c:a",
+            "aac",
+            "-f",
+            "mpegts",
+            "-bsf:v",
+            "h264_mp4toannexb",
+            "-bsf:a",
+            "aac_adtstoasc",
+            ts_file,
         ]
         subprocess.run(cmd, check=True)
 
     @staticmethod
     async def async_convert_mp4_to_ts(mp4_file, ts_file):
         import asyncio
+
         command = [
-            'ffmpeg',
-            '-i', mp4_file,
-            '-c:v', 'libx264',
-            '-c:a', 'aac',
-            '-f', 'mpegts',
-            '-bsf:v', 'h264_mp4toannexb',
-            '-bsf:a', 'aac_adtstoasc',
-            ts_file
+            "ffmpeg",
+            "-i",
+            mp4_file,
+            "-c:v",
+            "libx264",
+            "-c:a",
+            "aac",
+            "-f",
+            "mpegts",
+            "-bsf:v",
+            "h264_mp4toannexb",
+            "-bsf:a",
+            "aac_adtstoasc",
+            ts_file,
         ]
 
         process = await asyncio.create_subprocess_exec(
-            *command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
 
         stdout, stderr = await process.communicate()
@@ -466,8 +490,8 @@ class Video(StreamingOutput, Component):
     ) -> tuple[bytes | None, Any]:
         output_file = {
             "video": {
-            "path": output_id,
-            "is_stream": True,
+                "path": output_id,
+                "is_stream": True,
             }
         }
         if value is None:

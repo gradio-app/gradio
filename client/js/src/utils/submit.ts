@@ -531,7 +531,7 @@ export function submit(
 					protocol == "sse_v1" ||
 					protocol == "sse_v2" ||
 					protocol == "sse_v2.1" ||
-					protocol == "sse_v3" || protocol == "ws_stream"
+					protocol == "sse_v3"
 				) {
 					// latest API format. v2 introduces sending diffs for intermediate outputs in generative functions, which makes payloads lighter.
 					// v3 only closes the stream when the backend sends the close stream message.
@@ -601,7 +601,7 @@ export function submit(
 							event_id_final = event_id;
 							console.log("event_id_final", event_id_final);
 							console.log("event_id_cb", event_id_cb);
-							console.log("event_id from cb", event_id_cb())
+							console.log("event_id from cb", event_id_cb());
 							let callback = async function (_data: object): Promise<void> {
 								try {
 									const { type, status, data } = handle_message(
@@ -658,7 +658,8 @@ export function submit(
 											fn_index
 										});
 										if (
-											data && dependency.connection !== "stream" &&
+											data &&
+											dependency.connection !== "stream" &&
 											["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
 										) {
 											apply_diff_stream(pending_diff_streams, event_id!, data);

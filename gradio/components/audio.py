@@ -306,6 +306,7 @@ class Audio(
     @staticmethod
     async def covert_to_adts(data: bytes) -> tuple[bytes, float]:
         import anyio
+
         return await anyio.to_thread.run_sync(Audio._convert_to_adts, data)
 
     async def stream_output(

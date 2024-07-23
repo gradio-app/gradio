@@ -492,7 +492,7 @@ async def async_move_files_to_cache(
 
 def add_root_url(data: dict | list, root_url: str, previous_root_url: str | None):
     def _add_root_url(file_dict: dict):
-        if file_dict.get('data') is not None:
+        if file_dict.get("data") is not None:
             return file_dict
         if previous_root_url and file_dict["url"].startswith(previous_root_url):
             file_dict["url"] = file_dict["url"][len(previous_root_url) :]

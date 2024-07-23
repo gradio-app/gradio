@@ -30,6 +30,8 @@
 	export let stream_handler: Client["stream"];
 	export let stream_frequency: number;
 
+	export let close_stream: () => void;
+
 	let upload_input: Upload;
 	let uploading = false;
 	export let active_source: source_type = null;
@@ -149,6 +151,7 @@
 				include_audio={false}
 				{i18n}
 				{upload}
+				bind:close_stream
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->

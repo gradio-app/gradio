@@ -86,7 +86,7 @@ export class FileData {
 		is_stream,
 		mime_type,
 		alt_text,
-		data,
+		data
 	}: {
 		path: string;
 		url?: string;

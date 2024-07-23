@@ -539,7 +539,7 @@ class EventListener(str):
                 trigger_mode=trigger_mode,
                 show_api=show_api,
                 connection=_connection,
-                time_limit=time_limit
+                time_limit=time_limit,
             )
             set_cancel_events(
                 [event_target],

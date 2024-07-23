@@ -1,17 +1,15 @@
 from __future__ import annotations
 
+import base64
+from io import BytesIO
 from pathlib import Path
 from typing import Literal
-from io import BytesIO
-import base64
-
 
 import numpy as np
 import PIL.Image
 from PIL import ImageOps
 
 from gradio import processing_utils
-
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843 (remove when requiring Pillow 9.4+)
 
@@ -125,7 +123,9 @@ def decode_base64_to_image_array(encoding: str) -> np.ndarray:
 
 def encode_image_array_to_base64(image_array):
     with BytesIO() as output_bytes:
-        pil_image = PIL.Image.fromarray(processing_utils._convert(image_array, np.uint8, force_copy=False))
+        pil_image = PIL.Image.fromarray(
+            processing_utils._convert(image_array, np.uint8, force_copy=False)
+        )
         pil_image.save(output_bytes, "JPEG")
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")

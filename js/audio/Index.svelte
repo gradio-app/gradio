@@ -39,6 +39,9 @@
 	export let waveform_options: WaveformOptions = {};
 	export let pending: boolean;
 	export let streaming: boolean;
+	export let stream_frequency: number;
+
+	export let close_stream: () => void;
 	export let gradio: Gradio<{
 		input: never;
 		change: typeof value;
@@ -238,6 +241,8 @@
 			{waveform_settings}
 			{waveform_options}
 			{trim_region_settings}
+			{stream_frequency}
+			bind:close_stream
 			upload={gradio.client.upload}
 			stream_handler={gradio.client.stream}
 		>

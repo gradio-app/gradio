@@ -11,8 +11,6 @@
 	export let duration: number | null = 10;
 	export let visible = true;
 
-	$: console.log("type", type);
-
 	const is_external_url = (link: string | null): boolean => {
 		try {
 			return !!link && new URL(link, location.href).origin !== location.origin;

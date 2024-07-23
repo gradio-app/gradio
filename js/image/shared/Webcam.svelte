@@ -14,12 +14,20 @@
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
 	let selected_device: MediaDeviceInfo | null = null;
+	let interval_id = 0;
+	let stop_button: HTMLButtonElement;
+
+	export const close_stream: () => void = () => {
+		if (stop_button) stop_button.click();
+	};
 
 	let canvas: HTMLCanvasElement;
 	export let streaming = false;
 	export let pending = false;
 	export let root = "";
 	export let stream_frequency: number;
+
+	$: console.log("Stream_frequency", stream_frequency);
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
@@ -195,11 +203,14 @@
 	}
 
 	if (streaming && mode === "image") {
-		window.setInterval(() => {
-			if (video_source && !pending) {
-				take_picture();
-			}
-		}, (1/stream_frequency) * 1000);
+		interval_id = window.setInterval(
+			() => {
+				if (video_source && !pending) {
+					take_picture();
+				}
+			},
+			(1 / stream_frequency) * 1000
+		);
 	}
 
 	let options_open = false;
@@ -250,6 +261,7 @@
 	{:else}
 		<div class="button-wrap">
 			<button
+				bind:this={stop_button}
 				on:click={record_video_or_photo}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
