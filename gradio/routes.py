@@ -631,9 +631,12 @@ class App(FastAPI):
                 content=playlist, media_type="application/vnd.apple.mpegurl"
             )
 
-        @app.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.aac")
-        async def _(session_hash: str, run: int, component_id: int, segment_id: str):
-            print("segment_id", segment_id)
+        @app.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
+        async def _(
+            session_hash: str, run: int, component_id: int, segment_id: str, ext: str
+        ):
+            if ext not in ["aac", "ts"]:
+                return Response(status_code=400, content="Unsupported file extension")
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
                 .pending_streams[session_hash]
@@ -649,28 +652,12 @@ class App(FastAPI):
             if segment is None:
                 return Response(status_code=404)
 
-            return Response(content=segment["data"], media_type="audio/aac")
-
-        @app.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.ts")
-        async def _(session_hash: str, run: int, component_id: int, segment_id: str):
-            print("segment_id", segment_id)
-            stream: route_utils.MediaStream | None = (
-                app.get_blocks()
-                .pending_streams[session_hash]
-                .get(run, {})
-                .get(component_id, None)
-            )
-
-            if not stream:
-                return Response(status_code=404)
-
-            segment = next((s for s in stream.segments if s["id"] == segment_id), None)
-
-            if segment is None:
-                return Response(status_code=404)
-            return Response(
-                content=Path(segment["data"]).read_bytes(), media_type="video/MP2T"
-            )
+            if ext == "aac":
+                return Response(content=segment["data"], media_type="audio/aac")
+            else:
+                return Response(
+                    content=Path(segment["data"]).read_bytes(), media_type="video/MP2T"
+                )
 
         @app.get(
             "/stream/{session_hash}/{run}/{component_id}",
