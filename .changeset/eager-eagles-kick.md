@@ -1,6 +1,6 @@
 ---
-"@gradio/upload": minor
-"gradio": minor
+"@gradio/upload": patch
+"gradio": patch
 ---
 
-feat:Fix file uploading in iOS
+fix:Fix file uploading in iOS
