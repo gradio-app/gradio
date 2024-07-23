@@ -62,26 +62,3 @@ class TestAnalytics:
         await asyncio.wait(all_tasks)
 
         pyodide_pyfetch.assert_called()
-
-
-class TestIPAddress:
-    @pytest.mark.flaky
-    def test_get_ip(self):
-        Context.ip_address = None
-        ip = analytics.get_local_ip_address()
-        if ip in ("No internet connection", "Analytics disabled"):
-            return
-        ipaddress.ip_address(ip)
-
-    @patch("httpx.get")
-    def test_get_ip_without_internet(self, mock_get, monkeypatch):
-        mock_get.side_effect = httpx.ConnectError("Connection error")
-        monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
-        Context.ip_address = None
-        ip = analytics.get_local_ip_address()
-        assert ip == "No internet connection"
-
-        monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "False")
-        Context.ip_address = None
-        ip = analytics.get_local_ip_address()
-        assert ip == "Analytics disabled"

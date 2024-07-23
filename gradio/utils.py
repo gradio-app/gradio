@@ -63,8 +63,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.routes import App, Request
     from gradio.state_holder import SessionState
 
-JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
-
 P = ParamSpec("P")
 T = TypeVar("T")
 
@@ -436,24 +434,6 @@ def download_if_url(article: str) -> str:
         pass
 
     return article
-
-
-def launch_counter() -> None:
-    try:
-        if not os.path.exists(JSON_PATH):
-            launches = {"launches": 1}
-            with open(JSON_PATH, "w+", encoding="utf-8") as j:
-                json.dump(launches, j)
-        else:
-            with open(JSON_PATH, encoding="utf-8") as j:
-                launches = json.load(j)
-            launches["launches"] += 1
-            if launches["launches"] in [25, 50, 150, 500, 1000]:
-                print(en["BETA_INVITE"])
-            with open(JSON_PATH, "w", encoding="utf-8") as j:
-                j.write(json.dumps(launches))
-    except Exception:
-        pass
 
 
 def get_default_args(func: Callable) -> list[Any]:

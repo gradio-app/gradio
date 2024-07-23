@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import secrets
 import threading
 import urllib.parse
 import warnings
@@ -32,7 +33,7 @@ except ImportError:
 
 ANALYTICS_URL = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
-
+JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 def get_block_name(class_name) -> str:
     """
@@ -67,7 +68,7 @@ def _do_analytics_request(topic: str, data: dict[str, Any]) -> None:
 
 
 def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = get_local_ip_address()
+    data["ip_address"] = get_machine_identifier()
     try:
         _send_telemetry_in_thread(
             topic=topic,
@@ -80,7 +81,7 @@ def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
 
 
 async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = await get_local_ip_address_wasm()
+    data["ip_address"] = get_machine_identifier()
 
     # We use urllib.parse.urlencode to encode the data as a form.
     # Ref: https://docs.python.org/3/library/urllib.request.html#urllib-examples
@@ -115,52 +116,35 @@ def version_check():
     except Exception:
         pass
 
+def write_machine_identifier() -> str:
+    identifier = secrets.token_urlsafe(32)
+    with open(JSON_PATH, "w+", encoding="utf-8") as j:
+        json.dump({"identifier": identifier}, j)
+    return identifier
 
-def get_local_ip_address() -> str:
+def get_machine_identifier() -> str:
     """
-    Gets the public IP address or returns the string "No internet connection" if unable
-    to obtain it or the string "Analytics disabled" if a user has disabled analytics.
-    Does not make a new request if the IP address has already been obtained in the
-    same Python session.
+    Gets a randomly generated string hash corresponding to this machine or the string
+    "Analytics disabled" if a user has disabled analytics. This is used for tracking
+    the number of unique users in analytics.
     """
     if not analytics_enabled():
         return "Analytics disabled"
 
-    if Context.ip_address is None:
-        try:
-            ip_address = httpx.get(
-                "https://checkip.amazonaws.com/", timeout=3
-            ).text.strip()
-        except (httpx.ConnectError, httpx.ReadTimeout):
-            ip_address = "No internet connection"
-        Context.ip_address = ip_address
-    else:
-        ip_address = Context.ip_address
-    return ip_address
+    # Storing the identifier in the Context object to avoid reading the file multiple times
+    if Context.identifier is None:
+        if not os.path.exists(JSON_PATH):
+            Context.identifier = write_machine_identifier()
+        else:
+            # In older versions of Gradio, the launches.json file
+            # did not contain the "identifier" key.
+            with open(JSON_PATH, encoding="utf-8") as j:
+                info = json.load(j)
+            if "identifier" not in info:
+                Context.identifier = write_machine_identifier()
 
-
-async def get_local_ip_address_wasm() -> str:
-    """The Wasm-compatible version of get_local_ip_address()."""
-    if not analytics_enabled():
-        return "Analytics disabled"
-
-    if Context.ip_address is None:
-        try:
-            response = await asyncio.wait_for(
-                pyodide_pyfetch(
-                    # The API used by the normal version (`get_local_ip_address()`), `https://checkip.amazonaws.com/``, blocks CORS requests, so here we use a different API.
-                    "https://api.ipify.org"
-                ),
-                timeout=5,
-            )
-            response_text: str = await response.string()  # type: ignore
-            ip_address = response_text.strip()
-        except (asyncio.TimeoutError, OSError):
-            ip_address = "No internet connection"
-        Context.ip_address = ip_address
-    else:
-        ip_address = Context.ip_address
-    return ip_address
+    assert Context.identifier is not None  # noqa: S101
+    return Context.identifier
 
 
 def initiated_analytics(data: dict[str, Any]) -> None:
