@@ -938,12 +938,14 @@ def add_watermark(video_path: str, watermark_path: str) -> str:
     If something goes wrong, return the original video.
 
     Based on command-line example:
-        ffmpeg -i input.mp4 -i watermark.png 
+        ffmpeg -i input.mp4 -i watermark.png
         -filter_complex"[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]overlay=(main_w-overlay_w):(main_h-overlay_h)" 
         output_bottom_right.mp4
     """
     from ffmpy import FFmpeg, FFRuntimeError
-    filter_complex = "[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]overlay=(main_w-overlay_w):(main_h-overlay_h)"
+    filter_complex = "[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]"
+    # Place at bottom right
+    filter_complex += "overlay=(main_w-overlay_w):(main_h-overlay_h)"
     try:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             video_path_tmp = Path(video_path).stem + "_watermarked"
@@ -952,7 +954,8 @@ def add_watermark(video_path: str, watermark_path: str) -> str:
             ff = FFmpeg(
                 inputs={str(tmp_file.name): None, str(watermark_path): None},
                 outputs={str(output_path): None},
-                global_options="-y -loglevel quiet -filter_complex " + filter_complex,
+                global_options="-y -loglevel quiet "
+                               "-filter_complex " + filter_complex,
             )
             ff.run()
     except FFRuntimeError as e:
