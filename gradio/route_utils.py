@@ -898,7 +898,6 @@ class MediaStream:
         self.segment_index = 0
         self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
 
-
     async def add_segment(self, data: dict):
         print("Add segment")
         if not data:
@@ -906,7 +905,9 @@ class MediaStream:
             return
 
         segment_id = str(uuid.uuid4())
-        self.segments.append({"id": segment_id, "duration": data['duration'], "data": data['data']})
+        self.segments.append(
+            {"id": segment_id, "duration": data["duration"], "data": data["data"]}
+        )
         # self.event.set()
         # self.event.clear()
 

@@ -9,7 +9,6 @@ import traceback
 import uuid
 from collections import defaultdict
 from queue import Queue as ThreadQueue
-from asyncio.queues import Queue as AsyncQueue
 from typing import TYPE_CHECKING
 
 import fastapi
@@ -60,9 +59,9 @@ class Event:
         self.progress: ProgressMessage | None = None
         self.progress_pending: bool = False
         self.alive = True
-        self.finished = False
         self.n_calls = 0
         self.run_time: float = 0
+        self.signal = asyncio.Event()
 
     @property
     def streaming(self):
@@ -497,6 +496,7 @@ class Queue:
     async def process_events(
         self, events: list[Event], batch: bool, begin_time: float
     ) -> None:
+        print("PROCESSING EVENTS")
         awake_events: list[Event] = []
         fn = events[0].fn
         success = False
@@ -563,7 +563,6 @@ class Queue:
                     event.n_calls += 1
                     if event.streaming:
                         response["is_generating"] = not event.is_finished
-                    print("RESPONSE", response['is_generating'])
 
             except Exception as e:
                 traceback.print_exc()
@@ -598,6 +597,11 @@ class Queue:
                         return
                     try:
                         start = time.monotonic()
+                        if awake_events[0].streaming:
+                            print(f"WAITING FOR SIGNAL {awake_events[0]._id}")
+                            await awake_events[0].signal.wait()
+                            awake_events[0].signal.clear()
+                            print("ACQUIRED SIGNAL")
                         body = awake_events[0].data
                         response = await route_utils.call_process_api(
                             app=app,
@@ -607,7 +611,7 @@ class Queue:
                             root_path=root_path,
                         )
                         end = time.monotonic()
-                        event.run_time += (end - start)
+                        event.run_time += end - start
                         event.n_calls += 1
                         if event.streaming:
                             print("Adding response")
@@ -622,7 +626,6 @@ class Queue:
                                     "info",
                                     duration=10,
                                 )
-                            print("response", response['is_generating'])
                     except Exception as e:
                         traceback.print_exc()
                         response = None
@@ -701,4 +704,4 @@ class Queue:
         async with app.lock:
             del app.iterators[event_id]
             app.iterators_to_reset.add(event_id)
-        return
+        returnH

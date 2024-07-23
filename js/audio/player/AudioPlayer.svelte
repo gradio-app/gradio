@@ -146,12 +146,11 @@
 		if (!value || !value.is_stream) return;
 		if (!audio_player) return;
 		if (Hls.isSupported() && !stream_active) {
-			const hls = new Hls(
-				{
-					maxBufferLength: 1, // 0.5 seconds (500 ms)
-					maxMaxBufferLength: 1, // Maximum max buffer length in seconds
-					lowLatencyMode: true, // Enable low latency modez
-				},);
+			const hls = new Hls({
+				maxBufferLength: 1, // 0.5 seconds (500 ms)
+				maxMaxBufferLength: 1, // Maximum max buffer length in seconds
+				lowLatencyMode: true // Enable low latency modez
+			});
 			hls.loadSource(value.url);
 			hls.attachMedia(audio_player);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -162,7 +161,9 @@
 				if (data.fatal) {
 					switch (data.type) {
 						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.error("Fatal network error encountered, trying to recover");
+							console.error(
+								"Fatal network error encountered, trying to recover"
+							);
 							hls.startLoad();
 							break;
 						case Hls.ErrorTypes.MEDIA_ERROR:
@@ -192,7 +193,6 @@
 			}
 		});
 	});
-
 </script>
 
 <audio

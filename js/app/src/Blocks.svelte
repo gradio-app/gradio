@@ -51,6 +51,7 @@
 		targets,
 		update_value,
 		get_data,
+		close_stream,
 		loading_status,
 		scheduled_updates,
 		create_layout,
@@ -278,8 +279,12 @@
 
 			let submission: ReturnType<typeof app.submit>;
 			if (streaming && submit_map.has(dep_index)) {
+				console.log("making prediction at", new Date().toUTCString());
 				app.current_payload = payload;
-				await app.post_data(`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`, payload)
+				await app.post_data(
+					`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
+					{ ...payload, session_hash: app.session_hash }
+				);
 				return;
 			}
 			try {
@@ -416,8 +421,10 @@
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
 						}
 					});
-
-					// submission.destroy();
+					dep.inputs.forEach((id) => {
+						close_stream(id);
+					});
+					submit_map.delete(dep_index);
 				}
 				if (status.broken && is_mobile_device && user_left_page) {
 					window.setTimeout(() => {

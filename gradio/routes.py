@@ -37,7 +37,6 @@ from typing import (
     Union,
 )
 
-import anyio
 import fastapi
 import httpx
 import markupsafe
@@ -62,7 +61,7 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse, StreamingResponse
 
 import gradio
-from gradio import processing_utils, ranged_response, route_utils, utils, wasm_utils
+from gradio import ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import (
     CancelBody,
@@ -590,14 +589,20 @@ class App(FastAPI):
         async def _(event_id: str, body: PredictBody):
             event = app.get_blocks()._queue.event_ids_to_events[event_id]
             event.data = body
+            event.signal.set()
+            return {"msg": "success"}
+
+        @app.post("/stream/{event_id}/close")
+        async def _(event_id: str):
+            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event.run_time = math.inf
+            event.signal.set()
             return {"msg": "success"}
 
         @app.websocket("/stream")
         async def _(ws: WebSocket):
             await app.stream_connection_manager.connect(ws)
-            success = await route_utils.send_with_timeout(
-                ws, {"msg": "send_data"}, 5
-            )
+            success = await route_utils.send_with_timeout(ws, {"msg": "send_data"}, 5)
             if not success:
                 app.stream_connection_manager.disconnect(ws)
                 return
@@ -617,21 +622,27 @@ class App(FastAPI):
                     if not success:
                         app.stream_connection_manager.disconnect(ws)
                         return
-                    body = PredictBody(**(await route_utils.receive_with_timeout(ws, 50)))
+                    body = PredictBody(
+                        **(await route_utils.receive_with_timeout(ws, 50))
+                    )
                     event.data = body
-                    message = await app.get_blocks()._queue.event_ids_to_messages[event_id].get()
-                    print('message', message['msg'])
+                    message = (
+                        await app.get_blocks()
+                        ._queue.event_ids_to_messages[event_id]
+                        .get()
+                    )
+                    print("message", message["msg"])
                     await app.stream_connection_manager.send_msg(message, ws)
                     end = time.monotonic()
                     print("loop time", end - start)
-            except Exception as e:
+            except Exception:
                 import traceback
+
                 traceback.print_exc()
             finally:
                 pass
                 # if not ws.state.
                 await ws.close()
-
 
             # try:
             #     from gradio import image_utils
@@ -774,7 +785,9 @@ class App(FastAPI):
 
             if segment is None:
                 return Response(status_code=404)
-            return Response(content=Path(segment['data']).read_bytes(), media_type="video/MP2T")
+            return Response(
+                content=Path(segment["data"]).read_bytes(), media_type="video/MP2T"
+            )
 
         @app.get(
             "/stream/{session_hash}/{run}/{component_id}",
@@ -888,6 +901,17 @@ class App(FastAPI):
                         # This will mark the state to be deleted in an hour
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
+                        for (
+                            event_id
+                        ) in app.get_blocks()._queue.pending_event_ids_session.get(
+                            session_hash, []
+                        ):
+                            print("Cleaning up stream events")
+                            event = app.get_blocks()._queue.event_ids_to_events[
+                                event_id
+                            ]
+                            event.run_time = math.inf
+                            event.signal.set()
                         return
 
             return StreamingResponse(iterator(), media_type="text/event-stream")

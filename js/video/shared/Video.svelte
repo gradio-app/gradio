@@ -6,7 +6,6 @@
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 	import Hls from "hls.js";
 
-
 	export let src: HTMLVideoAttributes["src"] = undefined;
 	export let is_stream;
 
@@ -55,12 +54,11 @@
 		if (!src || !is_stream) return;
 		if (!node) return;
 		if (Hls.isSupported() && !stream_active) {
-			const hls = new Hls(
-				{
-					maxBufferLength: 1, // 0.5 seconds (500 ms)
-					maxMaxBufferLength: 1, // Maximum max buffer length in seconds
-					lowLatencyMode: true, // Enable low latency modez
-				},);
+			const hls = new Hls({
+				maxBufferLength: 1, // 0.5 seconds (500 ms)
+				maxMaxBufferLength: 1, // Maximum max buffer length in seconds
+				lowLatencyMode: true // Enable low latency mode
+			});
 			hls.loadSource(src);
 			hls.attachMedia(node);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -71,7 +69,9 @@
 				if (data.fatal) {
 					switch (data.type) {
 						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.error("Fatal network error encountered, trying to recover");
+							console.error(
+								"Fatal network error encountered, trying to recover"
+							);
 							hls.startLoad();
 							break;
 						case Hls.ErrorTypes.MEDIA_ERROR:
@@ -89,7 +89,7 @@
 		}
 	}
 
-	$: src, stream_active = false; 
+	$: src, (stream_active = false);
 
 	$: load_stream(src, is_stream, node);
 </script>

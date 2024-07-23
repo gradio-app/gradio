@@ -219,7 +219,9 @@ class Image(StreamingInput, Component):
         if value is None:
             return None
         if self.format == "base64":
-            return FileData(path="", data=image_utils.encode_image_array_to_base64(value))
+            return FileData(
+                path="", data=image_utils.encode_image_array_to_base64(value)
+            )
         if isinstance(value, str) and value.lower().endswith(".svg"):
             return FileData(path=value, orig_name=Path(value).name)
         saved = image_utils.save_image(value, self.GRADIO_CACHE, self.format)
