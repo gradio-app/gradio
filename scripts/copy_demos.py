@@ -8,7 +8,6 @@ import textwrap
 def copy_all_demos(source_dir: str, dest_dir: str):
     demos_to_copy = [
         "audio_debugger",
-        "altair_plot",
         "blocks_essay",
         "blocks_group",
         "blocks_js_methods",

@@ -134,7 +134,7 @@ class AnnotatedImage(Component):
         value: (
             tuple[
                 np.ndarray | PIL.Image.Image | str,
-                list[tuple[np.ndarray | tuple[int, int, int, int], str]],
+                Sequence[tuple[np.ndarray | tuple[int, int, int, int], str]],
             ]
             | None
         ),

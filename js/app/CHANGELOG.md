@@ -1,5 +1,69 @@
 # @gradio/app
 
+## 1.39.0
+
+### Features
+
+- [#8832](https://github.com/gradio-app/gradio/pull/8832) [`e75f2ca`](https://github.com/gradio-app/gradio/commit/e75f2ca2da4f41f25459b98bedaa940c887e6a93) - Fix build for pre-release.  Thanks @pngwn!
+- [#8846](https://github.com/gradio-app/gradio/pull/8846) [`76c1759`](https://github.com/gradio-app/gradio/commit/76c175935019833baef709a5cf401d2263ca72ee) - add space header.  Thanks @pngwn!
+- [#8804](https://github.com/gradio-app/gradio/pull/8804) [`1d09925`](https://github.com/gradio-app/gradio/commit/1d09925469a5f96e8d3a972a28841903fa1c7265) - Fix Lite's <Playground />.  Thanks @whitphx!
+- [#8807](https://github.com/gradio-app/gradio/pull/8807) [`a238af4`](https://github.com/gradio-app/gradio/commit/a238af4d688c4e030e37c2ef01d5c80d6d940912) - Refactor plots to drop `altair` and use `vega.js` directly.  Thanks @aliabid94!
+
+### Fixes
+
+- [#8818](https://github.com/gradio-app/gradio/pull/8818) [`2de9a97`](https://github.com/gradio-app/gradio/commit/2de9a97ae953cc5c58c0d33d8966e638e76f950f) - Refactoring <gradio-lite /> component making the code simpler and fixing a Playground mode bug.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/code@0.8.0
+- @gradio/paramviewer@0.4.18
+- @gradio/audio@0.13.0
+- @gradio/video@0.10.0
+- @gradio/wasm@0.12.0
+- @gradio/markdown@0.9.0
+- @gradio/chatbot@0.12.2
+- @gradio/client@1.4.0
+- @gradio/image@0.13.0
+- @gradio/dataframe@0.9.0
+- @gradio/statustracker@0.7.2
+- @gradio/imageeditor@0.8.0
+- @gradio/file@0.9.0
+- @gradio/upload@0.12.0
+- @gradio/datetime@0.1.0
+- @gradio/nativeplot@0.1.0
+- @gradio/atoms@0.7.7
+- @gradio/simpleimage@0.6.3
+- @gradio/annotatedimage@0.6.14
+- @gradio/model3d@0.11.1
+- @gradio/button@0.2.47
+- @gradio/dataset@0.2.1
+- @gradio/downloadbutton@0.1.24
+- @gradio/fileexplorer@0.4.15
+- @gradio/gallery@0.11.3
+- @gradio/multimodaltextbox@0.5.3
+- @gradio/uploadbutton@0.6.15
+- @gradio/accordion@0.3.19
+- @gradio/checkbox@0.3.9
+- @gradio/checkboxgroup@0.5.9
+- @gradio/colorpicker@0.3.9
+- @gradio/column@0.1.2
+- @gradio/dropdown@0.7.9
+- @gradio/fallback@0.3.9
+- @gradio/highlightedtext@0.7.3
+- @gradio/html@0.3.2
+- @gradio/json@0.2.9
+- @gradio/label@0.3.9
+- @gradio/number@0.4.9
+- @gradio/plot@0.6.1
+- @gradio/radio@0.5.9
+- @gradio/row@0.1.3
+- @gradio/simpledropdown@0.2.9
+- @gradio/simpletextbox@0.2.9
+- @gradio/slider@0.4.9
+- @gradio/textbox@0.6.8
+- @gradio/box@0.1.21
+- @gradio/form@0.1.21
+
 ## 1.38.1
 
 ### Dependency updates
