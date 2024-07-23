@@ -232,7 +232,7 @@ class Client:
             httpx_kwargs.setdefault("timeout", httpx.Timeout(timeout=None))
             with httpx.Client(
                 verify=self.ssl_verify,
-                **self.httpx_kwargs,
+                **httpx_kwargs,
             ) as client:
                 with client.stream(
                     "GET",
