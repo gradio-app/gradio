@@ -119,10 +119,10 @@ def version_check():
 
 
 def write_machine_hash() -> str:
-    identifier = secrets.token_urlsafe(32)
+    machine_hash = secrets.token_urlsafe(32)
     with open(JSON_PATH, "w+", encoding="utf-8") as j:
-        json.dump({"identifier": identifier}, j)
-    return identifier
+        json.dump({"machine_hash": machine_hash}, j)
+    return machine_hash
 
 
 def get_machine_hash() -> str:
@@ -134,19 +134,19 @@ def get_machine_hash() -> str:
     if not analytics_enabled():
         return "Analytics disabled"
 
-    # Storing the identifier in the Context object to avoid reading the file multiple times
-    if Context.identifier is None:
+    # Storing the machine_hash in the Context object to avoid reading the file multiple times
+    if Context.machine_hash is None:
         if not os.path.exists(JSON_PATH):
-            Context.identifier = write_machine_hash()
+            Context.machine_hash = write_machine_hash()
         else:
             # In older versions of Gradio, the launches.json file
-            # did not contain the "identifier" key.
+            # did not contain the "machine_hash" key.
             with open(JSON_PATH, encoding="utf-8") as j:
                 info = json.load(j)
-            Context.identifier = info.get("identifier") or write_machine_hash()
+            Context.machine_hash = info.get("machine_hash") or write_machine_hash()
 
-    assert Context.identifier is not None  # noqa: S101
-    return Context.identifier
+    assert Context.machine_hash is not None  # noqa: S101
+    return Context.machine_hash
 
 
 def initiated_analytics(data: dict[str, Any]) -> None:
