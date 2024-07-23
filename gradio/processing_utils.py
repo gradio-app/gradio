@@ -46,7 +46,7 @@ if wasm_utils.IS_WASM:
 
         def handle_request(self, request: httpx.Request) -> httpx.Response:
             url = str(request.url)
-            method = request.method
+            method = str(request.method)
             headers = dict(request.headers)
             body = None if method in ["GET", "HEAD"] else request.read()
 

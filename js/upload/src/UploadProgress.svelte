@@ -50,6 +50,7 @@
 			const _data = JSON.parse(event.data);
 			if (!progress) progress = true;
 			if (_data.msg === "done") {
+				// the stream will close itself but is here for clarity; remove .close() in 5.0
 				stream?.close();
 				dispatch("done");
 			} else {
@@ -59,6 +60,7 @@
 		};
 	});
 	onDestroy(() => {
+		// the stream will close itself but is here for clarity; remove .close() in 5.0
 		if (stream != null || stream != undefined) stream.close();
 	});
 

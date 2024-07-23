@@ -26,7 +26,7 @@ import { Client } from "../client";
 export function submit(
 	this: Client,
 	endpoint: string | number,
-	data: unknown[] | Record<string, unknown>,
+	data: unknown[] | Record<string, unknown> = {},
 	event_data?: unknown,
 	trigger_id?: number | null,
 	all_events?: boolean
@@ -61,7 +61,7 @@ export function submit(
 			config
 		);
 
-		let resolved_data = map_data_to_params(data, api_info);
+		let resolved_data = map_data_to_params(data, endpoint_info);
 
 		let websocket: WebSocket;
 		let stream: EventSource | null;
@@ -684,6 +684,8 @@ export function submit(
 												endpoint: _endpoint,
 												fn_index
 											});
+
+											close();
 										}
 									}
 

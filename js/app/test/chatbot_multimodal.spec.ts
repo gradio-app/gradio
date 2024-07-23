@@ -73,18 +73,16 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("textbox").click();
 		await page.keyboard.press("Enter");
 
-		const user_message = await page
-			.getByTestId("user")
-			.first()
-			.locator("audio");
 		const bot_message = await page
 			.getByTestId("bot")
 			.first()
 			.getByRole("paragraph")
 			.textContent();
-		const audio_data = await user_message.getAttribute("src");
-		await expect(audio_data).toBeTruthy();
-		await expect(bot_message).toBeTruthy();
+
+		await expect(
+			page.getByTestId("user").getByTestId("unlabelled-audio")
+		).toBeVisible();
+		expect(bot_message).toBeTruthy();
 	});
 
 	test(`message format ${msg_format} - videos uploaded by a user should be shown in the chatbot`, async ({
@@ -239,7 +237,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("textbox").fill("hello");
 		await page.keyboard.press("Enter");
 		await page.getByLabel("like", { exact: true }).click();
-		await page.getByLabel("dislike").click();
+		await page.getByLabel("dislike", { exact: true }).click();
 
 		expect(await page.getByLabel("clicked dislike").count()).toEqual(1);
 		expect(await page.getByLabel("clicked like").count()).toEqual(0);

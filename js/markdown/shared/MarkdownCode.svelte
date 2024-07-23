@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { afterUpdate, createEventDispatcher } from "svelte";
+	import { afterUpdate } from "svelte";
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
@@ -24,7 +24,8 @@
 
 	const marked = create_marked({
 		header_links,
-		line_breaks
+		line_breaks,
+		latex_delimiters
 	});
 
 	const is_external_url = (link: string | null): boolean => {
@@ -44,14 +45,41 @@
 		}
 	});
 
+	function escapeRegExp(string: string): string {
+		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	}
+
 	function process_message(value: string): string {
+		let parsedValue = value;
+
 		if (render_markdown) {
-			value = marked.parse(value) as string;
+			const latexBlocks: string[] = [];
+			latex_delimiters.forEach((delimiter, index) => {
+				const leftDelimiter = escapeRegExp(delimiter.left);
+				const rightDelimiter = escapeRegExp(delimiter.right);
+				const regex = new RegExp(
+					`${leftDelimiter}([\\s\\S]+?)${rightDelimiter}`,
+					"g"
+				);
+				parsedValue = parsedValue.replace(regex, (match, p1) => {
+					latexBlocks.push(match);
+					return `%%%LATEX_BLOCK_${latexBlocks.length - 1}%%%`;
+				});
+			});
+
+			parsedValue = marked.parse(parsedValue) as string;
+
+			parsedValue = parsedValue.replace(
+				/%%%LATEX_BLOCK_(\d+)%%%/g,
+				(match, p1) => latexBlocks[parseInt(p1, 10)]
+			);
 		}
+
 		if (sanitize_html) {
-			value = DOMPurify.sanitize(value);
+			parsedValue = DOMPurify.sanitize(parsedValue);
 		}
-		return value;
+
+		return parsedValue;
 	}
 
 	$: if (message && message.trim()) {
@@ -73,15 +101,18 @@
 			}
 		}
 	}
-	afterUpdate(() => render_html(message));
+
+	afterUpdate(async () => {
+		if (el && document.body.contains(el)) {
+			await render_html(message);
+		} else {
+			console.error("Element is not in the DOM");
+		}
+	});
 </script>
 
 <span class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
-	{#if render_markdown}
-		{@html html}
-	{:else}
-		{html}
-	{/if}
+	{@html html}
 </span>
 
 <style>

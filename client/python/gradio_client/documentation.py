@@ -49,6 +49,7 @@ _module_prefixes = [
     ("gradio.chat", "chatinterface"),
     ("gradio.component", "component"),
     ("gradio.events", "helpers"),
+    ("gradio.data_classes", "helpers"),
     ("gradio.exceptions", "helpers"),
     ("gradio.external", "helpers"),
     ("gradio.flag", "flagging"),

@@ -72,9 +72,7 @@ class TestJSON:
             ["F", 30],
         ]
         assert (
-            await iface.process_api(
-                0, [{"data": y_data, "headers": ["gender", "age"]}], state={}
-            )
+            await iface.process_api(0, [{"data": y_data, "headers": ["gender", "age"]}])
         )["data"][0].model_dump() == {
             "M": 35,
             "F": 25,

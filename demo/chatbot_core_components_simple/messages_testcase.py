@@ -65,7 +65,7 @@ with gr.Blocks(fill_height=True) as demo:
         elem_id="chatbot",
         bubble_full_width=False,
         scale=1,
-        msg_format="messages"
+        type="messages"
     )
     response_type = gr.Radio(
         [

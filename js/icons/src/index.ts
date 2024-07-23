@@ -1,6 +1,8 @@
+export { default as Back } from "./Back.svelte";
 export { default as Backward } from "./Backward.svelte";
 export { default as Brush } from "./Brush.svelte";
 export { default as BrushSize } from "./BrushSize.svelte";
+export { default as Calendar } from "./Calendar.svelte";
 export { default as Camera } from "./Camera.svelte";
 export { default as Chart } from "./Chart.svelte";
 export { default as Chat } from "./Chat.svelte";

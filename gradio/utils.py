@@ -25,10 +25,10 @@ import urllib.parse
 import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
+from collections.abc import MutableMapping
 from contextlib import contextmanager
 from functools import wraps
 from io import BytesIO
-from numbers import Number
 from pathlib import Path
 from types import ModuleType
 from typing import (
@@ -40,6 +40,7 @@ from typing import (
     Iterator,
     Literal,
     Optional,
+    Sequence,
     TypeVar,
 )
 
@@ -562,7 +563,8 @@ def get_all_components() -> list[type[Component] | type[BlockContext]]:
     return [
         c
         for c in subclasses
-        if c.__name__ not in ["ChatInterface", "Interface", "Blocks", "TabbedInterface"]
+        if c.__name__
+        not in ["ChatInterface", "Interface", "Blocks", "TabbedInterface", "NativePlot"]
     ]
 
 
@@ -681,12 +683,12 @@ def no_raise_exception():
         pass
 
 
-def sanitize_value_for_csv(value: str | Number) -> str | Number:
+def sanitize_value_for_csv(value: str | float) -> str | float:
     """
     Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.
     Reference: https://owasp.org/www-community/attacks/CSV_Injection
     """
-    if isinstance(value, Number):
+    if isinstance(value, (float, int)):
         return value
     unsafe_prefixes = ["=", "+", "-", "@", "\t", "\n"]
     unsafe_sequences = [",=", ",+", ",-", ",@", ",\t", ",\n"]
@@ -954,7 +956,7 @@ def is_special_typed_parameter(name, parameter_types):
     return is_request or is_event_data or is_oauth_arg
 
 
-def check_function_inputs_match(fn: Callable, inputs: list, inputs_as_dict: bool):
+def check_function_inputs_match(fn: Callable, inputs: Sequence, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
     Returns: None if valid or if the function does not have a signature (e.g. is a built in),
@@ -1424,3 +1426,42 @@ def error_payload(
         content["duration"] = error.duration
         content["visible"] = error.visible
     return content
+
+
+class UnhashableKeyDict(MutableMapping):
+    """
+    Essentially a list of key-value tuples that allows for keys that are not hashable,
+    but acts like a dictionary for convenience.
+    """
+
+    def __init__(self):
+        self.data = []
+
+    def __getitem__(self, key):
+        for k, v in self.data:
+            if deep_equal(k, key):
+                return v
+        raise KeyError(key)
+
+    def __setitem__(self, key, value):
+        for i, (k, _) in enumerate(self.data):
+            if deep_equal(k, key):
+                self.data[i] = (key, value)
+                return
+        self.data.append((key, value))
+
+    def __delitem__(self, key):
+        for i, (k, _) in enumerate(self.data):
+            if deep_equal(k, key):
+                del self.data[i]
+                return
+        raise KeyError(key)
+
+    def __iter__(self):
+        return (k for k, _ in self.data)
+
+    def __len__(self):
+        return len(self.data)
+
+    def as_list(self):
+        return [v for _, v in self.data]

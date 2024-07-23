@@ -1,5 +1,28 @@
 # @gradio/statustracker
 
+## 0.7.2
+
+### Features
+
+- [#8817](https://github.com/gradio-app/gradio/pull/8817) [`34510db`](https://github.com/gradio-app/gradio/commit/34510db468daae19ad618c347cb88a4769816fb2) - Allow HTML in alert modals.  Thanks @abidlabs!
+- [#8821](https://github.com/gradio-app/gradio/pull/8821) [`cea3bf9`](https://github.com/gradio-app/gradio/commit/cea3bf990057391f699bdeeabbdb62fdad9b43f5) - Fix dependency loop with statustracker and markdown.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.7
+
+## 0.7.1
+
+### Fixes
+
+- [#8748](https://github.com/gradio-app/gradio/pull/8748) [`a9307c6`](https://github.com/gradio-app/gradio/commit/a9307c64525c5b323e56ea6f7475faa7c3dad4a4) - Chatbot generating scroll and click fix.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/icons@0.6.0
+
 ## 0.7.0
 
 ### Features

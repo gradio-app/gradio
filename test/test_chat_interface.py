@@ -43,7 +43,7 @@ def echo_system_prompt_plus_message(message, history, system_prompt, tokens):
 class TestInit:
     def test_no_fn(self):
         with pytest.raises(TypeError):
-            gr.ChatInterface()
+            gr.ChatInterface()  # type: ignore
 
     def test_configuring_buttons(self):
         chatbot = gr.ChatInterface(double, submit_btn=None, retry_btn=None)
@@ -83,6 +83,7 @@ class TestInit:
         chatbot = gr.ChatInterface(double)
         dependencies = chatbot.fns.values()
         textbox = chatbot.textbox._id
+        assert chatbot.submit_btn
         submit_btn = chatbot.submit_btn._id
         assert next(
             (
@@ -92,6 +93,7 @@ class TestInit:
             ),
             None,
         )
+        assert chatbot.retry_btn and chatbot.clear_btn and chatbot.undo_btn
         for btn_id in [
             chatbot.retry_btn._id,
             chatbot.clear_btn._id,
@@ -243,45 +245,46 @@ class TestAPI:
     def test_get_api_info(self):
         chatbot = gr.ChatInterface(double)
         api_info = chatbot.get_api_info()
+        assert api_info
         assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
         assert "/chat" in api_info["named_endpoints"]
 
-    @pytest.mark.parametrize("msg_format", ["tuples", "messages"])
-    def test_streaming_api(self, msg_format, connect):
-        chatbot = gr.ChatInterface(stream, msg_format=msg_format).queue()
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_streaming_api(self, type, connect):
+        chatbot = gr.ChatInterface(stream, type=type).queue()
         with connect(chatbot) as client:
             job = client.submit("hello")
             wait([job])
             assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
 
-    @pytest.mark.parametrize("msg_format", ["tuples", "messages"])
-    def test_streaming_api_async(self, msg_format, connect):
-        chatbot = gr.ChatInterface(async_stream, msg_format=msg_format).queue()
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_streaming_api_async(self, type, connect):
+        chatbot = gr.ChatInterface(async_stream, type=type).queue()
         with connect(chatbot) as client:
             job = client.submit("hello")
             wait([job])
             assert job.outputs() == ["h", "he", "hel", "hell", "hello"]
 
-    @pytest.mark.parametrize("msg_format", ["tuples", "messages"])
-    def test_non_streaming_api(self, msg_format, connect):
-        chatbot = gr.ChatInterface(double, msg_format=msg_format)
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_non_streaming_api(self, type, connect):
+        chatbot = gr.ChatInterface(double, type=type)
         with connect(chatbot) as client:
             result = client.predict("hello")
             assert result == "hello hello"
 
-    @pytest.mark.parametrize("msg_format", ["tuples", "messages"])
-    def test_non_streaming_api_async(self, msg_format, connect):
-        chatbot = gr.ChatInterface(async_greet, msg_format=msg_format)
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_non_streaming_api_async(self, type, connect):
+        chatbot = gr.ChatInterface(async_greet, type=type)
         with connect(chatbot) as client:
             result = client.predict("gradio")
             assert result == "hi, gradio"
 
-    @pytest.mark.parametrize("msg_format", ["tuples", "messages"])
-    def test_streaming_api_with_additional_inputs(self, msg_format, connect):
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_streaming_api_with_additional_inputs(self, type, connect):
         chatbot = gr.ChatInterface(
             echo_system_prompt_plus_message,
-            msg_format=msg_format,
+            type=type,
             additional_inputs=["textbox", "slider"],
         ).queue()
         with connect(chatbot) as client:

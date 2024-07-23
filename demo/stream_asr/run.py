@@ -13,7 +13,7 @@ def transcribe(stream, new_chunk):
         stream = np.concatenate([stream, y])
     else:
         stream = y
-    return stream, transcriber({"sampling_rate": sr, "raw": stream})["text"]
+    return stream, transcriber({"sampling_rate": sr, "raw": stream})["text"]  # type: ignore
 
 
 demo = gr.Interface(

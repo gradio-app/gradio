@@ -107,14 +107,14 @@ export class Client {
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
-		data: unknown[] | Record<string, unknown>,
+		data: unknown[] | Record<string, unknown> | undefined,
 		event_data?: unknown,
 		trigger_id?: number | null,
 		all_events?: boolean
 	) => SubmitIterable<GradioEvent>;
 	predict: (
 		endpoint: string | number,
-		data: unknown[] | Record<string, unknown>,
+		data: unknown[] | Record<string, unknown> | undefined,
 		event_data?: unknown
 	) => Promise<PredictReturn>;
 	open_stream: () => Promise<void>;
@@ -141,7 +141,9 @@ export class Client {
 		this.resolve_config = resolve_config.bind(this);
 		this.resolve_cookies = resolve_cookies.bind(this);
 		this.upload = upload.bind(this);
+		this.fetch = this.fetch.bind(this);
 		this.handle_space_success = this.handle_space_success.bind(this);
+		this.stream = this.stream.bind(this);
 	}
 
 	private async init(): Promise<void> {

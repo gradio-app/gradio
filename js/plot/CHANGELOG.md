@@ -1,5 +1,25 @@
 # @gradio/plot
 
+## 0.6.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.7.2
+- @gradio/atoms@0.7.7
+
+## 0.6.0
+
+### Features
+
+- [#8713](https://github.com/gradio-app/gradio/pull/8713) [`e3c7079`](https://github.com/gradio-app/gradio/commit/e3c7079e380880d5759d98d180eaf688122f1c69) - Time range component.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/icons@0.6.0
+
 ## 0.5.0
 
 ### Features

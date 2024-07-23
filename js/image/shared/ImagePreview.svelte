@@ -54,7 +54,7 @@
 				on:error
 				formatter={async (value) => {
 					if (!value) return "";
-					let url = await uploadToHuggingFace(value, "base64");
+					let url = await uploadToHuggingFace(value, "url");
 					return `<img src="${url}" />`;
 				}}
 				{value}
@@ -69,6 +69,9 @@
 {/if}
 
 <style>
+	.image-container {
+		height: 100%;
+	}
 	.image-container :global(img),
 	button {
 		width: var(--size-full);

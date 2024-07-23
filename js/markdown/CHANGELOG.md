@@ -1,5 +1,32 @@
 # @gradio/markdown
 
+## 0.9.0
+
+### Features
+
+- [#8851](https://github.com/gradio-app/gradio/pull/8851) [`914b193`](https://github.com/gradio-app/gradio/commit/914b1935de27c3b379ac9e759b6d10747e3b881a) - Add copy button to `gr.Markdown`.  Thanks @hannahblair!
+
+### Fixes
+
+- [#8822](https://github.com/gradio-app/gradio/pull/8822) [`3a81fb2`](https://github.com/gradio-app/gradio/commit/3a81fb2578c6f73607c4e240d228dccb69153e0a) - Latex Rendering Fix.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.7.2
+- @gradio/atoms@0.7.7
+
+## 0.8.1
+
+### Fixes
+
+- [#8658](https://github.com/gradio-app/gradio/pull/8658) [`0482453`](https://github.com/gradio-app/gradio/commit/0482453fd5815446c8efa21bfbba0b00d6e4113d) - Chatbot LaTeX Crash Fix.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+
 ## 0.8.0
 
 ### Features

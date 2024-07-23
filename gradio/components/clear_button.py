@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Sequence
 
 from gradio_client.documentation import document
 
@@ -29,11 +29,11 @@ class ClearButton(Button):
 
     def __init__(
         self,
-        components: None | list[Component] | Component = None,
+        components: None | Sequence[Component] | Component = None,
         *,
         value: str = "Clear",
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str | None = None,
@@ -72,7 +72,7 @@ class ClearButton(Button):
         if get_blocks_context():
             self.add(components)
 
-    def add(self, components: None | Component | list[Component]) -> ClearButton:
+    def add(self, components: None | Component | Sequence[Component]) -> ClearButton:
         """
         Adds a component or list of components to the list of components that will be cleared when the button is clicked.
         """

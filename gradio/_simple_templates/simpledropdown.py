@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Sequence
 
 from gradio.components.base import Component, FormComponent
 from gradio.events import Events
@@ -25,7 +25,7 @@ class SimpleDropdown(FormComponent):
         label: str | None = None,
         info: str | None = None,
         every: Timer | float | None = None,
-        inputs: Component | list[Component] | set[Component] | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         scale: int | None = None,
         min_width: int = 160,
@@ -116,5 +116,5 @@ class SimpleDropdown(FormComponent):
         self._warn_if_invalid_choice(value)
         return value
 
-    def process_example(self, input_data):
-        return next((c[0] for c in self.choices if c[1] == input_data), None)
+    def process_example(self, value):
+        return next((c[0] for c in self.choices if c[1] == value), None)
