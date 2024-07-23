@@ -25,6 +25,8 @@
 	export let include_time = true;
 	$: if (value !== old_value) {
 		old_value = value;
+		entered_value = value;
+		datevalue = value;
 		gradio.dispatch("change");
 	}
 
@@ -49,7 +51,7 @@
 
 	let entered_value = value;
 	let datetime: HTMLInputElement;
-	let datevalue = "";
+	let datevalue = value;
 
 	const date_is_valid_format = (date: string): boolean => {
 		if (date === "") return false;
@@ -156,7 +158,6 @@
 		flex-shrink: 1;
 		display: flex;
 		position: relative;
-		box-shadow: var(--input-shadow);
 		background: var(--input-background-fill);
 	}
 	.timebox :global(svg) {
@@ -175,6 +176,7 @@
 		border-right: none;
 		border-top-left-radius: var(--input-radius);
 		border-bottom-left-radius: var(--input-radius);
+		box-shadow: var(--input-shadow);
 	}
 	.time.invalid {
 		color: var(--body-text-color-subdued);
@@ -193,6 +195,13 @@
 		border-top-right-radius: var(--input-radius);
 		border-bottom-right-radius: var(--input-radius);
 		padding: var(--size-2);
+		border: var(--input-border-width) solid var(--input-border-color);
+	}
+	.calendar:hover {
+		background: var(--button-secondary-background-fill-hover);
+	}
+	.calendar:active {
+		box-shadow: var(--button-shadow-active);
 	}
 	.datetime {
 		width: 0px;

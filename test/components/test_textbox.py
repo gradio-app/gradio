@@ -13,8 +13,8 @@ class TestTextbox:
         assert text_input.postprocess("Hello World!") == "Hello World!"
         assert text_input.postprocess(None) is None
         assert text_input.postprocess("Ali") == "Ali"
-        assert text_input.postprocess(2) == "2"
-        assert text_input.postprocess(2.14) == "2.14"
+        assert text_input.postprocess(2) == "2"  # type: ignore
+        assert text_input.postprocess(2.14) == "2.14"  # type: ignore
         assert text_input.get_config() == {
             "lines": 1,
             "max_lines": 20,
@@ -82,7 +82,7 @@ class TestTextbox:
         with pytest.raises(
             ValueError, match='`type` must be one of "text", "password", or "email".'
         ):
-            gr.Textbox(type="boo")
+            gr.Textbox(type="boo")  # type: ignore
 
     def test_max_lines(self):
         assert gr.Textbox(type="password").get_config().get("max_lines") == 1

@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.1.1
+
+### Features
+
+- [#8757](https://github.com/gradio-app/gradio/pull/8757) [`6073736`](https://github.com/gradio-app/gradio/commit/60737366517f48d1a37ffce15425783a2887f305) - Document `FileData` class in docs.  Thanks @hannahblair!
+
 ## 1.1.0
 
 ### Fixes

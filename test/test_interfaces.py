@@ -45,7 +45,7 @@ class TestInterface:
 
     def test_no_input_or_output(self):
         with pytest.raises(TypeError):
-            Interface(lambda x: x, examples=1234)
+            Interface(lambda x: x, examples=1234)  # type: ignore
 
     def test_partial_functions(self):
         def greet(name, formatter):
@@ -159,13 +159,15 @@ class TestInterface:
     def test_get_api_info(self):
         io = Interface(lambda x: x, Image(type="filepath"), "textbox")
         api_info = io.get_api_info()
+        assert api_info
         assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
 
     def test_api_name(self):
         io = Interface(lambda x: x, "textbox", "textbox", api_name="echo")
         assert next(
-            (d for d in io.config["dependencies"] if d["api_name"] == "echo"), None
+            (d for d in io.config["dependencies"] if d["api_name"] == "echo"),  # type: ignore
+            None,
         )
 
     def test_interface_in_blocks_does_not_error(self):
@@ -201,7 +203,8 @@ class TestTabbedInterface:
         tabbed_interface = TabbedInterface([interface3, interface4], ["tab1", "tab2"])
 
         assert assert_configs_are_equivalent_besides_ids(
-            demo.get_config_file(), tabbed_interface.get_config_file()
+            demo.get_config_file(),  # type: ignore
+            tabbed_interface.get_config_file(),  # type: ignore
         )
 
 
@@ -258,6 +261,7 @@ def test_live_interface_sets_always_last():
         live=True,  # Set live to True for real-time feedback
     )
     config = iface.get_config_file()
+    assert "dependencies" in config
     for dep in config["dependencies"]:
         if dep["targets"][0][1] == "change":
             assert dep["trigger_mode"] == "always_last"

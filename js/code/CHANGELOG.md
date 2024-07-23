@@ -1,5 +1,18 @@
 # @gradio/code
 
+## 0.8.0
+
+### Features
+
+- [#8804](https://github.com/gradio-app/gradio/pull/8804) [`1d09925`](https://github.com/gradio-app/gradio/commit/1d09925469a5f96e8d3a972a28841903fa1c7265) - Fix Lite's <Playground />.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/wasm@0.12.0
+- @gradio/statustracker@0.7.2
+- @gradio/upload@0.12.0
+- @gradio/atoms@0.7.7
+
 ## 0.7.0
 
 ### Features

@@ -16,13 +16,14 @@ class TestAnnotatedImage:
         mask2[10:20, 10:20] = 1
 
         input = (img, [(mask1, "mask1"), (mask2, "mask2")])
-        result = component.postprocess(input).model_dump()
+        assert (result := component.postprocess(input))
+        result = result.model_dump()
 
-        base_img_out = PIL.Image.open(result["image"]["path"])
+        base_img_out = PIL.Image.open(result["image"]["path"])  # type: ignore
 
         assert result["annotations"][0]["label"] == "mask1"
 
-        mask1_img_out = PIL.Image.open(result["annotations"][0]["image"]["path"])
+        mask1_img_out = PIL.Image.open(result["annotations"][0]["image"]["path"])  # type: ignore
         assert mask1_img_out.size == base_img_out.size
         mask1_array_out = np.array(mask1_img_out)
         assert np.max(mask1_array_out[40:50, 40:50]) == 255
@@ -31,9 +32,9 @@ class TestAnnotatedImage:
     def test_annotated_image_format_parameter(self):
         component = gr.AnnotatedImage(format="jpeg")
         img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
-        mask1 = [40, 40, 50, 50]
+        mask1 = (40, 40, 50, 50)
         data = (img, [(mask1, "mask1"), (mask1, "mask2")])
-        output = component.postprocess(data)
+        assert (output := component.postprocess(data))
         assert output.image.path.endswith(".jpeg")
         assert output.annotations[0].image.path.endswith(".png")
 
@@ -69,9 +70,9 @@ class TestAnnotatedImage:
         iface = gr.Interface(mask, "image", gr.AnnotatedImage())
         output = iface("test/test_files/bus.png")
         output_img, (mask1, _) = output["image"], output["annotations"]
-        input_img = PIL.Image.open("test/test_files/bus.png")
-        output_img = PIL.Image.open(output_img)
-        mask1_img = PIL.Image.open(mask1["image"])
+        input_img = PIL.Image.open("test/test_files/bus.png")  # type: ignore
+        output_img = PIL.Image.open(output_img)  # type: ignore
+        mask1_img = PIL.Image.open(mask1["image"])  # type: ignore
 
         assert output_img.size == input_img.size
         assert mask1_img.size == input_img.size

@@ -14,7 +14,7 @@ class TestStartServer:
         io.favicon_path = None
         io.config = io.get_config_file()
         io.show_error = True
-        io.flagging_callback.setup(gr.Number(), io.flagging_dir)
+        io.flagging_callback.setup([gr.Number()], io.flagging_dir)
         io.auth = None
         app = routes.App.create_app(io)
 

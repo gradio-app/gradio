@@ -56,6 +56,7 @@ class TestSlider:
     def test_slider_get_random_value_on_load(self, mock_get_random_value):
         slider = gr.Slider(minimum=-5, maximum=10, randomize=True)
         assert slider.value == 7
+        assert slider.load_event_to_attach
         assert slider.load_event_to_attach[0]() == 7
         assert not slider.load_event_to_attach[1]
 

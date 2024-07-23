@@ -1,82 +1,69 @@
 import gradio as gr
-from vega_datasets import data
+import numpy as np
+from data import temp_sensor_data, food_rating_data
 
-stocks = data.stocks()
-gapminder = data.gapminder()
-gapminder = gapminder.loc[
-    gapminder.country.isin(["Argentina", "Australia", "Afghanistan"])
-]
-climate = data.climate()
-seattle_weather = data.seattle_weather()
+with gr.Blocks() as line_plots:
+    with gr.Row():
+        start = gr.DateTime("2021-01-01 00:00:00", label="Start")
+        end = gr.DateTime("2021-01-05 00:00:00", label="End")
+        apply_btn = gr.Button("Apply", scale=0)
+    with gr.Row():
+        group_by = gr.Radio(["None", "30m", "1h", "4h", "1d"], value="None", label="Group by")
+        aggregate = gr.Radio(["sum", "mean", "median", "min", "max"], value="sum", label="Aggregation")
 
-
-def line_plot_fn(dataset):
-    if dataset == "stocks":
-        return gr.LinePlot(
-            stocks,
-            x="date",
-            y="price",
-            color="symbol",
-            x_lim=None,
-            y_lim=None,
-            stroke_dash=None,
-            tooltip=['date', 'price', 'symbol'],
-            overlay_point=False,
-            title="Stock Prices",
-            stroke_dash_legend_title=None,
-        )
-    elif dataset == "climate":
-        return gr.LinePlot(
-            climate,
-            x="DATE",
-            y="HLY-TEMP-NORMAL",
-            color=None,
-            x_lim=None,
-            y_lim=[250, 500],
-            stroke_dash=None,
-            tooltip=['DATE', 'HLY-TEMP-NORMAL'],
-            overlay_point=False,
-            title="Climate",
-            stroke_dash_legend_title=None,
-        )
-    elif dataset == "seattle_weather":
-        return gr.LinePlot(
-            seattle_weather,
-            x="date",
-            y="temp_min",
-            color=None,
-            x_lim=None,
-            y_lim=None,
-            stroke_dash=None,
-            tooltip=["weather", "date"],
-            overlay_point=True,
-            title="Seattle Weather",
-            stroke_dash_legend_title=None,
-        )
-    elif dataset == "gapminder":
-        return gr.LinePlot(
-            gapminder,
-            x="year",
-            y="life_expect",
-            color="country",
-            x_lim=[1950, 2010],
-            y_lim=None,
-            stroke_dash="cluster",
-            tooltip=['country', 'life_expect'],
-            overlay_point=False,
-            title="Life expectancy for countries",
-        )
-
-
-with gr.Blocks() as line_plot:
-    dataset = gr.Dropdown(
-        choices=["stocks", "climate", "seattle_weather", "gapminder"],
-        value="stocks",
+    temp_by_time = gr.LinePlot(
+        temp_sensor_data,
+        x="time",
+        y="temperature",
     )
-    plot = gr.LinePlot()
-    dataset.change(line_plot_fn, inputs=dataset, outputs=plot)
-    line_plot.load(fn=line_plot_fn, inputs=dataset, outputs=plot)
+    temp_by_time_location = gr.LinePlot(
+        temp_sensor_data,
+        x="time",
+        y="temperature",
+        color="location",
+    )
+
+    time_graphs = [temp_by_time, temp_by_time_location]
+    group_by.change(
+        lambda group: [gr.LinePlot(x_bin=None if group == "None" else group)] * len(time_graphs), 
+        group_by, 
+        time_graphs
+    )
+    aggregate.change(
+        lambda aggregate: [gr.LinePlot(y_aggregate=aggregate)] * len(time_graphs), 
+        aggregate, 
+        time_graphs
+    )
+
+
+    def rescale(select: gr.SelectData):
+        return select.index
+    rescale_evt = gr.on([plot.select for plot in time_graphs], rescale, None, [start, end])
+
+    for trigger in [apply_btn.click, rescale_evt.then]:
+        trigger(
+            lambda start, end: [gr.LinePlot(x_lim=[start, end])] * len(time_graphs), [start, end], time_graphs
+        )
+
+    price_by_cuisine = gr.LinePlot(
+        food_rating_data,
+        x="cuisine",
+        y="price",
+    )
+    with gr.Row():
+        price_by_rating = gr.LinePlot(
+            food_rating_data,
+            x="rating",
+            y="price",
+        )
+        price_by_rating_color = gr.LinePlot(
+            food_rating_data,
+            x="rating",
+            y="price",
+            color="cuisine",
+            color_map={"Italian": "red", "Mexican": "green", "Chinese": "blue"},
+        )
 
 
 if __name__ == "__main__":
-    line_plot.launch()
+    line_plots.launch()

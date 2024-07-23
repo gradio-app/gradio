@@ -74,11 +74,10 @@
 	.image-frame :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: cover;
+		object-fit: contain;
 	}
 
 	.image-frame {
-		object-fit: cover;
 		width: 100%;
 		height: 100%;
 	}

@@ -270,6 +270,9 @@ importers:
       '@gradio/multimodaltextbox':
         specifier: workspace:^
         version: link:js/multimodaltextbox
+      '@gradio/nativeplot':
+        specifier: workspace:^
+        version: link:js/nativeplot
       '@gradio/number':
         specifier: workspace:^
         version: link:js/number
@@ -625,6 +628,9 @@ importers:
       '@gradio/multimodaltextbox':
         specifier: workspace:^
         version: link:../multimodaltextbox
+      '@gradio/nativeplot':
+        specifier: workspace:^
+        version: link:../nativeplot
       '@gradio/number':
         specifier: workspace:^
         version: link:../number
@@ -688,6 +694,9 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      '@huggingface/space-header':
+        specifier: ^1.0.3
+        version: 1.0.3
       '@types/eventsource':
         specifier: ^1.1.15
         version: 1.1.15
@@ -1434,6 +1443,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
@@ -1541,6 +1553,37 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/nativeplot:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/theme':
+        specifier: workspace:^
+        version: link:../theme
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      vega:
+        specifier: ^5.23.0
+        version: 5.23.0
+      vega-embed:
+        specifier: ^6.25.0
+        version: 6.25.0(vega-lite@5.12.0(vega@5.23.0))(vega@5.23.0)
+      vega-lite:
+        specifier: ^5.12.0
+        version: 5.12.0(vega@5.23.0)
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -3315,6 +3358,9 @@ packages:
 
   '@formatjs/intl-localematcher@0.5.4':
     resolution: {integrity: sha512-zTwEpWOzZ2CiKcB93BLngUX59hQkuZjT2+SAQEscSm52peDW/getsawMcWF1rGRpMCX6D7nSJA3CzJ8gn13N/g==}
+
+  '@huggingface/space-header@1.0.3':
+    resolution: {integrity: sha512-7W9QzGsBNl+IGFRjb3Py2cJpWCNgULL8RR+u69URP8FG4cPVH+5g6kKS2OrapPfZ/IoakFZSoI84ORSToL6qTw==}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -6021,10 +6067,6 @@ packages:
     resolution: {integrity: sha512-eyK64lASNug3Wo2+bQEBnYngjh9rkXUfOus403+OeVZteMon6moIhcEYbrSvcgBN6RsrRWCMoWcKDDK6UEsTOQ==}
     engines: {node: '>=12'}
     hasBin: true
-
-  escalade@3.1.1:
-    resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
-    engines: {node: '>=6'}
 
   escalade@3.1.2:
     resolution: {integrity: sha512-ErCHMCae19vR8vQGe50xIsVomy19rg6gFu3+r3jkEO46suLMWBksvVyoGgQV+jOfl84ZSOSlmv6Gxa89PmTGmA==}
@@ -11081,6 +11123,8 @@ snapshots:
     dependencies:
       tslib: 2.6.2
 
+  '@huggingface/space-header@1.0.3': {}
+
   '@humanwhocodes/config-array@0.13.0':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
@@ -14418,8 +14462,6 @@ snapshots:
       '@esbuild/win32-arm64': 0.21.0
       '@esbuild/win32-ia32': 0.21.0
       '@esbuild/win32-x64': 0.21.0
-
-  escalade@3.1.1: {}
 
   escalade@3.1.2: {}
 
@@ -18214,7 +18256,7 @@ snapshots:
       d3-timer: 3.0.1
       vega-dataflow: 5.7.5
       vega-format: 1.1.1
-      vega-functions: 5.13.2
+      vega-functions: 5.14.0
       vega-runtime: 6.1.4
       vega-scenegraph: 4.10.2
       vega-util: 1.17.2
@@ -18562,7 +18604,7 @@ snapshots:
   yargs@17.7.2:
     dependencies:
       cliui: 8.0.1
-      escalade: 3.1.1
+      escalade: 3.1.2
       get-caller-file: 2.0.5
       require-directory: 2.1.1
       string-width: 4.2.3

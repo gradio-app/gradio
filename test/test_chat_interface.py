@@ -43,7 +43,7 @@ def echo_system_prompt_plus_message(message, history, system_prompt, tokens):
 class TestInit:
     def test_no_fn(self):
         with pytest.raises(TypeError):
-            gr.ChatInterface()
+            gr.ChatInterface()  # type: ignore
 
     def test_configuring_buttons(self):
         chatbot = gr.ChatInterface(double, submit_btn=None, retry_btn=None)
@@ -83,6 +83,7 @@ class TestInit:
         chatbot = gr.ChatInterface(double)
         dependencies = chatbot.fns.values()
         textbox = chatbot.textbox._id
+        assert chatbot.submit_btn
         submit_btn = chatbot.submit_btn._id
         assert next(
             (
@@ -92,6 +93,7 @@ class TestInit:
             ),
             None,
         )
+        assert chatbot.retry_btn and chatbot.clear_btn and chatbot.undo_btn
         for btn_id in [
             chatbot.retry_btn._id,
             chatbot.clear_btn._id,
@@ -243,6 +245,7 @@ class TestAPI:
     def test_get_api_info(self):
         chatbot = gr.ChatInterface(double)
         api_info = chatbot.get_api_info()
+        assert api_info
         assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
         assert "/chat" in api_info["named_endpoints"]

@@ -45,6 +45,7 @@ class Markdown(Component):
         line_breaks: bool = False,
         header_links: bool = False,
         height: int | str | None = None,
+        show_copy_button: bool = False,
     ):
         """
         Parameters:
@@ -64,6 +65,7 @@ class Markdown(Component):
             line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
             header_links: If True, will automatically create anchors for headings, displaying a link icon on hover.
             height: An optional maximum height of this component, specified in pixels if a number is passed, or in CSS units (e.g., '200px') if a stirng is passed in. If context exceeds this height, a scrollbar is added.
+            show_copy_button: If True, includes a copy button to copy the text in the Markdown component. Default is False.
         """
         self.rtl = rtl
         if latex_delimiters is None:
@@ -73,6 +75,7 @@ class Markdown(Component):
         self.line_breaks = line_breaks
         self.header_links = header_links
         self.height = height
+        self.show_copy_button = show_copy_button
 
         super().__init__(
             label=label,
