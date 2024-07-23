@@ -309,6 +309,23 @@ class TestVideoProcessing:
             assert not Path(mock_remove.call_args[0][0]).exists()
             assert processing_utils.video_is_playable(playable_vid)
 
+    def test_add_watermark(self, test_file_dir):
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_playable_vid:
+            shutil.copy(
+                str(test_file_dir + "/video_sample.mp4"), tmp_playable_vid.name
+            )
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_watermark:
+                shutil.copy(
+                    str(test_file_dir + "/bus.png"), tmp_watermark.name
+                )
+                with patch("os.remove", wraps=os.remove) as mock_remove:
+                    watermarked_vid = processing_utils.add_watermark(
+                        tmp_playable_vid.name, tmp_watermark.name
+                    )
+            # check temp copied files got deleted
+            assert not Path(mock_remove.call_args[0][0]).exists()
+            assert processing_utils.video_is_playable(watermarked_vid)
+
     @patch("ffmpy.FFmpeg.run", side_effect=raise_ffmpy_runtime_exception)
     def test_video_conversion_returns_original_video_if_fails(
         self, mock_run, test_file_dir
