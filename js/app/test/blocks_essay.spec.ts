@@ -54,12 +54,15 @@ test("updates backend correctly", async ({ page }) => {
 test("updates dropdown choices correctly", async ({ page }) => {
 	const country = await page.getByLabel("Country").first();
 	const city = await page.getByLabel("Cities").first();
+	const first_letter = await page.getByLabel("First Letter").first();
 
 	await country.fill("Canada");
 	await country.press("Enter");
 	await expect(city).toHaveValue("Toronto");
+	await expect(first_letter).toHaveValue("T");
 
 	await country.fill("Pakistan");
 	await country.press("Enter");
 	await expect(city).toHaveValue("Karachi");
+	await expect(first_letter).toHaveValue("K");
 });

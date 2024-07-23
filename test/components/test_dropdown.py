@@ -14,20 +14,29 @@ class TestDropdown:
         assert dropdown_input.preprocess("c full") == "c full"
         assert dropdown_input.postprocess("c full") == ["c full"]
 
-        # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
-        # so we need to test that case as well
-        dropdown_input = gr.Dropdown(["a", "b", ["c", "c full"]])  # type: ignore
-        assert dropdown_input.choices == [("a", "a"), ("b", "b"), ("c", "c full")]
+        # When an external Gradio app is loaded with gr.load, the tuples are converted to lists,
+        # so we test that case as well
+        dropdown = gr.Dropdown(["a", "b", ["c", "c full"]])  # type: ignore
+        assert dropdown.choices == [("a", "a"), ("b", "b"), ("c", "c full")]
 
         dropdown = gr.Dropdown(choices=["a", "b"], type="index")
         assert dropdown.preprocess("a") == 0
         assert dropdown.preprocess("b") == 1
-        assert dropdown.preprocess("c") is None
+        with pytest.raises(gr.Error):
+            dropdown.preprocess("c")
 
         dropdown = gr.Dropdown(choices=["a", "b"], type="index", multiselect=True)
         assert dropdown.preprocess(["a"]) == [0]
         assert dropdown.preprocess(["a", "b"]) == [0, 1]
-        assert dropdown.preprocess(["a", "b", "c"]) == [0, 1, None]
+        with pytest.raises(gr.Error):
+            dropdown.preprocess(["a", "b", "c"])
+
+        dropdown = gr.Dropdown(["a", "b"], allow_custom_value=True)
+        assert dropdown.preprocess("a") == "a"
+        assert dropdown.preprocess("c") == "c"
+        dropdown = gr.Dropdown(["a", "b"], allow_custom_value=True, type="index")
+        assert dropdown.preprocess("a") == 0
+        assert dropdown.preprocess("c") is None
 
         dropdown_input_multiselect = gr.Dropdown(["a", "b", ("c", "c full")])
         assert dropdown_input_multiselect.preprocess(["a", "c full"]) == ["a", "c full"]

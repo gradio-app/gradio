@@ -1291,8 +1291,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
         return any(
-            isinstance(block, (components.LoginButton, components.LogoutButton))
-            for block in self.blocks.values()
+            isinstance(block, components.LoginButton) for block in self.blocks.values()
         )
 
     def unload(self, fn: Callable):
@@ -2090,7 +2089,6 @@ Received outputs:
         status_update_rate: float | Literal["auto"] = "auto",
         api_open: bool | None = None,
         max_size: int | None = None,
-        concurrency_count: int | None = None,
         *,
         default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
@@ -2100,7 +2098,6 @@ Received outputs:
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
-            concurrency_count: Deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().
             default_concurrency_limit: The default value of `concurrency_limit` to use for event listeners that don't specify a value. Can be set by environment variable GRADIO_DEFAULT_CONCURRENCY_LIMIT. Defaults to 1 if not set otherwise.
         Example: (Blocks)
             with gr.Blocks() as demo:
@@ -2113,10 +2110,6 @@ Received outputs:
             demo.queue(max_size=20)
             demo.launch()
         """
-        if concurrency_count:
-            raise DeprecationWarning(
-                "concurrency_count has been deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch()."
-            )
         if api_open is not None:
             self.api_open = api_open
         if utils.is_zero_gpu_space():

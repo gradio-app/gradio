@@ -8,6 +8,7 @@ from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -109,16 +110,19 @@ class Radio(FormComponent):
         Returns:
             Passes the value of the selected radio button as a `str | int | float`, or its index as an `int` into the function, depending on `type`.
         """
+        if payload is None:
+            return None
+
+        choice_values = [value for _, value in self.choices]
+        if payload not in choice_values:
+            raise Error(
+                f"Value: {payload} is not in the list of choices: {choice_values}"
+            )
+
         if self.type == "value":
             return payload
         elif self.type == "index":
-            if payload is None:
-                return None
-            else:
-                choice_values = [value for _, value in self.choices]
-                return (
-                    choice_values.index(payload) if payload in choice_values else None
-                )
+            return choice_values.index(payload)
         else:
             raise ValueError(
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
