@@ -113,6 +113,30 @@
 			}
 		}
 	}
+
+	function show_dialog(
+		current_demos: typeof demos,
+		original_demos: typeof demos
+	) {
+		let changes = !(
+			JSON.stringify(current_demos) === JSON.stringify(original_demos)
+		);
+		if (browser) {
+			if (changes) {
+				window.onbeforeunload = function () {
+					return true;
+				};
+			} else {
+				window.onbeforeunload = function () {
+					return null;
+				};
+			}
+		}
+	}
+
+	let demos_copy: typeof demos = JSON.parse(JSON.stringify(demos));
+
+	$: show_dialog(demos, demos_copy);
 </script>
 
 <svelte:head>
@@ -160,6 +184,7 @@
 
 					<Code
 						bind:value={demos[i].code}
+						on:change={() => (changes = true)}
 						label=""
 						language="python"
 						target={dummy_elem}
