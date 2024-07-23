@@ -143,8 +143,7 @@ def get_machine_hash() -> str:
             # did not contain the "identifier" key.
             with open(JSON_PATH, encoding="utf-8") as j:
                 info = json.load(j)
-            if "identifier" not in info:
-                Context.identifier = write_machine_hash()
+            Context.identifier = info.get("identifier") or write_machine_hash()
 
     assert Context.identifier is not None  # noqa: S101
     return Context.identifier
