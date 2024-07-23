@@ -118,7 +118,7 @@ def version_check():
         pass
 
 
-def write_machine_hash() -> str:
+def _write_machine_hash() -> str:
     machine_hash = secrets.token_urlsafe(32)
     with open(JSON_PATH, "w+", encoding="utf-8") as j:
         json.dump({"machine_hash": machine_hash}, j)
@@ -137,13 +137,13 @@ def get_machine_hash() -> str:
     # Storing the machine_hash in the Context object to avoid reading the file multiple times
     if Context.machine_hash is None:
         if not os.path.exists(JSON_PATH):
-            Context.machine_hash = write_machine_hash()
+            Context.machine_hash = _write_machine_hash()
         else:
             # In older versions of Gradio, the launches.json file
             # did not contain the "machine_hash" key.
             with open(JSON_PATH, encoding="utf-8") as j:
                 info = json.load(j)
-            Context.machine_hash = info.get("machine_hash") or write_machine_hash()
+            Context.machine_hash = info.get("machine_hash") or _write_machine_hash()
 
     assert Context.machine_hash is not None  # noqa: S101
     return Context.machine_hash
