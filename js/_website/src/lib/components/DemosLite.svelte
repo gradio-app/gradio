@@ -184,7 +184,6 @@
 
 					<Code
 						bind:value={demos[i].code}
-						on:change={() => (changes = true)}
 						label=""
 						language="python"
 						target={dummy_elem}
