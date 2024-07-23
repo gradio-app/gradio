@@ -71,6 +71,7 @@
 	});
 
 	let copied_link = false;
+	let shared = false;
 	async function copy_link(name: string) {
 		let code_b64 = btoa(code);
 		name = name.replaceAll(" ", "_");
@@ -78,6 +79,7 @@
 			`${$page.url.href.split("?")[0]}?demo=${name}&code=${code_b64}`
 		);
 		copied_link = true;
+		shared = true;
 		setTimeout(() => (copied_link = false), 2000);
 	}
 
@@ -112,6 +114,34 @@
 				demo.code = atob(b64_code);
 			}
 		}
+	}
+
+	function show_dialog(
+		current_demos: typeof demos,
+		original_demos: typeof demos,
+		has_shared: boolean
+	) {
+		let changes =
+			!(JSON.stringify(current_demos) === JSON.stringify(original_demos)) &&
+			!has_shared;
+		if (browser) {
+			if (changes) {
+				window.onbeforeunload = function () {
+					return true;
+				};
+			} else {
+				window.onbeforeunload = function () {
+					return null;
+				};
+			}
+		}
+	}
+
+	let demos_copy: typeof demos = JSON.parse(JSON.stringify(demos));
+
+	$: show_dialog(demos, demos_copy, shared);
+	$: if (code) {
+		shared = false;
 	}
 </script>
 
@@ -160,6 +190,7 @@
 
 					<Code
 						bind:value={demos[i].code}
+						on:input={() => console.log("input")}
 						label=""
 						language="python"
 						target={dummy_elem}
