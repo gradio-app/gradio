@@ -26,6 +26,18 @@
 	let file_data: FileData[];
 	let accept_file_types: string | null;
 
+	let is_ios: boolean;
+	$: is_ios = get_is_ios();
+
+	function get_is_ios(): boolean {
+		if (typeof navigator !== "undefined") {
+			const userAgent = navigator.userAgent.toLowerCase();
+			if (userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1)
+				return true;
+		}
+		return false;
+	}
+
 	const dispatch = createEventDispatcher();
 	const validFileTypes = ["image", "video", "audio", "text", "file"];
 	const processFileType = (type: string): string => {
@@ -47,7 +59,7 @@
 		accept_file_types = filetype.join(", ");
 	}
 
-	function updateDragging(): void {
+	function update_dragging(): void {
 		dragging = !dragging;
 	}
 
@@ -117,6 +129,19 @@
 	async function load_files_from_upload(e: Event): Promise<void> {
 		const target = e.target as HTMLInputElement;
 		if (!target.files) return;
+		// Client-side validation for iOS
+		if (is_ios && filetype) {
+			const validFiles = Array.from(target.files).filter((file) => {
+				const fileExtension = "." + file.name.split(".").pop();
+				return is_valid_mimetype(accept_file_types, fileExtension, file.type);
+			});
+
+			if (validFiles.length !== target.files.length) {
+				dispatch("error", `Invalid file type(s). Only ${filetype} allowed.`);
+				return;
+			}
+		}
+
 		if (format != "blob") {
 			await load_files(Array.from(target.files));
 		} else {
@@ -162,7 +187,7 @@
 		);
 	}
 
-	async function loadFilesFromDrop(e: DragEvent): Promise<void> {
+	async function load_files_from_drop(e: DragEvent): Promise<void> {
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
 		const files_to_load = Array.from(e.dataTransfer.files).filter((file) => {
@@ -229,9 +254,9 @@
 		on:dragleave|preventDefault|stopPropagation
 		on:drop|preventDefault|stopPropagation
 		on:click={open_file_upload}
-		on:drop={loadFilesFromDrop}
-		on:dragenter={updateDragging}
-		on:dragleave={updateDragging}
+		on:drop={load_files_from_drop}
+		on:dragenter={update_dragging}
+		on:dragleave={update_dragging}
 	>
 		<slot />
 		<input
@@ -240,7 +265,7 @@
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
-			accept={accept_file_types || undefined}
+			accept={!is_ios ? accept_file_types : undefined}
 			multiple={file_count === "multiple" || undefined}
 			webkitdirectory={file_count === "directory" || undefined}
 			mozdirectory={file_count === "directory" || undefined}
