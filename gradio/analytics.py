@@ -35,6 +35,7 @@ ANALYTICS_URL = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
+
 def get_block_name(class_name) -> str:
     """
     This will return "matrix" for Matrix template, and ensures that any component name that is sent from the gradio app is part of the the core components list (no false positives for custom components).
@@ -116,11 +117,13 @@ def version_check():
     except Exception:
         pass
 
+
 def write_machine_hash() -> str:
     identifier = secrets.token_urlsafe(32)
     with open(JSON_PATH, "w+", encoding="utf-8") as j:
         json.dump({"identifier": identifier}, j)
     return identifier
+
 
 def get_machine_hash() -> str:
     """

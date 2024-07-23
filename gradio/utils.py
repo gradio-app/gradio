@@ -51,11 +51,9 @@ import orjson
 from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 
-import gradio
 from gradio.context import get_blocks_context
 from gradio.data_classes import BlocksConfigDict, FileData
 from gradio.exceptions import Error
-from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks

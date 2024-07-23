@@ -1,15 +1,12 @@
 import asyncio
-import ipaddress
 import json
 import os
 import warnings
 from unittest.mock import patch
 
-import httpx
 import pytest
 
 from gradio import analytics, wasm_utils
-from gradio.context import Context
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
