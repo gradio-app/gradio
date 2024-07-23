@@ -68,7 +68,7 @@ def _do_analytics_request(topic: str, data: dict[str, Any]) -> None:
 
 
 def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = get_machine_identifier()
+    data["ip_address"] = get_machine_hash()
     try:
         _send_telemetry_in_thread(
             topic=topic,
@@ -81,7 +81,7 @@ def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
 
 
 async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = get_machine_identifier()
+    data["ip_address"] = get_machine_hash()
 
     # We use urllib.parse.urlencode to encode the data as a form.
     # Ref: https://docs.python.org/3/library/urllib.request.html#urllib-examples
@@ -116,13 +116,13 @@ def version_check():
     except Exception:
         pass
 
-def write_machine_identifier() -> str:
+def write_machine_hash() -> str:
     identifier = secrets.token_urlsafe(32)
     with open(JSON_PATH, "w+", encoding="utf-8") as j:
         json.dump({"identifier": identifier}, j)
     return identifier
 
-def get_machine_identifier() -> str:
+def get_machine_hash() -> str:
     """
     Gets a randomly generated string hash corresponding to this machine or the string
     "Analytics disabled" if a user has disabled analytics. This is used for tracking
@@ -134,14 +134,14 @@ def get_machine_identifier() -> str:
     # Storing the identifier in the Context object to avoid reading the file multiple times
     if Context.identifier is None:
         if not os.path.exists(JSON_PATH):
-            Context.identifier = write_machine_identifier()
+            Context.identifier = write_machine_hash()
         else:
             # In older versions of Gradio, the launches.json file
             # did not contain the "identifier" key.
             with open(JSON_PATH, encoding="utf-8") as j:
                 info = json.load(j)
             if "identifier" not in info:
-                Context.identifier = write_machine_identifier()
+                Context.identifier = write_machine_hash()
 
     assert Context.identifier is not None  # noqa: S101
     return Context.identifier
