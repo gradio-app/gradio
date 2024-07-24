@@ -91,7 +91,7 @@ class Video(Component):
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
-        watermark_file: str | Path = None
+        watermark_file: str | Path = None,
     ):
         """
         Parameters:
@@ -293,7 +293,6 @@ class Video(Component):
             raise ValueError("Video data missing")
         return VideoData(video=processed_files[0], subtitles=processed_files[1])
 
-
     def _format_video(self, video: str | Path | None) -> FileData | None:
         """
         Processes a video to ensure that it is in the correct format
@@ -333,9 +332,11 @@ class Video(Component):
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
 
-        if self.watermark_file or (self.format is not None and returned_format != self.format):
+        if self.watermark_file or (
+            self.format is not None and returned_format != self.format
+        ):
             global_option_list = ["-y"]
-            output_file_name = video[0: video.rindex(".") + 1]
+            output_file_name = video[0 : video.rindex(".") + 1]
             if self.format is not None:
                 if returned_format != self.format and wasm_utils.IS_WASM:
                     raise wasm_utils.WasmUnsupportedError(
@@ -350,11 +351,15 @@ class Video(Component):
                 # TODO: Add on to this for more functionality for placement, opacity, etc.
                 watermark_cmd = "[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]overlay=(main_w-overlay_w):(main_h-overlay_h)"
                 global_option_list += [f"-filter_complex {watermark_cmd}"]
-                output_file_name = Path(output_file_name).stem + "_watermarked" + Path(output_file_name).suffix
+                output_file_name = (
+                    Path(output_file_name).stem
+                    + "_watermarked"
+                    + Path(output_file_name).suffix
+                )
             ff = FFmpeg(  # type: ignore
                 inputs=inputs_dict,
                 outputs={output_file_name: None},
-                global_options=' '.join(global_option_list),
+                global_options=" ".join(global_option_list),
             )
             ff.run()
             video = output_file_name
