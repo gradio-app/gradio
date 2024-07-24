@@ -49,7 +49,8 @@
 	let debounced_run_code: Function | undefined;
 	let debounced_install: Function | undefined;
 	onMount(() => {
-		controller = createGradioApp({
+		// @ts-ignore
+		controller = globalThis.createGradioApp({
 			target: document.getElementById("lite-demo"),
 			requirements: demos[0].requirements,
 			code: demos[0].code,
