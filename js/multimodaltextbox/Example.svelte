@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { Image } from "@gradio/image/shared";
+	import { Video } from "@gradio/video/shared";
 	import type { FileData } from "@gradio/client";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -38,6 +39,10 @@
 	{#each value.files as file}
 		{#if file.mime_type && file.mime_type.includes("image")}
 			<Image src={file.url} alt="" />
+		{:else if file.mime_type && file.mime_type.includes("video")}
+			<Video src={file.url} alt="" loop={true} />
+		{:else if file.mime_type && file.mime_type.includes("audio")}
+			<audio src={file.url} controls />
 		{:else}
 			{file.path}
 		{/if}
