@@ -132,6 +132,7 @@
 				});
 			}
 		});
+		console.log("updates", updates);
 		update_value(updates);
 
 		await tick();
@@ -278,17 +279,17 @@
 			}
 
 			let submission: ReturnType<typeof app.submit>;
-			if (streaming && !submit_map.has(dep_index)) {
-				loading_status.update({
-					status: "streaming",
-					fn_index: dep_index,
-					time_limit: dep.time_limit,
-					queue: true,
-					queue_position: null,
-					eta: null
-				});
-				set_status($loading_status);
-			}
+			// if (streaming && !submit_map.has(dep_index)) {
+			// 	loading_status.update({
+			// 		status: "streaming",
+			// 		fn_index: dep_index,
+			// 		time_limit: dep.time_limit,
+			// 		queue: true,
+			// 		queue_position: null,
+			// 		eta: null
+			// 	});
+			// 	set_status($loading_status);
+			// }
 			if (streaming && submit_map.has(dep_index)) {
 				app.current_payload = payload;
 				await app.post_data(
@@ -340,6 +341,7 @@
 					make_prediction(dep.final_event);
 				}
 				dep.pending_request = false;
+				console.log("data", data)
 				handle_update(data, fn_index);
 				set_status($loading_status);
 			}

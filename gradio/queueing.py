@@ -18,6 +18,7 @@ from gradio import route_utils, routes
 from gradio.data_classes import (
     PredictBody,
 )
+from gradio.exceptions import StreamingTimeoutError
 from gradio.helpers import TrackedIterable
 from gradio.server_messages import (
     EstimationMessage,
@@ -70,6 +71,8 @@ class Event:
 
     @property
     def is_finished(self):
+        if not self.streaming:
+            raise ValueError("Cannot access if_finished during a non-streaming event")
         if self.fn.total_runtime is None:
             return False
         return self.run_time >= self.fn.time_limit
@@ -495,12 +498,12 @@ class Queue:
         )
 
     @staticmethod
-    async def wait_for_event(event: Event) -> None:
+    async def wait_for_event(event: Event) -> str:
         await event.signal.wait()
         return "signal"
 
     @staticmethod
-    async def timeout(timeout: float) -> None:
+    async def timeout(timeout: float) -> str:
         await asyncio.sleep(timeout)
         return "timeout"
 
@@ -567,6 +570,7 @@ class Queue:
                     root_path=root_path,
                 )
                 end = time.monotonic()
+                first_iteration = end - start
                 err = None
                 for event in awake_events:
                     event.run_time += end - start
@@ -603,7 +607,7 @@ class Queue:
                                 else ServerMessage.process_streaming,
                                 output=old_response,
                                 success=old_response is not None,
-                                time_limit=fn.time_limit,
+                                time_limit=fn.time_limit - first_iteration if event.streaming else None,
                             ),
                         )
                     awake_events = [event for event in awake_events if event.alive]
@@ -625,7 +629,7 @@ class Queue:
                             done = [d.result() for d in done]
                             awake_events[0].signal.clear()
                             if "timeout" in done:
-                                raise asyncio.CancelledError()
+                                raise StreamingTimeoutError()
                         body = awake_events[0].data
                         response = await route_utils.call_process_api(
                             app=app,
@@ -647,17 +651,18 @@ class Queue:
                                     duration=10,
                                 )
                     except BaseException as e:
-                        if not isinstance(e, asyncio.CancelledError):
-                            traceback.print_exc()
-                        response = None
-                        err = e
-                        if awake_events[0].streaming:
+                        if isinstance(e, StreamingTimeoutError):
                             self.log_message(
-                                event._id,
+                                awake_events[0]._id,
                                 "Time limit reached! Please join the queue again.",
                                 "info",
                                 duration=10,
                             )
+                            break
+                        traceback.print_exc()
+                        response = None
+                        err = e
+
                 if response:
                     success = True
                     output = response

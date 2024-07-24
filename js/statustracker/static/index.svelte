@@ -134,9 +134,6 @@
 		}
 	}
 
-	let streaming_progress = 0;
-	let streaming_interval: number | undefined = null;
-
 	$: console.log("time_limit", time_limit);
 	$: console.log("status", status);
 
