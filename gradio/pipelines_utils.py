@@ -89,6 +89,16 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda x: [x],
             "postprocess": lambda r: {i["label"]: i["score"] for i in r},
         }
+    if is_transformers_pipeline_type(pipeline, "TokenClassificationPipeline"):
+        return {
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.HighlightedText(label="Entities", render=False),
+            "preprocess": lambda x: [x],
+            "postprocess": lambda r, text: {
+                "text": text,
+                "entities": r,
+            },
+        }
     if is_transformers_pipeline_type(pipeline, "TextGenerationPipeline"):
         return {
             "inputs": components.Textbox(label="Input", render=False),
