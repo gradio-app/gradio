@@ -70,6 +70,7 @@ export interface Dependency {
 	show_api: boolean;
 	rendered_in: number | null;
 	connection: "stream" | "sse";
+	time_limit: number;
 }
 
 interface TypeDescription {

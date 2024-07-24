@@ -68,7 +68,6 @@ export function submit(
 		let protocol = config.protocol ?? "ws";
 		let event_id_final = "";
 		let event_id_cb: () => string = () => event_id_final;
-		console.log("protocol", protocol);
 
 		const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 		let payload: Payload;
@@ -484,7 +483,7 @@ export function submit(
 								visible: data.visible,
 								fn_index
 							});
-						} else if (type === "generating") {
+						} else if (type === "generating" || type === "streaming") {
 							fire_event({
 								type: "status",
 								time: new Date(),
@@ -599,9 +598,7 @@ export function submit(
 						} else {
 							event_id = response.event_id as string;
 							event_id_final = event_id;
-							console.log("event_id_final", event_id_final);
-							console.log("event_id_cb", event_id_cb);
-							console.log("event_id from cb", event_id_cb());
+
 							let callback = async function (_data: object): Promise<void> {
 								try {
 									const { type, status, data } = handle_message(
@@ -647,7 +644,7 @@ export function submit(
 											fn_index
 										});
 										return;
-									} else if (type === "generating") {
+									} else if (type === "generating" || type === "streaming") {
 										fire_event({
 											type: "status",
 											time: new Date(),
@@ -800,7 +797,6 @@ export function submit(
 								websocket.close();
 							}
 						} else if (type === "data") {
-							console.log("app.payload", that.current_payload);
 							websocket.send(
 								JSON.stringify({ ...that.current_payload, session_hash })
 							);

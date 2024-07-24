@@ -278,8 +278,18 @@
 			}
 
 			let submission: ReturnType<typeof app.submit>;
+			if (streaming && !submit_map.has(dep_index)) {
+				loading_status.update({
+					status: "streaming",
+					fn_index: dep_index,
+					time_limit: dep.time_limit,
+					queue: true,
+					queue_position: null,
+					eta: null
+				});
+				set_status($loading_status);
+			}
 			if (streaming && submit_map.has(dep_index)) {
-				console.log("making prediction at", new Date().toUTCString());
 				app.current_payload = payload;
 				await app.post_data(
 					`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
@@ -376,6 +386,7 @@
 				//@ts-ignore
 				loading_status.update({
 					...status,
+					time_limit: status.time_limit,
 					status: status.stage,
 					progress: status.progress_data,
 					fn_index
