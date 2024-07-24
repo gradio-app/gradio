@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import sys
+import threading
 from collections import deque
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
@@ -49,6 +50,9 @@ from gradio.state_holder import SessionState
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
     from gradio.routes import App
+
+
+config_lock = threading.Lock()
 
 
 class Obj:
@@ -646,10 +650,11 @@ def update_root_in_config(config: BlocksConfigDict, root: str) -> BlocksConfigDi
     root url has changed, all of the urls in the config that correspond to component
     file urls are updated to use the new root url.
     """
-    previous_root = config.get("root")
-    if previous_root is None or previous_root != root:
-        config["root"] = root
-        config = processing_utils.add_root_url(config, root, previous_root)  # type: ignore
+    with config_lock:
+        previous_root = config.get("root")
+        if previous_root is None or previous_root != root:
+            config["root"] = root
+            config = processing_utils.add_root_url(config, root, previous_root)  # type: ignore
     return config
 
 
