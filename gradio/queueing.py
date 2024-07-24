@@ -28,6 +28,7 @@ from gradio.server_messages import (
     ProcessStartsMessage,
     ProgressMessage,
     ProgressUnit,
+    ServerMessage,
 )
 from gradio.utils import (
     LRUCache,
@@ -493,10 +494,19 @@ class Queue:
             queue_size=len(self),
         )
 
+    @staticmethod
+    async def wait_for_event(event: Event) -> None:
+        await event.signal.wait()
+        return "signal"
+
+    @staticmethod
+    async def timeout(timeout: float) -> None:
+        await asyncio.sleep(timeout)
+        return "timeout"
+
     async def process_events(
         self, events: list[Event], batch: bool, begin_time: float
     ) -> None:
-        print("PROCESSING EVENTS")
         awake_events: list[Event] = []
         fn = events[0].fn
         success = False
@@ -588,8 +598,12 @@ class Queue:
                         self.send_message(
                             event,
                             ProcessGeneratingMessage(
+                                msg=ServerMessage.process_generating
+                                if not event.streaming
+                                else ServerMessage.process_streaming,
                                 output=old_response,
                                 success=old_response is not None,
+                                time_limit=fn.time_limit,
                             ),
                         )
                     awake_events = [event for event in awake_events if event.alive]
@@ -598,10 +612,20 @@ class Queue:
                     try:
                         start = time.monotonic()
                         if awake_events[0].streaming:
-                            print(f"WAITING FOR SIGNAL {awake_events[0]._id}")
-                            await awake_events[0].signal.wait()
+                            t1 = asyncio.create_task(
+                                self.wait_for_event(awake_events[0])
+                            )
+                            t2 = asyncio.create_task(
+                                self.timeout(fn.time_limit - awake_events[0].run_time)
+                            )
+                            done, _ = await asyncio.wait(
+                                [t1, t2],
+                                return_when=asyncio.FIRST_COMPLETED,
+                            )
+                            done = [d.result() for d in done]
                             awake_events[0].signal.clear()
-                            print("ACQUIRED SIGNAL")
+                            if "timeout" in done:
+                                raise asyncio.CancelledError()
                         body = awake_events[0].data
                         response = await route_utils.call_process_api(
                             app=app,
@@ -614,24 +638,26 @@ class Queue:
                         event.run_time += end - start
                         event.n_calls += 1
                         if event.streaming:
-                            print("Adding response")
-                            print("event.run_time", event.run_time)
-                            print("event.time_limit", event.fn.time_limit)
                             response["is_generating"] = not event.is_finished
                             if event.is_finished:
-                                print("EVENT is finished")
                                 self.log_message(
                                     event._id,
                                     "Time limit reached! Please join the queue again.",
                                     "info",
                                     duration=10,
                                 )
-                    except Exception as e:
-                        traceback.print_exc()
+                    except BaseException as e:
+                        if not isinstance(e, asyncio.CancelledError):
+                            traceback.print_exc()
                         response = None
                         err = e
-                    # end = time.monotonic()
-                    # print("queue loop time", end - start)
+                        if awake_events[0].streaming:
+                            self.log_message(
+                                event._id,
+                                "Time limit reached! Please join the queue again.",
+                                "info",
+                                duration=10,
+                            )
                 if response:
                     success = True
                     output = response

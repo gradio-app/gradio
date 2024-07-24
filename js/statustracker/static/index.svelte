@@ -61,7 +61,14 @@
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
-	export let status: "complete" | "pending" | "error" | "generating" | null;
+	export let status:
+		| "complete"
+		| "pending"
+		| "error"
+		| "generating"
+		| "streaming"
+		| null;
+	export let time_limit: number | null;
 	export let scroll_to_output = false;
 	export let timer = true;
 	export let show_progress: "full" | "minimal" | "hidden" = "full";
@@ -73,6 +80,9 @@
 	export let translucent = false;
 	export let border = false;
 	export let autoscroll: boolean;
+
+	$: console.log("show_progress", show_progress);
+	// let show_progress: "full" | "minimal" | "hidden" = "full";
 
 	let el: HTMLDivElement;
 
@@ -123,6 +133,12 @@
 			last_progress_level = undefined;
 		}
 	}
+
+	let streaming_progress = 0;
+	let streaming_interval: number | undefined = null;
+
+	$: console.log("time_limit", time_limit);
+	$: console.log("status", status);
 
 	const start_timer = (): void => {
 		eta = old_eta = formatted_eta = null;
@@ -191,6 +207,9 @@
 	$: formatted_timer = timer_diff.toFixed(1);
 </script>
 
+{#if status === "streaming" && time_limit}
+	<div class="streaming-bar" style:animation-duration="{time_limit}s"></div>
+{/if}
 <div
 	class="wrap {variant} {show_progress}"
 	class:hide={!status || status === "complete" || show_progress === "hidden"}
@@ -463,5 +482,25 @@
 		justify-content: flex-end;
 		gap: var(--spacing-sm);
 		z-index: var(--layer-1);
+	}
+
+	.streaming-bar {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background-color: var(--color-accent);
+		animation: countdown linear forwards;
+		z-index: var(--layer-1);
+	}
+
+	@keyframes countdown {
+		from {
+			transform: translateX(0%);
+		}
+		to {
+			transform: translateX(-100%);
+		}
 	}
 </style>

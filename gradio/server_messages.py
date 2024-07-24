@@ -49,9 +49,18 @@ class ProcessCompletedMessage(BaseMessage):
 
 
 class ProcessGeneratingMessage(BaseMessage):
-    msg: Literal[ServerMessage.process_generating] = ServerMessage.process_generating  # type: ignore
+    msg: Literal[ServerMessage.process_generating, ServerMessage.process_streaming] = (
+        ServerMessage.process_generating
+    )
     output: dict
     success: bool
+    time_limit: Optional[float] = None
+
+
+# class ProccesStreamingMessage(BaseMessage):
+#     msg: Literal[ServerMessage.process_streaming] = ServerMessage.process_streaming # type: ignore
+#     output: dict
+#     time_limit: Optional[float] = None
 
 
 class HeartbeatMessage(BaseMessage):
