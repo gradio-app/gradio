@@ -62,7 +62,7 @@ with gr.Blocks() as demo:
         df = df[(df["time"] >= start) & (df["time"] <= end)]
         df["time"] = pd.to_datetime(df["time"], unit="s")
 
-        unique_users = len(df["session_hash"].unique())
+        unique_users = len(df["session_hash"].unique())  # type: ignore
         total_requests = len(df)
         process_time = round(df["process_time"].mean(), 2)
 
@@ -74,7 +74,8 @@ with gr.Blocks() as demo:
             if duration >= 60 * 60 * 3
             else "1m"
         )
-        df = df.drop(columns=["session_hash"])
+        df = df.drop(columns=["session_hash"])  # type: ignore
+        assert isinstance(df, pd.DataFrame)  # noqa: S101
         return (
             gr.BarPlot(value=df, x_bin=x_bin, x_lim=[start, end]),
             unique_users,
