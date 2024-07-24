@@ -29,7 +29,6 @@ class VideoData(GradioModel):
     video: FileData
     subtitles: Optional[FileData] = None
 
-
 @document()
 class Video(Component):
     """
@@ -91,6 +90,7 @@ class Video(Component):
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
+        watermark_file: str | Path = None
     ):
         """
         Parameters:
@@ -120,6 +120,7 @@ class Video(Component):
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             loop: If True, the video will loop when it reaches the end and continue playing from the beginning.
+            watermark_file: An image file to be included as a watermark on the video.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -154,6 +155,7 @@ class Video(Component):
         self.show_download_button = show_download_button
         self.min_length = min_length
         self.max_length = max_length
+        self.watermark_file = watermark_file
         super().__init__(
             label=label,
             every=every,
@@ -199,7 +201,20 @@ class Video(Component):
                 raise gr.Error(
                     f"Video is too long, and must be at most {self.max_length} seconds"
                 )
-
+        # TODO: Check other image extensions to see if they work.
+        valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
+        if self.watermark_file is not None:
+            if not isinstance(self.watermark_file, (str, Path)):
+                raise gr.Error(
+                    f"Provided watermark file not an expected file type. "
+                    f"Received: {self.watermark_file}"
+                )
+            elif Path(self.watermark_file).suffix not in valid_watermark_extensions:
+                raise gr.Error(
+                    f"Watermark file does not have a supported extension. "
+                    f"Expected one of {','.join(valid_watermark_extensions)}. "
+                    f"Received: {Path(self.watermark_file).suffix}."
+                )
         if needs_formatting or flip:
             format = f".{self.format if needs_formatting else uploaded_format}"
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
@@ -277,9 +292,11 @@ class Video(Component):
             raise ValueError("Video data missing")
         return VideoData(video=processed_files[0], subtitles=processed_files[1])
 
+
     def _format_video(self, video: str | Path | None) -> FileData | None:
         """
-        Processes a video to ensure that it is in the correct format.
+        Processes a video to ensure that it is in the correct format
+        and adds a watermark if requested.
         """
         if video is None:
             return None
@@ -292,11 +309,14 @@ class Video(Component):
 
         is_url = client_utils.is_http_url_like(video)
 
-        # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
+        # For cases where the video is a URL and does not need to be converted
+        # to another format or have a watermark added, we can just return the URL
         if is_url and not (conversion_needed):
-            return FileData(path=video)
+            if not self.watermark_file:
+                return FileData(path=video)
 
         # For cases where the video needs to be converted to another format
+        # or have a watermark added.
         if is_url:
             video = processing_utils.save_url_to_cache(
                 video, cache_dir=self.GRADIO_CACHE
@@ -306,21 +326,34 @@ class Video(Component):
             and not processing_utils.video_is_playable(video)
         ):
             warnings.warn(
-                "Video does not have browser-compatible container or codec. Converting to mp4"
+                "Video does not have browser-compatible container or codec. Converting to mp4."
             )
             video = processing_utils.convert_video_to_playable_mp4(video)
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
-        if self.format is not None and returned_format != self.format:
-            if wasm_utils.IS_WASM:
-                raise wasm_utils.WasmUnsupportedError(
-                    "Returning a video in a different format is not supported in the Wasm mode."
-                )
-            output_file_name = video[0 : video.rindex(".") + 1] + self.format
+
+        if self.watermark_file or (self.format is not None and returned_format != self.format):
+            global_option_list = ["-y"]
+            output_file_name = video[0: video.rindex(".") + 1]
+            if self.format is not None:
+                if returned_format != self.format and wasm_utils.IS_WASM:
+                    raise wasm_utils.WasmUnsupportedError(
+                        "Returning a video in a different format is not supported in the Wasm mode."
+                    )
+                output_file_name += self.format
+            else:
+                output_file_name += returned_format
+            inputs_dict = {video: None}
+            if self.watermark_file:
+                inputs_dict[self.watermark_file] = None
+                # TODO: Add on to this for more functionality for placement, opacity, etc.
+                watermark_cmd = "[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]overlay=(main_w-overlay_w):(main_h-overlay_h)"
+                global_option_list += [f"-filter_complex {watermark_cmd}"]
+                output_file_name = Path(output_file_name).stem + "_watermarked" + Path(output_file_name).suffix
             ff = FFmpeg(  # type: ignore
-                inputs={video: None},
+                inputs=inputs_dict,
                 outputs={output_file_name: None},
-                global_options="-y",
+                global_options=' '.join(global_option_list),
             )
             ff.run()
             video = output_file_name
