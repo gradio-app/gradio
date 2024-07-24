@@ -14,7 +14,7 @@ with gr.Blocks() as demo:
 
         def merge(*args):
             return " ".join(args)
-        
+
         merge_btn.click(merge, boxes, output)
 
 

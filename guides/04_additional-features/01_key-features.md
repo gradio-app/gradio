@@ -2,56 +2,13 @@
 
 Let's go through some of the key features of Gradio. This guide is intended to be a high-level overview of various things that you should be aware of as you build your demo. Where appropriate, we link to more detailed guides on specific topics.
 
-1. [Components](#components)
-2. [Queuing](#queuing)
-3. [Streaming outputs](#streaming-outputs)
-4. [Streaming inputs](#streaming-inputs)
-5. [Alert modals](#alert-modals)
-6. [Styling](#styling)
-7. [Progress bars](#progress-bars)
-8. [Batch functions](#batch-functions)
-
-## Components
-
-Gradio includes more than 30 pre-built components (as well as many user-built _custom components_) that can be used as inputs or outputs in your demo with a single line of code. These components correspond to common data types in machine learning and data science, e.g. the `gr.Image` component is designed to handle input or output images, the `gr.Label` component displays classification labels and probabilities, the `gr.Plot` component displays various kinds of plots, and so on.
-
-Each component includes various constructor attributes that control the properties of the component. For example, you can control the number of lines in a `gr.Textbox` using the `lines` argument (which takes a positive integer) in its constructor. Or you can control the way that a user can provide an image in the `gr.Image` component using the `sources` parameter (which takes a list like `["webcam", "upload"]`).
-
-**Static and Interactive Components**
-
-Every component has a _static_ version that is designed to *display* data, and most components also have an _interactive_ version designed to let users input or modify the data. Typically, you don't need to think about this distinction, because when you build a Gradio demo, Gradio automatically figures out whether the component should be static or interactive based on whether it is being used as an input or output. However, you can set this manually using the `interactive` argument that every component supports.
-
-**Preprocessing and Postprocessing**
-
-When a component is used as an input, Gradio automatically handles the _preprocessing_ needed to convert the data from a type sent by the user's browser (such as an uploaded image) to a form that can be accepted by your function (such as a `numpy` array).
-
-
-Similarly, when a component is used as an output, Gradio automatically handles the _postprocessing_ needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (a gallery of images).
-
-Consider an example demo with three input components (`gr.Textbox`, `gr.Number`, and `gr.Image`) and two outputs (`gr.Number` and `gr.Gallery`) that serve as a UI for your image-to-image generation model. Below is a diagram of what our preprocessing will send to the model and what our postprocessing will require from it.
-
-![](https://github.com/gradio-app/gradio/blob/main/guides/assets/dataflow.svg?raw=true)
-
-In this image, the following preprocessing steps happen to send the data from the browser to your function:
-
-* The text in the textbox is converted to a Python `str` (essentially no preprocessing)
-* The number in the number input is converted to a Python `int` (essentially no preprocessing)
-* Most importantly, ihe image supplied by the user is converted to a `numpy.array` representation of the RGB values in the image
-
-Images are converted to NumPy arrays because they are a common format for machine learning workflows. You can control the _preprocessing_ using the component's parameters when constructing the component. For example, if you instantiate the `Image` component with the following parameters, it will preprocess the image to the `PIL` format instead:
-
-```py
-img = gr.Image(type="pil")
-```
-
-Postprocessing is even simpler! Gradio automatically recognizes the format of the returned data (e.g. does the user's function return a `numpy` array or a `str` filepath for the `gr.Image` component?) and postprocesses it appropriately into a format that can be displayed by the browser.
-
-So in the image above, the following postprocessing steps happen to send the data returned from a user's function to the browser:
-
-* The `float` is displayed as a number and displayed directly to the user
-* The list of string filepaths (`list[str]`) is interpreted as a list of image filepaths and displayed as a gallery in the browser
-
-Take a look at the [Docs](https://gradio.app/docs) to see all the parameters for each Gradio component.
+1. [Queuing](#queuing)
+2. [Streaming outputs](#streaming-outputs)
+3. [Streaming inputs](#streaming-inputs)
+4. [Alert modals](#alert-modals)
+5. [Styling](#styling)
+6. [Progress bars](#progress-bars)
+7. [Batch functions](#batch-functions)
 
 ## Queuing
 
@@ -60,13 +17,14 @@ Every Gradio app comes with a built-in queuing system that can scale to thousand
 For example, you can control the number of requests processed at a single time by setting the `default_concurrency_limit` parameter of `queue()`, e.g.
 
 ```python
-demo = gr.Interface(...).queue(default_concurrency_limit=5)
+demo = gr.Interface(...) # or gr.Blocks()
+demo.queue(default_concurrency_limit=5)
 demo.launch()
 ```
 
 This limits the number of requests processed for this event listener at a single time to 5. By default, the `default_concurrency_limit` is actually set to `1`, which means that when many users are using your app, only a single user's request will be processed at a time. This is because many machine learning functions consume a significant amount of memory and so it is only suitable to have a single user using the demo at a time. However, you can change this parameter in your demo easily.
 
-See the [docs on queueing](https://gradio.app/docs/gradio/interface#interface-queue) for more details on configuring the queuing parameters.
+See the [guide on queueing](https://gradio.app/guides/queueing) for more details on configuring the queuing parameters.
 
 ## Streaming outputs
 
@@ -106,8 +64,6 @@ def start_process(name):
     if success == False:
         raise gr.Error("Process <b>failed</b>")
 ```
-
-
 
 ## Styling
 

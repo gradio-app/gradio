@@ -20,7 +20,7 @@ $code_hello_blocks_decorator
 
 ## Event Listeners and Interactivity
 
-In the example above, you'll notice that you are able to edit Textbox `name`, but not Textbox `output`. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox `output` acts only as an output, Gradio determines that it should not be made interactive. You can override the default behavior and directly configure the interactivity of a Component with the boolean `interactive` keyword argument.
+In the example above, you'll notice that you are able to edit Textbox `name`, but not Textbox `output`. This is because any Component that acts as an input to an event listener is made interactive. However, since Textbox `output` acts only as an output, Gradio determines that it should not be made interactive. You can override the default behavior and directly configure the interactivity of a Component with the boolean `interactive` keyword argument, e.g. `gr.Textbox(interactive=True)`.
 
 ```python
 output = gr.Textbox(label="Output", interactive=True)
@@ -83,12 +83,14 @@ Let's first see an example of (1), where we set the values of two output compone
 with gr.Blocks() as demo:
     food_box = gr.Number(value=10, label="Food Count")
     status_box = gr.Textbox()
+
     def eat(food):
         if food > 0:
             return food - 1, "full"
         else:
             return 0, "hungry"
-    gr.Button("EAT").click(
+
+    gr.Button("Eat").click(
         fn=eat,
         inputs=food_box,
         outputs=[food_box, status_box]
@@ -103,12 +105,14 @@ Instead of returning a list of values corresponding to each output component in 
 with gr.Blocks() as demo:
     food_box = gr.Number(value=10, label="Food Count")
     status_box = gr.Textbox()
+
     def eat(food):
         if food > 0:
             return {food_box: food - 1, status_box: "full"}
         else:
             return {status_box: "hungry"}
-    gr.Button("EAT").click(
+
+    gr.Button("Eat").click(
         fn=eat,
         inputs=food_box,
         outputs=[food_box, status_box]
@@ -128,27 +132,7 @@ The return value of an event listener function is usually the updated value of t
 $code_blocks_essay_simple
 $demo_blocks_essay_simple
 
-See how we can configure the Textbox itself through a new `gr.Textbox()` method. The `value=` argument can still be used to update the value along with Component configuration. Any arguments we do not set will use their previous values.
-
-## Examples
-
-Just like with `gr.Interface`, you can also add examples for your functions when you are working with `gr.Blocks`. In this case, instantiate a `gr.Examples` similar to how you would instantiate any other component. The constructor of `gr.Examples` takes two required arguments:
-
-* `examples`: a nested list of examples, in which the outer list consists of examples and each inner list consists of an input corresponding to each input component
-* `inputs`: the component or list of components that should be populated when the examples are clicked
-
-You can also set `cache_examples=True` similar to `gr.Interface`, in which case two additional arguments must be provided:
-
-* `outputs`: the component or list of components corresponding to the output of the examples
-* `fn`: the function to run to generate the outputs corresponding to the examples
-
-Here's an example showing how to use `gr.Examples` in a `gr.Blocks` app:
-
-$code_calculator_blocks
-
-**Note**: In Gradio 4.0 or later, when you click on examples, not only does the value of the input component update to the example value, but the component's configuration also reverts to the properties with which you constructed the component. This ensures that the examples are compatible with the component even if its configuration has been changed. 
-
-
+See how we can configure the Textbox itself through a new `gr.Textbox()` method. The `value=` argument can still be used to update the value along with Component configuration. Any arguments we do not set will preserve their previous values.
 
 ## Running Events Consecutively
 
@@ -160,43 +144,6 @@ $code_chatbot_consecutive
 $demo_chatbot_consecutive
 
 The `.then()` method of an event listener executes the subsequent event regardless of whether the previous event raised any errors. If you'd like to only run subsequent events if the previous event executed successfully, use the `.success()` method, which takes the same arguments as `.then()`.
-
-## Running Events Continuously
-
-You can run events on a fixed schedule using `gr.Timer()` object. This will run the event when the timer's `tick` event fires. See the code below:
-
-```python
-with gr.Blocks as demo:
-    timer = gr.Timer(5)
-    textbox = gr.Textbox()
-    textbox2 = gr.Textbox()
-    timer.tick(set_textbox_fn, textbox, textbox2)
-```
-
-This can also be used directly with a Component's `every=` parameter as such:
-
-```python
-with gr.Blocks as demo:
-    timer = gr.Timer(5)
-    textbox = gr.Textbox()
-    textbox2 = gr.Textbox(set_textbox_fn, inputs=[textbox], every=timer)
-```
-
-Here is an example of a demo that print the current timestamp, and also prints random numbers regularly!
-
-$code_timer
-$demo_timer
-
-## Gathering Event Data
-
-You can gather specific data about an event by adding the associated event data class as a type hint to an argument in the event listener function.
-
-For example, event data for `.select()` can be type hinted by a `gradio.SelectData` argument. This event is triggered when a user selects some part of the triggering component, and the event data includes information about what the user specifically selected. If a user selected a specific word in a `Textbox`, a specific image in a `Gallery`, or a specific cell in a `DataFrame`, the event data argument would contain information about the specific selection.
-
-In the 2 player tic-tac-toe demo below, a user can select a cell in the `DataFrame` to make a move. The event data argument contains information about the specific cell that was selected. We can first check to see if the cell is empty, and then update the cell with the user's move.
-
-$code_tictactoe
-$demo_tictactoe
 
 ## Binding Multiple Triggers to a Function
 

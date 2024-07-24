@@ -9,10 +9,10 @@ with gr.Blocks() as demo:
 
     def greet(name, evt_data: gr.EventData):
         return "Hello " + name + "!", evt_data.target.__class__.__name__
-    
+
     def clear_name(evt_data: gr.EventData):
         return "", evt_data.target.__class__.__name__
-    
+
     gr.on(
         triggers=[name.submit, greet_btn.click],
         fn=greet,

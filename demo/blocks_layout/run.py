@@ -18,7 +18,7 @@ with demo:
     with gr.Row():
         gr.Textbox()
         gr.Textbox()
-        gr.Button()        
+        gr.Button()
     with gr.Row():
         with gr.Row():
             with gr.Column():

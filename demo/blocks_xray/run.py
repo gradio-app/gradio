@@ -1,5 +1,4 @@
 import gradio as gr
-import time
 
 disease_values = [0.25, 0.5, 0.75]
 

@@ -26,7 +26,7 @@ with gr.Blocks() as demo:
             second_o = gr.Number(label="Second Result")
             third_o = gr.Number(label="Third Result")
             fourth_o = gr.Number(label="Fourth Result")
- 
+
     first.click(get_random_number, None, first_o, concurrency_id="f")
     second.click(get_random_number, None, second_o, concurrency_id="f")
     third.click(get_random_number, None, third_o, concurrency_id="f")

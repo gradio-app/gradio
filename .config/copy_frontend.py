@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import shutil
 import pathlib
+import shutil
 from typing import Any
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
@@ -20,7 +20,7 @@ def copy_js_code(root: str | pathlib.Path):
         if (
             entry.is_dir()
             and not str(entry.name).startswith("_")
-            and not str(entry.name) in NOT_COMPONENT
+            and str(entry.name) not in NOT_COMPONENT
         ):
 
             def ignore(s, names):

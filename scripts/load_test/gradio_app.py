@@ -1,5 +1,7 @@
-import gradio as gr
 from time import sleep
+
+import gradio as gr
+
 version, _, _ = gr.__version__.split(".")
 
 with gr.Blocks() as demo:

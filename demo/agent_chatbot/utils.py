@@ -39,7 +39,7 @@ def stream_from_transformers_agent(
 
     class Output:
         output: agent_types.AgentType | str = None
-    
+
     step_log = None
     for step_log in agent.run(prompt, stream=True):
         if isinstance(step_log, dict):

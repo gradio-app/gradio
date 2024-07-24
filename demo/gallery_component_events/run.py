@@ -1,4 +1,4 @@
-import gradio as gr 
+import gradio as gr
 
 
 with gr.Blocks() as demo:
@@ -20,7 +20,7 @@ with gr.Blocks() as demo:
         select_output = gr.Textbox(label="Select Data")
         gal.upload(lambda v,n: (v, v, n+1), [gal, num_upload], [textbox, output_gal, num_upload])
         gal.change(lambda v,n: (v, v, n+1), [gal, num_change], [textbox, output_gal, num_change])
-    
+
     btn.click(lambda: cheetahs, None, [output_gal])
 
     def select(select_data: gr.SelectData):

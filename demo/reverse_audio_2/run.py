@@ -7,8 +7,8 @@ def reverse_audio(audio):
     return (sr, np.flipud(data))
 
 
-demo = gr.Interface(fn=reverse_audio, 
-                    inputs="microphone", 
+demo = gr.Interface(fn=reverse_audio,
+                    inputs="microphone",
                     outputs="audio")
 
 if __name__ == "__main__":

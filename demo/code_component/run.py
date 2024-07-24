@@ -1,5 +1,4 @@
 import gradio as gr
-from pathlib import Path
 
 demo = gr.Interface(
     lambda x: x,

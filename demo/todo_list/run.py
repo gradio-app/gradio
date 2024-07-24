@@ -1,7 +1,7 @@
 import gradio as gr
 
 with gr.Blocks() as demo:
-    
+
     tasks = gr.State([])
     new_task = gr.Textbox(label="Task Name", autofocus=True)
 

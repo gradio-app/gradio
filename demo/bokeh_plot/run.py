@@ -18,7 +18,7 @@ def get_plot(plot_type):
         plot.add_tile(xyz.OpenStreetMap.Mapnik)  # type: ignore
         return plot
     elif plot_type == "whisker":
-        classes = list(sorted(df["class"].unique()))
+        classes = sorted(df["class"].unique())
 
         p = figure(
             height=400,

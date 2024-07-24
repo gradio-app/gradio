@@ -9,7 +9,7 @@ CHANGELOG_FILE = os.path.abspath(os.path.join(DIR, "../../../../../CHANGELOG.md"
 def clean():
     with open(CHANGELOG_FILE) as change_file:
         content = change_file.read()
-    
+
     # remove empty/unused sections
     content = re.sub(r"## [\w^:\n ]*No changes to highlight.", "", content)
     content = content.replace("# gradio", "# Changelog")

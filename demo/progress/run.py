@@ -50,7 +50,7 @@ with gr.Blocks() as demo:
             pass
         return "done"
     load_random_btn.click(load_random, {text, textb}, text2)
-        
+
     # manual progress
     def clean_imgs(text, progress=gr.Progress()):
         progress(0.2, desc="Collecting Images")

@@ -2,10 +2,10 @@ import json
 import os
 import re
 from subprocess import run
+
 import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
-
 from src import changelog, demos, docs, guides
 
 WEBSITE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -58,7 +58,7 @@ def get_latest_release():
             json.dump({"version": version}, j)
         with open(make_dir(WEBSITE_DIR, "src/lib/json/wheel.json"), "w+") as j:
             sha = (
-                run(["git", "log", "-1", "--format='%H'"], capture_output=True)
+                run(["git", "log", "-1", "--format='%H'"], capture_output=True, check=False)
                 .stdout.decode("utf-8")
                 .strip("'\n")
             )

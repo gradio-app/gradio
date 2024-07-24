@@ -86,9 +86,9 @@ def random_bokeh_plot():
     from bokeh.models import ColumnDataSource, Whisker
     from bokeh.plotting import figure
     from bokeh.sampledata.autompg2 import autompg2 as df
-    from bokeh.transform import factor_cmap, jitter, factor_mark
+    from bokeh.transform import factor_cmap, jitter
 
-    classes = list(sorted(df["class"].unique()))
+    classes = sorted(df["class"].unique())
 
     p = figure(
         height=400,

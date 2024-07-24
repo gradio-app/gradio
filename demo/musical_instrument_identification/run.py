@@ -42,7 +42,7 @@ def predict(audio_path):
 
 demo = gr.Interface(fn=predict,
                     inputs=gr.Audio(type="filepath"),
-                    outputs=[gr.Label(num_top_classes=11, label="Predictions"), 
+                    outputs=[gr.Label(num_top_classes=11, label="Predictions"),
                              gr.Number(label="Prediction time (s)")],
                     examples=example_list,
                     cache_examples=False

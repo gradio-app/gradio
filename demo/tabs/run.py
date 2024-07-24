@@ -31,7 +31,7 @@ with gr.Blocks() as demo:
         show_all_btn = gr.Button("Show All Tabs")
         make_even_uninteractive_btn = gr.Button("Make Even Tabs Uninteractive")
         make_all_interactive_btn = gr.Button("Make All Tabs Interactive")
-    
+
     select_tab_num = gr.Number(label="Select Tab #", value=1)
 
 

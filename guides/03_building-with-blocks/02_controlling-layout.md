@@ -13,11 +13,11 @@ with gr.Blocks() as demo:
         btn2 = gr.Button("Button 2")
 ```
 
-To make every element in a Row have the same height, use the `equal_height` argument of the `style` method.
+By default, every element in a Row will have the same height. Configure this with the `equal_height` argument.
 
 ```python
 with gr.Blocks() as demo:
-    with gr.Row(equal_height=True):
+    with gr.Row(equal_height=False):
         textbox = gr.Textbox()
         btn2 = gr.Button("Button 2")
 ```
@@ -89,8 +89,6 @@ In this example, the Column layout component is given a height of 100% of the vi
 
 You can apply any valid CSS unit for these parameters. For a comprehensive list of CSS units, refer to [this guide](https://www.w3schools.com/cssref/css_units.php). We recommend you always consider responsiveness and test your interfaces on various screen sizes to ensure a consistent user experience.
 
-
-
 ## Tabs and Accordions
 
 You can also create Tabs using the `with gr.Tab('tab_name'):` clause. Any component created inside of a `with gr.Tab('tab_name'):` context appears in that tab. Consecutive Tab clauses are grouped together so that a single tab can be selected at one time, and only the components within that Tab's context are shown.
@@ -110,15 +108,6 @@ Both Components and Layout elements have a `visible` argument that can set initi
 
 $code_blocks_form
 $demo_blocks_form
-
-## Variable Number of Outputs
-
-By adjusting the visibility of components in a dynamic way, it is possible to create
-demos with Gradio that support a _variable numbers of outputs_. Here's a very simple example
-where the number of output textboxes is controlled by an input slider:
-
-$code_variable_outputs
-$demo_variable_outputs
 
 ## Defining and Rendering Components Separately
 

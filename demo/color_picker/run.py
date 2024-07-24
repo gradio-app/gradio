@@ -1,6 +1,5 @@
 import gradio as gr
 import numpy as np
-import os
 from PIL import Image, ImageColor
 
 

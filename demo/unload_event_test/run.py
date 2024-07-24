@@ -19,7 +19,7 @@ def delete_fn(v):
 
 def unload_fn():
    with log_file.open("a") as f:
-      f.write(f"unloading\n")
+      f.write("unloading\n")
 
 with gr.Blocks() as demo:
     n1 = gr.Number(value=0, label="Number")

@@ -1,7 +1,7 @@
 import gradio as gr
 
 with gr.Blocks() as demo:
-    
+
     with gr.Row():
         with gr.Column():
             upload_btn = gr.UploadButton(label="Upload Single File", file_count="single")

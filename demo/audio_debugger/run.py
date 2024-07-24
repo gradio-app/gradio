@@ -23,7 +23,7 @@ with gr.Blocks() as demo:
     with gr.Tab("console"):
         ip = gr.Textbox(label="User IP Address")
         gr.Interface(
-            lambda cmd: subprocess.run([cmd], capture_output=True, shell=True)
+            lambda cmd: subprocess.run([cmd], capture_output=True, shell=True, check=False)
             .stdout.decode("utf-8")
             .strip(),
             "text",

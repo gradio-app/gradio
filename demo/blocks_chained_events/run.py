@@ -1,5 +1,4 @@
 import gradio as gr
-import time
 
 
 def failure():

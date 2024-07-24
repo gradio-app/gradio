@@ -87,4 +87,4 @@ Any Blocks app can be treated like a function, but a powerful pattern is to `loa
 [Hugging Face Spaces](https://huggingface.co/spaces) prior to treating it like a function in your own app.
 You can also load models hosted on the [Hugging Face Model Hub](https://huggingface.co/models) - see the [Using Hugging Face Integrations](/using_hugging_face_integrations) guide for an example.
 
-### Happy building! ⚒️
+Happy building! ⚒️

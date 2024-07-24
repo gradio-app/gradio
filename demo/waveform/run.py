@@ -6,7 +6,7 @@ COLORS = [
     ["#ff0000", "#00ff00"],
     ["#00ff00", "#0000ff"],
     ["#0000ff", "#ff0000"],
-]    
+]
 
 def audio_waveform(audio, image):
     return (
