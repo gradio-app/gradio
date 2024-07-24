@@ -81,9 +81,6 @@
 	export let border = false;
 	export let autoscroll: boolean;
 
-	$: console.log("show_progress", show_progress);
-	// let show_progress: "full" | "minimal" | "hidden" = "full";
-
 	let el: HTMLDivElement;
 
 	let _timer = false;
@@ -133,9 +130,6 @@
 			last_progress_level = undefined;
 		}
 	}
-
-	$: console.log("time_limit", time_limit);
-	$: console.log("status", status);
 
 	const start_timer = (): void => {
 		eta = old_eta = formatted_eta = null;
