@@ -247,7 +247,7 @@ class Video(Component):
         Returns:
             VideoData object containing the video and subtitle files.
         """
-        if value is None or all(x is None for x in value):
+        if value is None or (isinstance(value, (list, tuple)) and all(x is None for x in value)):
             return None
         if isinstance(value, (str, Path)):
             processed_files = (self._format_video(value), None)
