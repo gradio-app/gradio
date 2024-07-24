@@ -8,6 +8,7 @@
 	import { svgCheck } from "$lib/assets/copy.js";
 	import { browser } from "$app/environment";
 	import { onMount } from "svelte";
+	import { createGradioApp } from "$lib/gradio-lite";
 
 	export let demos: {
 		name: string;
@@ -49,8 +50,8 @@
 	let debounced_run_code: Function | undefined;
 	let debounced_install: Function | undefined;
 	onMount(() => {
-		// @ts-ignore
-		controller = globalThis.createGradioApp({
+		controller = createGradioApp({
+			// @ts-ignore
 			target: document.getElementById("lite-demo"),
 			requirements: demos[0].requirements,
 			code: demos[0].code,

@@ -134,3 +134,5 @@ if (BUILD_MODE === "dev") {
 		});
 	})();
 }
+
+export { create as createGradioApp };

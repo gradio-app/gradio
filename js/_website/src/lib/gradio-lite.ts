@@ -1,0 +1,1 @@
+export { createGradioApp } from "../../../app/src/lite/index";
