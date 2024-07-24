@@ -29,6 +29,7 @@ class VideoData(GradioModel):
     video: FileData
     subtitles: Optional[FileData] = None
 
+
 @document()
 class Video(Component):
     """
