@@ -42,6 +42,9 @@
 		if (type.startsWith(".") || type.endsWith("/*")) {
 			return type;
 		}
+		if (ios && type === "file") {
+			return "*";
+		}
 		if (validFileTypes.includes(type)) {
 			return type + "/*";
 		}
