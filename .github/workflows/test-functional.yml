@@ -80,7 +80,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-screenshots
+          name: reload-mode-playwright-screenshots
           path: |
             ./test-results
       - name: Run Lite E2E tests
