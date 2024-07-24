@@ -510,7 +510,7 @@ class BlockFunction:
         rendered_in: Renderable | None = None,
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
-        time_limit: int = 300,
+        time_limit: int | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -699,7 +699,7 @@ class BlocksConfig:
         renderable: Renderable | None = None,
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
-        time_limit: int = 300,
+        time_limit: int | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.

@@ -428,7 +428,7 @@ class EventListener(str):
             concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
             show_api: bool = True,
-            time_limit: int = 300,
+            time_limit: int | None = None,
         ) -> Dependency:
             """
             Parameters:
