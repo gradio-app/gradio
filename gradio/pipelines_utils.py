@@ -97,7 +97,7 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "postprocess": lambda r, text: {
                 "text": text,
                 "entities": r,
-            },  
+            },
         }
     if is_transformers_pipeline_type(pipeline, "TextGenerationPipeline"):
         return {
