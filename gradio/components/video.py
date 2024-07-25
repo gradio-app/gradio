@@ -97,7 +97,7 @@ class Video(Component):
         Parameters:
             value: A path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
-            sources: A list of sources permitted for video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam. If None, defaults to ["upload, "webcam"].
+            sources: A list of sources permitted for video. "upload" creates a box where user can drop a video file, "webcam" allows user to record a video from their webcam. If None, defaults to ["upload, "webcam"].
             height: The height of the displayed video, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the displayed video, specified in pixels if a number is passed, or in CSS units if a string is passed.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -335,7 +335,7 @@ class Video(Component):
             self.format is not None and returned_format != self.format
         ):
             global_option_list = ["-y"]
-            output_file_name = video[0 : video.rindex(".") + 1]
+            output_file_name = video[0: video.rindex(".") + 1]
             if self.format is not None:
                 if returned_format != self.format and wasm_utils.IS_WASM:
                     raise wasm_utils.WasmUnsupportedError(
