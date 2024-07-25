@@ -598,7 +598,7 @@ async def merge_generated_values_into_output(
                         0
                     ]
                 )
-            binary_data = b"".join(binary_chunks)
+            binary_data = b"".join([d["data"] for d in binary_chunks])
             tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(
                 Path(tempfile.gettempdir()) / "gradio"
             )

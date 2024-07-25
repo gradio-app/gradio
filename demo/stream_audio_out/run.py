@@ -8,7 +8,7 @@ with gr.Blocks() as demo:
         with gr.Column():
             stream_as_file_btn = gr.Button("Stream as File")
             format = gr.Radio(["wav", "mp3"], value="wav", label="Format")
-            stream_as_file_output = gr.Audio(streaming=True)
+            stream_as_file_output = gr.Audio(streaming=True, elem_id="stream_as_file_output", autoplay=True)
 
             def stream_file(audio_file, format):
                 audio = AudioSegment.from_file(audio_file)
@@ -36,7 +36,7 @@ with gr.Blocks() as demo:
 
         with gr.Column():
             stream_as_bytes_btn = gr.Button("Stream as Bytes")
-            stream_as_bytes_output = gr.Audio(streaming=True)
+            stream_as_bytes_output = gr.Audio(streaming=True, elem_id="stream_as_bytes_output", autoplay=True)
 
             def stream_bytes(audio_file):
                 chunk_size = 20_000

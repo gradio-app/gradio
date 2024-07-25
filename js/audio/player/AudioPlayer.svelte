@@ -155,7 +155,7 @@
 			hls.loadSource(value.url);
 			hls.attachMedia(audio_player);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				audio_player.play();
+				if (waveform_settings.autoplay) audio_player.play();
 			});
 			hls.on(Hls.Events.ERROR, function (event, data) {
 				console.error("HLS error:", event, data);
@@ -178,6 +178,10 @@
 					}
 				}
 			});
+			stream_active = true;
+		} else if (!stream_active) {
+			audio_player.src = value.url;
+			if (waveform_settings.autoplay) audio_player.play();
 			stream_active = true;
 		}
 	}

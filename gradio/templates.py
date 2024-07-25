@@ -371,6 +371,7 @@ class PlayableVideo(components.Video):
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
+        streaming: bool = False,
     ):
         sources = ["upload"]
         super().__init__(
@@ -400,6 +401,7 @@ class PlayableVideo(components.Video):
             min_length=min_length,
             max_length=max_length,
             loop=loop,
+            streaming=streaming,
         )
 
 

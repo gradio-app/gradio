@@ -304,7 +304,10 @@ class Audio(
         return await anyio.to_thread.run_sync(Audio._convert_to_adts, data)
 
     async def stream_output(
-        self, value, output_id: str, first_chunk: bool
+        self,
+        value,
+        output_id: str,
+        first_chunk: bool,  # noqa: ARG002
     ) -> tuple[MediaStreamChunk | None, FileDataDict]:
         output_file: FileDataDict = {
             "path": output_id,
@@ -321,20 +324,8 @@ class Audio(
         else:
             output_file["orig_name"] = value["orig_name"]
             file_path = value["path"]
-            is_wav = file_path.endswith(".wav")
             with open(file_path, "rb") as f:
                 binary_data = f.read()
-            if is_wav:
-                # strip length information from first chunk header, remove headers entirely from subsequent chunks
-                if first_chunk:
-                    binary_data = (
-                        binary_data[:4] + b"\xff\xff\xff\xff" + binary_data[8:]
-                    )
-                    binary_data = (
-                        binary_data[:40] + b"\xff\xff\xff\xff" + binary_data[44:]
-                    )
-                else:
-                    binary_data = binary_data[44:]
         value, duration = await self.covert_to_adts(binary_data)
         return {"data": value, "duration": duration}, output_file
 

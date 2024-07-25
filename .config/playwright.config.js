@@ -1,10 +1,9 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 
 const base = defineConfig({
 	use: {
 		screenshot: "only-on-failure",
 		trace: "retain-on-failure",
-		permissions: ["clipboard-read", "clipboard-write", "microphone"],
 		bypassCSP: true,
 		launchOptions: {
 			args: [
@@ -20,14 +19,27 @@ const base = defineConfig({
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined,
-	retries: 3
+	retries: 3,
+	projects: [
+		{
+			name: "firefox",
+			use: { ...devices["Desktop Firefox"] },
+			testMatch: /.stream_audio_out\.spec\.ts/
+		},
+		{
+			name: "chromium",
+			use: {
+				...devices["Desktop Chrome"],
+				permissions: ["clipboard-read", "clipboard-write", "microphone"]
+			},
+			testIgnore: /.stream_audio_out\.spec\.ts/
+		}
+	]
 });
 
 const normal = defineConfig(base, {
 	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js"
 });
-
-normal.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
 
 const lite = defineConfig(base, {
 	webServer: {
