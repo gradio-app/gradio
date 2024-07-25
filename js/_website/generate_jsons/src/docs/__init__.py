@@ -2,12 +2,11 @@ import html
 import json
 import os
 import re
-
 import requests
+
+
 from gradio_client.documentation import document_cls, generate_documentation
-
 import gradio
-
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)
@@ -72,8 +71,8 @@ def create_events_matrix():
                     if event == fn["name"]:
                         component_event_list.append(event)
             component_events[component["name"]] = component_event_list
-
-
+    
+    
     return list(events), component_events
 
 events, component_events = create_events_matrix()
@@ -170,10 +169,10 @@ def organize_docs(d):
             elif mode == "py-client":
                 organized["python-client"][c["name"].lower()] = c
             elif mode in ["helpers", "routes", "chatinterface", "modals"]:
-                organized["gradio"][mode][c["name"].lower()] = c
+                organized["gradio"][mode][c["name"].lower()] = c                
             else:
                 organized["gradio"]["building"][c["name"].lower()] = c
-
+    
 
     def format_name(page_name):
         index = None
@@ -188,14 +187,14 @@ def organize_docs(d):
             for category in organized[library]:
                 if page_name in organized[library][category]:
                     return index, page_name, organized[library][category][page_name]["name"], page_path
-        if page_name == "chatinterface":
-            pretty_page_name =  "ChatInterface"
+        if page_name == "chatinterface": 
+            pretty_page_name =  "ChatInterface"              
         return index, page_name, pretty_page_name, page_path
-
-
-    def organize_pages():
+    
+    
+    def organize_pages(): 
         pages = {"gradio": [], "python-client": []}
-        absolute_index = -1
+        absolute_index = -1;
         for library in pages:
             library_templates_dir = os.path.join(TEMPLATES_DIR, library)
             page_folders = sorted(os.listdir(library_templates_dir))
@@ -212,10 +211,10 @@ def organize_docs(d):
     pages = organize_pages()
 
     # content_json = {}
-    # def generate_content_json(pages):
-    #     for library in pages:
-    #         for category in pages[library]:
-    #             for page in category["pages"]:
+    # def generate_content_json(pages): 
+    #     for library in pages: 
+    #         for category in pages[library]: 
+    #             for page in category["pages"]: 
     #                 page_path = os.path.join(TEMPLATES_DIR, page["path"] + ".svx")
     #                 with open(page_path) as f:
     #                     content = f.read()
@@ -239,7 +238,7 @@ def organize_docs(d):
                 with open(os.path.join(JS_DIR, js_component, "README.md")) as f:
                     readme_content = f.read()
 
-                try:
+                try: 
                     latest_npm = requests.get(f"https://registry.npmjs.org/@gradio/{js_component}/latest").json()["version"]
                     latest_npm = f" [v{latest_npm}](https://www.npmjs.com/package/@gradio/{js_component})"
                     readme_content = readme_content.split("\n")

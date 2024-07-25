@@ -23,22 +23,22 @@ demos_by_category = [
         "category": "Text",
         "demos": [
             {
-                "name": "Hello World",
-                "dir": "hello_world",
+                "name": "Hello World", 
+                "dir": "hello_world", 
             },
             {
-                "name": "Hello Blocks",
-                "dir": "hello_blocks",
+                "name": "Hello Blocks", 
+                "dir": "hello_blocks", 
             },
             {
-                "name": "Sentence Builder",
-                "dir": "sentence_builder",
+                "name": "Sentence Builder", 
+                "dir": "sentence_builder", 
             },
             {
-                "name": "Diff Texts",
-                "dir": "diff_texts",
+                "name": "Diff Texts", 
+                "dir": "diff_texts", 
             },
-
+            
 
         ]
     },
@@ -46,8 +46,8 @@ demos_by_category = [
         "category": "Media",
         "demos": [
             {
-                "name": "Sepia Filter",
-                "dir": "sepia_filter",
+                "name": "Sepia Filter", 
+                "dir": "sepia_filter", 
             },
             {
                 "name": "Video Identity",
@@ -58,8 +58,8 @@ demos_by_category = [
                 "dir": "fake_diffusion",
             },
             {
-                "name": "Generate Tone",
-                "dir": "generate_tone",
+                "name": "Generate Tone", 
+                "dir": "generate_tone", 
             },
         ]
     },
@@ -79,12 +79,12 @@ demos_by_category = [
                 "dir": "tax_calculator"
             },
             {
-                "name": "Kinematics",
-                "dir": "blocks_kinematics",
+                "name": "Kinematics", 
+                "dir": "blocks_kinematics", 
             },
             {
-                "name": "Stock Forecast",
-                "dir": "stock_forecast",
+                "name": "Stock Forecast", 
+                "dir": "stock_forecast", 
             },
         ]
     },
@@ -92,32 +92,32 @@ demos_by_category = [
         "category": "Other",
         "demos": [
             {
-                "name": "Tabbed Interface",
-                "dir": "tabbed_interface_lite",
+                "name": "Tabbed Interface", 
+                "dir": "tabbed_interface_lite", 
             },
             {
-                "name": "Chatbot",
-                "dir": "chatinterface_random_response",
+                "name": "Chatbot", 
+                "dir": "chatinterface_random_response", 
             },
             {
-                "name": "Streaming Chatbot",
-                "dir": "chatinterface_streaming_echo",
+                "name": "Streaming Chatbot", 
+                "dir": "chatinterface_streaming_echo", 
             },
             {
-                "name": "Layouts",
-                "dir": "blocks_flipper",
+                "name": "Layouts", 
+                "dir": "blocks_flipper", 
             },
             {
-                "name": "Error",
-                "dir": "calculator",
+                "name": "Error", 
+                "dir": "calculator", 
             },
             {
-                "name": "Chained Events",
-                "dir": "blocks_chained_events",
+                "name": "Chained Events", 
+                "dir": "blocks_chained_events", 
             },
             {
-                "name": "Change Listener",
-                "dir": "blocks_hello",
+                "name": "Change Listener", 
+                "dir": "blocks_hello", 
             }
         ]
     }
@@ -128,7 +128,7 @@ for category in demos_by_category:
         code, description, requirements = get_code_description_and_reqs(demo["dir"])
         demo["code"] = code
         demo["text"] = description
-        demo["requirements"] = requirements
+        demo["requirements"] = requirements 
 
 def generate(json_path):
     with open(json_path, 'w+') as f:

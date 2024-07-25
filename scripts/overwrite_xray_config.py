@@ -1,9 +1,7 @@
+import gradio as gr
+import random
 import json
 import os
-import random
-
-import gradio as gr
-
 
 def fake_func():
     return "Hello There"

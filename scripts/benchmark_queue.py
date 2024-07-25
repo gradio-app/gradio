@@ -24,9 +24,9 @@ import time
 
 import pandas as pd
 import websockets
-from gradio_client import media_data
 
 import gradio as gr
+from gradio_client import media_data
 
 
 def identity_with_sleep(x):
@@ -97,22 +97,22 @@ async def main(host, n_results=100):
     data = pd.DataFrame(results).groupby("fn_to_hit").agg({"mean"})
     data.columns = data.columns.get_level_values(0)
     data = data.reset_index()
-    data = {"fn_to_hit": data["fn_to_hit"].to_list(), "duration": data["duration"].to_list()}
+    data = {"fn_to_hit": data["fn_to_hit"].to_list(), "duration": data["duration"].to_list()}                
     return data
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Upload a demo to a space")
     parser.add_argument("-n", "--n_jobs", type=int, help="number of jobs", default=100, required=False)
-    parser.add_argument("-o", "--output", type=str, help="path to write output to", required=False)
+    parser.add_argument("-o", "--output", type=str, help="path to write output to", required=False)     
     args = parser.parse_args()
 
     host = f"{demo.local_url.replace('http', 'ws')}queue/data"
     data = asyncio.run(main(host, n_results=args.n_jobs))
     data = dict(zip(data["fn_to_hit"], data["duration"]))
-
+    
     print(data)
-
+    
     if args.output:
         print("Writing results to:", args.output)
         json.dump(data, open(args.output, "w"))

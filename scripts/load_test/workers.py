@@ -1,12 +1,10 @@
 from __future__ import annotations
-
-import asyncio
-import uuid
-from dataclasses import dataclass
-from typing import Callable
-
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import StreamingResponse
+from dataclasses import dataclass
+from typing import Callable
+import asyncio
+import uuid
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -53,10 +51,10 @@ async def process_event(event: Event):
         if event.mode == "sse":
             event.outputs.put_nowait(output)
         elif event.mode == "ws":
-            await event.websocket.send_text(output)
+            await event.websocket.send_text(output)    
     if event.mode == "sse":
         event.outputs.put_nowait(None)
-    event.completed = True
+    event.completed = True   
     active_jobs[active_jobs.index(event)] = None
 
 class EventData(BaseModel):
@@ -79,7 +77,7 @@ async def sse_listen(session_id: str):
                     event = evt
                     break
         await asyncio.sleep(0.05)
-
+    
     async def event_generator():
         while not event.completed:
             output = await event.outputs.get()
@@ -100,8 +98,7 @@ async def websocket_endpoint(websocket: WebSocket):
     while True:
         await asyncio.sleep(1)
         if event.completed:
-            return
+            return        
 
 import uvicorn
-
 uvicorn.run(app, host="0.0.0.0", port=7860)

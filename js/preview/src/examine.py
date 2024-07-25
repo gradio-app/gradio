@@ -2,8 +2,8 @@ import argparse
 import importlib
 import inspect
 import os
-import sys
 from pathlib import Path
+import sys
 
 from tomlkit import dumps, parse
 

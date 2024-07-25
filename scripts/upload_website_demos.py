@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import pathlib
 import shutil
 import tempfile
 import textwrap
+import requests
 import time
 import warnings
 
+
 import huggingface_hub
-import requests
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DIR = os.path.dirname(__file__)
@@ -40,10 +42,10 @@ def space_exists(space_id):
     return False
 
 def upload_demo_to_space(
-    demo_name: str,
-    space_id: str,
-    hf_token: str,
-    gradio_version: str | None,
+    demo_name: str, 
+    space_id: str, 
+    hf_token: str, 
+    gradio_version: str | None, 
     gradio_wheel_url: str | None = None,
     gradio_client_url: str | None = None
 ):
@@ -82,13 +84,13 @@ def upload_demo_to_space(
                 with open(os.path.join(requirements_path), "w") as f:
                     f.write(gradio_client_url + "\n" + gradio_wheel_url)
             else:
-                with open(os.path.join(requirements_path)) as f:
+                with open(os.path.join(requirements_path), "r") as f:
                     content = f.read()
                 with open(os.path.join(requirements_path), "w") as f:
                     f.seek(0, 0)
                     f.write(gradio_client_url + "\n" + gradio_wheel_url + "\n" + content)
-
-        try:
+        
+        try: 
             if not space_exists(space_id):
                 print(f"Creating space {space_id}")
                 api.create_repo(
@@ -122,7 +124,7 @@ if __name__ == "__main__":
     parser.add_argument("--GRADIO_VERSION", type=str, help="gradio version")
     args = parser.parse_args()
     gradio_wheel_url = args.WHEEL_URL + f"gradio-{args.GRADIO_VERSION}-py3-none-any.whl"
-
+    
     if args.AUTH_TOKEN is not None:
         hello_world_version = str(huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"])
         for demo in demos:

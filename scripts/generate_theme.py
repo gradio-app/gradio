@@ -1,5 +1,4 @@
 import argparse
-
 from gradio import themes
 
 parser = argparse.ArgumentParser(description='Generate themed CSS which is normally served from the /theme.css endpoint of a Gradio server.')

@@ -73,7 +73,7 @@ for guide_folder in guide_folders:
         contributor = get_labeled_metadata("Contributed by", is_list=False)
 
         url = f"/guides/{guide_name}/"
-
+        
         guide_content = re.sub(
             r"\$code_([a-z _\-0-9]+)",
             lambda x: f"```python\n{demos[x.group(1)]}\n```",
@@ -86,8 +86,8 @@ for guide_folder in guide_folders:
         )
 
         guide_content = re.sub(
-            r"(\n\nTip: )(.*?)(?=\n\n|$)",
-            lambda x: f"<p class='tip'><strong>✍️ Tip:</strong> {x.group(2)}</p>",
+            r"(\n\nTip: )(.*?)(?=\n\n|$)", 
+            lambda x: f"<p class='tip'><strong>✍️ Tip:</strong> {x.group(2)}</p>", 
             guide_content,
         )
 
@@ -100,7 +100,7 @@ for guide_folder in guide_folders:
                 if not any(line.startswith(label) for label in metadata_labels)
             ]
         )
-
+        
         guide_content = re.sub(
             r"```([a-z]+)\n",
             lambda x: f"<div class='codeblock'><pre><code class='lang-{x.group(1)}'>",
@@ -117,7 +117,7 @@ for guide_folder in guide_folders:
             lambda x: f"<gradio-app space='gradio/{x.group(1).replace('_', UNDERSCORE_TOKEN)}' />",
             guide_content,
         )
-
+        
 
 
         guide_data = {
@@ -146,7 +146,7 @@ def generate(json_path):
         json.dump({
             "guides_by_category": guides_by_category,
             }, f)
-    for guide in guides:
+    for guide in guides: 
         with open(json_path + guide["name"] + ".json", 'w+') as f:
             json.dump({
                 "guide": guide
