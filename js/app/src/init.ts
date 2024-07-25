@@ -82,6 +82,8 @@ export function create_components(): {
 			fill_height: boolean;
 		};
 	}): void {
+		// make sure the state is settled before proceeding
+		flush();
 		app = _app;
 		store_keyed_values(_components);
 
@@ -302,7 +304,6 @@ export function create_components(): {
 			}
 			return layout;
 		});
-
 		pending_updates = [];
 		update_scheduled = false;
 		update_scheduled_store.set(false);
@@ -332,9 +333,7 @@ export function create_components(): {
 
 	function close_stream(id: number): void {
 		const comp = _component_map.get(id);
-		console.log("COMP", comp);
 		if (comp && comp.instance.close_stream) {
-			console.log("Closing stream");
 			comp.instance.close_stream();
 		}
 	}
