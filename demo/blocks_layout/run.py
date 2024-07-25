@@ -1,6 +1,5 @@
 import gradio as gr
 
-
 demo = gr.Blocks()
 
 with demo:
@@ -33,7 +32,6 @@ with demo:
     gr.Textbox(label="Text")
     gr.Number(label="Count")
     gr.Radio(choices=["One", "Two"])
-
 
 if __name__ == "__main__":
     demo.launch()

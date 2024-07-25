@@ -13,7 +13,6 @@ datasets = {
 
 val = 0
 
-
 def _range(e):
     global val
     e['range'] = val
@@ -25,7 +24,6 @@ def _range(e):
     e['week'] = week
 
     return e
-
 
 def _ignore_org_members(e):
     global val
@@ -51,7 +49,6 @@ for k, v in datasets['issues'].items():
 datasets['stars'] = DatasetDict(**stars)
 datasets['issues'] = DatasetDict(**issues)
 
-
 def link_values(library_names, returned_values):
     previous_values = {library_name: None for library_name in library_names}
     for library_name in library_names:
@@ -63,12 +60,10 @@ def link_values(library_names, returned_values):
 
     return returned_values
 
-
 def running_mean(x, N, total_length=-1):
     cumsum = np.cumsum(np.insert(x, 0, 0))
     to_pad = max(total_length - len(cumsum), 0)
     return np.pad(cumsum[N:] - cumsum[:-N], (to_pad, 0)) / float(N)
-
 
 def retrieve_pip_installs(library_names, cumulated):
 
@@ -102,7 +97,6 @@ def retrieve_pip_installs(library_names, cumulated):
     output['day'] = list(returned_values.keys())
     return output
 
-
 def retrieve_stars(libraries, week_over_week):
     returned_values = {}
     dataset_dict = datasets['stars']
@@ -131,7 +125,6 @@ def retrieve_stars(libraries, week_over_week):
     # Trim down to a smaller number of points.
     output = {k: [v for i, v in enumerate(value) if i % int(len(value) / 100) == 0] for k, value in output.items()}
     return output
-
 
 def retrieve_issues(libraries, exclude_org_members, week_over_week):
 

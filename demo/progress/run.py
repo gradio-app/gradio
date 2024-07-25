@@ -92,6 +92,5 @@ with gr.Blocks() as demo:
         return "done"
     bind_internal_tqdm_btn.click(bind_internal_tqdm, {text, textb}, text2)
 
-
 if __name__ == "__main__":
     demo.launch()

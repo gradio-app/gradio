@@ -7,7 +7,6 @@ def load_set(progress=gr.Progress()):
         time.sleep(0.1)
     return "Loaded"
 
-
 with gr.Blocks() as demo:
     load = gr.Button("Load")
     label = gr.Label(label="Loader")

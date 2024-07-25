@@ -3,7 +3,6 @@ import gradio as gr
 def video_identity(video):
     return video
 
-
 demo = gr.Interface(video_identity,
                     gr.Video(),
                     "playable_video",

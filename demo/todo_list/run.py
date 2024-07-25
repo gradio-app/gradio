@@ -34,8 +34,5 @@ with gr.Blocks() as demo:
         for task in complete:
             gr.Textbox(task['name'], show_label=False, container=False)
 
-
-
-
 if __name__ == "__main__":
     demo.launch()

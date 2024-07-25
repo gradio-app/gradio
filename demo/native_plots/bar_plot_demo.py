@@ -34,7 +34,6 @@ with gr.Blocks() as bar_plots:
         time_graphs
     )
 
-
     def rescale(select: gr.SelectData):
         return select.index
     rescale_evt = gr.on([plot.select for plot in time_graphs], rescale, None, [start, end])
@@ -70,7 +69,6 @@ with gr.Blocks() as bar_plots:
             x_bin=1,
             color_map={"Italian": "red", "Mexican": "green", "Chinese": "blue"},
         )
-
 
 if __name__ == "__main__":
     bar_plots.launch()

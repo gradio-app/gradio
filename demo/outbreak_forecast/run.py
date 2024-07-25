@@ -7,7 +7,6 @@ import numpy as np
 import plotly.express as px
 import pandas as pd
 
-
 def outbreak(plot_type, r, month, countries, social_distancing):
     months = ["January", "February", "March", "April", "May"]
     m = months.index(month)
@@ -43,7 +42,6 @@ def outbreak(plot_type, r, month, countries, social_distancing):
         return fig
     else:
         raise ValueError("A plot type must be selected")
-
 
 inputs = [
     gr.Dropdown(["Matplotlib", "Plotly", "Altair"], label="Plot Type"),

@@ -140,7 +140,6 @@
 		if (!value) return;
 		old_width = chart_element.offsetWidth;
 		const spec = create_vega_lite_spec();
-		if (!spec) return;
 		let resizeObserver = new ResizeObserver(() => {
 			if (
 				old_width === 0 &&
@@ -217,6 +216,7 @@
 		y_lim,
 		caption,
 		sort,
+		value,
 		mounted && load_chart();
 
 	function create_vega_lite_spec(): Spec | null {

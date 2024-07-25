@@ -4,7 +4,6 @@ import os
 
 audio_file = os.path.join(os.path.dirname(__file__), "cantina.wav")
 
-
 with gr.Blocks() as demo:
     with gr.Tab("Audio"):
         gr.Audio(audio_file)
@@ -36,5 +35,4 @@ with gr.Blocks() as demo:
     demo.load(get_ip, None, ip)
 
 if __name__ == "__main__":
-    demo.queue()
     demo.launch()

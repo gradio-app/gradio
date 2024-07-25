@@ -9,6 +9,5 @@ demo = gr.Interface(
                [("/Users/freddy/sources/gradio/demo/code/run.py", )]]
 )
 
-
 if __name__ == "__main__":
     demo.launch()

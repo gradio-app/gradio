@@ -22,6 +22,5 @@ with gr.Blocks() as demo:
         item.change(lambda x:x, item, change_output)
         item.submit(lambda x:x, item, submit_output)
 
-
 if __name__ == "__main__":
     demo.launch()

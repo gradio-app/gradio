@@ -1,7 +1,6 @@
 import gradio as gr
 import random
 
-
 COLORS = [
     ["#ff0000", "#00ff00"],
     ["#00ff00", "#0000ff"],
@@ -15,7 +14,6 @@ def audio_waveform(audio, image):
         gr.make_waveform(audio, animate=True),
         gr.make_waveform(audio, bg_image=image, bars_color=str(random.choice(COLORS))),
     )
-
 
 gr.Interface(
     audio_waveform,

@@ -1,13 +1,11 @@
 # %%
 import gradio as gr
 
-
 TEST_VIDEO_A = "mp4/a.mp4"
 TEST_VIDEO_B = "mp4/b.mp4"
 
 TEST_IMAGE_A = "img/a.jpg"
 TEST_IMAGE_B = "img/b.jpg"
-
 
 def alert_change(component, value):
     print(f"Detected {component} change, {type(value)}")
@@ -15,10 +13,8 @@ def alert_change(component, value):
     if type(value) == list or type(value) == str:
         print(value)
 
-
 def change_interactive(state):
     return gr.Video(interactive=not state), not state
-
 
 with gr.Blocks() as demo:
     with gr.Tab(label="Text change"):

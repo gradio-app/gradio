@@ -32,6 +32,5 @@ with gr.Blocks() as demo:
         a = gr.Textbox(elem_id="input-box")
         a.change(lambda x: x, inputs=[a])
 
-
 if __name__ == "__main__":
     demo.launch()

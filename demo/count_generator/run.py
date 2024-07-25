@@ -21,7 +21,5 @@ with gr.Blocks() as demo:
     count_btn.click(count, num, out)
     list_btn.click(show, num, out)
 
-demo.queue()
-
 if __name__ == "__main__":
     demo.launch()

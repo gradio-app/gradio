@@ -21,6 +21,5 @@ with gr.Blocks() as demo:
     )
     clear.click(lambda: None, None, chatbot, queue=False)
 
-demo.queue()
 if __name__ == "__main__":
     demo.launch()

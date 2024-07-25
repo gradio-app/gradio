@@ -19,6 +19,5 @@ with gr.Blocks() as demo:
         outputs=[output, trigger],
     ).then(clear_name, outputs=[name])
 
-
 if __name__ == "__main__":
     demo.launch()

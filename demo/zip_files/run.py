@@ -3,7 +3,6 @@ from zipfile import ZipFile
 
 import gradio as gr
 
-
 def zip_files(files):
     with ZipFile("tmp.zip", "w") as zipObj:
         for idx, file in enumerate(files):

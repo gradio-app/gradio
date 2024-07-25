@@ -17,7 +17,6 @@ with gr.Blocks() as demo:
 
         merge_btn.click(merge, boxes, output)
 
-
     merge_btn = gr.Button("Merge")
     output = gr.Textbox(label="Merged Output")
 

@@ -121,6 +121,5 @@ with gr.Blocks() as demo:
     audio_ch.change(lambda x:x, audio_ch, audio_ch2)
     video_ch.change(lambda x:x, video_ch, video_ch2)
 
-
 if __name__ == "__main__":
     demo.launch()

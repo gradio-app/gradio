@@ -4,7 +4,6 @@ import pandas as pd
 from huggingface_hub.hf_api import SpaceInfo
 path = "https://huggingface.co/api/spaces"
 
-
 def get_blocks_party_spaces():
     r = requests.get(path)
     d = r.json()

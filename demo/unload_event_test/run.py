@@ -7,7 +7,6 @@ from pathlib import Path
 
 log_file = (Path(__file__).parent / "output_log.txt").resolve()
 
-
 def test_fn(x):
     with open(log_file, "a") as f:
         f.write(f"incremented {x}\n")

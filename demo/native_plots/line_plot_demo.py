@@ -34,7 +34,6 @@ with gr.Blocks() as line_plots:
         time_graphs
     )
 
-
     def rescale(select: gr.SelectData):
         return select.index
     rescale_evt = gr.on([plot.select for plot in time_graphs], rescale, None, [start, end])
@@ -62,7 +61,6 @@ with gr.Blocks() as line_plots:
             color="cuisine",
             color_map={"Italian": "red", "Mexican": "green", "Chinese": "blue"},
         )
-
 
 if __name__ == "__main__":
     line_plots.launch()

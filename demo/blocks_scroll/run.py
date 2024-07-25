@@ -1,6 +1,5 @@
 import gradio as gr
 
-
 demo = gr.Blocks()
 
 with demo:

@@ -21,6 +21,5 @@ with gr.Blocks() as demo:
             upload_btn_multiple.upload(lambda s,n: (s, n + 1), [upload_btn_multiple, num_load_btn_2], [output_file_2, num_load_btn_2])
             upload_btn_multiple.click(lambda n: (n + 1), output_click_2, [output_click_2])
 
-
 if __name__ == "__main__":
     demo.launch()

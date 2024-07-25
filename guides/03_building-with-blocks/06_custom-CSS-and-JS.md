@@ -15,7 +15,7 @@ Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`
 
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg. You can either the filepath to a CSS file, or a string of CSS code.
 
-**Warning**: The use of query selectors in custom JS and CSS is _not_ guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
+**Warning**: The use of query selectors in custom JS and CSS is _not_ guaranteed to work across Gradio versions that bind to Gradio's own HTML elements as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
 
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
 

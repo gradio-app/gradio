@@ -16,7 +16,7 @@ demo = gr.Interface(generate,
              "image",
              batch=True,
              max_batch_size=4  # Set the batch size based on your CPU/GPU memory
-).queue()
+)
 
 if __name__ == "__main__":
     demo.launch()

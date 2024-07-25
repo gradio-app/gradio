@@ -22,7 +22,6 @@ example_list = [
     ["piano.wav"]
 ]
 
-
 def predict(audio_path):
     start_time = timer()
     wavform, sample_rate = torchaudio.load(audio_path)

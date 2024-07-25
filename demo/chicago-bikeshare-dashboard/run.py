@@ -12,7 +12,6 @@ connection_string = (
     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}?port={PORT}&dbname={DB_NAME}"
 )
 
-
 def get_count_ride_type():
     df = pd.read_sql(
         """
@@ -24,7 +23,6 @@ def get_count_ride_type():
         con=connection_string,
     )
     return df
-
 
 def get_most_popular_stations():
 
@@ -40,7 +38,6 @@ def get_most_popular_stations():
         con=connection_string,
     )
     return df
-
 
 with gr.Blocks() as demo:
     gr.Markdown(

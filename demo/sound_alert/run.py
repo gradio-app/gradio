@@ -1,7 +1,6 @@
 import time
 import gradio as gr
 
-
 js_function = "() => {new Audio('file=beep.mp3').play();}"
 
 def task(x):

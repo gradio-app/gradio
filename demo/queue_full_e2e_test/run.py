@@ -13,7 +13,6 @@ def get_random_number():
     time.sleep(5)
     return random.randrange(1, 10)
 
-
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():

@@ -34,7 +34,6 @@ with gr.Blocks() as demo:
 
     select_tab_num = gr.Number(label="Select Tab #", value=1)
 
-
     hide_odd_btn.click(lambda: [gr.Tab(visible=i % 2 == 1) for i, _ in enumerate(tabset_1 + tabset_2)], outputs=(tabset_1 + tabset_2))
     show_all_btn.click(lambda: [gr.Tab(visible=True) for tab in tabset_1 + tabset_2], outputs=(tabset_1 + tabset_2))
     make_even_uninteractive_btn.click(lambda: [gr.Tab(interactive=i % 2 == 0) for i, _ in enumerate(tabset_1 + tabset_2)], outputs=(tabset_1 + tabset_2))
@@ -44,7 +43,6 @@ with gr.Blocks() as demo:
     def get_selected_index(evt: gr.SelectData):
         return evt.value
     gr.on([tab.select for tab in tabset_1 + tabset_2], get_selected_index, outputs=selected)
-
 
 if __name__ == "__main__":
     demo.launch()
