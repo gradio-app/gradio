@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import sys
+import uuid
 from collections import deque
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
@@ -41,7 +42,7 @@ from starlette.responses import PlainTextResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from gradio import processing_utils, utils
-from gradio.data_classes import BlocksConfigDict, PredictBody
+from gradio.data_classes import BlocksConfigDict, MediaStreamChunk, PredictBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.state_holder import SessionState
@@ -844,3 +845,23 @@ def create_lifespan_handler(
             yield
 
     return _handler
+
+
+class MediaStream:
+    def __init__(self):
+        self.segments = []
+        self.ended = False
+        self.segment_index = 0
+        self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+
+    async def add_segment(self, data: MediaStreamChunk | None):
+        if not data:
+            return
+
+        segment_id = str(uuid.uuid4())
+        self.segments.append(
+            {"id": segment_id, "duration": data["duration"], "data": data["data"]}
+        )
+
+    def end_stream(self):
+        self.ended = True

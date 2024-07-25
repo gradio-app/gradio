@@ -517,7 +517,7 @@ class Examples:
                     )
                 output = prediction["data"]
                 if len(generated_values):
-                    output = merge_generated_values_into_output(
+                    output = await merge_generated_values_into_output(
                         self.outputs, generated_values, output
                     )
                 if self.batch:
@@ -579,7 +579,7 @@ class Examples:
         return output
 
 
-def merge_generated_values_into_output(
+async def merge_generated_values_into_output(
     components: Sequence[Component], generated_values: list, output: list
 ):
     from gradio.components.base import StreamingOutput

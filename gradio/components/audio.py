@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 import dataclasses
+import io
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
+import anyio
 import httpx
 import numpy as np
 from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
+from pydub import AudioSegment
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput
-from gradio.data_classes import FileData
+from gradio.data_classes import FileData, FileDataDict, MediaStreamChunk
 from gradio.events import Events
 from gradio.exceptions import Error
 
@@ -287,17 +290,31 @@ class Audio(
             orig_name = Path(file_path).name if Path(file_path).exists() else None
         return FileData(path=file_path, orig_name=orig_name)
 
-    def stream_output(
+    @staticmethod
+    def _convert_to_adts(data: bytes):
+        segment = AudioSegment.from_file(io.BytesIO(data))
+
+        buffer = io.BytesIO()
+        segment.export(buffer, format="adts")  # ADTS is a container format for AAC
+        aac_data = buffer.getvalue()
+        return aac_data, len(segment) / 1000.0
+
+    @staticmethod
+    async def covert_to_adts(data: bytes) -> tuple[bytes, float]:
+        return await anyio.to_thread.run_sync(Audio._convert_to_adts, data)
+
+    async def stream_output(
         self, value, output_id: str, first_chunk: bool
-    ) -> tuple[bytes | None, Any]:
-        output_file = {
+    ) -> tuple[MediaStreamChunk | None, FileDataDict]:
+        output_file: FileDataDict = {
             "path": output_id,
             "is_stream": True,
         }
         if value is None:
             return None, output_file
         if isinstance(value, bytes):
-            return value, output_file
+            value, duration = await self.covert_to_adts(value)
+            return {"data": value, "duration": duration}, output_file
         if client_utils.is_http_url_like(value["path"]):
             response = httpx.get(value["path"])
             binary_data = response.content
@@ -318,7 +335,8 @@ class Audio(
                     )
                 else:
                     binary_data = binary_data[44:]
-        return binary_data, output_file
+        value, duration = await self.covert_to_adts(binary_data)
+        return {"data": value, "duration": duration}, output_file
 
     def process_example(
         self, value: tuple[int, np.ndarray] | str | Path | bytes | None
