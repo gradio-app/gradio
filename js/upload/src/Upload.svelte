@@ -26,11 +26,24 @@
 	let file_data: FileData[];
 	let accept_file_types: string | null;
 
+	const get_ios = (): boolean => {
+		if (typeof navigator !== "undefined") {
+			const userAgent = navigator.userAgent.toLowerCase();
+			return userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1;
+		}
+		return false;
+	};
+
+	$: ios = get_ios();
+
 	const dispatch = createEventDispatcher();
 	const validFileTypes = ["image", "video", "audio", "text", "file"];
 	const processFileType = (type: string): string => {
 		if (type.startsWith(".") || type.endsWith("/*")) {
 			return type;
+		}
+		if (ios && type === "file") {
+			return "*";
 		}
 		if (validFileTypes.includes(type)) {
 			return type + "/*";
@@ -42,6 +55,8 @@
 		accept_file_types = null;
 	} else if (typeof filetype === "string") {
 		accept_file_types = processFileType(filetype);
+	} else if (ios && filetype.includes("file/*")) {
+		accept_file_types = "*";
 	} else {
 		filetype = filetype.map(processFileType);
 		accept_file_types = filetype.join(", ");

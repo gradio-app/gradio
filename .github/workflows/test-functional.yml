@@ -76,6 +76,13 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm test:browser:reload
+      - name: upload reload mode screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reload-mode-playwright-screenshots
+          path: |
+            ./test-results
       - name: Run Lite E2E tests
         run: |
           . venv/bin/activate
