@@ -607,7 +607,9 @@ class Queue:
                                 else ServerMessage.process_streaming,
                                 output=old_response,
                                 success=old_response is not None,
-                                time_limit=fn.time_limit - first_iteration if event.streaming else None,
+                                time_limit=fn.time_limit - first_iteration
+                                if event.streaming
+                                else None,
                             ),
                         )
                     awake_events = [event for event in awake_events if event.alive]
@@ -735,4 +737,4 @@ class Queue:
         async with app.lock:
             del app.iterators[event_id]
             app.iterators_to_reset.add(event_id)
-        returnH
+        return

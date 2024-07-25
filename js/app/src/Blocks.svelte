@@ -341,7 +341,6 @@
 					make_prediction(dep.final_event);
 				}
 				dep.pending_request = false;
-				console.log("data", data)
 				handle_update(data, fn_index);
 				set_status($loading_status);
 			}
