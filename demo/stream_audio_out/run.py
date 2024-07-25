@@ -32,6 +32,7 @@ with gr.Blocks() as demo:
                 [input_audio, format],
                 fn=stream_file,
                 outputs=stream_as_file_output,
+                cache_examples=False,
             )
 
         with gr.Column():
