@@ -66,10 +66,11 @@
 		white-space: nowrap;
 	}
 
-	.container :global(img), .container :global(video) {
+	.container :global(img),
+	.container :global(video) {
 		object-fit: contain;
-		width: 250px;
-		height: 250px;
+		width: 100px;
+		height: 100px;
 	}
 
 	.container.selected {
