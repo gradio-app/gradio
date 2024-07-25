@@ -594,7 +594,9 @@ async def merge_generated_values_into_output(
                 if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
                     processed_chunk = processed_chunk.model_dump()
                 binary_chunks.append(
-                    output_component.stream_output(processed_chunk, "", i == 0)[0]
+                    (await output_component.stream_output(processed_chunk, "", i == 0))[
+                        0
+                    ]
                 )
             binary_data = b"".join(binary_chunks)
             tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(

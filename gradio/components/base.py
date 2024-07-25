@@ -373,7 +373,7 @@ class StreamingOutput(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     async def stream_output(
         self, value, output_id: str, first_chunk: bool
-    ) -> tuple[MediaStreamChunk | None, FileDataDict]:
+    ) -> tuple[MediaStreamChunk | None, FileDataDict | dict]:
         pass
 
 
