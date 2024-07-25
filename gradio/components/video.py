@@ -91,7 +91,7 @@ class Video(Component):
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
-        watermark_file: str | Path = None,
+        watermark_file: str | Path | None = None,
     ):
         """
         Parameters:
@@ -335,7 +335,7 @@ class Video(Component):
             self.format is not None and returned_format != self.format
         ):
             global_option_list = ["-y"]
-            output_file_name = video[0: video.rindex(".") + 1]
+            output_file_name = video[0 : video.rindex(".") + 1]
             if self.format is not None:
                 if returned_format != self.format and wasm_utils.IS_WASM:
                     raise wasm_utils.WasmUnsupportedError(
@@ -346,7 +346,7 @@ class Video(Component):
                 output_file_name += returned_format
             inputs_dict = {video: None}
             if self.watermark_file:
-                inputs_dict[self.watermark_file] = None
+                inputs_dict[str(self.watermark_file)] = None
                 # TODO: Add on to this for more functionality for placement, opacity, etc.
                 watermark_cmd = "[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]overlay=(main_w-overlay_w):(main_h-overlay_h)"
                 global_option_list += [f"-filter_complex {watermark_cmd}"]
