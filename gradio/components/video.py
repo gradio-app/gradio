@@ -311,8 +311,7 @@ class Video(Component):
 
         # For cases where the video is a URL and does not need to be converted
         # to another format or have a watermark added, we can just return the URL
-        if is_url and not (conversion_needed):
-            if not self.watermark_file:
+        if is_url and not (conversion_needed) and not self.watermark_file:
                 return FileData(path=video)
 
         # For cases where the video needs to be converted to another format
