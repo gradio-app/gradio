@@ -316,4 +316,9 @@ strong {
 
 .obj .codeblock {
 	@apply my-4;
+	display: grid;
+}
+
+summary {
+	display: grid !important;
 }

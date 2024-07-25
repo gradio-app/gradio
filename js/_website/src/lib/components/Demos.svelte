@@ -40,4 +40,5 @@
 		color: #374151;
 		font-weight: 500;
 	}
+
 </style>
