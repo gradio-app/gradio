@@ -164,7 +164,7 @@
 				return file.name.toLowerCase().endsWith(processed_type.toLowerCase());
 			}
 
-			if (processed_type === "*" || processed_type === "file/*") {
+			if (processed_type === "*") {
 				return true;
 			}
 
