@@ -476,5 +476,6 @@ class Video(StreamingOutput, Component):
         chunk: MediaStreamChunk = {
             "data": Path(ts_file).read_bytes(),
             "duration": duration,
+            "extension": ".ts",
         }
         return chunk, output_file

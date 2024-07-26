@@ -854,7 +854,7 @@ def create_lifespan_handler(
 
 class MediaStream:
     def __init__(self):
-        self.segments = []
+        self.segments: list[MediaStreamChunk] = []
         self.ended = False
         self.segment_index = 0
         self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
@@ -864,9 +864,7 @@ class MediaStream:
             return
 
         segment_id = str(uuid.uuid4())
-        self.segments.append(
-            {"id": segment_id, "duration": data["duration"], "data": data["data"]}
-        )
+        self.segments.append({"id": segment_id, **data})
 
     def end_stream(self):
         self.ended = True

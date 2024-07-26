@@ -599,11 +599,6 @@ class App(FastAPI):
                 .get(component_id, None)
             )
 
-            if isinstance(app.get_blocks().get_component(component_id), gradio.Video):
-                extension = ".ts"
-            else:
-                extension = ".aac"
-
             if not stream:
                 return Response(status_code=404)
 
@@ -611,7 +606,7 @@ class App(FastAPI):
 
             for segment in stream.segments:
                 playlist += f"#EXTINF:{segment['duration']:.3f},\n"
-                playlist += f"{segment['id']}{extension}\n"
+                playlist += f"{segment['id']}{segment['extension']}\n"  # type: ignore
 
             if stream.ended:
                 playlist += "#EXT-X-ENDLIST\n"
@@ -636,7 +631,7 @@ class App(FastAPI):
             if not stream:
                 return Response(status_code=404, content="Stream not found")
 
-            segment = next((s for s in stream.segments if s["id"] == segment_id), None)
+            segment = next((s for s in stream.segments if s["id"] == segment_id), None)  # type: ignore
 
             if segment is None:
                 return Response(status_code=404, content="Segment not found")
@@ -645,6 +640,28 @@ class App(FastAPI):
                 return Response(content=segment["data"], media_type="audio/aac")
             else:
                 return Response(content=segment["data"], media_type="video/MP2T")
+
+        @app.get("/stream/{session_hash}/{run}/{component_id}/playlist-file")
+        async def _(session_hash: str, run: int, component_id: int):
+            stream: route_utils.MediaStream | None = (
+                app.get_blocks()
+                .pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
+
+            if not stream:
+                return Response(status_code=404)
+
+            byte_stream = b""
+            extension = ""
+            for segment in stream.segments:
+                extension = segment["extension"]
+                byte_stream += segment["data"]
+
+            media_type = "video/MP2T" if extension == ".ts" else "audio/aac"
+
+            return Response(content=byte_stream, media_type=media_type)
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):

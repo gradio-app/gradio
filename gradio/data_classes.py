@@ -326,4 +326,5 @@ class BlocksConfigDict(TypedDict):
 class MediaStreamChunk(TypedDict):
     data: bytes
     duration: float
+    extension: str
     id: NotRequired[str]

@@ -317,7 +317,11 @@ class Audio(
             return None, output_file
         if isinstance(value, bytes):
             value, duration = await self.covert_to_adts(value)
-            return {"data": value, "duration": duration}, output_file
+            return {
+                "data": value,
+                "duration": duration,
+                "extension": ".aac",
+            }, output_file
         if client_utils.is_http_url_like(value["path"]):
             response = httpx.get(value["path"])
             binary_data = response.content
@@ -327,7 +331,7 @@ class Audio(
             with open(file_path, "rb") as f:
                 binary_data = f.read()
         value, duration = await self.covert_to_adts(binary_data)
-        return {"data": value, "duration": duration}, output_file
+        return {"data": value, "duration": duration, "extension": ".aac"}, output_file
 
     def process_example(
         self, value: tuple[int, np.ndarray] | str | Path | bytes | None
