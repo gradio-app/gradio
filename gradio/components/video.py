@@ -437,8 +437,7 @@ class Video(StreamingOutput, Component):
             *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
 
-        stdout, stderr = await process.communicate()
-        print("stdout", stdout)
+        _, stderr = await process.communicate()
 
         if process.returncode != 0:
             error_message = stderr.decode().strip()

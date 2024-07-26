@@ -24,7 +24,7 @@ const base = defineConfig({
 		{
 			name: "firefox",
 			use: { ...devices["Desktop Firefox"] },
-			testMatch: /.stream_audio_out\.spec\.ts/
+			testMatch: /.stream_(audio|video)_out\.spec\.ts/
 		},
 		{
 			name: "chrome",
