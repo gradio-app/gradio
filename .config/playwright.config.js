@@ -20,14 +20,27 @@ const base = defineConfig({
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined,
-	retries: 3
+	retries: 3,
+	projects: [
+		{
+			name: "firefox",
+			use: { ...devices["Desktop Firefox"] },
+			testMatch: /.stream_(audio|video)_out\.spec\.ts/
+		},
+		{
+			name: "chrome",
+			use: {
+				...devices["Desktop Chrome"],
+				permissions: ["clipboard-read", "clipboard-write", "microphone"]
+			},
+			testIgnore: /.stream_(audio|video)_out\.spec\.ts/
+		}
+	]
 });
 
 const normal = defineConfig(base, {
 	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js"
 });
-
-normal.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
 
 const lite = defineConfig(base, {
 	webServer: {
@@ -45,7 +58,5 @@ const lite = defineConfig(base, {
 	retries: 3,
 	timeout: 60000
 });
-
-lite.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
 
 export default !!process.env.GRADIO_E2E_TEST_LITE ? lite : normal;
