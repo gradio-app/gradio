@@ -206,7 +206,7 @@ class Video(Component):
         valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
         if self.watermark_file is not None:
             if not isinstance(self.watermark_file, (str, Path)):
-                raise gr.Error(
+                raise ValueError(
                     f"Provided watermark file not an expected file type. "
                     f"Received: {self.watermark_file}"
                 )
