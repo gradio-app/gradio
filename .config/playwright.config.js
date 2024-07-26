@@ -27,12 +27,12 @@ const base = defineConfig({
 			testMatch: /.stream_audio_out\.spec\.ts/
 		},
 		{
-			name: "chromium",
+			name: "chrome",
 			use: {
 				...devices["Desktop Chrome"],
 				permissions: ["clipboard-read", "clipboard-write", "microphone"]
 			},
-			testIgnore: /.stream_audio_out\.spec\.ts/
+			testIgnore: /.stream_(audio|video)_out\.spec\.ts/
 		}
 	]
 });
@@ -57,7 +57,5 @@ const lite = defineConfig(base, {
 	retries: 3,
 	timeout: 60000
 });
-
-lite.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
 
 export default !!process.env.GRADIO_E2E_TEST_LITE ? lite : normal;

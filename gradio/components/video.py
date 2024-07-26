@@ -463,6 +463,11 @@ class Video(StreamingOutput, Component):
 
         ts_file = value
         if not value.endswith(".ts"):
+            if not value.endswith(".mp4"):
+                raise gr.Error(
+                    "Video must be in .mp4 or .ts format to be streamed as chunks",
+                    visible=False,
+                )
             ts_file = value.replace(".mp4", ".ts")
             await self.async_convert_mp4_to_ts(value, ts_file)
 

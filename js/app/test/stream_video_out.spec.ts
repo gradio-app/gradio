@@ -1,0 +1,29 @@
+import { test, expect } from "@gradio/tootils";
+
+test("video streams from ts files correctly", async ({ page }) => {
+	await page.getByRole("gridcell", { name: "false" }).click();
+	await page.getByRole("button", { name: "process video" }).click();
+	await expect
+		.poll(
+			async () =>
+				await page
+					.locator("#stream_video_output video")
+					// @ts-ignore
+					.evaluate((el) => el.currentTime)
+		)
+		.toBeGreaterThan(0);
+});
+
+test("video streams from mp4 files correctly", async ({ page }) => {
+	await page.getByRole("gridcell", { name: "true" }).click();
+	await page.getByRole("button", { name: "process video" }).click();
+	await expect
+		.poll(
+			async () =>
+				await page
+					.locator("#stream_video_output video")
+					// @ts-ignore
+					.evaluate((el) => el.currentTime)
+		)
+		.toBeGreaterThan(0);
+});
