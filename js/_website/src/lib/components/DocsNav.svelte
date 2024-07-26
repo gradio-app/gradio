@@ -56,11 +56,11 @@
 	</button>
 
 	{#if show_dropdown}
-	<div
-		class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block my-4 ml-4"
-	>
-		<DropDown></DropDown>
-	</div>
+		<div
+			class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block my-4 ml-4"
+		>
+			<DropDown></DropDown>
+		</div>
 	{/if}
 
 	{#each library_pages as category_pages}

@@ -173,5 +173,6 @@ export const redirects = {
 	"/docs/python-client/python-client": "/docs/python-client/introduction",
 	"/docs/python-client/js-client": "/docs/js-client",
 	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface",
-	"/docs/third-party-clients/introduction": "/main/docs/third-party-clients/introduction"
+	"/docs/third-party-clients/introduction":
+		"/main/docs/third-party-clients/introduction"
 };

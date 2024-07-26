@@ -92,14 +92,11 @@
 	$: title =
 		all_headers.page_title.title === "Introduction"
 			? "Third Party Client - " + all_headers.page_title.title + " Docs"
-			: "Third Python Client - " +
-				all_headers.page_title.title +
-				" Class Docs";
+			: "Third Python Client - " + all_headers.page_title.title + " Class Docs";
 	$: description =
 		all_headers.page_title.title === "Introduction"
 			? "Make programmatic requests to Gradio applications from third party clients."
-			: "Using " +
-				all_headers.page_title.title;
+			: "Using " + all_headers.page_title.title;
 </script>
 
 <MetaTags
@@ -113,7 +110,11 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-		<DocsNav current_nav_link={name} library_pages={pages} show_dropdown={false} />
+		<DocsNav
+			current_nav_link={name}
+			library_pages={pages}
+			show_dropdown={false}
+		/>
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
@@ -130,7 +131,6 @@
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
 			</div>
-
 
 			<div class="flex justify-between mt-4 lg:ml-10">
 				{#if prev_obj}
