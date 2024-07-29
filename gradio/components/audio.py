@@ -290,26 +290,7 @@ class Audio(
             orig_name = Path(file_path).name if Path(file_path).exists() else None
         return FileData(path=file_path, orig_name=orig_name)
 
-    @staticmethod
-    def _convert_to_adts(data: bytes):
-        import io
-
-        from pydub import AudioSegment
-
-        segment = AudioSegment.from_file(io.BytesIO(data))
-
-        buffer = io.BytesIO()
-        segment.export(buffer, format="adts")  # ADTS is a container format for AAC
-        aac_data = buffer.getvalue()
-        return aac_data, len(segment) / 1000.0
-
-    @staticmethod
-    async def covert_to_adts(data: bytes) -> tuple[bytes, float]:
-        import anyio
-
-        return await anyio.to_thread.run_sync(Audio._convert_to_adts, data)
-
-    async def stream_output(
+    def stream_output(
         self, value, output_id: str, first_chunk: bool
     ) -> tuple[bytes | None, Any]:
         output_file = {
@@ -319,8 +300,7 @@ class Audio(
         if value is None:
             return None, output_file
         if isinstance(value, bytes):
-            value, duration = await self.covert_to_adts(value)
-            return {"data": value, "duration": duration}, output_file
+            return value, output_file
         if client_utils.is_http_url_like(value["path"]):
             response = httpx.get(value["path"])
             binary_data = response.content
