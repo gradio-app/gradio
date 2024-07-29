@@ -91,7 +91,7 @@ class Video(Component):
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
-        watermark_file: str | Path | None = None,
+        watermark: str | Path | None = None,
     ):
         """
         Parameters:
@@ -121,7 +121,7 @@ class Video(Component):
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             loop: If True, the video will loop when it reaches the end and continue playing from the beginning.
-            watermark_file: An image file to be included as a watermark on the video. By default, scaled to .2 size of the main video, and displayed on the bottom right. Currently validated formats: jpeg, png.
+            watermark: An image file to be included as a watermark on the video. By default, scaled to .2 size of the main video, and displayed on the bottom right. Currently validated formats: jpeg, png.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -156,7 +156,7 @@ class Video(Component):
         self.show_download_button = show_download_button
         self.min_length = min_length
         self.max_length = max_length
-        self.watermark_file = watermark_file
+        self.watermark = watermark
         super().__init__(
             label=label,
             every=every,
@@ -204,17 +204,17 @@ class Video(Component):
                 )
         # TODO: Check other image extensions to see if they work.
         valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
-        if self.watermark_file is not None:
-            if not isinstance(self.watermark_file, (str, Path)):
+        if self.watermark is not None:
+            if not isinstance(self.watermark, (str, Path)):
                 raise ValueError(
                     f"Provided watermark file not an expected file type. "
-                    f"Received: {self.watermark_file}"
+                    f"Received: {self.watermark}"
                 )
-            if Path(self.watermark_file).suffix not in valid_watermark_extensions:
+            if Path(self.watermark).suffix not in valid_watermark_extensions:
                 raise ValueError(
                     f"Watermark file does not have a supported extension. "
                     f"Expected one of {','.join(valid_watermark_extensions)}. "
-                    f"Received: {Path(self.watermark_file).suffix}."
+                    f"Received: {Path(self.watermark).suffix}."
                 )
         if needs_formatting or flip:
             format = f".{self.format if needs_formatting else uploaded_format}"
@@ -311,7 +311,7 @@ class Video(Component):
 
         # For cases where the video is a URL and does not need to be converted
         # to another format and have a watermark added, we can just return the URL
-        if not self.watermark_file and (is_url and not conversion_needed):
+        if not self.watermark and (is_url and not conversion_needed):
             return FileData(path=video)
 
         # For cases where the video needs to be converted to another format
@@ -333,7 +333,7 @@ class Video(Component):
         # Check if we should modify the video
         if (
             self.format is not None and returned_format != self.format
-        ) or self.watermark_file:
+        ) or self.watermark:
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
                     "Modifying a video is not supported in the Wasm mode."
@@ -346,8 +346,8 @@ class Video(Component):
                 output_file_name += self.format
             else:
                 output_file_name += returned_format
-            if self.watermark_file:
-                inputs_dict[str(self.watermark_file)] = None
+            if self.watermark:
+                inputs_dict[str(self.watermark)] = None
                 # TODO: Add on to this for more functionality for placement, opacity, etc.
                 watermark_cmd = "[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]overlay=(main_w-overlay_w):(main_h-overlay_h)"
                 global_option_list += [f"-filter_complex {watermark_cmd}"]
