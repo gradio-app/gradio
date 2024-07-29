@@ -24,7 +24,7 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client, handle_file
 from gradio_client.client import DEFAULT_TEMP_DIR
-from gradio_client.exceptions import AppError, AuthenticationError
+from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
     ProgressUnit,
@@ -1396,6 +1396,7 @@ class TestDuplication:
                 "test_value2",
                 token=HF_TOKEN,
             )
+
 
 def test_httpx_kwargs(increment_demo):
     with connect(
