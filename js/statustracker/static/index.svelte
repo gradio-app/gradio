@@ -68,7 +68,7 @@
 		| "generating"
 		| "streaming"
 		| null;
-	export let time_limit: number | null;
+	export let time_limit: number | null | undefined = null;
 	export let scroll_to_output = false;
 	export let timer = true;
 	export let show_progress: "full" | "minimal" | "hidden" = "full";

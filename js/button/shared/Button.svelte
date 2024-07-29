@@ -12,8 +12,6 @@
 	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-
-	$: if (value === "Submit") console.log("SUBMIT visible", visible);
 </script>
 
 {#if link && link.length > 0}

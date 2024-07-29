@@ -25,9 +25,7 @@
 	export let streaming = false;
 	export let pending = false;
 	export let root = "";
-	export let stream_frequency: number;
-
-	$: console.log("Stream_frequency", stream_frequency);
+	export let stream_frequency = 1;
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;

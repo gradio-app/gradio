@@ -59,7 +59,6 @@
 	{#key value.url}
 		<Player
 			src={value.url}
-			is_stream={value.is_stream}
 			subtitle={subtitle?.url}
 			{autoplay}
 			on:play
