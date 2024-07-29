@@ -7,6 +7,7 @@
 	import { Copy, Check } from "@gradio/icons";
 
 	export let value: any = {};
+	export let mode: "dict" | "list";
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -57,7 +58,7 @@
 		{/if}
 	</button>
 	<div class="json-holder">
-		<JSONNode {value} depth={0} is_root={true} />
+		<JSONNode {value} depth={0} is_root={true} {mode} />
 	</div>
 {:else}
 	<div class="empty-wrapper">
