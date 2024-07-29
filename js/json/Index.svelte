@@ -26,6 +26,7 @@
 		change: never;
 		clear_status: LoadingStatus;
 	}>;
+	export let open = false;
 
 	$: {
 		if (value !== old_value) {
@@ -62,5 +63,5 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	<JSON {value} />
+	<JSON {value} {open} />
 </Block>

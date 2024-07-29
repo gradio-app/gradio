@@ -6,10 +6,11 @@
 	export let is_root = false;
 	export let is_last_item = true;
 	export let key: string | number | null = null;
+	export let open = false;
 
 	const dispatch = createEventDispatcher();
 	let root_element: HTMLElement;
-	let collapsed = false;
+	let collapsed = open ? false : depth >= 3;
 	let child_nodes: any[] = [];
 
 	function is_collapsible(val: any): boolean {
@@ -101,6 +102,7 @@
 					depth={depth + 1}
 					is_last_item={i === child_nodes.length - 1}
 					key={subKey}
+					{open}
 					on:toggle
 				/>
 			{/each}
