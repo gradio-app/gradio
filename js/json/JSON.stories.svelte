@@ -15,16 +15,7 @@
 
 	export const meta = {
 		title: "Components/JSON",
-		component: JSON,
-		parameters: {
-			chromatic: {
-				diffThreshold: 0.4,
-				modes: {
-					desktop: allModes["desktop"],
-					mobile: allModes["mobile"]
-				}
-			}
-		}
+		component: JSON
 	};
 </script>
 
