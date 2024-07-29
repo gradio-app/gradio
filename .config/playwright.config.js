@@ -38,7 +38,22 @@ const base = defineConfig({
 });
 
 const normal = defineConfig(base, {
-	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js"
+	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js",
+	projects: [
+		{
+			name: "firefox",
+			use: { ...devices["Desktop Firefox"] },
+			testMatch: /.stream_(audio|video)_out\.spec\.ts/
+		},
+		{
+			name: "chrome",
+			use: {
+				...devices["Desktop Chrome"],
+				permissions: ["clipboard-read", "clipboard-write", "microphone"]
+			},
+			testIgnore: /.stream_(audio|video)_out\.spec\.ts/
+		}
+	]
 });
 
 const lite = defineConfig(base, {
