@@ -310,8 +310,8 @@ class Video(Component):
         is_url = client_utils.is_http_url_like(video)
 
         # For cases where the video is a URL and does not need to be converted
-        # to another format or have a watermark added, we can just return the URL
-        if not self.watermark_file or (is_url and not conversion_needed):
+        # to another format and have a watermark added, we can just return the URL
+        if not self.watermark_file and (is_url and not conversion_needed):
             return FileData(path=video)
 
         # For cases where the video needs to be converted to another format
