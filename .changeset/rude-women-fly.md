@@ -1,6 +1,6 @@
 ---
-"@gradio/utils": minor
-"gradio": minor
+"@gradio/utils": patch
+"gradio": patch
 ---
 
-feat:Fix `Could not resolve "virtual:component-loader"` in gradio/utils package
+fix:Fix `Could not resolve "virtual:component-loader"` in gradio/utils package
