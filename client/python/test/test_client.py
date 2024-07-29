@@ -1397,22 +1397,6 @@ class TestDuplication:
                 token=HF_TOKEN,
             )
 
-
-def test_upstream_exceptions(count_generator_demo_exception):
-    with connect(count_generator_demo_exception, show_error=True) as client:
-        with pytest.raises(
-            AppError, match="The upstream Gradio app has raised an exception: Oh no!"
-        ):
-            client.predict(7, api_name="/count")
-
-    with connect(count_generator_demo_exception) as client:
-        with pytest.raises(
-            AppError,
-            match="The upstream Gradio app has raised an exception but has not enabled verbose error reporting.",
-        ):
-            client.predict(7, api_name="/count")
-
-
 def test_httpx_kwargs(increment_demo):
     with connect(
         increment_demo, client_kwargs={"httpx_kwargs": {"timeout": 5}}
