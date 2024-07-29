@@ -330,21 +330,19 @@ class Video(Component):
             video = processing_utils.convert_video_to_playable_mp4(video)
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
-
-        if self.watermark_file or (
-            self.format is not None and returned_format != self.format
-        ):
+        # Check if we should modify the video
+        if (self.format is not None and returned_format != self.format) or self.watermark_file:
+            if wasm_utils.IS_WASM:
+                raise wasm_utils.WasmUnsupportedError(
+                    "Modifying a video is not supported in the Wasm mode."
+            # Specify arguments needed for ffmpeg
             global_option_list = ["-y"]
+            inputs_dict = {video: None}
             output_file_name = video[0 : video.rindex(".") + 1]
             if self.format is not None:
-                if returned_format != self.format and wasm_utils.IS_WASM:
-                    raise wasm_utils.WasmUnsupportedError(
-                        "Returning a video in a different format is not supported in the Wasm mode."
-                    )
                 output_file_name += self.format
             else:
                 output_file_name += returned_format
-            inputs_dict = {video: None}
             if self.watermark_file:
                 inputs_dict[str(self.watermark_file)] = None
                 # TODO: Add on to this for more functionality for placement, opacity, etc.
@@ -355,6 +353,7 @@ class Video(Component):
                     + "_watermarked"
                     + Path(output_file_name).suffix
                 )
+            # Run ffmpeg
             ff = FFmpeg(  # type: ignore
                 inputs=inputs_dict,
                 outputs={output_file_name: None},
