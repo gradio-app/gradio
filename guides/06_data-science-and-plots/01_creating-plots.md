@@ -14,7 +14,7 @@ All plots have the same API, so you could swap this out with a `gr.ScatterPlot`:
 $code_plot_guide_scatter
 $demo_plot_guide_scatter
 
-The y axis column in the dataframe should have a numeric type, but the x axis can be anything from strings, numbers, categories, or datetimes.
+The y axis column in the dataframe should have a numeric type, but the x axis column can be anything from strings, numbers, categories, or datetimes.
 
 $code_plot_guide_scatter_nominal
 $demo_plot_guide_scatter_nominal
@@ -49,7 +49,7 @@ $demo_plot_guide_aggregate_nominal
 
 Take a look how you can have an interactive dashboard where the plots are functions of other Components.
 
-$code_plot_guide_aggregate_nominal
-$demo_plot_guide_aggregate_nominal
+$code_plot_guide_interactive
+$demo_plot_guide_interactive
 
 It's that simple to filter and control the data presented in your visualization!

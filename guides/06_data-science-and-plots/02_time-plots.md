@@ -23,7 +23,7 @@ You can use `gr.DateTime` to accept input datetime data. This works well with pl
 $code_plot_guide_datetime
 $demo_plot_guide_datetime
 
-Note how `gr.DateTime` can accept a full datetime string, or a shorthand using `now - [0-9]+[smhd]` to refer to a past time.
+Note how `gr.DateTime` can accept a full datetime string, or a shorthand using `now - [0-9]+[smhd]` format to refer to a past time.
 
 You will often have many time plots in which case you'd like to keep the x-axes in sync. The `DateTimeRange` custom component keeps a set of datetime plots in sync, and also uses the `.select` listener of plots to allow you to zoom into plots while keeping plots in sync. 
 
@@ -32,7 +32,7 @@ Because it is a custom component, you first need to `pip install gradio_datetime
 $code_plot_guide_datetimerange
 $demo_plot_guide_datetimerange
 
-Try zooming around in the plots and see how DateTimeRange updates. You also have a "Back" link in the component to allow you to quickly zoom in and out.
+Try zooming around in the plots and see how DateTimeRange updates. All the plots updates their `x_lim` in sync. You also have a "Back" link in the component to allow you to quickly zoom in and out.
 
 ## RealTime Data
 
