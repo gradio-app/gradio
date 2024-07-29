@@ -57,7 +57,7 @@
 		{/if}
 	</button>
 	<div class="json-holder">
-		<JSONNode {value} depth={0} />
+		<JSONNode {value} depth={0} is_root={true} />
 	</div>
 {:else}
 	<div class="empty-wrapper">
