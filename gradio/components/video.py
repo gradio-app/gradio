@@ -210,7 +210,7 @@ class Video(Component):
                     f"Provided watermark file not an expected file type. "
                     f"Received: {self.watermark_file}"
                 )
-            elif Path(self.watermark_file).suffix not in valid_watermark_extensions:
+            if Path(self.watermark_file).suffix not in valid_watermark_extensions:
                 raise ValueError(
                     f"Watermark file does not have a supported extension. "
                     f"Expected one of {','.join(valid_watermark_extensions)}. "
