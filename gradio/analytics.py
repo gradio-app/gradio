@@ -31,7 +31,6 @@ except ImportError:
 
 ANALYTICS_URL = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
-JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 
 def get_block_name(class_name) -> str:
