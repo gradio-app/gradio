@@ -29,7 +29,7 @@ class TestJSON:
             "key": None,
         }
         js_component = gr.Json(value={"a": 1, "b": 2})
-        assert js_component.get_config()['value'] == {"a": 1, "b": 2}
+        assert js_component.get_config()["value"] == {"a": 1, "b": 2}
 
     def test_chatbot_selectable_in_config(self):
         with gr.Blocks() as demo:
