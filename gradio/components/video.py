@@ -121,7 +121,7 @@ class Video(Component):
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             loop: If True, the video will loop when it reaches the end and continue playing from the beginning.
-            watermark: An image file to be included as a watermark on the video. By default, scaled to .2 size of the main video, and displayed on the bottom right. Currently validated formats: jpeg, png.
+            watermark: An image file to be included as a watermark on the video. The image is not scaled and is displayed on the bottom right of the video. Valid formats for the image are: jpeg, png.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -346,8 +346,8 @@ class Video(Component):
                 output_file_name += returned_format
             if self.watermark:
                 inputs_dict[str(self.watermark)] = None
-                watermark_cmd = "[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]overlay=(main_w-overlay_w):(main_h-overlay_h)"
-                global_option_list += [f"-filter_complex {watermark_cmd}"]
+                watermark_cmd = "overlay=W-w-5:H-h-5"
+                global_option_list += ["-filter_complex", watermark_cmd]
                 output_file_name = (
                     Path(output_file_name).stem
                     + "_watermarked"
@@ -356,7 +356,7 @@ class Video(Component):
             ff = FFmpeg(  # type: ignore
                 inputs=inputs_dict,
                 outputs={output_file_name: None},
-                global_options=" ".join(global_option_list),
+                global_options=global_option_list,
             )
             ff.run()
             video = output_file_name
