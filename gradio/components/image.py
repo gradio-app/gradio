@@ -74,6 +74,7 @@ class Image(StreamingInput, Component):
         key: int | str | None = None,
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
+        info: str | None = None,
     ):
         """
         Parameters:
@@ -101,6 +102,7 @@ class Image(StreamingInput, Component):
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            info: Additional component description.
         """
         self.format = format
         self.mirror_webcam = mirror_webcam
@@ -153,6 +155,7 @@ class Image(StreamingInput, Component):
             render=render,
             key=key,
             value=value,
+            info=info
         )
 
     def preprocess(

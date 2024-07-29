@@ -2,6 +2,7 @@
 	import { default as Info } from "./Info.svelte";
 	export let show_label = true;
 	export let info: string | undefined = undefined;
+	export let info_only = false;
 </script>
 
 <span
@@ -9,6 +10,7 @@
 	class:hide={!show_label}
 	class:has-info={info != null}
 	data-testid="block-info"
+	class:info_only
 >
 	<slot />
 </span>
@@ -36,6 +38,10 @@
 		font-weight: var(--block-title-text-weight);
 		font-size: var(--block-title-text-size);
 		line-height: var(--line-sm);
+	}
+
+	.info_only {
+		display: none;
 	}
 
 	.hide {

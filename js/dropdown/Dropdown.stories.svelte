@@ -29,7 +29,8 @@
 			["swim", "swim"],
 			["jump", "jump"]
 		],
-		label: "Single-select Dropdown"
+		label: "Single-select Dropdown",
+		info: "This is a single-select dropdown"
 	}}
 />
 <Story

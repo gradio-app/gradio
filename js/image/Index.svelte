@@ -14,7 +14,7 @@
 	import ImageUploader from "./shared/ImageUploader.svelte";
 	import { afterUpdate } from "svelte";
 
-	import { Block, Empty, UploadText } from "@gradio/atoms";
+	import { Block, Empty, UploadText, BlockTitle } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { FileData } from "@gradio/client";
@@ -51,6 +51,7 @@
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
+	export let info: string;
 
 	export let gradio: Gradio<{
 		input: never;
@@ -84,6 +85,9 @@
 </script>
 
 {#if !interactive}
+	{#if info}
+		<BlockTitle info_only={true} {info} />
+	{/if}
 	<Block
 		{visible}
 		variant={"solid"}
