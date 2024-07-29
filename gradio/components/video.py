@@ -121,7 +121,7 @@ class Video(Component):
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             loop: If True, the video will loop when it reaches the end and continue playing from the beginning.
-            watermark_file: An image file to be included as a watermark on the video.
+            watermark_file: An image file to be included as a watermark on the video. By default, scaled to .2 size of the main video, and displayed on the bottom right. Currently validated formats: jpeg, png.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
