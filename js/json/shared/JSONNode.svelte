@@ -69,7 +69,9 @@
 					>{Array.isArray(value) ? "[" : "{"}</span
 				>
 				{#if collapsed}
-					<span class="preview">{get_collapsed_preview(value)}</span>
+					<button on:click={toggle_collapse} class="preview"
+						>{get_collapsed_preview(value)}</button
+					>
 					<span class="punctuation bracket"
 						>{Array.isArray(value) ? "]" : "}"}</span
 					>
@@ -181,5 +183,10 @@
 	.preview {
 		color: var(--body-text-color-subdued);
 		margin: 0 var(--spacing-sm) 0 var(--spacing-lg);
+	}
+
+	.preview:hover {
+		text-decoration: underline;
+		cursor: pointer;
 	}
 </style>
