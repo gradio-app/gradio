@@ -46,9 +46,7 @@
 				href={value.is_stream
 					? value.url?.replace("playlist.m3u8", "playlist-file")
 					: value.url}
-				download={value.is_stream
-					? "audio-stream.mp3"
-					: value.orig_name || value.path}
+				download={value.orig_name || value.path}
 			>
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</DownloadLink>

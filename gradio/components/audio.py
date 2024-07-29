@@ -312,6 +312,7 @@ class Audio(
         output_file: FileDataDict = {
             "path": output_id,
             "is_stream": True,
+            "orig_name": "audio-stream.mp3",
         }
         if value is None:
             return None, output_file

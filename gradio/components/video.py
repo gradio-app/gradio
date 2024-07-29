@@ -455,6 +455,7 @@ class Video(StreamingOutput, Component):
             "video": {
                 "path": output_id,
                 "is_stream": True,
+                "orig_name": "video-stream.ts",
             }
         }
         if value is None:
