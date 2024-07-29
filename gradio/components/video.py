@@ -331,7 +331,9 @@ class Video(Component):
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
         # Check if we should modify the video
-        if (self.format is not None and returned_format != self.format) or self.watermark_file:
+        if (
+            self.format is not None and returned_format != self.format
+        ) or self.watermark_file:
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
                     "Modifying a video is not supported in the Wasm mode."
