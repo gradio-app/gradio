@@ -106,6 +106,7 @@ class Audio(
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
+        stream_frequency: int = 2,
     ):
         """
         Parameters:
@@ -135,6 +136,7 @@ class Audio(
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
             loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
+            stream_frequency: The frequency (in Hz) at which the audio stream is sent to the frontend. Defaults to 2 Hz.
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -181,6 +183,7 @@ class Audio(
             self.waveform_options = waveform_options
         self.min_length = min_length
         self.max_length = max_length
+        self.stream_frequency = stream_frequency
         super().__init__(
             label=label,
             every=every,
@@ -287,7 +290,26 @@ class Audio(
             orig_name = Path(file_path).name if Path(file_path).exists() else None
         return FileData(path=file_path, orig_name=orig_name)
 
-    def stream_output(
+    @staticmethod
+    def _convert_to_adts(data: bytes):
+        import io
+
+        from pydub import AudioSegment
+
+        segment = AudioSegment.from_file(io.BytesIO(data))
+
+        buffer = io.BytesIO()
+        segment.export(buffer, format="adts")  # ADTS is a container format for AAC
+        aac_data = buffer.getvalue()
+        return aac_data, len(segment) / 1000.0
+
+    @staticmethod
+    async def covert_to_adts(data: bytes) -> tuple[bytes, float]:
+        import anyio
+
+        return await anyio.to_thread.run_sync(Audio._convert_to_adts, data)
+
+    async def stream_output(
         self, value, output_id: str, first_chunk: bool
     ) -> tuple[bytes | None, Any]:
         output_file = {
@@ -297,7 +319,8 @@ class Audio(
         if value is None:
             return None, output_file
         if isinstance(value, bytes):
-            return value, output_file
+            value, duration = await self.covert_to_adts(value)
+            return {"data": value, "duration": duration}, output_file
         if client_utils.is_http_url_like(value["path"]):
             response = httpx.get(value["path"])
             binary_data = response.content

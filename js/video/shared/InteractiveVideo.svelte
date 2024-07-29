@@ -101,6 +101,7 @@
 					on:stop_recording
 					{i18n}
 					{upload}
+					stream_frequency={1}
 				/>
 			{/if}
 		</div>
@@ -119,6 +120,7 @@
 					{autoplay}
 					src={value.url}
 					subtitle={subtitle?.url}
+					is_stream={value?.is_stream}
 					on:play
 					on:pause
 					on:stop

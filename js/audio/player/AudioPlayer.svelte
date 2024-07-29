@@ -11,6 +11,8 @@
 	import type { WaveformOptions } from "../shared/types";
 	import { createEventDispatcher } from "svelte";
 
+	import Hls from "hls.js";
+
 	export let value: null | FileData = null;
 	$: url = value?.url;
 	export let label: string;
@@ -37,8 +39,10 @@
 	let audio_duration: number;
 
 	let trimDuration = 0;
+	let stream_active = false;
 
 	let show_volume_slider = false;
+	let audio_player: HTMLAudioElement;
 
 	const dispatch = createEventDispatcher<{
 		stop: undefined;
@@ -129,6 +133,7 @@
 	};
 
 	async function load_audio(data: string): Promise<void> {
+		stream_active = false;
 		await resolve_wasm_src(data).then((resolved_src) => {
 			if (!resolved_src || value?.is_stream) return;
 			return waveform?.load(resolved_src);
@@ -136,6 +141,47 @@
 	}
 
 	$: url && load_audio(url);
+
+	function load_stream(value: FileData | null): void {
+		if (!value || !value.is_stream) return;
+		if (!audio_player) return;
+		if (Hls.isSupported() && !stream_active) {
+			const hls = new Hls({
+				maxBufferLength: 1, // 0.5 seconds (500 ms)
+				maxMaxBufferLength: 1, // Maximum max buffer length in seconds
+				lowLatencyMode: true // Enable low latency modez
+			});
+			hls.loadSource(value.url);
+			hls.attachMedia(audio_player);
+			hls.on(Hls.Events.MANIFEST_PARSED, function () {
+				audio_player.play();
+			});
+			hls.on(Hls.Events.ERROR, function (event, data) {
+				console.error("HLS error:", event, data);
+				if (data.fatal) {
+					switch (data.type) {
+						case Hls.ErrorTypes.NETWORK_ERROR:
+							console.error(
+								"Fatal network error encountered, trying to recover"
+							);
+							hls.startLoad();
+							break;
+						case Hls.ErrorTypes.MEDIA_ERROR:
+							console.error("Fatal media error encountered, trying to recover");
+							hls.recoverMediaError();
+							break;
+						default:
+							console.error("Fatal error, cannot recover");
+							hls.destroy();
+							break;
+					}
+				}
+			});
+			stream_active = true;
+		}
+	}
+
+	$: load_stream(value);
 
 	onMount(() => {
 		window.addEventListener("keydown", (e) => {
@@ -149,20 +195,19 @@
 	});
 </script>
 
+<audio
+	class="standard-player"
+	class:hidden={!value || !value.is_stream}
+	controls
+	autoplay={waveform_settings.autoplay}
+	on:load
+	bind:this={audio_player}
+/>
 {#if value === null}
 	<Empty size="small">
 		<Music />
 	</Empty>
-{:else if value.is_stream}
-	<audio
-		class="standard-player"
-		src={value.url}
-		controls
-		autoplay={waveform_settings.autoplay}
-		{loop}
-		on:load
-	/>
-{:else}
+{:else if !value.is_stream}
 	<div
 		class="component-wrapper"
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
@@ -249,5 +294,9 @@
 	.standard-player {
 		width: 100%;
 		padding: var(--size-2);
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>

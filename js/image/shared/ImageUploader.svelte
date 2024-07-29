@@ -7,7 +7,7 @@
 	import Webcam from "./Webcam.svelte";
 
 	import { Upload } from "@gradio/upload";
-	import type { FileData, Client } from "@gradio/client";
+	import { FileData, type Client } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
@@ -28,6 +28,9 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let stream_frequency: number;
+
+	export let close_stream: () => void;
 
 	let upload_input: Upload;
 	let uploading = false;
@@ -45,6 +48,11 @@
 	}
 
 	async function handle_save(img_blob: Blob | any): Promise<void> {
+		if (streaming) {
+			value = new FileData({ path: "", data: img_blob });
+			dispatch("stream");
+			return;
+		}
 		pending = true;
 		const f = await upload_input.load_files([
 			new File([img_blob], `webcam.png`)
@@ -137,11 +145,13 @@
 				on:drag
 				on:upload={(e) => handle_save(e.detail)}
 				{mirror_webcam}
+				{stream_frequency}
 				{streaming}
 				mode="image"
 				include_audio={false}
 				{i18n}
 				{upload}
+				bind:close_stream
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->

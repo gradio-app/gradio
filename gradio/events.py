@@ -348,6 +348,7 @@ class EventListener(str):
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         doc: str = "",
+        connection: Literal["sse", "stream"] = "sse",
     ):
         super().__init__()
         self.has_trigger = has_trigger
@@ -358,6 +359,7 @@ class EventListener(str):
         self.trigger_only_on_success = trigger_only_on_success
         self.callback = callback
         self.doc = doc
+        self.protocol = connection
         self.listener = self._setup(
             event_name,
             has_trigger,
@@ -365,6 +367,7 @@ class EventListener(str):
             callback,
             trigger_after,
             trigger_only_on_success,
+            connection,
         )
         if doc and self.listener.__doc__:
             self.listener.__doc__ = doc + self.listener.__doc__
@@ -384,6 +387,7 @@ class EventListener(str):
             self.trigger_after,
             self.trigger_only_on_success,
             self.doc,
+            self.protocol,  # type: ignore
         )
 
     @staticmethod
@@ -394,6 +398,7 @@ class EventListener(str):
         _callback: Callable | None,
         _trigger_after: int | None,
         _trigger_only_on_success: bool,
+        _connection: Literal["sse", "stream"] = "sse",
     ):
         def event_trigger(
             block: Block | None,
@@ -422,6 +427,7 @@ class EventListener(str):
             concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
             show_api: bool = True,
+            time_limit: int | None = None,
         ) -> Dependency:
             """
             Parameters:
@@ -513,6 +519,8 @@ class EventListener(str):
                 trigger_only_on_success=_trigger_only_on_success,
                 trigger_mode=trigger_mode,
                 show_api=show_api,
+                connection=_connection,
+                time_limit=time_limit,
             )
             set_cancel_events(
                 [event_target],
@@ -756,6 +764,7 @@ class Events:
         config_data=lambda: {"streamable": False},
         callback=lambda block: setattr(block, "streaming", True),
         doc="This listener is triggered when the user streams the {{ component }}.",
+        connection="stream",
     )
     like = EventListener(
         "like",
