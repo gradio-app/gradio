@@ -330,7 +330,6 @@ class Video(Component):
             video = processing_utils.convert_video_to_playable_mp4(video)
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
-        # Check if we should modify the video
         if (
             self.format is not None and returned_format != self.format
         ) or self.watermark:
@@ -338,7 +337,6 @@ class Video(Component):
                 raise wasm_utils.WasmUnsupportedError(
                     "Modifying a video is not supported in the Wasm mode."
                 )
-            # Specify arguments needed for ffmpeg
             global_option_list = ["-y"]
             inputs_dict = {video: None}
             output_file_name = video[0 : video.rindex(".") + 1]
@@ -348,7 +346,6 @@ class Video(Component):
                 output_file_name += returned_format
             if self.watermark:
                 inputs_dict[str(self.watermark)] = None
-                # TODO: Add on to this for more functionality for placement, opacity, etc.
                 watermark_cmd = "[1][0]scale2ref=oh*mdar:ih*0.2[logo][video];[video][logo]overlay=(main_w-overlay_w):(main_h-overlay_h)"
                 global_option_list += [f"-filter_complex {watermark_cmd}"]
                 output_file_name = (
@@ -356,7 +353,6 @@ class Video(Component):
                     + "_watermarked"
                     + Path(output_file_name).suffix
                 )
-            # Run ffmpeg
             ff = FFmpeg(  # type: ignore
                 inputs=inputs_dict,
                 outputs={output_file_name: None},
