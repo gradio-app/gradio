@@ -1,8 +1,6 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import JSON from "./Index.svelte";
-	import { format } from "svelte-i18n";
-	import { get } from "svelte/store";
 	import { userEvent, within } from "@storybook/test";
 	import { allModes } from "../storybook/modes";
 
@@ -31,12 +29,7 @@
 </script>
 
 <Template let:args>
-	<div
-		class="image-container"
-		style="width: 500px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
-	>
-		<JSON value={SAMPLE_JSON} {...args} />
-	</div>
+	<JSON value={SAMPLE_JSON} {...args} />
 </Template>
 
 <Story name="Default JSON" args={{}} />
@@ -48,11 +41,13 @@
 		interactive: true
 	}}
 	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+
 		const toggles = within(canvasElement).getAllByRole("button");
 		await userEvent.click(toggles[1]);
 		await userEvent.click(toggles[1]);
 
 		await userEvent.click(toggles[2]);
-		await userEvent.click(toggles[2]);
+		await userEvent.click(canvas.getByText("Object(2)"));
 	}}
 />
