@@ -1553,6 +1553,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/video':
+        specifier: workspace:^
+        version: link:../video
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^

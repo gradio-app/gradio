@@ -25,6 +25,7 @@
 	let upload_id: string;
 	let file_data: FileData[];
 	let accept_file_types: string | null;
+	let use_post_upload_validation: boolean | null = null;
 
 	const get_ios = (): boolean => {
 		if (typeof navigator !== "undefined") {
@@ -38,12 +39,16 @@
 
 	const dispatch = createEventDispatcher();
 	const validFileTypes = ["image", "video", "audio", "text", "file"];
-	const processFileType = (type: string): string => {
-		if (type.startsWith(".") || type.endsWith("/*")) {
+	const process_file_type = (type: string): string => {
+		if (ios && type.startsWith(".")) {
+			use_post_upload_validation = true;
 			return type;
 		}
-		if (ios && type === "file") {
+		if (ios && type.includes("file/*")) {
 			return "*";
+		}
+		if (type.startsWith(".") || type.endsWith("/*")) {
+			return type;
 		}
 		if (validFileTypes.includes(type)) {
 			return type + "/*";
@@ -54,11 +59,11 @@
 	$: if (filetype == null) {
 		accept_file_types = null;
 	} else if (typeof filetype === "string") {
-		accept_file_types = processFileType(filetype);
+		accept_file_types = process_file_type(filetype);
 	} else if (ios && filetype.includes("file/*")) {
 		accept_file_types = "*";
 	} else {
-		filetype = filetype.map(processFileType);
+		filetype = filetype.map(process_file_type);
 		accept_file_types = filetype.join(", ");
 	}
 
@@ -125,8 +130,51 @@
 			(f) =>
 				new File([f], f instanceof File ? f.name : "file", { type: f.type })
 		);
+
+		if (ios && use_post_upload_validation) {
+			_files = _files.filter((file) => {
+				if (is_valid_file(file)) {
+					return true;
+				}
+				dispatch(
+					"error",
+					`Invalid file type: ${file.name}. Only ${filetype} allowed.`
+				);
+				return false;
+			});
+
+			if (_files.length === 0) {
+				return [];
+			}
+		}
+
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
+	}
+
+	function is_valid_file(file: File): boolean {
+		if (!filetype) return true;
+
+		const allowed_types = Array.isArray(filetype) ? filetype : [filetype];
+
+		return allowed_types.some((type) => {
+			const processed_type = process_file_type(type);
+
+			if (processed_type.startsWith(".")) {
+				return file.name.toLowerCase().endsWith(processed_type.toLowerCase());
+			}
+
+			if (processed_type === "*") {
+				return true;
+			}
+
+			if (processed_type.endsWith("/*")) {
+				const [category] = processed_type.split("/");
+				return file.type.startsWith(category + "/");
+			}
+
+			return file.type === processed_type;
+		});
 	}
 
 	async function load_files_from_upload(e: Event): Promise<void> {

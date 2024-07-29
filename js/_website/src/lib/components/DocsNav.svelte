@@ -4,6 +4,7 @@
 
 	export let library_pages: any;
 	export let current_nav_link = "";
+	export let show_dropdown = true;
 
 	let show_nav = false;
 	import DropDown from "$lib/components/VersionDropdown.svelte";
@@ -54,11 +55,13 @@
 		>
 	</button>
 
-	<div
-		class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block my-4 ml-4"
-	>
-		<DropDown></DropDown>
-	</div>
+	{#if show_dropdown}
+		<div
+			class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block my-4 ml-4"
+		>
+			<DropDown></DropDown>
+		</div>
+	{/if}
 
 	{#each library_pages as category_pages}
 		<p class="font-semibold px-4 my-2 block">{category_pages.category}</p>
