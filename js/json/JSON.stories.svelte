@@ -2,7 +2,6 @@
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import JSON from "./Index.svelte";
 	import { userEvent, within } from "@storybook/test";
-	import { allModes } from "../storybook/modes";
 
 	const SAMPLE_JSON = {
 		key1: "value1",
