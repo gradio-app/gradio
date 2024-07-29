@@ -68,6 +68,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.route_utils import MediaStream
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -508,6 +509,8 @@ class BlockFunction:
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
         is_cancel_function: bool = False,
+        connection: Literal["stream", "sse"] = "sse",
+        time_limit: int | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -546,6 +549,8 @@ class BlockFunction:
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
+        self.time_limit = time_limit
+        self.connection = connection
 
         self.spaces_auto_wrap()
 
@@ -594,6 +599,8 @@ class BlockFunction:
             "show_api": self.show_api,
             "zerogpu": self.zero_gpu,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
+            "connection": self.connection,
+            "time_limit": self.time_limit,
         }
 
 
@@ -691,6 +698,8 @@ class BlocksConfig:
         show_api: bool = True,
         renderable: Renderable | None = None,
         is_cancel_function: bool = False,
+        connection: Literal["stream", "sse"] = "sse",
+        time_limit: int | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -718,6 +727,8 @@ class BlocksConfig:
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
             show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             is_cancel_function: whether this event cancels another running event.
+            connection: The connection format, either "sse" or "stream".
+            time_limit: The time limit for the function to run. Only applies if connection is "stream".
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -750,6 +761,8 @@ class BlocksConfig:
 
         if _targets[0][1] in ["change", "key_up"] and trigger_mode is None:
             trigger_mode = "always_last"
+        elif _targets[0][1] in ["stream"] and trigger_mode is None:
+            trigger_mode = "multiple"
         elif trigger_mode is None:
             trigger_mode = "once"
         elif trigger_mode not in ["once", "multiple", "always_last"]:
@@ -829,6 +842,8 @@ class BlocksConfig:
             renderable=renderable,
             rendered_in=rendered_in,
             is_cancel_function=is_cancel_function,
+            connection=connection,
+            time_limit=time_limit,
         )
 
         self.fns[self.fn_id] = block_fn
@@ -1770,23 +1785,29 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         root_path: str | None = None,
+        final: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
         if run not in self.pending_streams[session_hash]:
             self.pending_streams[session_hash][run] = {}
-        stream_run = self.pending_streams[session_hash][run]
+        stream_run: dict[int, MediaStream] = self.pending_streams[session_hash][run]
 
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
             if isinstance(block, components.StreamingOutput) and block.streaming:
+                if final:
+                    stream_run[output_id].end_stream()
                 first_chunk = output_id not in stream_run
-                binary_data, output_data = block.stream_output(
-                    data[i], f"{session_hash}/{run}/{output_id}", first_chunk
+                binary_data, output_data = await block.stream_output(
+                    data[i],
+                    f"{session_hash}/{run}/{output_id}/playlist.m3u8",
+                    first_chunk,
                 )
                 if first_chunk:
-                    stream_run[output_id] = []
-                self.pending_streams[session_hash][run][output_id].append(binary_data)
+                    stream_run[output_id] = MediaStream()
+
+                await stream_run[output_id].add_segment(binary_data)
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,
@@ -1948,6 +1969,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                     root_path=root_path,
+                    final=not is_generating,
                 )
                 data = self.handle_streaming_diffs(
                     block_fn,

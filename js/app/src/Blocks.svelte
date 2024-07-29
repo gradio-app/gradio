@@ -51,6 +51,7 @@
 		targets,
 		update_value,
 		get_data,
+		close_stream,
 		loading_status,
 		scheduled_updates,
 		create_layout,
@@ -131,6 +132,7 @@
 				});
 			}
 		});
+		console.log("updates", updates);
 		update_value(updates);
 
 		await tick();
@@ -254,12 +256,13 @@
 		} else {
 			if (dep.backend_fn) {
 				if (dep.trigger_mode === "once") {
-					if (!dep.pending_request) make_prediction(payload);
+					if (!dep.pending_request)
+						make_prediction(payload, dep.connection == "stream");
 				} else if (dep.trigger_mode === "multiple") {
-					make_prediction(payload);
+					make_prediction(payload, dep.connection == "stream");
 				} else if (dep.trigger_mode === "always_last") {
 					if (!dep.pending_request) {
-						make_prediction(payload);
+						make_prediction(payload, dep.connection == "stream");
 					} else {
 						dep.final_event = payload;
 					}
@@ -267,13 +270,36 @@
 			}
 		}
 
-		async function make_prediction(payload: Payload): Promise<void> {
+		async function make_prediction(
+			payload: Payload,
+			streaming = false
+		): Promise<void> {
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
 
 			let submission: ReturnType<typeof app.submit>;
+			// if (streaming && !submit_map.has(dep_index)) {
+			// 	loading_status.update({
+			// 		status: "streaming",
+			// 		fn_index: dep_index,
+			// 		time_limit: dep.time_limit,
+			// 		queue: true,
+			// 		queue_position: null,
+			// 		eta: null
+			// 	});
+			// 	set_status($loading_status);
+			// }
+			if (streaming && submit_map.has(dep_index)) {
+				app.current_payload = payload;
+				await app.post_data(
+					`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
+					{ ...payload, session_hash: app.session_hash }
+				);
+				return;
+			}
 			try {
+				app.current_payload = payload;
 				submission = app.submit(
 					payload.fn_index,
 					payload.data as unknown[],
@@ -361,6 +387,7 @@
 				//@ts-ignore
 				loading_status.update({
 					...status,
+					time_limit: status.time_limit,
 					status: status.stage,
 					progress: status.progress_data,
 					fn_index
@@ -406,8 +433,10 @@
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
 						}
 					});
-
-					// submission.destroy();
+					dep.inputs.forEach((id) => {
+						close_stream(id);
+					});
+					submit_map.delete(dep_index);
 				}
 				if (status.broken && is_mobile_device && user_left_page) {
 					window.setTimeout(() => {

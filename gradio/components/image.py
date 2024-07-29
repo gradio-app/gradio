@@ -74,6 +74,7 @@ class Image(StreamingInput, Component):
         key: int | str | None = None,
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
+        stream_frequency: int = 2,
     ):
         """
         Parameters:
@@ -101,6 +102,7 @@ class Image(StreamingInput, Component):
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            stream_frequency: The number of times per second to stream the webcam feed. Only valid if streaming is True.
         """
         self.format = format
         self.mirror_webcam = mirror_webcam
@@ -154,6 +156,7 @@ class Image(StreamingInput, Component):
             key=key,
             value=value,
         )
+        self.stream_frequency = stream_frequency
 
     def preprocess(
         self, payload: FileData | None
@@ -166,6 +169,8 @@ class Image(StreamingInput, Component):
         """
         if payload is None:
             return payload
+        if payload.data:
+            return image_utils.decode_base64_to_image_array(payload.data)
         file_path = Path(payload.path)
         if payload.orig_name:
             p = Path(payload.orig_name)
@@ -213,6 +218,10 @@ class Image(StreamingInput, Component):
         """
         if value is None:
             return None
+        if self.format == "base64":
+            return FileData(
+                path="", data=image_utils.encode_image_array_to_base64(value)
+            )
         if isinstance(value, str) and value.lower().endswith(".svg"):
             return FileData(path=value, orig_name=Path(value).name)
         saved = image_utils.save_image(value, self.GRADIO_CACHE, self.format)

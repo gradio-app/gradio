@@ -1377,6 +1377,7 @@ def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
 
     any_state = any(isinstance(block, State) for block in blocks)
     any_unload = False
+    any_stream = False
 
     if "dependencies" not in config:
         raise ValueError(
@@ -1390,7 +1391,10 @@ def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
                 any_unload = target[1] == "unload"
                 if any_unload:
                     break
-    return any_state or any_unload
+                any_stream = target[1] == "stream"
+                if any_stream:
+                    break
+    return any_state or any_unload or any_stream
 
 
 def deep_hash(obj):

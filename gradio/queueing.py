@@ -18,6 +18,7 @@ from gradio import route_utils, routes
 from gradio.data_classes import (
     PredictBody,
 )
+from gradio.exceptions import StreamingTimeoutError
 from gradio.helpers import TrackedIterable
 from gradio.server_messages import (
     EstimationMessage,
@@ -28,6 +29,7 @@ from gradio.server_messages import (
     ProcessStartsMessage,
     ProgressMessage,
     ProgressUnit,
+    ServerMessage,
 )
 from gradio.utils import (
     LRUCache,
@@ -59,6 +61,21 @@ class Event:
         self.progress: ProgressMessage | None = None
         self.progress_pending: bool = False
         self.alive = True
+        self.n_calls = 0
+        self.run_time: float = 0
+        self.signal = asyncio.Event()
+
+    @property
+    def streaming(self):
+        return self.fn.connection == "stream"
+
+    @property
+    def is_finished(self):
+        if not self.streaming:
+            raise ValueError("Cannot access if_finished during a non-streaming event")
+        if self.fn.total_runtime is None:
+            return False
+        return self.run_time >= self.fn.time_limit
 
 
 class EventQueue:
@@ -98,6 +115,7 @@ class Queue:
             LRUCache(2000)
         )
         self.pending_event_ids_session: dict[str, set[str]] = {}
+        self.event_ids_to_events: dict[str, Event] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.stopped = False
@@ -225,6 +243,7 @@ class Queue:
             if body.session_hash not in self.pending_event_ids_session:
                 self.pending_event_ids_session[body.session_hash] = set()
         self.pending_event_ids_session[body.session_hash].add(event._id)
+        self.event_ids_to_events[event._id] = event
         try:
             event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
         except KeyError as e:
@@ -241,7 +260,6 @@ class Queue:
         }
 
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
-
         return True, event._id
 
     def _cancel_asyncio_tasks(self):
@@ -479,6 +497,16 @@ class Queue:
             queue_size=len(self),
         )
 
+    @staticmethod
+    async def wait_for_event(event: Event) -> str:
+        await event.signal.wait()
+        return "signal"
+
+    @staticmethod
+    async def timeout(timeout: float) -> str:
+        await asyncio.sleep(timeout)
+        return "timeout"
+
     async def process_events(
         self, events: list[Event], batch: bool, begin_time: float
     ) -> None:
@@ -533,6 +561,7 @@ class Queue:
                 request=body.request, route_path="/queue/join", root_path=app.root_path
             )
             try:
+                start = time.monotonic()
                 response = await route_utils.call_process_api(
                     app=app,
                     body=body,
@@ -540,7 +569,15 @@ class Queue:
                     fn=fn,
                     root_path=root_path,
                 )
+                end = time.monotonic()
+                first_iteration = end - start
                 err = None
+                for event in awake_events:
+                    event.run_time += end - start
+                    event.n_calls += 1
+                    if event.streaming:
+                        response["is_generating"] = not event.is_finished
+
             except Exception as e:
                 traceback.print_exc()
                 response = None
@@ -558,20 +595,44 @@ class Queue:
                 old_response = response
                 old_err = err
                 while response and response.get("is_generating", False):
+                    start = time.monotonic()
                     old_response = response
                     old_err = err
                     for event in awake_events:
                         self.send_message(
                             event,
                             ProcessGeneratingMessage(
+                                msg=ServerMessage.process_generating
+                                if not event.streaming
+                                else ServerMessage.process_streaming,
                                 output=old_response,
                                 success=old_response is not None,
+                                time_limit=fn.time_limit - first_iteration
+                                if event.streaming
+                                else None,
                             ),
                         )
                     awake_events = [event for event in awake_events if event.alive]
                     if not awake_events:
                         return
                     try:
+                        start = time.monotonic()
+                        if awake_events[0].streaming:
+                            t1 = asyncio.create_task(
+                                self.wait_for_event(awake_events[0])
+                            )
+                            t2 = asyncio.create_task(
+                                self.timeout(fn.time_limit - awake_events[0].run_time)
+                            )
+                            done, _ = await asyncio.wait(
+                                [t1, t2],
+                                return_when=asyncio.FIRST_COMPLETED,
+                            )
+                            done = [d.result() for d in done]
+                            awake_events[0].signal.clear()
+                            if "timeout" in done:
+                                raise StreamingTimeoutError()
+                        body = awake_events[0].data
                         response = await route_utils.call_process_api(
                             app=app,
                             body=body,
@@ -579,7 +640,27 @@ class Queue:
                             fn=fn,
                             root_path=root_path,
                         )
-                    except Exception as e:
+                        end = time.monotonic()
+                        event.run_time += end - start
+                        event.n_calls += 1
+                        if event.streaming:
+                            response["is_generating"] = not event.is_finished
+                            if event.is_finished:
+                                self.log_message(
+                                    event._id,
+                                    "Time limit reached! Please join the queue again.",
+                                    "info",
+                                    duration=10,
+                                )
+                    except BaseException as e:
+                        if isinstance(e, StreamingTimeoutError):
+                            self.log_message(
+                                awake_events[0]._id,
+                                "Time limit reached! Please join the queue again.",
+                                "info",
+                                duration=10,
+                            )
+                            break
                         traceback.print_exc()
                         response = None
                         err = e

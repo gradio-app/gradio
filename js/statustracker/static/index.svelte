@@ -61,7 +61,14 @@
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
-	export let status: "complete" | "pending" | "error" | "generating" | null;
+	export let status:
+		| "complete"
+		| "pending"
+		| "error"
+		| "generating"
+		| "streaming"
+		| null;
+	export let time_limit: number | null;
 	export let scroll_to_output = false;
 	export let timer = true;
 	export let show_progress: "full" | "minimal" | "hidden" = "full";
@@ -191,6 +198,9 @@
 	$: formatted_timer = timer_diff.toFixed(1);
 </script>
 
+{#if status === "streaming" && time_limit}
+	<div class="streaming-bar" style:animation-duration="{time_limit}s"></div>
+{/if}
 <div
 	class="wrap {variant} {show_progress}"
 	class:hide={!status || status === "complete" || show_progress === "hidden"}
@@ -463,5 +473,25 @@
 		justify-content: flex-end;
 		gap: var(--spacing-sm);
 		z-index: var(--layer-1);
+	}
+
+	.streaming-bar {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background-color: var(--color-accent);
+		animation: countdown linear forwards;
+		z-index: var(--layer-1);
+	}
+
+	@keyframes countdown {
+		from {
+			transform: translateX(0%);
+		}
+		to {
+			transform: translateX(-100%);
+		}
 	}
 </style>

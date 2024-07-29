@@ -48,15 +48,18 @@
 		old_value = value;
 		old_subtitle = subtitle;
 	});
+
+	// $: console.log("video preview value", value)
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if value === null || value.url === undefined}
+{#if !value || value.url === undefined}
 	<Empty unpadded_box={true} size="large"><Video /></Empty>
 {:else}
 	{#key value.url}
 		<Player
 			src={value.url}
+			is_stream={value.is_stream}
 			subtitle={subtitle?.url}
 			{autoplay}
 			on:play

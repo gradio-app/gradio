@@ -66,6 +66,8 @@ export function submit(
 		let websocket: WebSocket;
 		let stream: EventSource | null;
 		let protocol = config.protocol ?? "ws";
+		let event_id_final = "";
+		let event_id_cb: () => string = () => event_id_final;
 
 		const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 		let payload: Payload;
@@ -450,6 +452,7 @@ export function submit(
 							}
 						} else if (type === "data") {
 							event_id = _data.event_id as string;
+							event_id_cb = () => event_id!;
 							let [_, status] = await post_data(`${config.root}/queue/data`, {
 								...payload,
 								session_hash,
@@ -480,7 +483,7 @@ export function submit(
 								visible: data.visible,
 								fn_index
 							});
-						} else if (type === "generating") {
+						} else if (type === "generating" || type === "streaming") {
 							fire_event({
 								type: "status",
 								time: new Date(),
@@ -594,6 +597,8 @@ export function submit(
 							});
 						} else {
 							event_id = response.event_id as string;
+							event_id_final = event_id;
+
 							let callback = async function (_data: object): Promise<void> {
 								try {
 									const { type, status, data } = handle_message(
@@ -639,7 +644,7 @@ export function submit(
 											fn_index
 										});
 										return;
-									} else if (type === "generating") {
+									} else if (type === "generating" || type === "streaming") {
 										fire_event({
 											type: "status",
 											time: new Date(),
@@ -651,6 +656,7 @@ export function submit(
 										});
 										if (
 											data &&
+											dependency.connection !== "stream" &&
 											["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
 										) {
 											apply_diff_stream(pending_diff_streams, event_id!, data);
@@ -733,6 +739,121 @@ export function submit(
 							}
 						}
 					});
+				} else if (protocol === "ws_stream") {
+					const { ws_protocol, host } = await process_endpoint(
+						app_reference,
+						hf_token
+					);
+
+					fire_event({
+						type: "status",
+						stage: "pending",
+						queue: true,
+						endpoint: _endpoint,
+						fn_index,
+						time: new Date()
+					});
+
+					let url = new URL(`${ws_protocol}://${host}/stream`);
+
+					if (this.jwt) {
+						url.searchParams.set("__sign", this.jwt);
+					}
+
+					websocket = new WebSocket(url);
+
+					websocket.onclose = (evt) => {
+						if (!evt.wasClean) {
+							fire_event({
+								type: "status",
+								stage: "error",
+								broken: true,
+								message: BROKEN_CONNECTION_MSG,
+								queue: true,
+								endpoint: _endpoint,
+								fn_index,
+								time: new Date()
+							});
+						}
+					};
+
+					websocket.onmessage = function (event) {
+						const _data = JSON.parse(event.data);
+						const { type, status, data } = handle_message(
+							_data,
+							last_status[fn_index]
+						);
+
+						if (type === "update" && status && !complete) {
+							// call 'status' listeners
+							fire_event({
+								type: "status",
+								endpoint: _endpoint,
+								fn_index,
+								time: new Date(),
+								...status
+							});
+							if (status.stage === "error") {
+								websocket.close();
+							}
+						} else if (type === "data") {
+							websocket.send(
+								JSON.stringify({ ...that.current_payload, session_hash })
+							);
+						} else if (type === "complete") {
+							complete = status;
+						} else if (type === "log") {
+							fire_event({
+								type: "log",
+								log: data.log,
+								level: data.level,
+								endpoint: _endpoint,
+								duration: data.duration,
+								visible: data.visible,
+								fn_index
+							});
+						} else if (type === "generating") {
+							fire_event({
+								type: "status",
+								time: new Date(),
+								...status,
+								stage: status?.stage!,
+								queue: true,
+								endpoint: _endpoint,
+								fn_index
+							});
+						}
+						if (data) {
+							fire_event({
+								type: "data",
+								time: new Date(),
+								data: handle_payload(
+									data.data,
+									dependency,
+									config.components,
+									"output",
+									options.with_null_state
+								),
+								endpoint: _endpoint,
+								fn_index,
+								event_data,
+								trigger_id
+							});
+
+							if (complete) {
+								fire_event({
+									type: "status",
+									time: new Date(),
+									...complete,
+									stage: status?.stage!,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index
+								});
+								websocket.close();
+							}
+						}
+					};
 				}
 			}
 		);
@@ -790,7 +911,8 @@ export function submit(
 				close();
 				return next();
 			},
-			cancel
+			cancel,
+			event_id: event_id_cb
 		};
 
 		return iterator;
