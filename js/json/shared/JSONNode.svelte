@@ -129,15 +129,16 @@
 		align-items: flex-start;
 		padding: 0;
 		margin: 0;
-		line-height: var(--line-sm);
+		line-height: var(--line-md);
 	}
 	.line-number {
 		position: absolute;
 		left: 0;
-		width: var(--size-4);
+		width: var(--size-7);
 		text-align: right;
 		color: var(--body-text-color-subdued);
 		user-select: none;
+		text-overflow: ellipsis;
 	}
 	.content {
 		flex: 1;
@@ -166,6 +167,9 @@
 		color: var(--color-red-500);
 	}
 
+	.value {
+		margin-left: var(--spacing-md);
+	}
 	.bracket {
 		margin-left: var(--spacing-sm);
 	}
@@ -176,6 +180,6 @@
 	}
 	.preview {
 		color: var(--body-text-color-subdued);
-		margin: 0 var(--spacing-md);
+		margin: 0 var(--spacing-sm) 0 var(--spacing-lg);
 	}
 </style>
