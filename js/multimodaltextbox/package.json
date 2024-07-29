@@ -20,6 +20,7 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/image": "workspace:^",
+		"@gradio/video": "workspace:^",
 		"@gradio/client": "workspace:^"
 	},
 	"devDependencies": {
