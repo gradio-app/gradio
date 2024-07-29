@@ -1,11 +1,6 @@
 import gradio as gr
 import cv2
-import tempfile
 import os
-
-
-def get_temp_name(extension=".ts"):
-    return tempfile.NamedTemporaryFile(delete=False).name + extension
 
 
 def process_video(input_video, stream_as_mp4):
@@ -18,10 +13,11 @@ def process_video(input_video, stream_as_mp4):
 
     iterating, frame = cap.read()
 
-    name = get_temp_name(extension=".mp4" if stream_as_mp4 else ".ts")
-    segment_file = cv2.VideoWriter(name, video_codec, fps, (width, height)) # type: ignore
     n_frames = 0
     n_chunks = 0
+    name = f"output_{n_chunks}" + ".mp4" if stream_as_mp4 else ".ts"
+    segment_file = cv2.VideoWriter(name, video_codec, fps, (width, height)) # type: ignore
+
     while iterating:
 
         # flip frame vertically
@@ -29,12 +25,12 @@ def process_video(input_video, stream_as_mp4):
         display_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         segment_file.write(display_frame)
         n_frames += 1
-        if n_frames == 1 * fps:
+        if n_frames == 3 * fps:
             n_chunks += 1
             segment_file.release()
             n_frames = 0
             yield name
-            name = get_temp_name(extension=".mp4" if stream_as_mp4 else ".ts")
+            name = f"output_{n_chunks}" + ".mp4" if stream_as_mp4 else ".ts"
             segment_file = cv2.VideoWriter(name, video_codec, fps, (width, height)) # type: ignore
 
         iterating, frame = cap.read()
