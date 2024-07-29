@@ -237,6 +237,8 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 			import("virtual:component-loader").then((module) => {
 				this._load_component = module.load_component;
 				virtual_component_loader = module.load_component;
+			}).catch((e) => {
+				console.error("Error loading virtual component loader", e);
 			});
 		} else {
 			this._load_component = virtual_component_loader;
