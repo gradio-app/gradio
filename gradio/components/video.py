@@ -335,6 +335,7 @@ class Video(Component):
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
                     "Modifying a video is not supported in the Wasm mode."
+                )
             # Specify arguments needed for ffmpeg
             global_option_list = ["-y"]
             inputs_dict = {video: None}
