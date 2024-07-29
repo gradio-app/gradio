@@ -209,6 +209,11 @@ class Component(ComponentBase, Block):
         ) = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value, inputs)
         initial_value = self.postprocess(initial_value)
+        # Serialize the json value so that it gets stored in the
+        # config as plain json, for images/audio etc. `move_files_to_cache`
+        # will call model_dump
+        if isinstance(initial_value, JsonData):
+            initial_value = initial_value.model_dump()
         self.value = move_files_to_cache(
             initial_value,
             self,  # type: ignore
