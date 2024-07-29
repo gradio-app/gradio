@@ -4,7 +4,6 @@ const base = defineConfig({
 	use: {
 		screenshot: "only-on-failure",
 		trace: "retain-on-failure",
-		permissions: ["clipboard-read", "clipboard-write", "microphone"],
 		bypassCSP: true,
 		launchOptions: {
 			args: [
@@ -20,7 +19,11 @@ const base = defineConfig({
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined,
-	retries: 3,
+	retries: 3
+});
+
+const normal = defineConfig(base, {
+	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js",
 	projects: [
 		{
 			name: "firefox",
@@ -36,10 +39,6 @@ const base = defineConfig({
 			testIgnore: /.stream_(audio|video)_out\.spec\.ts/
 		}
 	]
-});
-
-const normal = defineConfig(base, {
-	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js"
 });
 
 const lite = defineConfig(base, {
