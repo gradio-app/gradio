@@ -10,7 +10,7 @@ export interface LoadingStatus {
 	message?: string | null;
 	scroll_to_output?: boolean;
 	show_progress?: "full" | "minimal" | "hidden";
-	time_limit?: number;
+	time_limit?: number | null | undefined;
 	progress?: {
 		progress: number | null;
 		index: number | null;

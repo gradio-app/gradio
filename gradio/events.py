@@ -359,7 +359,7 @@ class EventListener(str):
         self.trigger_only_on_success = trigger_only_on_success
         self.callback = callback
         self.doc = doc
-        self.protocol = connection
+        self.connection = connection
         self.listener = self._setup(
             event_name,
             has_trigger,
@@ -387,7 +387,7 @@ class EventListener(str):
             self.trigger_after,
             self.trigger_only_on_success,
             self.doc,
-            self.protocol,  # type: ignore
+            self.connection,  # type: ignore
         )
 
     @staticmethod

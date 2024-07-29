@@ -132,7 +132,6 @@
 				});
 			}
 		});
-		console.log("updates", updates);
 		update_value(updates);
 
 		await tick();
@@ -279,20 +278,10 @@
 			}
 
 			let submission: ReturnType<typeof app.submit>;
-			// if (streaming && !submit_map.has(dep_index)) {
-			// 	loading_status.update({
-			// 		status: "streaming",
-			// 		fn_index: dep_index,
-			// 		time_limit: dep.time_limit,
-			// 		queue: true,
-			// 		queue_position: null,
-			// 		eta: null
-			// 	});
-			// 	set_status($loading_status);
-			// }
 			if (streaming && submit_map.has(dep_index)) {
 				app.current_payload = payload;
 				await app.post_data(
+					// @ts-ignore
 					`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
 					{ ...payload, session_hash: app.session_hash }
 				);

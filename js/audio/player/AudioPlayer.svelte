@@ -143,7 +143,7 @@
 	$: url && load_audio(url);
 
 	function load_stream(value: FileData | null): void {
-		if (!value || !value.is_stream) return;
+		if (!value || !value.is_stream || !value.url) return;
 		if (!audio_player) return;
 		if (Hls.isSupported() && !stream_active) {
 			const hls = new Hls({

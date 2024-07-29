@@ -73,7 +73,7 @@ class Event:
     def is_finished(self):
         if not self.streaming:
             raise ValueError("Cannot access if_finished during a non-streaming event")
-        if self.fn.total_runtime is None:
+        if self.fn.time_limit is None:
             return False
         return self.run_time >= self.fn.time_limit
 

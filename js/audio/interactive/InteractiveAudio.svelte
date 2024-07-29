@@ -102,7 +102,6 @@
 			) as FileData[]
 		)[0];
 
-		console.log("current time", new Date().toUTCString());
 		dispatch(event, value);
 	};
 

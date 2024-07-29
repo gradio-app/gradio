@@ -10,7 +10,6 @@ import re
 import shutil
 import sys
 import threading
-from asyncio import TimeoutError as AsyncTimeOutError
 from collections import deque
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
@@ -300,11 +299,11 @@ async def call_process_api(
         iterator = app.iterators.get(event_id) if event_id is not None else None
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
-            pending_streams: dict[int, MediaStream] = (
+            pending_streams: dict[int, list] = (
                 app.get_blocks().pending_streams[session_hash].get(run_id, {})
             )
             for stream in pending_streams.values():
-                stream.end_stream()
+                stream.append(None)
         raise
 
     if batch_in_single_out:

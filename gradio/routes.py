@@ -41,13 +41,12 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
-    Response,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -178,7 +177,6 @@ class App(FastAPI):
         self.auth_dependency = auth_dependency
         self.api_info = None
         self.all_app_info = None
-        self.stream_connection_manager = route_utils.StreamConnectionManager()
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -599,66 +597,6 @@ class App(FastAPI):
             event.signal.set()
             return {"msg": "success"}
 
-        @app.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
-        async def _(session_hash: str, run: int, component_id: int):
-            print("HERE")
-            stream: route_utils.MediaStream | None = (
-                app.get_blocks()
-                .pending_streams[session_hash]
-                .get(run, {})
-                .get(component_id, None)
-            )
-
-            if isinstance(app.get_blocks().get_component(component_id), gradio.Video):
-                extension = ".ts"
-            else:
-                extension = ".aac"
-
-            if not stream:
-                return Response(status_code=404)
-
-            playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:3\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
-            # while not len(stream.segments) >= 1:
-            #     await asyncio.sleep(0.05)
-            for segment in stream.segments:
-                playlist += f"#EXTINF:{segment['duration']:.3f},\n"
-                playlist += f"{segment['id']}{extension}\n"
-
-            if stream.ended:
-                playlist += "#EXT-X-ENDLIST\n"
-
-            return Response(
-                content=playlist, media_type="application/vnd.apple.mpegurl"
-            )
-
-        @app.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
-        async def _(
-            session_hash: str, run: int, component_id: int, segment_id: str, ext: str
-        ):
-            if ext not in ["aac", "ts"]:
-                return Response(status_code=400, content="Unsupported file extension")
-            stream: route_utils.MediaStream | None = (
-                app.get_blocks()
-                .pending_streams[session_hash]
-                .get(run, {})
-                .get(component_id, None)
-            )
-
-            if not stream:
-                return Response(status_code=404)
-
-            segment = next((s for s in stream.segments if s["id"] == segment_id), None)
-
-            if segment is None:
-                return Response(status_code=404)
-
-            if ext == "aac":
-                return Response(content=segment["data"], media_type="audio/aac")
-            else:
-                return Response(
-                    content=Path(segment["data"]).read_bytes(), media_type="video/MP2T"
-                )
-
         @app.get(
             "/stream/{session_hash}/{run}/{component_id}",
             dependencies=[Depends(login_check)],
@@ -776,7 +714,6 @@ class App(FastAPI):
                         ) in app.get_blocks()._queue.pending_event_ids_session.get(
                             session_hash, []
                         ):
-                            print("Cleaning up stream events")
                             event = app.get_blocks()._queue.event_ids_to_events[
                                 event_id
                             ]
@@ -865,7 +802,7 @@ class App(FastAPI):
 
         async def queue_join_helper(
             body: PredictBody,
-            request: fastapi.Request | WebSocket,
+            request: fastapi.Request,
             username: str,
         ):
             blocks = app.get_blocks()
