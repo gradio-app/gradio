@@ -16,7 +16,6 @@ class Context:
     root_block: Blocks | None = None  # The current root block that holds all blocks.
     block: BlockContext | None = None  # The current block that children are added to.
     id: int = 0  # Running id to uniquely refer to any block that gets defined
-    machine_hash: str | None = None  # A unique hash representing the machine that is running Gradio
     hf_token: str | None = None  # The token provided when loading private HF repos
 
 

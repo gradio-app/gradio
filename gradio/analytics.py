@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import secrets
 import threading
 import urllib.parse
 import warnings
@@ -17,7 +16,6 @@ from packaging.version import Version
 
 import gradio
 from gradio import wasm_utils
-from gradio.context import Context
 from gradio.utils import core_gradio_components, get_package_version
 
 # For testability, we import the pyfetch function into this module scope and define a fallback coroutine object to be patched in tests.
@@ -69,7 +67,7 @@ def _do_analytics_request(topic: str, data: dict[str, Any]) -> None:
 
 
 def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = get_machine_hash()
+    data["ip_address"] = ""
     try:
         _send_telemetry_in_thread(
             topic=topic,
@@ -82,7 +80,7 @@ def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
 
 
 async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = get_machine_hash()
+    data["ip_address"] = ""
 
     # We use urllib.parse.urlencode to encode the data as a form.
     # Ref: https://docs.python.org/3/library/urllib.request.html#urllib-examples
@@ -116,37 +114,6 @@ def version_check():
         warnings.warn("package URL does not contain version info.")
     except Exception:
         pass
-
-
-def _write_machine_hash() -> str:
-    machine_hash = secrets.token_urlsafe(32)
-    with open(JSON_PATH, "w+", encoding="utf-8") as j:
-        json.dump({"machine_hash": machine_hash}, j)
-    return machine_hash
-
-
-def get_machine_hash() -> str:
-    """
-    Gets a randomly generated string hash corresponding to this machine or the string
-    "Analytics disabled" if a user has disabled analytics. This is used for tracking
-    the number of unique users in analytics.
-    """
-    if not analytics_enabled():
-        return "Analytics disabled"
-
-    # Storing the machine_hash in the Context object to avoid reading the file multiple times
-    if Context.machine_hash is None:
-        if not os.path.exists(JSON_PATH):
-            Context.machine_hash = _write_machine_hash()
-        else:
-            # In older versions of Gradio, the launches.json file
-            # did not contain the "machine_hash" key.
-            with open(JSON_PATH, encoding="utf-8") as j:
-                info = json.load(j)
-            Context.machine_hash = info.get("machine_hash") or _write_machine_hash()
-
-    assert Context.machine_hash is not None  # noqa: S101
-    return Context.machine_hash
 
 
 def initiated_analytics(data: dict[str, Any]) -> None:

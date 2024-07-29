@@ -59,8 +59,3 @@ class TestAnalytics:
         await asyncio.wait(all_tasks)
 
         pyodide_pyfetch.assert_called()
-
-
-def test_get_machine_hash_is_idempotent():
-    hash = analytics.get_machine_hash()
-    assert hash == analytics.get_machine_hash()
