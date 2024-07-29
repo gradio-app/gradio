@@ -143,11 +143,29 @@
 				(TypeScript) from the browser or server-side.
 			</div>
 		</a>
+
 		<a
-			href="./docs/js"
+			href="/main/docs/third-party-clients"
 			target="_self"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
 				.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+		>
+			<div class="relative mb-2 flex items-center text-lg font-semibold">
+				<span>Third Party Clients</span>
+			</div>
+			<div class="relative pr-4 text-lg font-light">
+				Make programmatic requests to Gradio applications using third party
+				clients built by the gradio community.
+			</div>
+		</a>
+	</div>
+
+	<div class="grid grid-cols-1 gap-5 lg:flex lg:flex-row mt-8">
+		<a
+			href="./docs/js"
+			target="_self"
+			class="w-full shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
+				.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Javascript Components</span>
@@ -157,11 +175,12 @@
 				of the Gradio environment.
 			</div>
 		</a>
+
 		<a
 			href="../guides/custom-components-in-five-minutes"
 			target="_self"
-			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			class="w-full shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
+				.COLOR_SETS[2]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Custom Components</span>
@@ -174,8 +193,8 @@
 		<a
 			href="../guides/gradio-lite"
 			target="_self"
-			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			class="w-full shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
+				.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 		>
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Gradio Lite</span>

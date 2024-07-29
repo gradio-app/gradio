@@ -1,0 +1,17 @@
+<script lang="ts">
+    import CopyButton from "$lib/components/CopyButton.svelte";
+</script>
+
+# Introduction
+
+### Gradio Clients
+## Gradio applications support programmatic requests from many environments:
+
+- The [Python Client](/docs/python-client): `gradio-client` allows you to make requests from Python environments. 
+- The [JavaScript Client](/docs/js-client): `@gradio/client` allows you to make requests in TypeScript from the browser or server-side.
+- You can also query gradio apps [directly from cURL](/guides/querying-gradio-apps-with-curl). 
+
+### Community Clients
+## We also encourage the development and use of third party clients built by the community: 
+
+- [Rust Client](/docs/third-party-clients/rust-client): `gradio-rs` built by [@JacobLinCool](https://github.com/JacobLinCool) allows you to make requests in Rust. 
