@@ -254,6 +254,7 @@
 			computed_style.getPropertyValue("--text-sm")
 		);
 
+		/* eslint-disable complexity */
 		return {
 			$schema: "https://vega.github.io/schema/vega-lite/v5.17.0.json",
 			background: "transparent",
@@ -443,6 +444,7 @@
 			width: chart_element.offsetWidth,
 			title: title || undefined
 		};
+		/* eslint-enable complexity */
 	}
 
 	export let label = "Textbox";
