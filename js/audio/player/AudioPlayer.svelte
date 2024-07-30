@@ -130,7 +130,6 @@
 	};
 
 	async function load_audio(data: string): Promise<void> {
-		stream_active = false;
 		await resolve_wasm_src(data).then((resolved_src) => {
 			if (!resolved_src || value?.is_stream) return;
 			return waveform?.load(resolved_src);
