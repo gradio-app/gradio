@@ -28,6 +28,7 @@
 	}>;
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark";
+	export let show_indices: boolean;
 
 	$: {
 		if (value !== old_value) {
@@ -64,5 +65,5 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	<JSON {value} {open} {theme_mode} />
+	<JSON {value} {open} {theme_mode} {show_indices} />
 </Block>
