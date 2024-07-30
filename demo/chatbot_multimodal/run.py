@@ -1,5 +1,4 @@
 import gradio as gr
-import os
 import plotly.express as px
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
@@ -43,6 +42,5 @@ with gr.Blocks(fill_height=True) as demo:
 
     chatbot.like(print_like_dislike, None, None)
 
-demo.queue()
 if __name__ == "__main__":
     demo.launch()

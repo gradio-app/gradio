@@ -8,8 +8,8 @@ def track_score(score):
     return top_scores
 
 demo = gr.Interface(
-    track_score, 
-    gr.Number(label="Score"), 
+    track_score,
+    gr.Number(label="Score"),
     gr.JSON(label="Top Scores")
 )
 if __name__ == "__main__":

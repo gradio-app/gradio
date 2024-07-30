@@ -6,7 +6,6 @@ countries_cities_dict = {
     "Pakistan": ["Karachi", "Lahore", "Islamabad"],
 }
 
-
 def change_textbox(choice):
     if choice == "short":
         return gr.Textbox(lines=2, visible=True), gr.Button(interactive=True)
@@ -14,7 +13,6 @@ def change_textbox(choice):
         return gr.Textbox(lines=8, visible=True, value="Lorem ipsum dolor sit amet"), gr.Button(interactive=True)
     else:
         return gr.Textbox(visible=False), gr.Button(interactive=False)
-
 
 with gr.Blocks() as demo:
     radio = gr.Radio(
@@ -32,7 +30,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         country = gr.Dropdown(list(countries_cities_dict.keys()), label="Country")
         cities = gr.Dropdown([], label="Cities")
-        
+
     @country.change(inputs=country, outputs=cities)
     def update_cities(country):
         cities = list(countries_cities_dict[country])
@@ -49,8 +47,6 @@ with gr.Blocks() as demo:
         outputs=num,
     )
     num.submit(lambda x: x, num, out)
-
-
 
 if __name__ == "__main__":
     demo.launch()

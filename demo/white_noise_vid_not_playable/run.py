@@ -2,7 +2,6 @@ import cv2
 import gradio as gr
 import numpy as np
 
-
 def gif_maker():
     img_array = []
     height, width = 50, 50
@@ -14,7 +13,6 @@ def gif_maker():
         out.write(img_array[i])
     out.release()
     return output_file, output_file
-
 
 demo = gr.Interface(gif_maker, inputs=None, outputs=[gr.Video(), gr.File()])
 

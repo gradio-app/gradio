@@ -11,7 +11,7 @@ def get_forecast(lib, time):
     data = pypistats.overall(lib, total=True, format="pandas")
     data = data.groupby("category").get_group("with_mirrors").sort_values("date")
     start_date = date.today() - relativedelta(months=int(time.split(" ")[0]))
-    df = data[(data['date'] > str(start_date))] 
+    df = data[(data['date'] > str(start_date))]
 
     df1 = df[['date','downloads']]
     df1.columns = ['ds','y']
@@ -21,7 +21,7 @@ def get_forecast(lib, time):
     future = m.make_future_dataframe(periods=90)
     forecast = m.predict(future)
     fig1 = m.plot(forecast)
-    return fig1 
+    return fig1
 
 with gr.Blocks() as demo:
     gr.Markdown(
@@ -35,7 +35,7 @@ with gr.Blocks() as demo:
     plt = gr.Plot()
 
     lib.change(get_forecast, [lib, time], plt, queue=False)
-    time.change(get_forecast, [lib, time], plt, queue=False)    
-    demo.load(get_forecast, [lib, time], plt, queue=False)    
+    time.change(get_forecast, [lib, time], plt, queue=False)
+    demo.load(get_forecast, [lib, time], plt, queue=False)
 
 demo.launch()

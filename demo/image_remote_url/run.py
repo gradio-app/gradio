@@ -1,9 +1,7 @@
 import gradio as gr
 
-
 def fn(im):
     return im, "https://picsum.photos/400/300"
-
 
 demo = gr.Interface(
     fn=fn,
@@ -13,7 +11,6 @@ demo = gr.Interface(
         ["https://picsum.photos/640/480"]
     ]
 )
-
 
 if __name__ == "__main__":
     demo.launch()

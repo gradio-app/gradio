@@ -217,6 +217,7 @@
 		y_lim,
 		caption,
 		sort,
+		value,
 		mounted && load_chart();
 
 	function create_vega_lite_spec(): Spec | null {

@@ -4,7 +4,6 @@ from scatter_plot_demo import scatter_plots
 from line_plot_demo import line_plots
 from bar_plot_demo import bar_plots
 
-
 with gr.Blocks() as demo:
     with gr.Tabs():
         with gr.TabItem("Line Plot"):

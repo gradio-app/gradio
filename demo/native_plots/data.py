@@ -1,5 +1,5 @@
 import pandas as pd
-from random import randint, choice, random
+from random import randint, random
 
 temp_sensor_data = pd.DataFrame(
     {

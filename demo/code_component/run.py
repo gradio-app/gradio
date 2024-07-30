@@ -1,5 +1,4 @@
 import gradio as gr
-from pathlib import Path
 
 demo = gr.Interface(
     lambda x: x,
@@ -9,7 +8,6 @@ demo = gr.Interface(
                ["print('Hello, World!')"],
                [("/Users/freddy/sources/gradio/demo/code/run.py", )]]
 )
-
 
 if __name__ == "__main__":
     demo.launch()

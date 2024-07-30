@@ -5,7 +5,6 @@ def test_select_is_defined(n, evt: gr.SelectData):
     assert isinstance(evt.index[0], int)
     return n + 1
 
-
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():

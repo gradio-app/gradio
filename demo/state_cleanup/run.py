@@ -8,7 +8,6 @@ import shutil
 
 current_dir = Path(__file__).parent
 
-
 def generate_random_img(history: list[Image.Image], request: gr.Request):
     """Generate a random red, green, blue, orange, yellor or purple image."""
     colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 165, 0), (255, 255, 0), (128, 0, 128)]
@@ -47,6 +46,5 @@ with gr.Blocks(delete_cache=(60, 3600)) as demo:
     demo.load(generate_random_img, [state], [img, state, history])
     gen.click(generate_random_img, [state], [img, state, history])
     demo.unload(delete_directory)
-
 
 demo.launch()

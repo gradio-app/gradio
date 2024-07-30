@@ -47,7 +47,6 @@ Absolutely! The mycorrhizal network, often referred to as the "Wood Wide Web," i
 The "Wood Wide Web" exemplifies the intricate and often hidden connections that sustain life on Earth. It’s a reminder of the profound interdependence within natural systems and the importance of preserving these delicate relationships.
 """
 
-
 def random_plot():
     df = px.data.iris()
     fig = px.scatter(
@@ -60,13 +59,11 @@ def random_plot():
     )
     return fig
 
-
 color_map = {
     "harmful": "crimson",
     "neutral": "gray",
     "beneficial": "green",
 }
-
 
 def html_src(harm_level):
     return f"""
@@ -77,18 +74,16 @@ def html_src(harm_level):
 </div>
 """
 
-
 def print_like_dislike(x: gr.LikeData):
     print(x.index, x.value, x.liked)
-
 
 def random_bokeh_plot():
     from bokeh.models import ColumnDataSource, Whisker
     from bokeh.plotting import figure
     from bokeh.sampledata.autompg2 import autompg2 as df
-    from bokeh.transform import factor_cmap, jitter, factor_mark
+    from bokeh.transform import factor_cmap, jitter
 
-    classes = list(sorted(df["class"].unique()))
+    classes = sorted(df["class"].unique())
 
     p = figure(
         height=400,
@@ -126,7 +121,6 @@ def random_bokeh_plot():
     )
     return p
 
-
 def random_matplotlib_plot():
     import numpy as np
     import pandas as pd
@@ -152,14 +146,12 @@ def random_matplotlib_plot():
     plt.legend(countries)
     return fig
 
-
 def add_message(history, message):
     for x in message["files"]:
         history.append(((x,), None))
     if message["text"] is not None:
         history.append((message["text"], None))
     return history, gr.MultimodalTextbox(value=None, interactive=False)
-
 
 def bot(history, response_type):
     if response_type == "plot":
@@ -193,7 +185,6 @@ def bot(history, response_type):
     else:
         history[-1][1] = txt
     return history
-
 
 fig = random_plot()
 
@@ -245,6 +236,5 @@ with gr.Blocks(fill_height=True) as demo:
 
     chatbot.like(print_like_dislike, None, None)
 
-demo.queue()
 if __name__ == "__main__":
     demo.launch()

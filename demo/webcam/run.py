@@ -1,10 +1,8 @@
 
 import gradio as gr
 
-
 def snap(image, video):
     return [image, video]
-
 
 demo = gr.Interface(
     snap,

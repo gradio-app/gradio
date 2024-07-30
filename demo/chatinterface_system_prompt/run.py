@@ -1,13 +1,11 @@
 import gradio as gr
 import time
 
-
 def echo(message, history, system_prompt, tokens):
     response = f"System prompt: {system_prompt}\n Message: {message}."
     for i in range(min(len(response), int(tokens))):
         time.sleep(0.05)
         yield response[: i + 1]
-
 
 demo = gr.ChatInterface(
     echo,
@@ -18,4 +16,4 @@ demo = gr.ChatInterface(
 )
 
 if __name__ == "__main__":
-    demo.queue().launch()
+    demo.launch()
