@@ -46,7 +46,7 @@
 		await userEvent.click(toggles[1]);
 
 		await userEvent.click(toggles[2]);
-		await userEvent.click(canvas.getByText("Object(2)"));
+		await userEvent.click(canvas.getAllByText("Object(2)")[0]);
 	}}
 />
 
