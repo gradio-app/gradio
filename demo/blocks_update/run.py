@@ -41,6 +41,5 @@ with gr.Blocks() as demo:
 
     generate_btn.click(lambda x: x, details, output)
 
-
 if __name__ == "__main__":
     demo.launch()

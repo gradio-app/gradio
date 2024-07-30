@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Allow viewing JSON as list or dict with `mode` param
+feat:Add line numbering and collapse/expand logic to gr.JSON

@@ -48,7 +48,14 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 			},
 			extensions: _svelte_extensions,
 			preprocess: [
-				preprocess(),
+				preprocess({
+					typescript: {
+						compilerOptions: {
+							declaration: false,
+							declarationMap: false
+						}
+					}
+				}),
 				...(_additional_svelte_preprocess as PreprocessorGroup[])
 			]
 		}),

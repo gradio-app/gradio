@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, createEventDispatcher, tick } from "svelte";
+	import { onMount, createEventDispatcher, tick, afterUpdate } from "svelte";
 
 	export let value: any;
 	export let depth = 0;
@@ -37,22 +37,33 @@
 	} else {
 		child_nodes = [];
 	}
+	$: if (is_root && root_element) {
+		updateLineNumbers();
+	}
 
-	onMount(() => {
-		if (is_root) {
-			root_element.querySelectorAll(".line").forEach((line, index) => {
-				const line_number: HTMLDivElement | null =
-					line.querySelector(".line-number");
-				if (line_number)
-					line_number.setAttribute(
-						"data-pseudo-content",
-						(index + 1).toString()
-					);
+	function updateLineNumbers(): void {
+		const lines = root_element.querySelectorAll(".line");
+		lines.forEach((line, index) => {
+			const line_number = line.querySelector(".line-number");
+			if (line_number) {
+				line_number.setAttribute("data-pseudo-content", (index + 1).toString());
 				line_number?.setAttribute(
 					"aria-roledescription",
 					`Line number ${index + 1}`
 				);
-			});
+			}
+		});
+	}
+
+	onMount(() => {
+		if (is_root) {
+			updateLineNumbers();
+		}
+	});
+
+	afterUpdate(() => {
+		if (is_root) {
+			updateLineNumbers();
 		}
 	});
 </script>
@@ -119,7 +130,7 @@
 					value={subVal}
 					depth={depth + 1}
 					is_last_item={i === child_nodes.length - 1}
-					key={!show_indices && Array.isArray(value) ? null : subKey}
+					key={subKey}
 					{open}
 					{theme_mode}
 					{show_indices}

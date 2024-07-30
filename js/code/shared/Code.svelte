@@ -151,7 +151,7 @@
 		".cm-gutters": {
 			marginRight: "1px",
 			borderRight: "1px solid var(--border-color-primary)",
-			backgroundColor: "transparent",
+			backgroundColor: "var(--block-background-fill);",
 			color: "var(--body-text-color-subdued)"
 		},
 		".cm-focused": {

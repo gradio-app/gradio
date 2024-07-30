@@ -12,7 +12,6 @@ def add_to_stream(audio, instream):
         ret = (audio[0], np.concatenate((instream[1], audio[1])))
     return ret, ret
 
-
 with gr.Blocks() as demo:
     inp = gr.Audio(sources=["microphone"])
     out = gr.Audio()
@@ -21,7 +20,6 @@ with gr.Blocks() as demo:
 
     inp.stream(add_to_stream, [inp, stream], [out, stream])
     clear.click(lambda: [None, None, None], None, [inp, out, stream])
-
 
 if __name__ == "__main__":
     demo.launch()

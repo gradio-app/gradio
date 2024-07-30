@@ -17,6 +17,5 @@ with gr.Blocks() as demo:
     u.upload(upload_file, u, [u, d])
     d.click(download_file, None, [u, d])
 
-
 if __name__ == "__main__":
     demo.launch()

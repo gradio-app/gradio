@@ -51,4 +51,4 @@ with gr.Blocks() as demo:
             stream_as_bytes_btn.click(stream_bytes, input_audio, stream_as_bytes_output)
 
 if __name__ == "__main__":
-    demo.queue().launch()
+    demo.launch()
