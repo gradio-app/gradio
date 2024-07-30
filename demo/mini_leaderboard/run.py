@@ -184,7 +184,7 @@ with demo:
                     )
 
             leaderboard_table = gr.components.Dataframe(
-                value=df[ON_LOAD_COLS],
+                value=df[ON_LOAD_COLS],  # type: ignore
                 headers=ON_LOAD_COLS,
                 datatype=TYPES,
                 elem_id="leaderboard-table",
@@ -195,7 +195,7 @@ with demo:
 
             # Dummy leaderboard for handling the case when the user uses backspace key
             hidden_leaderboard_table_for_search = gr.components.Dataframe(
-                value=invisible_df[COLS],
+                value=invisible_df[COLS],  # type: ignore
                 headers=COLS,
                 datatype=TYPES,
                 visible=False,
