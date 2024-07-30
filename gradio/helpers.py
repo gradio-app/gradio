@@ -415,7 +415,9 @@ class Examples:
             show_api=False,
         )
 
-    async def async_lazy_cache(self, example_value: tuple[int, list[Any]], *input_values):
+    async def async_lazy_cache(
+        self, example_value: tuple[int, list[Any]], *input_values
+    ):
         example_index, _ = example_value
         cached_index = self._get_cached_index_if_cached(example_index)
         if cached_index is not None:
