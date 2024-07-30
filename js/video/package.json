@@ -17,7 +17,6 @@
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/wasm": "workspace:^",
-		"hls.js": "^1.5.13",
 		"mrmime": "^2.0.0"
 	},
 	"devDependencies": {

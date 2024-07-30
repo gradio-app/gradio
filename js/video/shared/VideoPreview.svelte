@@ -48,8 +48,6 @@
 		old_value = value;
 		old_subtitle = subtitle;
 	});
-
-	// $: console.log("video preview value", value)
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />

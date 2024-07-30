@@ -40,8 +40,11 @@
 	export let stream_frequency: number;
 
 	export const close_stream: () => void = () => {
+		stream_active = false;
 		stop();
 	};
+
+	let stream_active = false;
 
 	$: dispatch("drag", dragging);
 
@@ -139,13 +142,13 @@
 			recorder.addEventListener("dataavailable", (event) => {
 				audio_chunks.push(event.data);
 			});
-			recorder.addEventListener("stop", async () => {
-				recording = false;
-				await dispatch_blob(audio_chunks, "change");
-				await dispatch_blob(audio_chunks, "stop_recording");
-				audio_chunks = [];
-			});
 		}
+		recorder.addEventListener("stop", async () => {
+			recording = false;
+			await dispatch_blob(audio_chunks, "change");
+			await dispatch_blob(audio_chunks, "stop_recording");
+			audio_chunks = [];
+		});
 		inited = true;
 	}
 
@@ -160,7 +163,9 @@
 			pending_stream.push(payload);
 		} else {
 			let blobParts = [header].concat(pending_stream, [payload]);
-			dispatch_blob(blobParts, "stream");
+			if (stream_active) {
+				dispatch_blob(blobParts, "stream");
+			}
 			pending_stream = [];
 		}
 	}
@@ -178,6 +183,7 @@
 		recording = true;
 		dispatch("start_recording");
 		if (!inited) await prepare_audio();
+		stream_active = true;
 		header = undefined;
 		if (streaming) {
 			recorder.start((1 / stream_frequency) * 1000);
