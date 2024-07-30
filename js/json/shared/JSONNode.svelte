@@ -7,6 +7,7 @@
 	export let is_last_item = true;
 	export let key: string | number | null = null;
 	export let open = false;
+	export let theme_mode: "system" | "light" | "dark" = "system";
 
 	const dispatch = createEventDispatcher();
 	let root_element: HTMLElement;
@@ -24,11 +25,9 @@
 	}
 
 	function get_collapsed_preview(val: any): string {
-		if (Array.isArray(val)) {
-			return `Array(${val.length})`;
-		} else if (typeof val === "object" && val !== null) {
+		if (Array.isArray(val)) return `Array(${val.length})`;
+		if (typeof val === "object" && val !== null)
 			return `Object(${Object.keys(val).length})`;
-		}
 		return String(val);
 	}
 
@@ -40,25 +39,41 @@
 
 	onMount(() => {
 		if (is_root) {
-			const lines = root_element.querySelectorAll(".line");
-			lines.forEach((line, index) => {
-				const line_number = line.querySelector(".line-number");
-				if (line_number) {
-					line_number.textContent = (index + 1).toString();
-				}
+			root_element.querySelectorAll(".line").forEach((line, index) => {
+				const line_number: HTMLDivElement | null =
+					line.querySelector(".line-number");
+				if (line_number)
+					line_number.setAttribute(
+						"data-pseudo-content",
+						(index + 1).toString()
+					);
+				line_number?.setAttribute(
+					"aria-roledescription",
+					`Line number ${index + 1}`
+				);
 			});
 		}
 	});
 </script>
 
-<div class="json-node" class:root={is_root} bind:this={root_element} on:toggle>
+<div
+	class="json-node"
+	class:root={is_root}
+	class:dark-mode={theme_mode === "dark"}
+	bind:this={root_element}
+	on:toggle
+	style="--depth: {depth};"
+>
 	<div class="line" class:collapsed>
 		<span class="line-number"></span>
-		<span class="content" style="--depth: {depth};">
+		<span class="content">
 			{#if is_collapsible(value)}
-				<button class="toggle" on:click={toggle_collapse}
-					>{collapsed ? "▶" : "▼"}</button
-				>
+				<button
+					data-pseudo-content={collapsed ? "▶" : "▼"}
+					aria-label={collapsed ? "Expand" : "Collapse"}
+					class="toggle"
+					on:click={toggle_collapse}
+				/>
 			{/if}
 			{#if key !== null}
 				<span class="key">"{key}"</span><span class="punctuation colon"
@@ -66,13 +81,15 @@
 				</span>
 			{/if}
 			{#if is_collapsible(value)}
-				<span class="punctuation bracket"
+				<span
+					class="punctuation bracket"
+					class:square-bracket={Array.isArray(value)}
 					>{Array.isArray(value) ? "[" : "{"}</span
 				>
 				{#if collapsed}
-					<button on:click={toggle_collapse} class="preview"
-						>{get_collapsed_preview(value)}</button
-					>
+					<button on:click={toggle_collapse} class="preview">
+						{get_collapsed_preview(value)}
+					</button>
 					<span class="punctuation bracket"
 						>{Array.isArray(value) ? "]" : "}"}</span
 					>
@@ -88,9 +105,9 @@
 			{:else}
 				<span>{value}</span>
 			{/if}
-			{#if !is_last_item && (!is_collapsible(value) || collapsed)}<span
-					class="punctuation">,</span
-				>{/if}
+			{#if !is_last_item && (!is_collapsible(value) || collapsed)}
+				<span class="punctuation">,</span>
+			{/if}
 		</span>
 	</div>
 
@@ -103,13 +120,16 @@
 					is_last_item={i === child_nodes.length - 1}
 					key={subKey}
 					{open}
+					{theme_mode}
 					on:toggle
 				/>
 			{/each}
 			<div class="line">
 				<span class="line-number"></span>
-				<span class="content" style="--depth: {depth};">
-					<span class="punctuation bracket"
+				<span class="content">
+					<span
+						class="punctuation bracket"
+						class:square-bracket={Array.isArray(value)}
 						>{Array.isArray(value) ? "]" : "}"}</span
 					>
 					{#if !is_last_item}<span class="punctuation">,</span>{/if}
@@ -121,12 +141,34 @@
 
 <style>
 	.json-node {
-		color: var(--body-text-color);
 		font-family: var(--font-mono);
+		--text-color: #d18770;
+		--key-color: var(--text-color);
+		--string-color: #ce9178;
+		--number-color: #719fad;
+
+		--bracket-color: #5d8585;
+		--square-bracket-color: #be6069;
+		--punctuation-color: #8fbcbb;
+		--line-number-color: #6a737d;
+		--separator-color: var(--line-number-color);
+	}
+	.json-node.dark-mode {
+		--bracket-color: #7eb4b3;
+		--number-color: #638d9a;
 	}
 	.json-node.root {
 		position: relative;
-		padding-left: var(--size-10);
+		padding-left: var(--size-14);
+	}
+	.json-node.root::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: var(--size-11);
+		width: 1px;
+		background-color: var(--separator-color);
 	}
 	.line {
 		display: flex;
@@ -138,17 +180,19 @@
 	.line-number {
 		position: absolute;
 		left: 0;
-		width: var(--size-7);
+		width: calc(var(--size-10) - 4px);
 		text-align: right;
-		color: var(--body-text-color-subdued);
+		color: var(--line-number-color);
 		user-select: none;
 		text-overflow: ellipsis;
+		padding-right: 4px;
 	}
 	.content {
 		flex: 1;
 		display: flex;
 		align-items: center;
 		padding-left: calc(var(--depth) * var(--size-2));
+		flex-wrap: wrap;
 	}
 	.children {
 		padding-left: var(--size-4);
@@ -156,39 +200,56 @@
 	.children.hidden {
 		display: none;
 	}
-
-	.null {
-		color: var(--body-text-color-subdued);
+	.key {
+		color: var(--key-color);
 	}
-
 	.string {
-		color: var(--color-green-500);
+		color: var(--string-color);
 	}
 	.number {
-		color: var(--color-blue-500);
+		color: var(--number-color);
 	}
 	.bool {
-		color: var(--color-red-500);
+		color: var(--text-color);
 	}
-
+	.null {
+		color: var(--text-color);
+	}
 	.value {
 		margin-left: var(--spacing-md);
 	}
+	.punctuation {
+		color: var(--punctuation-color);
+	}
 	.bracket {
 		margin-left: var(--spacing-sm);
+		color: var(--bracket-color);
 	}
-
+	.square-bracket {
+		margin-left: var(--spacing-sm);
+		color: var(--square-bracket-color);
+	}
+	.toggle,
+	.preview {
+		background: none;
+		border: none;
+		color: inherit;
+		cursor: pointer;
+		padding: 0;
+		margin: 0;
+	}
 	.toggle {
 		user-select: none;
 		margin-right: var(--spacing-md);
 	}
 	.preview {
-		color: var(--body-text-color-subdued);
 		margin: 0 var(--spacing-sm) 0 var(--spacing-lg);
 	}
-
 	.preview:hover {
 		text-decoration: underline;
-		cursor: pointer;
+	}
+
+	:global([data-pseudo-content])::before {
+		content: attr(data-pseudo-content);
 	}
 </style>

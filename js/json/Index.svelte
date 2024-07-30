@@ -27,6 +27,7 @@
 		clear_status: LoadingStatus;
 	}>;
 	export let open = false;
+	export let theme_mode: "system" | "light" | "dark";
 
 	$: {
 		if (value !== old_value) {
@@ -63,5 +64,5 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	<JSON {value} {open} />
+	<JSON {value} {open} {theme_mode} />
 </Block>
