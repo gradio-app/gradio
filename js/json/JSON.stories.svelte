@@ -30,10 +30,10 @@
 	<JSON value={SAMPLE_JSON} {...args} />
 </Template>
 
-<Story name="JSON default" args={{}} />
+<Story name="Default JSON" args={{}} />
 
 <Story
-	name="JSON toggling"
+	name="JSON Interactions"
 	args={{
 		value: SAMPLE_JSON,
 		interactive: true
