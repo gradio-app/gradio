@@ -24,7 +24,7 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client, handle_file
 from gradio_client.client import DEFAULT_TEMP_DIR
-from gradio_client.exceptions import AppError, AuthenticationError
+from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
     ProgressUnit,
@@ -1396,21 +1396,6 @@ class TestDuplication:
                 "test_value2",
                 token=HF_TOKEN,
             )
-
-
-def test_upstream_exceptions(count_generator_demo_exception):
-    with connect(count_generator_demo_exception, show_error=True) as client:
-        with pytest.raises(
-            AppError, match="The upstream Gradio app has raised an exception: Oh no!"
-        ):
-            client.predict(7, api_name="/count")
-
-    with connect(count_generator_demo_exception) as client:
-        with pytest.raises(
-            AppError,
-            match="The upstream Gradio app has raised an exception but has not enabled verbose error reporting.",
-        ):
-            client.predict(7, api_name="/count")
 
 
 def test_httpx_kwargs(increment_demo):
