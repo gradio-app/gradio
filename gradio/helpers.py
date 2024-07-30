@@ -408,15 +408,15 @@ class Examples:
             lazy_cache_fn = self.sync_lazy_cache
         self.cache_event = self.load_input_event.then(
             lazy_cache_fn,
-            inputs=self.dataset,
+            inputs=[self.dataset] + list(self.inputs),
             outputs=self.outputs,
             postprocess=False,
             api_name=self.api_name,
             show_api=False,
         )
 
-    async def async_lazy_cache(self, example_value: tuple[int, list[Any]]):
-        example_index, input_values = example_value
+    async def async_lazy_cache(self, example_value: tuple[int, list[Any]], *input_values):
+        example_index, _ = example_value
         cached_index = self._get_cached_index_if_cached(example_index)
         if cached_index is not None:
             output = self.load_from_cache(cached_index)
@@ -434,8 +434,8 @@ class Examples:
         with open(self.cached_indices_file, "a") as f:
             f.write(f"{example_index}\n")
 
-    def sync_lazy_cache(self, example_value: tuple[int, list[Any]]):
-        example_index, input_values = example_value
+    def sync_lazy_cache(self, example_value: tuple[int, list[Any]], *input_values):
+        example_index, _ = example_value
         cached_index = self._get_cached_index_if_cached(example_index)
         if cached_index is not None:
             output = self.load_from_cache(cached_index)
