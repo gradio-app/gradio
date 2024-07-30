@@ -9,6 +9,5 @@ with gr.Blocks() as demo:
     def greet(name):
         return "Hello " + name + "!"
 
-
 if __name__ == "__main__":
     demo.launch()

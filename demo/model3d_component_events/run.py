@@ -15,6 +15,5 @@ with gr.Blocks() as demo:
         input_3d.change(lambda n: n + 1, num_change, num_change)
         input_3d.clear(lambda s, n: (s, n + 1), [input_3d, num_clear], [clear_value, num_clear])
 
-
 if __name__ == "__main__":
     demo.launch()

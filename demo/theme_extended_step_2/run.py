@@ -12,7 +12,7 @@ with gr.Blocks(theme=gr.themes.Default(spacing_size="sm", radius_size="none")) a
     def repeat(name, count):
         time.sleep(3)
         return name * count
-    
+
     button.click(repeat, [textbox, slider], output)
 
 if __name__ == "__main__":
