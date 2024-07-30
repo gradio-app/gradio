@@ -63,30 +63,9 @@ test("test outputs", async ({ page }) => {
 	);
 
 	const json = await page.locator("data-testid=json");
-	await expect(json).toContainText(`{
-        items:  {
-        item:  [
-        0:  {
-        id:  "0001",
-        type:  null,
-        is_good:  false,
-        ppu:  0.55,
-        batters:  {
-        batter:  expand 4 children
-        },
-        topping:  [
-        0:  {+2 items} ,
-        1:  {+2 items} ,
-        2:  {+2 items} ,
-        3:  {+2 items} ,
-        4:  {+2 items} ,
-        5:  {+2 items} ,
-        6:  {+2 items}
-        ]
-        }
-        ]
-        }
-        }`);
+	await expect(json).toContainText(
+		`{     "items": {     "item": [     "0": { Object(6) }    "id": "0001" ,   "type": null ,   "is_good": false ,   "ppu": 0.55 ,   "batters": { Object(1) } ,   "batter": [ Array(4) ]    "0": { Object(2) } ,   "id": "1001" ,   "type": "Regular"    } ,  "1": { Object(2) } ,   "id": "1002" ,   "type": "Chocolate"    } ,  "2": { Object(2) } ,   "id": "1003" ,   "type": "Blueberry"    } ,  "3": { Object(2) }    "id": "1004" ,   "type": "Devil's Food"    }   ]   } ,  "topping": [ Array(7) ]    "0": { Object(2) } ,   "id": "5001" ,   "type": "None"    } ,  "1": { Object(2) } ,   "id": "5002" ,   "type": "Glazed"    } ,  "2": { Object(2) } ,   "id": "5005" ,   "type": "Sugar"    } ,  "3": { Object(2) } ,   "id": "5007" ,   "type": "Powdered Sugar"    } ,  "4": { Object(2) } ,   "id": "5006" ,   "type": "Chocolate with Sprinkles"    } ,  "5": { Object(2) } ,   "id": "5003" ,   "type": "Chocolate"    } ,  "6": { Object(2) }    "id": "5004" ,   "type": "Maple"    }   ]   }   ]   }   } `
+	);
 
 	const image = page.locator("img").nth(0);
 	const image_data = await image.getAttribute("src");
