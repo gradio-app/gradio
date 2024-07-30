@@ -19,22 +19,7 @@ const base = defineConfig({
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined,
-	retries: 3,
-	projects: [
-		{
-			name: "firefox",
-			use: { ...devices["Desktop Firefox"] },
-			testMatch: /.stream_(audio|video)_out\.spec\.ts/
-		},
-		{
-			name: "chrome",
-			use: {
-				...devices["Desktop Chrome"],
-				permissions: ["clipboard-read", "clipboard-write", "microphone"]
-			},
-			testIgnore: /.stream_(audio|video)_out\.spec\.ts/
-		}
-	]
+	retries: 3
 });
 
 const normal = defineConfig(base, {
