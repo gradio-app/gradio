@@ -11,7 +11,7 @@ with gr.Blocks() as demo:
   with gr.Row():
     gr.Button("Start").click(lambda: gr.Timer(active=True), None, timer)
     gr.Button("Stop").click(lambda: gr.Timer(active=False), None, timer)
-    gr.Button("Go Fast").click(0.2, None, timer)
+    gr.Button("Go Fast").click(lambda :0.2, None, timer)
 
 if __name__ == "__main__":
   demo.launch()
