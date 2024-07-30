@@ -18,7 +18,7 @@ def upload_demo_to_space(
         hf_token: HF api token. Need to have permission to write to space_id for this to work.
         gradio_version: If not None, will set the gradio version in the created space to the given version.
     """
-
+    print("upload_demo_to_space -- hello from fork")
     with tempfile.TemporaryDirectory() as tmpdir:
         demo_path = pathlib.Path(pathlib.Path().absolute(), f"demo/{demo_name}")
         shutil.copytree(demo_path, tmpdir, dirs_exist_ok=True)

@@ -37,7 +37,7 @@ def upload_demo_to_space(
         gradio_version: If not None, will set the gradio version in the created Space to the given version.
         gradio_wheel_url: If not None, will install the version of gradio using the wheel url in the created Space.
     """
-
+    print("upload_demo_to_space -- hello from fork")
     with tempfile.TemporaryDirectory() as tmpdir:
         demo_path = pathlib.Path(GRADIO_DEMO_DIR, demo_name)
         shutil.copytree(demo_path, tmpdir, dirs_exist_ok=True)
