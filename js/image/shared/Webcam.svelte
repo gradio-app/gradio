@@ -115,9 +115,7 @@
 				context.drawImage(video_source, -video_source.videoWidth, 0);
 			}
 
-			if (streaming) {
-				const image_data = canvas.toDataURL("image/jpeg");
-				dispatch("stream", image_data);
+			if (streaming && !recording) {
 				return;
 			}
 
@@ -125,7 +123,7 @@
 				(blob) => {
 					dispatch("capture", blob);
 				},
-				"image/png",
+				`image/${streaming ? "jpeg" : "png"}`,
 				0.8
 			);
 		}

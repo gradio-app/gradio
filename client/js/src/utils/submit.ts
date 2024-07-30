@@ -451,8 +451,6 @@ export function submit(
 								close();
 							}
 						} else if (type === "data") {
-							event_id = _data.event_id as string;
-							event_id_cb = () => event_id!;
 							let [_, status] = await post_data(`${config.root}/queue/data`, {
 								...payload,
 								session_hash,
@@ -598,7 +596,6 @@ export function submit(
 						} else {
 							event_id = response.event_id as string;
 							event_id_final = event_id;
-
 							let callback = async function (_data: object): Promise<void> {
 								try {
 									const { type, status, data } = handle_message(
