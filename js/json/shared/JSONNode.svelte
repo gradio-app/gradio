@@ -102,7 +102,9 @@
 					<button on:click={toggle_collapse} class="preview">
 						{get_collapsed_preview(value)}
 					</button>
-					<span class="punctuation bracket"
+					<span
+						class="punctuation bracket"
+						class:square-bracket={Array.isArray(value)}
 						>{Array.isArray(value) ? "]" : "}"}</span
 					>
 				{/if}
