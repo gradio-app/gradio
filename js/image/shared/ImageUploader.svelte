@@ -48,14 +48,9 @@
 	}
 
 	async function handle_save(img_blob: Blob | any): Promise<void> {
-		if (streaming) {
-			value = new FileData({ path: "", data: img_blob });
-			dispatch("stream");
-			return;
-		}
 		pending = true;
 		const f = await upload_input.load_files([
-			new File([img_blob], `webcam.png`)
+			new File([img_blob], `image/${streaming ? "jpeg" : "png"}`)
 		]);
 
 		value = f?.[0] || null;

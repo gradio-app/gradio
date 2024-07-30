@@ -179,7 +179,6 @@ class FileData(GradioModel):
     orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
     is_stream: bool = False
-    data: Optional[str] = None  # base64 encoding
     meta: dict = {"_type": "gradio.FileData"}
 
     @property

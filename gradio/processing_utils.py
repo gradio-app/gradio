@@ -438,9 +438,6 @@ async def async_move_files_to_cache(
 
     async def _move_to_cache(d: dict):
         payload = FileData(**d)
-        if payload.data is not None:
-            payload.url = payload.data
-            return payload.model_dump()
         # If the gradio app developer is returning a URL from
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
