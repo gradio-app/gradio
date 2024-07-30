@@ -1,13 +1,10 @@
 import gradio as gr
 from pathlib import Path
 
-
 dir_ = Path(__file__).parent
-
 
 def predict(im):
     return im
-
 
 with gr.Blocks() as demo:
     with gr.Row():
@@ -70,7 +67,6 @@ with gr.Blocks() as demo:
         ],
         inputs=im,
     )
-
 
 if __name__ == "__main__":
     demo.launch()
