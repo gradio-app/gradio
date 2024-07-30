@@ -2407,7 +2407,6 @@ Received outputs:
                 # So we need to manually cancel them. See `self.close()`..
                 self.startup_events()
 
-        utils.launch_counter()
         self.is_sagemaker = utils.sagemaker_check()
         if share is None:
             if self.is_colab:
