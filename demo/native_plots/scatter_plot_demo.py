@@ -1,5 +1,4 @@
 import gradio as gr
-import numpy as np
 from data import temp_sensor_data, food_rating_data
 
 with gr.Blocks() as scatter_plots:
@@ -25,16 +24,15 @@ with gr.Blocks() as scatter_plots:
 
     time_graphs = [temp_by_time, temp_by_time_location]
     group_by.change(
-        lambda group: [gr.ScatterPlot(x_bin=None if group == "None" else group)] * len(time_graphs), 
-        group_by, 
+        lambda group: [gr.ScatterPlot(x_bin=None if group == "None" else group)] * len(time_graphs),
+        group_by,
         time_graphs
     )
     aggregate.change(
-        lambda aggregate: [gr.ScatterPlot(y_aggregate=aggregate)] * len(time_graphs), 
-        aggregate, 
+        lambda aggregate: [gr.ScatterPlot(y_aggregate=aggregate)] * len(time_graphs),
+        aggregate,
         time_graphs
     )
-
 
     # def rescale(select: gr.SelectData):
     #     return select.index
@@ -65,7 +63,6 @@ with gr.Blocks() as scatter_plots:
             color="cuisine",
             # color_map={"Italian": "red", "Mexican": "green", "Chinese": "blue"},
         )
-
 
 if __name__ == "__main__":
     scatter_plots.launch()

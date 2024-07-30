@@ -7,19 +7,15 @@ import random
 import gradio as gr
 from gradio.components import Markdown as m
 
-
 def get_time():
     now = datetime.datetime.now()
     return now.strftime("%m/%d/%Y, %H:%M:%S")
 
-
 def generate_recording():
     return random.choice(["new-sax-1.mp3", "new-sax-1.wav"])
 
-
 def reconstruct(audio):
     return random.choice(["new-sax-1.mp3", "new-sax-1.wav"])
-
 
 io1 = gr.Interface(
     lambda x, y, z: os.path.join(os.path.dirname(__file__),"sax.wav"),
@@ -137,7 +133,6 @@ with demo.clear():
     t = gr.Textbox(label="timestamp")
 
     demo.load(get_time, [], t)
-
 
 if __name__ == "__main__":
     demo.launch()

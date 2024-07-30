@@ -9,7 +9,7 @@ def store_message(message: str, history: list[str]):  # type: ignore
     return output, history
 
 demo = gr.Interface(fn=store_message,
-                    inputs=["textbox", gr.State(value=[])], 
+                    inputs=["textbox", gr.State(value=[])],
                     outputs=["json", gr.State()])
 
 if __name__ == "__main__":

@@ -37,7 +37,6 @@ seattle_weather = data.seattle_weather()
 #     }
 # )
 
-
 def line_plot_fn(dataset):
     if dataset == "stocks":
         return gr.LinePlot(
@@ -88,7 +87,6 @@ def line_plot_fn(dataset):
             width=500,
         )
 
-
 with gr.Blocks() as line_plot:
     with gr.Row():
         with gr.Column():
@@ -100,7 +98,6 @@ with gr.Blocks() as line_plot:
             plot = gr.LinePlot()
     dataset.change(line_plot_fn, inputs=dataset, outputs=plot)
     line_plot.load(fn=line_plot_fn, inputs=dataset, outputs=plot)
-
 
 if __name__ == "__main__":
     line_plot.launch()

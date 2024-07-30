@@ -1,5 +1,4 @@
 import gradio as gr
-import os
 
 def sort_records(records):
     return records.sort("Quantity")
