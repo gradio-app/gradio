@@ -4,11 +4,19 @@
 	import { userEvent, within } from "@storybook/test";
 
 	const SAMPLE_JSON = {
-		key1: "value1",
-		key2: "value2",
-		key3: {
-			key4: "value4",
-			key5: "value5"
+		items: {
+			item: [
+				{
+					id: "0001",
+					type: null,
+					is_good: false,
+					ppu: 0.55,
+					batters: {
+						batter: [{ id: "1001", type: "Regular" }]
+					},
+					topping: [{ id: "5002", type: "Glazed" }]
+				}
+			]
 		}
 	};
 
@@ -38,6 +46,14 @@
 		await userEvent.click(toggles[1]);
 
 		await userEvent.click(toggles[2]);
-		await userEvent.click(canvas.getByText("Object(2)"));
+		await userEvent.click(canvas.getAllByText("Object(2)")[0]);
+	}}
+/>
+
+<Story
+	name="JSON viewed as list"
+	args={{
+		value: SAMPLE_JSON,
+		show_indices: true
 	}}
 />

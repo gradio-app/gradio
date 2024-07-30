@@ -8,6 +8,7 @@
 	export let key: string | number | null = null;
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark" = "system";
+	export let show_indices = false;
 
 	const dispatch = createEventDispatcher();
 	let root_element: HTMLElement;
@@ -101,7 +102,9 @@
 					<button on:click={toggle_collapse} class="preview">
 						{get_collapsed_preview(value)}
 					</button>
-					<span class="punctuation bracket"
+					<span
+						class="punctuation bracket"
+						class:square-bracket={Array.isArray(value)}
 						>{Array.isArray(value) ? "]" : "}"}</span
 					>
 				{/if}
@@ -132,6 +135,7 @@
 					key={subKey}
 					{open}
 					{theme_mode}
+					{show_indices}
 					on:toggle
 				/>
 			{/each}
