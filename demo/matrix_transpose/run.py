@@ -2,10 +2,8 @@ import numpy as np
 
 import gradio as gr
 
-
 def transpose(matrix):
     return matrix.T
-
 
 demo = gr.Interface(
     transpose,

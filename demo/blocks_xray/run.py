@@ -1,11 +1,9 @@
 import gradio as gr
-import time
 
 disease_values = [0.25, 0.5, 0.75]
 
 def xray_model(diseases, img):
     return [{disease: disease_values[idx] for idx,disease in enumerate(diseases)}]
-
 
 def ct_model(diseases, img):
     return [{disease: 0.1 for disease in diseases}]

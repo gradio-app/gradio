@@ -5,12 +5,10 @@ from transformers import pipeline
 english_translator = gr.load(name="spaces/gradio/english_translator")
 english_generator = pipeline("text-generation", model="distilgpt2")
 
-
 def generate_text(text):
     english_text = english_generator(text)[0]["generated_text"]  # type: ignore
     german_text = english_translator(english_text)
     return english_text, german_text
-
 
 with gr.Blocks() as demo:
     with gr.Row():
