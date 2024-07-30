@@ -5,7 +5,6 @@ import pathlib
 
 log_file = pathlib.Path(__file__).parent / "cancel_events_output_log.txt"
 
-
 def fake_diffusion(steps):
     log_file.write_text("")
     for i in range(steps):
@@ -15,11 +14,9 @@ def fake_diffusion(steps):
         time.sleep(0.2)
         yield str(i)
 
-
 def long_prediction(*args, **kwargs):
     time.sleep(10)
     return 42
-
 
 with gr.Blocks() as demo:
     with gr.Row():

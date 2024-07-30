@@ -1,6 +1,5 @@
 import gradio as gr
 
-
 def calculator(num1, operation, num2):
     if operation == "add":
         return num1 + num2
@@ -10,7 +9,6 @@ def calculator(num1, operation, num2):
         return num1 * num2
     elif operation == "divide":
         return num1 / num2
-
 
 with gr.Blocks() as demo:
     with gr.Row():

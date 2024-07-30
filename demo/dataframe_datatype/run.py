@@ -2,7 +2,6 @@ import gradio as gr
 import pandas as pd
 import numpy as np
 
-
 def make_dataframe(n_periods):
     rng = np.random.default_rng()
     return pd.DataFrame({"date_1": pd.date_range("2021-01-01", periods=n_periods),
@@ -12,11 +11,9 @@ def make_dataframe(n_periods):
                          "bool": [True] * n_periods,
                          "markdown": ["# Hello"] * n_periods})
 
-
 demo = gr.Interface(make_dataframe,
              gr.Number(precision=0),
              gr.Dataframe(datatype=["date", "date", "number", "number", "bool", "markdown"]))
-
 
 if __name__ == "__main__":
     demo.launch()

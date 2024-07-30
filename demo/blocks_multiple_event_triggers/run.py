@@ -17,7 +17,6 @@ def get_plot(lib, time):
                               height=400,
                               width=900)
 
-
 with gr.Blocks() as demo:
     gr.Markdown(
         """

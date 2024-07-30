@@ -15,7 +15,6 @@ from constants import (
     random_model3d,
 )
 
-
 demo = gr.Interface(
     lambda *args: args[0],
     inputs=[

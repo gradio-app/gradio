@@ -1,10 +1,8 @@
 
 import gradio as gr
 
-
 def func(slider_1, slider_2):
     return slider_1 * 5 + slider_2
-
 
 with gr.Blocks() as demo:
     slider = gr.Slider(minimum=-10.2, maximum=15, label="Random Slider (Static)", randomize=True)
