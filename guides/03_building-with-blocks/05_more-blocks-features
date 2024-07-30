@@ -7,7 +7,7 @@ Just like with `gr.Interface`, you can also add examples for your functions when
 * `examples`: a nested list of examples, in which the outer list consists of examples and each inner list consists of an input corresponding to each input component
 * `inputs`: the component or list of components that should be populated when the examples are clicked
 
-You can also set `cache_examples=True` similar to `gr.Interface`, in which case two additional arguments must be provided:
+You can also set `cache_examples=True` or `cache_examples='lazy'`, similar to [the caching API in `gr.Interface`](https://www.gradio.app/guides/more-on-examples), in which case two additional arguments must be provided:
 
 * `outputs`: the component or list of components corresponding to the output of the examples
 * `fn`: the function to run to generate the outputs corresponding to the examples
