@@ -7,7 +7,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Literal,
     Sequence,
 )
 
@@ -48,7 +47,6 @@ class JSON(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        mode: Literal["dict", "list"] = "dict",
     ):
         """
         Parameters:
@@ -65,7 +63,6 @@ class JSON(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
-            mode: The mode of the JSON component. If "dict", the JSON will be displayed as a dictionary. If "list", the JSON will be displayed as a list. Default is "dict".
         """
         super().__init__(
             label=label,
@@ -82,7 +79,6 @@ class JSON(Component):
             key=key,
             value=value,
         )
-        self.mode = mode
 
     def preprocess(self, payload: dict | list | None) -> dict | list | None:
         """

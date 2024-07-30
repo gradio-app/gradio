@@ -6,7 +6,6 @@
 	export let is_root = false;
 	export let is_last_item = true;
 	export let key: string | number | null = null;
-	export let mode: "dict" | "list";
 
 	const dispatch = createEventDispatcher();
 	let root_element: HTMLElement;
@@ -101,8 +100,7 @@
 					value={subVal}
 					depth={depth + 1}
 					is_last_item={i === child_nodes.length - 1}
-					key={mode === "list" && Array.isArray(value) ? null : subKey}
-					{mode}
+					key={Array.isArray(value) ? null : subKey}
 					on:toggle
 				/>
 			{/each}

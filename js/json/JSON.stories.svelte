@@ -36,8 +36,7 @@
 	name="JSON toggling"
 	args={{
 		value: SAMPLE_JSON,
-		interactive: true,
-		mode: "dict"
+		interactive: true
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -48,13 +47,5 @@
 
 		await userEvent.click(toggles[2]);
 		await userEvent.click(canvas.getByText("Object(2)"));
-	}}
-/>
-
-<Story
-	name="JSON as list"
-	args={{
-		value: SAMPLE_JSON,
-		mode: "list"
 	}}
 />
