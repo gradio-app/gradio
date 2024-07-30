@@ -78,6 +78,11 @@ artifacts = [
   "py.typed",
 ]
 
+[tool.hatch.build.targets.lite]
+artifacts = ["!gradio/templates", "!*.pyi", "!/gradio/test_data", "!/gradio/_frontend_code", "!/gradio/node"]
+directory = "dist-lite"
+dependencies = ["lite-builder @ {root:uri}/../.config/lite-builder"]
+
 [tool.hatch.build.targets.wheel.hooks.custom]
 path = ".config/copy_frontend.py"
 
@@ -94,15 +99,21 @@ include = [
 ]
 
 [tool.pyright]
-include = ["gradio/**/*.py"]
+include = [
+  "gradio/**/*.py",
+  "demo/**/*.py",
+  "test/**/*.py",
+]
 exclude = [
   "gradio/themes/",
   "gradio/_frontend_code/",
   "gradio/components/*_plot.py",
-  "gradio/ipython_ext.py",
   "gradio/node/*.py",
   "gradio/_frontend_code/*.py",
 ]
+stubPath = "gradio/stubs"
+extraPaths = ["gradio/stubs"]
+reportMissingImports = false
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]
@@ -163,6 +174,9 @@ ignore = [
 "test/*" = [
   "ARG",
   "S101", # tests may use assertions
+]
+"client/python/test/test_client.py" = [
+  "PLW0603" # using global to keep track of server progress
 ]
 
 [tool.pytest.ini_options]

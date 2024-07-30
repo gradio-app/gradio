@@ -287,6 +287,7 @@
 		border-spacing: 0;
 		width: 100%;
 		scroll-snap-type: x proximity;
+		border-collapse: separate;
 	}
 	table :is(thead, tfoot, tbody) {
 		display: table;

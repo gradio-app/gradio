@@ -92,6 +92,7 @@
 				class:active={index === active_index}
 				class:bg-gray-100={index === active_index}
 				class:dark:bg-gray-600={index === active_index}
+				style:width={input_width + "px"}
 				data-index={index}
 				aria-label={choices[index][0]}
 				data-testid="dropdown-option"
@@ -127,6 +128,7 @@
 		display: flex;
 		cursor: pointer;
 		padding: var(--size-2);
+		word-break: break-word;
 	}
 
 	.item:hover,

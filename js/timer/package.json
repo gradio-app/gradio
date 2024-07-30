@@ -1,0 +1,20 @@
+{
+	"name": "@gradio/timer",
+	"version": "0.3.0",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"main_changeset": true,
+	"exports": {
+		".": "./Index.svelte",
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/utils": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	}
+}

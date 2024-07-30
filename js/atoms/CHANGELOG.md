@@ -1,5 +1,78 @@
 # @gradio/atoms
 
+## 0.7.7
+
+### Fixes
+
+- [#8852](https://github.com/gradio-app/gradio/pull/8852) [`16b8200`](https://github.com/gradio-app/gradio/commit/16b820038df43905447ab7623d39d91ceb0d6238) - Fix gr.Image height inconsistencies.  Thanks @hannahblair!
+
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/utils@0.5.1
+- @gradio/icons@0.6.0
+
+## 0.7.5
+
+### Dependency updates
+
+- @gradio/utils@0.5.0
+- @gradio/icons@0.5.0
+
+## 0.7.4
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+
+## 0.7.3
+
+### Dependency updates
+
+- @gradio/icons@0.4.1
+
+## 0.7.2
+
+### Dependency updates
+
+- @gradio/utils@0.4.1
+
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/utils@0.4.0
+
+## 0.7.0
+
+### Features
+
+- [#8042](https://github.com/gradio-app/gradio/pull/8042) [`92139f3`](https://github.com/gradio-app/gradio/commit/92139f3d7d6b832b649ff1f6c10c87e6fb522cde) - refresh the `ImageEditor` UI.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/icons@0.4.0
+
+## 0.6.2
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+
+## 0.6.1
+
+### Dependency updates
+
+- @gradio/icons@0.3.4
+
+## 0.6.0
+
+### Features
+
+- [#7732](https://github.com/gradio-app/gradio/pull/7732) [`2efb05e`](https://github.com/gradio-app/gradio/commit/2efb05ed99a8a3575aab0a6c14a8d8b91f4e9ed7) - Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page.  Thanks @abidlabs!
+
 ## 0.5.3
 
 ### Patch Changes

@@ -7,7 +7,7 @@
 	import Webcam from "./Webcam.svelte";
 
 	import { Upload } from "@gradio/upload";
-	import type { FileData } from "@gradio/client";
+	import type { FileData, Client } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
@@ -25,8 +25,11 @@
 	export let selectable = false;
 	export let root: string;
 	export let i18n: I18nFormatter;
+	export let max_file_size: number | null = null;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream"];
 
-	let upload: Upload;
+	let upload_input: Upload;
 	let uploading = false;
 	export let active_source: source_type = null;
 
@@ -43,7 +46,9 @@
 
 	async function handle_save(img_blob: Blob | any): Promise<void> {
 		pending = true;
-		const f = await upload.load_files([new File([img_blob], `webcam.png`)]);
+		const f = await upload_input.load_files([
+			new File([img_blob], `webcam.png`)
+		]);
 
 		value = f?.[0] || null;
 
@@ -85,7 +90,7 @@
 	): Promise<void> {
 		switch (source) {
 			case "clipboard":
-				upload.paste_clipboard();
+				upload_input.paste_clipboard();
 				break;
 			default:
 				break;
@@ -104,17 +109,20 @@
 			}}
 		/>
 	{/if}
-	<div class="upload-container">
+	<div class="upload-container" class:reduced-height={sources.length > 1}>
 		<Upload
 			hidden={value !== null || active_source === "webcam"}
-			bind:this={upload}
+			bind:this={upload_input}
 			bind:uploading
 			bind:dragging
 			filetype={active_source === "clipboard" ? "clipboard" : "image/*"}
 			on:load={handle_upload}
 			on:error
 			{root}
+			{max_file_size}
 			disable_click={!sources.includes("upload")}
+			{upload}
+			{stream_handler}
 		>
 			{#if value === null}
 				<slot />
@@ -133,6 +141,7 @@
 				mode="image"
 				include_audio={false}
 				{i18n}
+				{upload}
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
@@ -156,7 +165,7 @@
 	.image-frame :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: cover;
+		object-fit: contain;
 	}
 
 	.image-frame {
@@ -169,6 +178,11 @@
 		height: 100%;
 		flex-shrink: 1;
 		max-height: 100%;
+		width: 100%;
+	}
+
+	.reduced-height {
+		height: calc(100% - var(--size-10));
 	}
 
 	.image-container {

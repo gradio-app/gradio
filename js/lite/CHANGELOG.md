@@ -1,5 +1,229 @@
 # @gradio/lite
 
+## 4.39.0
+
+### Dependency updates
+
+- @gradio/wasm@0.12.0
+- gradio@4.39.0
+
+## 4.38.1
+
+### Dependency updates
+
+- gradio@4.38.1
+
+## 4.38.0
+
+### Dependency updates
+
+- gradio@4.38.0
+
+## 4.37.2
+
+### Dependency updates
+
+- gradio@4.37.2
+
+## 4.37.1
+
+### Dependency updates
+
+- gradio@4.37.1
+
+## 4.37.0
+
+### Dependency updates
+
+- @gradio/wasm@0.11.0
+- gradio@4.37.0
+
+## 4.36.1
+
+### Dependency updates
+
+- gradio@4.36.1
+
+## 4.36.0
+
+### Dependency updates
+
+- gradio@4.36.0
+
+## 4.35.0
+
+### Dependency updates
+
+- gradio@4.35.0
+
+## 4.34.0
+
+### Dependency updates
+
+- gradio@4.34.0
+
+## 4.33.0
+
+### Dependency updates
+
+- gradio@4.33.0
+
+## 4.32.2
+
+### Dependency updates
+
+- gradio@4.32.2
+
+## 4.32.1
+
+### Dependency updates
+
+- gradio@4.32.1
+
+## 4.32.0
+
+### Dependency updates
+
+- gradio@4.32.0
+
+## 4.31.5
+
+### Dependency updates
+
+- gradio@4.31.5
+
+## 4.31.4
+
+### Dependency updates
+
+- gradio@4.31.4
+
+## 4.31.3
+
+### Dependency updates
+
+- gradio@4.31.3
+
+## 4.31.2
+
+### Dependency updates
+
+- gradio@4.31.2
+
+## 4.31.1
+
+### Dependency updates
+
+- gradio@4.31.1
+
+## 4.31.0
+
+### Fixes
+
+- [#8245](https://github.com/gradio-app/gradio/pull/8245) [`c562a3d`](https://github.com/gradio-app/gradio/commit/c562a3d9a440c8f94ca070bd07b8d4121d6ab7b3) - Cancel  server progress from the python client.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- gradio@4.31.0
+
+## 4.29.0
+
+### Features
+
+- [#8052](https://github.com/gradio-app/gradio/pull/8052) [`1435d1d`](https://github.com/gradio-app/gradio/commit/1435d1d2dcfd1accf742726396f2213a54ae0837) - Extend Interface.from_pipeline() to support Transformers.js.py pipelines on Lite.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/wasm@0.10.1
+- gradio@4.29.0
+
+## 4.28.3
+
+### Dependency updates
+
+- gradio@4.28.3
+
+## 4.28.2
+
+### Dependency updates
+
+- gradio@4.28.2
+
+## 4.28.1
+
+### Dependency updates
+
+- gradio@4.28.1
+
+## 4.28.0
+
+### Dependency updates
+
+- gradio@4.28.0
+
+## 4.27.0
+
+### Dependency updates
+
+- gradio@4.27.0
+
+## 4.26.0
+
+### Features
+
+- [#7811](https://github.com/gradio-app/gradio/pull/7811) [`b43055b`](https://github.com/gradio-app/gradio/commit/b43055b297dfe1aa56fda4cd722d878f7297a1b5) - Lite playground design changes.  Thanks @aliabd!
+
+### Dependency updates
+
+- gradio@4.26.0
+
+## 4.25.0
+
+### Dependency updates
+
+- gradio@4.25.0
+
+## 4.24.0
+
+### Dependency updates
+
+- gradio@4.24.0
+
+## 4.23.0
+
+### Dependency updates
+
+- @gradio/wasm@0.10.0
+- gradio@4.23.0
+
+## 4.22.0
+
+### Features
+
+- [#7660](https://github.com/gradio-app/gradio/pull/7660) [`f739bef`](https://github.com/gradio-app/gradio/commit/f739bef6c70a2b012dd896456709eae5ee4de7d5) - Add Playground to Lite Custom Element.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/wasm@0.9.0
+- gradio@4.22.0
+
+## 4.21.0
+
+### Features
+
+- [#7647](https://github.com/gradio-app/gradio/pull/7647) [`57510f9`](https://github.com/gradio-app/gradio/commit/57510f9ce0b38d473cc90800a05e769f1a47be9b) - Lite version.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/wasm@0.8.0
+- gradio@4.21.0
+
+## 4.14.2
+
+### Features
+
+- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 4.14.1
 
 ### Features

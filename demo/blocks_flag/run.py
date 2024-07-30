@@ -19,15 +19,15 @@ with gr.Blocks() as demo:
         img_output = gr.Image()
     with gr.Row():
         btn = gr.Button("Flag")
-        
+
     # This needs to be called at some point prior to the first call to callback.flag()
     callback.setup([img_input, strength, img_output], "flagged_data_points")
 
     img_input.change(sepia, [img_input, strength], img_output)
     strength.change(sepia, [img_input, strength], img_output)
-    
+
     # We can choose which components to flag -- in this case, we'll flag all of them
-    btn.click(lambda *args: callback.flag(args), [img_input, strength, img_output], None, preprocess=False)
+    btn.click(lambda *args: callback.flag(list(args)), [img_input, strength, img_output], None, preprocess=False)
 
 if __name__ == "__main__":
     demo.launch()

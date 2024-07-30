@@ -330,7 +330,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     # example model: rajistics/autotrain-Adult-934630783
     elif p in ["tabular-classification", "tabular-regression"]:
         examples = external_utils.get_tabular_examples(model_name)
-        col_names, examples = external_utils.cols_to_rows(examples)
+        col_names, examples = external_utils.cols_to_rows(examples)  # type: ignore
         examples = [[examples]] if examples else None
         inputs = components.Dataframe(
             label="Input Rows",
@@ -343,6 +343,25 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             label="Predictions", type="array", headers=["prediction"]
         )
         fn = external_utils.tabular_wrapper
+    # example model: microsoft/table-transformer-detection
+    elif p == "object-detection":
+        inputs = components.Image(type="filepath", label="Input Image")
+        outputs = components.AnnotatedImage(label="Annotations")
+        fn = external_utils.object_detection_wrapper(client)
+    # example model: stabilityai/stable-diffusion-xl-refiner-1.0
+    elif p == "image-to-image":
+        inputs = [
+            components.Image(type="filepath", label="Input Image"),
+            components.Textbox(label="Input"),
+        ]
+        outputs = components.Image(label="Output")
+        examples = [
+            [
+                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                "Photo of a cheetah with green eyes",
+            ]
+        ]
+        fn = client.image_to_image
     else:
         raise ValueError(f"Unsupported pipeline type: {p}")
 
@@ -418,7 +437,12 @@ def from_spaces(
 
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
-    client = Client(space, hf_token=hf_token, download_files=False)
+    client = Client(
+        space,
+        hf_token=hf_token,
+        download_files=False,
+        _skip_components=False,
+    )
     # We set deserialize to False to avoid downloading output files from the server.
     # Instead, we serve them as URLs using the /proxy/ endpoint directly from the server.
 
@@ -430,7 +454,7 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
 
     # Use end_to_end_fn here to properly upload/download all files
     predict_fns = []
-    for fn_index, endpoint in enumerate(client.endpoints):
+    for fn_index, endpoint in client.endpoints.items():
         if not isinstance(endpoint, Endpoint):
             raise TypeError(
                 f"Expected endpoint to be an Endpoint, but got {type(endpoint)}"
@@ -440,7 +464,7 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
             predict_fns.append(endpoint.make_end_to_end_fn(helper))
         else:
             predict_fns.append(None)
-    return gradio.Blocks.from_config(client.config, predict_fns, client.src)
+    return gradio.Blocks.from_config(client.config, predict_fns, client.src)  # type: ignore
 
 
 def from_spaces_interface(

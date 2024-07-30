@@ -10,6 +10,7 @@
 		change: never;
 		select: SelectData;
 		input: never;
+		clear_status: LoadingStatus;
 	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -25,6 +26,7 @@
 
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
+	export let old_value = value.slice();
 
 	function toggle_choice(choice: string | number): void {
 		if (value.includes(choice)) {
@@ -37,7 +39,10 @@
 
 	$: disabled = !interactive;
 
-	$: value && gradio.dispatch("change");
+	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
+		old_value = value;
+		gradio.dispatch("change");
+	}
 </script>
 
 <Block
@@ -53,6 +58,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 

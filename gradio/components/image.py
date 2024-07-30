@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence, cast
 
 import numpy as np
 import PIL.Image
+from gradio_client import handle_file
 from gradio_client.documentation import document
 from PIL import ImageOps
 
@@ -15,6 +16,9 @@ from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
@@ -24,7 +28,7 @@ class Image(StreamingInput, Component):
     """
     Creates an image component that can be used to upload images (as an input) or display images (as an output).
 
-    Demos: image_mod, image_mod_default_image
+    Demos: sepia_filter, fake_diffusion
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
     """
 
@@ -34,23 +38,28 @@ class Image(StreamingInput, Component):
         Events.stream,
         Events.select,
         Events.upload,
+        Events.input,
     ]
 
     data_model = FileData
 
     def __init__(
         self,
-        value: str | PIL.Image.Image | np.ndarray | None = None,
+        value: str | PIL.Image.Image | np.ndarray | Callable | None = None,
         *,
+        format: str = "webp",
         height: int | str | None = None,
         width: int | str | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGB",
-        sources: list[Literal["upload", "webcam", "clipboard"]] | None = None,
+        sources: list[Literal["upload", "webcam", "clipboard"]]
+        | Literal["upload", "webcam", "clipboard"]
+        | None = None,
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         show_download_button: bool = True,
         container: bool = True,
@@ -62,19 +71,22 @@ class Image(StreamingInput, Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
     ):
         """
         Parameters:
             value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            format: File format (e.g. "png" or "gif") to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
             height: The height of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
+            image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning. This parameter has no effect on SVG or GIF files.
             sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard. If None, defaults to ["upload", "webcam", "clipboard"] if streaming is False, otherwise defaults to ["webcam"].
-            type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
+            type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned. To support animated GIFs in input, the `type` should be set to "filepath" or "pil".
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
             show_download_button: If True, will display button to download image.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -86,9 +98,11 @@ class Image(StreamingInput, Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        self.format = format
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
@@ -127,6 +141,7 @@ class Image(StreamingInput, Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -136,6 +151,7 @@ class Image(StreamingInput, Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             value=value,
         )
 
@@ -159,7 +175,7 @@ class Image(StreamingInput, Component):
                 suffix = "jpeg"
         else:
             name = "image"
-            suffix = "png"
+            suffix = "webp"
 
         if suffix.lower() == "svg":
             return str(file_path)
@@ -174,9 +190,10 @@ class Image(StreamingInput, Component):
                 warnings.warn(
                     f"Failed to transpose image {file_path} based on EXIF data."
                 )
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            im = im.convert(self.image_mode)
+        if suffix.lower() != "gif" and im is not None:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                im = im.convert(self.image_mode)
         return image_utils.format_image(
             im,
             cast(Literal["numpy", "pil", "filepath"], self.type),
@@ -198,7 +215,7 @@ class Image(StreamingInput, Component):
             return None
         if isinstance(value, str) and value.lower().endswith(".svg"):
             return FileData(path=value, orig_name=Path(value).name)
-        saved = image_utils.save_image(value, self.GRADIO_CACHE)
+        saved = image_utils.save_image(value, self.GRADIO_CACHE, self.format)
         orig_name = Path(saved).name if Path(saved).exists() else None
         return FileData(path=saved, orig_name=orig_name)
 
@@ -208,5 +225,10 @@ class Image(StreamingInput, Component):
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return handle_file(
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+        )
+
+    def example_value(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"

@@ -16,9 +16,13 @@ const test_files = readdirSync(TEST_FILES_PATH)
 		(f) =>
 			f.endsWith("spec.ts") &&
 			!f.endsWith(".skip.spec.ts") &&
-			!f.endsWith(".component.spec.ts")
+			!f.endsWith(".component.spec.ts") &&
+			!f.endsWith(".reload.spec.ts")
 	)
-	.map((f) => basename(f, ".spec.ts"));
+	.map((f) => ({
+		module_name: `${basename(f, ".spec.ts")}.run`,
+		dir_name: basename(f, ".spec.ts")
+	}));
 
 export default async function global_setup() {
 	const verbose = process.env.GRADIO_TEST_VERBOSE;
@@ -28,7 +32,24 @@ export default async function global_setup() {
 
 	process.stdout.write(kl.yellow("\nCreating test gradio app.\n\n"));
 
-	const test_app = make_app(test_files, port);
+	const test_cases = [];
+	// check if there is a testcase file in the same directory as the test file
+	// if there is, append that to the file
+	test_files.forEach((value) => {
+		const test_case_dir = join(ROOT, "demo", value.dir_name);
+
+		readdirSync(test_case_dir)
+			.filter((f) => f.endsWith("_testcase.py"))
+			.forEach((f) => {
+				test_cases.push({
+					module_name: `${value.dir_name}.${basename(f, ".py")}`,
+					dir_name: `${value.dir_name}_${basename(f, ".py")}`
+				});
+			});
+	});
+
+	const all_test_files = test_files.concat(test_cases);
+	const test_app = make_app(all_test_files, port);
 	process.stdout.write(kl.yellow("App created. Starting test server.\n\n"));
 
 	process.stdout.write(kl.bgBlue(" =========================== \n"));
@@ -61,9 +82,9 @@ function spawn_gradio_app(app, port, verbose) {
 			cwd: ROOT,
 			env: {
 				...process.env,
-				GRADIO_SERVER_PORT: `7879`,
 				PYTHONUNBUFFERED: "true",
-				GRADIO_ANALYTICS_ENABLED: "False"
+				GRADIO_ANALYTICS_ENABLED: "False",
+				GRADIO_IS_E2E_TEST: "1"
 			}
 		});
 		_process.stdout.setEncoding("utf8");
@@ -105,15 +126,21 @@ function kill_process(process) {
 }
 
 function make_app(demos, port) {
-	return `import gradio as gr
+	return `
 import uvicorn
 from fastapi import FastAPI
 import gradio as gr
-${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
+
+${demos.map((obj) => `from demo.${obj.module_name} import demo as ${obj.dir_name}`).join("\n")}
 
 app = FastAPI()
 ${demos
-	.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
+	.map(
+		(obj) =>
+			`app = gr.mount_gradio_app(app, ${obj.dir_name}, path="/${obj.dir_name}", max_file_size=${
+				obj.dir_name == "upload_file_limit_test" ? "'15kb'" : "None"
+			})`
+	)
 	.join("\n")}
 
 config = uvicorn.Config(app, port=${port}, log_level="info")

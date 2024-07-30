@@ -1,12 +1,7 @@
 <script lang="ts">
-	import { getContext, onDestroy, createEventDispatcher } from "svelte";
+	import { onDestroy, createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import {
-		upload,
-		prepare_files,
-		type FileData,
-		type upload_files
-	} from "@gradio/client";
+	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
@@ -21,6 +16,7 @@
 	export let value: null | FileData = null;
 	export let label: string;
 	export let root: string;
+	export let loop: boolean;
 	export let show_label = true;
 	export let show_download_button = false;
 	export let sources:
@@ -38,9 +34,9 @@
 	export let active_source: "microphone" | "upload";
 	export let handle_reset_value: () => void = () => {};
 	export let editable = true;
-
-	// Needed for wasm support
-	const upload_fn = getContext<typeof upload_files>("upload_files");
+	export let max_file_size: number | null = null;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream"];
 
 	$: dispatch("drag", dragging);
 
@@ -97,7 +93,7 @@
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
 		value = (
-			(await upload(val, root, undefined, upload_fn))?.filter(
+			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
 				Boolean
 			) as FileData[]
 		)[0];
@@ -129,9 +125,8 @@
 		}
 		if (stream == null) return;
 		if (streaming) {
-			const [{ MediaRecorder, register }, { connect }] = await Promise.all(
-				module_promises
-			);
+			const [{ MediaRecorder, register }, { connect }] =
+				await Promise.all(module_promises);
 			await register(await connect());
 			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
 			recorder.addEventListener("dataavailable", handle_chunk);
@@ -255,6 +250,9 @@
 				bind:dragging
 				on:error={({ detail }) => dispatch("error", detail)}
 				{root}
+				{max_file_size}
+				{upload}
+				{stream_handler}
 			>
 				<slot />
 			</Upload>
@@ -279,6 +277,7 @@
 			{trim_region_settings}
 			{handle_reset_value}
 			{editable}
+			{loop}
 			interactive
 			on:stop
 			on:play

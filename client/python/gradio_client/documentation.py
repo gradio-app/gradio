@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import inspect
 import warnings
 from collections import defaultdict
@@ -48,6 +49,7 @@ _module_prefixes = [
     ("gradio.chat", "chatinterface"),
     ("gradio.component", "component"),
     ("gradio.events", "helpers"),
+    ("gradio.data_classes", "helpers"),
     ("gradio.exceptions", "helpers"),
     ("gradio.external", "helpers"),
     ("gradio.flag", "flagging"),
@@ -57,6 +59,8 @@ _module_prefixes = [
     ("gradio.route", "routes"),
     ("gradio.theme", "themes"),
     ("gradio_client.", "py-client"),
+    ("gradio.utils", "helpers"),
+    ("gradio.renderable", "renderable"),
 ]
 
 
@@ -245,7 +249,11 @@ def generate_documentation():
     for mode, class_list in classes_to_document.items():
         documentation[mode] = []
         for cls, fns in class_list:
-            fn_to_document = cls if inspect.isfunction(cls) else cls.__init__
+            fn_to_document = (
+                cls
+                if inspect.isfunction(cls) or dataclasses.is_dataclass(cls)
+                else cls.__init__
+            )
             _, parameter_doc, return_doc, _ = document_fn(fn_to_document, cls)
             if (
                 hasattr(cls, "preprocess")

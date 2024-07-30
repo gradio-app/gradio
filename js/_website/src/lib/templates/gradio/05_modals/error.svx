@@ -1,0 +1,67 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("error");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+raise gradio.Error("An error occured 💥!", duration=5)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+## You can control for how long the error message is displayed with the `duration` parameter. If it's `None`, the message will be displayed forever until the user closes it. If it's a number, it will be shown for that many seconds. 
+## You can also hide the error modal from being shown in the UI by setting `visible=False`.
+## Below is a demo of how different values of duration control the error, info, and warning messages. You can see the code [here](https://huggingface.co/spaces/freddyaboulton/gradio-error-duration/blob/244331cf53f6b5fa2fd406ece3bf55c6ccb9f5f2/app.py#L17).
+
+![modal_control](https://github.com/gradio-app/gradio/assets/41651716/f0977bcd-eaec-4eca-a2fd-ede95fdb8fd2)
+
+<!-- Example Usage --> 
+
+{#if obj.example}
+### Example Usage
+```python
+import gradio as gr
+def divide(numerator, denominator):
+    if denominator == 0:
+        raise gr.Error("Cannot divide by zero!")
+gr.Interface(divide, ["number", "number"], "number").launch()
+```
+{/if}
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} />
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}

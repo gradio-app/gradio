@@ -18,7 +18,7 @@ def _in_test_dir():
 
 
 default_demo_code = """
-example = {name}().example_inputs()
+example = {name}().example_value()
 
 demo = gr.Interface(
     lambda x:x,
@@ -29,7 +29,7 @@ demo = gr.Interface(
 """
 
 static_only_demo_code = """
-example = {name}().example_inputs()
+example = {name}().example_value()
 
 with gr.Blocks() as demo:
     with gr.Row():
@@ -87,7 +87,7 @@ OVERRIDES = {
     "Plot": ComponentFiles(template="Plot", demo_code=static_only_demo_code),
     "BarPlot": ComponentFiles(
         template="BarPlot",
-        python_file_name="bar_plot.py",
+        python_file_name="native_plot.py",
         js_dir="plot",
         demo_code=static_only_demo_code,
     ),
@@ -121,7 +121,7 @@ OVERRIDES = {
     ),
     "LinePlot": ComponentFiles(
         template="LinePlot",
-        python_file_name="line_plot.py",
+        python_file_name="native_plot.py",
         js_dir="plot",
         demo_code=static_only_demo_code,
     ),
@@ -139,7 +139,7 @@ OVERRIDES = {
     ),
     "ScatterPlot": ComponentFiles(
         template="ScatterPlot",
-        python_file_name="scatter_plot.py",
+        python_file_name="native_plot.py",
         js_dir="plot",
         demo_code=static_only_demo_code,
     ),
@@ -198,6 +198,21 @@ OVERRIDES = {
             {name}()
         """
         ),
+    ),
+    "ImageEditor": ComponentFiles(
+        template="ImageEditor",
+        python_file_name="image_editor.py",
+        js_dir="imageeditor",
+    ),
+    "MultimodalTextbox": ComponentFiles(
+        template="MultimodalTextbox",
+        python_file_name="multimodal_textbox.py",
+        js_dir="multimodaltextbox",
+    ),
+    "DownloadButton": ComponentFiles(
+        template="DownloadButton",
+        python_file_name="download_button.py",
+        js_dir="downloadbutton",
     ),
 }
 
@@ -280,6 +295,10 @@ def _create_frontend(
     source_package_json = _modify_js_deps(source_package_json, "dependencies", p)
     source_package_json = _modify_js_deps(source_package_json, "devDependencies", p)
     (frontend / "package.json").write_text(json.dumps(source_package_json, indent=2))
+    shutil.copy(
+        str(Path(__file__).parent / "files" / "gradio.config.js"),
+        frontend / "gradio.config.js",
+    )
 
 
 def _replace_old_class_name(old_class_name: str, new_class_name: str, content: str):
@@ -326,6 +345,7 @@ def _create_backend(
     if not module:
         raise ValueError("Module not found")
 
+    # These README contents are used to install the component but they are overwritten later
     readme_contents = textwrap.dedent(
         """
 # {package_name}

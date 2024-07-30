@@ -3,22 +3,27 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
 
+if TYPE_CHECKING:
+    from gradio.components import Timer
+
 
 @document("languages")
 class Code(Component):
     """
-    Creates a code editor for viewing code (as an ouptut component), or for entering and editing code (as an input component).
+    Creates a code editor for viewing code (as an output component), or for entering and editing code (as an input component).
     """
 
     languages = [
         "python",
+        "c",
+        "cpp",
         "markdown",
         "json",
         "html",
@@ -57,6 +62,8 @@ class Code(Component):
         value: str | Callable | tuple[str] | None = None,
         language: Literal[
             "python",
+            "c",
+            "cpp",
             "markdown",
             "json",
             "html",
@@ -83,7 +90,8 @@ class Code(Component):
         ]
         | None = None,
         *,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         lines: int = 5,
         label: str | None = None,
         interactive: bool | None = None,
@@ -95,12 +103,14 @@ class Code(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
     ):
         """
         Parameters:
             value: Default value to show in the code editor. If callable, the function will be called whenever the app loads to set the initial value of the component.
             language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             interactive: Whether user should be able to enter code or only view it.
             show_label: if True, will display label.
@@ -111,6 +121,7 @@ class Code(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
         if language not in Code.languages:
             raise ValueError(f"Language {language} not supported.")
@@ -120,6 +131,7 @@ class Code(Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             interactive=interactive,
             show_label=show_label,
             container=container,
@@ -129,6 +141,7 @@ class Code(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             value=value,
         )
 
@@ -151,16 +164,21 @@ class Code(Component):
         if value is None:
             return None
         elif isinstance(value, tuple):
-            with open(value[0]) as file_data:
+            with open(value[0], encoding="utf-8") as file_data:
                 return file_data.read()
         else:
             return value.strip()
 
-    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
-        return super().flag(payload, flag_dir)
-
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return "print('Hello World')"
+
+    def example_value(self) -> Any:
+        return "print('Hello World')"
+
+    def process_example(self, value: str | tuple[str] | None) -> str | None:
+        if isinstance(value, tuple):
+            return Path(value[0]).name
+        return super().process_example(value)

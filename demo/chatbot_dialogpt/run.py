@@ -5,10 +5,8 @@ import torch
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
 
-
 def user(message, history):
     return "", history + [[message, None]]
-
 
 def bot(history):
     user_message = history[-1][0]
@@ -31,7 +29,6 @@ def bot(history):
     ]  # convert to tuples of list
     history[-1] = response[0]
     return history
-
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot()

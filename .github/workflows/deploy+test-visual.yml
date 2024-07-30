@@ -75,7 +75,7 @@ jobs:
         run: pnpm build-storybook --quiet
       - name: publish to chromatic
         id: publish-chromatic
-        uses: chromaui/action@v10
+        uses: chromaui/action@v11
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}

@@ -10,11 +10,11 @@ declare module "virtual:component-loader" {
 	interface Args {
 		api_url: string;
 		name: string;
-		id: string;
-		variant: "component" | "example";
+		id?: string;
+		variant: "component" | "example" | "base";
 	}
-	export function load_component(args: Args): Promise<{
+	export function load_component(args: Args): {
 		name: ComponentMeta["type"];
 		component: LoadedComponent;
-	}>;
+	};
 }

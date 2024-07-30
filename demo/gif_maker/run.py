@@ -3,13 +3,14 @@ import gradio as gr
 
 def gif_maker(img_files):
     img_array = []
+    size = (1, 1)
     for filename in img_files:
         img = cv2.imread(filename.name)
         height, width, _ = img.shape
         size = (width,height)
         img_array.append(img)
     output_file = "test.mp4"
-    out = cv2.VideoWriter(output_file,cv2.VideoWriter_fourcc(*'h264'), 15, size) 
+    out = cv2.VideoWriter(output_file,cv2.VideoWriter_fourcc(*'h264'), 15, size)
     for i in range(len(img_array)):
         out.write(img_array[i])
     out.release()

@@ -1,3 +1,4 @@
+# type: ignore
 import gradio as gr
 import plotly.graph_objects as go
 from datasets import load_dataset
@@ -7,7 +8,7 @@ df = dataset.to_pandas()
 
 def filter_map(min_price, max_price, boroughs):
 
-    filtered_df = df[(df['neighbourhood_group'].isin(boroughs)) & 
+    filtered_df = df[(df['neighbourhood_group'].isin(boroughs)) &
           (df['price'] > min_price) & (df['price'] < max_price)]
     names = filtered_df["name"].tolist()
     prices = filtered_df["price"].tolist()

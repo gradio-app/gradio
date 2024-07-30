@@ -1,4 +1,6 @@
 import type { ActionReturn } from "svelte/action";
+import type { Client } from "@gradio/client";
+
 export interface SelectData {
 	index: number | [number, number];
 	value: any;
@@ -29,7 +31,7 @@ export class ShareError extends Error {
 }
 
 export async function uploadToHuggingFace(
-	data: string,
+	data: string | { url?: string; path?: string },
 	type: "base64" | "url"
 ): Promise<string> {
 	if (window.__gradio_space__ == null) {
@@ -39,14 +41,34 @@ export async function uploadToHuggingFace(
 	let contentType: string;
 	let filename: string;
 	if (type === "url") {
-		const response = await fetch(data);
+		let url: string;
+
+		if (typeof data === "object" && data.url) {
+			url = data.url;
+		} else if (typeof data === "string") {
+			url = data;
+		} else {
+			throw new Error("Invalid data format for URL type");
+		}
+
+		const response = await fetch(url);
 		blob = await response.blob();
 		contentType = response.headers.get("content-type") || "";
 		filename = response.headers.get("content-disposition") || "";
 	} else {
-		blob = dataURLtoBlob(data);
-		contentType = data.split(";")[0].split(":")[1];
-		filename = "file" + contentType.split("/")[1];
+		let dataurl: string;
+
+		if (typeof data === "object" && data.path) {
+			dataurl = data.path;
+		} else if (typeof data === "string") {
+			dataurl = data;
+		} else {
+			throw new Error("Invalid data format for base64 type");
+		}
+
+		blob = dataURLtoBlob(dataurl);
+		contentType = dataurl.split(";")[0].split(":")[1];
+		filename = "file." + contentType.split("/")[1];
 	}
 
 	const file = new File([blob], filename, { type: contentType });
@@ -171,6 +193,10 @@ export const format_time = (seconds: number): string => {
 	return `${minutes}:${padded_seconds}`;
 };
 
+type component_loader =
+	typeof import("virtual:component-loader").load_component;
+
+let virtual_component_loader: component_loader | null = null;
 export type I18nFormatter = any;
 export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;
@@ -180,6 +206,10 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#el: HTMLElement;
 	root: string;
 	autoscroll: boolean;
+	max_file_size: number | null;
+	client: Client;
+	_load_component: component_loader | null = null;
+	load_component = _load_component.bind(this);
 
 	constructor(
 		id: number,
@@ -187,16 +217,34 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		theme: string,
 		version: string,
 		root: string,
-		autoscroll: boolean
+		autoscroll: boolean,
+		max_file_size: number | null,
+		i18n: I18nFormatter = (x: string): string => x,
+		client: Client
 	) {
 		this.#id = id;
 		this.theme = theme;
 		this.version = version;
 		this.#el = el;
+		this.max_file_size = max_file_size;
 
-		this.i18n = (x: string): string => x;
+		this.i18n = i18n;
 		this.root = root;
 		this.autoscroll = autoscroll;
+		this.client = client;
+
+		if (!virtual_component_loader) {
+			import("virtual:component-loader")
+				.then((module) => {
+					this._load_component = module.load_component;
+					virtual_component_loader = module.load_component;
+				})
+				.catch((e) => {
+					console.error("Error loading virtual component loader", e);
+				});
+		} else {
+			this._load_component = virtual_component_loader;
+		}
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
@@ -206,4 +254,16 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		});
 		this.#el.dispatchEvent(e);
 	}
+}
+
+function _load_component(
+	this: Gradio,
+	name: string,
+	variant: "component" | "example" | "base" = "component"
+): ReturnType<component_loader> {
+	return this._load_component!({
+		name,
+		api_url: this.client.config?.root!,
+		variant
+	});
 }

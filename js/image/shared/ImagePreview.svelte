@@ -36,7 +36,7 @@
 <BlockLabel
 	{show_label}
 	Icon={ImageIcon}
-	label={label || i18n("image.image")}
+	label={!show_label ? "" : label || i18n("image.image")}
 />
 {#if value === null || !value.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
@@ -54,7 +54,7 @@
 				on:error
 				formatter={async (value) => {
 					if (!value) return "";
-					let url = await uploadToHuggingFace(value, "base64");
+					let url = await uploadToHuggingFace(value, "url");
 					return `<img src="${url}" />`;
 				}}
 				{value}
@@ -63,12 +63,15 @@
 	</div>
 	<button on:click={handle_click}>
 		<div class:selectable class="image-container">
-			<Image src={value.url} alt="" loading="lazy" />
+			<Image src={value.url} alt="" loading="lazy" on:load />
 		</div>
 	</button>
 {/if}
 
 <style>
+	.image-container {
+		height: 100%;
+	}
 	.image-container :global(img),
 	button {
 		width: var(--size-full);

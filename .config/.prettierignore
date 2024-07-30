@@ -2,6 +2,7 @@
 **/pnpm-workspace.yaml
 **/js/app/dist/**
 **/js/wasm/dist/**
+**/js/preview/dist/**
 **/client/js/dist/**
 **/js/lite/dist/**
 **/pnpm-lock.yaml
@@ -29,3 +30,6 @@ sweep.yaml
 **/playwright/.cache/**/*
 **/theme/src/pollen.css
 **/venv/**
+../js/app/src/api_docs/CodeSnippet.svelte
+../js/app/src/api_docs/RecordingSnippet.svelte
+.changeset/pre.json

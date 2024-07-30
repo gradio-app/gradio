@@ -16,6 +16,23 @@ const version_raw = JSON.parse(
 ).version.trim();
 const version = version_raw.replace(/\./g, "-");
 
+function convert_to_pypi_prerelease(version: string) {
+	return version.replace(
+		/(\d+\.\d+\.\d+)-([-a-z]+)\.(\d+)/,
+		(match, v, tag, tag_version) => {
+			if (tag === "beta") {
+				return `${v}b${tag_version}`;
+			} else if (tag === "alpha") {
+				return `${v}a${tag_version}`;
+			} else {
+				return version;
+			}
+		}
+	);
+}
+
+const python_version = convert_to_pypi_prerelease(version_raw);
+
 const client_version_path = resolve(
 	__dirname,
 	"../../client/python/gradio_client/package.json"
@@ -26,13 +43,16 @@ const client_version_raw = JSON.parse(
 	})
 ).version.trim();
 
+const client_python_version = convert_to_pypi_prerelease(client_version_raw);
+
 import {
 	inject_ejs,
 	generate_cdn_entry,
 	generate_dev_entry,
 	handle_ce_css,
 	inject_component_loader,
-	resolve_svelte
+	resolve_svelte,
+	mock_modules
 } from "./build_plugins";
 
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
@@ -41,7 +61,6 @@ const TEST_MODE = process.env.TEST_MODE || "happy-dom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	console.log(mode);
 	const targets = {
 		production: "../../gradio/templates/frontend",
 		"dev:custom": "../../gradio/templates/frontend"
@@ -50,21 +69,18 @@ export default defineConfig(({ mode }) => {
 	const development = mode === "development" || mode === "development:lite";
 	const is_lite = mode.endsWith(":lite");
 
-	const is_e2e_test = process.env.GRADIO_E2E_TEST_LITE;
-
 	return {
 		base: "./",
 
 		server: {
 			port: 9876,
-			open: is_e2e_test ? false : is_lite ? "/lite.html" : "/"
+			open: is_lite ? "/lite.html" : "/"
 		},
 
 		build: {
 			sourcemap: true,
 			target: "esnext",
-			// minify: production,
-			minify: false,
+			minify: production,
 			outDir: is_lite ? resolve(__dirname, "../lite/dist") : targets[mode],
 			// To build Gradio-lite as a library, we can't use the library mode
 			// like `lib: is_lite && {}`
@@ -91,11 +107,11 @@ export default defineConfig(({ mode }) => {
 								}
 							}
 						}
-				  }
+					}
 				: {
 						external: ["./svelte/svelte.js"],
 						makeAbsoluteExternalsRelative: false
-				  }
+					}
 		},
 
 		define: {
@@ -138,11 +154,11 @@ export default defineConfig(({ mode }) => {
 			resolve_svelte(development && !is_lite),
 
 			svelte({
-				inspector: true,
+				inspector: false,
 				compilerOptions: {
 					dev: true,
 					discloseVersion: false,
-					accessors: mode === "test"
+					accessors: true
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
@@ -163,7 +179,8 @@ export default defineConfig(({ mode }) => {
 			inject_ejs(),
 			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			handle_ce_css(),
-			inject_component_loader()
+			inject_component_loader({ mode }),
+			mode === "test" && mock_modules()
 		],
 		optimizeDeps: {
 			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
@@ -181,16 +198,17 @@ export default defineConfig(({ mode }) => {
 				if (log.includes("was created with unknown prop")) return false;
 			}
 		},
+
 		resolve: {
 			alias: {
 				// For the Wasm app to import the wheel file URLs.
 				"gradio.whl": resolve(
 					__dirname,
-					`../../dist/gradio-${version_raw}-py3-none-any.whl`
+					`../../dist-lite/gradio-${python_version}-py3-none-any.whl`
 				),
 				"gradio_client.whl": resolve(
 					__dirname,
-					`../../client/python/dist/gradio_client-${client_version_raw}-py3-none-any.whl`
+					`../../client/python/dist/gradio_client-${client_python_version}-py3-none-any.whl`
 				)
 			}
 		},

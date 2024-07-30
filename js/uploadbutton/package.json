@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/uploadbutton",
-	"version": "0.4.7",
+	"version": "0.6.15",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -17,5 +17,8 @@
 		"@gradio/client": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }

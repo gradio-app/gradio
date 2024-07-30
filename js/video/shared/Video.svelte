@@ -18,6 +18,7 @@
 	export let paused: boolean | undefined = undefined;
 
 	export let node: HTMLVideoElement | undefined = undefined;
+	export let loop: boolean;
 
 	export let processingVideo = false;
 
@@ -66,6 +67,7 @@ Then, even when `controls` is false, the compiled DOM would be `<video controls=
 	{preload}
 	{autoplay}
 	{controls}
+	{loop}
 	on:loadeddata={dispatch.bind(null, "loadeddata")}
 	on:click={dispatch.bind(null, "click")}
 	on:play={dispatch.bind(null, "play")}
@@ -75,6 +77,7 @@ Then, even when `controls` is false, the compiled DOM would be `<video controls=
 	on:mouseout={dispatch.bind(null, "mouseout")}
 	on:focus={dispatch.bind(null, "focus")}
 	on:blur={dispatch.bind(null, "blur")}
+	on:load
 	bind:currentTime
 	bind:duration
 	bind:paused

@@ -20,6 +20,7 @@
 	export let visible = true;
 	export let value: null | FileData = null;
 	export let root: string;
+	export let display_mode: "solid" | "point_cloud" | "wireframe" = "solid";
 	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
@@ -59,12 +60,14 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		{#if value}
 			<Model3D
 				{value}
 				i18n={gradio.i18n}
+				{display_mode}
 				{clear_color}
 				{label}
 				{show_label}
@@ -97,12 +100,14 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<Model3DUpload
 			{label}
 			{show_label}
 			{root}
+			{display_mode}
 			{clear_color}
 			{value}
 			{camera_position}
@@ -118,7 +123,15 @@
 				value = detail;
 				gradio.dispatch("upload");
 			}}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				gradio.dispatch("error", detail);
+			}}
 			i18n={gradio.i18n}
+			max_file_size={gradio.max_file_size}
+			upload={gradio.client.upload}
+			stream_handler={gradio.client.stream}
 		>
 			<UploadText i18n={gradio.i18n} type="file" />
 		</Model3DUpload>

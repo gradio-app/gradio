@@ -3,7 +3,6 @@ import numpy as np
 
 import gradio as gr
 
-
 def plot_forecast(final_year, companies, noise, show_legend, point_style):
     start_year = 2020
     x = np.arange(start_year, final_year + 1)
@@ -20,7 +19,6 @@ def plot_forecast(final_year, companies, noise, show_legend, point_style):
         plt.legend(companies)
     return fig
 
-
 demo = gr.Interface(
     plot_forecast,
     [
@@ -30,7 +28,7 @@ demo = gr.Interface(
         gr.Checkbox(label="Show Legend"),
         gr.Dropdown(["cross", "line", "circle"], label="Style"),
     ],
-    gr.Plot(label="forecast"),
+    gr.Plot(label="forecast", format="png"),
 )
 
 if __name__ == "__main__":

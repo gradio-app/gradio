@@ -1,8 +1,6 @@
 import gradio as gr
 import numpy as np
-import os
 from PIL import Image, ImageColor
-
 
 def change_color(icon, color):
 
@@ -23,7 +21,6 @@ def change_color(icon, color):
     edited_image = Image.fromarray(image_np)
     return edited_image
 
-
 inputs = [
     gr.Image(label="icon", type="pil", image_mode="RGBA"),
     gr.ColorPicker(label="color"),
@@ -33,11 +30,7 @@ outputs = gr.Image(label="colored icon")
 demo = gr.Interface(
     fn=change_color,
     inputs=inputs,
-    outputs=outputs,
-    examples=[
-        [os.path.join(os.path.dirname(__file__), "rabbit.png"), "#ff0000"],
-        [os.path.join(os.path.dirname(__file__), "rabbit.png"), "#0000FF"],
-    ],
+    outputs=outputs
 )
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
 <script context="module" lang="ts">
-	// @ts-ignore
+	export { default as BasePlot } from "./shared/Plot.svelte";
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
+	import type { Gradio, SelectData } from "@gradio/utils";
 	import Plot from "./shared/Plot.svelte";
 
 	import { Block, BlockLabel } from "@gradio/atoms";
@@ -30,8 +30,12 @@
 	export let bokeh_version: string | null;
 	export let gradio: Gradio<{
 		change: never;
+		clear_status: LoadingStatus;
+		select: SelectData;
 	}>;
 	export let show_actions_button = false;
+	export let _selectable = false;
+	export let x_lim: [number, number] | null = null;
 </script>
 
 <Block
@@ -53,6 +57,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<Plot
 		{value}
@@ -61,6 +66,10 @@
 		{caption}
 		{bokeh_version}
 		{show_actions_button}
+		{gradio}
+		{_selectable}
+		{x_lim}
 		on:change={() => gradio.dispatch("change")}
+		on:select={(e) => gradio.dispatch("select", e.detail)}
 	/>
 </Block>

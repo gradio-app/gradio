@@ -41,6 +41,13 @@
 	description="Play Around with Gradio Demos"
 />
 
+<svelte:head>
+	<script
+		type="module"
+		src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"
+	></script>
+</svelte:head>
+
 <!-- 4.0 Launch BANNER  -->
 <div class="flex-row">
 	<div class="flex flex-row relative items-center px-1 py-1 pr-6 text-lg gap-8">

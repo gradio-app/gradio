@@ -1,0 +1,103 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("annotatedimage");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.AnnotatedImage(···)
+```
+
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+import numpy as np 
+import requests 
+from io import BytesIO
+from PIL import Image
+base_image = "https://gradio-docs-json.s3.us-west-2.amazonaws.com/base.png"
+building_image = requests.get("https://gradio-docs-json.s3.us-west-2.amazonaws.com/buildings.png")
+building_image = np.asarray(Image.open(BytesIO(building_image.content)))[:, :, -1] > 0
+with gr.Blocks() as demo:
+    gr.AnnotatedImage(
+        value=(base_image, [(building_image, "buildings")]),
+        height=500,
+    )
+demo.launch()
+<gradio-requirements>
+requests
+pillow
+</gradio-requirements>
+</gradio-lite>
+</div>
+
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Behavior -->
+### Behavior
+## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
+##### Your function should accept one of these types:
+
+```python
+def predict(
+	value: tuple[str, list[tuple[str, str]]] | None
+)
+	...
+```
+
+<br>
+
+## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
+##### Your function should return one of these types:
+
+```python
+def predict(···) -> tuple[np.ndarray | PIL.Image.Image | str, list[tuple[np.ndarray | tuple[int, int, int, int], str]]] | None
+	...	
+	return value
+```
+
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} />
+
+
+{#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
+<!--- Shortcuts -->
+### Shortcuts
+<ShortcutTable shortcuts={obj.string_shortcuts} />
+{/if}
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Event Listeners -->
+### Event Listeners 
+<FunctionsSection fns={obj.fns} event_listeners={true} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}

@@ -1,5 +1,132 @@
 # @gradio/paramviewer
 
+## 0.4.18
+
+### Features
+
+- [#8618](https://github.com/gradio-app/gradio/pull/8618) [`aa4b7a7`](https://github.com/gradio-app/gradio/commit/aa4b7a71921fd5b7ad7e3c0cce7687a8f6d284da) - Improve styling of parameter tables in the docs.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.7.2
+- @gradio/atoms@0.7.7
+
+## 0.4.17
+
+### Features
+
+- [#8744](https://github.com/gradio-app/gradio/pull/8744) [`b736c8d`](https://github.com/gradio-app/gradio/commit/b736c8db343087a4854f659b92732c8859fa999a) - Refactor `gr.ParamViewer` to use HTML `<details>` and other tweaks.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+
+## 0.4.16
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/statustracker@0.7.0
+
+## 0.4.15
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
+## 0.4.15
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
+## 0.4.14
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/statustracker@0.5.5
+
+## 0.4.13
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.4
+
+## 0.4.12
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.3
+
+## 0.4.11
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+
+## 0.4.10
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/utils@0.4.1
+- @gradio/statustracker@0.5.1
+
+## 0.4.9
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/statustracker@0.5.0
+- @gradio/utils@0.4.0
+
+## 0.4.8
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+- @gradio/atoms@0.7.0
+
+## 0.4.7
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+
+## 0.4.6
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+
+## 0.4.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.4.9
+- @gradio/atoms@0.6.0
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89)]:
+  - @gradio/statustracker@0.4.8
+
 ## 0.4.3
 
 ### Patch Changes

@@ -49,7 +49,7 @@ def get_tabular_examples(model_name: str) -> dict[str, list[float]]:
 
 
 def cols_to_rows(
-    example_data: dict[str, list[float]],
+    example_data: dict[str, list[float | str] | None],
 ) -> tuple[list[str], list[list[float]]]:
     headers = list(example_data.keys())
     n_rows = max(len(example_data[header] or []) for header in headers)
@@ -167,6 +167,26 @@ def token_classification_wrapper(client: InferenceClient):
         return format_ner_list(input, ner_list)  # type: ignore
 
     return token_classification_inner
+
+
+def object_detection_wrapper(client: InferenceClient):
+    def object_detection_inner(input: str):
+        annotations = client.object_detection(input)
+        formatted_annotations = [
+            (
+                (
+                    a["box"]["xmin"],
+                    a["box"]["ymin"],
+                    a["box"]["xmax"],
+                    a["box"]["ymax"],
+                ),
+                a["label"],
+            )
+            for a in annotations
+        ]
+        return (input, formatted_annotations)
+
+    return object_detection_inner
 
 
 def chatbot_preprocess(text, state):

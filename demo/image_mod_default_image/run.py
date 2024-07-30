@@ -1,10 +1,8 @@
 import gradio as gr
 import os
 
-
 def image_mod(image):
     return image.rotate(45)
-
 
 cheetah = os.path.join(os.path.dirname(__file__), "images/cheetah1.jpg")
 
@@ -15,4 +13,4 @@ demo = gr.Interface(image_mod, gr.Image(type="pil", value=cheetah), "image",
         ])
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(max_file_size="70kb")

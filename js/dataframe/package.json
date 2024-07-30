@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dataframe",
-	"version": "0.6.3",
+	"version": "0.9.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -11,6 +11,7 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/button": "workspace:^",
+		"@gradio/client": "workspace:^",
 		"@gradio/markdown": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
@@ -28,5 +29,8 @@
 		".": "./Index.svelte",
 		"./example": "./Example.svelte",
 		"./package.json": "./package.json"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }

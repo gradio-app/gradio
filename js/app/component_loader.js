@@ -1,6 +1,8 @@
 // @ts-nocheck
 
-export async function load_component({ api_url, name, id, variant }) {
+const request_map = {};
+
+export function load_component({ api_url, name, id, variant }) {
 	const comps = window.__GRADIO__CC__;
 
 	const _component_map = {
@@ -9,31 +11,44 @@ export async function load_component({ api_url, name, id, variant }) {
 		...(!comps ? {} : comps)
 	};
 
+	let _id = id || name;
+
+	if (request_map[`${_id}-${variant}`]) {
+		return { component: request_map[`${_id}-${variant}`], name };
+	}
 	try {
-		const c = await (
-			_component_map?.[id]?.[variant] || // for dev mode custom components
+		if (!_component_map?.[_id]?.[variant] && !_component_map?.[name]?.[variant])
+			throw new Error();
+
+		request_map[`${_id}-${variant}`] = (
+			_component_map?.[_id]?.[variant] || // for dev mode custom components
 			_component_map?.[name]?.[variant]
 		)();
+
 		return {
 			name,
-			component: c
+			component: request_map[`${_id}-${variant}`]
 		};
 	} catch (e) {
-		console.error(e);
+		if (!_id) throw new Error(`Component not found: ${name}`);
 		try {
-			await load_css(`${api_url}/custom_component/${id}/${variant}/style.css`);
-			const c = await import(
-				/* @vite-ignore */ `${api_url}/custom_component/${id}/${variant}/index.js`
+			request_map[`${_id}-${variant}`] = get_component_with_css(
+				api_url,
+				_id,
+				variant
 			);
+
 			return {
 				name,
-				component: c
+				component: request_map[`${_id}-${variant}`]
 			};
 		} catch (e) {
 			if (variant === "example") {
+				request_map[`${_id}-${variant}`] = import("@gradio/fallback/example");
+
 				return {
 					name,
-					component: await import("@gradio/fallback/example")
+					component: request_map[`${_id}-${variant}`]
 				};
 			}
 			console.error(`failed to load: ${name}`);
@@ -51,5 +66,16 @@ function load_css(url) {
 		document.head.appendChild(link);
 		link.onload = () => resolve();
 		link.onerror = () => reject();
+	});
+}
+
+function get_component_with_css(api_url, id, variant) {
+	return Promise.all([
+		load_css(`${api_url}/custom_component/${id}/${variant}/style.css`),
+		import(
+			/* @vite-ignore */ `${api_url}/custom_component/${id}/${variant}/index.js`
+		)
+	]).then(([_, module]) => {
+		return module;
 	});
 }

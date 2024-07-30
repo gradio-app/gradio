@@ -1,5 +1,6 @@
-import { test as base, type Page } from "@playwright/test";
+import { test as base, type Locator, type Page } from "@playwright/test";
 import { spy } from "tinyspy";
+import { performance } from "node:perf_hooks";
 import url from "url";
 import path from "path";
 import fsPromises from "fs/promises";
@@ -37,7 +38,7 @@ const test_normal = base.extend<{ setup: void }>({
 	]
 });
 
-const lite_url = "http://localhost:9876/lite.html";
+const lite_url = "http://localhost:8000/for_e2e.html";
 // LIte taks a long time to initialize, so we share the page across tests, sacrificing the test isolation.
 let shared_page_for_lite: Page;
 const test_lite = base.extend<{ setup: void }>({
@@ -47,7 +48,34 @@ const test_lite = base.extend<{ setup: void }>({
 		}
 		if (shared_page_for_lite.url() !== lite_url) {
 			await shared_page_for_lite.goto(lite_url);
+
+			performance.mark("opened");
+
 			testInfo.setTimeout(600000); // Lite takes a long time to initialize.
+
+			// Measure the time taken for the app to load.
+			shared_page_for_lite
+				.waitForSelector('css=[id^="component-"]', { state: "visible" })
+				.then(() => {
+					performance.mark("app-loaded");
+					const app_load_perf = performance.measure(
+						"app-load",
+						"opened",
+						"app-loaded"
+					);
+					const app_load_time = app_load_perf.duration;
+
+					const perf_file_content = JSON.stringify({ app_load_time }, null, 2);
+
+					fsPromises
+						.writeFile(
+							path.resolve(ROOT_DIR, `./.lite-perf.json`),
+							perf_file_content
+						)
+						.catch((err) => {
+							console.error("Failed to write the performance data.", err);
+						});
+				});
 		}
 		await use(shared_page_for_lite);
 	},
@@ -89,7 +117,7 @@ const test_lite = base.extend<{ setup: void }>({
 			);
 			console.debug("Controller obtained. Setting up the app.");
 			await controllerHandle.evaluate(
-				async (controller: any, files: [string, string][]) => {
+				async (controller: any, files: string[][]) => {
 					function base64ToUint8Array(base64: string): Uint8Array {
 						// Ref: https://stackoverflow.com/a/21797381/13103190
 						const binaryString = atob(base64);
@@ -163,29 +191,48 @@ export * from "./render";
 
 export const drag_and_drop_file = async (
 	page: Page,
-	selector: string,
+	selector: string | Locator,
 	filePath: string,
 	fileName: string,
-	fileType = ""
+	fileType = "",
+	count = 1
 ): Promise<void> => {
 	const buffer = (await fsPromises.readFile(filePath)).toString("base64");
 
 	const dataTransfer = await page.evaluateHandle(
-		async ({ bufferData, localFileName, localFileType }) => {
+		async ({ bufferData, localFileName, localFileType, count }) => {
 			const dt = new DataTransfer();
 
 			const blobData = await fetch(bufferData).then((res) => res.blob());
 
-			const file = new File([blobData], localFileName, { type: localFileType });
-			dt.items.add(file);
+			const file = new File([blobData], localFileName, {
+				type: localFileType
+			});
+
+			for (let i = 0; i < count; i++) {
+				dt.items.add(file);
+			}
 			return dt;
 		},
 		{
 			bufferData: `data:application/octet-stream;base64,${buffer}`,
 			localFileName: fileName,
-			localFileType: fileType
+			localFileType: fileType,
+			count
 		}
 	);
 
-	await page.dispatchEvent(selector, "drop", { dataTransfer });
+	if (typeof selector === "string") {
+		await page.dispatchEvent(selector, "drop", { dataTransfer });
+	} else {
+		await selector.dispatchEvent("drop", { dataTransfer });
+	}
 };
+
+export async function go_to_testcase(
+	page: Page,
+	test_case: string
+): Promise<void> {
+	const url = page.url();
+	await page.goto(`${url.substring(0, url.length - 1)}_${test_case}_testcase`);
+}

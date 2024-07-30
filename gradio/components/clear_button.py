@@ -1,17 +1,20 @@
-""" Predefined buttons with bound events that can be included in a gr.Blocks for convenience. """
+"""Predefined buttons with bound events that can be included in a gr.Blocks for convenience."""
 
 from __future__ import annotations
 
 import copy
 import json
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Sequence
 
 from gradio_client.documentation import document
 
 from gradio.components import Button, Component
-from gradio.context import Context
+from gradio.context import get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.utils import resolve_singleton
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document("add")
@@ -26,10 +29,11 @@ class ClearButton(Button):
 
     def __init__(
         self,
-        components: None | list[Component] | Component = None,
+        components: None | Sequence[Component] | Component = None,
         *,
         value: str = "Clear",
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str | None = None,
@@ -39,6 +43,7 @@ class ClearButton(Button):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         scale: int | None = None,
         min_width: int | None = None,
         api_name: str | None | Literal["False"] = None,
@@ -47,6 +52,7 @@ class ClearButton(Button):
         super().__init__(
             value,
             every=every,
+            inputs=inputs,
             variant=variant,
             size=size,
             icon=icon,
@@ -56,16 +62,17 @@ class ClearButton(Button):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             scale=scale,
             min_width=min_width,
         )
         self.api_name = api_name
         self.show_api = show_api
 
-        if Context.root_block:
+        if get_blocks_context():
             self.add(components)
 
-    def add(self, components: None | Component | list[Component]) -> ClearButton:
+    def add(self, components: None | Component | Sequence[Component]) -> ClearButton:
         """
         Adds a component or list of components to the list of components that will be cleared when the button is clicked.
         """
@@ -127,5 +134,8 @@ class ClearButton(Button):
         """
         return value
 
-    def example_inputs(self) -> Any:
-        return None
+    def example_payload(self) -> Any:
+        return "Clear"
+
+    def example_value(self) -> Any:
+        return "Clear"

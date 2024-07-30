@@ -1,5 +1,324 @@
 # @gradio/imageeditor
 
+## 0.8.0
+
+### Features
+
+- [#8803](https://github.com/gradio-app/gradio/pull/8803) [`e1a4040`](https://github.com/gradio-app/gradio/commit/e1a404093cfaf9d8f2a92bc1d28fb6aa254848d1) - Ensure all upload components have consistent upload regions.  Thanks @pngwn!
+
+### Fixes
+
+- [#8802](https://github.com/gradio-app/gradio/pull/8802) [`7b19474`](https://github.com/gradio-app/gradio/commit/7b19474cb2dd8f2c34d630f43edb0fcb0e05aa0c) - Ensure `ImageEditor` brush color can be updated with `gr.update`.  Thanks @pngwn!
+- [#8852](https://github.com/gradio-app/gradio/pull/8852) [`16b8200`](https://github.com/gradio-app/gradio/commit/16b820038df43905447ab7623d39d91ceb0d6238) - Fix gr.Image height inconsistencies.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/wasm@0.12.0
+- @gradio/client@1.4.0
+- @gradio/image@0.13.0
+- @gradio/statustracker@0.7.2
+- @gradio/upload@0.12.0
+- @gradio/atoms@0.7.7
+
+## 0.7.13
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/client@1.3.0
+- @gradio/upload@0.11.5
+- @gradio/image@0.12.2
+- @gradio/icons@0.6.0
+
+## 0.7.12
+
+### Dependency updates
+
+- @gradio/upload@0.11.4
+- @gradio/client@1.2.1
+- @gradio/image@0.12.1
+
+## 0.7.11
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/image@0.12.0
+- @gradio/utils@0.5.0
+- @gradio/icons@0.5.0
+- @gradio/wasm@0.11.0
+- @gradio/client@1.2.0
+- @gradio/statustracker@0.7.0
+- @gradio/upload@0.11.3
+
+## 0.7.10
+
+### Dependency updates
+
+- @gradio/client@1.1.1
+- @gradio/upload@0.11.2
+- @gradio/image@0.11.10
+
+## 0.7.9
+
+### Dependency updates
+
+- @gradio/upload@0.11.1
+- @gradio/client@1.1.0
+- @gradio/image@0.11.9
+
+## 0.7.8
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+- @gradio/client@1.0.0
+- @gradio/upload@0.11.0
+- @gradio/image@0.11.8
+
+## 0.7.7
+
+### Dependency updates
+
+- @gradio/upload@0.10.7
+- @gradio/client@0.20.1
+- @gradio/image@0.11.7
+
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/client@0.20.0
+- @gradio/statustracker@0.6.0
+- @gradio/image@0.11.6
+- @gradio/upload@0.10.6
+
+## 0.7.5
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/statustracker@0.5.5
+- @gradio/upload@0.10.5
+- @gradio/client@0.19.4
+- @gradio/image@0.11.5
+
+## 0.7.4
+
+### Dependency updates
+
+- @gradio/client@0.19.3
+- @gradio/statustracker@0.5.4
+- @gradio/image@0.11.4
+- @gradio/upload@0.10.4
+
+## 0.7.3
+
+### Dependency updates
+
+- @gradio/upload@0.10.3
+- @gradio/client@0.19.2
+- @gradio/image@0.11.3
+
+## 0.7.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.3
+- @gradio/client@0.19.1
+- @gradio/image@0.11.2
+- @gradio/upload@0.10.2
+
+## 0.7.1
+
+### Fixes
+
+- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+- @gradio/client@0.19.0
+- @gradio/icons@0.4.1
+- @gradio/image@0.11.1
+- @gradio/upload@0.10.1
+
+## 0.7.0
+
+### Features
+
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`.  Thanks @hannahblair!
+- [#8127](https://github.com/gradio-app/gradio/pull/8127) [`24b2286`](https://github.com/gradio-app/gradio/commit/24b2286a22ed247b86ee299487174c8cea2988fe) - allow the canvas size to be set on the `ImageEditor`.  Thanks @pngwn!
+
+### Fixes
+
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/client@0.18.0
+- @gradio/upload@0.10.0
+- @gradio/utils@0.4.1
+- @gradio/wasm@0.10.1
+- @gradio/statustracker@0.5.1
+- @gradio/image@0.11.0
+
+## 0.6.0
+
+### Highlights
+
+#### Setting File Upload Limits ([#7909](https://github.com/gradio-app/gradio/pull/7909) [`2afca65`](https://github.com/gradio-app/gradio/commit/2afca6541912b37dc84f447c7ad4af21607d7c72))
+
+We have added a `max_file_size` size parameter to `launch()` that limits to size of files uploaded to the server. This limit applies to each individual file. This parameter can be specified as a string or an integer (corresponding to the size in bytes).
+
+The following code snippet sets a max file size of 5 megabytes.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
+
+![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
+
+
+#### Error states can now be cleared
+
+When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
+
+![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
+
+ Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/client@0.17.0
+- @gradio/image@0.10.0
+- @gradio/statustracker@0.5.0
+- @gradio/upload@0.9.0
+- @gradio/utils@0.4.0
+
+## 0.5.0
+
+### Features
+
+- [#8042](https://github.com/gradio-app/gradio/pull/8042) [`92139f3`](https://github.com/gradio-app/gradio/commit/92139f3d7d6b832b649ff1f6c10c87e6fb522cde) - refresh the `ImageEditor` UI.  Thanks @pngwn!
+- [#8059](https://github.com/gradio-app/gradio/pull/8059) [`074ce38`](https://github.com/gradio-app/gradio/commit/074ce3805ada6ba829c17da3af5f186d9f5f9865) - ensure the `ImageEditor` works correctly with layers and `change` events.  Thanks @pngwn!
+- [#7845](https://github.com/gradio-app/gradio/pull/7845) [`dbb7373`](https://github.com/gradio-app/gradio/commit/dbb7373dde69d4ed2741942b5a1898f8620cec24) - ensure `ImageEditor` events work as expected.  Thanks @pngwn!
+
+### Fixes
+
+- [#8046](https://github.com/gradio-app/gradio/pull/8046) [`d6c289b`](https://github.com/gradio-app/gradio/commit/d6c289b34668f0011676737ee8edb4cb62b0620a) - round [x, y, w, h] before cropping to avoid unexpected interpolation on pixel values.  Thanks @ernestchu!
+- [#7959](https://github.com/gradio-app/gradio/pull/7959) [`2a5cb97`](https://github.com/gradio-app/gradio/commit/2a5cb978240960fd8b150a1eae6ae8328a5c0c59) - ensure `ImageEditor` always draws at the correct position.  Thanks @hrrbay!
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+- @gradio/client@0.16.0
+- @gradio/upload@0.8.5
+- @gradio/atoms@0.7.0
+- @gradio/icons@0.4.0
+- @gradio/image@0.9.12
+
+## 0.4.11
+
+### Fixes
+
+- [#7817](https://github.com/gradio-app/gradio/pull/7817) [`867ff16`](https://github.com/gradio-app/gradio/commit/867ff16cd47ceb5bbf076503538a262b6fe64638) - Trigger the "clear" event of Image Editor.  Thanks @uebian!
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+- @gradio/upload@0.8.4
+- @gradio/image@0.9.11
+- @gradio/client@0.15.1
+
+## 0.4.10
+
+### Dependency updates
+
+- @gradio/upload@0.8.3
+- @gradio/client@0.15.0
+- @gradio/image@0.9.10
+
+## 0.4.9
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+- @gradio/image@0.9.9
+
+## 0.4.8
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/statustracker@0.4.9
+- @gradio/wasm@0.10.0
+- @gradio/atoms@0.6.0
+- @gradio/image@0.9.8
+
+## 0.4.7
+
+### Dependency updates
+
+- @gradio/client@0.14.0
+- @gradio/upload@0.8.0
+- @gradio/wasm@0.9.0
+- @gradio/image@0.9.7
+
+## 0.4.6
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+- @gradio/wasm@0.8.0
+- @gradio/image@0.9.6
+
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+  - @gradio/image@0.9.5
+
+## 0.4.4
+
+### Features
+
+- [#7528](https://github.com/gradio-app/gradio/pull/7528) [`eda33b3`](https://github.com/gradio-app/gradio/commit/eda33b3763897a542acf298e523fa493dc655aee) - Refactors `get_fetchable_url_or_file()` to remove it from the frontend. Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89)]:
+  - @gradio/statustracker@0.4.8
+  - @gradio/image@0.9.3
+
 ## 0.4.2
 
 ### Patch Changes

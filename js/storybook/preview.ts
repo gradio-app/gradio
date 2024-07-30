@@ -1,7 +1,7 @@
 import type { Preview } from "@storybook/svelte";
 import "./theme.css";
 import { setupi18n } from "../app/src/i18n";
-import { Gradio } from "../app/src/gradio_helper";
+import { Gradio, formatter } from "../app/src/gradio_helper";
 import "../theme/src/reset.css";
 import "../theme/src/global.css";
 
@@ -19,9 +19,14 @@ const preview: Preview = {
 			"light",
 			"1.1.1",
 			"localhost:9876",
-			false
+			false,
+			null,
+			formatter,
+			// @ts-ignore
+			{ client: { fetch() {}, upload() {} } }
 		)
 	},
+
 	argTypes: {
 		gradio: {
 			table: {
@@ -29,8 +34,8 @@ const preview: Preview = {
 			}
 		}
 	},
+
 	parameters: {
-		actions: { argTypesRegex: "^on[A-Z].*" },
 		controls: {
 			matchers: {
 				color: /(background|color)$/i,
@@ -52,7 +57,9 @@ const preview: Preview = {
 				}
 			}
 		}
-	}
+	},
+
+	tags: ["autodocs"]
 };
 
 export default preview;

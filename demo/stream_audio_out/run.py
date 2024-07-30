@@ -32,12 +32,11 @@ with gr.Blocks() as demo:
                 [input_audio, format],
                 fn=stream_file,
                 outputs=stream_as_file_output,
-                cache_examples=True,
             )
 
         with gr.Column():
             stream_as_bytes_btn = gr.Button("Stream as Bytes")
-            stream_as_bytes_output = gr.Audio(format="bytes", streaming=True)
+            stream_as_bytes_output = gr.Audio(streaming=True)
 
             def stream_bytes(audio_file):
                 chunk_size = 20_000
@@ -52,4 +51,4 @@ with gr.Blocks() as demo:
             stream_as_bytes_btn.click(stream_bytes, input_audio, stream_as_bytes_output)
 
 if __name__ == "__main__":
-    demo.queue().launch()
+    demo.launch()

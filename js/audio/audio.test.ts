@@ -26,8 +26,6 @@ const default_values = {
 		path: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
 		orig_name: "SoundHelix-Song-1.mp3"
 	},
-	root: "",
-	proxy_url: "",
 	show_label: true
 };
 describe("Audio", () => {

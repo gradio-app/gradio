@@ -1,5 +1,507 @@
 # @gradio/chatbot
 
+## 0.12.2
+
+### Fixes
+
+- [#8865](https://github.com/gradio-app/gradio/pull/8865) [`2f630ab`](https://github.com/gradio-app/gradio/commit/2f630abf53ec493a3ff5e827b5951b26c74b7242) - Chatbot Examples Scroll Fix.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/audio@0.13.0
+- @gradio/video@0.10.0
+- @gradio/wasm@0.12.0
+- @gradio/markdown@0.9.0
+- @gradio/client@1.4.0
+- @gradio/image@0.13.0
+- @gradio/statustracker@0.7.2
+- @gradio/upload@0.12.0
+- @gradio/atoms@0.7.7
+- @gradio/gallery@0.11.3
+- @gradio/plot@0.6.1
+
+## 0.12.1
+
+### Features
+
+- [#8766](https://github.com/gradio-app/gradio/pull/8766) [`2b4636e`](https://github.com/gradio-app/gradio/commit/2b4636e75cf728846253451b7104b724609a9cd1) - Fix width of assistant's chatbot bubble.  Thanks @pngwn!
+
+## 0.12.0
+
+### Highlights
+
+#### Support message format in chatbot 💬 ([#8422](https://github.com/gradio-app/gradio/pull/8422) [`4221290`](https://github.com/gradio-app/gradio/commit/4221290d847041024b1faa3df5585bba0775b8b3))
+
+`gr.Chatbot` and `gr.ChatInterface` now support the [Messages API](https://huggingface.co/docs/text-generation-inference/en/messages_api#messages-api), which is fully compatible with LLM API providers such as Hugging Face Text Generation Inference, OpenAI's chat completions API, and Llama.cpp server. 
+
+Building Gradio applications around these LLM solutions is now even easier! 
+
+`gr.Chatbot` and `gr.ChatInterface` now have a `type` parameter that can accept two values - `'tuples'` and `'messages'`. If set to `'tuples'`, the default chatbot data format is expected. If set to `'messages'`, a list of dictionaries with `content` and `role` keys is expected. See below - 
+
+```python
+def chat_greeter(msg, history):
+    history.append({"role": "assistant", "content": "Hello!"})
+    return history
+```
+
+Additionally, gradio now exposes a `gr.ChatMessage` dataclass you can use for IDE type hints and auto completion.
+
+<img width="852" alt="image" src="https://github.com/freddyaboulton/freddyboulton/assets/41651716/d283e8f3-b194-466a-8194-c7e697dca9ad">
+
+
+#### Tool use in Chatbot 🛠️
+
+The Gradio Chatbot can now natively display tool usage and intermediate thoughts common in Agent and chain-of-thought workflows!
+
+If you are using the new "messages" format, simply add a `metadata` key with a dictionary containing a `title` key and `value`. This will display the assistant message in an expandable message box to show the result of a tool or intermediate step.
+
+```python
+import gradio as gr
+from gradio import ChatMessage
+import time
+
+def generate_response(history):
+    history.append(ChatMessage(role="user", content="What is the weather in San Francisco right now?"))
+    yield history
+    time.sleep(0.25)
+    history.append(ChatMessage(role="assistant",
+                               content="In order to find the current weather in San Francisco, I will need to use my weather tool.")
+                               )
+    yield history
+    time.sleep(0.25)
+
+    history.append(ChatMessage(role="assistant",
+                               content="API Error when connecting to weather service.",
+                              metadata={"title": "💥 Error using tool 'Weather'"})
+                  )
+    yield history
+    time.sleep(0.25)
+
+    history.append(ChatMessage(role="assistant",
+                               content="I will try again",
+                              ))
+    yield history
+    time.sleep(0.25)
+
+    history.append(ChatMessage(role="assistant",
+                               content="Weather 72 degrees Fahrenheit with 20% chance of rain.",
+                                metadata={"title": "🛠️ Used tool 'Weather'"}
+                              ))
+    yield history
+    time.sleep(0.25)
+
+    history.append(ChatMessage(role="assistant",
+                               content="Now that the API succeeded I can complete my task.",
+                              ))
+    yield history
+    time.sleep(0.25)
+
+    history.append(ChatMessage(role="assistant",
+                               content="It's a sunny day in San Francisco with a current temperature of 72 degrees Fahrenheit and a 20% chance of rain. Enjoy the weather!",
+                              ))
+    yield history
+
+
+with gr.Blocks() as demo:
+    chatbot  = gr.Chatbot(type="messages")
+    button = gr.Button("Get San Francisco Weather")
+    button.click(generate_response, chatbot, chatbot)
+
+if __name__ == "__main__":
+    demo.launch()
+```
+
+
+
+![tool-box-demo](https://github.com/freddyaboulton/freddyboulton/assets/41651716/cf73ecc9-90ac-42ce-bca5-768e0cc00a48)
+
+ Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8758](https://github.com/gradio-app/gradio/pull/8758) [`26cdd0f`](https://github.com/gradio-app/gradio/commit/26cdd0ffe049ecfe751f3831cbdb4c04c0ecf934) - Revert chatbot styling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/client@1.3.0
+- @gradio/markdown@0.8.1
+- @gradio/upload@0.11.5
+- @gradio/image@0.12.2
+- @gradio/icons@0.6.0
+- @gradio/plot@0.6.0
+- @gradio/audio@0.12.2
+- @gradio/gallery@0.11.2
+- @gradio/video@0.9.2
+
+## 0.11.1
+
+### Fixes
+
+- [#8655](https://github.com/gradio-app/gradio/pull/8655) [`3896398`](https://github.com/gradio-app/gradio/commit/38963984800d58bfad81bc928f2d631cb4bac773) - Ensure copy button on chatbot shows when appropriate.  Thanks @pngwn!
+- [#8631](https://github.com/gradio-app/gradio/pull/8631) [`9b8840a`](https://github.com/gradio-app/gradio/commit/9b8840ab5f712a6634b77df014083071fa253ba0) - Ensure chatbot messages are visible to screenreaders.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.11.4
+- @gradio/client@1.2.1
+- @gradio/gallery@0.11.1
+- @gradio/image@0.12.1
+- @gradio/audio@0.12.1
+- @gradio/video@0.9.1
+
+## 0.11.0
+
+### Features
+
+- [#8131](https://github.com/gradio-app/gradio/pull/8131) [`bb504b4`](https://github.com/gradio-app/gradio/commit/bb504b494947a287d6386e0e7ead3860c0f15223) - Gradio components in `gr.Chatbot()`.  Thanks @dawoodkhan82!
+- [#8607](https://github.com/gradio-app/gradio/pull/8607) [`c7cd0a0`](https://github.com/gradio-app/gradio/commit/c7cd0a0e9aefe0e5ee5584df676f3cc69a403059) - Ensure chatbot background is consistent with other components.  Thanks @pngwn!
+- [#8555](https://github.com/gradio-app/gradio/pull/8555) [`7fc7455`](https://github.com/gradio-app/gradio/commit/7fc7455553c04c52c8e25d520f3d67f1b5609637) - support html in chatbot.  Thanks @pngwn!
+
+### Fixes
+
+- [#8594](https://github.com/gradio-app/gradio/pull/8594) [`530f8a0`](https://github.com/gradio-app/gradio/commit/530f8a0b056b35dabe9bdd148e1ab7c4577f017d) - chatbot component tweaks.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/audio@0.12.0
+- @gradio/gallery@0.11.0
+- @gradio/image@0.12.0
+- @gradio/plot@0.5.0
+- @gradio/utils@0.5.0
+- @gradio/video@0.9.0
+- @gradio/icons@0.5.0
+- @gradio/wasm@0.11.0
+- @gradio/client@1.2.0
+- @gradio/statustracker@0.7.0
+- @gradio/markdown@0.8.0
+- @gradio/upload@0.11.3
+
+## 0.10.11
+
+### Dependency updates
+
+- @gradio/client@1.1.1
+- @gradio/upload@0.11.2
+- @gradio/audio@0.11.10
+- @gradio/image@0.11.10
+- @gradio/video@0.8.10
+
+## 0.10.10
+
+### Dependency updates
+
+- @gradio/upload@0.11.1
+- @gradio/client@1.1.0
+- @gradio/audio@0.11.9
+- @gradio/image@0.11.9
+- @gradio/video@0.8.9
+
+## 0.10.9
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+- @gradio/client@1.0.0
+- @gradio/upload@0.11.0
+- @gradio/audio@0.11.8
+- @gradio/image@0.11.8
+- @gradio/video@0.8.8
+- @gradio/markdown@0.7.6
+
+## 0.10.8
+
+### Features
+
+- [#8377](https://github.com/gradio-app/gradio/pull/8377) [`341844f`](https://github.com/gradio-app/gradio/commit/341844f04efe0e7e512c7ca443f3f2b195a32fa7) - Click to preview images in chatbot.  Thanks @dawoodkhan82!
+
+## 0.10.7
+
+### Dependency updates
+
+- @gradio/upload@0.10.7
+- @gradio/client@0.20.1
+- @gradio/audio@0.11.7
+- @gradio/image@0.11.7
+- @gradio/video@0.8.7
+
+## 0.10.6
+
+### Dependency updates
+
+- @gradio/client@0.20.0
+- @gradio/statustracker@0.6.0
+- @gradio/audio@0.11.6
+- @gradio/image@0.11.6
+- @gradio/upload@0.10.6
+- @gradio/video@0.8.6
+- @gradio/markdown@0.7.6
+
+## 0.10.5
+
+### Features
+
+- [#8311](https://github.com/gradio-app/gradio/pull/8311) [`35905c5`](https://github.com/gradio-app/gradio/commit/35905c5c8f7acbe669486ac8f57b6955328e4783) - Cleanup markdown styling.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/statustracker@0.5.5
+- @gradio/upload@0.10.5
+- @gradio/markdown@0.7.5
+- @gradio/theme@0.2.3
+- @gradio/client@0.19.4
+- @gradio/audio@0.11.5
+- @gradio/image@0.11.5
+- @gradio/video@0.8.5
+
+## 0.10.4
+
+### Dependency updates
+
+- @gradio/client@0.19.3
+- @gradio/statustracker@0.5.4
+- @gradio/audio@0.11.4
+- @gradio/image@0.11.4
+- @gradio/upload@0.10.4
+- @gradio/video@0.8.4
+- @gradio/markdown@0.7.4
+
+## 0.10.3
+
+### Dependency updates
+
+- @gradio/upload@0.10.3
+- @gradio/client@0.19.2
+- @gradio/audio@0.11.3
+- @gradio/image@0.11.3
+- @gradio/video@0.8.3
+
+## 0.10.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.3
+- @gradio/client@0.19.1
+- @gradio/audio@0.11.2
+- @gradio/image@0.11.2
+- @gradio/markdown@0.7.3
+- @gradio/video@0.8.2
+- @gradio/upload@0.10.2
+
+## 0.10.1
+
+### Features
+
+- [#8226](https://github.com/gradio-app/gradio/pull/8226) [`892181b`](https://github.com/gradio-app/gradio/commit/892181b4fdb13dd6048a620dd985d47bc3c26ed7) - chore(deps): update dependency @types/prismjs to v1.26.4.  Thanks @renovate!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+- @gradio/markdown@0.7.2
+- @gradio/client@0.19.0
+- @gradio/icons@0.4.1
+- @gradio/audio@0.11.1
+- @gradio/image@0.11.1
+- @gradio/upload@0.10.1
+- @gradio/video@0.8.1
+
+## 0.10.0
+
+### Features
+
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/client@0.18.0
+- @gradio/upload@0.10.0
+- @gradio/utils@0.4.1
+- @gradio/statustracker@0.5.1
+- @gradio/audio@0.11.0
+- @gradio/image@0.11.0
+- @gradio/video@0.8.0
+- @gradio/markdown@0.7.1
+
+## 0.9.0
+
+### Highlights
+
+#### Setting File Upload Limits ([#7909](https://github.com/gradio-app/gradio/pull/7909) [`2afca65`](https://github.com/gradio-app/gradio/commit/2afca6541912b37dc84f447c7ad4af21607d7c72))
+
+We have added a `max_file_size` size parameter to `launch()` that limits to size of files uploaded to the server. This limit applies to each individual file. This parameter can be specified as a string or an integer (corresponding to the size in bytes).
+
+The following code snippet sets a max file size of 5 megabytes.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
+
+![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
+
+
+#### Error states can now be cleared
+
+When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
+
+![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
+
+ Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/client@0.17.0
+- @gradio/audio@0.10.0
+- @gradio/image@0.10.0
+- @gradio/markdown@0.7.0
+- @gradio/statustracker@0.5.0
+- @gradio/video@0.7.0
+- @gradio/upload@0.9.0
+- @gradio/utils@0.4.0
+
+## 0.8.3
+
+### Features
+
+- [#7998](https://github.com/gradio-app/gradio/pull/7998) [`06bdf0e`](https://github.com/gradio-app/gradio/commit/06bdf0eddf59bf79b6b4d1268fc9290955ef2490) - Restore chatbot formatting.  Thanks @aliabid94!
+
+### Fixes
+
+- [#8025](https://github.com/gradio-app/gradio/pull/8025) [`55ef4a5`](https://github.com/gradio-app/gradio/commit/55ef4a52c3d600344d8cf1a667f3f352c52c8e57) - Fixes Chatbot Image Sizing.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+- @gradio/theme@0.2.2
+- @gradio/client@0.16.0
+- @gradio/upload@0.8.5
+- @gradio/atoms@0.7.0
+- @gradio/icons@0.4.0
+- @gradio/audio@0.9.12
+- @gradio/image@0.9.12
+- @gradio/video@0.6.12
+- @gradio/markdown@0.6.10
+
+## 0.8.2
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+- @gradio/upload@0.8.4
+- @gradio/image@0.9.11
+- @gradio/markdown@0.6.9
+- @gradio/theme@0.2.1
+- @gradio/client@0.15.1
+- @gradio/video@0.6.11
+- @gradio/audio@0.9.11
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/upload@0.8.3
+- @gradio/client@0.15.0
+- @gradio/audio@0.9.10
+- @gradio/image@0.9.10
+- @gradio/video@0.6.10
+
+## 0.8.0
+
+### Features
+
+- [#7849](https://github.com/gradio-app/gradio/pull/7849) [`7af3cd7`](https://github.com/gradio-app/gradio/commit/7af3cd7ccb8cc556fd2b290af0bed1c7ec07d174) - Adds a `placeholder` argument to `gr.Chatbot`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+- @gradio/audio@0.9.9
+- @gradio/image@0.9.9
+- @gradio/video@0.6.9
+- @gradio/markdown@0.6.8
+
+## 0.7.8
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/statustracker@0.4.9
+- @gradio/atoms@0.6.0
+- @gradio/audio@0.9.8
+- @gradio/image@0.9.8
+- @gradio/video@0.6.8
+- @gradio/markdown@0.6.7
+
+## 0.7.7
+
+### Dependency updates
+
+- @gradio/client@0.14.0
+- @gradio/upload@0.8.0
+- @gradio/markdown@0.6.6
+- @gradio/audio@0.9.7
+- @gradio/image@0.9.7
+- @gradio/video@0.6.7
+
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+- @gradio/audio@0.9.6
+- @gradio/image@0.9.6
+- @gradio/video@0.6.6
+
+## 0.7.5
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+  - @gradio/audio@0.9.5
+  - @gradio/image@0.9.5
+  - @gradio/video@0.6.5
+
+## 0.7.4
+
+### Features
+
+- [#7528](https://github.com/gradio-app/gradio/pull/7528) [`eda33b3`](https://github.com/gradio-app/gradio/commit/eda33b3763897a542acf298e523fa493dc655aee) - Refactors `get_fetchable_url_or_file()` to remove it from the frontend. Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.7.3
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89)]:
+  - @gradio/statustracker@0.4.8
+  - @gradio/audio@0.9.3
+  - @gradio/image@0.9.3
+  - @gradio/markdown@0.6.5
+  - @gradio/video@0.6.3
+
 ## 0.7.2
 
 ### Patch Changes

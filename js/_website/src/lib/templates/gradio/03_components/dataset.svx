@@ -1,0 +1,134 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("dataset");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.Dataset(···)
+```
+
+<!-- Embedded Component -->
+<div class="embedded-component">
+<gradio-lite shared-worker>
+import gradio as gr
+with gr.Blocks() as demo:
+    gr.Dataset(components=[gr.Textbox(visible=False)],
+        label="Text Dataset",
+        samples=[
+            ["The quick brown fox jumps over the lazy dog"],
+            ["Build & share delightful machine learning apps"],
+            ["She sells seashells by the seashore"],
+            ["Supercalifragilisticexpialidocious"],
+            ["Lorem ipsum"],
+            ["That's all folks!"]
+        ],
+    )
+demo.launch()
+</gradio-lite>
+</div>
+
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Behavior -->
+### Behavior
+## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
+##### Your function should accept one of these types:
+
+```python
+def predict(
+	value: int | list | None
+)
+	...
+```
+
+<br>
+
+## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
+##### Your function should return one of these types:
+
+```python
+def predict(···) -> list[list]
+	...	
+	return value
+```
+
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} />
+
+
+{#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
+<!--- Shortcuts -->
+### Shortcuts
+<ShortcutTable shortcuts={obj.string_shortcuts} />
+{/if}
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+### Examples
+
+**Updating a Dataset**
+
+In this example, we display a text dataset using `gr.Dataset` and then update it when the user clicks a button:
+
+```py
+import gradio as gr
+
+philosophy_quotes = [
+    ["I think therefore I am."],
+    ["The unexamined life is not worth living."]
+]
+
+startup_quotes = [
+    ["Ideas are easy. Implementation is hard"],
+    ["Make mistakes faster."]
+]
+
+def show_startup_quotes():
+    return gr.Dataset(samples=startup_quotes)
+
+with gr.Blocks() as demo:
+    textbox = gr.Textbox()
+    dataset = gr.Dataset(components=[textbox], samples=philosophy_quotes)
+    button = gr.Button()
+
+    button.click(show_startup_quotes, None, dataset)
+
+demo.launch()
+```
+
+
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Event Listeners -->
+### Event Listeners 
+<FunctionsSection fns={obj.fns} event_listeners={true} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
+{/if}
+

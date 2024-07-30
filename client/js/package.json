@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/client",
-	"version": "0.12.1",
+	"version": "1.4.0",
 	"description": "Gradio API client",
 	"type": "module",
 	"main": "dist/index.js",
@@ -13,18 +13,28 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
+		"@types/eventsource": "^1.1.15",
 		"bufferutil": "^4.0.7",
+		"eventsource": "^2.0.2",
+		"fetch-event-stream": "^0.1.5",
+		"msw": "^2.2.1",
 		"semiver": "^1.1.0",
+		"textlinestream": "^1.1.1",
+		"typescript": "^5.0.0",
 		"ws": "^8.13.0"
 	},
 	"devDependencies": {
-		"@types/ws": "^8.5.4",
-		"esbuild": "^0.19.0"
+		"@types/ws": "^8.5.10",
+		"esbuild": "^0.21.0"
 	},
 	"scripts": {
 		"bundle": "vite build --ssr",
 		"generate_types": "tsc",
-		"build": "pnpm bundle && pnpm generate_types"
+		"build": "pnpm bundle && pnpm generate_types",
+		"test": "pnpm test:client && pnpm test:client:node",
+		"test:client": "vitest run -c vite.config.js",
+		"test:client:node": "TEST_MODE=node vitest run -c vite.config.js",
+		"preview:browser": "vite dev --mode=preview"
 	},
 	"engines": {
 		"node": ">=18.0.0"

@@ -1,6 +1,5 @@
 from gradio.components.annotated_image import AnnotatedImage
 from gradio.components.audio import Audio
-from gradio.components.bar_plot import BarPlot
 from gradio.components.base import (
     Component,
     FormComponent,
@@ -11,7 +10,7 @@ from gradio.components.base import (
     get_component_instance,
 )
 from gradio.components.button import Button
-from gradio.components.chatbot import Chatbot
+from gradio.components.chatbot import Chatbot, ChatMessage, MessageDict
 from gradio.components.checkbox import Checkbox
 from gradio.components.checkboxgroup import CheckboxGroup
 from gradio.components.clear_button import ClearButton
@@ -19,6 +18,8 @@ from gradio.components.code import Code
 from gradio.components.color_picker import ColorPicker
 from gradio.components.dataframe import Dataframe
 from gradio.components.dataset import Dataset
+from gradio.components.datetime import DateTime
+from gradio.components.download_button import DownloadButton
 from gradio.components.dropdown import Dropdown
 from gradio.components.duplicate_button import DuplicateButton
 from gradio.components.fallback import Fallback
@@ -31,19 +32,20 @@ from gradio.components.image import Image
 from gradio.components.image_editor import ImageEditor
 from gradio.components.json_component import JSON
 from gradio.components.label import Label
-from gradio.components.line_plot import LinePlot
 from gradio.components.login_button import LoginButton
 from gradio.components.logout_button import LogoutButton
 from gradio.components.markdown import Markdown
 from gradio.components.model3d import Model3D
+from gradio.components.multimodal_textbox import MultimodalTextbox
+from gradio.components.native_plot import BarPlot, LinePlot, ScatterPlot
 from gradio.components.number import Number
 from gradio.components.paramviewer import ParamViewer
 from gradio.components.plot import Plot
 from gradio.components.radio import Radio
-from gradio.components.scatter_plot import ScatterPlot
 from gradio.components.slider import Slider
 from gradio.components.state import State
 from gradio.components.textbox import Textbox
+from gradio.components.timer import Timer
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
 from gradio.layouts import Form
@@ -61,6 +63,7 @@ __all__ = [
     "BarPlot",
     "Button",
     "Chatbot",
+    "ChatMessage",
     "ClearButton",
     "Component",
     "component",
@@ -73,6 +76,7 @@ __all__ = [
     "Dataframe",
     "DataFrame",
     "Dataset",
+    "DownloadButton",
     "DuplicateButton",
     "Fallback",
     "Form",
@@ -88,7 +92,9 @@ __all__ = [
     "LoginButton",
     "LogoutButton",
     "Markdown",
+    "MessageDict",
     "Textbox",
+    "DateTime",
     "Dropdown",
     "Model3D",
     "File",
@@ -106,10 +112,12 @@ __all__ = [
     "ScatterPlot",
     "Slider",
     "State",
+    "Timer",
     "UploadButton",
     "Video",
     "StreamingInput",
     "StreamingOutput",
     "ImageEditor",
     "ParamViewer",
+    "MultimodalTextbox",
 ]

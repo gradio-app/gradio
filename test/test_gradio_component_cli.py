@@ -4,38 +4,31 @@ from pathlib import Path
 
 import pytest
 
-from gradio.cli.commands.components._create_utils import OVERRIDES
 from gradio.cli.commands.components.build import _build
-from gradio.cli.commands.components.create import _create
+from gradio.cli.commands.components.create import _create, _create_utils
+from gradio.cli.commands.components.install_component import _get_executable_path
 from gradio.cli.commands.components.publish import _get_version_from_file
 from gradio.cli.commands.components.show import _show
+from gradio.utils import core_gradio_components
+
+core = [
+    c.__name__
+    for c in core_gradio_components()
+    if not getattr(c, "is_template", False)
+    and c.__name__ not in ["Tab", "Form", "FormComponent"]
+]
 
 
 @pytest.mark.parametrize(
     "template",
-    [
-        "Row",
-        "Column",
-        "Tabs",
-        "Group",
-        "Accordion",
-        "AnnotatedImage",
-        "HighlightedText",
-        "BarPlot",
-        "ClearButton",
-        "ColorPicker",
-        "DuplicateButton",
-        "LinePlot",
-        "LogoutButton",
-        "LoginButton",
-        "ScatterPlot",
-        "UploadButton",
-        "JSON",
-        "FileExplorer",
-        "Model3D",
-    ],
+    core,
 )
 def test_template_override_component(template, tmp_path):
+    """When you add a new component this test will likely fail locally
+    because the js files have not been moved to the _frontend_code directory.
+
+    Just build the python package (python -m build -w) to move the latest state of the js directory to _frontend_code.
+    """
     _create(
         "MyComponent",
         tmp_path,
@@ -45,12 +38,13 @@ def test_template_override_component(template, tmp_path):
         configure_metadata=False,
     )
     app = (tmp_path / "demo" / "app.py").read_text()
+    component_files = _create_utils._get_component_code(template)
     answer = textwrap.dedent(
         f"""
 import gradio as gr
 from gradio_mycomponent import MyComponent
 
-{OVERRIDES[template].demo_code.format(name="MyComponent")}
+{component_files.demo_code.format(name="MyComponent")}
 
 if __name__ == "__main__":
     demo.launch()
@@ -62,6 +56,29 @@ if __name__ == "__main__":
         tmp_path / "backend" / "gradio_mycomponent" / "mycomponent.py"
     ).read_text()
     assert "@document()" not in source_code
+
+
+def test_get_executable_path():
+    assert _get_executable_path(
+        "pip", None, "--pip-path", check_3=True
+    ) == shutil.which("pip3")
+    assert _get_executable_path("pip", None, "--pip-path") == shutil.which("pip")
+    assert _get_executable_path(
+        "pip", shutil.which("pip"), "--pip-path"
+    ) == shutil.which("pip")
+    assert _get_executable_path(
+        "gradio", None, "--pip-path", check_3=True
+    ) == shutil.which("gradio")
+    with pytest.raises(
+        ValueError,
+        match=r"Could not find foo. Please ensure it is installed and in your PATH or pass the --foo-path parameter.",
+    ):
+        _get_executable_path("foo", None, "--foo-path")
+    with pytest.raises(
+        ValueError,
+        match=r"The provided foo path \(/foo/bar/fum\) does not exist or is not a file.",
+    ):
+        _get_executable_path("foo", "/foo/bar/fum", "--foo-path")
 
 
 def test_raise_error_component_template_does_not_exist(tmp_path):

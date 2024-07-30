@@ -9,7 +9,11 @@ export function inject_ejs(): Plugin {
 		name: "inject-ejs",
 		enforce: "post",
 		transformIndexHtml: (html) => {
-			return html.replace(
+			const replace_gradio_info_info_html = html.replace(
+				/%gradio_api_info%/,
+				`<script>window.gradio_api_info = {{ gradio_api_info | toorjson }};</script>`
+			);
+			return replace_gradio_info_info_html.replace(
 				/%gradio_config%/,
 				`<script>window.gradio_config = {{ config | toorjson }};</script>`
 			);
@@ -72,10 +76,9 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 			if (!enable) return;
 
 			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
-				return `const ${$1.replace(
-					" as ",
-					": "
-				)} = window.__gradio__svelte__internal;`;
+				return `const ${$1
+					.replace(/\* as /, "")
+					.replace(/ as /g, ": ")} = window.__gradio__svelte__internal;`;
 			});
 
 			return {
@@ -228,12 +231,15 @@ function generate_component_imports(): string {
 					package_json
 				);
 
+				const base = get_export_path("./base", package_json_path, package_json);
+
 				if (!component && !example) return undefined;
 
 				return {
 					name: package_json.name,
 					component,
-					example
+					example,
+					base
 				};
 			}
 			return undefined;
@@ -246,7 +252,11 @@ function generate_component_imports(): string {
 		const example = _export.example
 			? `example: () => import("${_export.name}/example"),\n`
 			: "";
+		const base = _export.base
+			? `base: () => import("${_export.name}/base"),\n`
+			: "";
 		return `${acc}"${_export.name.replace("@gradio/", "")}": {
+			${base}
 			${example}
 			component: () => import("${_export.name}")
 			},\n`;
@@ -255,17 +265,54 @@ function generate_component_imports(): string {
 	return imports;
 }
 
-function load_virtual_component_loader(): string {
+function load_virtual_component_loader(mode: string): string {
 	const loader_path = join(__dirname, "component_loader.js");
-	const component_map = `
-const component_map = {
-	${generate_component_imports()}
-};
-`;
+	let component_map = "";
+
+	if (mode === "test") {
+		component_map = `
+		const component_map = {
+			"test-component-one": {
+				component: () => import("@gradio-test/test-one"),
+				example: () => import("@gradio-test/test-one/example")
+			},
+			"dataset": {
+				component: () => import("@gradio-test/test-two"),
+				example: () => import("@gradio-test/test-two/example")
+			},
+			"image": {
+				component: () => import("@gradio/image"),
+				example: () => import("@gradio/image/example"),
+				base: () => import("@gradio/image/base")
+			},
+			"audio": {
+				component: () => import("@gradio/audio"),
+				example: () => import("@gradio/audio/example"),
+				base: () => import("@gradio/audio/base")
+			},
+			"video": {
+				component: () => import("@gradio/video"),
+				example: () => import("@gradio/video/example"),
+				base: () => import("@gradio/video/base")
+			},
+			// "test-component-one": {
+			// 	component: () => import("@gradio-test/test-one"),
+			// 	example: () => import("@gradio-test/test-one/example")
+			// },
+		};
+		`;
+	} else {
+		component_map = `
+		const component_map = {
+			${generate_component_imports()}
+		};
+		`;
+	}
+
 	return `${component_map}\n\n${readFileSync(loader_path, "utf8")}`;
 }
 
-export function inject_component_loader(): Plugin {
+export function inject_component_loader({ mode }: { mode: string }): Plugin {
 	const v_id = "virtual:component-loader";
 	const resolved_v_id = "\0" + v_id;
 
@@ -276,8 +323,9 @@ export function inject_component_loader(): Plugin {
 			if (id === v_id) return resolved_v_id;
 		},
 		load(id: string) {
+			this.addWatchFile(join(__dirname, "component_loader.js"));
 			if (id === resolved_v_id) {
-				return load_virtual_component_loader();
+				return load_virtual_component_loader(mode);
 			}
 		}
 	};
@@ -307,6 +355,42 @@ export function resolve_svelte(enable: boolean): Plugin {
 					"svelte.js"
 				);
 				return { id: mod, external: "absolute" };
+			}
+		}
+	};
+}
+
+export function mock_modules(): Plugin {
+	const v_id_1 = "@gradio-test/test-one";
+	const v_id_2 = "@gradio-test/test-two";
+	const v_id_1_example = "@gradio-test/test-one/example";
+	const v_id_2_example = "@gradio-test/test-two/example";
+	const resolved_v_id = "\0" + v_id_1;
+	const resolved_v_id_2 = "\0" + v_id_2;
+	const resolved_v_id_1_example = "\0" + v_id_1_example;
+	const resolved_v_id_2_example = "\0" + v_id_2_example;
+	const fallback_example = "@gradio/fallback/example";
+	const resolved_fallback_example = "\0" + fallback_example;
+
+	return {
+		name: "mock-modules",
+		enforce: "pre",
+		resolveId(id: string) {
+			if (id === v_id_1) return resolved_v_id;
+			if (id === v_id_2) return resolved_v_id_2;
+			if (id === v_id_1_example) return resolved_v_id_1_example;
+			if (id === v_id_2_example) return resolved_v_id_2_example;
+			if (id === fallback_example) return resolved_fallback_example;
+		},
+		load(id: string) {
+			if (
+				id === resolved_v_id ||
+				id === resolved_v_id_2 ||
+				id === resolved_v_id_1_example ||
+				id === resolved_v_id_2_example ||
+				id === resolved_fallback_example
+			) {
+				return `export default {}`;
 			}
 		}
 	};

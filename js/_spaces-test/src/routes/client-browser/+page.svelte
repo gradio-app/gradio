@@ -1,13 +1,16 @@
 <script>
-	import { client } from "@gradio/client";
+	import { Client } from "@gradio/client";
 	import EndpointInputs from "../../lib/EndpointInputs.svelte";
 	import ResponsePreview from "../../lib/ResponsePreview.svelte";
 
 	let api = "gradio/cancel_events";
-	let hf_token = "";
 
 	/**
-	 * @type Awaited<ReturnType<typeof client>>
+	 * @type {`hf_${string}`}
+	 */
+	let hf_token = "hf_";
+	/**
+	 * @type Client
 	 */
 	let app;
 	/**
@@ -40,11 +43,10 @@
 		app_info = undefined;
 		active_endpoint = "";
 		response_data = { data: [], fn_index: 0, endpoint: "" };
-		if (!api || (hf_token && !hf_token.startsWith("_hf"))) return;
+		if (!api || (hf_token && !hf_token.startsWith("hf_"))) return;
 
-		app = await client(api, {
-			//@ts-ignore
-			hf_token: hf_token
+		app = await Client.connect(api, {
+			hf_token
 		});
 
 		const { named_endpoints, unnamed_endpoints } = await app.view_api();
@@ -69,7 +71,7 @@
 	}
 
 	/**
-	 * @type ReturnType<Awaited<ReturnType<typeof client>>["submit"]>
+	 * @type ReturnType<Client['submit']>
 	 */
 	let job;
 
@@ -81,14 +83,13 @@
 	async function submit() {
 		response_data = { data: [], fn_index: 0, endpoint: "" };
 
-		job = app
-			.submit(active_endpoint, request_data)
-			.on("data", (data) => {
-				response_data = data;
-			})
-			.on("status", (_status) => {
-				status = _status.stage;
-			});
+		job = app.submit(active_endpoint, request_data);
+		// .on("data", (data) => {
+		// 	response_data = data;
+		// })
+		// .on("status", (_status) => {
+		// 	status = _status.stage;
+		// });
 	}
 
 	function cancel() {
@@ -192,12 +193,7 @@
 			<EndpointInputs app_info={app_info.parameters} bind:request_data />
 			<button class="submit" on:click={submit}>Submit Request</button>
 			{#if app_info.type.generator || app_info.type.continuous}
-				<button
-					class="cancel"
-					on:click={cancel}
-					disabled={status !== "generating" && status !== "pending"}
-					>Cancel Request</button
-				>
+				<button class="cancel" on:click={cancel}>Cancel Request</button>
 			{/if}
 		</div>
 		<div>

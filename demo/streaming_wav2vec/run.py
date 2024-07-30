@@ -6,14 +6,14 @@ p = pipeline("automatic-speech-recognition")
 
 def transcribe(audio, state=""):
     time.sleep(2)
-    text = p(audio)["text"]
+    text = p(audio)["text"]  # type: ignore
     state += text + " "
     return state, state
 
 demo = gr.Interface(
-    fn=transcribe, 
+    fn=transcribe,
     inputs=[
-        gr.Audio(sources=["microphone"], type="filepath", streaming=True), 
+        gr.Audio(sources=["microphone"], type="filepath", streaming=True),
         "state"
     ],
     outputs=[

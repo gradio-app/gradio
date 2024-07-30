@@ -1,5 +1,88 @@
 # @gradio/tabitem
 
+## 0.2.12
+
+### Dependency updates
+
+- @gradio/column@0.1.2
+
+## 0.2.12
+
+### Dependency updates
+
+- @gradio/utils@0.5.1
+- @gradio/column@0.1.2
+- @gradio/tabs@0.2.11
+
+## 0.2.11
+
+### Dependency updates
+
+- @gradio/utils@0.5.0
+- @gradio/column@0.1.2
+- @gradio/tabs@0.2.10
+
+## 0.2.10
+
+### Dependency updates
+
+- @gradio/column@0.1.2
+- @gradio/tabs@0.2.9
+
+## 0.2.10
+
+### Dependency updates
+
+- @gradio/column@0.1.2
+
+## 0.2.9
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/tabs@0.2.9
+
+## 0.2.8
+
+### Dependency updates
+
+- @gradio/utils@0.4.1
+- @gradio/column@0.1.1
+- @gradio/tabs@0.2.8
+
+## 0.2.7
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/column@0.1.1
+- @gradio/tabs@0.2.7
+- @gradio/utils@0.4.0
+
+## 0.2.6
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/tabs@0.2.6
+
+## 0.2.5
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/tabs@0.2.5
+
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [[`ba3ec13`](https://github.com/gradio-app/gradio/commit/ba3ec1300e81e64be7389d759b89284c66473158)]:
+  - @gradio/tabs@0.2.4
+
 ## 0.2.3
 
 ### Patch Changes

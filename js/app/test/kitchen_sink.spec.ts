@@ -1,8 +1,6 @@
 import { test, expect } from "@gradio/tootils";
-import { chromium } from "playwright";
 
-test("test inputs", async ({ page }) => {
-	const browser = await chromium.launch();
+test("test inputs", async ({ page, browser }) => {
 	const context = await browser.newContext({
 		permissions: ["camera"]
 	});
@@ -24,20 +22,13 @@ test("test inputs", async ({ page }) => {
 	await expect(number).toHaveValue("10");
 
 	// Image Input
-	const image = await page.locator("input").nth(10);
+	const image = page.getByTestId("image").nth(0).locator("input");
+	console.log(image);
 	await image.setInputFiles("./test/files/cheetah1.jpg");
 
 	const uploaded_image = await page.locator("img").nth(0);
 	const image_data = await uploaded_image.getAttribute("src");
 	await expect(image_data).toBeTruthy();
-
-	// Image Input w/ Cropper
-	const image_cropper = await page.locator("input").nth(10);
-	await image_cropper.setInputFiles("./test/files/cheetah1.jpg");
-
-	const uploaded_image_cropper = await page.locator("img").nth(0);
-	const image_data_cropper = await uploaded_image_cropper.getAttribute("src");
-	await expect(image_data_cropper).toBeTruthy();
 
 	// Image Input w/ Webcam
 	await page.getByRole("button", { name: "Click to Access Webcam" }).click();

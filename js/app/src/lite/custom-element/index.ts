@@ -1,4 +1,11 @@
-import { create, type Options } from "..";
+// NOTE: We should only import the types from ".." to avoid the circular dependency of implementations,
+// which causes repeated executions of the ".." module in †he dev mode and can lead to multiple instances of the dev app.
+import type {
+	create as createLiteAppFunc,
+	Options,
+	GradioAppController
+} from "..";
+import { clean_indent } from "./indent";
 
 interface GradioComponentOptions {
 	info: Options["info"];
@@ -28,7 +35,9 @@ function parseRequirementsTxt(content: string): string[] {
 		.filter((r) => r !== "");
 }
 
-export function bootstrap_custom_element(): void {
+export function bootstrap_custom_element(
+	create: typeof createLiteAppFunc
+): void {
 	const CUSTOM_ELEMENT_NAME = "gradio-lite";
 
 	if (customElements.get(CUSTOM_ELEMENT_NAME)) {
@@ -36,22 +45,33 @@ export function bootstrap_custom_element(): void {
 	}
 
 	class GradioLiteAppElement extends HTMLElement {
-		constructor() {
-			super();
+		controller: GradioAppController | null = null;
 
-			const gradioComponentOptions = this.parseGradioComponentOptions();
-			const gradioLiteAppOptions = this.parseGradioLiteAppOptions();
+		connectedCallback(): void {
+			// At the time of connectedCallback, the child elements of the custom element are not yet parsed,
+			// so we need to defer the initialization to the next frame.
+			// Ref: https://stackoverflow.com/q/70949141/13103190
+			window.requestAnimationFrame(() => {
+				const gradioComponentOptions = this.parseGradioComponentOptions();
+				const gradioLiteAppOptions = this.parseGradioLiteAppOptions();
 
-			this.innerHTML = "";
+				this.innerHTML = "";
 
-			create({
-				target: this, // Same as `js/app/src/main.ts`
-				code: gradioLiteAppOptions.code,
-				requirements: gradioLiteAppOptions.requirements,
-				files: gradioLiteAppOptions.files,
-				entrypoint: gradioLiteAppOptions.entrypoint,
-				...gradioComponentOptions
+				this.controller = create({
+					target: this, // Same as `js/app/src/main.ts`
+					code: gradioLiteAppOptions.code,
+					requirements: gradioLiteAppOptions.requirements,
+					files: gradioLiteAppOptions.files,
+					entrypoint: gradioLiteAppOptions.entrypoint,
+					playground: this.hasAttribute("playground"),
+					layout: this.getAttribute("layout"),
+					...gradioComponentOptions
+				});
 			});
+		}
+
+		disconnectedCallback(): void {
+			this.controller?.unmount();
 		}
 
 		parseGradioComponentOptions(): GradioComponentOptions {
@@ -96,11 +116,6 @@ export function bootstrap_custom_element(): void {
 		}
 
 		parseGradioLiteAppOptions(): GradioLiteAppOptions {
-			// When gradioLiteAppElement only contains text content, it is treated as the Python code.
-			if (this.childElementCount === 0) {
-				return { code: this.textContent ?? "" };
-			}
-
 			// When it contains child elements, parse them as options. Available child elements are:
 			// * <gradio-file />
 			//   Represents a file to be mounted in the virtual file system of the Wasm worker.
@@ -126,7 +141,12 @@ export function bootstrap_custom_element(): void {
 				if (url != null) {
 					options.files[name] = { url };
 				} else {
-					options.files[name] = { data: fileElement.textContent ?? "" };
+					let data = fileElement.textContent ?? "";
+					if (name.endsWith(".py")) {
+						// Dedent the Python code.
+						data = clean_indent(data);
+					}
+					options.files[name] = { data };
 				}
 
 				if (entrypoint) {
@@ -137,14 +157,31 @@ export function bootstrap_custom_element(): void {
 				}
 			}
 
-			const codeElements = this.getElementsByTagName("gradio-code");
-			if (codeElements.length > 1) {
-				console.warn(
-					"Multiple <gradio-code> elements are found. Only the first one will be used."
-				);
+			if (options.entrypoint == null) {
+				// If no entrypoint file is specified,
+				// try to find the source code to be passed to the .code option instead.
+
+				const codeElements = this.getElementsByTagName("gradio-code");
+				if (codeElements.length === 0) {
+					// If there is no <gradio-code> element, try to parse the content of the custom element as code.
+					let code = "";
+					this.childNodes.forEach((node) => {
+						if (node.nodeType === Node.TEXT_NODE) {
+							code += node.textContent;
+						}
+					});
+					options.code = code || undefined;
+				} else {
+					if (codeElements.length > 1) {
+						console.warn(
+							"Multiple <gradio-code> elements are found. Only the first one will be used."
+						);
+					}
+					const firstCodeElement = codeElements[0];
+					options.code = firstCodeElement?.textContent ?? undefined;
+				}
+				options.code = options.code && clean_indent(options.code);
 			}
-			const firstCodeElement = codeElements[0];
-			options.code = firstCodeElement?.textContent ?? undefined;
 
 			const requirementsElements = this.getElementsByTagName(
 				"gradio-requirements"
@@ -157,7 +194,6 @@ export function bootstrap_custom_element(): void {
 			const firstRequirementsElement = requirementsElements[0];
 			const requirementsTxt = firstRequirementsElement?.textContent ?? "";
 			options.requirements = parseRequirementsTxt(requirementsTxt);
-
 			return options;
 		}
 	}

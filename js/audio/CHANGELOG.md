@@ -1,10 +1,323 @@
 # @gradio/audio
 
+## 0.13.0
+
+### Features
+
+- [#8806](https://github.com/gradio-app/gradio/pull/8806) [`a3d23b4`](https://github.com/gradio-app/gradio/commit/a3d23b43e71c22bc2b019ae96668605e744768d5) - Add `loop` parameters to `gr.Audio` and `gr.Video`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#8836](https://github.com/gradio-app/gradio/pull/8836) [`7e8c829`](https://github.com/gradio-app/gradio/commit/7e8c829aad85d3d5a31a03f4f2e41483d1e6b53e) - Add `.input()` events to `gr.Audio` and `gr.Image`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/wasm@0.12.0
+- @gradio/client@1.4.0
+- @gradio/statustracker@0.7.2
+- @gradio/upload@0.12.0
+- @gradio/atoms@0.7.7
+- @gradio/button@0.2.47
+
+## 0.12.2
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/client@1.3.0
+- @gradio/upload@0.11.5
+- @gradio/button@0.2.46
+- @gradio/icons@0.6.0
+
+## 0.12.1
+
+### Dependency updates
+
+- @gradio/upload@0.11.4
+- @gradio/client@1.2.1
+- @gradio/button@0.2.45
+
+## 0.12.0
+
+### Features
+
+- [#8131](https://github.com/gradio-app/gradio/pull/8131) [`bb504b4`](https://github.com/gradio-app/gradio/commit/bb504b494947a287d6386e0e7ead3860c0f15223) - Gradio components in `gr.Chatbot()`.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#8594](https://github.com/gradio-app/gradio/pull/8594) [`530f8a0`](https://github.com/gradio-app/gradio/commit/530f8a0b056b35dabe9bdd148e1ab7c4577f017d) - chatbot component tweaks.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/icons@0.5.0
+- @gradio/wasm@0.11.0
+- @gradio/client@1.2.0
+- @gradio/statustracker@0.7.0
+- @gradio/button@0.2.44
+- @gradio/upload@0.11.3
+
+## 0.11.10
+
+### Dependency updates
+
+- @gradio/client@1.1.1
+- @gradio/upload@0.11.2
+- @gradio/button@0.2.43
+
+## 0.11.9
+
+### Dependency updates
+
+- @gradio/upload@0.11.1
+- @gradio/client@1.1.0
+- @gradio/button@0.2.42
+
+## 0.11.8
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+- @gradio/client@1.0.0
+- @gradio/upload@0.11.0
+- @gradio/button@0.2.41
+
+## 0.11.7
+
+### Dependency updates
+
+- @gradio/upload@0.10.7
+- @gradio/client@0.20.1
+- @gradio/button@0.2.40
+
+## 0.11.6
+
+### Dependency updates
+
+- @gradio/client@0.20.0
+- @gradio/statustracker@0.6.0
+- @gradio/button@0.2.39
+- @gradio/upload@0.10.6
+
+## 0.11.5
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/statustracker@0.5.5
+- @gradio/upload@0.10.5
+- @gradio/client@0.19.4
+- @gradio/button@0.2.38
+
+## 0.11.4
+
+### Dependency updates
+
+- @gradio/client@0.19.3
+- @gradio/statustracker@0.5.4
+- @gradio/button@0.2.37
+- @gradio/upload@0.10.4
+
+## 0.11.3
+
+### Dependency updates
+
+- @gradio/upload@0.10.3
+- @gradio/client@0.19.2
+- @gradio/button@0.2.36
+
+## 0.11.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.3
+- @gradio/client@0.19.1
+- @gradio/button@0.2.35
+- @gradio/upload@0.10.2
+
+## 0.11.1
+
+### Fixes
+
+- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+- @gradio/client@0.19.0
+- @gradio/icons@0.4.1
+- @gradio/upload@0.10.1
+- @gradio/button@0.2.34
+
+## 0.11.0
+
+### Features
+
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`.  Thanks @hannahblair!
+
+### Fixes
+
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/client@0.18.0
+- @gradio/upload@0.10.0
+- @gradio/utils@0.4.1
+- @gradio/wasm@0.10.1
+- @gradio/statustracker@0.5.1
+- @gradio/button@0.2.33
+
+## 0.10.0
+
+### Highlights
+
+#### Setting File Upload Limits ([#7909](https://github.com/gradio-app/gradio/pull/7909) [`2afca65`](https://github.com/gradio-app/gradio/commit/2afca6541912b37dc84f447c7ad4af21607d7c72))
+
+We have added a `max_file_size` size parameter to `launch()` that limits to size of files uploaded to the server. This limit applies to each individual file. This parameter can be specified as a string or an integer (corresponding to the size in bytes).
+
+The following code snippet sets a max file size of 5 megabytes.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
+
+![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
+
+
+#### Error states can now be cleared
+
+When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
+
+![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
+
+ Thanks @freddyaboulton!
+
+### Features
+
+- [#8065](https://github.com/gradio-app/gradio/pull/8065) [`5bf61cb`](https://github.com/gradio-app/gradio/commit/5bf61cb15b7a1f8af12c87ae710df07099b5e460) - Hide the scroll bar in WaveformControls when it's not necessary.  Thanks @whitphx!
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/client@0.17.0
+- @gradio/button@0.2.32
+- @gradio/statustracker@0.5.0
+- @gradio/upload@0.9.0
+- @gradio/utils@0.4.0
+
+## 0.9.12
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+- @gradio/client@0.16.0
+- @gradio/upload@0.8.5
+- @gradio/atoms@0.7.0
+- @gradio/icons@0.4.0
+- @gradio/button@0.2.31
+
+## 0.9.11
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+- @gradio/upload@0.8.4
+- @gradio/client@0.15.1
+- @gradio/button@0.2.30
+
+## 0.9.10
+
+### Dependency updates
+
+- @gradio/button@0.2.29
+- @gradio/upload@0.8.3
+- @gradio/client@0.15.0
+
+## 0.9.9
+
+### Dependency updates
+
+- @gradio/button@0.2.28
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+
+## 0.9.8
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/button@0.2.27
+- @gradio/statustracker@0.4.9
+- @gradio/wasm@0.10.0
+- @gradio/atoms@0.6.0
+
+## 0.9.7
+
+### Dependency updates
+
+- @gradio/client@0.14.0
+- @gradio/upload@0.8.0
+- @gradio/wasm@0.9.0
+- @gradio/button@0.2.26
+
+## 0.9.6
+
+### Dependency updates
+
+- @gradio/button@0.2.25
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+- @gradio/wasm@0.8.0
+
+## 0.9.5
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+  - @gradio/button@0.2.24
+
+## 0.9.4
+
+### Fixes
+
+- [#7599](https://github.com/gradio-app/gradio/pull/7599) [`f26aba0`](https://github.com/gradio-app/gradio/commit/f26aba00a71a5b4eff60c37580c8d25f9bc048da) - Prevent audio speeding up when trimming. Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 0.9.3
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89)]:
+  - @gradio/statustracker@0.4.8
+
 ## 0.9.2
 
 ### Fixes
 
-- [#6991](https://github.com/gradio-app/gradio/pull/6991) [`f191786`](https://github.com/gradio-app/gradio/commit/f1917867916647d383b8d7ce15e0c17f2abbdec1) - Improve responsiveness of `gr.Audio()` controls.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6991](https://github.com/gradio-app/gradio/pull/6991) [`f191786`](https://github.com/gradio-app/gradio/commit/f1917867916647d383b8d7ce15e0c17f2abbdec1) - Improve responsiveness of `gr.Audio()` controls. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.9.1
 

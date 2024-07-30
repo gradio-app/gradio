@@ -123,7 +123,7 @@
 
 	function set_input_text(): void {
 		set_choice_names_values();
-		if (value === undefined) {
+		if (value === undefined || (Array.isArray(value) && value.length === 0)) {
 			input_text = "";
 			selected_index = null;
 		} else if (choices_values.includes(value as string)) {
@@ -250,9 +250,13 @@
 
 <style>
 	.icon-wrap {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		right: var(--size-5);
 		color: var(--body-text-color);
-		margin-right: var(--size-2);
 		width: var(--size-5);
+		pointer-events: none;
 	}
 	.container {
 		height: 100%;

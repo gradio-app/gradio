@@ -1,5 +1,76 @@
 # @gradio/preview
 
+## 0.10.1
+
+### Fixes
+
+- [#8761](https://github.com/gradio-app/gradio/pull/8761) [`078663a`](https://github.com/gradio-app/gradio/commit/078663a3a4f9c19e86e415295e82be7103260f97) - Fix issue with virtual module in custom components.  Thanks @pngwn!
+
+## 0.10.0
+
+### Features
+
+- [#8520](https://github.com/gradio-app/gradio/pull/8520) [`595ecf3`](https://github.com/gradio-app/gradio/commit/595ecf35da6cd5f9aa7d9135282d005b63fbdef1) - Add build target option to the custom component `gradio.config.js` file.  Thanks @pngwn!
+
+### Fixes
+
+- [#8531](https://github.com/gradio-app/gradio/pull/8531) [`88de38e`](https://github.com/gradio-app/gradio/commit/88de38e2597bc39532be77b917f1f02b1a11647d) - Fix custom components on windows.  Thanks @freddyaboulton!
+
+## 0.9.1
+
+### Fixes
+
+- [#8439](https://github.com/gradio-app/gradio/pull/8439) [`63d36fb`](https://github.com/gradio-app/gradio/commit/63d36fbbf4bf6dc909be9a0ffc7b6bf6621d83e8) - Handle gradio apps using `state` in the JS Client.  Thanks @hannahblair!
+
+## 0.9.0
+
+### Features
+
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+
+## 0.8.3
+
+### Fixes
+
+- [#8144](https://github.com/gradio-app/gradio/pull/8144) [`7ba2780`](https://github.com/gradio-app/gradio/commit/7ba2780dc096a21f790695bf9368d2b39a79e2fa) - fix missing dependencies for `@gradio/preview`.  Thanks @pngwn!
+
+## 0.8.2
+
+### Fixes
+
+- [#8142](https://github.com/gradio-app/gradio/pull/8142) [`44eb8ac`](https://github.com/gradio-app/gradio/commit/44eb8ac6c315ffe4f0e3f544b0664c93813b6f68) - ensure @gradio/preview dist files are published.  Thanks @pngwn!
+
+## 0.8.1
+
+### Fixes
+
+- [#8140](https://github.com/gradio-app/gradio/pull/8140) [`0d41b22`](https://github.com/gradio-app/gradio/commit/0d41b221dc69eb543396504a276b84a485c98901) - fix publish build.  Thanks @pngwn!
+
+## 0.8.0
+
+### Features
+
+- [#6787](https://github.com/gradio-app/gradio/pull/6787) [`15a7106`](https://github.com/gradio-app/gradio/commit/15a7106a36874310f5ace9cf6e32744069ca1cce) - allow custom component authors to provide custom vite plugins and svelte preprocessors.  Thanks @pngwn!
+- [#8040](https://github.com/gradio-app/gradio/pull/8040) [`32cfa61`](https://github.com/gradio-app/gradio/commit/32cfa614d641b2358ea5d679b30497d1dfbee533) - Remove auto-created files from `gradio cc publish` and other tweaks.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+## 0.7.2
+
+### Fixes
+
+- [#7638](https://github.com/gradio-app/gradio/pull/7638) [`b3b0ea3`](https://github.com/gradio-app/gradio/commit/b3b0ea3e111ef8a3cdd82ecc310a4accc6af6120) - Add --python-path, --pip-path, --gradio-path CLI arguments to let custom component developers control which executable is used.  Thanks @freddyaboulton!
+
+## 0.7.1
+
+### Features
+
+- [#7340](https://github.com/gradio-app/gradio/pull/7340) [`4b0d589`](https://github.com/gradio-app/gradio/commit/4b0d58933057432758a54169a360eb352903d6b4) - chore(deps): update all non-major dependencies.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#7604](https://github.com/gradio-app/gradio/pull/7604) [`0eea27a`](https://github.com/gradio-app/gradio/commit/0eea27a984d5f230a0186f418ddc20992d49888f) - chore(deps): update dependency stylus to ^0.63.0.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#7594](https://github.com/gradio-app/gradio/pull/7594) [`3940490`](https://github.com/gradio-app/gradio/commit/3940490fc018d8e5b28a16bc7e0fd95f7e440e72) - chore(deps): update dependency svelte-hmr to ^0.16.0.  Thanks [@renovate](https://github.com/apps/renovate)!
+
 ## 0.7.0
 
 ### Features

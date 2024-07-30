@@ -12,6 +12,7 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import ImageUploader from "./shared/ImageUploader.svelte";
+	import { afterUpdate } from "svelte";
 
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
@@ -21,6 +22,7 @@
 
 	type sources = "upload" | "webcam" | "clipboard" | null;
 
+	export let value_is_output = false;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -51,6 +53,7 @@
 	export let mirror_webcam: boolean;
 
 	export let gradio: Gradio<{
+		input: never;
 		change: never;
 		error: string;
 		edit: never;
@@ -60,14 +63,21 @@
 		clear: never;
 		select: SelectData;
 		share: ShareData;
+		clear_status: LoadingStatus;
 	}>;
 
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
 			gradio.dispatch("change");
+			if (!value_is_output) {
+				gradio.dispatch("input");
+			}
 		}
 	}
+	afterUpdate(() => {
+		value_is_output = false;
+	});
 
 	let dragging: boolean;
 	let active_source: sources = null;
@@ -125,6 +135,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<ImageUploader
@@ -152,7 +163,10 @@
 			{pending}
 			{streaming}
 			{mirror_webcam}
+			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
+			upload={gradio.client.upload}
+			stream_handler={gradio.client.stream}
 		>
 			{#if active_source === "upload" || !active_source}
 				<UploadText i18n={gradio.i18n} type="image" />

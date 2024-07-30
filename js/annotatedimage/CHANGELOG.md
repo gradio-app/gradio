@@ -1,5 +1,239 @@
 # @gradio/annotatedimage
 
+## 0.6.14
+
+### Dependency updates
+
+- @gradio/wasm@0.12.0
+- @gradio/client@1.4.0
+- @gradio/statustracker@0.7.2
+- @gradio/upload@0.12.0
+- @gradio/atoms@0.7.7
+
+## 0.6.13
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/client@1.3.0
+- @gradio/upload@0.11.5
+- @gradio/icons@0.6.0
+
+## 0.6.12
+
+### Dependency updates
+
+- @gradio/upload@0.11.4
+- @gradio/client@1.2.1
+
+## 0.6.11
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/icons@0.5.0
+- @gradio/wasm@0.11.0
+- @gradio/client@1.2.0
+- @gradio/statustracker@0.7.0
+- @gradio/upload@0.11.3
+
+## 0.6.10
+
+### Dependency updates
+
+- @gradio/client@1.1.1
+- @gradio/upload@0.11.2
+
+## 0.6.9
+
+### Dependency updates
+
+- @gradio/upload@0.11.1
+- @gradio/client@1.1.0
+
+## 0.6.8
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+- @gradio/client@1.0.0
+- @gradio/upload@0.11.0
+
+## 0.6.7
+
+### Dependency updates
+
+- @gradio/upload@0.10.7
+- @gradio/client@0.20.1
+
+## 0.6.6
+
+### Dependency updates
+
+- @gradio/client@0.20.0
+- @gradio/statustracker@0.6.0
+- @gradio/upload@0.10.6
+
+## 0.6.5
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/statustracker@0.5.5
+- @gradio/upload@0.10.5
+- @gradio/client@0.19.4
+
+## 0.6.4
+
+### Dependency updates
+
+- @gradio/client@0.19.3
+- @gradio/statustracker@0.5.4
+- @gradio/upload@0.10.4
+
+## 0.6.3
+
+### Dependency updates
+
+- @gradio/upload@0.10.3
+- @gradio/client@0.19.2
+
+## 0.6.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.3
+- @gradio/client@0.19.1
+- @gradio/upload@0.10.2
+
+## 0.6.1
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+- @gradio/client@0.19.0
+- @gradio/icons@0.4.1
+- @gradio/upload@0.10.1
+
+## 0.6.0
+
+### Features
+
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/client@0.18.0
+- @gradio/upload@0.10.0
+- @gradio/utils@0.4.1
+- @gradio/wasm@0.10.1
+- @gradio/statustracker@0.5.1
+
+## 0.5.13
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/client@0.17.0
+- @gradio/statustracker@0.5.0
+- @gradio/upload@0.9.0
+- @gradio/utils@0.4.0
+
+## 0.5.12
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+- @gradio/client@0.16.0
+- @gradio/upload@0.8.5
+- @gradio/atoms@0.7.0
+- @gradio/icons@0.4.0
+
+## 0.5.11
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+- @gradio/upload@0.8.4
+- @gradio/client@0.15.1
+
+## 0.5.10
+
+### Dependency updates
+
+- @gradio/upload@0.8.3
+- @gradio/client@0.15.0
+
+## 0.5.9
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+
+## 0.5.8
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/statustracker@0.4.9
+- @gradio/wasm@0.10.0
+- @gradio/atoms@0.6.0
+
+## 0.5.7
+
+### Dependency updates
+
+- @gradio/client@0.14.0
+- @gradio/upload@0.8.0
+- @gradio/wasm@0.9.0
+
+## 0.5.6
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+- @gradio/wasm@0.8.0
+
+## 0.5.5
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies [[`26356a6`](https://github.com/gradio-app/gradio/commit/26356a623c4196f48ca236d973a597831743cdb8), [`9c6de6d`](https://github.com/gradio-app/gradio/commit/9c6de6d85092c1c9378d7f81e5ec734221536812), [`eda33b3`](https://github.com/gradio-app/gradio/commit/eda33b3763897a542acf298e523fa493dc655aee), [`4b0d589`](https://github.com/gradio-app/gradio/commit/4b0d58933057432758a54169a360eb352903d6b4), [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f)]:
+  - @gradio/upload@0.7.5
+  - @gradio/wasm@0.7.0
+  - @gradio/client@0.12.2
+
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89)]:
+  - @gradio/statustracker@0.4.8
+
 ## 0.5.2
 
 ### Patch Changes

@@ -3,8 +3,8 @@
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 	import Video from "./Video.svelte";
 	import VideoControls from "./VideoControls.svelte";
-	import type { FileData } from "@gradio/client";
-	import { prepare_files, upload } from "@gradio/client";
+	import type { FileData, Client } from "@gradio/client";
+	import { prepare_files } from "@gradio/client";
 	import { format_time } from "@gradio/utils";
 
 	export let root = "";
@@ -12,10 +12,12 @@
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
 	export let autoplay: boolean;
+	export let loop: boolean;
 	export let label = "test";
 	export let interactive = false;
 	export let handle_change: (video: FileData) => void = () => {};
 	export let handle_reset_value: () => void = () => {};
+	export let upload: Client["upload"];
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
@@ -95,6 +97,7 @@
 			{src}
 			preload="auto"
 			{autoplay}
+			{loop}
 			on:click={play_pause}
 			on:play
 			on:pause
@@ -105,6 +108,7 @@
 			bind:node={video}
 			data-testid={`${label}-player`}
 			{processingVideo}
+			on:load
 		>
 			<track kind="captions" src={subtitle} default />
 		</Video>

@@ -1,5 +1,87 @@
 # @gradio/form
 
+## 0.1.21
+
+### Dependency updates
+
+- @gradio/atoms@0.7.7
+
+## 0.1.20
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/icons@0.6.0
+
+## 0.1.19
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/icons@0.5.0
+
+## 0.1.18
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+
+## 0.1.17
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/icons@0.4.1
+
+## 0.1.16
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/utils@0.4.1
+
+## 0.1.15
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/utils@0.4.0
+
+## 0.1.14
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/atoms@0.7.0
+- @gradio/icons@0.4.0
+
+## 0.1.13
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+
+## 0.1.12
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/icons@0.3.4
+
+## 0.1.11
+
+### Dependency updates
+
+- @gradio/atoms@0.6.0
+
 ## 0.1.10
 
 ### Patch Changes

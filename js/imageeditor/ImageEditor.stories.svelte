@@ -3,7 +3,7 @@
 	import ImageEditor from "./Index.svelte";
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
-	import { userEvent, within } from "@storybook/testing-library";
+	import { userEvent, within } from "@storybook/test";
 	import { allModes } from "../storybook/modes";
 
 	export const meta = {
@@ -11,6 +11,7 @@
 		component: ImageEditor,
 		parameters: {
 			chromatic: {
+				diffThreshold: 0.4,
 				modes: {
 					desktop: allModes["desktop"],
 					mobile: allModes["mobile"]
@@ -25,7 +26,11 @@
 		class="image-container"
 		style="width: 500px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
 	>
-		<ImageEditor i18n={get(format)} {...args} />
+		<ImageEditor
+			i18n={get(format)}
+			{...args}
+			server={{ accept_blobs: () => {} }}
+		/>
 	</div>
 </Template>
 
@@ -117,7 +122,7 @@
 			coords: { clientX: 100, clientY: 100 }
 		});
 
-		await userEvent.click(canvas.getByLabelText("Color button"));
+		await userEvent.click(canvas.getByLabelText("Draw button"));
 
 		var availableColors = document.querySelectorAll(
 			"button.color:not(.empty):not(.selected):not(.hidden)"

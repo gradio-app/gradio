@@ -30,8 +30,6 @@ describe("Gallery", () => {
 			label: "Gallery",
 			loading_status: loading_status,
 			preview: true,
-			root: "",
-			proxy_url: "",
 			value: [
 				{
 					image: {
@@ -55,8 +53,6 @@ describe("Gallery", () => {
 			label: "Gallery",
 			loading_status: loading_status,
 			preview: true,
-			root: "",
-			proxy_url: "",
 			value: [
 				{
 					image: {

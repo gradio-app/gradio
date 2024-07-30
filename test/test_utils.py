@@ -7,21 +7,26 @@ import warnings
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import numpy as np
 import pytest
 from typing_extensions import Literal
 
 from gradio import EventData, Request
 from gradio.external_utils import format_ner_list
 from gradio.utils import (
+    FileSize,
+    UnhashableKeyDict,
+    _parse_file_size,
     abspath,
     append_unique_suffix,
     assert_configs_are_equivalent_besides_ids,
     check_function_inputs_match,
     colab_check,
     delete_none,
+    diff,
     download_if_url,
-    get_continuous_fn,
     get_extension_from_file_path_or_url,
+    get_function_params,
     get_type_hints,
     ipython_check,
     is_in_or_equal,
@@ -340,71 +345,6 @@ class TestCheckFunctionInputsMatch:
                 check_function_inputs_match(x, [None], False)
 
 
-class TestGetContinuousFn:
-    @pytest.mark.asyncio
-    async def test_get_continuous_fn(self):
-        def int_return(x):  # for origin condition
-            return x + 1
-
-        def int_yield(x):  # new condition
-            for _i in range(2):
-                yield x
-                x += 1
-
-        def list_yield(x):  # new condition
-            for _i in range(2):
-                yield x
-                x += [1]
-
-        agen_int_return = get_continuous_fn(fn=int_return, every=0.01)
-        agen_int_yield = get_continuous_fn(fn=int_yield, every=0.01)
-        agen_list_yield = get_continuous_fn(fn=list_yield, every=0.01)
-        agener_int_return = agen_int_return(1)
-        agener_int = agen_int_yield(1)  # Primitive
-        agener_list = agen_list_yield([1])  # Reference
-        assert await agener_int_return.__anext__() == 2
-        assert await agener_int_return.__anext__() == 2
-        assert await agener_int.__anext__() == 1
-        assert await agener_int.__anext__() == 2
-        assert await agener_int.__anext__() == 1
-        assert [1] == await agener_list.__anext__()
-        assert [1, 1] == await agener_list.__anext__()
-        assert [1, 1, 1] == await agener_list.__anext__()
-
-    @pytest.mark.asyncio
-    async def test_get_continuous_fn_with_async_function(self):
-        async def async_int_return(x):  # for origin condition
-            return x + 1
-
-        agen_int_return = get_continuous_fn(fn=async_int_return, every=0.01)
-        agener_int_return = agen_int_return(1)
-        assert await agener_int_return.__anext__() == 2
-        assert await agener_int_return.__anext__() == 2
-
-    @pytest.mark.asyncio
-    async def test_get_continuous_fn_with_async_generator(self):
-        async def async_int_yield(x):  # new condition
-            for _i in range(2):
-                yield x
-                x += 1
-
-        async def async_list_yield(x):  # new condition
-            for _i in range(2):
-                yield x
-                x += [1]
-
-        agen_int_yield = get_continuous_fn(fn=async_int_yield, every=0.01)
-        agen_list_yield = get_continuous_fn(fn=async_list_yield, every=0.01)
-        agener_int = agen_int_yield(1)  # Primitive
-        agener_list = agen_list_yield([1])  # Reference
-        assert await agener_int.__anext__() == 1
-        assert await agener_int.__anext__() == 2
-        assert await agener_int.__anext__() == 1
-        assert [1] == await agener_list.__anext__()
-        assert [1, 1] == await agener_list.__anext__()
-        assert [1, 1, 1] == await agener_list.__anext__()
-
-
 def test_tex2svg_preserves_matplotlib_backend():
     import matplotlib
 
@@ -421,6 +361,7 @@ def test_tex2svg_preserves_matplotlib_backend():
 def test_is_in_or_equal():
     assert is_in_or_equal("files/lion.jpg", "files/lion.jpg")
     assert is_in_or_equal("files/lion.jpg", "files")
+    assert is_in_or_equal("files/lion.._M.jpg", "files")
     assert not is_in_or_equal("files", "files/lion.jpg")
     assert is_in_or_equal("/home/usr/notes.txt", "/home/usr/")
     assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
@@ -439,3 +380,158 @@ def test_is_in_or_equal():
 )
 def test_get_extension_from_file_path_or_url(path_or_url, extension):
     assert get_extension_from_file_path_or_url(path_or_url) == extension
+
+
+@pytest.mark.parametrize(
+    "old, new, expected_diff",
+    [
+        ({"a": 1, "b": 2}, {"a": 1, "b": 2}, []),
+        ({}, {"a": 1, "b": 2}, [("add", ["a"], 1), ("add", ["b"], 2)]),
+        (["a", "b"], {"a": 1, "b": 2}, [("replace", [], {"a": 1, "b": 2})]),
+        ("abc", "abcdef", [("append", [], "def")]),
+    ],
+)
+def test_diff(old, new, expected_diff):
+    assert diff(old, new) == expected_diff
+
+
+class TestFunctionParams:
+    def test_regular_function(self):
+        def func(a, b=10, c="default", d=None):
+            pass
+
+        assert get_function_params(func) == [
+            ("a", False, None),
+            ("b", True, 10),
+            ("c", True, "default"),
+            ("d", True, None),
+        ]
+
+    def test_function_no_params(self):
+        def func():
+            pass
+
+        assert get_function_params(func) == []
+
+    def test_lambda_function(self):
+        assert get_function_params(lambda x, y: x + y) == [
+            ("x", False, None),
+            ("y", False, None),
+        ]
+
+    def test_function_with_args(self):
+        def func(a, *args):
+            pass
+
+        assert get_function_params(func) == [("a", False, None)]
+
+    def test_function_with_kwargs(self):
+        def func(a, **kwargs):
+            pass
+
+        assert get_function_params(func) == [("a", False, None)]
+
+    def test_function_with_special_args(self):
+        def func(a, r: Request, b=10):
+            pass
+
+        assert get_function_params(func) == [("a", False, None), ("b", True, 10)]
+
+    def test_class_method_skip_first_param(self):
+        class MyClass:
+            def method(self, arg1, arg2=42):
+                pass
+
+        assert get_function_params(MyClass().method) == [
+            ("arg1", False, None),
+            ("arg2", True, 42),
+        ]
+
+    def test_static_method_no_skip(self):
+        class MyClass:
+            @staticmethod
+            def method(arg1, arg2=42):
+                pass
+
+        assert get_function_params(MyClass.method) == [
+            ("arg1", False, None),
+            ("arg2", True, 42),
+        ]
+
+    def test_class_method_with_args(self):
+        class MyClass:
+            def method(self, a, *args, b=42):
+                pass
+
+        assert get_function_params(MyClass().method) == [("a", False, None)]
+
+    def test_lambda_with_args(self):
+        assert get_function_params(lambda x, *args: x) == [("x", False, None)]
+
+    def test_lambda_with_kwargs(self):
+        assert get_function_params(lambda x, **kwargs: x) == [("x", False, None)]
+
+
+def test_parse_file_size():
+    assert _parse_file_size("1kb") == 1 * FileSize.KB
+    assert _parse_file_size("1mb") == 1 * FileSize.MB
+    assert _parse_file_size("505 Mb") == 505 * FileSize.MB
+
+
+class TestUnhashableKeyDict:
+    def test_set_get_simple(self):
+        d = UnhashableKeyDict()
+        d["a"] = 1
+        assert d["a"] == 1
+
+    def test_set_get_unhashable(self):
+        d = UnhashableKeyDict()
+        key = [1, 2, 3]
+        key2 = [1, 2, 3]
+        d[key] = "value"
+        assert d[key] == "value"
+        assert d[key2] == "value"
+
+    def test_set_get_numpy_array(self):
+        d = UnhashableKeyDict()
+        key = np.array([1, 2, 3])
+        key2 = np.array([1, 2, 3])
+        d[key] = "numpy value"
+        assert d[key2] == "numpy value"
+
+    def test_overwrite(self):
+        d = UnhashableKeyDict()
+        d["key"] = "old"
+        d["key"] = "new"
+        assert d["key"] == "new"
+
+    def test_delete(self):
+        d = UnhashableKeyDict()
+        d["key"] = "value"
+        del d["key"]
+        assert len(d) == 0
+        with pytest.raises(KeyError):
+            d["key"]
+
+    def test_delete_nonexistent(self):
+        d = UnhashableKeyDict()
+        with pytest.raises(KeyError):
+            del d["nonexistent"]
+
+    def test_len(self):
+        d = UnhashableKeyDict()
+        assert len(d) == 0
+        d["a"] = 1
+        d["b"] = 2
+        assert len(d) == 2
+
+    def test_contains(self):
+        d = UnhashableKeyDict()
+        d["key"] = "value"
+        assert "key" in d
+        assert "nonexistent" not in d
+
+    def test_get_nonexistent(self):
+        d = UnhashableKeyDict()
+        with pytest.raises(KeyError):
+            d["nonexistent"]

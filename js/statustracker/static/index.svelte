@@ -50,12 +50,18 @@
 	import Loader from "./Loader.svelte";
 	import type { LoadingStatus } from "./types";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
+
+	import { IconButton } from "@gradio/atoms";
+	import { Clear } from "@gradio/icons";
+
+	const dispatch = createEventDispatcher();
 
 	export let i18n: I18nFormatter;
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
-	export let status: "complete" | "pending" | "error" | "generating";
+	export let status: "complete" | "pending" | "error" | "generating" | null;
 	export let scroll_to_output = false;
 	export let timer = true;
 	export let show_progress: "full" | "minimal" | "hidden" = "full";
@@ -192,7 +198,7 @@
 		(status === "pending" || status === "error")) ||
 		translucent ||
 		show_progress === "minimal"}
-	class:generating={status === "generating"}
+	class:generating={status === "generating" && show_progress === "full"}
 	class:border
 	style:position={absolute ? "absolute" : "static"}
 	style:padding={absolute ? "0" : "var(--size-8) 0"}
@@ -269,8 +275,19 @@
 
 		{#if !timer}
 			<p class="loading">{loading_text}</p>
+			<slot name="additional-loading-text" />
 		{/if}
 	{:else if status === "error"}
+		<div class="clear-status">
+			<IconButton
+				Icon={Clear}
+				label={i18n("common.clear")}
+				disabled={false}
+				on:click={() => {
+					dispatch("clear_status");
+				}}
+			/>
+		</div>
 		<span class="error">{i18n("common.error")}</span>
 		<slot name="error" />
 	{/if}
@@ -282,14 +299,13 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		z-index: var(--layer-top);
+		z-index: var(--layer-2);
 		transition: opacity 0.1s ease-in-out;
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
-		pointer-events: none;
 	}
 
 	.wrap.center {
@@ -311,13 +327,26 @@
 	}
 
 	.generating {
-		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		animation:
+			pulseStart 1s cubic-bezier(0.4, 0, 0.6, 1),
+			pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 1s infinite;
 		border: 2px solid var(--color-accent);
 		background: transparent;
+		z-index: var(--layer-1);
+		pointer-events: none;
 	}
 
 	.translucent {
 		background: none;
+	}
+
+	@keyframes pulseStart {
+		0% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
 	}
 
 	@keyframes pulse {
@@ -414,11 +443,25 @@
 		font-family: var(--font);
 	}
 
+	.minimal {
+		pointer-events: none;
+	}
+
 	.minimal .progress-text {
 		background: var(--block-background-fill);
 	}
 
 	.border {
 		border: 1px solid var(--border-color-primary);
+	}
+
+	.clear-status {
+		position: absolute;
+		display: flex;
+		top: var(--size-2);
+		right: var(--size-2);
+		justify-content: flex-end;
+		gap: var(--spacing-sm);
+		z-index: var(--layer-1);
 	}
 </style>

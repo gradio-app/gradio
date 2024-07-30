@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import dataclasses
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 import httpx
 import numpy as np
+from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
@@ -17,14 +18,19 @@ from gradio.data_classes import FileData
 from gradio.events import Events
 from gradio.exceptions import Error
 
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
+
+@document()
 @dataclasses.dataclass
 class WaveformOptions:
     """
     A dataclass for specifying options for the waveform display in the Audio component. An instance of this class can be passed into the `waveform_options` parameter of `gr.Audio`.
     Parameters:
         waveform_color: The color (as a hex string or valid CSS color) of the full waveform representing the amplitude of the audio. Defaults to a light gray color.
-        waveform_progress_color: The color (as a hex string or valid CSS color) that the waveform fills with to as the audio plays. Defaults to an orange color.
+        waveform_progress_color: The color (as a hex string or valid CSS color) that the waveform fills with to as the audio plays. Defaults to the accent color.
+        trim_region_color: The color (as a hex string or valid CSS color) of the trim region. Defaults to the accent color.
         show_recording_waveform: Whether to show the waveform when recording audio. Defaults to True.
         show_controls: Whether to show the standard HTML audio player below the waveform when recording audio or playing recorded audio. Defaults to False.
         skip_length: The percentage (between 0 and 100) of the audio to skip when clicking on the skip forward / skip backward buttons. Defaults to 5.
@@ -33,6 +39,7 @@ class WaveformOptions:
 
     waveform_color: str | None = None
     waveform_progress_color: str | None = None
+    trim_region_color: str | None = None
     show_recording_waveform: bool = True
     show_controls: bool = False
     skip_length: int | float = 5
@@ -47,7 +54,7 @@ class Audio(
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
-    Demos: main_note, generate_tone, reverse_audio
+    Demos: generate_tone, reverse_audio
     Guides: real-time-speech-recognition
     """
 
@@ -63,6 +70,7 @@ class Audio(
         Events.pause_recording,
         Events.stop_recording,
         Events.upload,
+        Events.input,
     ]
 
     data_model = FileData
@@ -71,10 +79,13 @@ class Audio(
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        sources: list[Literal["upload", "microphone"]] | None = None,
+        sources: list[Literal["upload", "microphone"]]
+        | Literal["upload", "microphone"]
+        | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -85,6 +96,7 @@ class Audio(
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
         show_download_button: bool | None = None,
@@ -93,6 +105,7 @@ class Audio(
         min_length: int | None = None,
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
+        loop: bool = False,
     ):
         """
         Parameters:
@@ -100,7 +113,8 @@ class Audio(
             sources: A list of sources permitted for audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input. The first element in the list will be used as the default source. If None, defaults to ["upload", "microphone"], or ["microphone"] if `streaming` is True.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -111,6 +125,7 @@ class Audio(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear. By default, it will be True for output components and False for input components.
@@ -118,7 +133,8 @@ class Audio(
             editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
             min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
-            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int). Default is None, which uses the default values for these options.
+            waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
+            loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -149,6 +165,7 @@ class Audio(
             )
         self.format = format
         self.autoplay = autoplay
+        self.loop = loop
         self.show_download_button = show_download_button
         self.show_share_button = (
             (utils.get_space() is not None)
@@ -167,6 +184,7 @@ class Audio(
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -176,10 +194,16 @@ class Audio(
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             value=value,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return handle_file(
+            "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+        )
+
+    def example_value(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
     def preprocess(
@@ -287,10 +311,10 @@ class Audio(
                 # strip length information from first chunk header, remove headers entirely from subsequent chunks
                 if first_chunk:
                     binary_data = (
-                        binary_data[:4] + b"\xFF\xFF\xFF\xFF" + binary_data[8:]
+                        binary_data[:4] + b"\xff\xff\xff\xff" + binary_data[8:]
                     )
                     binary_data = (
-                        binary_data[:40] + b"\xFF\xFF\xFF\xFF" + binary_data[44:]
+                        binary_data[:40] + b"\xff\xff\xff\xff" + binary_data[44:]
                     )
                 else:
                     binary_data = binary_data[44:]

@@ -2,6 +2,7 @@
 .eggs/
 gradio.egg-info
 dist/
+dist-lite/
 *.pyc
 __pycache__/
 *.py[cod]
@@ -9,7 +10,10 @@ __pycache__/
 build/
 __tmp/*
 *.pyi
+!gradio/stubs/**/*.pyi
 py.typed
+.ipynb_checkpoints/
+.python-version
 
 # JS build
 gradio/templates/*
@@ -43,6 +47,9 @@ demo/all_demos/demos/*
 demo/all_demos/requirements.txt
 demo/*/config.json
 demo/annotatedimage_component/*.png
+demo/fake_diffusion_with_gif/*.gif
+demo/cancel_events/cancel_events_output_log.txt
+demo/unload_event_test/output_log.txt
 
 # Etc
 .idea/*
@@ -68,6 +75,7 @@ gradio/frpc_*
 node_modules
 public/build/
 test-results
+client/js/dist/*
 client/js/test.js
 .config/test.py
 

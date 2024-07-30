@@ -1,5 +1,188 @@
 # @gradio/button
 
+## 0.2.47
+
+### Dependency updates
+
+- @gradio/client@1.4.0
+- @gradio/upload@0.12.0
+
+## 0.2.46
+
+### Dependency updates
+
+- @gradio/utils@0.5.1
+- @gradio/client@1.3.0
+- @gradio/upload@0.11.5
+
+## 0.2.45
+
+### Dependency updates
+
+- @gradio/upload@0.11.4
+- @gradio/client@1.2.1
+
+## 0.2.44
+
+### Dependency updates
+
+- @gradio/utils@0.5.0
+- @gradio/client@1.2.0
+- @gradio/upload@0.11.3
+
+## 0.2.43
+
+### Dependency updates
+
+- @gradio/client@1.1.1
+- @gradio/upload@0.11.2
+
+## 0.2.42
+
+### Dependency updates
+
+- @gradio/upload@0.11.1
+- @gradio/client@1.1.0
+
+## 0.2.41
+
+### Dependency updates
+
+- @gradio/client@1.0.0
+- @gradio/upload@0.11.0
+
+## 0.2.40
+
+### Dependency updates
+
+- @gradio/upload@0.10.7
+- @gradio/client@0.20.1
+
+## 0.2.39
+
+### Dependency updates
+
+- @gradio/client@0.20.0
+- @gradio/upload@0.10.6
+
+## 0.2.38
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/upload@0.10.5
+- @gradio/client@0.19.4
+
+## 0.2.37
+
+### Dependency updates
+
+- @gradio/client@0.19.3
+- @gradio/upload@0.10.4
+
+## 0.2.36
+
+### Dependency updates
+
+- @gradio/upload@0.10.3
+- @gradio/client@0.19.2
+
+## 0.2.35
+
+### Dependency updates
+
+- @gradio/client@0.19.1
+- @gradio/upload@0.10.2
+
+## 0.2.34
+
+### Dependency updates
+
+- @gradio/client@0.19.0
+- @gradio/upload@0.10.1
+
+## 0.2.33
+
+### Dependency updates
+
+- @gradio/client@0.18.0
+- @gradio/upload@0.10.0
+- @gradio/utils@0.4.1
+
+## 0.2.32
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@0.17.0
+- @gradio/upload@0.9.0
+- @gradio/utils@0.4.0
+
+## 0.2.31
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/client@0.16.0
+- @gradio/upload@0.8.5
+
+## 0.2.30
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/upload@0.8.4
+- @gradio/client@0.15.1
+
+## 0.2.29
+
+### Dependency updates
+
+- @gradio/upload@0.8.3
+- @gradio/client@0.15.0
+
+## 0.2.28
+
+### Dependency updates
+
+- @gradio/upload@0.8.2
+
+## 0.2.27
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+
+## 0.2.26
+
+### Dependency updates
+
+- @gradio/client@0.14.0
+- @gradio/upload@0.8.0
+
+## 0.2.25
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+
+## 0.2.24
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+
+## 0.2.23
+
+### Features
+
+- [#7528](https://github.com/gradio-app/gradio/pull/7528) [`eda33b3`](https://github.com/gradio-app/gradio/commit/eda33b3763897a542acf298e523fa493dc655aee) - Refactors `get_fetchable_url_or_file()` to remove it from the frontend. Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.2.22
 
 ### Patch Changes

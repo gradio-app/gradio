@@ -4,18 +4,32 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 from urllib.parse import urlparse
 
 import numpy as np
 import PIL.Image
+from gradio_client import handle_file
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
-from gradio import processing_utils, utils
+from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 GalleryImageType = Union[np.ndarray, PIL.Image.Image, Path, str]
 CaptionedGalleryImageType = Tuple[GalleryImageType, str]
@@ -45,12 +59,16 @@ class Gallery(Component):
 
     def __init__(
         self,
-        value: list[np.ndarray | PIL.Image.Image | str | Path | tuple]
-        | Callable
-        | None = None,
+        value: (
+            Sequence[np.ndarray | PIL.Image.Image | str | Path | tuple]
+            | Callable
+            | None
+        ) = None,
         *,
+        format: str = "webp",
         label: str | None = None,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
@@ -59,14 +77,16 @@ class Gallery(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        columns: int | tuple | None = 2,
-        rows: int | tuple | None = None,
-        height: int | float | None = None,
+        key: int | str | None = None,
+        columns: int | list[int] | Tuple[int, ...] | None = 2,
+        rows: int | list[int] | None = None,
+        height: int | float | str | None = None,
         allow_preview: bool = True,
         preview: bool | None = None,
         selected_index: int | None = None,
-        object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
-        | None = None,
+        object_fit: (
+            Literal["contain", "cover", "fill", "none", "scale-down"] | None
+        ) = None,
         show_share_button: bool | None = None,
         show_download_button: bool | None = True,
         interactive: bool | None = None,
@@ -75,8 +95,10 @@ class Gallery(Component):
         """
         Parameters:
             value: List of images to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            format: Format to save images before they are returned to the frontend, such as 'jpeg' or 'png'. This parameter only applies to images that are returned from the prediction function as numpy arrays or PIL Images. The format should be supported by the PIL library.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
+            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
@@ -85,6 +107,7 @@ class Gallery(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             columns: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
             rows: Represents the number of rows in the image grid, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). If fewer than 6 are given then the last will be used for all subsequent breakpoints
             height: The height of the gallery component, specified in pixels if a number is passed, or in CSS units if a string is passed. If more images are displayed than can fit in the height, a scrollbar will appear.
@@ -97,6 +120,7 @@ class Gallery(Component):
             interactive: If True, the gallery will be interactive, allowing the user to upload images. If False, the gallery will be static. Default is True.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
         """
+        self.format = format
         self.columns = columns
         self.rows = rows
         self.height = height
@@ -119,6 +143,7 @@ class Gallery(Component):
         super().__init__(
             label=label,
             every=every,
+            inputs=inputs,
             show_label=show_label,
             container=container,
             scale=scale,
@@ -127,6 +152,7 @@ class Gallery(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             value=value,
             interactive=interactive,
         )
@@ -175,12 +201,12 @@ class Gallery(Component):
                 img, caption = img
             if isinstance(img, np.ndarray):
                 file = processing_utils.save_img_array_to_cache(
-                    img, cache_dir=self.GRADIO_CACHE
+                    img, cache_dir=self.GRADIO_CACHE, format=self.format
                 )
                 file_path = str(utils.abspath(file))
             elif isinstance(img, PIL.Image.Image):
                 file = processing_utils.save_pil_to_cache(
-                    img, cache_dir=self.GRADIO_CACHE
+                    img, cache_dir=self.GRADIO_CACHE, format=self.format
                 )
                 file_path = str(utils.abspath(file))
             elif isinstance(img, str):
@@ -201,9 +227,13 @@ class Gallery(Component):
                 caption=caption,
             )
 
-        with ThreadPoolExecutor() as executor:
-            for o in executor.map(_save, value):
-                output.append(o)
+        if wasm_utils.IS_WASM:
+            for img in value:
+                output.append(_save(img))
+        else:
+            with ThreadPoolExecutor() as executor:
+                for o in executor.map(_save, value):
+                    output.append(o)
         return GalleryData(root=output)
 
     @staticmethod
@@ -216,7 +246,16 @@ class Gallery(Component):
                 converted_image = np.array(converted_image)
             return converted_image
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return [
+            {
+                "image": handle_file(
+                    "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+                )
+            },
+        ]
+
+    def example_value(self) -> Any:
         return [
             "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
         ]

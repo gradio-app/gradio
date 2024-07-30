@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick, getContext } from "svelte";
 	import type { FileData } from "@gradio/client";
-	import { upload_files, upload, prepare_files } from "@gradio/client";
+	import { prepare_files, type Client } from "@gradio/client";
 	import { _ } from "svelte-i18n";
 	import UploadProgress from "./UploadProgress.svelte";
 
@@ -10,34 +10,63 @@
 	export let boundedheight = true;
 	export let center = true;
 	export let flex = true;
-	export let file_count = "single";
+	export let file_count: "single" | "multiple" | "directory" = "single";
 	export let disable_click = false;
 	export let root: string;
 	export let hidden = false;
 	export let format: "blob" | "file" = "file";
 	export let uploading = false;
+	export let hidden_upload: HTMLInputElement | null = null;
+	export let show_progress = true;
+	export let max_file_size: number | null = null;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream"];
 
 	let upload_id: string;
 	let file_data: FileData[];
 	let accept_file_types: string | null;
+	let use_post_upload_validation: boolean | null = null;
 
-	// Needed for wasm support
-	const upload_fn = getContext<typeof upload_files>("upload_files");
+	const get_ios = (): boolean => {
+		if (typeof navigator !== "undefined") {
+			const userAgent = navigator.userAgent.toLowerCase();
+			return userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1;
+		}
+		return false;
+	};
 
-	let hidden_upload: HTMLInputElement;
+	$: ios = get_ios();
 
 	const dispatch = createEventDispatcher();
-	$: if (filetype == null || typeof filetype === "string") {
-		accept_file_types = filetype;
+	const validFileTypes = ["image", "video", "audio", "text", "file"];
+	const process_file_type = (type: string): string => {
+		if (ios && type.startsWith(".")) {
+			use_post_upload_validation = true;
+			return type;
+		}
+		if (ios && type.includes("file/*")) {
+			return "*";
+		}
+		if (type.startsWith(".") || type.endsWith("/*")) {
+			return type;
+		}
+		if (validFileTypes.includes(type)) {
+			return type + "/*";
+		}
+		return "." + type;
+	};
+
+	$: if (filetype == null) {
+		accept_file_types = null;
+	} else if (typeof filetype === "string") {
+		accept_file_types = process_file_type(filetype);
+	} else if (ios && filetype.includes("file/*")) {
+		accept_file_types = "*";
 	} else {
-		filetype = filetype.map((x) => {
-			if (x.startsWith(".")) {
-				return x;
-			}
-			return x + "/*";
-		});
+		filetype = filetype.map(process_file_type);
 		accept_file_types = filetype.join(", ");
 	}
+
 	function updateDragging(): void {
 		dragging = !dragging;
 	}
@@ -62,8 +91,10 @@
 
 	export function open_file_upload(): void {
 		if (disable_click) return;
-		hidden_upload.value = "";
-		hidden_upload.click();
+		if (hidden_upload) {
+			hidden_upload.value = "";
+			hidden_upload.click();
+		}
 	}
 
 	async function handle_upload(
@@ -72,10 +103,21 @@
 		await tick();
 		upload_id = Math.random().toString(36).substring(2, 15);
 		uploading = true;
-		const _file_data = await upload(file_data, root, upload_id, upload_fn);
-		dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
-		uploading = false;
-		return _file_data || [];
+		try {
+			const _file_data = await upload(
+				file_data,
+				root,
+				upload_id,
+				max_file_size ?? Infinity
+			);
+			dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
+			uploading = false;
+			return _file_data || [];
+		} catch (e) {
+			dispatch("error", (e as Error).message);
+			uploading = false;
+			return [];
+		}
 	}
 
 	export async function load_files(
@@ -84,9 +126,55 @@
 		if (!files.length) {
 			return;
 		}
-		let _files: File[] = files.map((f) => new File([f], f.name));
+		let _files: File[] = files.map(
+			(f) =>
+				new File([f], f instanceof File ? f.name : "file", { type: f.type })
+		);
+
+		if (ios && use_post_upload_validation) {
+			_files = _files.filter((file) => {
+				if (is_valid_file(file)) {
+					return true;
+				}
+				dispatch(
+					"error",
+					`Invalid file type: ${file.name}. Only ${filetype} allowed.`
+				);
+				return false;
+			});
+
+			if (_files.length === 0) {
+				return [];
+			}
+		}
+
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
+	}
+
+	function is_valid_file(file: File): boolean {
+		if (!filetype) return true;
+
+		const allowed_types = Array.isArray(filetype) ? filetype : [filetype];
+
+		return allowed_types.some((type) => {
+			const processed_type = process_file_type(type);
+
+			if (processed_type.startsWith(".")) {
+				return file.name.toLowerCase().endsWith(processed_type.toLowerCase());
+			}
+
+			if (processed_type === "*") {
+				return true;
+			}
+
+			if (processed_type.endsWith("/*")) {
+				const [category] = processed_type.split("/");
+				return file.type.startsWith(category + "/");
+			}
+
+			return file.type === processed_type;
+		});
 	}
 
 	async function load_files_from_upload(e: Event): Promise<void> {
@@ -108,7 +196,13 @@
 		uploaded_file_extension: string,
 		uploaded_file_type: string
 	): boolean {
-		if (!file_accept || file_accept === "*" || file_accept === "file/*") {
+		if (
+			!file_accept ||
+			file_accept === "*" ||
+			file_accept === "file/*" ||
+			(Array.isArray(file_accept) &&
+				file_accept.some((accept) => accept === "*" || accept === "file/*"))
+		) {
 			return true;
 		}
 		let acceptArray: string[];
@@ -119,6 +213,7 @@
 		} else {
 			return false;
 		}
+
 		return (
 			acceptArray.includes(uploaded_file_extension) ||
 			acceptArray.some((type) => {
@@ -137,7 +232,7 @@
 			const file_extension = "." + file.name.split(".").pop();
 			if (
 				file_extension &&
-				is_valid_mimetype(filetype, file_extension, file.type)
+				is_valid_mimetype(accept_file_types, file_extension, file.type)
 			) {
 				return true;
 			}
@@ -151,7 +246,16 @@
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);
 			return false;
 		});
-		await load_files(files_to_load);
+
+		if (format != "blob") {
+			await load_files(files_to_load);
+		} else {
+			if (file_count === "single") {
+				dispatch("load", files_to_load[0]);
+				return;
+			}
+			dispatch("load", files_to_load);
+		}
 	}
 </script>
 
@@ -167,9 +271,9 @@
 	>
 		<slot />
 	</button>
-{:else if uploading}
+{:else if uploading && show_progress}
 	{#if !hidden}
-		<UploadProgress {root} {upload_id} files={file_data} />
+		<UploadProgress {root} {upload_id} files={file_data} {stream_handler} />
 	{/if}
 {:else}
 	<button
@@ -177,6 +281,7 @@
 		class:center
 		class:boundedheight
 		class:flex
+		class:disable_click
 		style:height="100%"
 		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
@@ -198,7 +303,7 @@
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
-			accept={accept_file_types}
+			accept={accept_file_types || undefined}
 			multiple={file_count === "multiple" || undefined}
 			webkitdirectory={file_count === "directory" || undefined}
 			mozdirectory={file_count === "directory" || undefined}
@@ -226,8 +331,12 @@
 	}
 	.flex {
 		display: flex;
+		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+	}
+	.disable_click {
+		cursor: default;
 	}
 
 	input {

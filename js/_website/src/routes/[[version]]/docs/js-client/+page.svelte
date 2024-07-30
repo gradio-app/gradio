@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DocsNav from "$lib/components/DocsNav.svelte";
+	import DocsNavCustom from "$lib/components/DocsNavCustom.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 
@@ -10,6 +10,8 @@
 	let modals = data.modals;
 	let routes = data.routes;
 	let py_client = data.py_client;
+	let wheel: any = data.wheel;
+	let install_command: string = wheel.gradio_js_client_install;
 
 	let readme_html = data.readme_html;
 	$: components = data.components;
@@ -17,27 +19,29 @@
 	$: modals = data.modals;
 	$: routes = data.routes;
 	$: py_client = data.py_client;
+	$: on_main = data.on_main;
 </script>
 
 <MetaTags
-	title={"Gradio Python Client Docs"}
+	title={"Gradio Javascript Client Docs"}
 	url={$page.url.pathname}
 	canonical={$page.url.pathname}
-	description={"The lightweight Gradio client library that makes it easy to use any Gradio app as an API"}
+	description={"Make programmatic requests to Gradio applications in JavaScript (TypeScript) from the browser or server-side."}
 />
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-		<DocsNav
-			current_nav_link={"js-client"}
-			{components}
-			{helpers}
-			{modals}
-			{routes}
-			{py_client}
+		<DocsNavCustom
+			items={{
+				Installation: "#installation",
+				Usage: "#usage",
+				client: "#client",
+				duplicate: "#duplicate"
+			}}
+			title={"JavaScript Client"}
 		/>
 
-		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
+		<div class="flex flex-col w-full min-w-full lg:min-w-0">
 			<div>
 				<p
 					class="lg:ml-10 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
@@ -52,28 +56,28 @@
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
 			</div>
-
-			<div class="lg:ml-10 flex justify-between mt-4">
-				<a
-					href="./job"
-					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
-				>
-					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> Job
-					</div>
-				</a>
+			<div
+				class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10"
+			>
+				<p class="my-2">
+					To install the Gradio JS Client from main, run the following command:
+				</p>
+				<div class="codeblock mb-2">
+					<pre class="language-bash" style="padding-right: 50px;"><code
+							class="language-bash">{install_command}</code
+						></pre>
+				</div>
 			</div>
+
+			<div class="lg:ml-10 flex justify-between mt-4"></div>
 			<div class="flex flex-row">
-				<div class="lg:w-3/4 lg:ml-10 lg:mr-24">
+				<div class=" lg:ml-10 lg:mr-24">
 					<div class="prose text-lg max-w-full">
 						{@html readme_html}
 					</div>
 				</div>
 			</div>
 		</div>
-		<div
-			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block"
-		></div>
 	</div>
 </main>
 

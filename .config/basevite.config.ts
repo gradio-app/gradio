@@ -37,7 +37,10 @@ export default defineConfig(({ mode }) => {
 		build: {
 			sourcemap: false,
 			target: "esnext",
-			minify: production
+			minify: production,
+			rollupOptions: {
+				external: ["virtual:component-loader"]
+			}
 		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
@@ -71,7 +74,7 @@ export default defineConfig(({ mode }) => {
 		},
 		plugins: [
 			svelte({
-				inspector: true,
+				inspector: false,
 				compilerOptions: {
 					dev: !production
 				},

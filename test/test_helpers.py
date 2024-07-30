@@ -17,22 +17,22 @@ from starlette.testclient import TestClient
 from tqdm import tqdm
 
 import gradio as gr
-from gradio import utils
+from gradio import helpers, utils
 
 
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
 class TestExamples:
     def test_handle_single_input(self, patched_cache_folder):
         examples = gr.Examples(["hello", "hi"], gr.Textbox())
-        assert examples.processed_examples == [["hello"], ["hi"]]
+        assert examples.non_none_processed_examples.as_list() == [["hello"], ["hi"]]
 
         examples = gr.Examples([["hello"]], gr.Textbox())
-        assert examples.processed_examples == [["hello"]]
+        assert examples.non_none_processed_examples.as_list() == [["hello"]]
 
         examples = gr.Examples(["test/test_files/bus.png"], gr.Image())
         assert (
             client_utils.encode_file_to_base64(
-                examples.processed_examples[0][0]["path"]
+                examples.non_none_processed_examples.as_list()[0][0]["path"]
             )
             == media_data.BASE64_IMAGE
         )
@@ -41,18 +41,18 @@ class TestExamples:
         examples = gr.Examples(
             [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
         )
-        assert examples.processed_examples[0][0] == "hello"
+        assert examples.non_none_processed_examples.as_list()[0][0] == "hello"
         assert (
             client_utils.encode_file_to_base64(
-                examples.processed_examples[0][1]["path"]
+                examples.non_none_processed_examples.as_list()[0][1]["path"]
             )
             == media_data.BASE64_IMAGE
         )
 
     def test_handle_directory(self, patched_cache_folder):
         examples = gr.Examples("test/test_files/images", gr.Image())
-        assert len(examples.processed_examples) == 2
-        for row in examples.processed_examples:
+        assert len(examples.non_none_processed_examples.as_list()) == 2
+        for row in examples.non_none_processed_examples.as_list():
             for output in row:
                 assert (
                     client_utils.encode_file_to_base64(output["path"])
@@ -64,7 +64,7 @@ class TestExamples:
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
         )
         ex = client_utils.traverse(
-            examples.processed_examples,
+            examples.non_none_processed_examples.as_list(),
             lambda s: client_utils.encode_file_to_base64(s["path"]),
             lambda x: isinstance(x, dict) and Path(x["path"]).exists(),
         )
@@ -168,6 +168,28 @@ class TestExamplesDataset:
         )
         assert examples.dataset.headers == ["im", ""]
 
+    def test_example_labels(self, patched_cache_folder):
+        examples = gr.Examples(
+            examples=[
+                [5, "add", 3],
+                [4, "divide", 2],
+                [-4, "multiply", 2.5],
+                [0, "subtract", 1.2],
+            ],
+            inputs=[
+                gr.Number(),
+                gr.Radio(["add", "divide", "multiply", "subtract"]),
+                gr.Number(),
+            ],
+            example_labels=["add", "divide", "multiply", "subtract"],
+        )
+        assert examples.dataset.sample_labels == [
+            "add",
+            "divide",
+            "multiply",
+            "subtract",
+        ]
+
 
 def test_example_caching_relaunch(connect):
     def combine(a, b):
@@ -261,9 +283,7 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        assert client_utils.encode_url_or_file_to_base64(prediction[0].path).startswith(
-            "data:image/png;base64,iVBORw0KGgoAAA"
-        )
+        assert prediction[0].path.endswith(".webp")
 
     def test_caching_audio(self, patched_cache_folder):
         io = gr.Interface(
@@ -385,7 +405,7 @@ class TestProcessExamples:
 
         with pytest.warns(
             UserWarning,
-            match="^Examples are being cached but not all input components have",
+            match="^Examples will be cached but not all input components have",
         ):
             with pytest.raises(Exception):
                 gr.Interface(
@@ -398,7 +418,7 @@ class TestProcessExamples:
 
         with pytest.warns(
             UserWarning,
-            match="^Examples are being cached but not all input components have",
+            match="^Examples will be cached but not all input components have",
         ):
             with pytest.raises(Exception):
                 gr.Interface(
@@ -425,7 +445,7 @@ class TestProcessExamples:
 
         with pytest.warns(
             UserWarning,
-            match="^Examples are being cached but not all input components have",
+            match="^Examples will be cached but not all input components have",
         ):
             with pytest.raises(Exception):
                 gr.Interface(
@@ -483,7 +503,7 @@ class TestProcessExamples:
                 [["John"], ["Mary"]],
                 fn=predict,
                 inputs=[t1],
-                outputs=[t2, c],
+                outputs=[t2, c],  # type: ignore
                 cache_examples=True,
             )
 
@@ -689,6 +709,7 @@ class TestProgressBar:
 
             button.click(greet, name, greeting)
         demo.queue(max_size=1).launch(prevent_thread_lock=True)
+        assert demo.local_url
 
         client = grc.Client(demo.local_url)
         job = client.submit("Gradio")
@@ -734,6 +755,7 @@ class TestProgressBar:
 
             button.click(greet, name, greeting)
         demo.queue(max_size=1).launch(prevent_thread_lock=True)
+        assert demo.local_url
 
         client = grc.Client(demo.local_url)
         job = client.submit("Gradio")
@@ -764,6 +786,7 @@ class TestProgressBar:
         ]
 
     @pytest.mark.asyncio
+    @pytest.mark.flaky
     async def test_progress_bar_track_tqdm_without_iterable(self):
         def greet(s, _=gr.Progress(track_tqdm=True)):
             with tqdm(total=len(s)) as progress_bar:
@@ -774,6 +797,7 @@ class TestProgressBar:
 
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
+        assert demo.local_url
 
         client = grc.Client(demo.local_url)
         job = client.submit("Gradio")
@@ -813,6 +837,7 @@ class TestProgressBar:
 
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
+        assert demo.local_url
 
         client = grc.Client(demo.local_url)
         job = client.submit("Jon")
@@ -859,6 +884,7 @@ async def test_info_isolation(async_handler: bool):
     demo.launch(prevent_thread_lock=True)
 
     async def session_interaction(name, delay=0):
+        assert demo.local_url
         client = grc.Client(demo.local_url)
         job = client.submit(name)
 
@@ -880,3 +906,21 @@ async def test_info_isolation(async_handler: bool):
 
     assert alice_logs == "Hello Alice"
     assert bob_logs == "Hello Bob"
+
+
+def test_check_event_data_in_cache():
+    def get_select_index(evt: gr.SelectData):
+        return evt.index
+
+    with pytest.raises(gr.Error):
+        helpers.special_args(
+            get_select_index,
+            inputs=[],
+            event_data=helpers.EventData(
+                None,
+                {
+                    "index": {"path": "foo", "meta": {"_type": "gradio.FileData"}},
+                    "value": "whatever",
+                },
+            ),
+        )

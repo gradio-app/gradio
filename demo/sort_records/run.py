@@ -1,5 +1,4 @@
 import gradio as gr
-import os
 
 def sort_records(records):
     return records.sort("Quantity")
@@ -14,10 +13,7 @@ demo = gr.Interface(
         type="polars"
     ),
     "dataframe",
-    description="Sort by Quantity",
-    examples=[
-        [os.path.join(os.path.dirname(__file__), "polars_sort.csv")],
-    ],
+    description="Sort by Quantity"
 )
 
 if __name__ == "__main__":

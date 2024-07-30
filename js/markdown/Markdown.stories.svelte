@@ -12,6 +12,11 @@
 			description: "Whether to render right-to-left",
 			control: { type: "boolean" },
 			defaultValue: false
+		},
+		height: {
+			description: "Maximum height of the Markdown component",
+			control: { type: "text" },
+			defaultValue: "200px"
 		}
 	}}
 />
@@ -21,6 +26,7 @@
 		value="Here's some **bold** text. And some *italics* and some `code`"
 		latex_delimiters={[]}
 		{...args}
+		height={args.height}
 	/>
 </Template>
 
@@ -68,5 +74,22 @@ in two separate lines.`
 	args={{
 		value: "# Visit [Gradio](https://gradio.app) for more information",
 		header_links: true
+	}}
+/>
+
+<Story
+	name="Markdown with Long Content (Vertical Scrolling)"
+	args={{
+		value: `# Heading\n${"This is some text.\n".repeat(100)}`,
+		height: "200px"
+	}}
+/>
+
+<Story
+	name="Markdown with Copy Button"
+	args={{
+		value:
+			"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat.",
+		show_copy_button: true
 	}}
 />

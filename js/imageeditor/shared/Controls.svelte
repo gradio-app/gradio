@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { IconButton } from "@gradio/atoms";
-	import { Clear, Undo, Redo, Check } from "@gradio/icons";
+	import { Clear, Undo, Redo, Check, Trash } from "@gradio/icons";
 
 	/**
 	 * Can the current image be undone?
@@ -56,7 +56,7 @@
 			}}
 		/>
 		<IconButton
-			Icon={Clear}
+			Icon={Trash}
 			label="Clear canvas"
 			on:click={(event) => {
 				dispatch("remove_image");

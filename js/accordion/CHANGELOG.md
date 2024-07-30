@@ -1,5 +1,141 @@
 # @gradio/accordion
 
+## 0.3.19
+
+### Dependency updates
+
+- @gradio/statustracker@0.7.2
+- @gradio/atoms@0.7.7
+- @gradio/column@0.1.2
+
+## 0.3.18
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/column@0.1.2
+
+## 0.3.17
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/statustracker@0.7.0
+- @gradio/column@0.1.2
+
+## 0.3.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+- @gradio/column@0.1.2
+
+## 0.3.16
+
+### Fixes
+
+- [#8284](https://github.com/gradio-app/gradio/pull/8284) [`2d705bc`](https://github.com/gradio-app/gradio/commit/2d705bcf7475eb46822358fed21dc081a800a73d) - Add body color to `gr.Accordion`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/column@0.1.2
+- @gradio/statustracker@0.6.0
+
+## 0.3.15
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/statustracker@0.5.5
+
+## 0.3.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.4
+
+## 0.3.13
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.3
+
+## 0.3.12
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+
+## 0.3.11
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/utils@0.4.1
+- @gradio/statustracker@0.5.1
+- @gradio/column@0.1.1
+
+## 0.3.10
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/column@0.1.1
+- @gradio/statustracker@0.5.0
+- @gradio/utils@0.4.0
+
+## 0.3.9
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+- @gradio/atoms@0.7.0
+
+## 0.3.8
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+
+## 0.3.7
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+
+## 0.3.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.4.9
+- @gradio/atoms@0.6.0
+
+## 0.3.5
+
+### Fixes
+
+- [#7564](https://github.com/gradio-app/gradio/pull/7564) [`5d1e8da`](https://github.com/gradio-app/gradio/commit/5d1e8dae5ac23f605c3b5f41dbe18751dff380a0) - batch UI updates on a per frame basis.  Thanks @pngwn!
+
+## 0.3.4
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89)]:
+  - @gradio/statustracker@0.4.8
+
 ## 0.3.3
 
 ### Patch Changes

@@ -8,6 +8,24 @@
 // be imported as the `Worker` alias into the file where the syntax is used to load the worker.
 // This implementation was based on https://github.com/whitphx/stlite/blob/v0.34.0/packages/kernel/src/kernel.ts,
 // and this technique was introduced originally for Webpack at https://github.com/webpack/webpack/discussions/14648#discussioncomment-1589272
+
+// Caching is important not only for performance but also for ensuring that the same blob URL is used for the same requested URL.
+const worker_blob_url_cache = new Map<string, string>();
+function get_blob_url(url: URL): string {
+	const cached_worker_blob_url = worker_blob_url_cache.get(url.toString());
+	if (cached_worker_blob_url) {
+		console.debug(`Reusing the cached worker blob URL for ${url.toString()}.`);
+		return cached_worker_blob_url;
+	}
+
+	const worker_blob = new Blob([`importScripts("${url.toString()}");`], {
+		type: "text/javascript"
+	});
+	const worker_blob_url = URL.createObjectURL(worker_blob);
+	worker_blob_url_cache.set(url.toString(), worker_blob_url);
+	return worker_blob_url;
+}
+
 export class CrossOriginWorkerMaker {
 	public readonly worker: Worker | SharedWorker;
 
@@ -23,14 +41,10 @@ export class CrossOriginWorkerMaker {
 			console.debug(
 				`Failed to load a worker script from ${url.toString()}. Trying to load a cross-origin worker...`
 			);
-			const workerBlob = new Blob([`importScripts("${url.toString()}");`], {
-				type: "text/javascript"
-			});
-			const workerBlobUrl = URL.createObjectURL(workerBlob);
+			const worker_blob_url = get_blob_url(url);
 			this.worker = shared
-				? new SharedWorker(workerBlobUrl, workerOptions)
-				: new Worker(workerBlobUrl, workerOptions);
-			URL.revokeObjectURL(workerBlobUrl);
+				? new SharedWorker(worker_blob_url, workerOptions)
+				: new Worker(worker_blob_url, workerOptions);
 		}
 	}
 }

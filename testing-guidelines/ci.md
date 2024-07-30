@@ -272,7 +272,7 @@ Changed packages:
 
 Determining the bump type (`patch`, `minor`, `major`):
 
-- Check if the pull request has a `"v: *"` labal explicitly dictating the bump type.
+- Check if the pull request has a `"v: *"` label explicitly dictating the bump type.
   - If it does set that as the bump type and stop guessing.
 - Check if the pull requests has a `fixes` or `closes` reference to an issue.
   - If it has a `"bug"` label then return a `patch` bump and stop guessing
@@ -282,7 +282,7 @@ Determining the bump type (`patch`, `minor`, `major`):
 
 Determining the change type (`fix`, `feat`, `highlight`):
 
-- Check if the pull request has a `"t: *"` labal explicitly dictating the change type.
+- Check if the pull request has a `"t: *"` label explicitly dictating the change type.
   - If it does set that as the change type and stop guessing.
 - Check if the pull requests has a `fixes` or `closes` reference to an issue.
   - If it has a `"bug"` label then return a `fix` change type and stop guessing
@@ -343,7 +343,7 @@ Workflows are a discrete set of jobs with a discrete set of steps. It might be r
 
 There are ways to run workflows indirectly:
 
-- `workflow_dispatch` - This event always runs in the context of `main`. You can programatically trigger this workflow event, allowing more control over where that workflow runs but you need to use the GitHub API to do this. Therefore the triggering workflow needs access to secrets, rendering it insecure for our purposes.
+- `workflow_dispatch` - This event always runs in the context of `main`. You can programmatically trigger this workflow event, allowing more control over where that workflow runs but you need to use the GitHub API to do this. Therefore the triggering workflow needs access to secrets, rendering it insecure for our purposes.
 - `workflow_run` - This is essentially `workflow_dispatch` inverted. Instead of triggering it from elsewhere explicitly, the workflow _itself_ determines which workflow will trigger _it_. This means that you do not need access to secrets in order to start a `workflow_run` and since this event type runs in the context of main, it is secure.
 
 <details>

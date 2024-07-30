@@ -1,61 +1,46 @@
 import gradio as gr
-import os
-import time
+import plotly.express as px
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
+def random_plot():
+    df = px.data.iris()
+    fig = px.scatter(df, x="sepal_width", y="sepal_length", color="species",
+                    size='petal_length', hover_data=['petal_width'])
+    return fig
 
 def print_like_dislike(x: gr.LikeData):
     print(x.index, x.value, x.liked)
 
-
-def add_text(history, text):
-    history = history + [(text, None)]
-    return history, gr.Textbox(value="", interactive=False)
-
-
-def add_file(history, file):
-    history = history + [((file.name,), None)]
-    return history
-
+def add_message(history, message):
+    for x in message["files"]:
+        history.append(((x,), None))
+    if message["text"] is not None:
+        history.append((message["text"], None))
+    return history, gr.MultimodalTextbox(value=None, interactive=False)
 
 def bot(history):
-    response = "**That's cool!**"
-    history[-1][1] = ""
-    for character in response:
-        history[-1][1] += character
-        time.sleep(0.05)
-        yield history
+    history[-1][1] = "Cool!"
+    return history
 
+fig = random_plot()
 
-with gr.Blocks() as demo:
+with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.Chatbot(
-        [],
         elem_id="chatbot",
         bubble_full_width=False,
-        avatar_images=(None, (os.path.join(os.path.dirname(__file__), "avatar.png"))),
+        scale=1,
     )
 
-    with gr.Row():
-        txt = gr.Textbox(
-            scale=4,
-            show_label=False,
-            placeholder="Enter text and press enter, or upload an image",
-            container=False,
-        )
-        btn = gr.UploadButton("📁", file_types=["image", "video", "audio"])
+    chat_input = gr.MultimodalTextbox(interactive=True,
+                                      file_count="multiple",
+                                      placeholder="Enter message or upload file...", show_label=False)
 
-    txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
-        bot, chatbot, chatbot, api_name="bot_response"
-    )
-    txt_msg.then(lambda: gr.Textbox(interactive=True), None, [txt], queue=False)
-    file_msg = btn.upload(add_file, [chatbot, btn], [chatbot], queue=False).then(
-        bot, chatbot, chatbot
-    )
+    chat_msg = chat_input.submit(add_message, [chatbot, chat_input], [chatbot, chat_input])
+    bot_msg = chat_msg.then(bot, chatbot, chatbot, api_name="bot_response")
+    bot_msg.then(lambda: gr.MultimodalTextbox(interactive=True), None, [chat_input])
 
     chatbot.like(print_like_dislike, None, None)
 
-
-demo.queue()
 if __name__ == "__main__":
     demo.launch()

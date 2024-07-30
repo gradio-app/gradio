@@ -43,7 +43,7 @@ function highlight(code: string, lang: string | undefined) {
 				code,
 				Prism.languages[_lang],
 				_lang
-		  )}</code></pre>`
+			)}</code></pre>`
 		: code;
 
 	return highlighted;
@@ -121,6 +121,7 @@ export async function load({ parent }) {
 		helpers,
 		modals,
 		routes,
-		py_client
+		py_client,
+		wheel
 	};
 }

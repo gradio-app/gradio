@@ -1,5 +1,225 @@
 # @gradio/dataset
 
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/client@1.4.0
+- @gradio/upload@0.12.0
+- @gradio/atoms@0.7.7
+- @gradio/textbox@0.6.8
+
+## 0.2.0
+
+### Features
+
+- [#8733](https://github.com/gradio-app/gradio/pull/8733) [`fb0daf3`](https://github.com/gradio-app/gradio/commit/fb0daf3730ffbe6aab5ebe4210eae150729a40b1) - Improvements to `gr.Examples`: adds events as attributes and documents, them, adds `sample_labels`, and `visible` properties.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/client@1.3.0
+- @gradio/upload@0.11.5
+- @gradio/textbox@0.6.7
+
+## 0.1.45
+
+### Dependency updates
+
+- @gradio/upload@0.11.4
+- @gradio/client@1.2.1
+
+## 0.1.44
+
+### Fixes
+
+- [#8581](https://github.com/gradio-app/gradio/pull/8581) [`a1c21cb`](https://github.com/gradio-app/gradio/commit/a1c21cb69a688bd38139153fe9c85a50c6ae86f2) - fix dataset update.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/client@1.2.0
+- @gradio/upload@0.11.3
+
+## 0.1.43
+
+### Dependency updates
+
+- @gradio/client@1.1.1
+- @gradio/upload@0.11.2
+
+## 0.1.42
+
+### Dependency updates
+
+- @gradio/upload@0.11.1
+- @gradio/client@1.1.0
+
+## 0.1.41
+
+### Dependency updates
+
+- @gradio/client@1.0.0
+- @gradio/upload@0.11.0
+
+## 0.1.40
+
+### Dependency updates
+
+- @gradio/upload@0.10.7
+- @gradio/client@0.20.1
+
+## 0.1.39
+
+### Fixes
+
+- [#8364](https://github.com/gradio-app/gradio/pull/8364) [`6a1b58c`](https://github.com/gradio-app/gradio/commit/6a1b58cf3e4796ccb695db5baae190c894b30df0) - Add `--table-text-color` var to fix body text in `Examples`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@0.20.0
+- @gradio/upload@0.10.6
+
+## 0.1.38
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/upload@0.10.5
+- @gradio/client@0.19.4
+
+## 0.1.37
+
+### Dependency updates
+
+- @gradio/client@0.19.3
+- @gradio/upload@0.10.4
+
+## 0.1.36
+
+### Dependency updates
+
+- @gradio/upload@0.10.3
+- @gradio/client@0.19.2
+
+## 0.1.35
+
+### Dependency updates
+
+- @gradio/client@0.19.1
+- @gradio/upload@0.10.2
+
+## 0.1.34
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/client@0.19.0
+- @gradio/upload@0.10.1
+
+## 0.1.33
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/client@0.18.0
+- @gradio/upload@0.10.0
+- @gradio/utils@0.4.1
+
+## 0.1.32
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/client@0.17.0
+- @gradio/upload@0.9.0
+- @gradio/utils@0.4.0
+
+## 0.1.31
+
+### Fixes
+
+- [#8028](https://github.com/gradio-app/gradio/pull/8028) [`6fafce0`](https://github.com/gradio-app/gradio/commit/6fafce06704ab8f2cd5fe6fbdb58b842e144e44d) - ensure maps are correctly shallow cloned when updating state.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/client@0.16.0
+- @gradio/upload@0.8.5
+- @gradio/atoms@0.7.0
+
+## 0.1.30
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/upload@0.8.4
+- @gradio/client@0.15.1
+
+## 0.1.29
+
+### Dependency updates
+
+- @gradio/upload@0.8.3
+- @gradio/client@0.15.0
+
+## 0.1.28
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/upload@0.8.2
+
+## 0.1.27
+
+### Fixes
+
+- [#7761](https://github.com/gradio-app/gradio/pull/7761) [`ca42748`](https://github.com/gradio-app/gradio/commit/ca42748590536e1d940b44ec7c9b6ea402905707) - Ensure `paginate` updates when samples value changes in `Dataset`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/atoms@0.6.0
+
+## 0.1.26
+
+### Fixes
+
+- [#7564](https://github.com/gradio-app/gradio/pull/7564) [`5d1e8da`](https://github.com/gradio-app/gradio/commit/5d1e8dae5ac23f605c3b5f41dbe18751dff380a0) - batch UI updates on a per frame basis.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@0.14.0
+- @gradio/upload@0.8.0
+
+## 0.1.25
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+
+## 0.1.24
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+
+## 0.1.23
+
+### Features
+
+- [#7528](https://github.com/gradio-app/gradio/pull/7528) [`eda33b3`](https://github.com/gradio-app/gradio/commit/eda33b3763897a542acf298e523fa493dc655aee) - Refactors `get_fetchable_url_or_file()` to remove it from the frontend. Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.1.22
 
 ### Patch Changes

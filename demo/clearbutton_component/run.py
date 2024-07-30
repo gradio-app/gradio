@@ -1,6 +1,5 @@
 import gradio as gr
 
-
 with gr.Blocks() as demo:
     textbox = gr.Textbox(value="This is some text")
     gr.ClearButton(textbox)

@@ -4,7 +4,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
 	import { dequal } from "dequal";
-	import { createEventDispatcher, getContext } from "svelte";
+	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
 	import { Download, Image as ImageIcon } from "@gradio/icons";
@@ -31,6 +31,8 @@
 	export let i18n: I18nFormatter;
 	export let selected_index: number | null = null;
 	export let interactive: boolean;
+	export let _fetch: typeof fetch;
+	export let mode: "normal" | "minimal" = "normal";
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -49,7 +51,7 @@
 			: value.map((data) => ({
 					image: data.image as FileData,
 					caption: data.caption
-			  }));
+				}));
 
 	let prev_value: GalleryData | null = value;
 	if (selected_index == null && preview && value?.length) {
@@ -82,7 +84,7 @@
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
-		const x = event.clientX;
+		const x = event.offsetX;
 		const width = element.offsetWidth;
 		const centerX = width / 2;
 
@@ -159,18 +161,16 @@
 		}
 	}
 
-	let client_height = 0;
 	let window_height = 0;
 
 	// Unlike `gr.Image()`, images specified via remote URLs are not cached in the server
 	// and their remote URLs are directly passed to the client as `value[].image.url`.
 	// The `download` attribute of the <a> tag doesn't work for remote URLs (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#download),
 	// so we need to download the image via JS as below.
-	const fetch_implementation = getContext<typeof fetch>("fetch_implementation");
 	async function download(file_url: string, name: string): Promise<void> {
 		let response;
 		try {
-			response = await fetch_implementation(file_url);
+			response = await _fetch(file_url);
 		} catch (error) {
 			if (error instanceof TypeError) {
 				// If CORS is not allowed (https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#checking_that_the_fetch_was_successful),
@@ -206,7 +206,11 @@
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	{#if selected_image && allow_preview}
-		<button on:keydown={on_keydown} class="preview">
+		<button
+			on:keydown={on_keydown}
+			class="preview"
+			class:minimal={mode === "minimal"}
+		>
 			<div class="icon-buttons">
 				{#if show_download_button}
 					<div class="download-button-container">
@@ -263,7 +267,7 @@
 						bind:this={el[i]}
 						on:click={() => (selected_index = i)}
 						class="thumbnail-item thumbnail-small"
-						class:selected={selected_index === i}
+						class:selected={selected_index === i && mode !== "minimal"}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
 						<Image
@@ -280,9 +284,9 @@
 	{/if}
 
 	<div
-		bind:clientHeight={client_height}
 		class="grid-wrap"
-		class:fixed-height={!height || height == "auto"}
+		class:minimal={mode === "minimal"}
+		class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
 	>
 		<div
 			class="grid-container"
@@ -338,14 +342,27 @@
 	.preview {
 		display: flex;
 		position: absolute;
-		top: 0px;
-		right: 0px;
-		bottom: 0px;
-		left: 0px;
 		flex-direction: column;
 		z-index: var(--layer-2);
+		border-radius: calc(var(--block-radius) - var(--block-border-width));
+		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.preview.minimal {
+		width: fit-content;
+		height: fit-content;
+	}
+
+	.preview::before {
+		content: "";
+		position: absolute;
+		z-index: var(--layer-below);
 		background: var(--background-fill-primary);
+		opacity: 0.9;
+		width: var(--size-full);
 		height: var(--size-full);
 	}
 
@@ -379,6 +396,10 @@
 		height: var(--size-full);
 	}
 
+	.preview.minimal :global(img.with-caption) {
+		height: auto;
+	}
+
 	.caption {
 		padding: var(--size-2) var(--size-3);
 		overflow: hidden;
@@ -406,7 +427,7 @@
 		--ring-color: transparent;
 		position: relative;
 		box-shadow:
-			0 0 0 2px var(--ring-color),
+			inset 0 0 0 1px var(--ring-color),
 			var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--button-small-radius);
@@ -419,11 +440,13 @@
 
 	.thumbnail-item:hover {
 		--ring-color: var(--color-accent);
+		border-color: var(--color-accent);
 		filter: brightness(1.1);
 	}
 
 	.thumbnail-item.selected {
 		--ring-color: var(--color-accent);
+		border-color: var(--color-accent);
 	}
 
 	.thumbnail-small {
@@ -507,5 +530,9 @@
 
 	.icon-buttons .download-button-container {
 		margin: var(--size-1) 0;
+	}
+
+	.grid-wrap.minimal {
+		padding: 0;
 	}
 </style>

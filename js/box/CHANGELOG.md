@@ -1,5 +1,71 @@
 # @gradio/box
 
+## 0.1.21
+
+### Dependency updates
+
+- @gradio/atoms@0.7.7
+
+## 0.1.20
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+
+## 0.1.19
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+
+## 0.1.18
+
+### Dependency updates
+
+- @gradio/atoms@0.7.4
+
+## 0.1.17
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+
+## 0.1.16
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+
+## 0.1.15
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+
+## 0.1.14
+
+### Dependency updates
+
+- @gradio/atoms@0.7.0
+
+## 0.1.13
+
+### Dependency updates
+
+- @gradio/atoms@0.6.2
+
+## 0.1.12
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+
+## 0.1.11
+
+### Dependency updates
+
+- @gradio/atoms@0.6.0
+
 ## 0.1.10
 
 ### Patch Changes

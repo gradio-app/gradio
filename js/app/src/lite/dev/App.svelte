@@ -77,14 +77,12 @@ def hi(name):
 			themeMode: null,
 			autoScroll: false,
 			controlPageTitle: false,
-			appMode: true
+			appMode: true,
+			playground: false,
+			layout: null
 		});
-		// @ts-ignore
-		window.controller = controller; // For Playwright
 	});
 	onDestroy(() => {
-		// @ts-ignore
-		window.controller = undefined;
 		controller.unmount();
 	});
 

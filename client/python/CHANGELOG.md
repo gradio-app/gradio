@@ -1,5 +1,399 @@
 # gradio_client
 
+## 1.1.1
+
+### Features
+
+- [#8757](https://github.com/gradio-app/gradio/pull/8757) [`6073736`](https://github.com/gradio-app/gradio/commit/60737366517f48d1a37ffce15425783a2887f305) - Document `FileData` class in docs.  Thanks @hannahblair!
+
+## 1.1.0
+
+### Fixes
+
+- [#8505](https://github.com/gradio-app/gradio/pull/8505) [`2943d6d`](https://github.com/gradio-app/gradio/commit/2943d6d68847314885dc6c5c0247083116017ca0) - Add Timer component.  Thanks @aliabid94!
+
+## 1.0.2
+
+### Features
+
+- [#8516](https://github.com/gradio-app/gradio/pull/8516) [`de6aa2b`](https://github.com/gradio-app/gradio/commit/de6aa2b67668605b65ad92842b2c798afa2c6d8a) - Add helper classes to docs.  Thanks @aliabd!
+
+## 1.0.1
+
+### Features
+
+- [#8481](https://github.com/gradio-app/gradio/pull/8481) [`41a4493`](https://github.com/gradio-app/gradio/commit/41a449383a34b7d6e4c83cfbf61c222fd5501206) - fix client flaky tests.  Thanks @abidlabs!
+
+## 1.0.0
+
+### Highlights
+
+#### Clients 1.0 Launch!  ([#8468](https://github.com/gradio-app/gradio/pull/8468) [`7cc0a0c`](https://github.com/gradio-app/gradio/commit/7cc0a0c1abea585c3f50ffb1ff78d2b08ddbdd92))
+
+We're excited to unveil the first major release of the Gradio clients.
+We've made it even easier to turn any Gradio application into a production endpoint thanks to the clients' **ergonomic**, **transparent**, and **portable** design.
+
+#### Ergonomic API 💆
+
+**Stream From a Gradio app in 5 lines**
+
+Use the `submit` method to get a job you can iterate over:
+
+```python
+from gradio_client import Client
+
+client = Client("gradio/llm_stream")
+
+for result in client.submit("What's the best UI framework in Python?"):
+    print(result)
+```
+
+```ts
+import { Client } from "@gradio/client";
+
+const client = await Client.connect("gradio/llm_stream")
+const job = client.submit("/predict", {"text": "What's the best UI framework in Python?"})
+
+for await (const msg of job) console.log(msg.data)
+```
+
+**Use the same keyword arguments as the app**
+
+
+```python
+from gradio_client import Client
+
+client = Client("http://127.0.0.1:7860/")
+result = client.predict(
+		message="Hello!!",
+		system_prompt="You are helpful AI.",
+		tokens=10,
+		api_name="/chat"
+)
+print(result)
+```
+
+```ts
+import { Client } from "@gradio/client";
+
+const client = await Client.connect("http://127.0.0.1:7860/");
+const result = await client.predict("/chat", { 		
+		message: "Hello!!", 		
+		system_prompt: "Hello!!", 		
+		tokens: 10, 
+});
+
+console.log(result.data);
+```
+
+**Better Error Messages**
+
+If something goes wrong in the upstream app, the client will raise the same exception as the app provided that `show_error=True` in the original app's `launch()` function, or it's a `gr.Error` exception.
+
+#### Transparent Design 🪟
+
+Anything you can do in the UI, you can do with the client:
+* 🔒 Authentication
+* 🛑 Job Cancelling
+* ℹ️ Access Queue Position and API
+* 📕 View the API information
+
+Here's an example showing how to display the queue position of a pending job:
+
+```python
+from gradio_client import Client
+
+client = Client("gradio/diffusion_model")
+
+job = client.submit("A cute cat")
+while not job.done():
+    status = job.status()
+    print(f"Current in position {status.rank} out of {status.queue_size}")
+```
+
+#### Portable Design ⛺️
+
+The client can run from pretty much any python and javascript environment (node, deno, the browser, Service Workers). 
+
+Here's an example using the client from a Flask server using gevent:
+
+```python
+from gevent import monkey
+monkey.patch_all()
+
+from gradio_client import Client
+from flask import Flask, send_file
+import time
+
+app = Flask(__name__)
+
+imageclient = Client("gradio/diffusion_model")
+
+@app.route("/gen")
+def gen():
+      result = imageclient.predict(
+                "A cute cat",
+                api_name="/predict"
+              )
+      return send_file(result)
+
+if __name__ == "__main__":
+      app.run(host="0.0.0.0", port=5000)
+```
+
+#### 1.0 Migration Guide and Breaking Changes
+
+**Python**
+- The `serialize` argument of the `Client` class was removed. Has no effect.
+- The `upload_files` argument of the `Client` was removed.
+- All filepaths must be wrapped in the `handle_file` method. Example:
+```python
+from gradio_client import Client, handle_file
+
+client = Client("gradio/image_captioner")
+client.predict(handle_file("cute_cat.jpg"))
+```
+- The `output_dir` argument was removed. It is not specified in the `download_files` argument.
+
+
+**Javascript**
+The client has been redesigned entirely. It was refactored from a function into a class. An instance can now be constructed by awaiting the `connect` method.
+
+```js
+const app = await Client.connect("gradio/whisper")
+```
+The app variable has the same methods as the python class (`submit`, `predict`, `view_api`, `duplicate`).
+
+
+
+#### Additional Changes
+
+- [#8243](https://github.com/gradio-app/gradio/pull/8243) -  Set orig_name in python client file uploads.
+- [#8264](https://github.com/gradio-app/gradio/pull/8264) - Make exceptions in the Client more specific.
+- [#8247](https://github.com/gradio-app/gradio/pull/8247) - Fix api recorder.
+- [#8276](https://github.com/gradio-app/gradio/pull/8276) - Fix bug where client could not connect to apps that had self signed certificates.
+- [#8245](https://github.com/gradio-app/gradio/pull/8245) - Cancel  server progress from the python client.
+- [#8200](https://github.com/gradio-app/gradio/pull/8200) -  Support custom components in gr.load
+- [#8182](https://github.com/gradio-app/gradio/pull/8182) - Convert sse calls in client from async to sync.
+- [#7732](https://github.com/gradio-app/gradio/pull/7732) - Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page.
+- [#7888](https://github.com/gradio-app/gradio/pull/7888) - Cache view_api info in server and python client.
+- [#7575](https://github.com/gradio-app/gradio/pull/7575) - Files should now be supplied as `file(...)` in the Client, and some fixes to `gr.load()` as well.
+- [#8401](https://github.com/gradio-app/gradio/pull/8401) - Add CDN installation to JS docs. 
+- [#8299](https://github.com/gradio-app/gradio/pull/8299) - Allow JS Client to work with authenticated spaces 🍪. 
+- [#8408](https://github.com/gradio-app/gradio/pull/8408) - Connect heartbeat if state created in render. Also fix config cleanup bug #8407.
+- [#8258](https://github.com/gradio-app/gradio/pull/8258) - Improve URL handling in JS Client.  
+- [#8322](https://github.com/gradio-app/gradio/pull/8322) - ensure the client correctly handles all binary data. 
+- [#8296](https://github.com/gradio-app/gradio/pull/8296) - always create a jwt when connecting to a space if a hf_token is present.  
+- [#8285](https://github.com/gradio-app/gradio/pull/8285) - use the correct query param to pass the jwt to the heartbeat event. 
+- [#8272](https://github.com/gradio-app/gradio/pull/8272) - ensure client works for private spaces.  
+- [#8197](https://github.com/gradio-app/gradio/pull/8197) - Add support for passing keyword args to `data` in JS client.  
+- [#8252](https://github.com/gradio-app/gradio/pull/8252) - Client node fix.
+- [#8209](https://github.com/gradio-app/gradio/pull/8209) - Rename `eventSource_Factory` and `fetch_implementation`. 
+- [#8109](https://github.com/gradio-app/gradio/pull/8109) - Implement JS Client tests.
+- [#8211](https://github.com/gradio-app/gradio/pull/8211) - remove redundant event source logic.  
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) - rework upload to be a class method + pass client into each component.
+- [#8181](https://github.com/gradio-app/gradio/pull/8181) - Ensure connectivity to private HF spaces with SSE protocol.
+- [#8169](https://github.com/gradio-app/gradio/pull/8169) - Only connect to heartbeat if needed.
+- [#8118](https://github.com/gradio-app/gradio/pull/8118) - Add eventsource polyfill for Node.js and browser environments.
+- [#7646](https://github.com/gradio-app/gradio/pull/7646) - Refactor JS Client.
+- [#7974](https://github.com/gradio-app/gradio/pull/7974) - Fix heartbeat in the js client to be Lite compatible.
+- [#7926](https://github.com/gradio-app/gradio/pull/7926) - Fixes streaming event race condition.
+
+ Thanks @freddyaboulton!
+
+### Features
+
+- [#8444](https://github.com/gradio-app/gradio/pull/8444) [`2cd02ff`](https://github.com/gradio-app/gradio/commit/2cd02ff3b7c57cd69635d111ff25643eba30b9b0) - Remove deprecated parameters from Python Client.  Thanks @abidlabs!
+
+## 0.17.0
+
+### Features
+
+- [#8243](https://github.com/gradio-app/gradio/pull/8243) [`55f664f`](https://github.com/gradio-app/gradio/commit/55f664f2979a49acc29a73cde16c6ebdfcc91db2) - Add event listener support to render blocks.  Thanks @aliabid94!
+- [#8409](https://github.com/gradio-app/gradio/pull/8409) [`8028c33`](https://github.com/gradio-app/gradio/commit/8028c33bbc5a324a5e9e8b28906443db28683d79) - Render decorator documentation.  Thanks @aliabid94!
+
+### Fixes
+
+- [#8371](https://github.com/gradio-app/gradio/pull/8371) [`a373b0e`](https://github.com/gradio-app/gradio/commit/a373b0edd36613a9a6a25a1a2893edd6533a7291) - Set orig_name in python client file uploads.  Thanks @freddyaboulton!
+
+## 0.16.4
+
+### Fixes
+
+- [#8247](https://github.com/gradio-app/gradio/pull/8247) [`8f46556`](https://github.com/gradio-app/gradio/commit/8f46556b38e35cffbadac74ff80445dceea3bcf5) - Fix api recorder.  Thanks @abidlabs!
+
+## 0.16.3
+
+### Features
+
+- [#8264](https://github.com/gradio-app/gradio/pull/8264) [`a9e1a8a`](https://github.com/gradio-app/gradio/commit/a9e1a8ac5633c5336fea1c63d7f66a9883e7e6e1) - Make exceptions in the Client more specific.  Thanks @abidlabs!
+
+### Fixes
+
+- [#8276](https://github.com/gradio-app/gradio/pull/8276) [`0bf3d1a`](https://github.com/gradio-app/gradio/commit/0bf3d1a992db2753c1a55452b569027190f26ef6) - Fix bug where client could not connect to apps that had self signed certificates.  Thanks @freddyaboulton!
+
+## 0.16.2
+
+### Fixes
+
+- [#8245](https://github.com/gradio-app/gradio/pull/8245) [`c562a3d`](https://github.com/gradio-app/gradio/commit/c562a3d9a440c8f94ca070bd07b8d4121d6ab7b3) - Cancel  server progress from the python client.  Thanks @freddyaboulton!
+
+## 0.16.1
+
+### Highlights
+
+#### Support custom components in gr.load ([#8200](https://github.com/gradio-app/gradio/pull/8200) [`72039be`](https://github.com/gradio-app/gradio/commit/72039be93acda856d92ceac7f21f1ec1a054fae2))
+
+It is now possible to load a demo with a custom component with `gr.load`.
+
+The custom component must be installed in your system and imported in your python session.
+
+```python
+import gradio as gr
+import gradio_pdf
+
+demo = gr.load("freddyaboulton/gradiopdf", src="spaces")
+
+if __name__ == "__main__":
+    demo.launch()
+```
+
+<img width="1284" alt="image" src="https://github.com/gradio-app/gradio/assets/41651716/9c3e846b-f3f2-4c1c-8cb6-53a6d186aaa0">
+
+ Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8182](https://github.com/gradio-app/gradio/pull/8182) [`39791eb`](https://github.com/gradio-app/gradio/commit/39791eb186d3a4ce82c8c27979a28311c37a4067) - Convert sse calls in client from async to sync.  Thanks @abidlabs!
+
+## 0.16.0
+
+### Highlights
+
+#### Setting File Upload Limits ([#7909](https://github.com/gradio-app/gradio/pull/7909) [`2afca65`](https://github.com/gradio-app/gradio/commit/2afca6541912b37dc84f447c7ad4af21607d7c72))
+
+We have added a `max_file_size` size parameter to `launch()` that limits to size of files uploaded to the server. This limit applies to each individual file. This parameter can be specified as a string or an integer (corresponding to the size in bytes).
+
+The following code snippet sets a max file size of 5 megabytes.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
+
+![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
+
+
+#### Error states can now be cleared
+
+When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
+
+![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
+
+ Thanks @freddyaboulton!
+
+### Features
+
+- [#8100](https://github.com/gradio-app/gradio/pull/8100) [`cbdfbdf`](https://github.com/gradio-app/gradio/commit/cbdfbdfc973fa67665911fb5d8cb005a025b0e58) - upgrade `ruff` test dependency to `ruff==0.4.1`.  Thanks @abidlabs!
+
+## 0.15.1
+
+### Features
+
+- [#7850](https://github.com/gradio-app/gradio/pull/7850) [`2bae1cf`](https://github.com/gradio-app/gradio/commit/2bae1cfbd41ed8ae3eea031a64899611a22a1821) - Adds an "API Recorder" to the view API page, some internal methods have been made async.  Thanks @abidlabs!
+
+## 0.15.0
+
+### Highlights
+
+#### Automatically delete state after user has disconnected from the webpage ([#7829](https://github.com/gradio-app/gradio/pull/7829) [`6a4bf7a`](https://github.com/gradio-app/gradio/commit/6a4bf7abe29059dbdc6a342e0366fdaa2e4120ee))
+
+Gradio now automatically deletes `gr.State` variables stored in the server's RAM when users close their browser tab.
+The deletion will happen 60 minutes after the server detected a disconnect from the user's browser.
+If the user connects again in that timeframe, their state will not be deleted.
+
+Additionally, Gradio now includes a `Blocks.unload()` event, allowing you to run arbitrary cleanup functions when users disconnect (this does not have a 60 minute delay).
+You can think of the `unload` event as the opposite of the `load` event.
+
+
+```python
+with gr.Blocks() as demo:
+    gr.Markdown(
+"""# State Cleanup Demo
+🖼️ Images are saved in a user-specific directory and deleted when the users closes the page via demo.unload.
+""")
+    with gr.Row():
+        with gr.Column(scale=1):
+            with gr.Row():
+                img = gr.Image(label="Generated Image", height=300, width=300)
+            with gr.Row():
+                gen = gr.Button(value="Generate")
+            with gr.Row():
+                history = gr.Gallery(label="Previous Generations", height=500, columns=10)
+                state = gr.State(value=[], delete_callback=lambda v: print("STATE DELETED"))
+
+    demo.load(generate_random_img, [state], [img, state, history]) 
+    gen.click(generate_random_img, [state], [img, state, history])
+    demo.unload(delete_directory)
+
+
+demo.launch(auth=lambda user,pwd: True,
+            auth_message="Enter any username and password to continue")
+```
+
+ Thanks @freddyaboulton!
+
+### Fixes
+
+- [#7888](https://github.com/gradio-app/gradio/pull/7888) [`946487c`](https://github.com/gradio-app/gradio/commit/946487cf8e477cbf8d6fad4e772ff574a21782c3) - Cache view_api info in server and python client.  Thanks @freddyaboulton!
+
+## 0.14.0
+
+### Features
+
+- [#7800](https://github.com/gradio-app/gradio/pull/7800) [`b0a3ea9`](https://github.com/gradio-app/gradio/commit/b0a3ea951c06d4f3ff2755b567629fe988a3e30d) - Small fix to client.view_api() in the case of default file values.  Thanks @abidlabs!
+- [#7732](https://github.com/gradio-app/gradio/pull/7732) [`2efb05e`](https://github.com/gradio-app/gradio/commit/2efb05ed99a8a3575aab0a6c14a8d8b91f4e9ed7) - Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page.  Thanks @abidlabs!
+
+## 0.13.0
+
+### Features
+
+- [#7691](https://github.com/gradio-app/gradio/pull/7691) [`84f81fe`](https://github.com/gradio-app/gradio/commit/84f81fec9287b041203a141bbf2852720f7d199c) - Closing stream from the backend.  Thanks @aliabid94!
+
+### Fixes
+
+- [#7718](https://github.com/gradio-app/gradio/pull/7718) [`6390d0b`](https://github.com/gradio-app/gradio/commit/6390d0bf6c2be0aefa56102dd029f25161bfebc3) - Add support for python client connecting to gradio apps running with self-signed SSL certificates.  Thanks @abidlabs!
+- [#7706](https://github.com/gradio-app/gradio/pull/7706) [`bc61ff6`](https://github.com/gradio-app/gradio/commit/bc61ff6b1603eedf3111f1b5c3d2751629902d98) - Several fixes to `gr.load`.  Thanks @abidlabs!
+
+## 0.12.0
+
+### Fixes
+
+- [#7575](https://github.com/gradio-app/gradio/pull/7575) [`d0688b3`](https://github.com/gradio-app/gradio/commit/d0688b3c25feabb4fc7dfa0ab86086b3af7eb337) - Files should now be supplied as `file(...)` in the Client, and some fixes to `gr.load()` as well.  Thanks @abidlabs!
+- [#7618](https://github.com/gradio-app/gradio/pull/7618) [`0ae1e44`](https://github.com/gradio-app/gradio/commit/0ae1e4486c06e06bb7a4bad45d58d14f1f8d1b94) - Control which files get moved to cache with gr.set_static_paths.  Thanks @freddyaboulton!
+
+## 0.11.0
+
+### Features
+
+- [#7407](https://github.com/gradio-app/gradio/pull/7407) [`375bfd2`](https://github.com/gradio-app/gradio/commit/375bfd28d2def576b4e1c12e0a60127b7419e826) - Fix server_messages.py to use the patched BaseModel class for Wasm env.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
+### Fixes
+
+- [#7555](https://github.com/gradio-app/gradio/pull/7555) [`fc4c2db`](https://github.com/gradio-app/gradio/commit/fc4c2dbd994c49e37296978da1cb85e424080d1c) - Allow Python Client to upload/download files when connecting to Gradio apps with auth enabled.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.10.1
+
+### Features
+
+- [#7495](https://github.com/gradio-app/gradio/pull/7495) [`ddd4d3e`](https://github.com/gradio-app/gradio/commit/ddd4d3e4d3883fb7540d1df240fb08202fc77705) - Enable Ruff S101.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7443](https://github.com/gradio-app/gradio/pull/7443) [`b7a97f2`](https://github.com/gradio-app/gradio/commit/b7a97f29b84a72678a717db03d2932ed6caae6ce) - Update `httpx` to `httpx>=0.24.1` in `requirements.txt`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.10.0
 
 ### Features

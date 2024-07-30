@@ -8,6 +8,7 @@
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
 	import type {
 		Headers,
@@ -21,8 +22,7 @@
 	export let label: string | null = null;
 	export let show_label = true;
 	export let headers: Headers = [];
-	let values: (string | number)[][];
-	export let value: { data: Data; headers: Headers; metadata: Metadata } | null;
+	export let values: (string | number)[][] = [];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -39,22 +39,13 @@
 	export let height = 500;
 	export let line_breaks = true;
 	export let column_widths: string[] = [];
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream"];
 
 	let selected: false | [number, number] = false;
-	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
-	let styling: string[][] | null = value?.metadata?.styling ?? null;
+	export let display_value: string[][] | null = null;
+	export let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
-
-	$: {
-		if (value) {
-			headers = value.headers;
-			values = value.data;
-			display_value = value?.metadata?.display_value ?? null;
-			styling = value?.metadata?.styling ?? null;
-		} else if (values === null) {
-			values = [];
-		}
-	}
 
 	const dispatch = createEventDispatcher<{
 		change: {
@@ -69,6 +60,7 @@
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
+
 	$: {
 		if (selected !== false) {
 			const [row, col] = selected;
@@ -77,6 +69,7 @@
 			}
 		}
 	}
+
 	let els: Record<
 		string,
 		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
@@ -87,6 +80,7 @@
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
 	}
+
 	function make_headers(_head: Headers): HeadersWithIDs {
 		let _h = _head || [];
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
@@ -105,6 +99,7 @@
 					return { id: _id, value: JSON.stringify(i + 1) };
 				});
 		}
+
 		return _h.map((h, i) => {
 			const _id = make_id();
 			els[_id] = { cell: null, input: null };
@@ -121,8 +116,8 @@
 			row_count[1] === "fixed"
 				? row_count[0]
 				: data_row_length < row_count[0]
-				? row_count[0]
-				: data_row_length
+					? row_count[0]
+					: data_row_length
 		)
 			.fill(0)
 			.map((_, i) =>
@@ -130,8 +125,8 @@
 					col_count[1] === "fixed"
 						? col_count[0]
 						: data_row_length > 0
-						? _values[0].length
-						: headers.length
+							? _values[0].length
+							: headers.length
 				)
 					.fill(0)
 					.map((_, j) => {
@@ -157,7 +152,9 @@
 		_headers = make_headers(headers);
 
 		old_headers = headers.slice();
+		trigger_change();
 	}
+
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
 		old_val = values as (string | number)[][];
@@ -167,7 +164,7 @@
 
 	let old_val: undefined | (string | number)[][] = undefined;
 
-	$: _headers &&
+	async function trigger_change(): Promise<void> {
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
 			headers: _headers.map((h) => h.value),
@@ -175,6 +172,7 @@
 				? null
 				: { display_value: display_value, styling: styling }
 		});
+	}
 
 	function get_sort_status(
 		name: string,
@@ -424,6 +422,8 @@
 		data = data;
 		selected = [index ? index + 1 : data.length - 1, 0];
 	}
+
+	$: data && trigger_change();
 
 	async function add_col(): Promise<void> {
 		parent.focus();
@@ -725,6 +725,8 @@
 			</tbody>
 		</table>
 		<Upload
+			{upload}
+			{stream_handler}
 			flex={false}
 			center={false}
 			boundedheight={false}
@@ -1051,5 +1053,9 @@
 
 	.row_odd.focus {
 		background: var(--background-fill-primary);
+	}
+
+	table {
+		border-collapse: separate;
 	}
 </style>

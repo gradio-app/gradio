@@ -1,5 +1,191 @@
 # @gradio/markdown
 
+## 0.9.0
+
+### Features
+
+- [#8851](https://github.com/gradio-app/gradio/pull/8851) [`914b193`](https://github.com/gradio-app/gradio/commit/914b1935de27c3b379ac9e759b6d10747e3b881a) - Add copy button to `gr.Markdown`.  Thanks @hannahblair!
+
+### Fixes
+
+- [#8822](https://github.com/gradio-app/gradio/pull/8822) [`3a81fb2`](https://github.com/gradio-app/gradio/commit/3a81fb2578c6f73607c4e240d228dccb69153e0a) - Latex Rendering Fix.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.7.2
+- @gradio/atoms@0.7.7
+
+## 0.8.1
+
+### Fixes
+
+- [#8658](https://github.com/gradio-app/gradio/pull/8658) [`0482453`](https://github.com/gradio-app/gradio/commit/0482453fd5815446c8efa21bfbba0b00d6e4113d) - Chatbot LaTeX Crash Fix.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+
+## 0.8.0
+
+### Features
+
+- [#8528](https://github.com/gradio-app/gradio/pull/8528) [`2b0c157`](https://github.com/gradio-app/gradio/commit/2b0c1577b27fcf30920196f815ec7be604893b19) - Added an optional `height` and overflow scrollbar for the Markdown Component.  Thanks @ShruAgarwal!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/statustracker@0.7.0
+
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
+## 0.7.5
+
+### Features
+
+- [#8311](https://github.com/gradio-app/gradio/pull/8311) [`35905c5`](https://github.com/gradio-app/gradio/commit/35905c5c8f7acbe669486ac8f57b6955328e4783) - Cleanup markdown styling.  Thanks @aliabid94!
+
+### Fixes
+
+- [#8339](https://github.com/gradio-app/gradio/pull/8339) [`4dc7fa7`](https://github.com/gradio-app/gradio/commit/4dc7fa7cd7f514224686b891299e46533edffd66) - Fix Chatbot, Dataframe, Markdown custom components.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/statustracker@0.5.5
+
+## 0.7.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.4
+
+## 0.7.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.3
+
+## 0.7.2
+
+### Features
+
+- [#8226](https://github.com/gradio-app/gradio/pull/8226) [`892181b`](https://github.com/gradio-app/gradio/commit/892181b4fdb13dd6048a620dd985d47bc3c26ed7) - chore(deps): update dependency @types/prismjs to v1.26.4.  Thanks @renovate!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/utils@0.4.1
+- @gradio/statustracker@0.5.1
+
+## 0.7.0
+
+### Highlights
+
+#### Setting File Upload Limits ([#7909](https://github.com/gradio-app/gradio/pull/7909) [`2afca65`](https://github.com/gradio-app/gradio/commit/2afca6541912b37dc84f447c7ad4af21607d7c72))
+
+We have added a `max_file_size` size parameter to `launch()` that limits to size of files uploaded to the server. This limit applies to each individual file. This parameter can be specified as a string or an integer (corresponding to the size in bytes).
+
+The following code snippet sets a max file size of 5 megabytes.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
+
+![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
+
+
+#### Error states can now be cleared
+
+When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
+
+![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
+
+ Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/statustracker@0.5.0
+- @gradio/utils@0.4.0
+
+## 0.6.10
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+- @gradio/atoms@0.7.0
+
+## 0.6.9
+
+### Features
+
+- [#7936](https://github.com/gradio-app/gradio/pull/7936) [`b165193`](https://github.com/gradio-app/gradio/commit/b165193902985b77a732ed703423ebebeaf0da27) - Restore Markdown formatting for Chatbots, MarkdownCode.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+
+## 0.6.8
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+
+## 0.6.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.4.9
+- @gradio/atoms@0.6.0
+
+## 0.6.6
+
+### Fixes
+
+- [#7623](https://github.com/gradio-app/gradio/pull/7623) [`c9aba8d`](https://github.com/gradio-app/gradio/commit/c9aba8d8a5886ef6456479154a14c69188c20413) - Fixes: gr.Markdown is not updated properly when it has an image tag.  Thanks @dawoodkhan82!
+
+## 0.6.5
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89)]:
+  - @gradio/statustracker@0.4.8
+
 ## 0.6.4
 
 ### Patch Changes

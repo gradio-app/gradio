@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, afterUpdate, tick } from "svelte";
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
-	import type { FileData } from "@gradio/client";
+	import type { FileData, Client } from "@gradio/client";
 	import { Video, Download } from "@gradio/icons";
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { DownloadLink } from "@gradio/wasm/svelte";
@@ -16,7 +16,9 @@
 	export let autoplay: boolean;
 	export let show_share_button = true;
 	export let show_download_button = true;
+	export let loop: boolean;
 	export let i18n: I18nFormatter;
+	export let upload: Client["upload"];
 
 	let old_value: FileData | null = null;
 	let old_subtitle: FileData | null = null;
@@ -61,9 +63,12 @@
 			on:pause
 			on:stop
 			on:end
+			on:load
 			mirror={false}
 			{label}
+			{loop}
 			interactive={false}
+			{upload}
 		/>
 	{/key}
 	<div class="icon-buttons" data-testid="download-div">

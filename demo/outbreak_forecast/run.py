@@ -7,7 +7,6 @@ import numpy as np
 import plotly.express as px
 import pandas as pd
 
-
 def outbreak(plot_type, r, month, countries, social_distancing):
     months = ["January", "February", "March", "April", "May"]
     m = months.index(month)
@@ -39,11 +38,10 @@ def outbreak(plot_type, r, month, countries, social_distancing):
         return fig
     elif plot_type == "Altair":
         df = df.melt(id_vars="day").rename(columns={"variable": "country"})
-        fig = altair.Chart(df).mark_line().encode(x="day", y='value', color='country')
+        fig = altair.Chart(df).mark_line().encode(x="day", y="value", color="country")
         return fig
     else:
         raise ValueError("A plot type must be selected")
-
 
 inputs = [
     gr.Dropdown(["Matplotlib", "Plotly", "Altair"], label="Plot Type"),
@@ -70,6 +68,3 @@ demo = gr.Interface(
 
 if __name__ == "__main__":
     demo.launch()
-
-
-

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Error, Info, Warning } from "@gradio/icons";
+	import DOMPurify from "dompurify";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { fade } from "svelte/transition";
 	import type { ToastMessage } from "./types";
@@ -7,6 +8,30 @@
 	export let message = "";
 	export let type: ToastMessage["type"];
 	export let id: number;
+	export let duration: number | null = 10;
+	export let visible = true;
+
+	const is_external_url = (link: string | null): boolean => {
+		try {
+			return !!link && new URL(link, location.href).origin !== location.origin;
+		} catch (e) {
+			return false;
+		}
+	};
+
+	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
+		if ("target" in node) {
+			if (is_external_url(node.getAttribute("href"))) {
+				node.setAttribute("target", "_blank");
+				node.setAttribute("rel", "noopener noreferrer");
+			}
+		}
+	});
+
+	$: message = DOMPurify.sanitize(message);
+
+	$: display = visible;
+	$: duration = duration || null;
 
 	const dispatch = createEventDispatcher();
 
@@ -15,10 +40,14 @@
 	}
 
 	onMount(() => {
-		setTimeout(() => {
-			close_message();
-		}, 10000);
+		if (duration !== null) {
+			setTimeout(() => {
+				close_message();
+			}, duration * 1000);
+		}
 	});
+
+	$: timer_animation_duration = `${duration || 0}s`;
 </script>
 
 <!-- TODO: fix-->
@@ -27,6 +56,7 @@
 	class="toast-body {type}"
 	role="alert"
 	data-testid="toast-body"
+	class:hidden={!display}
 	on:click|stopPropagation
 	on:keydown|stopPropagation
 	in:fade={{ duration: 200, delay: 100 }}
@@ -45,7 +75,7 @@
 	<div class="toast-details {type}">
 		<div class="toast-title {type}">{type}</div>
 		<div class="toast-text {type}">
-			{message}
+			{@html message}
 		</div>
 	</div>
 
@@ -59,7 +89,10 @@
 		<span aria-hidden="true">&#215;</span>
 	</button>
 
-	<div class="timer {type}" />
+	<div
+		class="timer {type}"
+		style={`animation-duration: ${timer_animation_duration};`}
+	/>
 </div>
 
 <style>
@@ -274,5 +307,13 @@
 
 	:global(.dark) .timer.info {
 		background: var(--color-grey-500);
+	}
+
+	.hidden {
+		display: none;
+	}
+
+	.toast-text :global(a) {
+		text-decoration: underline;
 	}
 </style>

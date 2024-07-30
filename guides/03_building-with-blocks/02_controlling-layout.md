@@ -13,11 +13,11 @@ with gr.Blocks() as demo:
         btn2 = gr.Button("Button 2")
 ```
 
-To make every element in a Row have the same height, use the `equal_height` argument of the `style` method.
+By default, every element in a Row will have the same height. Configure this with the `equal_height` argument.
 
 ```python
 with gr.Blocks() as demo:
-    with gr.Row(equal_height=True):
+    with gr.Row(equal_height=False):
         textbox = gr.Textbox()
         btn2 = gr.Button("Button 2")
 ```
@@ -49,9 +49,23 @@ See how the first column has two Textboxes arranged vertically. The second colum
 
 Learn more about Columns in the [docs](https://gradio.app/docs/column).
 
-# Dimensions
+# Fill Browser Height / Width
 
-You can control the height and width of various components, where the parameters are available. These parameters accept either a number (interpreted as pixels) or a string. Using a string allows the direct application of any CSS unit to the encapsulating Block element, catering to more specific design requirements. When omitted, Gradio uses default dimensions suited for most use cases.
+To make an app take the full width of the browser by removing the side padding, use `gr.Blocks(fill_width=True)`. 
+
+To make top level Components expand to take the full height of the browser, use `fill_height` and apply scale to the expanding Components.
+
+```python
+import gradio as gr
+
+with gr.Blocks(fill_height=True) as demo:
+    gr.Chatbot(scale=1)
+    gr.Textbox(scale=0)
+```
+
+## Dimensions
+
+Some components support setting height and width. These parameters accept either a number (interpreted as pixels) or a string. Using a string allows the direct application of any CSS unit to the encapsulating Block element.
 
 Below is an example illustrating the use of viewport width (vw):
 
@@ -59,37 +73,10 @@ Below is an example illustrating the use of viewport width (vw):
 import gradio as gr
 
 with gr.Blocks() as demo:
-    im = gr.ImageEditor(
-        width="50vw",
-    )
+    im = gr.ImageEditor(width="50vw")
 
 demo.launch()
 ```
-
-When using percentage values for dimensions, you may want to define a parent component with an absolute unit (e.g. `px` or `vw`). This approach ensures that child components with relative dimensions are sized appropriately:
-
-
-```python
-import gradio as gr
-
-css = """
-.container {
-    height: 100vh;
-}
-"""
-
-with gr.Blocks(css=css) as demo:
-    with gr.Column(elem_classes=["container"]):
-        name = gr.Chatbot(value=[["1", "2"]], height="70%")
-
-demo.launch()
-```
-
-In this example, the Column layout component is given a height of 100% of the viewport height (100vh), and the Chatbot component inside it takes up 70% of the Column's height.
-
-You can apply any valid CSS unit for these parameters. For a comprehensive list of CSS units, refer to [this guide](https://www.w3schools.com/cssref/css_units.php). We recommend you always consider responsiveness and test your interfaces on various screen sizes to ensure a consistent user experience.
-
-
 
 ## Tabs and Accordions
 
@@ -110,15 +97,6 @@ Both Components and Layout elements have a `visible` argument that can set initi
 
 $code_blocks_form
 $demo_blocks_form
-
-## Variable Number of Outputs
-
-By adjusting the visibility of components in a dynamic way, it is possible to create
-demos with Gradio that support a _variable numbers of outputs_. Here's a very simple example
-where the number of output textboxes is controlled by an input slider:
-
-$code_variable_outputs
-$demo_variable_outputs
 
 ## Defining and Rendering Components Separately
 

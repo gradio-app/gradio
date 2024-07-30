@@ -6,7 +6,7 @@
 	export let type: "gallery" | "table";
 	export let selected = false;
 	export let value: { video: FileData; subtitles: FileData | null } | null;
-	export let samples_dir: string;
+	export let loop: boolean;
 	let video: HTMLVideoElement;
 
 	async function init(): Promise<void> {
@@ -35,7 +35,8 @@
 				on:loadeddata={init}
 				on:mouseover={video.play.bind(video)}
 				on:mouseout={video.pause.bind(video)}
-				src={samples_dir + value?.video.path}
+				src={value?.video.url}
+				{loop}
 			/>
 		</div>
 	{:else}

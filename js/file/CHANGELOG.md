@@ -1,5 +1,293 @@
 # @gradio/file
 
+## 0.9.0
+
+### Features
+
+- [#8803](https://github.com/gradio-app/gradio/pull/8803) [`e1a4040`](https://github.com/gradio-app/gradio/commit/e1a404093cfaf9d8f2a92bc1d28fb6aa254848d1) - Ensure all upload components have consistent upload regions.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/wasm@0.12.0
+- @gradio/client@1.4.0
+- @gradio/statustracker@0.7.2
+- @gradio/upload@0.12.0
+- @gradio/atoms@0.7.7
+
+## 0.8.5
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/client@1.3.0
+- @gradio/upload@0.11.5
+- @gradio/icons@0.6.0
+
+## 0.8.4
+
+### Fixes
+
+- [#8608](https://github.com/gradio-app/gradio/pull/8608) [`c12f82a`](https://github.com/gradio-app/gradio/commit/c12f82a36dc75ff30918dc2ce5f24e583b676f22) - Bugfix: Add a `file_count` parameter to `gr.MultimodalTextbox`. Multiple files cab be uploaded by setting `file_count="multiple"`. Default is `"single"` to preserve the previous behavior.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/upload@0.11.4
+- @gradio/client@1.2.1
+
+## 0.8.3
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/icons@0.5.0
+- @gradio/wasm@0.11.0
+- @gradio/client@1.2.0
+- @gradio/statustracker@0.7.0
+- @gradio/upload@0.11.3
+
+## 0.8.2
+
+### Dependency updates
+
+- @gradio/client@1.1.1
+- @gradio/upload@0.11.2
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/upload@0.11.1
+- @gradio/client@1.1.0
+
+## 0.8.0
+
+### Features
+
+- [#8417](https://github.com/gradio-app/gradio/pull/8417) [`96d8de2`](https://github.com/gradio-app/gradio/commit/96d8de231270321da5f310768643363276df3204) - add delete event to `File` component.  Thanks @pngwn!
+
+### Fixes
+
+- [#8451](https://github.com/gradio-app/gradio/pull/8451) [`9d2d605`](https://github.com/gradio-app/gradio/commit/9d2d6051caed5c8749a26a6fa7480a5ae6e6c4f3) - Change client submit API to be an AsyncIterable and support more platforms.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+- @gradio/client@1.0.0
+- @gradio/upload@0.11.0
+
+## 0.7.7
+
+### Dependency updates
+
+- @gradio/upload@0.10.7
+- @gradio/client@0.20.1
+
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/client@0.20.0
+- @gradio/statustracker@0.6.0
+- @gradio/upload@0.10.6
+
+## 0.7.5
+
+### Fixes
+
+- [#8334](https://github.com/gradio-app/gradio/pull/8334) [`0236b1a`](https://github.com/gradio-app/gradio/commit/0236b1ab12149ddd11b03e1382ceb09d19ac0d48) - fix: prevent triggering gr.File.select on delete.  Thanks @gtm-nayan!
+- [#8341](https://github.com/gradio-app/gradio/pull/8341) [`82ba397`](https://github.com/gradio-app/gradio/commit/82ba3975921760c727875948fb7275c2f5f9ea2b) - add missing orig_name (follow up to #8334).  Thanks @gtm-nayan!
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/statustracker@0.5.5
+- @gradio/upload@0.10.5
+- @gradio/client@0.19.4
+
+## 0.7.4
+
+### Dependency updates
+
+- @gradio/client@0.19.3
+- @gradio/statustracker@0.5.4
+- @gradio/upload@0.10.4
+
+## 0.7.3
+
+### Dependency updates
+
+- @gradio/upload@0.10.3
+- @gradio/client@0.19.2
+
+## 0.7.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.3
+- @gradio/client@0.19.1
+- @gradio/upload@0.10.2
+
+## 0.7.1
+
+### Fixes
+
+- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+- @gradio/client@0.19.0
+- @gradio/icons@0.4.1
+- @gradio/upload@0.10.1
+
+## 0.7.0
+
+### Features
+
+- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`.  Thanks @hannahblair!
+
+### Fixes
+
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/client@0.18.0
+- @gradio/upload@0.10.0
+- @gradio/utils@0.4.1
+- @gradio/wasm@0.10.1
+- @gradio/statustracker@0.5.1
+
+## 0.6.0
+
+### Highlights
+
+#### Setting File Upload Limits ([#7909](https://github.com/gradio-app/gradio/pull/7909) [`2afca65`](https://github.com/gradio-app/gradio/commit/2afca6541912b37dc84f447c7ad4af21607d7c72))
+
+We have added a `max_file_size` size parameter to `launch()` that limits to size of files uploaded to the server. This limit applies to each individual file. This parameter can be specified as a string or an integer (corresponding to the size in bytes).
+
+The following code snippet sets a max file size of 5 megabytes.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
+
+![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
+
+
+#### Error states can now be cleared
+
+When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
+
+![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
+
+ Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/client@0.17.0
+- @gradio/statustracker@0.5.0
+- @gradio/upload@0.9.0
+- @gradio/utils@0.4.0
+
+## 0.5.12
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+- @gradio/client@0.16.0
+- @gradio/upload@0.8.5
+- @gradio/atoms@0.7.0
+- @gradio/icons@0.4.0
+
+## 0.5.11
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+- @gradio/upload@0.8.4
+- @gradio/client@0.15.1
+
+## 0.5.10
+
+### Dependency updates
+
+- @gradio/upload@0.8.3
+- @gradio/client@0.15.0
+
+## 0.5.9
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+
+## 0.5.8
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/statustracker@0.4.9
+- @gradio/wasm@0.10.0
+- @gradio/atoms@0.6.0
+
+## 0.5.7
+
+### Dependency updates
+
+- @gradio/client@0.14.0
+- @gradio/upload@0.8.0
+- @gradio/wasm@0.9.0
+
+## 0.5.6
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+- @gradio/wasm@0.8.0
+
+## 0.5.5
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+
+## 0.5.4
+
+### Fixes
+
+- [#7559](https://github.com/gradio-app/gradio/pull/7559) [`26356a6`](https://github.com/gradio-app/gradio/commit/26356a623c4196f48ca236d973a597831743cdb8) - Fixes: Invalid file_type breaks drag and drop. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+## 0.5.3
+
+### Fixes
+
+- [#7507](https://github.com/gradio-app/gradio/pull/7507) [`9c36572`](https://github.com/gradio-app/gradio/commit/9c36572e32aeec6e6352a861dfea6ee0f9a15e79) - Quick fix: File height overflow. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.5.2
 
 ### Patch Changes

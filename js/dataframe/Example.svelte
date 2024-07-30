@@ -1,53 +1,11 @@
 <script lang="ts">
-	import { csvParseRows, tsvParseRows } from "d3-dsv";
-	import type { Gradio } from "@gradio/utils";
-
-	export let gradio: Gradio;
 	export let value: (string | number)[][] | string;
-	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
 	export let index: number;
 
 	let hovered = false;
-	let loaded_value: (string | number)[][] | string = value;
-	let loaded = Array.isArray(loaded_value);
-
-	$: if (!loaded && typeof value === "string" && /\.[a-zA-Z]+$/.test(value)) {
-		fetch(samples_dir + value)
-			.then((v) => v.text())
-			.then((v) => {
-				try {
-					if ((value as string).endsWith("csv")) {
-						const small_df = v
-							.split("\n")
-							.slice(0, 4)
-							.map((v) => v.split(",").slice(0, 4).join(","))
-							.join("\n");
-
-						loaded_value = csvParseRows(small_df);
-					} else if ((value as string).endsWith("tsv")) {
-						const small_df = v
-							.split("\n")
-							.slice(0, 4)
-							.map((v) => v.split("\t").slice(0, 4).join("\t"))
-							.join("\n");
-
-						loaded_value = tsvParseRows(small_df);
-					} else {
-						throw new Error(gradio.i18n("dataframe.incorrect_format"));
-					}
-
-					loaded = true;
-				} catch (e) {
-					console.error(e);
-				}
-			})
-			.catch((e) => {
-				loaded_value = value;
-				loaded = true;
-			});
-	}
+	let loaded = Array.isArray(value);
 </script>
 
 {#if loaded}
@@ -60,11 +18,11 @@
 		on:mouseenter={() => (hovered = true)}
 		on:mouseleave={() => (hovered = false)}
 	>
-		{#if typeof loaded_value === "string"}
-			{loaded_value}
+		{#if typeof value === "string"}
+			{value}
 		{:else}
 			<table class="">
-				{#each loaded_value.slice(0, 3) as row, i}
+				{#each value.slice(0, 3) as row, i}
 					<tr>
 						{#each row.slice(0, 3) as cell, j}
 							<td>{cell}</td>

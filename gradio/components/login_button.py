@@ -1,15 +1,20 @@
 """Predefined button to sign in with Hugging Face in a Gradio Space."""
+
 from __future__ import annotations
 
 import json
+import time
 import warnings
-from typing import Literal
+from typing import TYPE_CHECKING, Literal, Sequence
 
 from gradio_client.documentation import document
 
-from gradio.components import Button
-from gradio.context import Context
+from gradio.components import Button, Component
+from gradio.context import get_blocks_context
 from gradio.routes import Request
+
+if TYPE_CHECKING:
+    from gradio.components import Timer
 
 
 @document()
@@ -25,7 +30,8 @@ class LoginButton(Button):
         value: str = "Sign in with Hugging Face",
         logout_value: str = "Logout ({})",
         *,
-        every: float | None = None,
+        every: Timer | float | None = None,
+        inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
         icon: str
@@ -36,6 +42,7 @@ class LoginButton(Button):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         scale: int | None = 0,
         min_width: int | None = None,
         signed_in_value: str = "Signed in as {}",
@@ -52,6 +59,7 @@ class LoginButton(Button):
         super().__init__(
             value,
             every=every,
+            inputs=inputs,
             variant=variant,
             size=size,
             icon=icon,
@@ -61,10 +69,11 @@ class LoginButton(Button):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             scale=scale,
             min_width=min_width,
         )
-        if Context.root_block:
+        if get_blocks_context():
             self.activate()
         else:
             warnings.warn(
@@ -87,30 +96,32 @@ class LoginButton(Button):
         session = getattr(request, "session", None) or getattr(
             request.request, "session", None
         )
+
         if session is None or "oauth_info" not in session:
-            return LoginButton(value=self.value, interactive=True)  # type: ignore
-        else:
-            username = session["oauth_info"]["userinfo"]["preferred_username"]
-            logout_text = self.logout_value.format(username)
-            return LoginButton(logout_text, interactive=True)
+            # Cookie set but user not logged in
+            return LoginButton(self.value, interactive=True)
+
+        oauth_info = session["oauth_info"]
+        expires_at = oauth_info.get("expires_at")
+        if expires_at is not None and expires_at < time.time():
+            # User is logged in but token has expired => logout
+            session.pop("oauth_info", None)
+            return LoginButton(self.value, interactive=True)
+
+        # User is correctly logged in
+        username = oauth_info["userinfo"]["preferred_username"]
+        return LoginButton(self.logout_value.format(username), interactive=True)
 
 
 # JS code to redirects to /login/huggingface if user is not logged in.
-# If the app is opened in an iframe, open the login page in a new tab.
-# Otherwise, redirects locally. Taken from https://stackoverflow.com/a/61596084.
-# If user is logged in, redirect to logout page (always in-place).
+# If user is logged in, redirect to /logout page. Always happens
+# on the same tab.
 _js_handle_redirect = """
 (buttonValue) => {
-    if (buttonValue === BUTTON_DEFAULT_VALUE) {
-        url = '/login/huggingface' + window.location.search;
-        if ( window !== window.parent ) {
-            window.open(url, '_blank');
-        } else {
-            window.location.assign(url);
-        }
-    } else {
-        url = '/logout' + window.location.search
-        window.location.assign(url);
-    }
+    uri = buttonValue === BUTTON_DEFAULT_VALUE ? '/login/huggingface' : '/logout';
+    window.parent?.postMessage({ type: "SET_SCROLLING", enabled: true }, "*");
+    setTimeout(() => {
+        window.location.assign(uri + window.location.search);
+    }, 500);
 }
 """

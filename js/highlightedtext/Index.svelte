@@ -16,6 +16,7 @@
 	export let gradio: Gradio<{
 		select: SelectData;
 		change: never;
+		clear_status: LoadingStatus;
 	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -26,6 +27,7 @@
 	}[];
 	let old_value: typeof value;
 	export let show_legend: boolean;
+	export let show_inline_category: boolean;
 	export let color_map: Record<string, string> = {};
 	export let label = gradio.i18n("highlighted_text.highlighted_text");
 	export let container = true;
@@ -69,6 +71,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 		{#if label}
 			<BlockLabel
@@ -85,6 +88,7 @@
 				selectable={_selectable}
 				{value}
 				{show_legend}
+				{show_inline_category}
 				{color_map}
 			/>
 		{:else}
@@ -109,6 +113,7 @@
 			autoscroll={gradio.autoscroll}
 			{...loading_status}
 			i18n={gradio.i18n}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 		{#if label}
 			<BlockLabel

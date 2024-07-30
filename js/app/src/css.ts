@@ -1,3 +1,16 @@
+let supports_adopted_stylesheets = false;
+
+if (
+	"attachShadow" in Element.prototype &&
+	"adoptedStyleSheets" in Document.prototype
+) {
+	// Both Shadow DOM and adoptedStyleSheets are supported
+	const shadow_root_test = document
+		.createElement("div")
+		.attachShadow({ mode: "open" });
+	supports_adopted_stylesheets = "adoptedStyleSheets" in shadow_root_test;
+}
+
 export function mount_css(url: string, target: HTMLElement): Promise<void> {
 	const base = new URL(import.meta.url).origin;
 	const _url = new URL(url, base).href;
@@ -23,7 +36,8 @@ export function prefix_css(
 	string: string,
 	version: string,
 	style_element = document.createElement("style")
-): HTMLStyleElement {
+): HTMLStyleElement | null {
+	if (!supports_adopted_stylesheets) return null;
 	style_element.remove();
 
 	const stylesheet = new CSSStyleSheet();

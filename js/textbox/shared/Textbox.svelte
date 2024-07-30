@@ -142,8 +142,8 @@
 			max_lines === undefined
 				? false
 				: max_lines === undefined // default
-				? 21 * 11
-				: 21 * (max_lines + 1);
+					? 21 * 11
+					: 21 * (max_lines + 1);
 		let min = 21 * (lines + 1);
 
 		const target = event.target as HTMLTextAreaElement;

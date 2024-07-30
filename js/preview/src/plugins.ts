@@ -1,10 +1,9 @@
 import type { Plugin, PluginOption } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import { transform } from "sucrase";
-import { viteCommonjs } from "@originjs/vite-plugin-commonjs";
-import sucrase from "@rollup/plugin-sucrase";
-import { createLogger } from "vite";
+import preprocess from "svelte-preprocess";
 import { join } from "path";
+import { type ComponentConfig } from "./dev";
+import type { Preprocessor, PreprocessorGroup } from "svelte/compiler";
 
 const svelte_codes_to_ignore: Record<string, string> = {
 	"reactive-component": "Icon"
@@ -13,46 +12,56 @@ const svelte_codes_to_ignore: Record<string, string> = {
 const RE_SVELTE_IMPORT =
 	/import\s+([\w*{},\s]+)\s+from\s+['"](svelte|svelte\/internal)['"]/g;
 const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
-export const plugins: PluginOption[] = [
-	viteCommonjs() as Plugin,
-	svelte({
-		onwarn(warning, handler) {
-			if (
-				svelte_codes_to_ignore.hasOwnProperty(warning.code) &&
-				svelte_codes_to_ignore[warning.code] &&
-				warning.message.includes(svelte_codes_to_ignore[warning.code])
-			) {
-				return;
+export function plugins(config: ComponentConfig): PluginOption[] {
+	const _additional_plugins = config.plugins || [];
+	const _additional_svelte_preprocess = config.svelte?.preprocess || [];
+	const _svelte_extensions = (config.svelte?.extensions || [".svelte"]).map(
+		(ext) => {
+			if (ext.trim().startsWith(".")) {
+				return ext;
 			}
-			handler!(warning);
-		},
-		prebundleSvelteLibraries: false,
-		hot: true,
-		compilerOptions: {
-			discloseVersion: false
-		},
-		preprocess: [
-			{
-				script: ({ attributes, filename, content }) => {
-					if (attributes.lang === "ts") {
-						const compiledCode = transform(content, {
-							transforms: ["typescript"],
-							keepUnusedImports: true
-						});
-						return {
-							code: compiledCode.code,
-							map: compiledCode.sourceMap
-						};
-					}
+			return `.${ext.trim()}`;
+		}
+	);
+
+	if (!_svelte_extensions.includes(".svelte")) {
+		_svelte_extensions.push(".svelte");
+	}
+
+	return [
+		svelte({
+			inspector: false,
+			onwarn(warning, handler) {
+				if (
+					svelte_codes_to_ignore.hasOwnProperty(warning.code) &&
+					svelte_codes_to_ignore[warning.code] &&
+					warning.message.includes(svelte_codes_to_ignore[warning.code])
+				) {
+					return;
 				}
-			}
-		]
-	}) as unknown as Plugin,
-	sucrase({
-		transforms: ["typescript"],
-		include: ["**/*.ts", "**/*.tsx"]
-	}) as unknown as Plugin
-];
+				handler!(warning);
+			},
+			prebundleSvelteLibraries: false,
+			hot: true,
+			compilerOptions: {
+				discloseVersion: false
+			},
+			extensions: _svelte_extensions,
+			preprocess: [
+				preprocess({
+					typescript: {
+						compilerOptions: {
+							declaration: false,
+							declarationMap: false
+						}
+					}
+				}),
+				...(_additional_svelte_preprocess as PreprocessorGroup[])
+			]
+		}),
+		..._additional_plugins
+	];
+}
 
 interface GradioPluginOptions {
 	mode: "dev" | "build";
@@ -67,6 +76,8 @@ export function make_gradio_plugin({
 	backend_port,
 	imports
 }: GradioPluginOptions): Plugin {
+	const v_id = "virtual:component-loader";
+	const resolved_v_id = "\0" + v_id;
 	return {
 		name: "gradio",
 		enforce: "pre",
@@ -88,12 +99,20 @@ export function make_gradio_plugin({
 			};
 		},
 		resolveId(id) {
+			if (id === v_id) {
+				return resolved_v_id;
+			}
 			if (
 				id !== "svelte" &&
 				id !== "svelte/internal" &&
 				id.startsWith("svelte/")
 			) {
 				return join(svelte_dir, "svelte-submodules.js");
+			}
+		},
+		load(id) {
+			if (id === resolved_v_id) {
+				return `export default {};`;
 			}
 		},
 		transformIndexHtml(html) {
@@ -105,7 +124,7 @@ export function make_gradio_plugin({
         window.__GRADIO__SERVER_PORT__ = ${backend_port};
         window.__GRADIO__CC__ = ${imports};`
 						}
-				  ]
+					]
 				: undefined;
 		}
 	};

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { afterNavigate } from "$app/navigation";
 	import Code from "@gradio/code";
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
@@ -8,6 +7,7 @@
 	import share from "$lib/assets/img/anchor_gray.svg";
 	import { svgCheck } from "$lib/assets/copy.js";
 	import { browser } from "$app/environment";
+	import { onMount } from "svelte";
 
 	export let demos: {
 		name: string;
@@ -33,11 +33,22 @@
 	let dummy_elem: any = { classList: { contains: () => false } };
 	let dummy_gradio: any = { dispatch: (_) => {} };
 
-	let requirements =
-		demos.find((demo) => demo.name === current_selection)?.requirements || [];
-	let code = demos.find((demo) => demo.name === current_selection)?.code || "";
+	function debounce<T extends any[]>(
+		func: (...args: T) => Promise<unknown>,
+		timeout: number
+	): (...args: T) => void {
+		let timer: any;
+		return function (...args: any) {
+			clearTimeout(timer);
+			timer = setTimeout(() => {
+				func(...args);
+			}, timeout);
+		};
+	}
 
-	afterNavigate(() => {
+	let debounced_run_code: Function | undefined;
+	let debounced_install: Function | undefined;
+	onMount(() => {
 		controller = createGradioApp({
 			target: document.getElementById("lite-demo"),
 			requirements: demos[0].requirements,
@@ -52,23 +63,15 @@
 			controlPageTitle: false,
 			appMode: true
 		});
+		const debounce_timeout = 1000;
+		debounced_run_code = debounce(controller.run_code, debounce_timeout);
+		debounced_install = debounce(controller.install, debounce_timeout);
+
 		mounted = true;
 	});
 
-	function update(code: string, requirements: string[]) {
-		try {
-			controller.run_code(code);
-			controller.install(requirements);
-		} catch (error) {
-			console.error(error);
-		}
-		controller.run_code(code);
-		controller.install(requirements);
-	}
-
-	let timeout: any;
-
 	let copied_link = false;
+	let shared = false;
 	async function copy_link(name: string) {
 		let code_b64 = btoa(code);
 		name = name.replaceAll(" ", "_");
@@ -76,28 +79,25 @@
 			`${$page.url.href.split("?")[0]}?demo=${name}&code=${code_b64}`
 		);
 		copied_link = true;
+		shared = true;
 		setTimeout(() => (copied_link = false), 2000);
 	}
 
 	$: code = demos.find((demo) => demo.name === current_selection)?.code || "";
 	$: requirements =
 		demos.find((demo) => demo.name === current_selection)?.requirements || [];
+	$: requirementsStr = JSON.stringify(requirements); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
 
 	$: if (mounted) {
-		if (timeout) {
-			clearTimeout(timeout);
-		}
-		timeout = setTimeout(() => {
-			update(code, requirements);
-		}, 1000);
+		debounced_run_code && debounced_run_code(code);
+	}
+	$: if (mounted) {
+		debounced_install && debounced_install(JSON.parse(requirementsStr));
 	}
 
 	let position = 0.5;
 
 	let fullscreen = false;
-	function make_full_screen() {
-		fullscreen = true;
-	}
 	let preview_width = 100;
 	let lg_breakpoint = false;
 
@@ -114,6 +114,34 @@
 				demo.code = atob(b64_code);
 			}
 		}
+	}
+
+	function show_dialog(
+		current_demos: typeof demos,
+		original_demos: typeof demos,
+		has_shared: boolean
+	) {
+		let changes =
+			!(JSON.stringify(current_demos) === JSON.stringify(original_demos)) &&
+			!has_shared;
+		if (browser) {
+			if (changes) {
+				window.onbeforeunload = function () {
+					return true;
+				};
+			} else {
+				window.onbeforeunload = function () {
+					return null;
+				};
+			}
+		}
+	}
+
+	let demos_copy: typeof demos = JSON.parse(JSON.stringify(demos));
+
+	$: show_dialog(demos, demos_copy, shared);
+	$: if (code) {
+		shared = false;
 	}
 </script>
 
@@ -162,6 +190,7 @@
 
 					<Code
 						bind:value={demos[i].code}
+						on:input={() => console.log("input")}
 						label=""
 						language="python"
 						target={dummy_elem}

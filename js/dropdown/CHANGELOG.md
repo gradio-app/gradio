@@ -1,39 +1,202 @@
 # @gradio/dropdown
 
+## 0.7.9
+
+### Dependency updates
+
+- @gradio/statustracker@0.7.2
+- @gradio/atoms@0.7.7
+
+## 0.7.8
+
+### Dependency updates
+
+- @gradio/atoms@0.7.6
+- @gradio/utils@0.5.1
+- @gradio/statustracker@0.7.1
+- @gradio/icons@0.6.0
+
+## 0.7.7
+
+### Dependency updates
+
+- @gradio/atoms@0.7.5
+- @gradio/utils@0.5.0
+- @gradio/icons@0.5.0
+- @gradio/statustracker@0.7.0
+
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
+## 0.7.5
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/statustracker@0.5.5
+
+## 0.7.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.4
+
+## 0.7.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.5.3
+
+## 0.7.2
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+- @gradio/icons@0.4.1
+
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/atoms@0.7.2
+- @gradio/utils@0.4.1
+- @gradio/statustracker@0.5.1
+
+## 0.7.0
+
+### Highlights
+
+#### Setting File Upload Limits ([#7909](https://github.com/gradio-app/gradio/pull/7909) [`2afca65`](https://github.com/gradio-app/gradio/commit/2afca6541912b37dc84f447c7ad4af21607d7c72))
+
+We have added a `max_file_size` size parameter to `launch()` that limits to size of files uploaded to the server. This limit applies to each individual file. This parameter can be specified as a string or an integer (corresponding to the size in bytes).
+
+The following code snippet sets a max file size of 5 megabytes.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
+
+![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
+
+
+#### Error states can now be cleared
+
+When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
+
+![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
+
+ Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/statustracker@0.5.0
+- @gradio/utils@0.4.0
+
+## 0.6.7
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+- @gradio/atoms@0.7.0
+- @gradio/icons@0.4.0
+
+## 0.6.6
+
+### Fixes
+
+- [#7918](https://github.com/gradio-app/gradio/pull/7918) [`be46ab1`](https://github.com/gradio-app/gradio/commit/be46ab1213b32a40e4ac1c399499d69eaf6ec0f1) - ensure entire dropdown is clickable.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+
+## 0.6.5
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/icons@0.3.4
+
+## 0.6.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.4.9
+- @gradio/atoms@0.6.0
+
+## 0.6.3
+
+### Fixes
+
+- [#7567](https://github.com/gradio-app/gradio/pull/7567) [`e340894`](https://github.com/gradio-app/gradio/commit/e340894b1cf2f44dd45e597fd8d9e547f408fbb3) - Quick fix: custom dropdown value.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+## 0.6.2
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89)]:
+  - @gradio/statustracker@0.4.8
+
 ## 0.6.1
 
 ### Features
 
-- [#7425](https://github.com/gradio-app/gradio/pull/7425) [`3e4e680`](https://github.com/gradio-app/gradio/commit/3e4e680a52ba5a73c108ef1b328dacd7b6e4b566) - Fixes to the `.key_up()` method to make it usable for a dynamic dropdown autocomplete.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7425](https://github.com/gradio-app/gradio/pull/7425) [`3e4e680`](https://github.com/gradio-app/gradio/commit/3e4e680a52ba5a73c108ef1b328dacd7b6e4b566) - Fixes to the `.key_up()` method to make it usable for a dynamic dropdown autocomplete. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ### Fixes
 
-- [#7431](https://github.com/gradio-app/gradio/pull/7431) [`6b8a7e5`](https://github.com/gradio-app/gradio/commit/6b8a7e5d36887cdfcfbfec1536a915128df0d6b2) - Ensure `gr.Dropdown` can have an empty initial value.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7431](https://github.com/gradio-app/gradio/pull/7431) [`6b8a7e5`](https://github.com/gradio-app/gradio/commit/6b8a7e5d36887cdfcfbfec1536a915128df0d6b2) - Ensure `gr.Dropdown` can have an empty initial value. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.6.0
 
 ### Fixes
 
-- [#7404](https://github.com/gradio-app/gradio/pull/7404) [`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7) - Add `.key_up` event listener to `gr.Dropdown()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
-- [#7401](https://github.com/gradio-app/gradio/pull/7401) [`dff4109`](https://github.com/gradio-app/gradio/commit/dff410955e41145848376784c03fe28ba1c4fd85) - Retain dropdown value if choices have been changed.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7404](https://github.com/gradio-app/gradio/pull/7404) [`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7) - Add `.key_up` event listener to `gr.Dropdown()`. Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7401](https://github.com/gradio-app/gradio/pull/7401) [`dff4109`](https://github.com/gradio-app/gradio/commit/dff410955e41145848376784c03fe28ba1c4fd85) - Retain dropdown value if choices have been changed. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.5.2
 
 ### Fixes
 
-- [#7192](https://github.com/gradio-app/gradio/pull/7192) [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739) - Handle the case where examples is `null` for all components.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7192](https://github.com/gradio-app/gradio/pull/7192) [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739) - Handle the case where examples is `null` for all components. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.5.1
 
 ### Fixes
 
-- [#7081](https://github.com/gradio-app/gradio/pull/7081) [`44c53d9`](https://github.com/gradio-app/gradio/commit/44c53d9bde7cab605b7dbd16331683d13cae029e) - Fix dropdown refocusing due to `<label />` element.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7081](https://github.com/gradio-app/gradio/pull/7081) [`44c53d9`](https://github.com/gradio-app/gradio/commit/44c53d9bde7cab605b7dbd16331683d13cae029e) - Fix dropdown refocusing due to `<label />` element. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.5.0
 
 ### Fixes
 
-- [#6933](https://github.com/gradio-app/gradio/pull/6933) [`9cefd2e`](https://github.com/gradio-app/gradio/commit/9cefd2e90a1d0cc4d3e4e953fc5b9b1a7afb68dd) - Refactor examples so they accept data in the same format as is returned by function, rename `.as_example()` to `.process_example()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6933](https://github.com/gradio-app/gradio/pull/6933) [`9cefd2e`](https://github.com/gradio-app/gradio/commit/9cefd2e90a1d0cc4d3e4e953fc5b9b1a7afb68dd) - Refactor examples so they accept data in the same format as is returned by function, rename `.as_example()` to `.process_example()`. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.4.3
 

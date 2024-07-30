@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import re
 from pathlib import Path
 from typing import Any, Optional
 
@@ -9,6 +10,7 @@ import tomlkit as toml
 from typer import Argument, Option
 from typing_extensions import Annotated
 
+from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.display import LivePanelDisplay
 
 from ._docs_assets import css
@@ -48,6 +50,13 @@ def _docs(
     ] = False,
 ):
     """Runs the documentation generator."""
+    custom_component_analytics(
+        "docs",
+        None,
+        None,
+        None,
+        None,
+    )
 
     _component_dir = Path(path).resolve()
     _demo_dir = Path(demo_dir).resolve() if demo_dir else Path("demo").resolve()
@@ -74,7 +83,7 @@ def _docs(
                 f"Cannot find pyproject.toml file in [orange3]{_component_dir}[/]"
             )
 
-        with open(_component_dir / "pyproject.toml") as f:
+        with open(_component_dir / "pyproject.toml", encoding="utf-8") as f:
             data = toml.loads(f.read())
 
         name = get_deep(data, ["project", "name"])
@@ -113,7 +122,7 @@ def run_command(
     _component_dir: Path,
     simple: bool = False,
 ):
-    with open(_demo_path) as f:
+    with open(_demo_path, encoding="utf-8") as f:
         demo = f.read()
 
     pypi_exists = requests.get(f"https://pypi.org/pypi/{name}/json").status_code
@@ -154,13 +163,13 @@ def run_command(
             suppress_demo_check=suppress_demo_check,
         )
 
-        with open(_demo_dir / "space.py", "w") as f:
+        with open(_demo_dir / "space.py", "w", encoding="utf-8") as f:
             f.write(source)
             if not simple:
                 live.update(
                     f":white_check_mark: Space created in [orange3]{_demo_dir}/space.py[/]\n"
                 )
-        with open(_demo_dir / "css.css", "w") as f:
+        with open(_demo_dir / "css.css", "w", encoding="utf-8") as f:
             f.write(css)
 
     if generate_readme:
@@ -170,7 +179,14 @@ def run_command(
             docs, name, description, local_version, demo, space, repo, pypi_exists
         )
 
-        with open(_readme_path, "w") as f:
+        readme_content = Path(_readme_path).read_text()
+
+        with open(_readme_path, "w", encoding="utf-8") as f:
+            yaml_regex = re.search(
+                "(?:^|[\r\n])---[\n\r]+([\\S\\s]*?)[\n\r]+---([\n\r]|$)", readme_content
+            )
+            if yaml_regex is not None:
+                readme = readme_content[: yaml_regex.span()[-1]] + readme
             f.write(readme)
             if not simple:
                 live.update(
@@ -180,7 +196,7 @@ def run_command(
         short_readme_path = Path(_readme_path).relative_to(_component_dir)
         short_demo_path = Path(_demo_dir / "space.py").relative_to(_component_dir)
         live.update(
-            f":white_check_mark: Documention generated in [orange3]{short_demo_path}[/] and [orange3]{short_readme_path}[/]. Pass --no-generate-docs to disable auto documentation."
+            f":white_check_mark: Documentation generated in [orange3]{short_demo_path}[/] and [orange3]{short_readme_path}[/]. Pass --no-generate-docs to disable auto documentation."
         )
 
     if type_mode == "simple":

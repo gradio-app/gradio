@@ -5,15 +5,12 @@ import gradio as gr
 asr = pipeline("automatic-speech-recognition", "facebook/wav2vec2-base-960h")
 classifier = pipeline("text-classification")
 
-
 def speech_to_text(speech):
-    text = asr(speech)["text"]
+    text = asr(speech)["text"]  # type: ignore
     return text
 
-
 def text_to_sentiment(text):
-    return classifier(text)[0]["label"]
-
+    return classifier(text)[0]["label"]  # type: ignore
 
 demo = gr.Blocks()
 

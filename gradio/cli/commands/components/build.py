@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import importlib
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 import semantic_version
 import typer
@@ -9,14 +12,15 @@ from tomlkit import dump, parse
 from typing_extensions import Annotated
 
 import gradio
+from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.components._docs_utils import (
     get_deep,
 )
 from gradio.cli.commands.components.docs import run_command
+from gradio.cli.commands.components.install_component import _get_executable_path
 from gradio.cli.commands.display import LivePanelDisplay
 
 gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
-gradio_node_path = Path(gradio.__file__).parent / "node" / "dev" / "files" / "index.js"
 
 
 def _build(
@@ -32,7 +36,22 @@ def _build(
     generate_docs: Annotated[
         bool, typer.Option(help="Whether to generate the documentation as well.")
     ] = True,
+    python_path: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised."
+        ),
+    ] = None,
 ):
+    custom_component_analytics(
+        "build",
+        None,
+        None,
+        None,
+        None,
+        generate_docs=generate_docs,
+        bump_version=bump_version,
+    )
     name = Path(path).resolve()
     if not (name / "pyproject.toml").exists():
         raise ValueError(f"Cannot find pyproject.toml file in {name}")
@@ -44,6 +63,10 @@ def _build(
         pyproject_toml = parse((path / "pyproject.toml").read_text())
         package_name = get_deep(pyproject_toml, ["project", "name"])
 
+        python_path = _get_executable_path(
+            "python", python_path, "--python-path", check_3=True
+        )
+
         if not isinstance(package_name, str):
             raise ValueError(
                 "Your pyproject.toml file does not have a [project] name field!"
@@ -53,7 +76,7 @@ def _build(
         except ModuleNotFoundError as e:
             raise ValueError(
                 f"Your custom component package ({package_name}) is not installed! "
-                "Please install it with the gradio cc install command before buillding it."
+                "Please install it with the gradio cc install command before building it."
             ) from e
         if bump_version:
             pyproject_toml = parse((path / "pyproject.toml").read_text())
@@ -65,7 +88,7 @@ def _build(
                 "Set [bold][magenta]--no-bump-version[/][/] to use the version in pyproject.toml file."
             )
             pyproject_toml["project"]["version"] = str(version)  # type: ignore
-            with open(path / "pyproject.toml", "w") as f:
+            with open(path / "pyproject.toml", "w", encoding="utf-8") as f:
                 dump(pyproject_toml, f)
         else:
             version = pyproject_toml["project"]["version"]  # type: ignore
@@ -106,6 +129,20 @@ def _build(
                     "node must be installed in order to run build command."
                 )
 
+            gradio_node_path = subprocess.run(
+                [node, "-e", "console.log(require.resolve('@gradio/preview'))"],
+                cwd=Path(component_directory / "frontend"),
+                check=False,
+                capture_output=True,
+            )
+
+            if gradio_node_path.returncode != 0:
+                raise ValueError(
+                    "Could not find `@gradio/preview`. Run `npm i -D @gradio/preview` in your frontend folder."
+                )
+
+            gradio_node_path = gradio_node_path.stdout.decode("utf-8").strip()
+
             node_cmds = [
                 node,
                 gradio_node_path,
@@ -115,6 +152,8 @@ def _build(
                 gradio_template_path,
                 "--mode",
                 "build",
+                "--python-path",
+                python_path,
             ]
             pipe = subprocess.run(
                 node_cmds, capture_output=True, text=True, check=False
@@ -127,7 +166,7 @@ def _build(
             else:
                 live.update(":white_check_mark: Build succeeded!")
 
-        cmds = [shutil.which("python"), "-m", "build", str(name)]
+        cmds = [python_path, "-m", "build", str(name)]
         live.update(f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]")
         pipe = subprocess.run(cmds, capture_output=True, text=True, check=False)
         if pipe.returncode != 0:

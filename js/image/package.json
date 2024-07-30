@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/image",
-	"version": "0.9.2",
+	"version": "0.13.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -18,12 +18,16 @@
 		"lazy-brush": "^1.0.1",
 		"resize-observer-polyfill": "^1.5.1"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"main_changeset": true,
 	"main": "./Index.svelte",
 	"exports": {
 		".": "./Index.svelte",
 		"./shared": "./shared/index.ts",
 		"./example": "./Example.svelte",
+		"./base": "./shared/ImagePreview.svelte",
 		"./package.json": "./package.json"
 	}
 }

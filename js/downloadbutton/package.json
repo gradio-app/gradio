@@ -1,0 +1,23 @@
+{
+	"name": "@gradio/downloadbutton",
+	"version": "0.1.24",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"dependencies": {
+		"@gradio/button": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/utils": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"main": "./Index.svelte",
+	"main_changeset": true,
+	"exports": {
+		".": "./Index.svelte",
+		"./package.json": "./package.json"
+	}
+}

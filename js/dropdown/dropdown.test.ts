@@ -190,7 +190,6 @@ describe("Dropdown", () => {
 	});
 
 	test("deselecting and reselcting a filtered dropdown should show all options again", async () => {
-		vi.useFakeTimers();
 		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
@@ -219,7 +218,6 @@ describe("Dropdown", () => {
 
 		await item.blur();
 		// Mock 100ms delay between interactions.
-		vi.runAllTimers();
 		await item.focus();
 		const options_new = getAllByTestId("dropdown-option");
 
@@ -479,6 +477,26 @@ describe("Dropdown", () => {
 			show_label: true,
 			loading_status,
 			allow_custom_value: false,
+			label: "Dropdown",
+			choices: [
+				["apple_choice", "apple_internal_value"],
+				["zebra_choice", "zebra_internal_value"]
+			],
+			filterable: true,
+			interactive: true
+		});
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+		await expect(item.value).toBe("");
+	});
+
+	test("ensure dropdown works when initial value is undefined and allow custom value is set", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			value: undefined,
+			allow_custom_value: true,
 			label: "Dropdown",
 			choices: [
 				["apple_choice", "apple_internal_value"],

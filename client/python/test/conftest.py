@@ -42,11 +42,44 @@ def calculator_demo():
 
 
 @pytest.fixture
+def calculator_demo_with_defaults():
+    def calculator(num1, operation=None, num2=100):
+        if operation is None or operation == "add":
+            return num1 + num2
+        elif operation == "subtract":
+            return num1 - num2
+        elif operation == "multiply":
+            return num1 * num2
+        elif operation == "divide":
+            if num2 == 0:
+                raise gr.Error("Cannot divide by zero!")
+            return num1 / num2
+
+    demo = gr.Interface(
+        calculator,
+        [
+            gr.Number(value=10),
+            gr.Radio(["add", "subtract", "multiply", "divide"]),
+            gr.Number(),
+        ],
+        "number",
+        examples=[
+            [5, "add", 3],
+            [4, "divide", 2],
+            [-4, "multiply", 2.5],
+            [0, "subtract", 1.2],
+        ],
+    )
+    return demo
+
+
+@pytest.fixture
 def state_demo():
+    state = gr.State(delete_callback=lambda x: print("STATE DELETED"))
     demo = gr.Interface(
         lambda x, y: (x, y),
-        ["textbox", "state"],
-        ["textbox", "state"],
+        ["textbox", state],
+        ["textbox", state],
     )
     return demo
 
@@ -209,7 +242,7 @@ def count_generator_no_api():
 def count_generator_demo_exception():
     def count(n):
         for i in range(int(n)):
-            time.sleep(0.1)
+            time.sleep(0.01)
             if i == 5:
                 raise ValueError("Oh no!")
             yield i
@@ -396,3 +429,56 @@ def long_response_with_info():
         None,
         gr.Textbox(label="Output"),
     )
+
+
+@pytest.fixture
+def many_endpoint_demo():
+    with gr.Blocks() as demo:
+
+        def noop(x):
+            return x
+
+        n_elements = 1000
+        for _ in range(n_elements):
+            msg2 = gr.Textbox()
+            msg2.submit(noop, msg2, msg2)
+            butn2 = gr.Button()
+            butn2.click(noop, msg2, msg2)
+
+    return demo
+
+
+@pytest.fixture
+def max_file_size_demo():
+    with gr.Blocks() as demo:
+        file_1b = gr.File()
+        upload_status = gr.Textbox()
+
+        file_1b.upload(
+            lambda x: "Upload successful", file_1b, upload_status, api_name="upload_1b"
+        )
+
+    return demo
+
+
+@pytest.fixture
+def chatbot_message_format():
+    with gr.Blocks() as demo:
+        chatbot = gr.Chatbot(type="messages")
+        msg = gr.Textbox()
+
+        def respond(message, chat_history: list):
+            bot_message = random.choice(
+                ["How are you?", "I love you", "I'm very hungry"]
+            )
+            chat_history.extend(
+                [
+                    {"role": "user", "content": message},
+                    {"role": "assistant", "content": bot_message},
+                ]
+            )
+            return "", chat_history
+
+        msg.submit(respond, [msg, chatbot], [msg, chatbot], api_name="chat")
+
+    return demo
