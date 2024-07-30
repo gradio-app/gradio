@@ -260,10 +260,7 @@ for (const msg_format of ["tuples", "messages"]) {
 			"./test/files/cheetah1.jpg",
 			"./test/files/cheetah1.jpg"
 		]);
-		await expect
-			.poll(async () => await page.locator("thumbnail-image").count(), {
-				timeout: 5000
-			})
-			.toEqual(2);
+
+		await expect(page.locator(".thumbnail-image")).toHaveCount(2);
 	});
 }
