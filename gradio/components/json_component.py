@@ -48,6 +48,7 @@ class JSON(Component):
         render: bool = True,
         key: int | str | None = None,
         open: bool = False,
+        show_indices: bool = False,
     ):
         """
         Parameters:
@@ -65,6 +66,7 @@ class JSON(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             open: If True, all JSON nodes will be expanded when rendered. By default, node levels deeper than 3 are collapsed.
+            show_indices: The view mode of the JSON component. If False (default), the JSON will be displayed as a dictionary. If True, the JSON will be displayed as a list.
         """
         super().__init__(
             label=label,
@@ -82,6 +84,7 @@ class JSON(Component):
             value=value,
         )
 
+        self.show_indices = show_indices
         self.open = open
 
     def preprocess(self, payload: dict | list | None) -> dict | list | None:

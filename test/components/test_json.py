@@ -28,6 +28,7 @@ class TestJSON:
             "_selectable": False,
             "open": False,
             "key": None,
+            "show_indices": False
         }
 
     def test_chatbot_selectable_in_config(self):

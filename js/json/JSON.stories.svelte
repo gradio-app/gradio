@@ -49,3 +49,11 @@
 		await userEvent.click(canvas.getByText("Object(2)"));
 	}}
 />
+
+<Story
+	name="JSON viewed as list"
+	args={{
+		value: SAMPLE_JSON,
+		show_indices: true
+	}}
+/>
