@@ -1,7 +1,6 @@
 import gradio as gr
 import os
 
-
 def image_mod(image):
     return image.rotate(45)
 

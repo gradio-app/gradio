@@ -46,7 +46,6 @@ def process_image(image_path):
         print("Error reconstructing 3D model")
         raise Exception("Error reconstructing 3D model")
 
-
 def create_3d_obj(rgb_image, depth_image, image_path, depth=10):
     depth_o3d = o3d.geometry.Image(depth_image)
     image_o3d = o3d.geometry.Image(rgb_image)
