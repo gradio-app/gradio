@@ -20,7 +20,6 @@ with gr.Blocks() as demo:
             input_pause = gr.Number(label="# Input Pause Recording Events", value=0)
             input_stop = gr.Number(label="# Input Stop Recording Events", value=0)
 
-
         with gr.Column():
             output_num_play = gr.Number(label="# Output Play Events", value=0)
             output_num_pause = gr.Number(label="# Output Pause Events", value=0)
@@ -40,8 +39,6 @@ with gr.Blocks() as demo:
             output_audio.play(lambda n: n + 1, output_num_play, output_num_play)
             output_audio.pause(lambda n: n + 1, output_num_pause, output_num_pause)
             output_audio.stop(lambda n: n + 1, output_num_stop, output_num_stop)
-
-
 
 if __name__ == "__main__":
     demo.launch()

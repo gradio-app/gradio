@@ -4,7 +4,6 @@ from scipy import signal
 
 import gradio as gr
 
-
 def spectrogram(audio):
     sr, data = audio
     if len(data.shape) == 2:
@@ -14,7 +13,6 @@ def spectrogram(audio):
     )
     plt.pcolormesh(times, frequencies, np.log10(spectrogram_data))
     return plt
-
 
 demo = gr.Interface(spectrogram, "audio", "plot")
 

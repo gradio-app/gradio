@@ -42,6 +42,8 @@
 	export let color_map: Record<string, string> | null = null;
 	export let x_lim: [number, number] | null = null;
 	export let y_lim: [number, number] | null = null;
+	export let x_label_angle: number | null = null;
+	export let y_label_angle: number | null = null;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	function reformat_sort(
@@ -217,6 +219,7 @@
 		y_lim,
 		caption,
 		sort,
+		value,
 		mounted && load_chart();
 
 	function create_vega_lite_spec(): Spec | null {
@@ -251,6 +254,7 @@
 			computed_style.getPropertyValue("--text-sm")
 		);
 
+		/* eslint-disable complexity */
 		return {
 			$schema: "https://vega.github.io/schema/vega-lite/v5.17.0.json",
 			background: "transparent",
@@ -327,7 +331,7 @@
 											value: 0
 										},
 							x: {
-								axis: {},
+								axis: x_label_angle ? { labelAngle: x_label_angle } : {},
 								field: x,
 								title: x_title || x,
 								type: value.datatypes[x],
@@ -336,7 +340,7 @@
 								sort: _sort
 							},
 							y: {
-								axis: {},
+								axis: y_label_angle ? { labelAngle: y_label_angle } : {},
 								field: y,
 								title: y_title || y,
 								type: value.datatypes[y],
@@ -440,6 +444,7 @@
 			width: chart_element.offsetWidth,
 			title: title || undefined
 		};
+		/* eslint-enable complexity */
 	}
 
 	export let label = "Textbox";

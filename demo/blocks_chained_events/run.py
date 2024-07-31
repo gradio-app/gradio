@@ -1,6 +1,4 @@
 import gradio as gr
-import time
-
 
 def failure():
     raise gr.Error("This should fail!")
@@ -16,7 +14,6 @@ def warning_fn():
 
 def info_fn():
     gr.Info("This is some info")
-
 
 with gr.Blocks() as demo:
     gr.Markdown("Used in E2E tests of success event trigger. The then event covered in chatbot E2E tests."
@@ -39,8 +36,6 @@ with gr.Blocks() as demo:
         failure_exception.click(exception, None, None)
         trigger_warning.click(warning_fn, None, None)
         trigger_info.click(info_fn, None, None)
-
-demo.queue()
 
 if __name__ == "__main__":
     demo.launch(show_error=True)

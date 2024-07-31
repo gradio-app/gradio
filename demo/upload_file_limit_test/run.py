@@ -19,7 +19,6 @@ with gr.Blocks() as demo:
             gr.Audio(label="Audio", interactive=True)
             gr.File(label="Multiple Files", interactive=True, file_count="multiple")
 
-
 if __name__ == "__main__":
     # The upload limit is set in playwright_setup.js
     # since the e2e tests use mount_gradio_app

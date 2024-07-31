@@ -10,8 +10,7 @@ def slow_echo(message, history):
         time.sleep(0.05)
         yield f"Run {runs} - You typed: " + message[: i + 1]
 
-
-demo = gr.ChatInterface(slow_echo, type="messages").queue()
+demo = gr.ChatInterface(slow_echo, type="messages")
 
 if __name__ == "__main__":
     demo.launch()

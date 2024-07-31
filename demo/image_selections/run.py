@@ -38,7 +38,7 @@ with gr.Blocks() as demo:
         for pixel in pixels_in_segment:
             out[pixel[0], pixel[1]] = img[pixel[0], pixel[1]]
         return out
-    
+
     input_img.select(get_select_coords, [input_img, tolerance], output_img)
 
 if __name__ == "__main__":

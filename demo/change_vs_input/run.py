@@ -75,8 +75,8 @@ with gr.Blocks() as demo:
     world = os.path.join(os.path.dirname(__file__), "files/world.mp4")
 
     set_button.click(
-        lambda: ["asdf", 555, 12, True, ["a", "c"], "b", "b", "#FF0000", "import gradio as gr", [["a", "b", "c", "d"], ["1", "2", "3", "4"]], lion, cantina, world], 
-        None, 
+        lambda: ["asdf", 555, 12, True, ["a", "c"], "b", "b", "#FF0000", "import gradio as gr", [["a", "b", "c", "d"], ["1", "2", "3", "4"]], lion, cantina, world],
+        None,
         [text, num, slider, checkbox, checkbox_group, radio, dropdown, colorpicker, code, dataframe, image, audio, video])
 
     text.input(lambda x:x, text, text_in)
@@ -120,7 +120,6 @@ with gr.Blocks() as demo:
     image_ch.change(lambda x:x, image_ch, image_ch2)
     audio_ch.change(lambda x:x, audio_ch, audio_ch2)
     video_ch.change(lambda x:x, video_ch, video_ch2)
-        
 
 if __name__ == "__main__":
     demo.launch()

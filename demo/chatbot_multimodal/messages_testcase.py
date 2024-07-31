@@ -3,7 +3,6 @@ import time
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
-
 def print_like_dislike(x: gr.LikeData):
     print(x.index, x.value, x.liked)
 
@@ -39,7 +38,6 @@ with gr.Blocks() as demo:
     bot_msg.then(lambda: gr.MultimodalTextbox(interactive=True), None, [chat_input])
 
     chatbot.like(print_like_dislike, None, None)
-
 
 if __name__ == "__main__":
     demo.launch()

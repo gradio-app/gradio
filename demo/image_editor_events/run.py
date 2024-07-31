@@ -1,9 +1,7 @@
 import gradio as gr
 
-
 def predict(im):
     return im["composite"]
-
 
 with gr.Blocks() as demo:
     with gr.Group():

@@ -11,9 +11,9 @@ def sentiment_analysis(text):
     return scores
 
 demo = gr.Interface(
-    fn=sentiment_analysis, 
-    inputs=gr.Textbox(placeholder="Enter a positive or negative sentence here..."), 
-    outputs="label", 
+    fn=sentiment_analysis,
+    inputs=gr.Textbox(placeholder="Enter a positive or negative sentence here..."),
+    outputs="label",
     examples=[["This is wonderful!"]])
 
 demo.launch()

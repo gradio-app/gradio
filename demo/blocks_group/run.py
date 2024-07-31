@@ -69,7 +69,6 @@ with gr.Blocks() as demo:
 
     gr.Markdown("### Textbox, Dropdown, and Number input boxes takes up full space when within a group without a container.")
 
-
     with gr.Group():
         name = gr.Textbox(label="Name")
         output = gr.Textbox(show_label=False, container=False)
@@ -80,7 +79,6 @@ with gr.Blocks() as demo:
             gr.Number(container=False)
             gr.Image(height=100)
     greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
-
 
     gr.Markdown("### More examples")
 
@@ -107,7 +105,6 @@ with gr.Blocks() as demo:
            gr.Number(container=False)
         with gr.Column():
             gr.Textbox(container=False)
-
 
 if __name__ == "__main__":
     demo.launch()

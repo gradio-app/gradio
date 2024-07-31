@@ -9,7 +9,7 @@ model2 = torch.hub.load(
 )
 model1 = torch.hub.load("AK391/animegan2-pytorch:main", "generator", pretrained="face_paint_512_v1")
 face2paint = torch.hub.load(
-    'AK391/animegan2-pytorch:main', 'face2paint', 
+    'AK391/animegan2-pytorch:main', 'face2paint',
     size=512,side_by_side=False
 )
 
@@ -26,8 +26,8 @@ article = "<p style='text-align: center'><a href='https://github.com/bryandlee/a
 examples=[['groot.jpeg','version 2 (🔺 robustness,🔻 stylization)'],['gongyoo.jpeg','version 1 (🔺 stylization, 🔻 robustness)']]
 
 demo = gr.Interface(
-    fn=inference, 
-    inputs=[gr.Image(type="pil"),gr.Radio(['version 1 (🔺 stylization, 🔻 robustness)','version 2 (🔺 robustness,🔻 stylization)'], type="value", value='version 2 (🔺 robustness,🔻 stylization)', label='version')], 
+    fn=inference,
+    inputs=[gr.Image(type="pil"),gr.Radio(['version 1 (🔺 stylization, 🔻 robustness)','version 2 (🔺 robustness,🔻 stylization)'], type="value", value='version 2 (🔺 robustness,🔻 stylization)', label='version')],
     outputs=gr.Image(type="pil"),
     title=title,
     description=description,

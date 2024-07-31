@@ -21,7 +21,6 @@ with gr.Blocks() as demo:
     for item in [date1, date2, date3]:
         item.change(lambda x:x, item, change_output)
         item.submit(lambda x:x, item, submit_output)
-        
 
 if __name__ == "__main__":
     demo.launch()

@@ -3,9 +3,7 @@ import gradio as gr
 import plotly.express as px
 import numpy as np
 
-
 plot_end = 2 * math.pi
-
 
 def get_plot(period=1):
     global plot_end
@@ -17,7 +15,6 @@ def get_plot(period=1):
         plot_end = 2 * math.pi
     return fig
 
-
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
@@ -28,6 +25,5 @@ with gr.Blocks() as demo:
     dep = demo.load(get_plot, None, plot, every=1)
     period.change(get_plot, period, plot, every=1, cancels=[dep])
 
-
 if __name__ == "__main__":
-    demo.queue().launch()
+    demo.launch()

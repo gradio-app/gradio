@@ -91,12 +91,13 @@ class Video(Component):
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
+        watermark: str | Path | None = None,
     ):
         """
         Parameters:
             value: A path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
-            sources: A list of sources permitted for video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam. If None, defaults to ["upload, "webcam"].
+            sources: A list of sources permitted for video. "upload" creates a box where user can drop a video file, "webcam" allows user to record a video from their webcam. If None, defaults to ["upload, "webcam"].
             height: The height of the displayed video, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the displayed video, specified in pixels if a number is passed, or in CSS units if a string is passed.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -120,6 +121,7 @@ class Video(Component):
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             loop: If True, the video will loop when it reaches the end and continue playing from the beginning.
+            watermark: An image file to be included as a watermark on the video. The image is not scaled and is displayed on the bottom right of the video. Valid formats for the image are: jpeg, png.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -154,6 +156,7 @@ class Video(Component):
         self.show_download_button = show_download_button
         self.min_length = min_length
         self.max_length = max_length
+        self.watermark = watermark
         super().__init__(
             label=label,
             every=every,
@@ -199,7 +202,20 @@ class Video(Component):
                 raise gr.Error(
                     f"Video is too long, and must be at most {self.max_length} seconds"
                 )
-
+        # TODO: Check other image extensions to see if they work.
+        valid_watermark_extensions = [".png", ".jpg", ".jpeg"]
+        if self.watermark is not None:
+            if not isinstance(self.watermark, (str, Path)):
+                raise ValueError(
+                    f"Provided watermark file not an expected file type. "
+                    f"Received: {self.watermark}"
+                )
+            if Path(self.watermark).suffix not in valid_watermark_extensions:
+                raise ValueError(
+                    f"Watermark file does not have a supported extension. "
+                    f"Expected one of {','.join(valid_watermark_extensions)}. "
+                    f"Received: {Path(self.watermark).suffix}."
+                )
         if needs_formatting or flip:
             format = f".{self.format if needs_formatting else uploaded_format}"
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
@@ -279,7 +295,8 @@ class Video(Component):
 
     def _format_video(self, video: str | Path | None) -> FileData | None:
         """
-        Processes a video to ensure that it is in the correct format.
+        Processes a video to ensure that it is in the correct format
+        and adds a watermark if requested.
         """
         if video is None:
             return None
@@ -292,11 +309,13 @@ class Video(Component):
 
         is_url = client_utils.is_http_url_like(video)
 
-        # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
-        if is_url and not (conversion_needed):
+        # For cases where the video is a URL and does not need to be converted
+        # to another format and have a watermark added, we can just return the URL
+        if not self.watermark and (is_url and not conversion_needed):
             return FileData(path=video)
 
         # For cases where the video needs to be converted to another format
+        # or have a watermark added.
         if is_url:
             video = processing_utils.save_url_to_cache(
                 video, cache_dir=self.GRADIO_CACHE
@@ -306,21 +325,38 @@ class Video(Component):
             and not processing_utils.video_is_playable(video)
         ):
             warnings.warn(
-                "Video does not have browser-compatible container or codec. Converting to mp4"
+                "Video does not have browser-compatible container or codec. Converting to mp4."
             )
             video = processing_utils.convert_video_to_playable_mp4(video)
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
-        if self.format is not None and returned_format != self.format:
+        if (
+            self.format is not None and returned_format != self.format
+        ) or self.watermark:
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
-                    "Returning a video in a different format is not supported in the Wasm mode."
+                    "Modifying a video is not supported in the Wasm mode."
                 )
-            output_file_name = video[0 : video.rindex(".") + 1] + self.format
+            global_option_list = ["-y"]
+            inputs_dict = {video: None}
+            output_file_name = video[0 : video.rindex(".") + 1]
+            if self.format is not None:
+                output_file_name += self.format
+            else:
+                output_file_name += returned_format
+            if self.watermark:
+                inputs_dict[str(self.watermark)] = None
+                watermark_cmd = "overlay=W-w-5:H-h-5"
+                global_option_list += ["-filter_complex", watermark_cmd]
+                output_file_name = (
+                    Path(output_file_name).stem
+                    + "_watermarked"
+                    + Path(output_file_name).suffix
+                )
             ff = FFmpeg(  # type: ignore
-                inputs={video: None},
+                inputs=inputs_dict,
                 outputs={output_file_name: None},
-                global_options="-y",
+                global_options=global_option_list,
             )
             ff.run()
             video = output_file_name

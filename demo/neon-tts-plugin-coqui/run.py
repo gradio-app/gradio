@@ -10,7 +10,7 @@ def tts(text: str, language: str):
         coquiTTS.get_tts(text, fp, speaker = {"language" : language})
         return fp.name
 
-inputs = [gr.Textbox(label="Input", value=CoquiTTS.langs["en"]["sentence"], max_lines=3), 
+inputs = [gr.Textbox(label="Input", value=CoquiTTS.langs["en"]["sentence"], max_lines=3),
             gr.Radio(label="Language", choices=LANGUAGES, value="en")]
 outputs = gr.Audio(label="Output")
 

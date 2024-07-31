@@ -1,14 +1,14 @@
 # Quickstart
 
-Gradio is an open-source Python package that allows you to quickly **build** a demo or web application for your machine learning model, API, or any arbitary Python function. You can then **share** a link to your demo or web application in just a few seconds using Gradio's built-in sharing features. *No JavaScript, CSS, or web hosting experience needed!*
+Gradio is an open-source Python package that allows you to quickly **build a demo** or web application for your machine learning model, API, or any arbitary Python function. You can then **share your demo** with a a public link in seconds using Gradio's built-in sharing features. *No JavaScript, CSS, or web hosting experience needed!*
 
 <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/lcm-screenshot-3.gif" style="padding-bottom: 10px">
 
-It just takes a few lines of Python to create a demo like the one above, so let's get started 💫
+It just takes a few lines of Python to create a demo like the one above, so let's get started.
 
 ## Installation
 
-**Prerequisite**: Gradio requires [Python 3.8 or higher](https://www.python.org/downloads/)
+**Prerequisite**: Gradio requires [Python 3.8 or higher](https://www.python.org/downloads/).
 
 
 We recommend installing Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
@@ -28,9 +28,9 @@ You can run Gradio in your favorite code editor, Jupyter notebook, Google Colab,
 $code_hello_world_4
 
 
-Tip: We shorten the imported name from <code>gradio</code> to <code>gr</code> for better readability of code. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it. 
+Tip: We shorten the imported name from <code>gradio</code> to <code>gr</code>. This is a widely adopted convention for better readability of code. 
 
-Now, run your code. If you've written the Python code in a file named, for example, `app.py`, then you would run `python app.py` from the terminal.
+Now, run your code. If you've written the Python code in a file named `app.py`, then you would run `python app.py` from the terminal.
 
 The demo below will open in a browser on [http://localhost:7860](http://localhost:7860) if running from a file. If you are running within a notebook, the demo will appear embedded within the notebook.
 
@@ -38,7 +38,7 @@ $demo_hello_world_4
 
 Type your name in the textbox on the left, drag the slider, and then press the Submit button. You should see a friendly greeting on the right.
 
-Tip: When developing locally, you can run your Gradio app in <strong>hot reload mode</strong>, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in <code>gradio</code> before the name of the file instead of <code>python</code>. In the example above, you would type: `gradio app.py` in your terminal. Learn more about hot reloading in the <a href="https://www.gradio.app/guides/developing-faster-with-reload-mode">Hot Reloading Guide</a>.
+Tip: When developing locally, you can run your Gradio app in <strong>hot reload mode</strong>, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in <code>gradio</code> before the name of the file instead of <code>python</code>. In the example above, you would type: `gradio app.py` in your terminal. Learn more in the <a href="https://www.gradio.app/guides/developing-faster-with-reload-mode">Hot Reloading Guide</a>.
 
 
 **Understanding the `Interface` Class**
@@ -89,16 +89,15 @@ To learn more about sharing your demo, read our dedicated guide on [sharing your
 
 So far, we've been discussing the `Interface` class, which is a high-level class that lets to build demos quickly with Gradio. But what else does Gradio include?
 
-### Chatbots with `gr.ChatInterface`
-
-Gradio includes another high-level class, `gr.ChatInterface`, which is specifically designed to create Chatbot UIs. Similar to `Interface`, you supply a function and Gradio creates a fully working Chatbot UI. If you're interested in creating a chatbot, you can jump straight to [our dedicated guide on `gr.ChatInterface`](https://www.gradio.app/guides/creating-a-chatbot-fast).
-
 ### Custom Demos with `gr.Blocks`
 
-Gradio also offers a low-level approach for designing web apps with more flexible layouts and data flows with the `gr.Blocks` class. Blocks allows you to do things like control where components appear on the page, handle complex data flows (e.g. outputs can serve as inputs to other functions), and update properties/visibility of components based on user interaction — still all in Python. 
+Gradio offers a low-level approach for designing web apps with more customizable layouts and data flows with the `gr.Blocks` class. Blocks supports things like controlling where components appear on the page, handling multiple data flows and more complex interactions (e.g. outputs can serve as inputs to other functions), and updating properties/visibility of components based on user interaction — still all in Python. 
 
 You can build very custom and complex applications using `gr.Blocks()`. For example, the popular image generation [Automatic1111 Web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) is built using Gradio Blocks. We dive deeper into the `gr.Blocks` on our series on [building with Blocks](https://www.gradio.app/guides/blocks-and-event-listeners).
 
+### Chatbots with `gr.ChatInterface`
+
+Gradio includes another high-level class, `gr.ChatInterface`, which is specifically designed to create Chatbot UIs. Similar to `Interface`, you supply a function and Gradio creates a fully working Chatbot UI. If you're interested in creating a chatbot, you can jump straight to [our dedicated guide on `gr.ChatInterface`](https://www.gradio.app/guides/creating-a-chatbot-fast).
 
 ### The Gradio Python & JavaScript Ecosystem
 

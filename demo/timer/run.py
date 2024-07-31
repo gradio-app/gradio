@@ -26,6 +26,6 @@ with gr.Blocks() as demo:
     gr.Button("Stop").click(lambda: gr.Timer(active=False), None, timer2)
     gr.Button("Go Fast").click(lambda: 0.2, None, timer2)
     gr.Button("Go Slow").click(lambda: 2, None, timer2)
-    
+
 if __name__ == "__main__":
   demo.launch()

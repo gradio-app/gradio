@@ -8,7 +8,6 @@ import gradio as gr
 CHOICES = ["foo", "bar", "baz"]
 JSONOBJ = """{"items":{"item":[{"id": "0001","type": null,"is_good": false,"ppu": 0.55,"batters":{"batter":[{ "id": "1001", "type": "Regular" },{ "id": "1002", "type": "Chocolate" },{ "id": "1003", "type": "Blueberry" },{ "id": "1004", "type": "Devil's Food" }]},"topping":[{ "id": "5001", "type": "None" },{ "id": "5002", "type": "Glazed" },{ "id": "5005", "type": "Sugar" },{ "id": "5007", "type": "Powdered Sugar" },{ "id": "5006", "type": "Chocolate with Sprinkles" },{ "id": "5003", "type": "Chocolate" },{ "id": "5004", "type": "Maple" }]}]}}"""
 
-
 def fn(
     text1,
     text2,
@@ -72,7 +71,7 @@ def fn(
             ("dogs", 0.4),
             (".", 0),
         ]
-        + [(f"test", x / 10) for x in range(-10, 10)],  # HighlightedText
+        + [("test", x / 10) for x in range(-10, 10)],  # HighlightedText
         json.loads(JSONOBJ),  # JSON
         "<button style='background-color: red'>Click Me: "
         + radio
@@ -81,7 +80,6 @@ def fn(
         df1,  # Dataframe
         np.random.randint(0, 10, (4, 4)),  # Dataframe
     )
-
 
 demo = gr.Interface(
     fn,
