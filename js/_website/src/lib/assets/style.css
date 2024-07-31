@@ -17,6 +17,14 @@
 	margin-bottom: 0;
 }
 
+.prose :where(code):not(:where([class~="not-prose"] *)) {
+	word-break: break-all;
+}
+
+.prose :where(a):not(:where([class~="not-prose"] *)) {
+	word-break: break-all;
+}
+
 .group:hover .group-hover\:flex {
 	/* for some reason, group-hover:flex not working on mobile */
 	display: flex;
@@ -317,6 +325,15 @@ strong {
 .obj .codeblock {
 	@apply my-4;
 	display: grid;
+}
+
+.prose .codeblock {
+	@apply my-4;
+	display: grid;
+}
+
+.prose li {
+	display: inline-block;
 }
 
 summary {

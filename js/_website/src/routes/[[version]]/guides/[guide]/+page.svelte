@@ -174,7 +174,7 @@
 		{/each}
 	</div>
 	<div class="w-full lg:w-8/12 mx-auto">
-		<div class="w-full flex justify-between my-4">
+		<div class="w-full flex flex-wrap justify-between my-4">
 			{#if prev_guide}
 				<a
 					href="..{prev_guide.url}"
@@ -231,7 +231,7 @@
 		<div class="prose text-lg max-w-full" bind:this={content_el}>
 			{@html guide_page.new_html}
 		</div>
-		<div class="w-full flex justify-between my-4">
+		<div class="w-full flex flex-wrap justify-between my-4">
 			{#if prev_guide}
 				<a
 					href="..{prev_guide.url}"
