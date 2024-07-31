@@ -12,17 +12,16 @@
 	let js_components = js_pages.filter((c) => c !== "js-client");
 	$: name = data.name;
 
-	$: prev_obj = $page.params?.jsdoc === "atoms" ? "storybook" :
-		js_components[
-			js_components.findIndex(
-				(page: any) => page === $page.params?.jsdoc
-			) - 1
-		];
+	$: prev_obj =
+		$page.params?.jsdoc === "atoms"
+			? "storybook"
+			: js_components[
+					js_components.findIndex((page: any) => page === $page.params?.jsdoc) -
+						1
+				];
 	$: next_obj =
 		js_components[
-		js_components.findIndex(
-				(page: any) => page === $page.params?.jsdoc
-			) + 1
+			js_components.findIndex((page: any) => page === $page.params?.jsdoc) + 1
 		];
 
 	$: readme_html = data.readme_html;
@@ -62,7 +61,9 @@
 					>
 						<div class="flex text-lg">
 							<span class="text-orange-500 mr-1">&#8592;</span>
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj}</p>
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{prev_obj}
+							</p>
 						</div>
 					</a>
 				{:else}
@@ -74,7 +75,9 @@
 						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 					>
 						<div class="flex text-lg">
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj}</p>
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{next_obj}
+							</p>
 							<span class="text-orange-500 ml-1">&#8594;</span>
 						</div>
 					</a>
@@ -97,7 +100,9 @@
 					>
 						<div class="flex text-lg">
 							<span class="text-orange-500 mr-1">&#8592;</span>
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj}</p>
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{prev_obj}
+							</p>
 						</div>
 					</a>
 				{:else}
@@ -109,7 +114,9 @@
 						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 					>
 						<div class="flex text-lg">
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj}</p>
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{next_obj}
+							</p>
 							<span class="text-orange-500 ml-1">&#8594;</span>
 						</div>
 					</a>

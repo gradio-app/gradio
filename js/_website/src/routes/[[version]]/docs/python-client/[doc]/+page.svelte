@@ -162,7 +162,9 @@
 					>
 						<div class="flex text-lg">
 							<span class="text-orange-500 mr-1">&#8592;</span>
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj.pretty_name}</p>
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{prev_obj.pretty_name}
+							</p>
 						</div>
 					</a>
 				{:else}
@@ -174,7 +176,9 @@
 						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 					>
 						<div class="flex text-lg">
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj.pretty_name}</p>
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{next_obj.pretty_name}
+							</p>
 							<span class="text-orange-500 ml-1">&#8594;</span>
 						</div>
 					</a>
@@ -199,7 +203,9 @@
 					>
 						<div class="flex text-lg">
 							<span class="text-orange-500 mr-1">&#8592;</span>
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj.pretty_name}</p>
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{prev_obj.pretty_name}
+							</p>
 						</div>
 					</a>
 				{:else}
@@ -211,7 +217,9 @@
 						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 					>
 						<div class="flex text-lg">
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj.pretty_name}</p>
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{next_obj.pretty_name}
+							</p>
 							<span class="text-orange-500 ml-1">&#8594;</span>
 						</div>
 					</a>

@@ -41,17 +41,17 @@
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
 			</div>
-			<div class="w-full flex flex-wrap justify-between my-4">	
-					<div />
-					<a
-						href="./atoms"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
-					>
-						<div class="flex text-lg">
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">atoms</p>
-							<span class="text-orange-500 ml-1">&#8594;</span>
-						</div>
-					</a>
+			<div class="w-full flex flex-wrap justify-between my-4">
+				<div />
+				<a
+					href="./atoms"
+					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+				>
+					<div class="flex text-lg">
+						<p class="whitespace-nowrap overflow-hidden text-ellipsis">atoms</p>
+						<span class="text-orange-500 ml-1">&#8594;</span>
+					</div>
+				</a>
 			</div>
 			<div class="flex flex-row lg:ml-10 mt-5">
 				<iframe
@@ -61,18 +61,17 @@
 				></iframe>
 			</div>
 			<div class="w-full flex flex-wrap justify-between my-4">
-				
-					<div />
-				
-					<a
-						href="./atoms"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
-					>
-						<div class="flex text-lg">
-							<p class="whitespace-nowrap overflow-hidden text-ellipsis">atoms</p>
-							<span class="text-orange-500 ml-1">&#8594;</span>
-						</div>
-					</a>
+				<div />
+
+				<a
+					href="./atoms"
+					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+				>
+					<div class="flex text-lg">
+						<p class="whitespace-nowrap overflow-hidden text-ellipsis">atoms</p>
+						<span class="text-orange-500 ml-1">&#8594;</span>
+					</div>
+				</a>
 			</div>
 		</div>
 	</div>
