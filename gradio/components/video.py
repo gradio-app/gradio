@@ -452,24 +452,13 @@ class Video(StreamingOutput, Component):
 
     @staticmethod
     async def async_convert_mp4_to_ts(mp4_file, ts_file):
-        command = [
-            "ffmpeg",
-            "-y",
-            "-i",
-            mp4_file,
-            "-c:v",
-            "libx264",
-            "-c:a",
-            "aac",
-            "-f",
-            "mpegts",
-            "-bsf:v",
-            "h264_mp4toannexb",
-            "-bsf:a",
-            "aac_adtstoasc",
-            ts_file,
-        ]
+        ff = FFmpeg(
+            inputs={mp4_file: None},
+            outputs={ts_file: '-c:v libx264 -c:a aac -f mpegts -bsf:v h264_mp4toannexb -bsf:a aac_adtstoasc'},
+            global_options=["-y"],
+        )
 
+        command = ff.cmd.split(" ")
         process = await asyncio.create_subprocess_exec(
             *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )

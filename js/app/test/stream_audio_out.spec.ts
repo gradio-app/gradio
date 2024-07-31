@@ -1,8 +1,7 @@
 import { test, expect } from "@gradio/tootils";
 
 test("audio streams from wav file correctly", async ({ page }) => {
-	const uploader = await page.locator("input[type=file]");
-	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
+	await page.getByRole("gridcell", { name: "wav" }).first().click();
 	await page.getByRole("button", { name: "Stream as File" }).click();
 	// @ts-ignore
 	await page
@@ -20,8 +19,7 @@ test("audio streams from wav file correctly", async ({ page }) => {
 });
 
 test("audio streams from wav file correctly as bytes", async ({ page }) => {
-	const uploader = await page.locator("input[type=file]");
-	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
+	await page.getByRole("gridcell", { name: "wav" }).first().click();
 	await page.getByRole("button", { name: "Stream as Bytes" }).click();
 	// @ts-ignore
 	await page
