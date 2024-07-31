@@ -109,6 +109,11 @@ class Obj:
     def __repr__(self) -> str:
         return str(self.__dict__)
 
+    def pop(self, item, default=None):
+        if item in self:
+            return self.__dict__.pop(item)
+        return default
+
 
 @document()
 class Request:
