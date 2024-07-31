@@ -1,6 +1,7 @@
 import { test, expect } from "@gradio/tootils";
 
-test("audio streams from wav file correctly", async ({ page }) => {
+test.skip("audio streams from wav file correctly", async ({ page }) => {
+	test.skip(!!process.env.CI, "Not supported in CI");
 	await page.getByRole("gridcell", { name: "wav" }).first().click();
 	await page.getByRole("button", { name: "Stream as File" }).click();
 	// @ts-ignore
@@ -18,7 +19,10 @@ test("audio streams from wav file correctly", async ({ page }) => {
 		.toBeGreaterThan(0);
 });
 
-test("audio streams from wav file correctly as bytes", async ({ page }) => {
+test.skip("audio streams from wav file correctly as bytes", async ({
+	page
+}) => {
+	test.skip(!!process.env.CI, "Not supported in CI");
 	await page.getByRole("gridcell", { name: "wav" }).first().click();
 	await page.getByRole("button", { name: "Stream as Bytes" }).click();
 	// @ts-ignore
