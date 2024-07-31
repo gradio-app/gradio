@@ -239,6 +239,7 @@ class App(FastAPI):
         blocks: gradio.Blocks,
         app_kwargs: Dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        strict_cors: bool = True,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -250,7 +251,7 @@ class App(FastAPI):
         app.configure_app(blocks)
 
         if not wasm_utils.IS_WASM:
-            app.add_middleware(CustomCORSMiddleware)
+            app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
 
         @app.get("/user")
         @app.get("/user/")
