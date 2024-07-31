@@ -2174,7 +2174,7 @@ Received outputs:
         max_file_size: str | int | None = None,
         _frontend: bool = True,
         enable_monitoring: bool = False,
-        strict_cors: bool = True
+        strict_cors: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2316,7 +2316,10 @@ Received outputs:
         self._queue.max_thread_count = max_threads
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
-            self, auth_dependency=auth_dependency, app_kwargs=app_kwargs, strict_cors=strict_cors
+            self,
+            auth_dependency=auth_dependency,
+            app_kwargs=app_kwargs,
+            strict_cors=strict_cors,
         )
 
         if self.is_running:
