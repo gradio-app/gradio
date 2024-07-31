@@ -57,6 +57,8 @@ class NativePlot(Component):
         color_map: dict[str, str] | None = None,
         x_lim: list[float] | None = None,
         y_lim: list[float] | None = None,
+        x_label_angle: float = 0,
+        y_label_angle: float = 0,
         caption: str | None = None,
         sort: Literal["x", "y", "-x", "-y"] | list[str] | None = None,
         height: int | None = None,
@@ -90,6 +92,8 @@ class NativePlot(Component):
             height: The height of the plot in pixels.
             x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max]. If x column is datetime type, x_lim should be timestamps.
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
+            x_label_angle: The angle of the x-axis labels in degrees offset clockwise.
+            y_label_angle: The angle of the y-axis labels in degrees offset clockwise.
             caption: The (optional) caption to display below the plot.
             sort: The sorting order of the x values, if x column is type string/category. Can be "x", "y", "-x", "-y", or list of strings that represent the order of the categories.
             height: The height of the plot in pixels.
@@ -118,6 +122,8 @@ class NativePlot(Component):
         self.color_map = color_map
         self.x_lim = x_lim
         self.y_lim = y_lim
+        self.x_label_angle = x_label_angle
+        self.y_label_angle = y_label_angle
         self.caption = caption
         self.sort = sort
         self.height = height
