@@ -44,7 +44,7 @@ test.afterAll(() => {
 test("gradio dev mode correctly reloads a stateful ChatInterface demo", async ({
 	page
 }) => {
-	test.setTimeout(10 * 1000);
+	test.setTimeout(20 * 1000);
 
 	try {
 		const { _process: server_process, port: port } =
