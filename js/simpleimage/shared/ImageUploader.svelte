@@ -14,7 +14,6 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 
-	let upload_component: Upload;
 	let uploading = false;
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
@@ -50,7 +49,6 @@
 			{upload}
 			{stream_handler}
 			hidden={value !== null}
-			bind:this={upload_component}
 			bind:uploading
 			bind:dragging
 			filetype="image/*"
