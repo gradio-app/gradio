@@ -5,7 +5,6 @@ from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
 import time
 
-
 class Seafoam(Base):
     def __init__(
         self,
@@ -56,7 +55,6 @@ class Seafoam(Base):
             button_shadow="*shadow_drop_lg",
             button_large_padding="32px",
         )
-
 
 seafoam = Seafoam()
 
