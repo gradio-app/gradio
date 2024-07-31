@@ -41,7 +41,7 @@ test.afterAll(() => {
 });
 
 test("gradio dev mode correctly reloads the page", async ({ page }) => {
-	test.setTimeout(20 * 1000);
+	test.setTimeout(10 * 1000);
 
 	try {
 		const { _process: server_process, port: port } =
@@ -72,7 +72,6 @@ if __name__ == "__main__":
 				PYTHONUNBUFFERED: "true"
 			}
 		});
-		//await page.reload();
 
 		await page.getByLabel("x").fill("Maria");
 		await page.getByRole("button", { name: "Submit" }).click();
