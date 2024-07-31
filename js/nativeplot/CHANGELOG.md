@@ -1,5 +1,19 @@
 # @gradio/nativeplot
 
+## 0.2.0
+
+### Features
+
+- [#8947](https://github.com/gradio-app/gradio/pull/8947) [`96d36d7`](https://github.com/gradio-app/gradio/commit/96d36d70ad3bee048027cfbf89533020a8aa6e63) - Restore plot label angles.  Thanks @aliabid94!
+- [#8907](https://github.com/gradio-app/gradio/pull/8907) [`9b42ba8`](https://github.com/gradio-app/gradio/commit/9b42ba8f1006c05d60a62450d3036ce0d6784f86) - Update guides esp plots.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.8
+- @gradio/icons@0.6.1
+- @gradio/utils@0.5.2
+- @gradio/statustracker@0.7.3
+
 ## 0.1.0
 
 ### Features
