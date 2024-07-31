@@ -26,7 +26,8 @@ This lets your user hear your audio or see your video nearly as soon as it's `yi
 All you have to do is 
 
 1. Set `streaming=True` in your `gr.Audio` or `gr.Video` output component.
-1. Write a python generator that yields the next "chunk" of audio or video.
+2. Write a python generator that yields the next "chunk" of audio or video.
+3. Set `autoplay=True` so that the media starts playing automatically.
 
 For audio, the next "chunk" can be either an `.mp3` or `.wav` file or a `bytes` sequence of audio.
 For video, the next "chunk" has to be either `.mp4` file or a file with `h.264` codec with a `.ts` extension.
@@ -35,8 +36,34 @@ Let's look at some examples
 
 ### Streaming Audio
 
-$code_stream_audio_out
+```python
+import gradio as gr
+from time import sleep
+
+def keep_repeating(audio_file):
+    for _ in range(10):
+        sleep(0.5)
+        yield audio_file
+
+gr.Interface(keep_repeating,
+             gr.Audio(sources=["microphone"], type="filepath"),
+             gr.Audio(streaming=True, autoplay=True)
+).launch()
+```
 
 ### Streaming Video
 
-$code_stream_video_out
+```python
+import gradio as gr
+from time import sleep
+
+def keep_repeating(video_file):
+    for _ in range(10):
+        sleep(0.5)
+        yield video_file
+
+gr.Interface(keep_repeating,
+             gr.Video(sources=["webcam"], format="mp4"),
+             gr.Video(streaming=True, autoplay=True)
+).launch()
+```
