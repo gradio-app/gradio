@@ -104,14 +104,22 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
             # repeatedly. Since cookies cannot get bigger than 4kb, the token will be truncated at some point - hence
             # losing the state. A workaround is to delete the cookie and redirect the user to the login page again.
             # See https://github.com/lepture/authlib/issues/622 for more details.
+            nb_redirects = int(request.query_params.get("_nb_redirects", 0))
+            target_url = request.query_params["_target_url"]
+
+            # If the user is redirected more than 3 times, it is very likely that the cookie is not working properly.
+            # (e.g. browser is blocking cookies). In this cache, we redirect the user to `_target_url` and raise an
+            # error.
+            if nb_redirects > 3:
+                return RedirectResponse(target_url)
+
             login_uri = "/login/huggingface"
+            login_uri += "?" + urllib.parse.urlencode(
+                {"_nb_redirects": nb_redirects + 1}
+            )
             if "_target_url" in request.query_params:
-                login_uri += (
-                    "?"
-                    + urllib.parse.urlencode(  # Keep same _target_url as before
-                        {"_target_url": request.query_params["_target_url"]}
-                    )
-                )
+                # Keep same _target_url as before
+                login_uri += "&" + urllib.parse.urlencode({"_target_url": target_url})
             for key in list(request.session.keys()):
                 # Delete all keys that are related to the OAuth state
                 if key.startswith("_state_huggingface"):
