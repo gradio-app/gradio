@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/markdown",
-	"version": "0.8.1",
+	"version": "0.9.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -15,6 +15,7 @@
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@types/dompurify": "^3.0.2",

@@ -24,6 +24,7 @@ class TestAudio:
         x_wav = FileData(path=media_data.BASE64_AUDIO["path"])
         audio_input = gr.Audio()
         output1 = audio_input.preprocess(x_wav)
+        assert isinstance(output1, tuple)
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
 
@@ -31,6 +32,7 @@ class TestAudio:
         x_wav = x_wav[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
+        assert isinstance(output1, str)
         assert Path(output1).name.endswith("audio_sample.wav")
 
         audio_input = gr.Audio(label="Upload Your Audio")
@@ -76,7 +78,7 @@ class TestAudio:
         audio_input = gr.Audio(type="filepath")
         assert isinstance(audio_input.preprocess(x_wav), str)
         with pytest.raises(ValueError):
-            gr.Audio(type="unknown")
+            gr.Audio(type="unknown")  # type: ignore
 
         rng = np.random.default_rng()
         # Confirm Audio can be instantiated with a numpy array
@@ -88,7 +90,8 @@ class TestAudio:
         )
         audio_output = gr.Audio(type="filepath")
         assert filecmp.cmp(
-            y_audio.name, audio_output.postprocess(y_audio.name).model_dump()["path"]
+            y_audio.name,
+            audio_output.postprocess(y_audio.name).model_dump()["path"],  # type: ignore
         )
         assert audio_output.get_config() == {
             "autoplay": False,
@@ -128,8 +131,8 @@ class TestAudio:
             "loop": False,
         }
 
-        output1 = audio_output.postprocess(y_audio.name).model_dump()
-        output2 = audio_output.postprocess(Path(y_audio.name)).model_dump()
+        output1 = audio_output.postprocess(y_audio.name).model_dump()  # type: ignore
+        output2 = audio_output.postprocess(Path(y_audio.name)).model_dump()  # type: ignore
         assert output1 == output2
 
     def test_default_value_postprocess(self):
@@ -182,8 +185,9 @@ class TestAudio:
         )
         audio_input = gr.Audio(type="filepath", format="mp3")
         output = audio_input.preprocess(x_wav)
+        assert isinstance(output, str)
         assert output.endswith("mp3")
         output = audio_input.postprocess(
             (48000, np.random.randint(-256, 256, (5, 3)).astype(np.int16))
-        ).model_dump()
+        ).model_dump()  # type: ignore
         assert output["path"].endswith("mp3")

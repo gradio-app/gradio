@@ -132,7 +132,7 @@ class TestImagePreprocessing:
             input_img, cache_dir=gradio_temp_dir, format="gif"
         )
         output_img = Image.open(file_obj)
-        assert output_img.n_frames == input_img.n_frames == 3
+        assert output_img.n_frames == input_img.n_frames == 3  # type: ignore
 
     def test_np_pil_encode_to_the_same(self, gradio_temp_dir):
         arr = np.random.randint(0, 255, size=(100, 100, 3), dtype=np.uint8)

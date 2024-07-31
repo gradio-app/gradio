@@ -342,7 +342,9 @@ class PlayableVideo(components.Video):
         ) = None,
         *,
         format: Literal["mp4"] = "mp4",
-        sources: list[Literal["upload", "webcam"]] | None = None,
+        sources: list[Literal["upload", "webcam"]]
+        | Literal["upload", "webcam"]
+        | None = None,
         height: int | str | None = None,
         width: int | str | None = None,
         label: str | None = None,
@@ -369,6 +371,7 @@ class PlayableVideo(components.Video):
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
+        watermark: str | Path | None = None,
     ):
         sources = ["upload"]
         super().__init__(
@@ -398,6 +401,7 @@ class PlayableVideo(components.Video):
             min_length=min_length,
             max_length=max_length,
             loop=loop,
+            watermark=watermark,
         )
 
 
@@ -412,7 +416,9 @@ class Microphone(components.Audio):
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        sources: list[Literal["upload", "microphone"]] | None = None,
+        sources: list[Literal["upload", "microphone"]]
+        | Literal["upload", "microphone"]
+        | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: Timer | float | None = None,

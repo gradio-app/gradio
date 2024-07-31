@@ -21,6 +21,7 @@ from gradio_client import Client, media_data
 from PIL import Image
 
 import gradio as gr
+from gradio import blocks, helpers
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
@@ -87,8 +88,7 @@ class TestBlocksMethods:
         for component in config1["components"]:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
-
-        assert assert_configs_are_equivalent_besides_ids(config1, config2)
+        assert assert_configs_are_equivalent_besides_ids(config1, config2)  # type: ignore
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
@@ -312,7 +312,7 @@ class TestBlocksMethods:
             io.close()
             io.launch(server_port=9441, prevent_thread_lock=True)
         finally:
-            io.close()
+            io.close()  # type: ignore
 
     def test_function_types_documented_in_config(self):
         def continuous_fn():
@@ -333,6 +333,7 @@ class TestBlocksMethods:
             generator_btn.click(generator_function, inputs=None, outputs=[counter])
             demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
 
+        assert "dependencies" in demo.config
         dependencies = demo.config["dependencies"]
         assert dependencies[0]["types"] == {
             "generator": False,
@@ -370,7 +371,9 @@ class TestBlocksMethods:
         with gr.Blocks() as demo:
             gr.Textbox(uuid.uuid4)
         demo.launch(prevent_thread_lock=True)
-        assert len(demo.get_config_file()["dependencies"]) == 1
+        config = demo.get_config_file()
+        assert "dependencies" in config
+        assert len(config["dependencies"]) == 1
 
 
 class TestTempFile:
@@ -472,10 +475,11 @@ class TestComponentsInBlocks:
             )
         for component in demo.blocks.values():
             if isinstance(component, gr.components.Component):
-                if "Non-random" in component.label:
+                if "Non-random" in component.label:  # type: ignore
                     assert not component.load_event_to_attach
                 else:
                     assert component.load_event_to_attach
+        assert "dependencies" in demo.config
         dependencies_on_load = [
             dep["targets"][0][1] == "load" for dep in demo.config["dependencies"]
         ]
@@ -488,7 +492,7 @@ class TestComponentsInBlocks:
             inputs=[comp(value=lambda: None, every=1) for comp in io_components],
             outputs=None,
         )
-
+        assert "dependencies" in interface.config
         dependencies_on_load = [
             dep
             for dep in interface.config["dependencies"]
@@ -507,6 +511,7 @@ class TestComponentsInBlocks:
         with gr.Blocks() as demo:
             for component in io_components:
                 components.append(component(value=lambda: None, every=1))
+        assert "dependencies" in demo.config
         assert all(
             comp.load_event in demo.config["dependencies"] for comp in components
         )
@@ -712,7 +717,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(demo.fns[0], predictions=1, state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=[1], state=None)
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_tuple_output(self):
@@ -729,7 +734,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(demo.fns[0], predictions=(1, 2), state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=[1, 2], state=None)
 
     @pytest.mark.asyncio
     async def test_dataset_is_updated(self):
@@ -1386,6 +1391,7 @@ class TestGetAPIInfo:
             t4.change(lambda x: x, t4, t5, api_name=False)
 
         api_info = demo.get_api_info()
+        assert api_info
         assert len(api_info["named_endpoints"]) == 2
         assert len(api_info["unnamed_endpoints"]) == 0
 
@@ -1396,6 +1402,7 @@ class TestGetAPIInfo:
             t1.change(lambda x: x, t1, t2, api_name=False)
 
         api_info = demo.get_api_info()
+        assert api_info
         assert len(api_info["named_endpoints"]) == 0
         assert len(api_info["unnamed_endpoints"]) == 0
 
@@ -1407,12 +1414,12 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
         boo = partial(moo, a=1)
         inputs = [2]
-        inputs_ = gr.helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_no_type_hints_with_request(self):
@@ -1421,21 +1428,21 @@ class TestAddRequests:
 
         inputs = ["abc", 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
         boo = partial(moo, a="def")
         inputs = [2]
-        inputs_ = gr.helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_type_hints_with_request(self):
-        def moo(a: str, b: gr.Request):
+        def moo2(a: str, b: gr.Request):
             return a
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo2, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request]
 
         def moo(a: gr.Request, b, c: int):
@@ -1443,16 +1450,16 @@ class TestAddRequests:
 
         inputs = ["abc", 5]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs
 
     def test_type_hints_with_multiple_requests(self):
-        def moo(a: str, b: gr.Request, c: gr.Request):
+        def moo2(a: str, b: gr.Request, c: gr.Request):
             return a
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo2, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request, request]
 
         def moo(a: gr.Request, b, c: int, d: gr.Request):
@@ -1460,7 +1467,7 @@ class TestAddRequests:
 
         inputs = ["abc", 5]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs + [request]
 
     def test_default_args(self):
@@ -1469,32 +1476,32 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [42]
 
         inputs = [1, 2, 24]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_default_args_with_progress(self):
         pr = gr.Progress()
 
-        def moo(a, b, c=42, pr=pr):
+        def moo2(a, b, c=42, pr=pr):
             return a + b + c
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(
-            moo, copy.deepcopy(inputs), request
+        inputs_, progress_index, _ = helpers.special_args(
+            moo2, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [42, pr]
         assert progress_index == 3
 
         inputs = [1, 2, 24]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(
-            moo, copy.deepcopy(inputs), request
+        inputs_, progress_index, _ = helpers.special_args(
+            moo2, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [pr]
         assert progress_index == 3
@@ -1504,7 +1511,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(
+        inputs_, progress_index, _ = helpers.special_args(
             moo, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [pr, 42]
@@ -1513,12 +1520,12 @@ class TestAddRequests:
     def test_default_args_with_request(self):
         pr = gr.Progress()
 
-        def moo(a, b, req: gr.Request, c=42):
+        def moo2(a, b, req: gr.Request, c=42):
             return a + b + c
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
+        inputs_ = helpers.special_args(moo2, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request, 42]
 
         def moo(a, b, req: gr.Request, c=42, pr=pr):
@@ -1526,7 +1533,7 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(
+        inputs_, progress_index, _ = helpers.special_args(
             moo, copy.deepcopy(inputs), request
         )
         assert inputs_ == inputs + [request, 42, pr]
@@ -1542,9 +1549,9 @@ class TestAddRequests:
         event_data = SelectData(target=target, data={"index": 24, "value": "foo"})
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.helpers.special_args(
-            moo, copy.deepcopy(inputs), request, event_data
-        )[0]
+        inputs_ = helpers.special_args(moo, copy.deepcopy(inputs), request, event_data)[
+            0
+        ]
         assert len(inputs_) == 4
         new_event_data = inputs_[2]
         assert inputs_ == inputs + [new_event_data, 42]
@@ -1553,13 +1560,13 @@ class TestAddRequests:
         assert new_event_data.index == 24
         assert new_event_data.value == "foo"
 
-        def moo(a, b, ed: SelectData, c=42, pr=pr):
+        def moo2(a, b, ed: SelectData, c=42, pr=pr):
             return a + b + c
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_, progress_index, _ = gr.helpers.special_args(
-            moo, copy.deepcopy(inputs), request, event_data
+        inputs_, progress_index, _ = helpers.special_args(
+            moo2, copy.deepcopy(inputs), request, event_data
         )
         assert len(inputs_) == 5
         new_event_data = inputs_[2]
@@ -1642,7 +1649,7 @@ def test_deprecation_warning_emitted_when_concurrency_count_set():
 def test_postprocess_update_dict():
     block = gr.Textbox()
     update_dict = {"value": 2.0, "visible": True, "invalid_arg": "hello"}
-    assert gr.blocks.postprocess_update_dict(block, update_dict, True) == {
+    assert blocks.postprocess_update_dict(block, update_dict, True) == {
         "__type__": "update",
         "value": "2.0",
         "visible": True,
@@ -1650,7 +1657,7 @@ def test_postprocess_update_dict():
 
     block = gr.Textbox(lines=10)
     update_dict = {"value": 2.0, "lines": 10}
-    assert gr.blocks.postprocess_update_dict(block, update_dict, False) == {
+    assert blocks.postprocess_update_dict(block, update_dict, False) == {
         "__type__": "update",
         "value": 2.0,
         "lines": 10,
@@ -1661,7 +1668,7 @@ def test_postprocess_update_dict():
         "value": "New Country A",
         "choices": ["New Country A", "New Country B"],
     }
-    assert gr.blocks.postprocess_update_dict(block, update_dict, False) == {
+    assert blocks.postprocess_update_dict(block, update_dict, False) == {
         "__type__": "update",
         "value": "New Country A",
         "choices": [
@@ -1802,7 +1809,7 @@ def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
         assert "deleted 3" in captured.out
         for client in [client_1, client_2]:
             assert (
-                len(app.state_holder.session_data[client.session_hash].state_data) == 0
+                len(app.state_holder.session_data[client.session_hash].state_data) == 0  # type: ignore
             )
     finally:
         demo.close()

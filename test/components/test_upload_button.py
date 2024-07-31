@@ -17,14 +17,14 @@ class TestUploadButton:
 
         input1 = upload_input.preprocess(x_file)
         input2 = upload_input.preprocess(x_file)
-        assert input1 == input1.name  # Testing backwards compatibility
+        assert input1 == input1.name  # type: ignore # Testing backwards compatibility
         assert input1 == input2
 
     def test_raises_if_file_types_is_not_list(self):
         with pytest.raises(
             ValueError, match="Parameter file_types must be a list. Received int"
         ):
-            gr.UploadButton(file_types=2)
+            gr.UploadButton(file_types=2)  # type: ignore
 
     def test_preprocess_with_multiple_files(self):
         file_data = FileData(path=media_data.BASE64_FILE["path"])

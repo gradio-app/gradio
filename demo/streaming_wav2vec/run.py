@@ -11,9 +11,9 @@ def transcribe(audio, state=""):
     return state, state
 
 demo = gr.Interface(
-    fn=transcribe, 
+    fn=transcribe,
     inputs=[
-        gr.Audio(sources=["microphone"], type="filepath", streaming=True), 
+        gr.Audio(sources=["microphone"], type="filepath", streaming=True),
         "state"
     ],
     outputs=[

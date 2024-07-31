@@ -48,16 +48,20 @@ def load_from_pipeline(
                         pipelines.text_classification.TextClassificationPipeline,
                         pipelines.text2text_generation.Text2TextGenerationPipeline,
                         pipelines.text2text_generation.TranslationPipeline,
+                        pipelines.token_classification.TokenClassificationPipeline,
                     ),
                 ):
                     data = pipeline(*data)
                 else:
                     data = pipeline(**data)  # type: ignore
-                # special case for object-detection
-                # original input image sent to postprocess function
+                # special case for object-detection and token-classification pipelines
+                # original input image / text sent to postprocess function
                 if isinstance(
                     pipeline,
-                    pipelines.object_detection.ObjectDetectionPipeline,
+                    (
+                        pipelines.object_detection.ObjectDetectionPipeline,
+                        pipelines.token_classification.TokenClassificationPipeline,
+                    ),
                 ):
                     output = pipeline_info["postprocess"](data, params[0])
                 else:

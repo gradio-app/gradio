@@ -1,5 +1,16 @@
 # @gradio/statustracker
 
+## 0.7.2
+
+### Features
+
+- [#8817](https://github.com/gradio-app/gradio/pull/8817) [`34510db`](https://github.com/gradio-app/gradio/commit/34510db468daae19ad618c347cb88a4769816fb2) - Allow HTML in alert modals.  Thanks @abidlabs!
+- [#8821](https://github.com/gradio-app/gradio/pull/8821) [`cea3bf9`](https://github.com/gradio-app/gradio/commit/cea3bf990057391f699bdeeabbdb62fdad9b43f5) - Fix dependency loop with statustracker and markdown.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.7
+
 ## 0.7.1
 
 ### Fixes

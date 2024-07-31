@@ -98,17 +98,18 @@ class TestGallery:
         img = GalleryImage(image=FileData(path="test/test_files/bus.png"))
         data = GalleryData(root=[img])
 
-        preprocess = gallery.preprocess(data)
-        assert preprocess[0][0] == "test/test_files/bus.png"
+        assert (preprocessed := gallery.preprocess(data))
+        assert preprocessed[0][0] == "test/test_files/bus.png"
 
         gallery = gr.Gallery(type="numpy")
+        assert (preprocessed := gallery.preprocess(data))
         assert (
-            gallery.preprocess(data)[0][0]
-            == np.array(PIL.Image.open("test/test_files/bus.png"))
-        ).all()
+            preprocessed[0][0] == np.array(PIL.Image.open("test/test_files/bus.png"))  # type: ignore
+        ).all()  # type: ignore
 
         gallery = gr.Gallery(type="pil")
-        assert gallery.preprocess(data)[0][0] == PIL.Image.open(
+        assert (preprocess := gallery.preprocess(data))
+        assert preprocess[0][0] == PIL.Image.open(  # type: ignore
             "test/test_files/bus.png"
         )
 
@@ -116,7 +117,7 @@ class TestGallery:
             image=FileData(path="test/test_files/bus.png"), caption="bus"
         )
         data = GalleryData(root=[img_captions])
-        preprocess = gr.Gallery().preprocess(data)
+        assert (preprocess := gr.Gallery().preprocess(data))
         assert preprocess[0] == ("test/test_files/bus.png", "bus")
 
     def test_gallery_format(self):
