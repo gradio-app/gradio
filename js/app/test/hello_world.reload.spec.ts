@@ -72,6 +72,10 @@ if __name__ == "__main__":
 				PYTHONUNBUFFERED: "true"
 			}
 		});
+<<<<<<< Updated upstream
+=======
+		await page.reload();
+>>>>>>> Stashed changes
 
 		await page.getByLabel("x").fill("Maria");
 		await page.getByRole("button", { name: "Submit" }).click();

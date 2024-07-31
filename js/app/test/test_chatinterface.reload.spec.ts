@@ -74,6 +74,7 @@ if __name__ == "__main__":
 				PYTHONUNBUFFERED: "true"
 			}
 		});
+		await page.reload();
 		await expect(page.getByLabel("foo")).toBeVisible();
 		const textbox = page.getByPlaceholder("Type a message...");
 		const submit_button = page.getByRole("button", { name: "Submit" });
