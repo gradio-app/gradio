@@ -80,6 +80,7 @@
 <style>
 	.json-holder {
 		padding: var(--size-2);
+		overflow-y: scroll;
 	}
 
 	.empty-wrapper {
