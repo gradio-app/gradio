@@ -114,6 +114,7 @@ class Obj:
             return self.__dict__.pop(item)
         return default
 
+
 @document()
 class Request:
     """
