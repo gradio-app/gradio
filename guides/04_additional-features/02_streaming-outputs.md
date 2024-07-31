@@ -31,8 +31,9 @@ All you have to do is
 
 For audio, the next "chunk" can be either an `.mp3` or `.wav` file or a `bytes` sequence of audio.
 For video, the next "chunk" has to be either `.mp4` file or a file with `h.264` codec with a `.ts` extension.
+For smooth playback, make sure chunks are consistent lengths and larger than 1 second.
 
-Let's look at some examples
+Let's look at some examples.
 
 ### Streaming Audio
 

@@ -454,7 +454,9 @@ class Video(StreamingOutput, Component):
     async def async_convert_mp4_to_ts(mp4_file, ts_file):
         ff = FFmpeg(
             inputs={mp4_file: None},
-            outputs={ts_file: '-c:v libx264 -c:a aac -f mpegts -bsf:v h264_mp4toannexb -bsf:a aac_adtstoasc'},
+            outputs={
+                ts_file: "-c:v libx264 -c:a aac -f mpegts -bsf:v h264_mp4toannexb -bsf:a aac_adtstoasc"
+            },
             global_options=["-y"],
         )
 
