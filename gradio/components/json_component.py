@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any, Callable, Sequence
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Sequence,
+)
 
 import orjson
 from gradio_client.documentation import document
@@ -42,6 +47,8 @@ class JSON(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
+        open: bool = False,
+        show_indices: bool = False,
     ):
         """
         Parameters:
@@ -58,6 +65,8 @@ class JSON(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            open: If True, all JSON nodes will be expanded when rendered. By default, node levels deeper than 3 are collapsed.
+            show_indices: Whether to show numerical indices when displaying the elements of a list within the JSON object.
         """
         super().__init__(
             label=label,
@@ -74,6 +83,9 @@ class JSON(Component):
             key=key,
             value=value,
         )
+
+        self.show_indices = show_indices
+        self.open = open
 
     def preprocess(self, payload: dict | list | None) -> dict | list | None:
         """

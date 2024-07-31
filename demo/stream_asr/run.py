@@ -15,7 +15,6 @@ def transcribe(stream, new_chunk):
         stream = y
     return stream, transcriber({"sampling_rate": sr, "raw": stream})["text"]  # type: ignore
 
-
 demo = gr.Interface(
     transcribe,
     ["state", gr.Audio(sources=["microphone"], streaming=True)],

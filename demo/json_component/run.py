@@ -20,6 +20,5 @@ with gr.Blocks() as demo:
     btn = gr.Button("Submit")
     btn.click(lambda x: x, inp, out)
 
-
 if __name__ == "__main__":
     demo.launch()
