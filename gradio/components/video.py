@@ -492,16 +492,15 @@ class Video(StreamingOutput, Component):
         ts_file = value
         if not value.endswith(".ts"):
             if not value.endswith(".mp4"):
-                raise gr.Error(
+                raise RuntimeError(
                     "Video must be in .mp4 or .ts format to be streamed as chunks",
-                    visible=False,
                 )
             ts_file = value.replace(".mp4", ".ts")
             await self.async_convert_mp4_to_ts(value, ts_file)
 
         duration = self.get_video_duration_ffprobe(ts_file)
         if not duration:
-            raise gr.Error("Cannot determine video chunk duration", visible=False)
+            raise RuntimeError("Cannot determine video chunk duration")
         chunk: MediaStreamChunk = {
             "data": Path(ts_file).read_bytes(),
             "duration": duration,
