@@ -300,11 +300,11 @@ async def call_process_api(
         iterator = app.iterators.get(event_id) if event_id is not None else None
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
-            pending_streams: dict[int, list] = (
+            pending_streams: dict[int, MediaStream] = (
                 app.get_blocks().pending_streams[session_hash].get(run_id, {})
             )
             for stream in pending_streams.values():
-                stream.append(None)
+                stream.end_stream()
         raise
 
     if batch_in_single_out:

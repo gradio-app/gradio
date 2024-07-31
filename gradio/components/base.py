@@ -20,9 +20,9 @@ from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
 from gradio.data_classes import (
+    BaseModel,
     FileDataDict,
     GradioDataModel,
-    BaseModel,
     MediaStreamChunk,
 )
 from gradio.events import EventListener

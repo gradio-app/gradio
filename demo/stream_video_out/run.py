@@ -1,6 +1,19 @@
 import gradio as gr
 import cv2
 import os
+from pathlib import Path
+import atexit
+
+current_dir = Path(__file__).resolve().parent
+
+
+def delete_files():
+    for p in Path(current_dir).glob("*.ts"):
+        p.unlink()
+    for p in Path(current_dir).glob("*.mp4"):
+        p.unlink()
+
+atexit.register(delete_files)
 
 
 def process_video(input_video, stream_as_mp4):
@@ -15,7 +28,7 @@ def process_video(input_video, stream_as_mp4):
 
     n_frames = 0
     n_chunks = 0
-    name = f"output_{n_chunks}" + ".mp4" if stream_as_mp4 else ".ts"
+    name = str(current_dir / f"output_{n_chunks}{'.mp4' if stream_as_mp4 else '.ts'}")
     segment_file = cv2.VideoWriter(name, video_codec, fps, (width, height)) # type: ignore
 
     while iterating:
@@ -30,7 +43,7 @@ def process_video(input_video, stream_as_mp4):
             segment_file.release()
             n_frames = 0
             yield name
-            name = f"output_{n_chunks}" + ".mp4" if stream_as_mp4 else ".ts"
+            name = str(current_dir / f"output_{n_chunks}{'.mp4' if stream_as_mp4 else '.ts'}")
             segment_file = cv2.VideoWriter(name, video_codec, fps, (width, height)) # type: ignore
 
         iterating, frame = cap.read()

@@ -454,6 +454,7 @@ class Video(StreamingOutput, Component):
     async def async_convert_mp4_to_ts(mp4_file, ts_file):
         command = [
             "ffmpeg",
+            "-y",
             "-i",
             mp4_file,
             "-c:v",
