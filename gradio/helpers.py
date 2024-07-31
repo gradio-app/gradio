@@ -521,7 +521,7 @@ class Examples:
                     )
                 output = prediction["data"]
                 if len(generated_values):
-                    output = merge_generated_values_into_output(
+                    output = await merge_generated_values_into_output(
                         self.outputs, generated_values, output
                     )
                 if self.batch:
@@ -583,7 +583,7 @@ class Examples:
         return output
 
 
-def merge_generated_values_into_output(
+async def merge_generated_values_into_output(
     components: Sequence[Component], generated_values: list, output: list
 ):
     from gradio.components.base import StreamingOutput
@@ -598,9 +598,11 @@ def merge_generated_values_into_output(
                 if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
                     processed_chunk = processed_chunk.model_dump()
                 binary_chunks.append(
-                    output_component.stream_output(processed_chunk, "", i == 0)[0]
+                    (await output_component.stream_output(processed_chunk, "", i == 0))[
+                        0
+                    ]
                 )
-            binary_data = b"".join(binary_chunks)
+            binary_data = b"".join([d["data"] for d in binary_chunks])
             tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(
                 Path(tempfile.gettempdir()) / "gradio"
             )
