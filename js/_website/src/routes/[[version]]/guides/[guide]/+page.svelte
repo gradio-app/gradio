@@ -178,7 +178,7 @@
 			{#if prev_guide}
 				<a
 					href="..{prev_guide.url}"
-					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
 						<span class="text-orange-500 mr-1">&#8592;</span>
@@ -235,7 +235,7 @@
 			{#if prev_guide}
 				<a
 					href="..{prev_guide.url}"
-					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+					class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
 						<span class="text-orange-500 mr-1">&#8592;</span>
