@@ -3,7 +3,7 @@
 	export let code: string;
 	export let highlighted_code: string;
 	export let url_version: string;
-	
+
 	$: url_version;
 </script>
 

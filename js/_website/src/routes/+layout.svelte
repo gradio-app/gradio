@@ -28,7 +28,7 @@
 	import { afterNavigate } from "$app/navigation";
 
 	afterNavigate(() => {
-		if (window.innerWidth > 768) {	
+		if (window.innerWidth > 768) {
 			for (const node of document.querySelectorAll(".codeblock")) {
 				let children = Array.from(node.querySelectorAll("pre, a"));
 				let textContent = node.textContent;
