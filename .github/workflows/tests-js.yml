@@ -1,10 +1,11 @@
 name: "test / js"
 
 on:
-  workflow_run:
-    workflows: ["trigger"]
-    types: 
-      - requested
+  pull_request:
+  push:
+    branches:
+      - main
+      - 5.0-dev
 
 env:
   CI: true
@@ -12,7 +13,7 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 concurrency:
-  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
 jobs:
