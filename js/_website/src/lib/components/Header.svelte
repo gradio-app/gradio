@@ -39,7 +39,7 @@
 	<div
 		class:border={show_nav}
 		class:shadow={show_nav}
-		class="w-[95%] mx-auto border-gray-200 rounded-lg p-2 mt-2 flex flex-wrap justify-between flex-row relative items-center text-lg z-50 lg:px-4 lg:py-5 lg:gap-6 lg:container lg:border-none lg:shadow-none"
+		class="w-[95%] mx-auto border-gray-200 rounded-lg p-2 mt-2 flex flex-wrap justify-between flex-row relative items-center text-lg z-40 lg:px-4 lg:py-5 lg:gap-6 lg:container lg:border-none lg:shadow-none"
 	>
 		<a href="/">
 			<img src={gradio_logo} alt="Gradio logo" />

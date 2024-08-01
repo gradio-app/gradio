@@ -3,6 +3,9 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
+	import { onNavigate } from "$app/navigation";
+	import type { list } from "postcss";
+
 
 	export let data: any = {};
 
@@ -83,6 +86,30 @@
 		all_headers = get_headers();
 	}
 
+	let show_nav = false;
+
+	onNavigate(() => {
+		show_nav = false;
+	});
+
+	$: show_nav;
+
+	function get_category(name: string) {
+		if (pages) {
+			for (let category of pages) {
+				for (let page of category.pages) {
+					if (page.name === name) {
+						return [category.category, page.pretty_name];
+					}
+				}
+			}
+		}
+	}
+
+
+	let category_and_name: any[] | undefined = get_category(name);
+
+	$: category_and_name = get_category(name);
 
 </script>
 
@@ -96,11 +123,30 @@
 
 <svelte:window bind:scrollY={y} />
 
-<main class="container mx-auto px-4 flex gap-4">
+<main class="container mx-auto px-4 flex flex-col gap-4">
+	<div class="flex items-center p-4 border-b border-t border-slate-900/10 lg:hidden dark:border-slate-50/[0.06]">
+		<button 
+		on:click={() => (show_nav = !show_nav)}
+		type="button" class="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300">
+			<svg width="24" height="24"><path d="M5 6h14M5 12h14M5 18h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+		</button>
+		{#if category_and_name}
+		<ol class="ml-4 flex text-sm leading-6 whitespace-nowrap min-w-0">
+			<li class="flex items-center">{category_and_name[0]}
+				<svg width="3" height="6" aria-hidden="true" class="mx-3 overflow-visible text-slate-400"><path d="M0 0L3 3L0 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+			</li>
+			<li class="font-semibold text-slate-900 truncate dark:text-slate-200">
+				{category_and_name[1]}
+			</li>
+		</ol>
+		{/if}
+	</div>
+
 	<div class="flex w-full">
 		<DocsNav
 			current_nav_link={name}
 			library_pages={pages}
+			bind:show_nav={show_nav}
 		/>
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
