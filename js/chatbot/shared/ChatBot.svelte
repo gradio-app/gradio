@@ -93,6 +93,7 @@
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
 	export let msg_format: "tuples" | "messages" = "tuples";
+	export let examples: Message[] | null = null;
 
 	let target = document.querySelector("div.gradio-container");
 
@@ -261,6 +262,14 @@
 
 		return groupedMessages;
 	}
+
+	let examples_test = [
+        { text: "What's the weather like today?", icon: "🌤️" },
+        { text: "Tell me a joke.", icon: "😂" },
+        { text: "How can I improve my productivity?", icon: "📈" },
+        { text: "What's the capital of France?", icon: "🌍" },
+        { text: "Give me a random fact.", icon: "💡" }
+    ];
 </script>
 
 {#if show_share_button && value !== null && value.length > 0}
@@ -426,11 +435,44 @@
 			<center>
 				<Markdown message={placeholder} {latex_delimiters} />
 			</center>
+			<div class="examples">
+				{#each examples_test as example}
+					<div class="example">
+						<span class="example-icon">{example.icon}</span>
+						<span>{example.text}</span>
+					</div>
+				{/each}
+			</div>
 		{/if}
 	</div>
 </div>
 
 <style>
+	.examples {
+        padding-top: 200px;
+		margin-bottom: -200px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+    .example {
+        display: flex;
+        align-items: center;
+        margin: 5px;
+        padding: 10px 15px;
+        border: 1px solid #444;
+        border-radius: 15px;
+        background-color: #333;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .example:hover {
+        background-color: #444;
+    }
+    .example-icon {
+        margin-right: 10px;
+    }
+
 	.placeholder-container {
 		display: flex;
 		justify-content: center;
