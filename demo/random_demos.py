@@ -37,4 +37,3 @@ for d, demo_name in enumerate(random.sample(demos_list, args.num_demos)):
         demo.launch(prevent_thread_lock=False, inbrowser=True)  # prevent main thread from exiting
     else:
         demo.launch(prevent_thread_lock=True, inbrowser=True)
-        

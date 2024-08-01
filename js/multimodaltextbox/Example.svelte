@@ -42,7 +42,7 @@
 		{#if file.mime_type && file.mime_type.includes("image")}
 			<Image src={file.url} alt="" />
 		{:else if file.mime_type && file.mime_type.includes("video")}
-			<Video src={file.url} alt="" loop={true} />
+			<Video src={file.url} alt="" loop={true} is_stream={false} />
 		{:else if file.mime_type && file.mime_type.includes("audio")}
 			<audio src={file.url} controls />
 		{:else}

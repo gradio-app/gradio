@@ -7,7 +7,6 @@ from pathlib import Path
 
 log_file = (Path(__file__).parent / "output_log.txt").resolve()
 
-
 def test_fn(x):
     with open(log_file, "a") as f:
         f.write(f"incremented {x}\n")
@@ -19,7 +18,7 @@ def delete_fn(v):
 
 def unload_fn():
    with log_file.open("a") as f:
-      f.write(f"unloading\n")
+      f.write("unloading\n")
 
 with gr.Blocks() as demo:
     n1 = gr.Number(value=0, label="Number")

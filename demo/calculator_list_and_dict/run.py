@@ -16,6 +16,5 @@ with gr.Blocks() as demo:
         return data[a] - data[b]
     sub_btn.click(sub, inputs={a, b}, outputs=c)
 
-
 if __name__ == "__main__":
     demo.launch()

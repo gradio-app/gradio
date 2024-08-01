@@ -1,10 +1,8 @@
 import gradio as gr
 
-
 def identity(x, state):
     state += 1
     return x, state, state
-
 
 with gr.Blocks() as demo:
     slider = gr.Slider(0, 100, step=0.1)

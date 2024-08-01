@@ -14,6 +14,7 @@ concurrency:
   cancel-in-progress: true
   
 
+# these variables are not secret and are used to identify the Vercel project
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

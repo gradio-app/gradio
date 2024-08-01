@@ -7,10 +7,8 @@ sentence_list = [
     "I love you!"
 ]
 
-
 def random_sentence():
     return sentence_list[random.randint(0, 2)]
-
 
 demo = gr.Interface(fn=random_sentence, inputs=None, outputs="text")
 

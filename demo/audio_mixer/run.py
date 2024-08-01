@@ -1,5 +1,4 @@
 import gradio as gr
-import numpy as np
 
 with gr.Blocks() as demo:
     track_count = gr.State(1)
@@ -34,11 +33,11 @@ with gr.Blocks() as demo:
                         trimmed_final = final_track[:min_shape[0], ...][:, :min_shape[1], ...] if final_track.ndim > 1 else final_track[:min_shape[0]]
                         output += trimmed_output + trimmed_final
                 return (sr, output)
-            
+
             merge_btn.click(merge, set(audios + volumes), output_audio)
 
     merge_btn = gr.Button("Merge Tracks")
     output_audio = gr.Audio(label="Output", interactive=False)
-                    
+
 if __name__ == "__main__":
     demo.launch()

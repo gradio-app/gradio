@@ -3,10 +3,8 @@ import pandas as pd
 import plotly.express as px
 from helpers import retrieve_pip_installs, retrieve_stars, retrieve_issues
 
-
 LIBRARIES = ["accelerate", "datasets", "diffusers", "evaluate", "gradio", "hub_docs",
              "huggingface_hub", "optimum", "pytorch_image_models", "tokenizers", "transformers"]
-
 
 def create_pip_plot(libraries, pip_choices):
     if "Pip" not in pip_choices:
@@ -18,7 +16,6 @@ def create_pip_plot(libraries, pip_choices):
     plot.update_layout(legend=dict(x=0.5, y=0.99),  title_x=0.5, legend_title_text="")
     return gr.Plot(value=plot, visible=True)
 
-
 def create_star_plot(libraries, star_choices):
     if "Stars" not in star_choices:
         return gr.Plot(visible=False)
@@ -28,7 +25,6 @@ def create_star_plot(libraries, star_choices):
                    title="Number of stargazers")
     plot.update_layout(legend=dict(x=0.5, y=0.99),  title_x=0.5, legend_title_text="")
     return gr.Plot(value=plot, visible=True)
-
 
 def create_issue_plot(libraries, issue_choices):
     if "Issue" not in issue_choices:
@@ -42,7 +38,6 @@ def create_issue_plot(libraries, issue_choices):
                    )
     plot.update_layout(legend=dict(x=0.5, y=0.99),  title_x=0.5, legend_title_text="")
     return gr.Plot(value=plot, visible=True)
-
 
 with gr.Blocks() as demo:
     with gr.Row():
@@ -65,7 +60,6 @@ with gr.Blocks() as demo:
     fetch.click(create_pip_plot, inputs=[libraries, pip], outputs=pip_plot)
     fetch.click(create_star_plot, inputs=[libraries, stars], outputs=star_plot)
     fetch.click(create_issue_plot, inputs=[libraries, issues], outputs=issue_plot)
-
 
 if __name__ == "__main__":
     demo.launch()

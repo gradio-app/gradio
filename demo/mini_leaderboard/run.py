@@ -7,7 +7,6 @@ abs_path = Path(__file__).parent.absolute()
 df = pd.read_json(str(abs_path / "assets/leaderboard_data.json"))
 invisible_df = df.copy()
 
-
 COLS = [
     "T",
     "Model",
@@ -77,7 +76,6 @@ NUMERIC_INTERVALS = {
 MODEL_TYPE = [str(s) for s in df["T"].unique()]
 Precision = [str(s) for s in df["Precision"].unique()]
 
-
 # Searching and filtering
 def update_table(
     hidden_df: pd.DataFrame,
@@ -92,16 +90,13 @@ def update_table(
     df = select_columns(filtered_df, columns)
     return df
 
-
 def search_table(df: pd.DataFrame, query: str) -> pd.DataFrame:
     return df[(df["model_name_for_query"].str.contains(query, case=False))]  # type: ignore
-
 
 def select_columns(df: pd.DataFrame, columns: list) -> pd.DataFrame:
     # We use COLS to maintain sorting
     filtered_df = df[[c for c in COLS if c in df.columns and c in columns]]
     return filtered_df  # type: ignore
-
 
 def filter_queries(query: str, filtered_df: pd.DataFrame) -> pd.DataFrame:
     final_df = []
@@ -120,7 +115,6 @@ def filter_queries(query: str, filtered_df: pd.DataFrame) -> pd.DataFrame:
             )
 
     return filtered_df
-
 
 def filter_models(
     df: pd.DataFrame,
@@ -143,7 +137,6 @@ def filter_models(
     filtered_df = filtered_df.loc[mask]
 
     return filtered_df
-
 
 demo = gr.Blocks(css=str(abs_path / "assets/leaderboard_data.json"))
 with demo:
@@ -191,7 +184,7 @@ with demo:
                     )
 
             leaderboard_table = gr.components.Dataframe(
-                value=df[ON_LOAD_COLS],
+                value=df[ON_LOAD_COLS],  # type: ignore
                 headers=ON_LOAD_COLS,
                 datatype=TYPES,
                 elem_id="leaderboard-table",
@@ -202,7 +195,7 @@ with demo:
 
             # Dummy leaderboard for handling the case when the user uses backspace key
             hidden_leaderboard_table_for_search = gr.components.Dataframe(
-                value=invisible_df[COLS],
+                value=invisible_df[COLS],  # type: ignore
                 headers=COLS,
                 datatype=TYPES,
                 visible=False,
@@ -238,7 +231,6 @@ with demo:
                     leaderboard_table,
                     queue=True,
                 )
-
 
 if __name__ == "__main__":
     demo.queue(default_concurrency_limit=40).launch()

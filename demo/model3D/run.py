@@ -1,7 +1,6 @@
 import gradio as gr
 import os
 
-
 def load_mesh(mesh_file_name):
     return mesh_file_name
 

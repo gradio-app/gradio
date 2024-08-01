@@ -2,7 +2,6 @@ import gradio as gr
 from gradio import ChatMessage
 import time
 
-
 def generate_response(history):
     history.append(
         ChatMessage(
@@ -66,11 +65,9 @@ def generate_response(history):
     )
     yield history
 
-
 def like(evt: gr.LikeData):
     print("User liked the response")
     print(evt.index, evt.liked, evt.value)
-
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(type="messages", height=500, show_copy_button=True)

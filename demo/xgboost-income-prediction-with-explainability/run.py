@@ -7,7 +7,6 @@ import shap
 import xgboost as xgb
 from datasets import load_dataset
 
-
 dataset = load_dataset("scikit-learn/adult-census-income")
 X_train = dataset["train"].to_pandas()
 _ = X_train.pop("fnlwgt")
@@ -34,7 +33,6 @@ def predict(*args):
     pos_pred = model.predict(xgb.DMatrix(df, enable_categorical=True))
     return {">50K": float(pos_pred[0]), "<=50K": 1 - float(pos_pred[0])}
 
-
 def interpret(*args):
     df = pd.DataFrame([args], columns=X_train.columns)
     df = df.astype({col: "category" for col in categorical_columns})
@@ -48,7 +46,6 @@ def interpret(*args):
     plt.xlabel("Feature")
     plt.tight_layout()
     return fig_m
-
 
 unique_class = sorted(X_train["workclass"].unique())
 unique_education = sorted(X_train["education"].unique())

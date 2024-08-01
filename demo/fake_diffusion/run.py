@@ -12,7 +12,6 @@ def fake_diffusion(steps):
     image[:] = [255, 124, 0]
     yield image
 
-
 demo = gr.Interface(fake_diffusion,
                     inputs=gr.Slider(1, 10, 3, step=1),
                     outputs="image")

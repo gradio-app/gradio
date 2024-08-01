@@ -6,7 +6,6 @@ from bokeh.sampledata.autompg2 import autompg2 as df
 from bokeh.sampledata.penguins import data
 from bokeh.transform import factor_cmap, jitter, factor_mark
 
-
 def get_plot(plot_type):
     if plot_type == "map":
         plot = figure(
@@ -18,7 +17,7 @@ def get_plot(plot_type):
         plot.add_tile(xyz.OpenStreetMap.Mapnik)  # type: ignore
         return plot
     elif plot_type == "whisker":
-        classes = list(sorted(df["class"].unique()))
+        classes = sorted(df["class"].unique())
 
         p = figure(
             height=400,
@@ -85,7 +84,6 @@ with gr.Blocks() as demo:
         plot = gr.Plot()
     plot_type.change(get_plot, inputs=[plot_type], outputs=[plot])
     demo.load(get_plot, inputs=[plot_type], outputs=[plot])
-
 
 if __name__ == "__main__":
     demo.launch()

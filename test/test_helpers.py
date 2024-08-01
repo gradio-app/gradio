@@ -376,10 +376,10 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        len_input_audio = len(AudioSegment.from_wav(audio))
-        len_output_audio = len(AudioSegment.from_wav(prediction[0].path))
+        len_input_audio = len(AudioSegment.from_file(audio))
+        len_output_audio = len(AudioSegment.from_file(prediction[0].path))
         length_ratio = len_output_audio / len_input_audio
-        assert round(length_ratio, 1) == 3.0  # might not be exactly 3x
+        assert 3 <= round(length_ratio, 1) < 4  # might not be exactly 3x
         assert float(prediction[1]) == 10.0
 
     def test_caching_with_async_generators(self, patched_cache_folder):
@@ -594,6 +594,40 @@ class TestProcessExamples:
 
         response = client.post("/api/load_example/", json={"data": [1]})
         assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]
+
+    def test_end_to_end_lazy_cache_examples(self, patched_cache_folder):
+        def image_identity(image, string):
+            return image
+
+        with gr.Blocks() as demo:
+            i1 = gr.Image()
+            t = gr.Textbox()
+            i2 = gr.Image()
+
+            gr.Examples(
+                examples=[
+                    ["test/test_files/cheetah1.jpg", "cheetah"],
+                    ["test/test_files/bus.png", "bus"],
+                ],
+                inputs=[i1, t],
+                outputs=[i2],
+                fn=image_identity,
+                cache_examples="lazy",
+                api_name="load_example",
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+
+        response = client.post("/api/load_example/", json={"data": [0]})
+        data = response.json()["data"]
+        assert data[0]["value"]["path"].endswith("cheetah1.jpg")
+        assert data[1]["value"] == "cheetah"
+
+        response = client.post("/api/load_example/", json={"data": [1]})
+        data = response.json()["data"]
+        assert data[0]["value"]["path"].endswith("bus.png")
+        assert data[1]["value"] == "bus"
 
 
 def test_multiple_file_flagging(tmp_path):

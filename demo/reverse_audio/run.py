@@ -1,14 +1,11 @@
-import os
 
 import numpy as np
 
 import gradio as gr
 
-
 def reverse_audio(audio):
     sr, data = audio
     return (sr, np.flipud(data))
-
 
 input_audio = gr.Audio(
     sources=["microphone"],

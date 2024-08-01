@@ -6,13 +6,11 @@ b = os.path.join(os.path.dirname(__file__), "files/b.mp4")  # Video
 s1 = os.path.join(os.path.dirname(__file__), "files/s1.srt")  # Subtitle
 s2 = os.path.join(os.path.dirname(__file__), "files/s2.vtt")  # Subtitle
 
-
 def video_demo(video, subtitle=None):
     if subtitle is None:
         return video
 
     return [video, subtitle.name]
-
 
 demo = gr.Interface(
     fn=video_demo,

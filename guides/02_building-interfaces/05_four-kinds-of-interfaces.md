@@ -42,3 +42,5 @@ A demo that has a single component as both the input and the output. It can simp
 
 $code_unified_demo_text_generation
 $demo_unified_demo_text_generation
+
+It may be the case that none of the 4 cases fulfill your exact needs. In this case, you need to use the `gr.Blocks()` approach!

@@ -2,7 +2,6 @@ import gradio as gr
 import os
 import numpy as np
 
-
 txt = "the quick brown fox"
 num = 10
 
@@ -168,7 +167,6 @@ with gr.Blocks() as demo:
         label="Video",
         samples=[[vid], [vid], [vid], [vid], [vid], [vid]],
     )
-
 
 if __name__ == "__main__":
     demo.launch()

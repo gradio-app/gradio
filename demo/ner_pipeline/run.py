@@ -10,10 +10,10 @@ examples = [
 
 def ner(text):
     output = ner_pipeline(text)
-    return {"text": text, "entities": output}    
+    return {"text": text, "entities": output}
 
 demo = gr.Interface(ner,
-             gr.Textbox(placeholder="Enter sentence here..."), 
+             gr.Textbox(placeholder="Enter sentence here..."),
              gr.HighlightedText(),
              examples=examples)
 

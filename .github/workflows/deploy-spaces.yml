@@ -114,6 +114,11 @@ jobs:
         echo "js_tarball_url=https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/$tarball_name" >> $GITHUB_OUTPUT
     - name: Install Hub Client Library
       run: pip install huggingface-hub==0.23.2
+      # temporary, but ensures the script cannot be modified in a PR
+    - name: Get deploy scripts
+      run: |
+        curl https://raw.githubusercontent.com/gradio-app/gradio/main/scripts/upload_demo_to_space.py -o scripts/upload_demo_to_space.py
+        curl https://raw.githubusercontent.com/gradio-app/gradio/main/scripts/upload_website_demos.py -o scripts/upload_website_demos.py
     - name: Upload demo to spaces
       if: github.event.workflow_run.event == 'pull_request'
       id: upload-demo

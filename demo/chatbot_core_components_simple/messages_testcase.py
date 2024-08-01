@@ -3,7 +3,6 @@ import random
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
-
 color_map = {
     "harmful": "crimson",
     "neutral": "gray",
@@ -59,7 +58,6 @@ def bot(history, response_type):
     history.append(msg)
     return history
 
-
 with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.Chatbot(
         elem_id="chatbot",
@@ -96,6 +94,5 @@ with gr.Blocks(fill_height=True) as demo:
 
     chatbot.like(print_like_dislike, None, None)
 
-demo.queue()
 if __name__ == "__main__":
     demo.launch()

@@ -11,7 +11,6 @@ def transcribe(audio):
 
     return transcriber({"sampling_rate": sr, "raw": y})["text"]  # type: ignore
 
-
 demo = gr.Interface(
     transcribe,
     gr.Audio(sources=["microphone"]),

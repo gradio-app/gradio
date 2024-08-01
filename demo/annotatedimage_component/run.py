@@ -4,7 +4,6 @@ from PIL import Image
 import numpy as np
 import urllib.request
 
-
 source_dir = pathlib.Path(__file__).parent
 
 urllib.request.urlretrieve(

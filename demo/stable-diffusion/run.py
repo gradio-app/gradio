@@ -12,7 +12,6 @@ pipe = StableDiffusionPipeline.from_pretrained(
 )
 pipe = pipe.to(device)
 
-
 def infer(prompt, samples, steps, scale, seed):
     generator = torch.Generator(device=device).manual_seed(seed)
     images_list = pipe(  # type: ignore
@@ -29,7 +28,6 @@ def infer(prompt, samples, steps, scale, seed):
         else:
             images.append(image)
     return images
-
 
 block = gr.Blocks()
 

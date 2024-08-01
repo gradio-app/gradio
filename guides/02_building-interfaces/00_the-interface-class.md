@@ -15,18 +15,7 @@ In this Guide, we'll dive into `gr.Interface` and the various ways it can be cus
 
 ## Gradio Components
 
-Gradio includes more than 30 pre-built components (as well as many [community-built _custom components_](https://www.gradio.app/custom-components/gallery)) that can be used as inputs or outputs in your demo. These components correspond to common data types in machine learning and data science, e.g. the `gr.Image` component is designed to handle input or output images, the `gr.Label` component displays classification labels and probabilities, the `gr.Plot` component displays various kinds of plots, and so on. 
-
-**Static and Interactive Components**
-
-Every component has a _static_ version that is designed to *display* data, and most components also have an _interactive_ version designed to let users input or modify the data. Typically, you don't need to think about this distinction, because when you build a Gradio demo, Gradio automatically figures out whether the component should be static or interactive based on whether it is being used as an input or output. However, you can set this manually using the `interactive` argument that every component supports.
-
-**Preprocessing and Postprocessing**
-
-When a component is used as an input, Gradio automatically handles the _preprocessing_ needed to convert the data from a type sent by the user's browser (such as an uploaded image) to a form that can be accepted by your function (such as a `numpy` array).
-
-
-Similarly, when a component is used as an output, Gradio automatically handles the _postprocessing_ needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (a gallery of images).
+Gradio includes more than 30 pre-built components (as well as many [community-built _custom components_](https://www.gradio.app/custom-components/gallery)) that can be used as inputs or outputs in your demo. These components correspond to common data types in machine learning and data science, e.g. the `gr.Image` component is designed to handle input or output images, the `gr.Label` component displays classification labels and probabilities, the `gr.LinePlot` component displays line plots, and so on. 
 
 ## Components Attributes
 
@@ -57,7 +46,7 @@ $demo_sepia_filter
 
 When using the `Image` component as input, your function will receive a NumPy array with the shape `(height, width, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a NumPy array. 
 
-As mentioned above, Gradio handles the preprocessing and postprocessing to convert images to NumPy arrays and vice versa. You can also control the preprocessing performed with the `type=` keyword argument. For example, if you wanted your function to take a file path to an image instead of a NumPy array, the input `Image` component could be written as:
+Gradio handles the preprocessing and postprocessing to convert images to NumPy arrays and vice versa. You can also control the preprocessing performed with the `type=` keyword argument. For example, if you wanted your function to take a file path to an image instead of a NumPy array, the input `Image` component could be written as:
 
 ```python
 gr.Image(type="filepath", shape=...)
@@ -87,8 +76,6 @@ There are three arguments in the `Interface` constructor to specify where this c
 - `article`: which also accepts text, markdown or HTML and places it below the interface.
 
 ![annotated](https://github.com/gradio-app/gradio/blob/main/guides/assets/annotated.png?raw=true)
-
-Note: if you're using the `Blocks` class, you can insert text, markdown, or HTML anywhere in your application using the `gr.Markdown(...)` or `gr.HTML(...)` components.
 
 Another useful keyword argument is `label=`, which is present in every `Component`. This modifies the label text at the top of each `Component`. You can also add the `info=` keyword argument to form elements like `Textbox` or `Radio` to provide further information on their usage.
 
