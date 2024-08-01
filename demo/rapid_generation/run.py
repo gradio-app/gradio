@@ -1,4 +1,4 @@
-import gradio as gr 
+import gradio as gr
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(elem_id="chatbot")

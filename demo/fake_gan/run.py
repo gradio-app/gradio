@@ -4,7 +4,6 @@ import random
 
 import gradio as gr
 
-
 def fake_gan():
     images = [
         (random.choice(
@@ -19,7 +18,6 @@ def fake_gan():
         for i in range(3)
     ]
     return images
-
 
 with gr.Blocks() as demo:
     gallery = gr.Gallery(

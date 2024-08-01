@@ -4,9 +4,7 @@ from pathlib import Path
 
 from PIL import Image
 
-
 root = Path(os.path.dirname(__file__))
-
 
 def infer(
     text,
@@ -22,7 +20,6 @@ def infer(
 
     return ([img, img, img, img], "image")
 
-
 block = gr.Blocks()
 
 examples = [
@@ -32,7 +29,6 @@ examples = [
     ["a graffiti of a robot serving meals to people", 7],
     ["a beautiful cabin in Attersee, Austria, 3d animation style", 7],
 ]
-
 
 with block as demo:
     with gr.Row(elem_id="prompt-container", equal_height=True):
@@ -76,7 +72,6 @@ with block as demo:
 
 with gr.Blocks() as demo:
     block.render()
-
 
 if __name__ == "__main__":
     demo.queue(max_size=10, api_open=False).launch(show_api=False)

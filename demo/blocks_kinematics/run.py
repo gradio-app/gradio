@@ -3,7 +3,6 @@ import numpy as np
 
 import gradio as gr
 
-
 def plot(v, a):
     g = 9.81
     theta = a / 180 * 3.14
@@ -14,7 +13,6 @@ def plot(v, a):
     y = ((v * timemat) * np.sin(theta)) - ((0.5 * g) * (timemat**2))
     df = pd.DataFrame({"x": x, "y": y})
     return df
-
 
 demo = gr.Blocks()
 
