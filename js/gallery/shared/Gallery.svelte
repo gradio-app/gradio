@@ -41,7 +41,6 @@
 	export let mode: "normal" | "minimal" = "normal";
 
 	let is_full_screen = false;
-	let zoom_level = 1;
 	let gallery_container: HTMLElement;
 
 	const dispatch = createEventDispatcher<{
@@ -283,7 +282,6 @@
 						title={selected_image.caption || null}
 						class={selected_image.caption && "with-caption"}
 						loading="lazy"
-						style="transform: scale({zoom_level}); transition: transform 0.2s ease-out;"
 					/>
 				</button>
 				{#if selected_image?.caption}

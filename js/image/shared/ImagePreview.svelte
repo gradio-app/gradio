@@ -34,7 +34,6 @@
 	};
 
 	let is_full_screen = false;
-	let zoom_level = 1;
 	let image_container: HTMLElement;
 
 	onMount(() => {
@@ -100,13 +99,7 @@
 		</div>
 		<button on:click={handle_click}>
 			<div class:selectable>
-				<Image
-					src={value.url}
-					alt=""
-					loading="lazy"
-					on:load
-					style="transform: scale({zoom_level}); transition: transform 0.2s ease-out;"
-				/>
+				<Image src={value.url} alt="" loading="lazy" on:load />
 			</div>
 		</button>
 	</div>
