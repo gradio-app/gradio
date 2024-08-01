@@ -7,7 +7,7 @@
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Image from "./Image.svelte";
 	import { DownloadLink } from "@gradio/wasm/svelte";
-	import { ZoomIn, ZoomOut, Maximize, Minimize } from "@gradio/icons";
+	import { Maximize, Minimize } from "@gradio/icons";
 
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
@@ -85,8 +85,6 @@
 					label={is_full_screen ? "Exit full screen" : "View in full screen"}
 					on:click={toggle_full_screen}
 				/>
-				<IconButton Icon={ZoomIn} label={"Zoom In"} on:click={zoom_in} />
-				<IconButton Icon={ZoomOut} label={"Zoom Out"} on:click={zoom_out} />
 			{/if}
 
 			{#if show_download_button}

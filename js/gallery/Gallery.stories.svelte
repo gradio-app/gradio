@@ -136,6 +136,16 @@
 <Story
 	name="Gallery with label"
 	args={{ label: "My Cheetah Gallery", show_label: true }}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+
+		const image = canvas.getByLabelText("Thumbnail 1 of 7");
+		await userEvent.click(image);
+		const expand_btn = canvas.getByRole("button", {
+			name: "View in full screen"
+		});
+		await userEvent.click(expand_btn);
+	}}
 />
 <Story
 	name="Gallery without label"
@@ -248,28 +258,5 @@
 		rows: 2,
 		height: 400,
 		show_download_button: true
-	}}
-/>
-
-<Story
-	name="Gallery with expand button"
-	args={{
-		label: "My Cheetah Gallery",
-		rows: 2,
-		height: 400
-	}}
-	play={async ({ canvasElement }) => {
-		const canvas = within(canvasElement);
-
-		const image = canvas.getByLabelText("Thumbnail 1 of 7");
-		await userEvent.click(image);
-		const expand_btn = canvas.getByRole("button", {
-			name: "Maximize"
-		});
-		await userEvent.click(expand_btn);
-		const zoom_in_btn = canvas.getByRole("button", { name: "Zoom In" });
-		await userEvent.click(zoom_in_btn);
-		const zoom_out_btn = canvas.getByRole("button", { name: "Zoom Out" });
-		await userEvent.click(zoom_out_btn);
 	}}
 />

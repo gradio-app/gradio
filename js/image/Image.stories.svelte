@@ -58,10 +58,6 @@
 			name: "Maximize"
 		});
 		await userEvent.click(expand_btn);
-		const zoom_in_btn = canvas.getByRole("button", { name: "Zoom In" });
-		await userEvent.click(zoom_in_btn);
-		const zoom_out_btn = canvas.getByRole("button", { name: "Zoom Out" });
-		await userEvent.click(zoom_out_btn);
 	}}
 />
 

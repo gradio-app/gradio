@@ -4,14 +4,12 @@
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
 	import { dequal } from "dequal";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 	import { tick } from "svelte";
 
 	import {
 		Download,
 		Image as ImageIcon,
-		ZoomIn,
-		ZoomOut,
 		Maximize,
 		Minimize,
 		Clear
@@ -44,18 +42,7 @@
 
 	let is_full_screen = false;
 	let zoom_level = 1;
-
-	const toggle_full_screen = (): void => {
-		is_full_screen = !is_full_screen;
-	};
-
-	const zoom_in = (): void => {
-		zoom_level = Math.min(zoom_level + 0.1, 3); // Max zoom of 3x
-	};
-
-	const zoom_out = (): void => {
-		zoom_level = Math.max(zoom_level - 0.1, 0.1); // Min zoom of 0.1x
-	};
+	let gallery_container: HTMLElement;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -218,6 +205,28 @@
 		selected_index != null && resolved_value != null
 			? resolved_value[selected_index]
 			: null;
+
+	onMount(() => {
+		document.addEventListener("fullscreenchange", () => {
+			is_full_screen = !!document.fullscreenElement;
+		});
+	});
+
+	const toggle_full_screen = async (): Promise<void> => {
+		if (!document.fullscreenElement) {
+			await gallery_container.requestFullscreen();
+		} else {
+			await document.exitFullscreen();
+		}
+	};
+
+	const zoom_in = (): void => {
+		zoom_level = Math.min(zoom_level + 0.1, 3);
+	};
+
+	const zoom_out = (): void => {
+		zoom_level = Math.max(zoom_level - 0.1, 0.1);
+	};
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -228,166 +237,168 @@
 {#if value == null || resolved_value == null || resolved_value.length === 0}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
-	{#if selected_image && allow_preview}
-		<button
-			on:keydown={on_keydown}
-			class="preview"
-			class:minimal={mode === "minimal"}
-		>
-			<div class="icon-buttons">
-				{#if show_download_button}
-					<IconButton
-						Icon={Download}
-						label={i18n("common.download")}
-						on:click={() => {
-							const image = selected_image?.image;
-							if (image == null) {
-								return;
-							}
-							const { url, orig_name } = image;
-							if (url) {
-								download(url, orig_name ?? "image");
-							}
-						}}
-					/>
-				{/if}
-
-				<IconButton
-					Icon={Maximize}
-					label="Maximize"
-					on:click={toggle_full_screen}
-				/>
-
-				<IconButton
-					Icon={Clear}
-					label="Close"
-					on:click={() => (selected_index = null)}
-				/>
-			</div>
+	<div class="gallery-container" bind:this={gallery_container}>
+		{#if selected_image && allow_preview}
 			<button
-				class="image-button"
-				on:click={(event) => handle_preview_click(event)}
-				style="height: calc(100% - {selected_image.caption ? '80px' : '60px'})"
-				aria-label="detailed view of selected image"
+				on:keydown={on_keydown}
+				class="preview"
+				class:minimal={mode === "minimal"}
 			>
-				<Image
-					data-testid="detailed-image"
-					src={selected_image.image.url}
-					alt={selected_image.caption || ""}
-					title={selected_image.caption || null}
-					class={selected_image.caption && "with-caption"}
-					loading="lazy"
-				/>
+				<div class="icon-buttons">
+					{#if show_download_button}
+						<IconButton
+							Icon={Download}
+							label={i18n("common.download")}
+							on:click={() => {
+								const image = selected_image?.image;
+								if (image == null) {
+									return;
+								}
+								const { url, orig_name } = image;
+								if (url) {
+									download(url, orig_name ?? "image");
+								}
+							}}
+						/>
+					{/if}
+
+					<IconButton
+						Icon={is_full_screen ? Minimize : Maximize}
+						label={is_full_screen ? "Exit full screen" : "View in full screen"}
+						on:click={toggle_full_screen}
+					/>
+
+					{#if !is_full_screen}
+						<IconButton
+							Icon={Clear}
+							label="Close"
+							on:click={() => (selected_index = null)}
+						/>
+					{/if}
+				</div>
+				<button
+					class="image-button"
+					on:click={(event) => handle_preview_click(event)}
+					style="height: calc(100% - {selected_image.caption
+						? '80px'
+						: '60px'})"
+					aria-label="detailed view of selected image"
+				>
+					<Image
+						data-testid="detailed-image"
+						src={selected_image.image.url}
+						alt={selected_image.caption || ""}
+						title={selected_image.caption || null}
+						class={selected_image.caption && "with-caption"}
+						loading="lazy"
+						style="transform: scale({zoom_level}); transition: transform 0.2s ease-out;"
+					/>
+				</button>
+				{#if selected_image?.caption}
+					<caption class="caption">
+						{selected_image.caption}
+					</caption>
+				{/if}
+				<div
+					bind:this={container_element}
+					class="thumbnails scroll-hide"
+					data-testid="container_el"
+				>
+					{#each resolved_value as image, i}
+						<button
+							bind:this={el[i]}
+							on:click={() => (selected_index = i)}
+							class="thumbnail-item thumbnail-small"
+							class:selected={selected_index === i && mode !== "minimal"}
+							aria-label={"Thumbnail " +
+								(i + 1) +
+								" of " +
+								resolved_value.length}
+						>
+							<Image
+								src={image.image.url}
+								title={image.caption || null}
+								data-testid={"thumbnail " + (i + 1)}
+								alt=""
+								loading="lazy"
+							/>
+						</button>
+					{/each}
+				</div>
 			</button>
-			{#if selected_image?.caption}
-				<caption class="caption">
-					{selected_image.caption}
-				</caption>
-			{/if}
+		{/if}
+
+		<div
+			class="grid-wrap"
+			class:minimal={mode === "minimal"}
+			class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
+			class:hidden={is_full_screen}
+		>
 			<div
-				bind:this={container_element}
-				class="thumbnails scroll-hide"
-				data-testid="container_el"
+				class="grid-container"
+				style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
+				class:pt-6={show_label}
 			>
-				{#each resolved_value as image, i}
+				{#if interactive}
+					<div class="icon-button">
+						<ModifyUpload
+							{i18n}
+							absolute={false}
+							on:clear={() => (value = null)}
+						/>
+					</div>
+				{/if}
+				{#if show_share_button}
+					<div class="icon-button">
+						<ShareButton
+							{i18n}
+							on:share
+							on:error
+							value={resolved_value}
+							formatter={format_gallery_for_sharing}
+						/>
+					</div>
+				{/if}
+				{#each resolved_value as entry, i}
 					<button
-						bind:this={el[i]}
+						class="thumbnail-item thumbnail-lg"
+						class:selected={selected_index === i}
 						on:click={() => (selected_index = i)}
-						class="thumbnail-item thumbnail-small"
-						class:selected={selected_index === i && mode !== "minimal"}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
 						<Image
-							src={image.image.url}
-							title={image.caption || null}
-							data-testid={"thumbnail " + (i + 1)}
-							alt=""
+							alt={entry.caption || ""}
+							src={typeof entry.image === "string"
+								? entry.image
+								: entry.image.url}
 							loading="lazy"
 						/>
+						{#if entry.caption}
+							<div class="caption-label">
+								{entry.caption}
+							</div>
+						{/if}
 					</button>
 				{/each}
 			</div>
-		</button>
-	{/if}
-
-	<div
-		class="grid-wrap"
-		class:minimal={mode === "minimal"}
-		class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
-		class:hidden={is_full_screen}
-	>
-		<div
-			class="grid-container"
-			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
-			class:pt-6={show_label}
-		>
-			{#if interactive}
-				<div class="icon-button">
-					<ModifyUpload
-						{i18n}
-						absolute={false}
-						on:clear={() => (value = null)}
-					/>
-				</div>
-			{/if}
-			{#if show_share_button}
-				<div class="icon-button">
-					<ShareButton
-						{i18n}
-						on:share
-						on:error
-						value={resolved_value}
-						formatter={format_gallery_for_sharing}
-					/>
-				</div>
-			{/if}
-			{#each resolved_value as entry, i}
-				<button
-					class="thumbnail-item thumbnail-lg"
-					class:selected={selected_index === i}
-					on:click={() => (selected_index = i)}
-					aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
-				>
-					<Image
-						alt={entry.caption || ""}
-						src={typeof entry.image === "string"
-							? entry.image
-							: entry.image.url}
-						loading="lazy"
-					/>
-					{#if entry.caption}
-						<div class="caption-label">
-							{entry.caption}
-						</div>
-					{/if}
-				</button>
-			{/each}
 		</div>
-	</div>
-{/if}
-
-{#if is_full_screen && selected_index !== null && resolved_value}
-	<div class="fullscreen-overlay" role="dialog" aria-modal="true">
-		<div class="fullscreen-controls">
-			<IconButton Icon={ZoomIn} label={"Zoom In"} on:click={zoom_in} />
-			<IconButton Icon={ZoomOut} label={"Zoom Out"} on:click={zoom_out} />
-
-			<IconButton
-				Icon={Minimize}
-				label="Minimize"
-				on:click={toggle_full_screen}
-			/>
-		</div>
-		<img
-			src={resolved_value[selected_index].image.path}
-			alt=""
-			class="fullscreen-image"
-			style="transform: scale({zoom_level}); transition: transform 0.2s ease-out;"
-		/>
 	</div>
 {/if}
 
 <style lang="postcss">
+	.image-container {
+		height: 100%;
+		position: relative;
+	}
+	.image-container :global(img),
+	button {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+		display: block;
+		border-radius: var(--radius-lg);
+	}
+
 	.preview {
 		display: flex;
 		position: absolute;
@@ -447,6 +458,10 @@
 
 	.preview.minimal :global(img.with-caption) {
 		height: auto;
+	}
+
+	.selectable {
+		cursor: crosshair;
 	}
 
 	.caption {
@@ -576,6 +591,7 @@
 		position: absolute;
 		right: 0;
 		gap: var(--size-1);
+		z-index: 1;
 		margin: var(--size-1);
 	}
 
@@ -599,26 +615,27 @@
 	.fullscreen-controls {
 		position: absolute;
 		display: flex;
-		top: var(--size-5);
-		right: var(--size-5);
+		bottom: 20px;
+		right: 20px;
 		gap: var(--size-1);
 		color: var(--block-label-text-color);
 	}
 
-	:global(.fullscreen-controls svg) {
+	/* :global(.fullscreen-controls svg) {
 		position: relative;
 		top: 0px;
 	}
 
-	.fullscreen-image {
+	:global(.image-container:fullscreen) {
+		background-color: black;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	:global(.image-container:fullscreen img) {
 		max-width: 90vw;
 		max-height: 90vh;
 		object-fit: contain;
-		width: 100%;
-		height: 100%;
-	}
-
-	.hidden {
-		display: none;
-	}
+	} */
 </style>
