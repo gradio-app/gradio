@@ -1,18 +1,16 @@
 name: "test / functional"
 
 on:
-  workflow_run:
-    workflows: ["trigger"]
-    types:
-      - requested
-
-
-permissions:
-  statuses: write
+  pull_request:
+  push:
+    branches:
+      - main
+      - 5.0-dev
 
 concurrency:
-  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
+
 
 jobs:
   changes:
@@ -37,36 +35,24 @@ jobs:
   test-functional:
     name: "test-functional"
     needs: changes
-    if: needs.changes.outputs.should_run == 'true'
+    # if: needs.changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-
+    # permissions:
+    #   actions: read
     steps:
-      # permissions: statuses: write
-      # user code : true
-      # secrets: GITHUB_TOKEN
-    
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.changes.outputs.merge_sha }}
-          repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
-        # unsafe - rogue deps could have maliccious setup/ pre/post install scripts
       - name: install dependencies
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
           build_lite: true
-        # unsafe - rogue deps could have maliccious setup/ pre/post install scripts
       - name: install outbreak_forecast dependencies
         run: |
           . venv/bin/activate
           python -m pip install -r demo/outbreak_forecast/requirements.txt
           python -m pip install -r demo/gradio_pdf_demo/requirements.txt
-        # safe - no user code
       - run: pnpm exec playwright install chromium firefox
-      # unsafe - arbitrary code execution
       - name: run browser tests
         run: |
           . venv/bin/activate
@@ -78,12 +64,10 @@ jobs:
           name: playwright-screenshots
           path: |
             ./test-results
-        # unsafe - arbitrary code execution
       - name: run browser component tests
         run: |
           . venv/bin/activate
           pnpm run test:ct
-        # unsafe - arbitrary code execution
       - name: run reload mode test
         run: |
           . venv/bin/activate
@@ -95,7 +79,6 @@ jobs:
           name: reload-mode-playwright-screenshots
           path: |
             ./test-results
-        # unsafe - arbitrary code execution
       - name: Run Lite E2E tests
         run: |
           . venv/bin/activate
@@ -105,14 +88,3 @@ jobs:
           export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)
           echo "LITE_APP_LOAD_TIME=$LITE_APP_LOAD_TIME" >> $GITHUB_ENV
           cat .lite-perf.json  # For debugging
-      - name: do check
-        if: always()
-        uses: "gradio-app/github/actions/commit-status@main"
-        with:
-          type: "functional"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pr: ${{ needs.changes.outputs.pr_number }}
-          sha: ${{ needs.changes.outputs.sha }}
-          name: "test / functional"
-          result: ${{ job.status }}
-          job_id: "test-functional"

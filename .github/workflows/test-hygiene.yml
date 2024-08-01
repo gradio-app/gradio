@@ -1,16 +1,14 @@
 name: "test / hygiene"
 
 on:
-  workflow_run:
-    workflows: ["trigger"]
-    types: 
-      - requested
-
-permissions:
-  statuses: write
+  pull_request:
+  push:
+    branches:
+      - main
+      - 5.0-dev
 
 concurrency:
-  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
 jobs:
@@ -33,19 +31,12 @@ jobs:
           type: "all"
           token: ${{ secrets.GITHUB_TOKEN }}
   test-hygiene:
-    # permissions: statuses: write
-    # user code : true
-    # secrets: GITHUB_TOKEN
     name: "test-hygiene"
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.should_run == 'true'
+    # if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.changes.outputs.merge_sha }}
-          repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
-        # unsafe - arbitrary code execution
       - name: Generate Notebooks
         run: |
           pip install nbformat && python scripts/generate_notebooks.py
@@ -57,14 +48,3 @@ jobs:
         uses: actionsdesk/lfs-warning@v3.3
         with:
           filesizelimit: 5MB
-      - name: do check
-        if: always()
-        uses: "gradio-app/github/actions/commit-status@main"
-        with:
-          type: "all"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pr: ${{ needs.changes.outputs.pr_number }}
-          sha: ${{ needs.changes.outputs.sha }}
-          name: "test / hygiene"
-          result: ${{ job.status }}
-          job_id: "test-hygiene"
