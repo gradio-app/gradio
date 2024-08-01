@@ -195,7 +195,7 @@
 	.line-number {
 		position: absolute;
 		left: 0;
-		width: calc(var(--size-10) - 4px);
+		width: calc(var(--size-7));
 		text-align: right;
 		color: var(--line-number-color);
 		user-select: none;
