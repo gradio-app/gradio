@@ -36,7 +36,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
   test-js:
     needs: changes
-    if: needs.changes.outputs.should_run == 'true'
     name: test-js
     runs-on: ubuntu-22.04
     steps:
