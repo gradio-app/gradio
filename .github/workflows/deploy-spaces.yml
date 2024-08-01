@@ -135,7 +135,6 @@ jobs:
         echo "js_tarball_url=https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/$tarball_name" >> $GITHUB_OUTPUT
     - name: Install Hub Client Library
       run: pip install huggingface-hub==0.23.2
-
       # temporary, but ensures the script cannot be modified in a PR
     - name: Get deploy scripts
       run: |
