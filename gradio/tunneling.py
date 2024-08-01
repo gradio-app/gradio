@@ -22,6 +22,15 @@ BINARY_REMOTE_NAME = f"frpc_{platform.system().lower()}_{machine.lower()}"
 EXTENSION = ".exe" if os.name == "nt" else ""
 BINARY_URL = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_REMOTE_NAME}{EXTENSION}"
 
+CHECKSUMS = {
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_windows_amd64.exe": "",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_windows_arm64.exe": "",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_linux_amd64": "",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_linux_arm64": "",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_darwin_amd64": "",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_darwin_arm64": "",
+}
+
 BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
 BINARY_FOLDER = Path(__file__).parent
 BINARY_PATH = f"{BINARY_FOLDER / BINARY_FILENAME}"

@@ -177,7 +177,7 @@ def encode_pil_to_bytes(pil_image, format="png"):
         return output_bytes.getvalue()
 
 
-def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
+def hash_file(file_path: str | Path, chunk_num_blocks: int = 128, hash_function=hashlib.sha1) -> str:
     sha1 = hashlib.sha1()
     with open(file_path, "rb") as f:
         for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
