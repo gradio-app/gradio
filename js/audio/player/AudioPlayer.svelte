@@ -43,7 +43,6 @@
 	let show_volume_slider = false;
 	let audio_player: HTMLAudioElement;
 
-	let audio_player: HTMLAudioElement;
 	let stream_active = false;
 
 	const dispatch = createEventDispatcher<{

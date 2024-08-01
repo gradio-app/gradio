@@ -654,22 +654,23 @@ class Queue:
                         return
                     try:
                         start = time.monotonic()
-                        awake_events, closed_events = await Queue.wait_for_batch(
-                            awake_events,
-                            [cast(float, fn.time_limit) - first_iteration]
-                            * len(awake_events),
-                        )
-                        for closed_event in closed_events:
-                            self.log_message(
-                                closed_event._id,
-                                "Time limit reached! Please join the queue again.",
-                                "info",
-                                duration=10,
+                        if awake_events[0].streaming:
+                            awake_events, closed_events = await Queue.wait_for_batch(
+                                awake_events,
+                                [cast(float, fn.time_limit) - first_iteration]
+                                * len(awake_events),
                             )
-                            self.send_message(
-                                closed_event,
-                                ProcessCompletedMessage(output=response, success=True),
-                            )
+                            for closed_event in closed_events:
+                                self.log_message(
+                                    closed_event._id,
+                                    "Time limit reached! Please join the queue again.",
+                                    "info",
+                                    duration=10,
+                                )
+                                self.send_message(
+                                    closed_event,
+                                    ProcessCompletedMessage(output=response, success=True),
+                                )
                         if not awake_events:
                             break
                         body = cast(PredictBody, awake_events[0].data)
