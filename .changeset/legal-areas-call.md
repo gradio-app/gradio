@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:Add min/max-imize and zoom in/out button to gr.Image and gr.Gallery
+feat:Add min/max-imize button to gr.Image and gr.Gallery
