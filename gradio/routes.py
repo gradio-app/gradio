@@ -587,7 +587,12 @@ class App(FastAPI):
                     )
                     return response
 
-            return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
+            return FileResponse(
+                abs_path, 
+                headers={"Accept-Ranges": "bytes"}, 
+                content_disposition_type="attachment",
+                media_type="application/octet-stream", 
+            )
 
         @app.get(
             "/stream/{session_hash}/{run}/{component_id}",
