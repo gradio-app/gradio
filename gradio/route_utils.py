@@ -382,7 +382,7 @@ class GradioUploadFile(UploadFile):
         headers: Headers | None = None,
     ) -> None:
         super().__init__(file, size=size, filename=filename, headers=headers)
-        self.sha = hashlib.sha1()
+        self.sha = hashlib.sha256()
 
 
 @python_dataclass(frozen=True)
