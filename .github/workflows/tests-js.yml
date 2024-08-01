@@ -1,11 +1,10 @@
 name: "test / js"
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - 5.0-dev
+  workflow_run:
+    workflows: ["trigger"]
+    types: 
+      - requested
 
 env:
   CI: true
@@ -13,31 +12,62 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 concurrency:
-  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      merge_sha: ${{ steps.changes.outputs.merge_sha }}
+      pr_number: ${{ steps.changes.outputs.pr_number }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+      mergeable: ${{ steps.changes.outputs.mergeable }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          type: "js"
+          token: ${{ secrets.GITHUB_TOKEN }}
   test-js:
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
     name: test-js
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+        if: ${{ needs.changes.outputs.should_run == 'true' }}
+        with:
+          ref: ${{ needs.changes.outputs.merge_sha }}
+          repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
       - name: install dependencies
+        if: ${{ needs.changes.outputs.should_run == 'true' }}
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
           always_install_pnpm: true
       - name: build client
+        if: ${{ needs.changes.outputs.should_run == 'true' }}
         run: pnpm --filter @gradio/client build
       - name: build the wasm module
+        if: ${{ needs.changes.outputs.should_run == 'true' }}
         run: pnpm --filter @gradio/wasm build
       - name: format check
+        if: ${{ needs.changes.outputs.should_run == 'true' }}
         run: pnpm format:check
       - name: lint
+        if: ${{ needs.changes.outputs.should_run == 'true' }}
         run: pnpm lint
       - name: typecheck
+        if: ${{ needs.changes.outputs.should_run == 'true' }}
         run: pnpm ts:check
       - name: unit tests
+        if: ${{ needs.changes.outputs.should_run == 'true' }}
         run: pnpm test:run
       - name: client tests
+        if: ${{ needs.changes.outputs.should_run == 'true' }}
         run: pnpm --filter @gradio/client test
-      
