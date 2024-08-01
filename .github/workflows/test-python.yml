@@ -44,7 +44,7 @@ jobs:
     # user code : true
     # secrets: GITHUB_TOKEN
     needs: [changes]
-    if: needs.changes.outputs.should_run == 'true'
+    # if: needs.changes.outputs.should_run == 'true'
     name: "test-python-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
     strategy:
       matrix:
@@ -57,10 +57,6 @@ jobs:
     continue-on-error: true
     steps:
     - uses: actions/checkout@v4
-      with:
-        ref: ${{ needs.changes.outputs.merge_sha }}
-        repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
-      # unsafe - rogue deps could have maliccious setup/ pre/post install scripts
     - name: install dependencies
       id: install_deps
       uses: "gradio-app/gradio/.github/actions/install-all-deps@main"

@@ -42,9 +42,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         if: ${{ needs.changes.outputs.should_run == 'true' }}
-        with:
-          ref: ${{ needs.changes.outputs.merge_sha }}
-          repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
       - name: install dependencies
         if: ${{ needs.changes.outputs.should_run == 'true' }}
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
