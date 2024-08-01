@@ -55,7 +55,7 @@
 		const canvas = within(canvasElement);
 
 		const expand_btn = canvas.getByRole("button", {
-			name: "Maximize"
+			name: "View in full screen"
 		});
 		await userEvent.click(expand_btn);
 	}}
