@@ -48,6 +48,12 @@ jobs:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: website~pending~null
   deploy-website:
+    # permissions: statuses: write
+    # user code : true
+    # secrets: 
+      # AWSACCESSKEYID, 
+      # AWSSECRETKEY, 
+      # VERCEL_TOKEN
     name: "deploy-website"
     runs-on: ubuntu-latest
     needs: changes
@@ -59,13 +65,17 @@ jobs:
         with:
           ref: ${{ needs.changes.outputs.merge_sha }}
           repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
+
+        # unsafe - rogue deps could have maliccious setup/ pre/post install scripts
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
           skip_build: true
+        # unsafe - pr could have modified the build script
       - name: build client
         run: pnpm --filter @gradio/client build
+        # safe - no user code
       - name: deploy json to aws
         if: startsWith(needs.changes.outputs.source_branch, 'changeset-release/') && needs.changes.outputs.source_repo == 'gradio-app/gradio'
         run: |
@@ -75,6 +85,7 @@ jobs:
           version=$(jq -r .version js/_website/src/lib/json/version.json)
           aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
           aws s3 cp ./js/_website/src/lib/templates/ s3://gradio-docs-json/$version/templates/ --recursive
+        # safe - no user code - probably
       - name: Install Vercel CLI
         run: pnpm install --global vercel@latest
       # preview

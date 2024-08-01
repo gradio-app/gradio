@@ -7,13 +7,16 @@ on:
     types:
       - requested
 
-permissions:
+permissions: 
   statuses: write
 concurrency:
   group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
 
 jobs:
+  # permissions: statuses: write
+  # user code : false
+  # secrets: GITHUB_TOKEN
   changes:
     name: "changes"
     runs-on: ubuntu-latest
@@ -37,6 +40,9 @@ jobs:
           commit_status: false
 
   comment-spaces-start:
+    # permissions: none
+    # user code : false
+    # secrets: COMMENT_TOKEN
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
     if: ${{ needs.changes.outputs.should_run == 'true' }}
@@ -46,6 +52,13 @@ jobs:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: spaces~pending~null
   deploy-spaces:
+    # permissions: none
+    # user code : true
+    # secrets: 
+      # PR_DEPLOY_KEY, 
+      # PR_DEPLOY_SECRET, 
+      # SPACES_DEPLOY_TOKEN,
+      # WEBSITE_SPACES_DEPLOY_TOKEN
     outputs:
       space_url: ${{ steps.upload-demo.outputs.SPACE_URL }}
       gradio_version: ${{ steps.get_gradio_version.outputs.gradio_version }}
@@ -54,11 +67,13 @@ jobs:
     if: ${{ needs.changes.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     steps:
+      # safe
     - uses: actions/checkout@v4
       with:
         ref: ${{ needs.changes.outputs.merge_sha }}
         repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
 
+      # unsafe - rogue deps could have maliccious setp/ pre/post install scripts
     - name: install dependencies
       uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
       with:
@@ -66,6 +81,7 @@ jobs:
         python_version: '3.9'
         build_lite: 'true'
 
+      # unsafe
     - name: Package Lite NPM package
       working-directory: js/lite
       run: pnpm pack --pack-destination .
@@ -75,6 +91,7 @@ jobs:
         name: gradio-lite-${{ github.sha }}
         path: js/lite/gradio-lite-*.tgz
 
+      # safe?
     - name: Install pip
       run: python -m pip install build requests
     - name: Get Gradio Version
@@ -86,11 +103,13 @@ jobs:
         else
           echo "GRADIO_VERSION=$(python -c 'import json; print(json.load(open("gradio/package.json"))["version"])')" >> $GITHUB_OUTPUT
         fi
+      # unsafe - pr could have modified the build process
     - name: Build pr package
       run: |
         python -c 'import json; j = json.load(open("gradio/package.json")); j["version"] = "${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}"; json.dump(j, open("gradio/package.json", "w"))'
         python3 -m build -w
 
+      # unsafe, pulls from pr branch
     - name: Set up Demos
       run: |
         python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}-py3-none-any.whl \
@@ -101,6 +120,8 @@ jobs:
         export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
         export AWS_DEFAULT_REGION=us-east-1
         aws s3 cp dist/gradio-${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ needs.changes.outputs.sha  }}/
+    
+      # unsafe - pr could have modified the pack process - prepare, prepack, postpack
     - name: Create and Upload JS Client Tarball to S3
       id: upload_js_tarball
       continue-on-error: true
@@ -114,6 +135,13 @@ jobs:
         echo "js_tarball_url=https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/$tarball_name" >> $GITHUB_OUTPUT
     - name: Install Hub Client Library
       run: pip install huggingface-hub==0.23.2
+
+      # temporary, but ensures the script cannot be modified in a PR
+    - name: Get deploy scripts
+      run: |
+        curl https://raw.githubusercontent.com/gradio-app/gradio/main/scripts/upload_demo_to_space.py -o scripts/upload_demo_to_space.py
+        curl https://raw.githubusercontent.com/gradio-app/gradio/main/scripts/upload_website_demos.py -o scripts/upload_website_demos.py
+    # safe, pulls from main branch
     - name: Upload demo to spaces
       if: github.event.workflow_run.event == 'pull_request'
       id: upload-demo
@@ -123,6 +151,7 @@ jobs:
         ${{ secrets.SPACES_DEPLOY_TOKEN }} \
         --gradio-version ${{ steps.get_gradio_version.outputs.GRADIO_VERSION }} > url.txt
         echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
+      # safe, pulls from main branch
     - name: Upload Website Demos
       if: github.event_name == 'workflow_dispatch'
       id: upload-website-demos
@@ -137,6 +166,9 @@ jobs:
         echo ${{ github.event.workflow_run.conclusion }}
 
   comment-spaces-success:
+    # permissions: none
+    # user code : false
+    # secrets: COMMENT_TOKEN
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy-spaces, changes]
     if: needs.deploy-spaces.result == 'success' && needs.changes.outputs.found_pr == 'true'
@@ -161,6 +193,9 @@ jobs:
         npm install ${{ needs.deploy-spaces.outputs.js_tarball_url }}
         ```
   comment-spaces-failure:
+    # permissions: none
+    # user code : false
+    # secrets: COMMENT_TOKEN
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy-spaces, changes]
     if: always() && needs.deploy-spaces == 'failure' && needs.changes.outputs.found_pr == 'true'

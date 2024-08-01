@@ -33,6 +33,9 @@ jobs:
           type: "all"
           token: ${{ secrets.GITHUB_TOKEN }}
   test-hygiene:
+    # permissions: statuses: write
+    # user code : true
+    # secrets: GITHUB_TOKEN
     name: "test-hygiene"
     runs-on: ubuntu-latest
     needs: changes
@@ -42,6 +45,7 @@ jobs:
         with:
           ref: ${{ needs.changes.outputs.merge_sha }}
           repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
+        # unsafe - arbitrary code execution
       - name: Generate Notebooks
         run: |
           pip install nbformat && python scripts/generate_notebooks.py

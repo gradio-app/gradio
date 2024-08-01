@@ -37,6 +37,9 @@ jobs:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
       message: changes~pending~null
   version:
+    # permissions: write-all
+    # user code : false
+    # secrets: COMMENT_TOKEN
     permissions: write-all
     name: static checks
     needs: get-pr

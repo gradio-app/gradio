@@ -40,6 +40,9 @@ jobs:
           name: "test / python / linux"
           token: ${{ secrets.GITHUB_TOKEN }}
   test-python:
+    # permissions: statuses: write
+    # user code : true
+    # secrets: GITHUB_TOKEN
     needs: [changes]
     if: needs.changes.outputs.should_run == 'true'
     name: "test-python-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
@@ -57,6 +60,7 @@ jobs:
       with:
         ref: ${{ needs.changes.outputs.merge_sha }}
         repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
+      # unsafe - rogue deps could have maliccious setup/ pre/post install scripts
     - name: install dependencies
       id: install_deps
       uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
@@ -64,16 +68,19 @@ jobs:
         python_version: "3.8"
         os: ${{ matrix.os }}
         test: true
+      # unsafe - arbitrary code execution
     - name: Lint
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
         ./scripts/lint_backend.sh
+      # unsafe - arbitrary code execution
     - name: Typecheck
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
         ./scripts/type_check_backend.sh
+      # unsafe - arbitrary code execution
     - name: Run tests
       run: |
         . ${{steps.install_deps.outputs.venv_activate}}

@@ -45,6 +45,11 @@ jobs:
       message: |
         storybook~pending~null
   test-visual:
+    # permissions: statuses: write
+    # user code : true
+    # secrets: 
+      # CHROMATIC_PROJECT_TOKEN, 
+      # GITHUB_TOKEN
     name: "test-visual"
     needs: changes
     if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
@@ -60,19 +65,24 @@ jobs:
             fetch-depth: 0
             ref: ${{ needs.changes.outputs.sha }}
             repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
+        # unsafe - rogue deps could have maliccious setup/ pre/post install scripts
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
           skip_build: 'true'
+        # unsafe - pr could have modified the build script
       - name: build client
         run: pnpm --filter @gradio/client build 
+        # unsafe - pr could have modified the css script
       - name: generate theme.css
         run: | 
           . venv/bin/activate
           python scripts/generate_theme.py --outfile js/storybook/theme.css
+        # unsafe - pr could have modified the storybook script
       - name: build storybook
         run: pnpm build-storybook --quiet
+        # safer - no user code - probably
       - name: publish to chromatic
         id: publish-chromatic
         uses: chromaui/action@v11

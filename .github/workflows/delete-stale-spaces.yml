@@ -1,3 +1,5 @@
+# safe runs from main
+
 name: Delete Stale Spaces
 
 on:
