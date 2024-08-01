@@ -7,6 +7,7 @@
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Image from "./Image.svelte";
 	import { DownloadLink } from "@gradio/wasm/svelte";
+	import { ZoomIn, ZoomOut, Maximize, Minimize } from "@gradio/icons";
 
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
@@ -31,6 +32,21 @@
 			dispatch("select", { index: coordinates, value: null });
 		}
 	};
+
+	let is_full_screen = false;
+	let zoom_level = 1;
+
+	const toggle_full_screen = (): void => {
+		is_full_screen = !is_full_screen;
+	};
+
+	const zoom_in = (): void => {
+		zoom_level = Math.min(zoom_level + 0.1, 3); // Max zoom of 3x
+	};
+
+	const zoom_out = (): void => {
+		zoom_level = Math.max(zoom_level - 0.1, 0.1); // Min zoom of 0.1x
+	};
 </script>
 
 <BlockLabel
@@ -41,7 +57,13 @@
 {#if value === null || !value.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
-	<div class="icon-buttons">
+	<div class="icon-buttons" aria-hidden={is_full_screen}>
+		<IconButton
+			Icon={Maximize}
+			label="View in full screen"
+			on:click={toggle_full_screen}
+		/>
+
 		{#if show_download_button}
 			<DownloadLink href={value.url} download={value.orig_name || "image"}>
 				<IconButton Icon={Download} label={i18n("common.download")} />
@@ -68,6 +90,27 @@
 	</button>
 {/if}
 
+{#if is_full_screen}
+	<div class="fullscreen-overlay" role="dialog" aria-modal="true">
+		<div class="fullscreen-controls">
+			<IconButton Icon={ZoomIn} label={"Zoom In"} on:click={zoom_in} />
+			<IconButton Icon={ZoomOut} label={"Zoom Out"} on:click={zoom_out} />
+
+			<IconButton
+				Icon={Minimize}
+				label="Minimize"
+				on:click={toggle_full_screen}
+			/>
+		</div>
+		<img
+			src={value?.url}
+			alt=""
+			class="fullscreen-image"
+			style="transform: scale({zoom_level}); transition: transform 0.2s ease-out;"
+		/>
+	</div>
+{/if}
+
 <style>
 	.image-container {
 		height: 100%;
@@ -91,5 +134,40 @@
 		top: 6px;
 		right: 6px;
 		gap: var(--size-1);
+	}
+
+	.fullscreen-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		z-index: 1001;
+		background-color: rgba(0, 0, 0, 0.9);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.fullscreen-controls {
+		position: absolute;
+		display: flex;
+		top: 20px;
+		right: 20px;
+		gap: var(--size-1);
+		color: var(--block-label-text-color);
+	}
+
+	:global(.fullscreen-controls svg) {
+		position: relative;
+		top: 0px;
+	}
+
+	.fullscreen-image {
+		max-width: 90vw;
+		max-height: 90vh;
+		object-fit: contain;
+		width: 100%;
+		height: 100%;
 	}
 </style>
