@@ -7,7 +7,15 @@
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
-	import { Download, Image as ImageIcon } from "@gradio/icons";
+	import {
+		Download,
+		Image as ImageIcon,
+		ZoomIn,
+		ZoomOut,
+		Maximize,
+		Minimize,
+		Clear
+	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import { IconButton } from "@gradio/atoms";
@@ -33,6 +41,21 @@
 	export let interactive: boolean;
 	export let _fetch: typeof fetch;
 	export let mode: "normal" | "minimal" = "normal";
+
+	let is_full_screen = false;
+	let zoom_level = 1;
+
+	const toggle_full_screen = (): void => {
+		is_full_screen = !is_full_screen;
+	};
+
+	const zoom_in = (): void => {
+		zoom_level = Math.min(zoom_level + 0.1, 3); // Max zoom of 3x
+	};
+
+	const zoom_out = (): void => {
+		zoom_level = Math.max(zoom_level - 0.1, 0.1); // Min zoom of 0.1x
+	};
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -213,28 +236,32 @@
 		>
 			<div class="icon-buttons">
 				{#if show_download_button}
-					<div class="download-button-container">
-						<IconButton
-							Icon={Download}
-							label={i18n("common.download")}
-							on:click={() => {
-								const image = selected_image?.image;
-								if (image == null) {
-									return;
-								}
-								const { url, orig_name } = image;
-								if (url) {
-									download(url, orig_name ?? "image");
-								}
-							}}
-						/>
-					</div>
+					<IconButton
+						Icon={Download}
+						label={i18n("common.download")}
+						on:click={() => {
+							const image = selected_image?.image;
+							if (image == null) {
+								return;
+							}
+							const { url, orig_name } = image;
+							if (url) {
+								download(url, orig_name ?? "image");
+							}
+						}}
+					/>
 				{/if}
 
-				<ModifyUpload
-					{i18n}
-					absolute={false}
-					on:clear={() => (selected_index = null)}
+				<IconButton
+					Icon={Maximize}
+					label="View in full screen"
+					on:click={toggle_full_screen}
+				/>
+
+				<IconButton
+					Icon={Clear}
+					label="Close"
+					on:click={() => (selected_index = null)}
 				/>
 			</div>
 			<button
@@ -287,6 +314,7 @@
 		class="grid-wrap"
 		class:minimal={mode === "minimal"}
 		class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
+		class:hidden={is_full_screen}
 	>
 		<div
 			class="grid-container"
@@ -335,6 +363,27 @@
 				</button>
 			{/each}
 		</div>
+	</div>
+{/if}
+
+{#if is_full_screen && selected_index !== null && resolved_value}
+	<div class="fullscreen-overlay" role="dialog" aria-modal="true">
+		<div class="fullscreen-controls">
+			<IconButton Icon={ZoomIn} label={"Zoom In"} on:click={zoom_in} />
+			<IconButton Icon={ZoomOut} label={"Zoom Out"} on:click={zoom_out} />
+
+			<IconButton
+				Icon={Minimize}
+				label="Minimize"
+				on:click={toggle_full_screen}
+			/>
+		</div>
+		<img
+			src={resolved_value[selected_index].image.path}
+			alt=""
+			class="fullscreen-image"
+			style="transform: scale({zoom_level}); transition: transform 0.2s ease-out;"
+		/>
 	</div>
 {/if}
 
@@ -526,13 +575,50 @@
 		display: flex;
 		position: absolute;
 		right: 0;
-	}
-
-	.icon-buttons .download-button-container {
-		margin: var(--size-1) 0;
+		gap: var(--size-1);
+		margin: var(--size-1);
 	}
 
 	.grid-wrap.minimal {
 		padding: 0;
+	}
+
+	.fullscreen-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		z-index: 1001;
+		background-color: rgba(0, 0, 0, 0.9);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.fullscreen-controls {
+		position: absolute;
+		display: flex;
+		top: var(--size-5);
+		right: var(--size-5);
+		gap: var(--size-1);
+		color: var(--block-label-text-color);
+	}
+
+	:global(.fullscreen-controls svg) {
+		position: relative;
+		top: 0px;
+	}
+
+	.fullscreen-image {
+		max-width: 90vw;
+		max-height: 90vh;
+		object-fit: contain;
+		width: 100%;
+		height: 100%;
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>
