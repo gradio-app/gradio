@@ -18,6 +18,13 @@
 />
 
 <Story
+	name="Number with empty value"
+	args={{
+		value: null
+	}}
+/>
+
+<Story
 	name="Number with step of 10"
 	args={{
 		step: 10

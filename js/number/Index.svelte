@@ -21,7 +21,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let value = 0;
+	export let value: number | null = null;
 	export let show_label: boolean;
 	export let minimum: number | undefined = undefined;
 	export let maximum: number | undefined = undefined;
@@ -31,13 +31,27 @@
 	export let interactive: boolean;
 
 	function handle_change(): void {
-		if (!isNaN(value) && value !== null) {
-			gradio.dispatch("change");
-			if (!value_is_output) {
-				gradio.dispatch("input");
+		if (input_value === "") {
+			value = null;
+		} else {
+			const parsed_value = parseFloat(input_value);
+			if (!isNaN(parsed_value)) {
+				value = parsed_value;
 			}
 		}
+
+		gradio.dispatch("change");
+		if (!value_is_output) {
+			gradio.dispatch("input");
+		}
 	}
+
+	let input_value: string = value === null ? "" : value.toString();
+
+	$: if (value !== null && value.toString() !== input_value) {
+		input_value = value.toString();
+	}
+
 	afterUpdate(() => {
 		value_is_output = false;
 	});
@@ -74,7 +88,7 @@
 		<input
 			aria-label={label}
 			type="number"
-			bind:value
+			bind:value={input_value}
 			min={minimum}
 			max={maximum}
 			{step}
