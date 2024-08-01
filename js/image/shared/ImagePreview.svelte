@@ -51,14 +51,6 @@
 			is_full_screen = !is_full_screen;
 		}
 	};
-
-	const zoom_in = (): void => {
-		zoom_level = Math.min(zoom_level + 0.1, 3); // Max zoom of 3x
-	};
-
-	const zoom_out = (): void => {
-		zoom_level = Math.max(zoom_level - 0.1, 0.1); // Min zoom of 0.1x
-	};
 </script>
 
 <BlockLabel

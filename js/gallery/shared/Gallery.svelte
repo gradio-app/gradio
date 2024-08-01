@@ -219,14 +219,6 @@
 			await document.exitFullscreen();
 		}
 	};
-
-	const zoom_in = (): void => {
-		zoom_level = Math.min(zoom_level + 0.1, 3);
-	};
-
-	const zoom_out = (): void => {
-		zoom_level = Math.max(zoom_level - 0.1, 0.1);
-	};
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
