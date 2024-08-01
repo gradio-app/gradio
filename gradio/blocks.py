@@ -2181,6 +2181,7 @@ Received outputs:
         max_file_size: str | int | None = None,
         _frontend: bool = True,
         enable_monitoring: bool = False,
+        strict_cors: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2216,6 +2217,7 @@ Received outputs:
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
+            strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2279,7 +2281,6 @@ Received outputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-
         self.show_api = show_api
 
         if allowed_paths:
@@ -2322,7 +2323,10 @@ Received outputs:
         self._queue.max_thread_count = max_threads
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
-            self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
+            self,
+            auth_dependency=auth_dependency,
+            app_kwargs=app_kwargs,
+            strict_cors=strict_cors,
         )
 
         if self.is_running:
