@@ -254,7 +254,7 @@
 
 				<IconButton
 					Icon={Maximize}
-					label="View in full screen"
+					label="Maximize"
 					on:click={toggle_full_screen}
 				/>
 

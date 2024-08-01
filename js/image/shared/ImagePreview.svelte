@@ -60,7 +60,7 @@
 	<div class="icon-buttons" aria-hidden={is_full_screen}>
 		<IconButton
 			Icon={Maximize}
-			label="View in full screen"
+			label="Maximize"
 			on:click={toggle_full_screen}
 		/>
 

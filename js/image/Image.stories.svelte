@@ -41,6 +41,31 @@
 />
 
 <Story
+	name="static with label and download button"
+	args={{
+		value: {
+			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			orig_name: "cheetah.jpg"
+		},
+		show_label: true,
+		show_download_button: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+
+		const expand_btn = canvas.getByRole("button", {
+			name: "Maximize"
+		});
+		await userEvent.click(expand_btn);
+		const zoom_in_btn = canvas.getByRole("button", { name: "Zoom In" });
+		await userEvent.click(zoom_in_btn);
+		const zoom_out_btn = canvas.getByRole("button", { name: "Zoom Out" });
+		await userEvent.click(zoom_out_btn);
+	}}
+/>
+
+<Story
 	name="static with no label or download button"
 	args={{
 		value: {
