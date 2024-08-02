@@ -1,6 +1,6 @@
 ---
-"@gradio/model3d": patch
-"gradio": patch
+"@gradio/model3d": minor
+"gradio": minor
 ---
 
-fix:Prevent overflow in Model3D
+feat:Prevent overflow in Model3D
