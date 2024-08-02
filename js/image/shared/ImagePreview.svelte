@@ -44,7 +44,7 @@
 	});
 
 	const toggle_full_screen = async (): Promise<void> => {
-		if (!document.fullscreenElement) {
+		if (!is_full_screen) {
 			await image_container.requestFullscreen();
 		} else {
 			await document.exitFullscreen();

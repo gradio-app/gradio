@@ -213,7 +213,7 @@
 	});
 
 	const toggle_full_screen = async (): Promise<void> => {
-		if (!document.fullscreenElement) {
+		if (!is_full_screen) {
 			await gallery_container.requestFullscreen();
 		} else {
 			await document.exitFullscreen();
