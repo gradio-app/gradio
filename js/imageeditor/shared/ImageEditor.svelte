@@ -74,7 +74,6 @@
 	}>();
 	export let crop_constraint = false;
 	export let canvas_size: [number, number] | undefined;
-	export let show_fullscreen_button = true;
 
 	$: orig_canvas_size = canvas_size;
 
@@ -355,7 +354,7 @@
 		></div>
 	</div>
 	<div class="tools-wrap">
-		<slot {show_fullscreen_button} />
+		<slot />
 	</div>
 	<div
 		class="canvas"
