@@ -160,7 +160,7 @@ class Sketchpad(components.ImageEditor):
             format=format,
             layers=layers,
             canvas_size=canvas_size,
-            show_fullscreen_button=show_fullscreen_button
+            show_fullscreen_button=show_fullscreen_button,
         )
 
 
@@ -242,7 +242,7 @@ class Paint(components.ImageEditor):
             format=format,
             layers=layers,
             canvas_size=canvas_size,
-            show_fullscreen_button=show_fullscreen_button
+            show_fullscreen_button=show_fullscreen_button,
         )
 
 
@@ -330,7 +330,7 @@ class ImageMask(components.ImageEditor):
             format=format,
             layers=layers,
             canvas_size=canvas_size,
-            show_fullscreen_button=show_fullscreen_button
+            show_fullscreen_button=show_fullscreen_button,
         )
 
 
