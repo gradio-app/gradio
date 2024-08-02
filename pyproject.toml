@@ -110,6 +110,7 @@ exclude = [
   "gradio/components/*_plot.py",
   "gradio/node/*.py",
   "gradio/_frontend_code/*.py",
+  "demo/scratch/**/*.py"
 ]
 stubPath = "gradio/stubs"
 extraPaths = ["gradio/stubs"]
