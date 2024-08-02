@@ -76,7 +76,9 @@ class Tunnel:
             if BINARY_URL in CHECKSUMS:
                 calculated_hash = hash_file(BINARY_PATH)
                 if calculated_hash != CHECKSUMS[BINARY_URL]:
-                    warnings.warn(f"Checksum of downloaded binary for creating share links does not match expected value. Please verify the integrity of the downloaded binary located at {BINARY_PATH}.")
+                    warnings.warn(
+                        f"Checksum of downloaded binary for creating share links does not match expected value. Please verify the integrity of the downloaded binary located at {BINARY_PATH}."
+                    )
 
     def start_tunnel(self) -> str:
         self.download_binary()
