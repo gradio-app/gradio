@@ -603,11 +603,7 @@ class App(FastAPI):
             if not stream:
                 return Response(status_code=404)
 
-            duration = 3
-            if len(stream.segments):
-                duration = max(s["duration"] for s in stream.segments)
-
-            playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+            playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_length}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
 
             for segment in stream.segments:
                 playlist += f"#EXTINF:{segment['duration']:.3f},\n"

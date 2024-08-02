@@ -867,6 +867,7 @@ class MediaStream:
         self.ended = False
         self.segment_index = 0
         self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+        self.max_length = 5
 
     async def add_segment(self, data: MediaStreamChunk | None):
         if not data:
@@ -874,6 +875,7 @@ class MediaStream:
 
         segment_id = str(uuid.uuid4())
         self.segments.append({"id": segment_id, **data})
+        self.max_length = max(self.max_length, len(data["data"])) + 1
 
     def end_stream(self):
         self.ended = True
