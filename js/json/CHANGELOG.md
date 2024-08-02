@@ -1,5 +1,24 @@
 # @gradio/json
 
+## 0.3.0
+
+### Features
+
+- [#8954](https://github.com/gradio-app/gradio/pull/8954) [`5010e95`](https://github.com/gradio-app/gradio/commit/5010e9579e5fdd5c3861b144c427551c2e5ead0f) - Add `overflow: wrap` to JSON to catch overflow in xs device widths.  Thanks @hannahblair!
+- [#8932](https://github.com/gradio-app/gradio/pull/8932) [`600c97c`](https://github.com/gradio-app/gradio/commit/600c97c807b648bca11c2dd5dfa0a6a692756bd9) - Allow viewing JSON as list or dict with `show_indices` param.  Thanks @hannahblair!
+- [#8929](https://github.com/gradio-app/gradio/pull/8929) [`3539787`](https://github.com/gradio-app/gradio/commit/3539787ebb39b3d00c34707b49d5de40fdc3d69a) - Add line numbering and collapse/expand logic to gr.JSON.  Thanks @hannahblair!
+
+### Fixes
+
+- [#8949](https://github.com/gradio-app/gradio/pull/8949) [`1e16f67`](https://github.com/gradio-app/gradio/commit/1e16f67ba2a02761d4b73afd723f8edc3c3124e9) - Fix check icon in gr.JSON and gr.Code.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.8
+- @gradio/icons@0.6.1
+- @gradio/utils@0.5.2
+- @gradio/statustracker@0.7.3
+
 ## 0.2.9
 
 ### Dependency updates

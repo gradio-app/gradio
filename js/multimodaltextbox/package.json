@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/multimodaltextbox",
-	"version": "0.5.3",
+	"version": "0.5.4",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -20,6 +20,7 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/image": "workspace:^",
+		"@gradio/video": "workspace:^",
 		"@gradio/client": "workspace:^"
 	},
 	"devDependencies": {

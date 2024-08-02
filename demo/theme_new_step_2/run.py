@@ -5,7 +5,6 @@ from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
 import time
 
-
 class Seafoam(Base):
     def __init__(
         self,
@@ -41,7 +40,6 @@ class Seafoam(Base):
             font=font,
             font_mono=font_mono,
         )
-
 
 seafoam = Seafoam()
 

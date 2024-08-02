@@ -1,9 +1,7 @@
 import gradio as gr
 
-
 def delete_file(n: int, file: gr.DeletedFileData):
     return [file.file.path, n + 1]
-
 
 with gr.Blocks() as demo:
 

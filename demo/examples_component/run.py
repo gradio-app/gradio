@@ -1,10 +1,8 @@
 import gradio as gr
 import os
 
-
 def flip(i):
     return i.rotate(180)
-
 
 with gr.Blocks() as demo:
     with gr.Row():
