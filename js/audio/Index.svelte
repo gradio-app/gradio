@@ -60,6 +60,7 @@
 		clear: never;
 		share: ShareData;
 		clear_status: LoadingStatus;
+		close_stream: string;
 	}>;
 
 	let old_value: null | FileData = null;
@@ -237,6 +238,7 @@
 			on:upload={() => gradio.dispatch("upload")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:error={handle_error}
+			on:close_stream={() => gradio.dispatch("close_stream", "stream")}
 			i18n={gradio.i18n}
 			{waveform_settings}
 			{waveform_options}

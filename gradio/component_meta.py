@@ -35,7 +35,7 @@ INTERFACE_TEMPLATE = '''
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
         show_api: bool = True,
-        time_limit: int = 300) -> Dependency:
+        time_limit: float | None = None) -> Dependency:
         """
         Parameters:
             fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.

@@ -91,6 +91,7 @@
 		start_recording: undefined;
 		pause_recording: undefined;
 		stop_recording: undefined;
+		close_stream: undefined;
 	}>();
 
 	const dispatch_blob = async (
@@ -207,6 +208,7 @@
 		recording = false;
 
 		if (streaming) {
+			dispatch("close_stream");
 			dispatch("stop_recording");
 			recorder.stop();
 			if (pending) {

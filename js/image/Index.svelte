@@ -66,6 +66,7 @@
 		select: SelectData;
 		share: ShareData;
 		clear_status: LoadingStatus;
+		close_stream: string;
 	}>;
 
 	$: {
@@ -159,6 +160,9 @@
 				loading_status = loading_status || {};
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
+			}}
+			on:close_stream={() => {
+				gradio.dispatch("close_stream", "stream");
 			}}
 			{label}
 			{show_label}

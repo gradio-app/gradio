@@ -109,7 +109,7 @@ class Audio(
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
-        stream_frequency: int = 2,
+        stream_frequency: float = 2,
     ):
         """
         Parameters:

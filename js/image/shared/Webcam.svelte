@@ -39,6 +39,7 @@
 		error: string;
 		start_recording: undefined;
 		stop_recording: undefined;
+		close_stream: undefined;
 	}>();
 
 	onMount(() => (canvas = document.createElement("canvas")));
@@ -192,6 +193,7 @@
 			take_recording();
 		}
 		if (!recording && stream) {
+			dispatch("close_stream");
 			stream.getTracks().forEach((track) => track.stop());
 			video_source.srcObject = null;
 			webcam_accessed = false;
