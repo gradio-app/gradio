@@ -91,7 +91,7 @@ class Gallery(Component):
         show_download_button: bool | None = True,
         interactive: bool | None = None,
         type: Literal["numpy", "pil", "filepath"] = "filepath",
-        show_fullscreen_button: bool = True
+        show_fullscreen_button: bool = True,
     ):
         """
         Parameters:
