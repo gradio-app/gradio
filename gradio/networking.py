@@ -55,6 +55,6 @@ def url_ok(url: str) -> bool:
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
             time.sleep(0.500)
-    except (ConnectionError, httpx.ConnectError):
+    except (ConnectionError, httpx.ConnectError, httpx.TimeoutException):
         return False
     return False
