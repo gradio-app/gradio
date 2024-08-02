@@ -875,7 +875,7 @@ class MediaStream:
 
         segment_id = str(uuid.uuid4())
         self.segments.append({"id": segment_id, **data})
-        self.max_length = max(self.max_length, len(data["data"])) + 1
+        self.max_duration = max(self.max_length, data['duration']) + 1
 
     def end_stream(self):
         self.ended = True
