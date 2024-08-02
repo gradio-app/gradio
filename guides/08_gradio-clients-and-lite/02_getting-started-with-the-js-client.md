@@ -66,7 +66,7 @@ You can also connect to private Spaces by passing in your HF token with the `hf_
 ```js
 import { Client } from "@gradio/client";
 
-const app = Client.connect("abidlabs/my-private-space", { hf_token="hf_..." })
+const app = Client.connect("abidlabs/my-private-space", { hf_token: "hf_..." })
 ```
 
 ## Duplicating a Space for private use
