@@ -63,6 +63,7 @@ class Event:
         self.n_calls = 0
         self.run_time: float = 0
         self.signal = asyncio.Event()
+        self.closed_by_client = False
 
     @property
     def streaming(self):
@@ -661,15 +662,19 @@ class Queue:
                                 * len(awake_events),
                             )
                             for closed_event in closed_events:
-                                self.log_message(
-                                    closed_event._id,
-                                    "Time limit reached! Please join the queue again.",
-                                    "info",
-                                    duration=10,
-                                )
+                                print("closed event", closed_event.closed_by_client)
+                                if not closed_event.closed_by_client:
+                                    self.log_message(
+                                        closed_event._id,
+                                        "Time limit reached!",
+                                        "info",
+                                        duration=10,
+                                    )
                                 self.send_message(
                                     closed_event,
-                                    ProcessCompletedMessage(output=response, success=True),
+                                    ProcessCompletedMessage(
+                                        output=response, success=True
+                                    ),
                                 )
                         if not awake_events:
                             break
@@ -693,10 +698,10 @@ class Queue:
                             event.n_calls += 1
                             if event.streaming:
                                 response["is_generating"] = not event.is_finished
-                                if event.is_finished:
+                                if event.is_finished and not event.closed_by_client:
                                     self.log_message(
                                         event._id,
-                                        "Time limit reached! Please join the queue again.",
+                                        "Time limit reached!",
                                         "info",
                                         duration=10,
                                     )

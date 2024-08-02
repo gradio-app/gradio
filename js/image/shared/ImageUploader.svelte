@@ -71,6 +71,7 @@
 		drag: boolean;
 		upload?: never;
 		select: SelectData;
+		end_stream: never;
 	}>();
 
 	let dragging = false;
@@ -139,6 +140,7 @@
 				on:error
 				on:drag
 				on:upload={(e) => handle_save(e.detail)}
+				on:close_stream
 				{mirror_webcam}
 				{stream_frequency}
 				{streaming}

@@ -74,7 +74,7 @@ class Image(StreamingInput, Component):
         key: int | str | None = None,
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
-        stream_frequency: int = 2,
+        stream_frequency: float = 2,
     ):
         """
         Parameters:

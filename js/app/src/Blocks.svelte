@@ -536,6 +536,17 @@
 				messages = [new_message(data, -1, event), ...messages];
 			} else if (event == "clear_status") {
 				update_status(id, "complete", data);
+			} else if (event == "close_stream") {
+				const deps = $targets[id]?.[data];
+				deps?.forEach((dep_id) => {
+					if (submit_map.has(dep_id)) {
+						app.post_data(
+							// @ts-ignore
+							`${app.config.root}/stream/${submit_map.get(dep_id).event_id()}/close`,
+							{}
+						);
+					}
+				});
 			} else {
 				const deps = $targets[id]?.[event];
 
