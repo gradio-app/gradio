@@ -30,6 +30,8 @@
 	export let step: number | null = null;
 	export let interactive: boolean;
 
+	$: input_value = value === null ? "" : value.toString();
+
 	function handle_change(): void {
 		if (input_value === "") {
 			value = null;
@@ -44,12 +46,6 @@
 		if (!value_is_output) {
 			gradio.dispatch("input");
 		}
-	}
-
-	let input_value: string = value === null ? "" : value.toString();
-
-	$: if (value !== null && value.toString() !== input_value) {
-		input_value = value.toString();
 	}
 
 	afterUpdate(() => {
