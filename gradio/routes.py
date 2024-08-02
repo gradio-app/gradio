@@ -514,6 +514,7 @@ class App(FastAPI):
             except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err)) from err
             rp_resp = await client.send(rp_req, stream=True)
+            rp_resp.headers.update({"Content-Disposition": "attachment"})
             return StreamingResponse(
                 rp_resp.aiter_raw(),
                 status_code=rp_resp.status_code,
@@ -579,15 +580,22 @@ class App(FastAPI):
                 if start.isnumeric() and end.isnumeric():
                     start = int(start)
                     end = int(end)
+                    headers = dict(request.headers)
+                    headers["Content-Disposition"] = "attachment"
                     response = ranged_response.RangedFileResponse(
                         abs_path,
                         ranged_response.OpenRange(start, end),
-                        dict(request.headers),
+                        headers,
                         stat_result=os.stat(abs_path),
                     )
                     return response
 
-            return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
+            return FileResponse(
+                abs_path,
+                headers={"Accept-Ranges": "bytes"},
+                content_disposition_type="attachment",
+                media_type="application/octet-stream",
+            )
 
         @app.get(
             "/stream/{session_hash}/{run}/{component_id}",
