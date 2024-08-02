@@ -20,7 +20,7 @@ export { default as Edit } from "./Edit.svelte";
 export { default as Erase } from "./Erase.svelte";
 export { default as Error } from "./Error.svelte";
 export { default as Eyedropper } from "./Eyedropper.svelte";
-export { default as Maximize } from "./Maximize.svelte"
+export { default as Maximize } from "./Maximize.svelte";
 export { default as Forward } from "./Forward.svelte";
 export { default as File } from "./File.svelte";
 export { default as Info } from "./Info.svelte";
