@@ -18,6 +18,13 @@
 />
 
 <Story
+	name="Number with min 20 and max 100"
+	args={{
+		value: null
+	}}
+/>
+
+<Story
 	name="Number with empty value"
 	args={{
 		value: null
