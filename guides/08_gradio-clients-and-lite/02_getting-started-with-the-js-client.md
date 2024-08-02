@@ -11,7 +11,7 @@ Using the `@gradio/client` library, we can easily use the Gradio as an API to tr
 Here's the entire code to do it:
 
 ```js
-import { Client } from "@gradio/client";
+import { Client, handle_file } from "@gradio/client";
 
 const response = await fetch(
 	"https://github.com/audio-samples/audio-samples.github.io/raw/master/samples/wav/ted_speakers/SalmanKhan/sample-1.wav"
@@ -19,7 +19,7 @@ const response = await fetch(
 const audio_file = await response.blob();
 
 const app = await Client.connect("abidlabs/whisper");
-const transcription = await app.predict("/predict", [audio_file]);
+const transcription = await app.predict("/predict", [handle_file(audio_file)]);
 
 console.log(transcription.data);
 // [ "I said the same phrase 30 times." ]
@@ -66,7 +66,7 @@ You can also connect to private Spaces by passing in your HF token with the `hf_
 ```js
 import { Client } from "@gradio/client";
 
-const app = Client.connect("abidlabs/my-private-space", { hf_token="hf_..." })
+const app = Client.connect("abidlabs/my-private-space", { hf_token: "hf_..." })
 ```
 
 ## Duplicating a Space for private use
@@ -76,7 +76,7 @@ While you can use any public Space as an API, you may get rate limited by Huggin
 `Client.duplicate` is almost identical to `Client.connect`, the only difference is under the hood:
 
 ```js
-import { Client } from "@gradio/client";
+import { Client, handle_file } from "@gradio/client";
 
 const response = await fetch(
 	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
@@ -84,7 +84,7 @@ const response = await fetch(
 const audio_file = await response.blob();
 
 const app = await Client.duplicate("abidlabs/whisper", { hf_token: "hf_..." });
-const transcription = await app.predict("/predict", [audio_file]);
+const transcription = await app.predict("/predict", [handle_file(audio_file)]);
 ```
 
 If you have previously duplicated a Space, re-running `Client.duplicate` will _not_ create a new Space. Instead, the client will attach to the previously-created Space. So it is safe to re-run the `Client.duplicate` method multiple times with the same space.
@@ -203,7 +203,7 @@ const result = await app.predict("/predict", [4, "add", 5]);
 For certain inputs, such as images, you should pass in a `Buffer`, `Blob` or `File` depending on what is most convenient. In node, this would be a `Buffer` or `Blob`; in a browser environment, this would be a `Blob` or `File`.
 
 ```js
-import { Client } from "@gradio/client";
+import { Client, handle_file } from "@gradio/client";
 
 const response = await fetch(
 	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
@@ -211,7 +211,7 @@ const response = await fetch(
 const audio_file = await response.blob();
 
 const app = await Client.connect("abidlabs/whisper");
-const result = await app.predict("/predict", [audio_file]);
+const result = await app.predict("/predict", [handle_file(audio_file)]);
 ```
 
 ## Using events
