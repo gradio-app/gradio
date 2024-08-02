@@ -223,6 +223,10 @@ export class Client {
 		close_stream(this.stream_status, this.abort_controller);
 	}
 
+	set_current_payload(payload: any): void {
+		this.current_payload = payload;
+	}
+
 	static async duplicate(
 		app_reference: string,
 		options: DuplicateOptions = {

@@ -278,8 +278,8 @@
 			}
 
 			let submission: ReturnType<typeof app.submit>;
+			app.set_current_payload(payload);
 			if (streaming && submit_map.has(dep_index)) {
-				app.current_payload = payload;
 				await app.post_data(
 					// @ts-ignore
 					`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
@@ -288,7 +288,6 @@
 				return;
 			}
 			try {
-				app.current_payload = payload;
 				submission = app.submit(
 					payload.fn_index,
 					payload.data as unknown[],
