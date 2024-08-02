@@ -274,7 +274,7 @@ def check_public_url(url: str):
         raise httpx.RequestError(f"Invalid URL: {url}")
     ip = socket.gethostbyname(hostname)
     if ipaddress.ip_address(ip).is_private:
-        raise httpx.RequestError(f"Redirect to non-public URL: {url}")
+        raise httpx.RequestError(f"Non-public URL: {url}")
 
 def save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already
