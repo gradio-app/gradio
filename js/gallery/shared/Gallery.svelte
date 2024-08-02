@@ -39,6 +39,7 @@
 	export let interactive: boolean;
 	export let _fetch: typeof fetch;
 	export let mode: "normal" | "minimal" = "normal";
+	export let show_fullscreen_button = true;
 
 	let is_full_screen = false;
 	let gallery_container: HTMLElement;
@@ -253,11 +254,23 @@
 						/>
 					{/if}
 
-					<IconButton
-						Icon={is_full_screen ? Minimize : Maximize}
-						label={is_full_screen ? "Exit full screen" : "View in full screen"}
-						on:click={toggle_full_screen}
-					/>
+					{#if show_fullscreen_button && !is_full_screen}
+						<IconButton
+							Icon={is_full_screen ? Minimize : Maximize}
+							label={is_full_screen
+								? "Exit full screen"
+								: "View in full screen"}
+							on:click={toggle_full_screen}
+						/>
+					{/if}
+
+					{#if show_fullscreen_button && is_full_screen}
+						<IconButton
+							Icon={Minimize}
+							label="Exit full screen"
+							on:click={toggle_full_screen}
+						/>
+					{/if}
 
 					{#if !is_full_screen}
 						<IconButton
@@ -588,44 +601,4 @@
 	.grid-wrap.minimal {
 		padding: 0;
 	}
-
-	.fullscreen-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100vw;
-		height: 100vh;
-		z-index: 1001;
-		background-color: rgba(0, 0, 0, 0.9);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.fullscreen-controls {
-		position: absolute;
-		display: flex;
-		bottom: 20px;
-		right: 20px;
-		gap: var(--size-1);
-		color: var(--block-label-text-color);
-	}
-
-	/* :global(.fullscreen-controls svg) {
-		position: relative;
-		top: 0px;
-	}
-
-	:global(.image-container:fullscreen) {
-		background-color: black;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	:global(.image-container:fullscreen img) {
-		max-width: 90vw;
-		max-height: 90vh;
-		object-fit: contain;
-	} */
 </style>

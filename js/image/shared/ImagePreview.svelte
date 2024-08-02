@@ -20,6 +20,7 @@
 	export let selectable = false;
 	export let show_share_button = false;
 	export let i18n: I18nFormatter;
+	export let show_fullscreen_button = true;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -62,7 +63,7 @@
 {:else}
 	<div class="image-container" bind:this={image_container}>
 		<div class="icon-buttons">
-			{#if !is_full_screen}
+			{#if !is_full_screen && show_fullscreen_button}
 				<IconButton
 					Icon={Maximize}
 					label={is_full_screen ? "Exit full screen" : "View in full screen"}
@@ -70,7 +71,7 @@
 				/>
 			{/if}
 
-			{#if is_full_screen}
+			{#if is_full_screen && show_fullscreen_button}
 				<IconButton
 					Icon={Minimize}
 					label={is_full_screen ? "Exit full screen" : "View in full screen"}
