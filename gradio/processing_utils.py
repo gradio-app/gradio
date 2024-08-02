@@ -2,16 +2,20 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import ipaddress
 import json
 import logging
 import os
 import shutil
+import socket
 import subprocess
 import tempfile
+import uuid
 import warnings
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from urllib.parse import urlparse
 
 import aiofiles
 import httpx
@@ -176,9 +180,11 @@ def encode_pil_to_bytes(pil_image, format="png"):
             pil_image.save(output_bytes, format, **params)
         return output_bytes.getvalue()
 
+hash_seed = str(uuid.uuid4()).encode("utf-8")
 
 def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
     sha1 = hashlib.sha1()
+    sha1.update(hash_seed)
     with open(file_path, "rb") as f:
         for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
             sha1.update(chunk)
@@ -187,18 +193,21 @@ def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
 
 def hash_url(url: str) -> str:
     sha1 = hashlib.sha1()
+    sha1.update(hash_seed)
     sha1.update(url.encode("utf-8"))
     return sha1.hexdigest()
 
 
 def hash_bytes(bytes: bytes):
     sha1 = hashlib.sha1()
+    sha1.update(hash_seed)
     sha1.update(bytes)
     return sha1.hexdigest()
 
 
 def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
     sha1 = hashlib.sha1()
+    sha1.update(hash_seed)
     for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
         data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
         sha1.update(data.encode("utf-8"))
@@ -259,10 +268,19 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 
     return full_temp_file_path
 
+def check_public_url(url: str):
+    hostname = urlparse(url).hostname
+    if not hostname:
+        raise httpx.RequestError(f"Invalid URL: {url}")
+    ip = socket.gethostbyname(hostname)
+    if ipaddress.ip_address(ip).is_private:
+        raise httpx.RequestError(f"Redirect to non-public URL: {url}")
 
 def save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already
     exist. Otherwise returns the path to the existing temp file."""
+    check_public_url(url)
+
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
     temp_dir.mkdir(exist_ok=True, parents=True)
@@ -270,10 +288,13 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        with sync_client.stream("GET", url, follow_redirects=True) as r, open(
+        with sync_client.stream("GET", url, follow_redirects=True) as response, open(
             full_temp_file_path, "wb"
         ) as f:
-            for chunk in r.iter_raw():
+            for redirect in response.history:
+                check_public_url(redirect.url)
+
+            for chunk in response.iter_raw():
                 f.write(chunk)
 
     return full_temp_file_path
@@ -282,6 +303,8 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
 async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already
     exist. Otherwise returns the path to the existing temp file. Uses async httpx."""
+    check_public_url(url)
+
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
     temp_dir.mkdir(exist_ok=True, parents=True)
@@ -290,6 +313,9 @@ async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
 
     if not Path(full_temp_file_path).exists():
         async with async_client.stream("GET", url, follow_redirects=True) as response:
+            for redirect in response.history:
+                check_public_url(redirect.url)
+
             async with aiofiles.open(full_temp_file_path, "wb") as f:
                 async for chunk in response.aiter_raw():
                     await f.write(chunk)
