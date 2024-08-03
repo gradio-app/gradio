@@ -60,7 +60,7 @@
 		}
 	}
 
-	$: value, handle_change();
+	$: input_value, value, handle_change();
 	$: disabled = !interactive;
 </script>
 
@@ -83,7 +83,7 @@
 		<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		<input
 			aria-label={label}
-			type="number"
+			type="string"
 			bind:value={input_value}
 			min={minimum}
 			max={maximum}
@@ -106,7 +106,7 @@
 		border: var(--input-border-width) solid var(--input-border-color);
 		border-radius: var(--input-radius);
 	}
-	input[type="number"] {
+	input[type="string"] {
 		display: block;
 		position: relative;
 		outline: none !important;
