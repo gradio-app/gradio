@@ -69,6 +69,7 @@ class TestImageEditor:
             "format": "webp",
             "layers": True,
             "canvas_size": None,
+            "info": None,
         }
 
     def test_process_example(self):

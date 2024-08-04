@@ -10,7 +10,7 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { BaseStaticImage as StaticImage } from "@gradio/image";
 	import InteractiveImageEditor from "./shared/InteractiveImageEditor.svelte";
-	import { Block } from "@gradio/atoms";
+	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { tick } from "svelte";
@@ -44,6 +44,7 @@
 		"webcam"
 	];
 	export let interactive: boolean;
+	export let info: string | undefined;
 
 	export let brush: Brush;
 	export let eraser: Eraser;
@@ -121,6 +122,9 @@
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
 </script>
 
+{#if info}
+	<BlockTitle {info} info_only={true} />
+{/if}
 {#if !interactive}
 	<Block
 		{visible}
