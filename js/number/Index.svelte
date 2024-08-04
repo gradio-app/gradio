@@ -21,7 +21,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let value: number | null = null;
+	export let value: number | null = 0;
 	export let show_label: boolean;
 	export let minimum: number | undefined = undefined;
 	export let maximum: number | undefined = undefined;
@@ -30,29 +30,17 @@
 	export let step: number | null = null;
 	export let interactive: boolean;
 
-	let input_value = "";
-	let input_elem: HTMLInputElement;
-
-	$: {
-		input_value = value === null || value === undefined ? "" : value.toString();
-		if (input_elem) input_elem.value = input_value;
-	}
-
 	function handle_change(): void {
-		const parsed =
-			input_value === ""
-				? null
-				: isNaN(parseFloat(input_value))
-					? null
-					: parseFloat(input_value);
-		if (value !== parsed) {
-			value = parsed;
+		if (!isNaN(parseInt(input_value)) && value !== null) {
+			value = parseInt(input_value);
 			gradio.dispatch("change");
 			if (!value_is_output) {
 				gradio.dispatch("input");
 			}
 		}
 	}
+
+	let input_value: string = value === null ? "" : value.toString();
 
 	afterUpdate(() => {
 		value_is_output = false;
@@ -67,12 +55,7 @@
 		}
 	}
 
-	onMount(() => {
-		if (input_elem) {
-			input_elem.value = input_value;
-		}
-	});
-
+	$: input_value, handle_change();
 	$: disabled = !interactive;
 </script>
 
@@ -94,15 +77,14 @@
 	<label class="block" class:container>
 		<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		<input
-			bind:this={input_elem}
 			aria-label={label}
 			type="text"
 			bind:value={input_value}
 			min={minimum}
 			max={maximum}
 			{step}
-			on:input={handle_change}
 			on:change={handle_change}
+			on:input={handle_change}
 			on:keypress={handle_keypress}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}

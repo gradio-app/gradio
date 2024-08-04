@@ -121,17 +121,13 @@ class Number(FormComponent):
         """
         if payload is None:
             return None
-        try:
-            value = float(payload)
-        except ValueError:
-            return None
 
-        if self.minimum is not None and value < self.minimum:
-            raise Error(f"Value {value} is less than minimum value {self.minimum}.")
-        elif self.maximum is not None and value > self.maximum:
-            raise Error(f"Value {value} is greater than maximum value {self.maximum}.")
+        if self.minimum is not None and payload < self.minimum:
+            raise Error(f"Value {payload} is less than minimum value {self.minimum}.")
+        elif self.maximum is not None and payload > self.maximum:
+            raise Error(f"Value {payload} is greater than maximum value {self.maximum}.")
 
-        return self._round_to_precision(value, self.precision)
+        return self._round_to_precision(payload, self.precision)
 
     def postprocess(self, value: float | int | None) -> float | int | None:
         """
@@ -141,10 +137,6 @@ class Number(FormComponent):
             The (optionally rounded) field value as a `float` or `int` depending on `precision`.
         """
         if value is None:
-            return None
-        try:
-            value = float(value)
-        except ValueError:
             return None
         return self._round_to_precision(value, self.precision)
 
