@@ -40,7 +40,7 @@
 		}
 	}
 
-	let input_value: string = value === null ? "" : value.toString();
+	$: input_value = value === null ? "" : value.toString();
 
 	afterUpdate(() => {
 		value_is_output = false;
@@ -55,7 +55,6 @@
 		}
 	}
 
-	$: input_value, handle_change();
 	$: disabled = !interactive;
 </script>
 
