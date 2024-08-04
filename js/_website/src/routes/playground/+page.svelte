@@ -48,8 +48,8 @@
 	></script>
 </svelte:head>
 
-<!-- 4.0 Launch BANNER  -->
-<div class="flex-row">
+<!-- Header  -->
+<div class="flex-row hidden md:flex">
 	<div class="flex flex-row relative items-center px-1 py-1 pr-6 text-lg gap-8">
 		<div class="flex">
 			<a href="/">
@@ -123,5 +123,10 @@
 <style>
 	.code {
 		white-space: pre-wrap;
+	}
+	:global(body) {
+		min-height: 100vh;
+		display: grid;
+		grid-template-rows: auto 1fr auto;
 	}
 </style>
