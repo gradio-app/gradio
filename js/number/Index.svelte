@@ -3,7 +3,7 @@
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { afterUpdate, tick } from "svelte";
+	import { afterUpdate, tick, onMount } from "svelte";
 
 	export let gradio: Gradio<{
 		change: never;
@@ -30,21 +30,27 @@
 	export let step: number | null = null;
 	export let interactive: boolean;
 
-	$: input_value = value === null ? "" : value.toString();
+	let input_value = "";
+	let input_elem: HTMLInputElement;
+
+	$: {
+		input_value = value === null || value === undefined ? "" : value.toString();
+		if (input_elem) input_elem.value = input_value;
+	}
 
 	function handle_change(): void {
-		if (input_value === "") {
-			value = null;
-		} else {
-			const parsed_value = parseFloat(input_value);
-			if (!isNaN(parsed_value)) {
-				value = parsed_value;
+		const parsed =
+			input_value === ""
+				? null
+				: isNaN(parseFloat(input_value))
+					? null
+					: parseFloat(input_value);
+		if (value !== parsed) {
+			value = parsed;
+			gradio.dispatch("change");
+			if (!value_is_output) {
+				gradio.dispatch("input");
 			}
-		}
-
-		gradio.dispatch("change");
-		if (!value_is_output) {
-			gradio.dispatch("input");
 		}
 	}
 
@@ -56,11 +62,17 @@
 		await tick();
 		if (e.key === "Enter") {
 			e.preventDefault();
+			handle_change();
 			gradio.dispatch("submit");
 		}
 	}
 
-	$: input_value, value, handle_change();
+	onMount(() => {
+		if (input_elem) {
+			input_elem.value = input_value;
+		}
+	});
+
 	$: disabled = !interactive;
 </script>
 
@@ -82,12 +94,15 @@
 	<label class="block" class:container>
 		<BlockTitle {show_label} {info}>{label}</BlockTitle>
 		<input
+			bind:this={input_elem}
 			aria-label={label}
-			type="string"
+			type="text"
 			bind:value={input_value}
 			min={minimum}
 			max={maximum}
 			{step}
+			on:input={handle_change}
+			on:change={handle_change}
 			on:keypress={handle_keypress}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
@@ -106,7 +121,7 @@
 		border: var(--input-border-width) solid var(--input-border-color);
 		border-radius: var(--input-radius);
 	}
-	input[type="string"] {
+	input[type="text"] {
 		display: block;
 		position: relative;
 		outline: none !important;
