@@ -140,6 +140,8 @@
 		align-items: center;
 		width: var(--size-full);
 		height: var(--size-full);
+		border-radius: var(--block-radius);
+		overflow: hidden;
 	}
 
 	.input-model :global(canvas) {
