@@ -3,7 +3,7 @@ name: "previews-deploy"
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["trigger"]
+    workflows: ["previews-build"]
     types:
       - completed
 
@@ -60,6 +60,8 @@ jobs:
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
       - name: list artifacts
         run: ls -R .
 
