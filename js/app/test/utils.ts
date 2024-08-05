@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import type { ChildProcess } from "child_process";
 
 export function kill_process(process: ChildProcess) {
-	process.kill("SIGKILL");
+	process.kill("SIGTERM");
 }
 
 type LaunchAppBackgroundReturn = {
