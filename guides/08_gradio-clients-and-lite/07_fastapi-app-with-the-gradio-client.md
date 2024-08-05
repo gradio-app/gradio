@@ -35,12 +35,12 @@ Luckily for us, there's an existing Space we can use to make this process easier
 Open a new Python file, say `main.py`, and start by importing the `Client` class from `gradio_client` and connecting it to this Space:
 
 ```py
-from gradio_client import Client
+from gradio_client import Client, handle_file
 
 client = Client("abidlabs/music-separation")
 
 def acapellify(audio_path):
-    result = client.predict(audio_path, api_name="/predict")
+    result = client.predict(handle_file(audio_path), api_name="/predict")
     return result[0]
 ```
 
