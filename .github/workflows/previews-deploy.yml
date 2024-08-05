@@ -1,11 +1,11 @@
-name: "deploy / spaces"
+name: "previews-deploy"
 
 on:
   workflow_dispatch:
   workflow_run:
     workflows: ["trigger"]
     types:
-      - requested
+      - completed
 
 permissions:
   statuses: write
@@ -49,7 +49,7 @@ jobs:
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: spaces~pending~null
-  deploy-spaces:
+  deploy:
     environment: deploy_spaces
     outputs:
       space_url: ${{ steps.upload-demo.outputs.SPACE_URL }}
@@ -128,13 +128,13 @@ jobs:
 
   comment-spaces-success:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [deploy-spaces, changes]
-    if: needs.deploy-spaces.result == 'success'
+    needs: [deploy, changes]
+    if: needs.deploy.result == 'success'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: spaces~success~${{ needs.deploy-spaces.outputs.space_url }}
+      message: spaces~success~${{ needs.deploy.outputs.space_url }}
       additional_text: |
         **Install Gradio from this PR**
         ```bash
@@ -148,12 +148,12 @@ jobs:
 
         **Install Gradio JS Client from this PR**
         ```bash
-        npm install ${{ needs.deploy-spaces.outputs.js_tarball_url }}
+        npm install ${{ needs.deploy.outputs.js_tarball_url }}
         ```
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [deploy-spaces, changes]
-    if: always() && needs.deploy-spaces == 'failure'
+    needs: [deploy, changes]
+    if: always() && needs.deploy == 'failure'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:

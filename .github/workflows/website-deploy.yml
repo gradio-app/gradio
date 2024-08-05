@@ -1,10 +1,10 @@
-name: "deploy / website"
+name: "website-deploy"
 
 on:
   workflow_run:
     workflows: ["website-build"]
     types:
-      - requested
+      - completed
 
 permissions:
   statuses: write
@@ -51,9 +51,9 @@ jobs:
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: website~pending~null
-  deploy-website:
+  deploy:
     environment: deploy_website
-    name: "deploy-website"
+    name: "deploy"
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
@@ -115,17 +115,17 @@ jobs:
 
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [deploy-website, changes]
-    if: needs.deploy-website.result == 'success' && needs.changes.outputs.pr_number != 'false'
+    needs: [deploy, changes]
+    if: needs.deploy.result == 'success' && needs.changes.outputs.pr_number != 'false'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: website~success~${{needs.deploy-website.outputs.vercel_url}}
+      message: website~success~${{needs.deploy.outputs.vercel_url}}
   comment-deploy-failure:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [deploy-website, changes]
-    if: always() && needs.deploy-website.result == 'failure' && needs.changes.outputs.pr_number != 'false'
+    needs: [deploy, changes]
+    if: always() && needs.deploy.result == 'failure' && needs.changes.outputs.pr_number != 'false'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
