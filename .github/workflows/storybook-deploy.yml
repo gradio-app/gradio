@@ -78,6 +78,8 @@ jobs:
           path: storybook-static
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: list artifacts
+        run: ls -R .
       - name: publish to chromatic
         id: publish-chromatic
         uses: chromaui/action@v11

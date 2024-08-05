@@ -27,6 +27,7 @@ jobs:
       source_repo: ${{ steps.json.outputs.source_repo }}
       labels: ${{ steps.json.outputs.labels }}
       run_id: ${{ steps.json.outputs.run_id }}
+      gradio_version: ${{ steps.json.outputs.gradio_version }}
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4

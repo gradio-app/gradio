@@ -71,6 +71,14 @@ jobs:
         with:
           name: website-templates
           path: js/_website/lib/templates
+      - name: download website artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: website
+          path: js/_website/.vercel
+
+      - name: list files
+        run: ls -R .
 
       - name: deploy json to aws
         if: startsWith(needs.changes.outputs.source_branch, 'changeset-release/') && needs.changes.outputs.source_repo == 'gradio-app/gradio'
@@ -81,12 +89,6 @@ jobs:
           version=$(jq -r .version js/_website/lib/json/version.json)
           aws s3 cp ./js/_website/lib/json/ s3://gradio-docs-json/$version/ --recursive
           aws s3 cp ./js/_website/lib/templates/ s3://gradio-docs-json/$version/templates/ --recursive
-
-      - name: download website artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: website
-          path: js/_website/.vercel
 
       # preview
       - name: Pull Vercel Environment Information
