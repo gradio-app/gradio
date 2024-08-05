@@ -57,7 +57,7 @@ runs:
         source_branch: ${{ github.event.pull_request.head.ref || github.ref }}
         pr_number: ${{ github.event.pull_request.number || 'false'}}
         should_run: ${{ steps.changes.outputs.should_run }}
-        labels: "[${{ join(github.event.pull_request.labels.*.name, ', ') }]"
+        labels: "[${{ join(github.event.pull_request.labels.*.name, ', ') }}]"
         run_id: ${{ github.run_id }}
         gradio_version: ${{ steps.gradio_version.outputs.gradio_version }}
     - name: cat json
