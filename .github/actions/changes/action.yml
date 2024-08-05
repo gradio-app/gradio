@@ -72,7 +72,7 @@ runs:
       id: pr
       uses: gradio-app/github/actions/json-to-output@main
       with:
-        json: output.json
+        path: output.json
     - name: echo outputs
       run: echo ${{ toJson(steps.pr.outputs) }}
       shell: bash
