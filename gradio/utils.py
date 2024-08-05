@@ -922,6 +922,9 @@ def get_type_hints(fn):
             if param.annotation == "gr.OAuthToken | None":
                 # Special case: we want to inject the OAuthToken value even on Python 3.9
                 type_hints[name] = Optional[OAuthToken]
+            if param.annotation in ["gr.Request | None", "Request | None"]:
+                # Special case: we want to inject the Request value even on Python 3.9
+                type_hints[name] = Optional[Request]
             if "|" in str(param.annotation):
                 continue
             # To convert the string annotation to a class, we use the
