@@ -47,7 +47,7 @@ runs:
       shell: bash
       run: |
         GRADIO_VERSION=$(curl -s https://pypi.org/pypi/gradio/json | grep -o '"version":"[^"]*"' | cut -d'"' -f4 | head -n 1)
-        echo $GRADIO_VERSION >> $GITHUB_OUTPUT
+        echo "gradio_version=$GRADIO_VERSION" >> $GITHUB_OUTPUT
     - name: convert to JSON
       uses: gradio-app/github/actions/input-to-json@main
       with:
