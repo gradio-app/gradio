@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
@@ -7,6 +7,7 @@
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Image from "./Image.svelte";
 	import { DownloadLink } from "@gradio/wasm/svelte";
+	import { Maximize, Minimize } from "@gradio/icons";
 
 	import { Image as ImageIcon } from "@gradio/icons";
 	import { type FileData } from "@gradio/client";
@@ -19,6 +20,7 @@
 	export let selectable = false;
 	export let show_share_button = false;
 	export let i18n: I18nFormatter;
+	export let show_fullscreen_button = true;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -31,6 +33,24 @@
 			dispatch("select", { index: coordinates, value: null });
 		}
 	};
+
+	let is_full_screen = false;
+	let image_container: HTMLElement;
+
+	onMount(() => {
+		document.addEventListener("fullscreenchange", () => {
+			is_full_screen = !!document.fullscreenElement;
+		});
+	});
+
+	const toggle_full_screen = async (): Promise<void> => {
+		if (!is_full_screen) {
+			await image_container.requestFullscreen();
+		} else {
+			await document.exitFullscreen();
+			is_full_screen = !is_full_screen;
+		}
+	};
 </script>
 
 <BlockLabel
@@ -41,36 +61,55 @@
 {#if value === null || !value.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
-	<div class="icon-buttons">
-		{#if show_download_button}
-			<DownloadLink href={value.url} download={value.orig_name || "image"}>
-				<IconButton Icon={Download} label={i18n("common.download")} />
-			</DownloadLink>
-		{/if}
-		{#if show_share_button}
-			<ShareButton
-				{i18n}
-				on:share
-				on:error
-				formatter={async (value) => {
-					if (!value) return "";
-					let url = await uploadToHuggingFace(value, "url");
-					return `<img src="${url}" />`;
-				}}
-				{value}
-			/>
-		{/if}
-	</div>
-	<button on:click={handle_click}>
-		<div class:selectable class="image-container">
-			<Image src={value.url} alt="" loading="lazy" on:load />
+	<div class="image-container" bind:this={image_container}>
+		<div class="icon-buttons">
+			{#if !is_full_screen && show_fullscreen_button}
+				<IconButton
+					Icon={Maximize}
+					label={is_full_screen ? "Exit full screen" : "View in full screen"}
+					on:click={toggle_full_screen}
+				/>
+			{/if}
+
+			{#if is_full_screen && show_fullscreen_button}
+				<IconButton
+					Icon={Minimize}
+					label={is_full_screen ? "Exit full screen" : "View in full screen"}
+					on:click={toggle_full_screen}
+				/>
+			{/if}
+
+			{#if show_download_button}
+				<DownloadLink href={value.url} download={value.orig_name || "image"}>
+					<IconButton Icon={Download} label={i18n("common.download")} />
+				</DownloadLink>
+			{/if}
+			{#if show_share_button}
+				<ShareButton
+					{i18n}
+					on:share
+					on:error
+					formatter={async (value) => {
+						if (!value) return "";
+						let url = await uploadToHuggingFace(value, "url");
+						return `<img src="${url}" />`;
+					}}
+					{value}
+				/>
+			{/if}
 		</div>
-	</button>
+		<button on:click={handle_click}>
+			<div class:selectable>
+				<Image src={value.url} alt="" loading="lazy" on:load />
+			</div>
+		</button>
+	</div>
 {/if}
 
 <style>
 	.image-container {
 		height: 100%;
+		position: relative;
 	}
 	.image-container :global(img),
 	button {
@@ -79,6 +118,10 @@
 		object-fit: contain;
 		display: block;
 		border-radius: var(--radius-lg);
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.selectable {
@@ -91,5 +134,24 @@
 		top: 6px;
 		right: 6px;
 		gap: var(--size-1);
+		z-index: 1;
+	}
+
+	:global(.fullscreen-controls svg) {
+		position: relative;
+		top: 0px;
+	}
+
+	:global(.image-container:fullscreen) {
+		background-color: black;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	:global(.image-container:fullscreen img) {
+		max-width: 90vw;
+		max-height: 90vh;
+		object-fit: contain;
 	}
 </style>
