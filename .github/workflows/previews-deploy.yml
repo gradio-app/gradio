@@ -62,8 +62,8 @@ jobs:
           echo "wheel_name=$wheel_file" >> $GITHUB_OUTPUT
       - name: Upload wheel
         run: |
-          export AWS_ACCESS_KEY_ID=${{ secrets.PR_DEPLOY_KEY }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
+          export AWS_ACCESS_KEY_ID=${{ secrets.PYPI_PREVIEWS_AWS_S3_ACCESS_KEY }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.PYPI_PREVIEWS_AWS_S3_SECRET_ACCESS_KEY }}
           export AWS_DEFAULT_REGION=us-east-1
           aws s3 cp ${{ steps.set_wheel_name.outputs.wheel_name}}-py3-none-any.whl s3://gradio-pypi-previews/${{ needs.changes.outputs.sha  }}/
 
@@ -76,8 +76,8 @@ jobs:
         id: upload_js_tarball
         continue-on-error: true
         run: |
-          export AWS_ACCESS_KEY_ID=${{ secrets.PR_DEPLOY_KEY }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
+          export AWS_ACCESS_KEY_ID=${{ secrets.NPM_PREVIEWS_AWS_S3_ACCESS_KEY }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.NPM_PREVIEWS_AWS_S3_SECRET_ACCESS_KEY }}
           export AWS_DEFAULT_REGION=us-east-1
           aws s3 cp $tarball_name s3://gradio-npm-previews/${{ needs.changes.outputs.sha }}/${{ steps.set_tarball_name.outputs.tarball_name }}
           echo "js_tarball_url=https://gradio-npm-previews.s3.amazonaws.com/${{ steps.set_tarball_name.outputs.tarball_name }}" >> $GITHUB_OUTPUT
