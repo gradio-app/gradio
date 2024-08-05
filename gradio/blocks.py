@@ -1295,7 +1295,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             for block in self.blocks.values()
         )
 
-    def unload(self, fn: Callable):
+    def unload(self, fn: Callable[..., Any]) -> None:
         """This listener is triggered when the user closes or refreshes the tab, ending the user session.
         It is useful for cleaning up resources when the app is closed.
         Parameters:
