@@ -1,4 +1,4 @@
-name: "storybook-build"
+name: "previews-build"
 
 on:
   pull_request:
@@ -63,7 +63,7 @@ jobs:
           name: gradio-build
           path: dist/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl
       - name: copy demos
-        uses: gradio-app/gradio/.github/actions/copy-demos@main
+        uses: "gradio-app/github/actions/copy-demos@main"
         with:
           gradio_version: "https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl"
           gradio_client_version: "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
