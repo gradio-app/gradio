@@ -66,7 +66,7 @@ jobs:
       - name: copy demos
         uses: "gradio-app/github/actions/copy-demos@main"
         with:
-          gradio_version: "https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl"
+          gradio_version: "https://gradio-pypi-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl"
           gradio_client_version: "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
       - name: upload demos
         uses: actions/upload-artifact@v4
