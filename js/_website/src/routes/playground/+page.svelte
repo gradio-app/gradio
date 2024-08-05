@@ -243,7 +243,7 @@
 				</div>
 				<div
 					class:hidden={current_selection !== demo.name}
-					class="mobile-window w-[95%] mx-auto relative border rounded-xl border-gray-300 md:hidden"
+					class="mobile-window w-[95%] mx-auto relative border rounded-xl border-gray-200 shadow md:hidden"
 				>
 					{#if !show_preview}
 						<Code
@@ -283,8 +283,8 @@
 				class="text-lg">Preview</span
 			>
 		</div>
-		<p class="mt-4 mx-auto text-lg text-gray-600 md:hidden">
-			Playground renders best on desktop.
+		<p class="mt-4 mx-auto text-lg text-gray-600 text-center md:hidden">
+			To edit code and see live changes, use Playground on a desktop. 
 		</p>
 	</main>
 {/if}
