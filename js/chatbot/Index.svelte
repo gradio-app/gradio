@@ -11,12 +11,7 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type {
-		Message,
-		TupleFormat,
-		MessageRole,
-		NormalisedMessage
-	} from "./types";
+	import type { Message, TupleFormat, NormalisedMessage } from "./types";
 
 	import { normalise_tuples, normalise_messages } from "./shared/utils";
 
@@ -34,6 +29,7 @@
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = true;
+	export let show_copy_all_button = false;
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
@@ -103,6 +99,7 @@
 			selectable={_selectable}
 			{likeable}
 			{show_share_button}
+			{show_copy_all_button}
 			value={_value}
 			{latex_delimiters}
 			{render_markdown}
