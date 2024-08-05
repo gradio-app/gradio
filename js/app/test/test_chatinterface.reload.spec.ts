@@ -66,6 +66,7 @@ if __name__ == "__main__":
     demo.launch()
 `;
 		await page.goto(`http://localhost:${port}`);
+		await page.waitForTimeout(2000);
 		spawnSync(`echo '${demo}' > ${join(process.cwd(), demo_file)}`, {
 			shell: true,
 			stdio: "pipe",
@@ -74,7 +75,6 @@ if __name__ == "__main__":
 				PYTHONUNBUFFERED: "true"
 			}
 		});
-		await page.reload();
 		await expect(page.getByLabel("foo")).toBeVisible();
 		const textbox = page.getByPlaceholder("Type a message...");
 		const submit_button = page.getByRole("button", { name: "Submit" });

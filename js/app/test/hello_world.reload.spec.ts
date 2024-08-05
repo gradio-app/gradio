@@ -64,6 +64,7 @@ if __name__ == "__main__":
     `;
 		// write contents of demo to a local 'run.py' file
 		await page.goto(`http://localhost:${port}`);
+		await page.waitForTimeout(2000);
 		spawnSync(`echo '${demo}' > ${join(process.cwd(), "run.py")}`, {
 			shell: true,
 			stdio: "pipe",
@@ -72,7 +73,6 @@ if __name__ == "__main__":
 				PYTHONUNBUFFERED: "true"
 			}
 		});
-		await page.reload();
 
 		await page.getByLabel("x").fill("Maria");
 		await page.getByRole("button", { name: "Submit" }).click();
