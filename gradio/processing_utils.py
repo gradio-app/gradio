@@ -179,7 +179,9 @@ def encode_pil_to_bytes(pil_image, format="png"):
             pil_image.save(output_bytes, format, **params)
         return output_bytes.getvalue()
 
+
 hash_seed = get_hash_seed().encode("utf-8")
+
 
 def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
     sha1 = hashlib.sha1()
@@ -267,6 +269,7 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 
     return full_temp_file_path
 
+
 def check_public_url(url: str):
     parsed_url = urlparse(url)
     if parsed_url.scheme not in ["http", "https"]:
@@ -283,12 +286,15 @@ def check_public_url(url: str):
     for family, _, _, _, sockaddr in addrinfo:
         ip = sockaddr[0]
         if family == socket.AF_INET6:
-            ip = ip.split('%')[0]  # Remove scope ID if present
+            ip = ip.split("%")[0]  # Remove scope ID if present
 
         if not ipaddress.ip_address(ip).is_global:
-            raise httpx.RequestError(f"Non-public IP address found: {ip} for URL: {url}")
+            raise httpx.RequestError(
+                f"Non-public IP address found: {ip} for URL: {url}"
+            )
 
     return True
+
 
 def save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already

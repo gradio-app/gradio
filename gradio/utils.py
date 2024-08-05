@@ -456,6 +456,7 @@ def launch_counter() -> None:
     except Exception:
         pass
 
+
 def get_hash_seed() -> str:
     try:
         with open(JSON_PATH, encoding="utf-8") as j:
@@ -463,6 +464,7 @@ def get_hash_seed() -> str:
         return launches["hash_seed"]
     except Exception:
         return uuid.uuid4().hex
+
 
 def get_default_args(func: Callable) -> list[Any]:
     signature = inspect.signature(func)
