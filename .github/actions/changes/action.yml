@@ -70,7 +70,7 @@ runs:
         path: output.json
     - name: set outputs
       id: pr
-      uses: gradio-app/github/actions/json_to_outputs@main
+      uses: gradio-app/github/actions/json-to-output@main
       with:
         json: output.json
     - name: echo outputs #remove
