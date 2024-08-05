@@ -2,7 +2,7 @@ name: "deploy / website"
 
 on:
   workflow_run:
-    workflows: ["trigger"]
+    workflows: ["website-build"]
     types:
       - requested
 
@@ -25,19 +25,16 @@ jobs:
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
-      merge_sha: ${{ steps.changes.outputs.merge_sha }}
       pr_number: ${{ steps.changes.outputs.pr_number }}
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
-      mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
       - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
-          type: "website"
+          filter: "website"
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit_status: false
   comment-deploy-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
