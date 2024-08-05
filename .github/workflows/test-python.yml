@@ -13,8 +13,6 @@ concurrency:
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
-  # this is a non-secret secret and provides read access to a set of spaces for testing purposes
-  # this secret has minimal permissions and only has access to things that can be made public
   HF_TOKEN: ${{ vars.HF_TOKEN }}
 
 jobs:
@@ -32,7 +30,7 @@ jobs:
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
-          filter: "functional"
+          filter: "gradio"
           token: ${{ secrets.GITHUB_TOKEN }}
   test:
     name: "test-python-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"

@@ -32,7 +32,6 @@ outputs:
   gradio_version:
     description: "Gradio version"
     value: ${{ steps.pr.outputs.gradio_version }}
-  
 
 runs:
   using: "composite"
@@ -53,11 +52,11 @@ runs:
         with:
           path: output.json
           sha: ${{ github.event.pull_request?.head.sha || github.sha }}
-          source_repo: ${{ github.event.pull_request?.head.repo.full_name || github.repository }}
-          source_branch: ${{ github.event.pull_request?.head.ref || github.ref }}
-          pr_number: ${{ github.event.pull_request?.number }}
+          source_repo: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          source_branch: ${{ github.event.pull_request.head.ref || github.ref }}
+          pr_number: ${{ github.event.pull_request?.number || 'false'}}
           should_run: ${{ steps.changes.outputs.should_run }}
-          labels: ${{ github.event.pull_request?.labels }}
+          labels: ${{ github.event.pull_request.labels }}
           run_id: ${{ github.run_id }}
           gradio_version: ${{ steps.gradio_version.outputs.gradio_version }}
     - name: cat json #remove

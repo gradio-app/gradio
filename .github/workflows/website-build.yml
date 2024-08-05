@@ -42,10 +42,27 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
-          python_version: "3.9"
+          skip_build: true
+        # unsafe - pr could have modified the build script
+      - name: build client
+        run: pnpm --filter @gradio/client build
 
-      - name: upload  storybook
+      - name: build website
+        run: pnpm --filter @gradio/website build
+
+      - name: upload website artifacts
         uses: actions/upload-artifact@v4
         with:
           name: website
-          path: storybook-static
+          path: js/_website/.vercel
+
+      - name: upload website json artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-json
+          path: js/_website/src/lib/json
+      - name: upload website json templates
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-templates
+          path: js/_website/src/lib/templates
