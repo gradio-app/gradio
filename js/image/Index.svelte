@@ -51,7 +51,7 @@
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
-	export let info: string;
+	export let info: string | undefined = undefined;
 
 	export let gradio: Gradio<{
 		input: never;
@@ -84,10 +84,10 @@
 	let active_source: sources = null;
 </script>
 
+{#if info}
+	<BlockTitle info_only={true} {info} />
+{/if}
 {#if !interactive}
-	{#if info}
-		<BlockTitle info_only={true} {info} />
-	{/if}
 	<Block
 		{visible}
 		variant={"solid"}

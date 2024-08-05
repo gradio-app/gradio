@@ -15,7 +15,9 @@
 	<slot />
 </span>
 {#if info}
-	<Info>{info}</Info>
+	<span class:info={info_only}>
+		<Info>{info}</Info>
+	</span>
 {/if}
 
 <style>
@@ -47,5 +49,8 @@
 	.hide {
 		margin: 0;
 		height: 0;
+	}
+	.info {
+		margin-bottom: calc(var(--size-4) * -1) !important;
 	}
 </style>
