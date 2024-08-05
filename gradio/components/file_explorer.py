@@ -205,10 +205,8 @@ class FileExplorer(Component):
         return folders + files
 
     def _safe_join(self, folders: list[str]):
-        combined_path = UserProvidedPath(os.path.join(*folders))
-        try:
-            return safe_join(self.root_dir, combined_path)
-        except HTTPException as err:
-            raise ValueError(
-                "Attempted to navigate outside of root directory!"
-            ) from err
+        if not folders or len(folders) == 0:
+            return self.root_dir
+        head, tail = folders[0], folders[1:]
+        combined_path = UserProvidedPath(os.path.join(head, *tail))
+        return safe_join(self.root_dir, combined_path)
