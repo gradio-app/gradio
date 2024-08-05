@@ -521,7 +521,7 @@ class Examples:
                     )
                 output = prediction["data"]
                 if len(generated_values):
-                    output = merge_generated_values_into_output(
+                    output = await merge_generated_values_into_output(
                         self.outputs, generated_values, output
                     )
                 if self.batch:
@@ -583,7 +583,7 @@ class Examples:
         return output
 
 
-def merge_generated_values_into_output(
+async def merge_generated_values_into_output(
     components: Sequence[Component], generated_values: list, output: list
 ):
     from gradio.components.base import StreamingOutput
@@ -598,9 +598,11 @@ def merge_generated_values_into_output(
                 if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
                     processed_chunk = processed_chunk.model_dump()
                 binary_chunks.append(
-                    output_component.stream_output(processed_chunk, "", i == 0)[0]
+                    (await output_component.stream_output(processed_chunk, "", i == 0))[
+                        0
+                    ]
                 )
-            binary_data = b"".join(binary_chunks)
+            binary_data = b"".join([d["data"] for d in binary_chunks])
             tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(
                 Path(tempfile.gettempdir()) / "gradio"
             )
@@ -986,8 +988,8 @@ def update(
     elem_id: str | None = None,
     elem_classes: list[str] | str | None = None,
     visible: bool | None = None,
-    **kwargs,
-) -> dict:
+    **kwargs: Any,
+) -> dict[str, Any]:
     """
     Updates a component's properties. When a function passed into a Gradio Interface or a Blocks events returns a value, it typically updates the value of the output component. But it is also possible to update the *properties* of an output component (such as the number of lines of a `Textbox` or the visibility of an `Row`) by returning a component and passing in the parameters to update in the constructor of the component. Alternatively, you can return `gr.update(...)` with any arbitrary parameters to update. (This is useful as a shorthand or if the same function can be called with different components to update.)
 

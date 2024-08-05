@@ -1,3 +1,4 @@
+**/*.md
 **/js/app/public/**
 **/pnpm-workspace.yaml
 **/js/app/dist/**
@@ -12,7 +13,7 @@
 **/gradio/**
 **/.pnpm-store/**
 **/.venv/**
-**/.github/**
+
 /guides/**
 **/.mypy_cache/**
 !test-strategy.md
@@ -25,11 +26,10 @@
 sweep.yaml
 **/.vercel/**
 **/build/**
-**/*.md
 **/src/lib/json/**/*
 **/playwright/.cache/**/*
 **/theme/src/pollen.css
 **/venv/**
 ../js/app/src/api_docs/CodeSnippet.svelte
 ../js/app/src/api_docs/RecordingSnippet.svelte
-.changeset/pre.json
+/.changeset/pre.json

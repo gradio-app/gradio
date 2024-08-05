@@ -19,7 +19,12 @@ import gradio_client.utils as client_utils
 from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.data_classes import BaseModel, GradioDataModel
+from gradio.data_classes import (
+    BaseModel,
+    FileDataDict,
+    GradioDataModel,
+    MediaStreamChunk,
+)
 from gradio.events import EventListener
 from gradio.layouts import Form
 from gradio.processing_utils import move_files_to_cache
@@ -371,9 +376,9 @@ class StreamingOutput(metaclass=abc.ABCMeta):
         self.streaming: bool
 
     @abc.abstractmethod
-    def stream_output(
+    async def stream_output(
         self, value, output_id: str, first_chunk: bool
-    ) -> tuple[bytes | None, Any]:
+    ) -> tuple[MediaStreamChunk | None, FileDataDict | dict]:
         pass
 
 

@@ -1,0 +1,68 @@
+name: "website-build"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 5.0-dev
+
+env:
+  CI: true
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+concurrency:
+  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      gradio_version: ${{ steps.changes.outputs.gradio_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          filter: "website"
+          token: ${{ secrets.GITHUB_TOKEN }}
+  build:
+    name: build
+    runs-on: ubuntu-22.04
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          always_install_pnpm: true
+          skip_build: true
+        # unsafe - pr could have modified the build script
+      - name: build client
+        run: pnpm --filter @gradio/client build
+
+      - name: build website
+        run: VERCEL=1 pnpm --filter website build
+
+      - name: upload website artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: website
+          path: js/_website/.vercel
+
+      - name: upload website json artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-json
+          path: js/_website/src/lib/json
+      - name: upload website json templates
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-templates
+          path: js/_website/src/lib/templates
