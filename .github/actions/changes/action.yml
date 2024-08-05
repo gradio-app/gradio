@@ -44,6 +44,7 @@ runs:
         filter: ${{ inputs.filter }}
     - name: get gradio version
       id: gradio_version
+      shell: bash
       run: |
         GRADIO_VERSION=$(curl -s https://pypi.org/pypi/gradio/json | grep -o '"version":"[^"]*"' | cut -d'"' -f4 | head -n 1)"
         echo $GRADIO_VERSION >> $GITHUB_OUTPUT
