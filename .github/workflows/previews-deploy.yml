@@ -7,6 +7,8 @@ on:
     types:
       - completed
 
+permissions:
+  statuses: write
 concurrency:
   group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
@@ -55,8 +57,6 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
