@@ -284,7 +284,7 @@
 			>
 		</div>
 		<p class="mt-4 mx-auto text-lg text-gray-600 text-center md:hidden">
-			To edit code and see live changes, use Playground on a desktop. 
+			To edit code and see live changes, use Playground on a desktop.
 		</p>
 	</main>
 {/if}
