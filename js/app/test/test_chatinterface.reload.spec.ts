@@ -47,11 +47,11 @@ test("gradio dev mode correctly reloads a stateful ChatInterface demo", async ({
 	test.setTimeout(20 * 1000);
 
 	try {
-		const port = 7890;
-		const { _process: server_process } = await launch_app_background(
-			`GRADIO_SERVER_PORT=${port} gradio ${join(process.cwd(), demo_file)}`,
-			process.cwd()
-		);
+		const { _process: server_process, port: port } =
+			await launch_app_background(
+				`gradio ${join(process.cwd(), demo_file)}`,
+				process.cwd()
+			);
 		_process = server_process;
 		console.log("Connected to port", port);
 		const demo = `
@@ -66,6 +66,7 @@ if __name__ == "__main__":
     demo.launch()
 `;
 		await page.goto(`http://localhost:${port}`);
+		await page.waitForTimeout(2000);
 		spawnSync(`echo '${demo}' > ${join(process.cwd(), demo_file)}`, {
 			shell: true,
 			stdio: "pipe",
