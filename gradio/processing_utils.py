@@ -312,7 +312,7 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
             full_temp_file_path, "wb"
         ) as f:
             for redirect in response.history:
-                check_public_url(redirect.url)
+                check_public_url(str(redirect.url))
 
             for chunk in response.iter_raw():
                 f.write(chunk)
@@ -334,7 +334,7 @@ async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     if not Path(full_temp_file_path).exists():
         async with async_client.stream("GET", url, follow_redirects=True) as response:
             for redirect in response.history:
-                check_public_url(redirect.url)
+                check_public_url(str(redirect.url))
 
             async with aiofiles.open(full_temp_file_path, "wb") as f:
                 async for chunk in response.aiter_raw():
