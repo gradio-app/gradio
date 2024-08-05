@@ -946,7 +946,7 @@ def is_special_typed_parameter(name, parameter_types):
     hint = parameter_types.get(name)
     if not hint:
         return False
-    is_request = hint == Request
+    is_request = hint in (Request, Optional[Request])
     is_oauth_arg = hint in (
         OAuthProfile,
         Optional[OAuthProfile],
