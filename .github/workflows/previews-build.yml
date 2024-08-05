@@ -52,7 +52,8 @@ jobs:
         with:
           name: gradio-lite-${{ github.sha }}
           path: js/lite/gradio-lite-*.tgz
-
+      - name: install deps
+        run: python -m pip install build
       - name: Build pr package
         run: |
           python -c 'import json; j = json.load(open("gradio/package.json")); j["version"] = "${{ needs.changes.outputs.gradio_version }}"; json.dump(j, open("gradio/package.json", "w"))'
