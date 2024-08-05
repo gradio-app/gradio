@@ -419,4 +419,4 @@ def test_various_local_urls(url):
         processing_utils.check_public_url(url)
 
 def test_valid_public_url():
-    assert processing_utils.check_public_url("https://www.example.com") == True
+    assert processing_utils.check_public_url("https://www.example.com")

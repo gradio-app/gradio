@@ -278,7 +278,7 @@ def check_public_url(url: str):
     try:
         addrinfo = socket.getaddrinfo(hostname, None)
     except socket.gaierror:
-        raise httpx.RequestError(f"Cannot resolve hostname: {hostname}")
+        raise httpx.RequestError(f"Cannot resolve hostname: {hostname}") from None
 
     for family, _, _, _, sockaddr in addrinfo:
         ip = sockaddr[0]
