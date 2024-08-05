@@ -435,7 +435,7 @@ importers:
         version: 2.2.0
       '@sveltejs/adapter-vercel':
         specifier: ^5.3.0
-        version: 5.3.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))
+        version: 5.3.0(@sveltejs/kit@2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))
       hast-util-to-string:
         specifier: ^3.0.0
         version: 3.0.0
@@ -450,14 +450,14 @@ importers:
         version: 0.5.0
     devDependencies:
       '@sveltejs/adapter-auto':
-        specifier: ^3.2.0
-        version: 3.2.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))
+        specifier: ^3.2.2
+        version: 3.2.2(@sveltejs/kit@2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))
       '@sveltejs/adapter-static':
-        specifier: ^3.0.1
-        version: 3.0.1(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))
+        specifier: ^3.0.2
+        version: 3.0.2(@sveltejs/kit@2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))
       '@sveltejs/kit':
-        specifier: ^2.5.7
-        version: 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
+        specifier: ^2.5.20
+        version: 2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
       '@tailwindcss/forms':
         specifier: ^0.5.0
         version: 0.5.0(tailwindcss@3.1.6(postcss@8.4.38))
@@ -4391,13 +4391,13 @@ packages:
   '@storybook/types@8.1.8':
     resolution: {integrity: sha512-bWg6WkhnhkWBIu03lUKlX2eOYSjDzpzoulzLh1H4Tl1JReGed+cHbIpdIU6lke2aJyb2BNyzoyudUHKBBGaOzg==}
 
-  '@sveltejs/adapter-auto@3.2.0':
-    resolution: {integrity: sha512-She5nKT47kwHE18v9NMe6pbJcvULr82u0V3yZ0ej3n1laWKGgkgdEABE9/ak5iDPs93LqsBkuIo51kkwCLBjJA==}
+  '@sveltejs/adapter-auto@3.2.2':
+    resolution: {integrity: sha512-Mso5xPCA8zgcKrv+QioVlqMZkyUQ5MjDJiEPuG/Z7cV/5tmwV7LmcVWk5tZ+H0NCOV1x12AsoSpt/CwFwuVXMA==}
     peerDependencies:
       '@sveltejs/kit': ^2.0.0
 
-  '@sveltejs/adapter-static@3.0.1':
-    resolution: {integrity: sha512-6lMvf7xYEJ+oGeR5L8DFJJrowkefTK6ZgA4JiMqoClMkKq0s6yvsd3FZfCFvX1fQ0tpCD7fkuRVHsnUVgsHyNg==}
+  '@sveltejs/adapter-static@3.0.2':
+    resolution: {integrity: sha512-/EBFydZDwfwFfFEuF1vzUseBoRziwKP7AoHAwv+Ot3M084sE/HTVBHf9mCmXfdM9ijprY5YEugZjleflncX5fQ==}
     peerDependencies:
       '@sveltejs/kit': ^2.0.0
 
@@ -4406,8 +4406,8 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^2.4.0
 
-  '@sveltejs/kit@2.5.7':
-    resolution: {integrity: sha512-6uedTzrb7nQrw6HALxnPrPaXdIN2jJJTzTIl96Z3P5NiG+OAfpdPbrWrvkJ3GN4CfWqrmU4dJqwMMRMTD/C7ow==}
+  '@sveltejs/kit@2.5.20':
+    resolution: {integrity: sha512-47rJ5BoYwURE/Rp7FNMLp3NzdbWC9DQ/PmKd0mebxT2D/PrPxZxcLImcD3zsWdX2iS6oJk8ITJbO/N2lWnnUqA==}
     engines: {node: '>=18.13'}
     hasBin: true
     peerDependencies:
@@ -6710,8 +6710,8 @@ packages:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
     engines: {node: '>=6'}
 
-  import-meta-resolve@4.0.0:
-    resolution: {integrity: sha512-okYUR7ZQPH+efeuMJGlq4f8ubUgO50kByRPyt/Cy1Io4PSRsPjxME+YlVaCOx+NIToW7hCsZNFJyTPFFKepRSA==}
+  import-meta-resolve@4.1.0:
+    resolution: {integrity: sha512-I6fiaX09Xivtk+THaMfAwnA3MVA5Big1WHF1Dfx9hFuvNIWpXnorlkzhcQf6ehrqQiiZECRt1poOAkPmer3ruw==}
 
   imurmurhash@0.1.4:
     resolution: {integrity: sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==}
@@ -12582,32 +12582,32 @@ snapshots:
       '@types/express': 4.17.21
       file-system-cache: 2.3.0
 
-  '@sveltejs/adapter-auto@3.2.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))':
+  '@sveltejs/adapter-auto@3.2.2(@sveltejs/kit@2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))':
     dependencies:
-      '@sveltejs/kit': 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
-      import-meta-resolve: 4.0.0
+      '@sveltejs/kit': 2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
+      import-meta-resolve: 4.1.0
 
-  '@sveltejs/adapter-static@3.0.1(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))':
+  '@sveltejs/adapter-static@3.0.2(@sveltejs/kit@2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))':
     dependencies:
-      '@sveltejs/kit': 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
+      '@sveltejs/kit': 2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
 
-  '@sveltejs/adapter-vercel@5.3.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))':
+  '@sveltejs/adapter-vercel@5.3.0(@sveltejs/kit@2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))':
     dependencies:
-      '@sveltejs/kit': 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
+      '@sveltejs/kit': 2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
       '@vercel/nft': 0.26.4
       esbuild: 0.20.2
     transitivePeerDependencies:
       - encoding
       - supports-color
 
-  '@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))':
+  '@sveltejs/kit@2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))':
     dependencies:
       '@sveltejs/vite-plugin-svelte': 3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
       '@types/cookie': 0.6.0
       cookie: 0.6.0
       devalue: 5.0.0
       esm-env: 1.0.0
-      import-meta-resolve: 4.0.0
+      import-meta-resolve: 4.1.0
       kleur: 4.1.5
       magic-string: 0.30.10
       mrmime: 2.0.0
@@ -15290,7 +15290,7 @@ snapshots:
       parent-module: 1.0.1
       resolve-from: 4.0.0
 
-  import-meta-resolve@4.0.0: {}
+  import-meta-resolve@4.1.0: {}
 
   imurmurhash@0.1.4: {}
 

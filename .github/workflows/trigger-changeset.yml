@@ -7,7 +7,6 @@ on:
   issue_comment:
     types: [edited]
 
-
 jobs:
   changeset:
     permissions: write-all

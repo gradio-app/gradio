@@ -1,17 +1,14 @@
-name: "test / functional"
+name: "functional"
 
 on:
-  workflow_run:
-    workflows: ["trigger"]
-    types:
-      - requested
-
-
-permissions:
-  statuses: write
+  pull_request:
+  push:
+    branches:
+      - main
+      - 5.0-dev
 
 concurrency:
-  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
 jobs:
@@ -21,30 +18,23 @@ jobs:
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
-      merge_sha: ${{ steps.changes.outputs.merge_sha }}
       pr_number: ${{ steps.changes.outputs.pr_number }}
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
-      mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
       - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
-          type: "functional"
+          filter: "functional"
           token: ${{ secrets.GITHUB_TOKEN }}
-
-  test-functional:
-    name: "test-functional"
+  test:
+    name: "test"
+    runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.changes.outputs.merge_sha }}
-          repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
       - name: install dependencies
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
@@ -92,14 +82,3 @@ jobs:
           export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)
           echo "LITE_APP_LOAD_TIME=$LITE_APP_LOAD_TIME" >> $GITHUB_ENV
           cat .lite-perf.json  # For debugging
-      - name: do check
-        if: always()
-        uses: "gradio-app/github/actions/commit-status@main"
-        with:
-          type: "functional"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pr: ${{ needs.changes.outputs.pr_number }}
-          sha: ${{ needs.changes.outputs.sha }}
-          name: "test / functional"
-          result: ${{ job.status }}
-          job_id: "test-functional"
