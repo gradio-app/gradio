@@ -8,7 +8,6 @@ import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence, cast
 
-from fastapi import HTTPException
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, server
