@@ -1,10 +1,10 @@
-name: "test / visual"
+name: "storybook-deploy"
 
 on:
   workflow_run:
     workflows: ["storybook-build"]
     types:
-      - requested
+      - completed
 
 concurrency:
   group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
@@ -57,9 +57,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: "storybook"
           run_id: ${{ needs.changes.outputs.run_id }}
-  test-visual:
+  deploy:
     environment: storybook
-    name: "test-visual"
+    name: "deploy"
     needs: changes
     if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
     runs-on: ubuntu-latest
@@ -92,18 +92,18 @@ jobs:
 
   comment-chromatic-end:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [test-visual, changes]
+    needs: [deploy, changes]
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: |
-        storybook~success~${{ needs.test-visual.outputs.storybook_url }}
+        storybook~success~${{ needs.deploy.outputs.storybook_url }}
 
   comment-chromatic-fail:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [test-visual, changes]
-    if: always() && needs.test-visual.result == 'failure'
+    needs: [deploy, changes]
+    if: always() && needs.deploy.result == 'failure'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
