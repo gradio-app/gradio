@@ -1,4 +1,4 @@
-name: "js"
+name: "storybook-build"
 
 on:
   pull_request:
@@ -23,7 +23,6 @@ jobs:
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
-      pr_number: ${{ steps.changes.outputs.pr_number }}
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
     steps:
@@ -31,7 +30,7 @@ jobs:
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
-          filter: "js"
+          filter: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
   test:
     name: test
@@ -40,21 +39,24 @@ jobs:
     if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changes.outputs.source_branch }}
+          repository: ${{ needs.changes.outputs.source_repo }}
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
+          skip_build: "true"
       - name: build client
         run: pnpm --filter @gradio/client build
-      - name: build the wasm module
-        run: pnpm --filter @gradio/wasm build
-      - name: format check
-        run: pnpm format:check
-      - name: lint
-        run: pnpm lint
-      - name: typecheck
-        run: pnpm ts:check
-      - name: unit tests
-        run: pnpm test:run
-      - name: client tests
-        run: pnpm --filter @gradio/client test
+      - name: generate theme.css
+        run: |
+          . venv/bin/activate
+          python scripts/generate_theme.py --outfile js/storybook/theme.css
+      - name: build storybook
+        run: pnpm build-storybook --quiet
+      - name: upload  storybook
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook-static
+          path: storybook-static

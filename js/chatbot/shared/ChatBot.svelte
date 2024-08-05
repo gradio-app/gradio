@@ -345,6 +345,7 @@
 									class:message-markdown-disabled={!render_markdown}
 									style:user-select="text"
 									class:selectable
+									style:cursor={selectable ? "pointer" : "default"}
 									style:text-align={rtl ? "right" : "left"}
 									on:click={() => handle_select(i, message)}
 									on:keydown={(e) => {
