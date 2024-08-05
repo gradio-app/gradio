@@ -195,13 +195,13 @@ def _remove_no_reload_codeblocks(file_path: str):
     return code_removed
 
 
-def _find_module(source_file: Path) -> ModuleType:
+def _find_module(source_file: Path) -> ModuleType | None:
     for s, v in sys.modules.items():
         if s not in {"__main__", "__mp_main__"} and getattr(v, "__file__", None) == str(
             source_file
         ):
             return v
-    raise ValueError(f"Cannot find module for source file: {source_file}")
+    return None
 
 
 def watchfn(reloader: SourceFileReloader):
@@ -267,12 +267,13 @@ def watchfn(reloader: SourceFileReloader):
                     changed_in_copy = _remove_no_reload_codeblocks(str(changed))
                     if changed != reloader.demo_file:
                         changed_module = _find_module(changed)
-                        exec(changed_in_copy, changed_module.__dict__)
-                        top_level_parent = sys.modules[
-                            changed_module.__name__.split(".")[0]
-                        ]
-                        if top_level_parent != changed_module:
-                            importlib.reload(top_level_parent)
+                        if changed_module:
+                            exec(changed_in_copy, changed_module.__dict__)
+                            top_level_parent = sys.modules[
+                                changed_module.__name__.split(".")[0]
+                            ]
+                            if top_level_parent != changed_module:
+                                importlib.reload(top_level_parent)
 
                 changed_demo_file = _remove_no_reload_codeblocks(
                     str(reloader.demo_file)
