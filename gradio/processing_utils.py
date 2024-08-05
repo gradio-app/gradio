@@ -10,7 +10,6 @@ import shutil
 import socket
 import subprocess
 import tempfile
-import uuid
 import warnings
 from io import BytesIO
 from pathlib import Path
@@ -26,7 +25,7 @@ from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 from gradio import utils, wasm_utils
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
 from gradio.exceptions import Error
-from gradio.utils import abspath, get_upload_folder, is_in_or_equal
+from gradio.utils import abspath, get_hash_seed, get_upload_folder, is_in_or_equal
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -180,7 +179,7 @@ def encode_pil_to_bytes(pil_image, format="png"):
             pil_image.save(output_bytes, format, **params)
         return output_bytes.getvalue()
 
-hash_seed = str(uuid.uuid4()).encode("utf-8")
+hash_seed = get_hash_seed().encode("utf-8")
 
 def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
     sha1 = hashlib.sha1()
@@ -269,12 +268,27 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
     return full_temp_file_path
 
 def check_public_url(url: str):
-    hostname = urlparse(url).hostname
+    parsed_url = urlparse(url)
+    if parsed_url.scheme not in ["http", "https"]:
+        raise httpx.RequestError(f"Invalid URL: {url}")
+    hostname = parsed_url.hostname
     if not hostname:
         raise httpx.RequestError(f"Invalid URL: {url}")
-    ip = socket.gethostbyname(hostname)
-    if ipaddress.ip_address(ip).is_private:
-        raise httpx.RequestError(f"Non-public URL: {url}")
+
+    try:
+        addrinfo = socket.getaddrinfo(hostname, None)
+    except socket.gaierror:
+        raise httpx.RequestError(f"Cannot resolve hostname: {hostname}")
+
+    for family, _, _, _, sockaddr in addrinfo:
+        ip = sockaddr[0]
+        if family == socket.AF_INET6:
+            ip = ip.split('%')[0]  # Remove scope ID if present
+
+        if not ipaddress.ip_address(ip).is_global:
+            raise httpx.RequestError(f"Non-public IP address found: {ip} for URL: {url}")
+
+    return True
 
 def save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already

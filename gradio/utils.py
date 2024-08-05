@@ -22,6 +22,7 @@ import time
 import traceback
 import typing
 import urllib.parse
+import uuid
 import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
@@ -441,7 +442,7 @@ def download_if_url(article: str) -> str:
 def launch_counter() -> None:
     try:
         if not os.path.exists(JSON_PATH):
-            launches = {"launches": 1}
+            launches = {"launches": 1, "hash_seed": uuid.uuid4().hex}
             with open(JSON_PATH, "w+", encoding="utf-8") as j:
                 json.dump(launches, j)
         else:
@@ -455,6 +456,13 @@ def launch_counter() -> None:
     except Exception:
         pass
 
+def get_hash_seed() -> str:
+    try:
+        with open(JSON_PATH, encoding="utf-8") as j:
+            launches = json.load(j)
+        return launches["hash_seed"]
+    except Exception:
+        return uuid.uuid4().hex
 
 def get_default_args(func: Callable) -> list[Any]:
     signature = inspect.signature(func)

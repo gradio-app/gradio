@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import ffmpy
+import httpx
 import numpy as np
 import pytest
 from gradio_client import media_data
@@ -404,3 +405,18 @@ async def test_json_data_not_moved_to_cache():
         )
         == data
     )
+
+@pytest.mark.parametrize("url", [
+    "https://localhost",
+    "http://127.0.0.1/file/a/b/c",
+    "http://[::1]",
+    "https://192.168.0.1",
+    "http://10.0.0.1?q=a",
+    "https://172.16.0.1",
+])
+def test_various_local_urls(url):
+    with pytest.raises(httpx.RequestError, match="Non-public IP address found"):
+        processing_utils.check_public_url(url)
+
+def test_valid_public_url():
+    assert processing_utils.check_public_url("https://www.example.com") == True
