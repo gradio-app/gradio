@@ -43,6 +43,7 @@
 		prop_change: Record<string, any>;
 		clear_status: LoadingStatus;
 	}>;
+	export let show_fullscreen_button = true;
 
 	const dispatch = createEventDispatcher();
 
@@ -113,6 +114,7 @@
 			{show_download_button}
 			i18n={gradio.i18n}
 			_fetch={gradio.client.fetch}
+			{show_fullscreen_button}
 		/>
 	{/if}
 </Block>
