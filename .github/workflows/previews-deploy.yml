@@ -76,7 +76,7 @@ jobs:
           export AWS_ACCESS_KEY_ID=${{ secrets.PYPI_PREVIEWS_AWS_S3_ACCESS_KEY }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.PYPI_PREVIEWS_AWS_S3_SECRET_ACCESS_KEY }}
           export AWS_DEFAULT_REGION=us-east-1
-          aws s3 cp ${{ steps.set_wheel_name.outputs.wheel_name}}-py3-none-any.whl s3://gradio-pypi-previews/${{ needs.changes.outputs.sha  }}/
+          aws s3 cp ${{ steps.set_wheel_name.outputs.wheel_name}} s3://gradio-pypi-previews/${{ needs.changes.outputs.sha }}/
 
       - name: Set tarball name
         id: set_tarball_name
