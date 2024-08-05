@@ -71,6 +71,10 @@ jobs:
     permissions:
       actions: read
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changes.outputs.source_branch }}
+          repository: ${{ needs.changes.outputs.source_repo }}
       - name: dowload storybook artifacts
         uses: actions/download-artifact@v4
         with:
