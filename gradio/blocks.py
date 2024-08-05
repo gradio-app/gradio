@@ -1955,6 +1955,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                     root_path=root_path,
+                    final=not is_generating,
                 )
                 data = self.handle_streaming_diffs(
                     block_fn,
