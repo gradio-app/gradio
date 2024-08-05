@@ -22,6 +22,7 @@ on:
 
 jobs:
   comment:
+    environment: comment_pr
     concurrency:
       group: ${{inputs.pr_number || inputs.tag}}
     runs-on: ubuntu-latest
