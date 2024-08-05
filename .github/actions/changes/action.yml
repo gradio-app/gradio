@@ -10,7 +10,7 @@ inputs:
 outputs:
   should_run:
     description: "Whether to run the workflow"
-    value: ${{ steps.should_run.outputs.should_run }}
+    value: ${{ steps.pr.outputs.should_run }}
   pr_number:
     description: "PR number"
     value: ${{ steps.pr.outputs.pr_number }}
@@ -46,21 +46,21 @@ runs:
       id: gradio_version
       shell: bash
       run: |
-        GRADIO_VERSION=$(curl -s https://pypi.org/pypi/gradio/json | grep -o '"version":"[^"]*"' | cut -d'"' -f4 | head -n 1)"
-        echo $GRADIO_VERSION >> $GITHUB_OUTPUT
+        GRADIO_VERSION=$(curl -s https://pypi.org/pypi/gradio/json | grep -o '"version":"[^"]*"' | cut -d'"' -f4 | head -n 1)
+        echo "gradio_version=$GRADIO_VERSION" >> $GITHUB_OUTPUT
     - name: convert to JSON
       uses: gradio-app/github/actions/input-to-json@main
       with:
         path: output.json
-        sha: ${{ github.event.pull_request?.head.sha || github.sha }}
+        sha: ${{ github.event.pull_request.head.sha || github.sha }}
         source_repo: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
         source_branch: ${{ github.event.pull_request.head.ref || github.ref }}
-        pr_number: ${{ github.event.pull_request?.number || 'false'}}
-        should_run: ${{ steps.changes.outputs.should_run }}
-        labels: ${{ github.event.pull_request.labels }}
+        pr_number: ${{ github.event.pull_request.number || 'false'}}
+        should_run: ${{ github.event.pull_request.number && 'true' || 'false'}}
+        labels: "[${{ join(github.event.pull_request.labels.*.name, ', ') }}]"
         run_id: ${{ github.run_id }}
         gradio_version: ${{ steps.gradio_version.outputs.gradio_version }}
-    - name: cat json #remove
+    - name: cat json
       run: cat output.json
       shell: bash
     - name: upload JSON
@@ -70,9 +70,9 @@ runs:
         path: output.json
     - name: set outputs
       id: pr
-      uses: gradio-app/github/actions/json_to_outputs@main
+      uses: gradio-app/github/actions/json-to-output@main
       with:
-        json: output.json
-    - name: echo outputs #remove
-      run: echo ${{ toJson(steps.pr.outputs) }}
+        path: output.json
+    - name: echo outputs
+      run: echo "${{ toJson(steps.pr.outputs) }}"
       shell: bash
