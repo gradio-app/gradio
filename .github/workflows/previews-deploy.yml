@@ -1,11 +1,11 @@
-name: "deploy / spaces"
+name: "previews-deploy"
 
 on:
   workflow_dispatch:
   workflow_run:
     workflows: ["trigger"]
     types:
-      - requested
+      - completed
 
 permissions:
   statuses: write

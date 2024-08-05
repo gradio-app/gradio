@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["website-build"]
     types:
-      - requested
+      - completed
 
 permissions:
   statuses: write
