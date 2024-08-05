@@ -74,5 +74,5 @@ runs:
       with:
         path: output.json
     - name: echo outputs
-      run: echo ${{ toJson(steps.pr.outputs) }}
+      run: echo "${{ toJson(steps.pr.outputs) }}"
       shell: bash
