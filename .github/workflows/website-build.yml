@@ -48,7 +48,7 @@ jobs:
         run: pnpm --filter @gradio/client build
 
       - name: build website
-        run: pnpm --filter @gradio/website build
+        run: VERCEL=1 pnpm --filter website build
 
       - name: upload website artifacts
         uses: actions/upload-artifact@v4

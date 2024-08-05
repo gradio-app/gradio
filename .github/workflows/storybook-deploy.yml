@@ -28,8 +28,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: artifact-dir
-          path: different_dir
+          name: changes
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
       - uses: gradio-app/github/actions/json-to-output@main
@@ -79,6 +78,8 @@ jobs:
           path: storybook-static
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: list artifacts
+        run: ls -R .
       - name: publish to chromatic
         id: publish-chromatic
         uses: chromaui/action@v11
