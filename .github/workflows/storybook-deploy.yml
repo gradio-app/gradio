@@ -75,6 +75,7 @@ jobs:
         with:
           ref: ${{ needs.changes.outputs.source_branch }}
           repository: ${{ needs.changes.outputs.source_repo }}
+          fetch-depth: 0
       - name: dowload storybook artifacts
         uses: actions/download-artifact@v4
         with:
@@ -116,7 +117,3 @@ jobs:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: |
         storybook~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
-
-# visual~success~${{ needs.chromatic-deployment.outputs.changes }}~${{ needs.chromatic-deployment.outputs.errors }}~${{ needs.chromatic-deployment.outputs.build_url }}
-
-# visual~failure~0~0~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
