@@ -103,7 +103,11 @@ jobs:
           curl https://raw.githubusercontent.com/gradio-app/gradio/main/scripts/upload_demo_to_space.py -o scripts/upload_demo_to_space.py
           curl https://raw.githubusercontent.com/gradio-app/gradio/main/scripts/upload_website_demos.py -o scripts/upload_website_demos.py
       - name: make dirs
+<<<<<<< HEAD
         run: mkdir -p demo/all_demos && mv demo/* demo/all_demos/
+=======
+        run: mkdir -p demo/all_demos && mv demo demo/all_demos
+>>>>>>> main
       - name: Upload demo to spaces
         if: github.event.workflow_run.event == 'pull_request'
         id: upload-demo
