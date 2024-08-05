@@ -155,7 +155,7 @@ class Image(StreamingInput, Component):
             render=render,
             key=key,
             value=value,
-            info=info
+            info=info,
         )
 
     def preprocess(
