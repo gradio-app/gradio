@@ -41,6 +41,19 @@
 />
 
 <Story
+	name="static with info and download button"
+	args={{
+		value: {
+			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			orig_name: "cheetah.jpg"
+		},
+		show_label: true,
+		info: "This is a cheetah"
+	}}
+/>
+
+<Story
 	name="static with no label or download button"
 	args={{
 		value: {
