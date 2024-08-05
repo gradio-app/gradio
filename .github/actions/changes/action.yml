@@ -10,7 +10,7 @@ inputs:
 outputs:
   should_run:
     description: "Whether to run the workflow"
-    value: ${{ steps.should_run.outputs.should_run }}
+    value: ${{ steps.pr.outputs.should_run }}
   pr_number:
     description: "PR number"
     value: ${{ steps.pr.outputs.pr_number }}
