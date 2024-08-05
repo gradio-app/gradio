@@ -16,6 +16,7 @@ concurrency:
 jobs:
   get-pr:
     runs-on: ubuntu-latest
+
     if: github.event.workflow_run.conclusion == 'success'
     outputs:
       found_pr: ${{ steps.pr_details.outputs.found_pr }}
@@ -23,11 +24,11 @@ jobs:
       source_repo: ${{ steps.pr_details.outputs.source_repo }}
       source_branch: ${{ steps.pr_details.outputs.source_branch }}
     steps:
-    - name: get pr details
-      id: pr_details
-      uses: gradio-app/github/actions/find-pr@main
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: get pr details
+        id: pr_details
+        uses: gradio-app/github/actions/find-pr@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
   comment-changes-start:
     uses: "./.github/workflows/comment-queue.yml"
     needs: get-pr
@@ -37,6 +38,8 @@ jobs:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
       message: changes~pending~null
   version:
+    environment: comment_pr
+
     permissions: write-all
     name: static checks
     needs: get-pr
@@ -55,7 +58,7 @@ jobs:
       - name: generate changeset
         id: version
         uses: "gradio-app/github/actions/generate-changeset@main"
-        with: 
+        with:
           github_token: ${{ secrets.COMMENT_TOKEN }}
           main_pkg: gradio
           pr_number: ${{ needs.get-pr.outputs.pr_number }}

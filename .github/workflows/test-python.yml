@@ -1,94 +1,70 @@
-name: "test / python"
+name: "python"
 
 on:
-  workflow_run:
-    workflows: ["trigger"]
-    types: 
-      - requested
-
-permissions:
-  statuses: write
+  pull_request:
+  push:
+    branches:
+      - main
+      - 5.0-dev
 
 concurrency:
-  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
-  # this is a non-secret secret and provides read access to a set of spaces for testing purposes
-  # this secret has minimal permissions and only has access to things that can be made public
-  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  HF_TOKEN: ${{ vars.HF_TOKEN }}
 
 jobs:
   changes:
     name: "changes"
     runs-on: ubuntu-latest
-    continue-on-error: true
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
       pr_number: ${{ steps.changes.outputs.pr_number }}
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
-      merge_sha: ${{ steps.changes.outputs.merge_sha }}
-      labels: ${{ steps.changes.outputs.labels }}
-      mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
       - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
-          type: "gradio"
-          name: "test / python / linux"
+          filter: "gradio"
           token: ${{ secrets.GITHUB_TOKEN }}
-  test-python:
-    needs: [changes]
-    if: needs.changes.outputs.should_run == 'true'
+  test:
     name: "test-python-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
         test-type: ["not flaky", "flaky"]
         exclude:
-          - os: ${{ github.event.workflow_run.event == 'pull_request' && contains( needs.changes.outputs.labels, 'windows-tests') && 'dummy' || 'windows-latest' }}
-          - test-type: ${{ github.event.workflow_run.event == 'pull_request' && contains( needs.changes.outputs.labels, 'flaky-tests') && 'dummy' || 'flaky' }}
+          - os: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'windows-tests') && 'dummy' || 'windows-latest' }}
+          - test-type: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'flaky-tests') && 'dummy' || 'flaky' }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ needs.changes.outputs.merge_sha }}
-        repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
-    - name: install dependencies
-      id: install_deps
-      uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
-      with:
-        python_version: "3.8"
-        os: ${{ matrix.os }}
-        test: true
-    - name: Lint
-      if: runner.os == 'Linux'
-      run: |
-        . venv/bin/activate
-        ./scripts/lint_backend.sh
-    - name: Typecheck
-      if: runner.os == 'Linux'
-      run: |
-        . venv/bin/activate
-        ./scripts/type_check_backend.sh
-    - name: Run tests
-      run: |
-        . ${{steps.install_deps.outputs.venv_activate}}
-        python -m pytest -m "${{ matrix.test-type }}"
-    - name: do check
-      if: always()
-      uses: "gradio-app/github/actions/commit-status@main"
-      with:
-        type: "gradio"
-        token: ${{ secrets.GITHUB_TOKEN }}
-        pr: ${{ needs.changes.outputs.pr_number }}
-        sha: ${{ needs.changes.outputs.sha }}
-        name: "test / python / ${{ matrix.os == 'ubuntu-latest' && 'linux' || 'windows'}}"
-        result: ${{ job.status }}
-        job_id: "test-python-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
-
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        id: install_deps
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          python_version: "3.8"
+          os: ${{ matrix.os }}
+          test: true
+      - name: Lint
+        if: runner.os == 'Linux'
+        run: |
+          . venv/bin/activate
+          ./scripts/lint_backend.sh
+      - name: Typecheck
+        if: runner.os == 'Linux'
+        run: |
+          . venv/bin/activate
+          ./scripts/type_check_backend.sh
+      - name: Run tests
+        run: |
+          . ${{steps.install_deps.outputs.venv_activate}}
+          python -m pytest -m "${{ matrix.test-type }}"

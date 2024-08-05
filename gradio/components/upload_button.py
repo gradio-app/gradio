@@ -49,7 +49,7 @@ class UploadButton(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        type: Literal["filepath", "bytes"] = "filepath",
+        type: Literal["filepath", "binary"] = "filepath",
         file_count: Literal["single", "multiple", "directory"] = "single",
         file_types: list[str] | None = None,
     ):
