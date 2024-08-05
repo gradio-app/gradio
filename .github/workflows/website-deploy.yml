@@ -3,7 +3,7 @@ name: "deploy / website"
 on:
   workflow_run:
     workflows: ["trigger"]
-    types: 
+    types:
       - requested
 
 permissions:
@@ -12,7 +12,6 @@ permissions:
 concurrency:
   group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
-  
 
 # these variables are not secret and are used to identify the Vercel project
 env:
@@ -51,10 +50,10 @@ jobs:
   deploy-website:
     # permissions: statuses: write
     # user code : true
-    # secrets: 
-      # AWSACCESSKEYID, 
-      # AWSSECRETKEY, 
-      # VERCEL_TOKEN
+    # secrets:
+    # AWSACCESSKEYID,
+    # AWSSECRETKEY,
+    # VERCEL_TOKEN
     name: "deploy-website"
     runs-on: ubuntu-latest
     needs: changes
@@ -116,7 +115,6 @@ jobs:
         if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'main'
         shell: bash
         run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})" >> $GITHUB_ENV
-     
 
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
@@ -136,4 +134,3 @@ jobs:
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: website~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
-    

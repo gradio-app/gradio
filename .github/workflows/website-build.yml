@@ -1,4 +1,4 @@
-name: "js"
+name: "website-build"
 
 on:
   pull_request:
@@ -23,15 +23,13 @@ jobs:
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
-      pr_number: ${{ steps.changes.outputs.pr_number }}
-      source_branch: ${{ steps.changes.outputs.source_branch }}
-      source_repo: ${{ steps.changes.outputs.source_repo }}
+      gradio_version: ${{ steps.changes.outputs.gradio_version }}
     steps:
       - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
-          filter: "js"
+          filter: "website"
           token: ${{ secrets.GITHUB_TOKEN }}
   test:
     name: test
@@ -41,20 +39,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
-      - name: build client
-        run: pnpm --filter @gradio/client build
-      - name: build the wasm module
-        run: pnpm --filter @gradio/wasm build
-      - name: format check
-        run: pnpm format:check
-      - name: lint
-        run: pnpm lint
-      - name: typecheck
-        run: pnpm ts:check
-      - name: unit tests
-        run: pnpm test:run
-      - name: client tests
-        run: pnpm --filter @gradio/client test
+          python_version: "3.9"
+
+      - name: upload  storybook
+        uses: actions/upload-artifact@v4
+        with:
+          name: website
+          path: storybook-static

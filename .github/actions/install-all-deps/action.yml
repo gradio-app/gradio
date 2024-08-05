@@ -1,28 +1,28 @@
-name: 'install all deps'
-description: 'Install all deps'
+name: "install all deps"
+description: "Install all deps"
 
 inputs:
   always_install_pnpm:
-    description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
-    default: 'false'
+    description: "Dictates whether or not we should install pnpm & dependencies, regardless of the cache"
+    default: "false"
   skip_build:
-    description: 'Skip build'
-    default: 'false'
+    description: "Skip build"
+    default: "false"
   build_lite:
-    description: 'Build lite'
-    default: 'false'
+    description: "Build lite"
+    default: "false"
   test:
-    description: 'Test'
-    default: 'false'
+    description: "Test"
+    default: "false"
   python_version:
-    description: 'Python version'
-    default: '3.8'
+    description: "Python version"
+    default: "3.8"
   os:
-    description: 'OS'
-    default: 'ubuntu-latest'
+    description: "OS"
+    default: "ubuntu-latest"
 outputs:
   venv_activate:
-    description: 'Venv activate'
+    description: "Venv activate"
     value: ${{ steps.venv.outputs.venv_activate }}
 
 runs:

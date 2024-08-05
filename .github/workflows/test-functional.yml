@@ -1,4 +1,4 @@
-name: "test / functional"
+name: "functional"
 
 on:
   pull_request:
@@ -11,7 +11,6 @@ concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
-
 jobs:
   changes:
     name: "changes"
@@ -19,26 +18,21 @@ jobs:
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
-      merge_sha: ${{ steps.changes.outputs.merge_sha }}
       pr_number: ${{ steps.changes.outputs.pr_number }}
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
-      mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
       - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
-          type: "functional"
+          filter: "functional"
           token: ${{ secrets.GITHUB_TOKEN }}
-
-  test-functional:
-    name: "test-functional"
-    needs: changes
-    # if: needs.changes.outputs.should_run == 'true'
+  test:
+    name: "test"
     runs-on: ubuntu-latest
-    # permissions:
-    #   actions: read
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
