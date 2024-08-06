@@ -69,9 +69,3 @@
 
 	<JSON {value} {open} {theme_mode} {show_indices} {lines} />
 </Block>
-
-<style>
-	:global(.block) {
-		overflow-y: scroll !important;
-	}
-</style>
