@@ -101,7 +101,7 @@
 					on:stop_recording
 					{i18n}
 					{upload}
-					stream_frequency={1}
+					stream_every={1}
 				/>
 			{/if}
 		</div>
