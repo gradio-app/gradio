@@ -59,7 +59,7 @@ jobs:
           run_id: ${{ needs.changes.outputs.run_id }}
   deploy:
     environment: storybook
-    name: "deploy"
+    name: "storybook-deploy"
     needs: changes
     if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
     runs-on: ubuntu-latest

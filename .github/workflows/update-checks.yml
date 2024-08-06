@@ -1,4 +1,4 @@
-name: "storybook-deploy"
+name: "update-checks"
 
 on:
   workflow_run:
@@ -39,7 +39,6 @@ jobs:
     environment: commit_status
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.should_run == 'false'
     steps:
       - name: set check name
         id: set_check_name

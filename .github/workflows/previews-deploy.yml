@@ -48,6 +48,7 @@ jobs:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: spaces~pending~null
   deploy:
+    name: "previews-deploy"
     environment: deploy_spaces
     outputs:
       space_url: ${{ steps.upload-demo.outputs.SPACE_URL }}
