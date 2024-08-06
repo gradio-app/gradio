@@ -23,7 +23,6 @@ class TestJSON:
             "value": None,
             "show_label": True,
             "label": None,
-            "lines": None,
             "name": "json",
             "proxy_url": None,
             "_selectable": False,
