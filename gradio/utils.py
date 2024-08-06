@@ -14,6 +14,7 @@ import json
 import json.decoder
 import os
 import pkgutil
+import posixpath
 import re
 import sys
 import tempfile
@@ -38,6 +39,7 @@ from typing import (
     Generic,
     Iterable,
     Iterator,
+    List,
     Literal,
     Optional,
     Sequence,
@@ -53,8 +55,13 @@ from typing_extensions import ParamSpec
 
 import gradio
 from gradio.context import get_blocks_context
-from gradio.data_classes import BlocksConfigDict, FileData
-from gradio.exceptions import Error
+from gradio.data_classes import (
+    BlocksConfigDict,
+    DeveloperPath,
+    FileData,
+    UserProvidedPath,
+)
+from gradio.exceptions import Error, InvalidPathError
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -1056,24 +1063,10 @@ def tex2svg(formula, *_args):
 
 
 def abspath(path: str | Path) -> Path:
-    """Returns absolute path of a str or Path path, but does not resolve symlinks."""
-    path = Path(path)
-
-    if path.is_absolute():
-        return path
-
-    # recursively check if there is a symlink within the path
-    is_symlink = path.is_symlink() or any(
-        parent.is_symlink() for parent in path.parents
-    )
-
-    if is_symlink or path == path.resolve():  # in case path couldn't be resolved
-        return Path.cwd() / path
-    else:
-        return path.resolve()
+    return Path(os.path.abspath(str(path)))
 
 
-def is_in_or_equal(path_1: str | Path, path_2: str | Path):
+def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
     """
     True if path_1 is a descendant (i.e. located within) path_2 or if the paths are the
     same, returns False otherwise.
@@ -1090,7 +1083,6 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
         return ".." not in str(relative_path)
     except ValueError:
         return False
-    return True
 
 
 @document()
@@ -1466,3 +1458,23 @@ class UnhashableKeyDict(MutableMapping):
 
     def as_list(self):
         return [v for _, v in self.data]
+
+
+def safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
+    """Safely path to a base directory to avoid escaping the base directory.
+    Borrowed from: werkzeug.security.safe_join"""
+    _os_alt_seps: List[str] = [
+        sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
+    ]
+
+    filename = posixpath.normpath(path)
+    fullpath = os.path.join(directory, filename)
+    if (
+        any(sep in filename for sep in _os_alt_seps)
+        or os.path.isabs(filename)
+        or filename == ".."
+        or filename.startswith("../")
+    ):
+        raise InvalidPathError()
+
+    return fullpath
