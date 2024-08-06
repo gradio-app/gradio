@@ -21,6 +21,7 @@ gradio/templates/frontend/cdn
 *.db
 *.sqlite3
 gradio/launches.json
+gradio/hash_seed.txt
 
 # Tests
 .coverage
