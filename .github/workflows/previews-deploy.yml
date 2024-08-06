@@ -92,7 +92,7 @@ jobs:
           export AWS_SECRET_ACCESS_KEY=${{ secrets.NPM_PREVIEWS_AWS_S3_SECRET_ACCESS_KEY }}
           export AWS_DEFAULT_REGION=us-east-1
           aws s3 cp ${{ steps.set_tarball_name.outputs.tarball_path }} s3://gradio-npm-previews/${{ needs.changes.outputs.sha }}/
-          echo "js_tarball_url=https://gradio-npm-previews.s3.amazonaws.com/${{ steps.set_tarball_name.outputs.tarball_name }}" >> $GITHUB_OUTPUT
+          echo "js_tarball_url=https://gradio-npm-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/${{ steps.set_tarball_name.outputs.tarball_name }}" >> $GITHUB_OUTPUT
 
       - name: Install Hub Client Library
         run: pip install huggingface-hub==0.23.2

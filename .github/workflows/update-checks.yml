@@ -36,6 +36,7 @@ jobs:
         with:
           path: output.json
   update-status:
+    environment: commit_status
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.should_run == 'false'
@@ -43,6 +44,8 @@ jobs:
       - name: set check name
         id: set_check_name
         run: echo "${{ toJson(github) }}"
+      - name: echo outputs
+        run: echo "${{ toJson(needs.changes.outputs) }}"
       # - name: update status
       #   uses: gradio-app/github/actions/set-commit-status@main
       #   with:
