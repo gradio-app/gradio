@@ -278,7 +278,7 @@
 	}
 
 	.content {
-		@apply fixed left-1/2 top-1/4 -translate-x-1/2 mx-auto w-screen max-w-3xl flex flex-col min-h-0 rounded-lg shadow-2xl bg-white z-40;
+		@apply fixed left-1/2 top-[7%] -translate-x-1/2 mx-auto w-[95vw] max-w-3xl flex flex-col min-h-0 rounded-lg shadow-2xl bg-white z-40;
 	}
 
 	.results {
