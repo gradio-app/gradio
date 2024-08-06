@@ -22,6 +22,7 @@ import time
 import traceback
 import typing
 import urllib.parse
+import uuid
 import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
@@ -51,6 +52,7 @@ import orjson
 from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 
+import gradio
 from gradio.context import get_blocks_context
 from gradio.data_classes import BlocksConfigDict, FileData
 from gradio.exceptions import Error
@@ -191,13 +193,13 @@ def _remove_no_reload_codeblocks(file_path: str):
     return code_removed
 
 
-def _find_module(source_file: Path) -> ModuleType:
+def _find_module(source_file: Path) -> ModuleType | None:
     for s, v in sys.modules.items():
         if s not in {"__main__", "__mp_main__"} and getattr(v, "__file__", None) == str(
             source_file
         ):
             return v
-    raise ValueError(f"Cannot find module for source file: {source_file}")
+    return None
 
 
 def watchfn(reloader: SourceFileReloader):
@@ -263,12 +265,13 @@ def watchfn(reloader: SourceFileReloader):
                     changed_in_copy = _remove_no_reload_codeblocks(str(changed))
                     if changed != reloader.demo_file:
                         changed_module = _find_module(changed)
-                        exec(changed_in_copy, changed_module.__dict__)
-                        top_level_parent = sys.modules[
-                            changed_module.__name__.split(".")[0]
-                        ]
-                        if top_level_parent != changed_module:
-                            importlib.reload(top_level_parent)
+                        if changed_module:
+                            exec(changed_in_copy, changed_module.__dict__)
+                            top_level_parent = sys.modules[
+                                changed_module.__name__.split(".")[0]
+                            ]
+                            if top_level_parent != changed_module:
+                                importlib.reload(top_level_parent)
 
                 changed_demo_file = _remove_no_reload_codeblocks(
                     str(reloader.demo_file)
@@ -432,6 +435,23 @@ def download_if_url(article: str) -> str:
         pass
 
     return article
+
+
+HASH_SEED_PATH = os.path.join(os.path.dirname(gradio.__file__), "hash_seed.txt")
+
+
+def get_hash_seed() -> str:
+    try:
+        if os.path.exists(HASH_SEED_PATH):
+            with open(HASH_SEED_PATH) as j:
+                return j.read().strip()
+        else:
+            with open(HASH_SEED_PATH, "w") as j:
+                seed = uuid.uuid4().hex
+                j.write(seed)
+                return seed
+    except Exception:
+        return uuid.uuid4().hex
 
 
 def get_default_args(func: Callable) -> list[Any]:
