@@ -33,6 +33,7 @@ class TestImage:
             "name": "image",
             "show_share_button": False,
             "show_download_button": True,
+            "show_fullscreen_button": True,
             "streaming": False,
             "show_label": True,
             "label": "Upload Your Image",
