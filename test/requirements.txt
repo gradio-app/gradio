@@ -20,7 +20,7 @@ appnope==0.1.4
     # via ipython
 asyncio==3.4.3
     # via -r requirements.in
-attrs==21.4.0
+attrs==23.1.0
     # via
     #   jsonschema
     #   pytest
