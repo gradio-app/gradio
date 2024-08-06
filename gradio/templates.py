@@ -454,6 +454,7 @@ class Microphone(components.Audio):
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
+        stream_every: float = 0.5,
     ):
         sources = ["microphone"]
         super().__init__(
@@ -483,6 +484,7 @@ class Microphone(components.Audio):
             max_length=max_length,
             waveform_options=waveform_options,
             loop=loop,
+            stream_every=stream_every,
         )
 
 
