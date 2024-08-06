@@ -553,7 +553,7 @@ class App(FastAPI):
             abs_path = utils.abspath(path_or_url)
 
             in_blocklist = any(
-                utils.is_in_or_equal(abs_path, blocked_path, prefer_false=True)
+                utils.is_in_or_equal(abs_path, blocked_path, prefer_true=True)
                 for blocked_path in blocks.blocked_paths
             )
 

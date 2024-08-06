@@ -106,6 +106,7 @@ huggingface-hub==0.21.4
     #   gradio-client
     #   tokenizers
     #   transformers
+hypothesis==6.108.9
 idna==3.3
     # via
     #   anyio
