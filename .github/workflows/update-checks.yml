@@ -40,15 +40,23 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
     steps:
-      - name: set check name
-        id: set_check_name
-        run: echo "${{ toJson(github) }}"
-      - name: echo outputs
-        run: echo "${{ toJson(needs.changes.outputs) }}"
-      # - name: update status
-      #   uses: gradio-app/github/actions/set-commit-status@main
-      #   with:
-      #     sha: ${{ needs.changes.outputs.sha }}
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     name: "storybook"
-      #     run_id: ${{ needs.changes.outputs.run_id }}
+      - name: set js check name
+        if: github.event.workflow_run.name == 'js'
+        run: echo "check_name=js-test" >> $GITHUB_ENV
+      - name: set python check name
+        if: github.event.workflow_run.name == 'python'
+        run: echo "CHECK_NAME=test-ubuntu-latest-not-flaky" >> $GITHUB_ENV
+      - name: set functional check name
+        if: github.event.workflow_run.name == 'functional'
+        run: echo "CHECK_NAME=functional-test" >> $GITHUB_ENV
+      - name: set hygiene check name
+        if: github.event.workflow_run.name == 'hygiene'
+        run: echo "CHECK_NAME=hygiene-test" >> $GITHUB_ENV
+
+      - name: update status
+        uses: gradio-app/github/actions/set-commit-status@main
+        with:
+          sha: ${{ needs.changes.outputs.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: $CHECK_NAME
+          run_id: ${{ needs.changes.outputs.run_id }}
