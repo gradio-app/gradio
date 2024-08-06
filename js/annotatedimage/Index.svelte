@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 
-	import { Block, BlockLabel, Empty } from "@gradio/atoms";
-	import { Image } from "@gradio/icons";
+	import { onMount } from "svelte";
+	import { Block, BlockLabel, Empty, IconButton } from "@gradio/atoms";
+	import { Image, Maximize, Minimize } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData } from "@gradio/client";
@@ -38,6 +39,24 @@
 	export let min_width: number | undefined = undefined;
 	let active: string | null = null;
 	export let loading_status: LoadingStatus;
+	export let show_fullscreen_button = true;
+
+	let is_full_screen = false;
+	let image_container: HTMLElement;
+
+	onMount(() => {
+		document.addEventListener("fullscreenchange", () => {
+			is_full_screen = !!document.fullscreenElement;
+		});
+	});
+
+	const toggle_full_screen = async (): Promise<void> => {
+		if (!is_full_screen) {
+			await image_container.requestFullscreen();
+		} else {
+			await document.exitFullscreen();
+		}
+	};
 
 	// `value` can be updated before the Promises from `resolve_wasm_src` are resolved.
 	// In such a case, the resolved values for the old `value` have to be discarded,
@@ -139,10 +158,28 @@
 		{#if _value == null}
 			<Empty size="large" unpadded_box={true}><Image /></Empty>
 		{:else}
-			<div class="image-container">
+			<div class="image-container" bind:this={image_container}>
+				<div class="icon-buttons">
+					{#if !is_full_screen && show_fullscreen_button}
+						<IconButton
+							Icon={Maximize}
+							label="View in full screen"
+							on:click={toggle_full_screen}
+						/>
+					{/if}
+
+					{#if is_full_screen}
+						<IconButton
+							Icon={Minimize}
+							label="Exit full screen"
+							on:click={toggle_full_screen}
+						/>
+					{/if}
+				</div>
+
 				<img
 					class="base-image"
-					class:fit-height={height}
+					class:fit-height={height && !is_full_screen}
 					src={_value ? _value.image.url : null}
 					alt="the base file that is annotated"
 				/>
@@ -150,6 +187,7 @@
 					<img
 						alt="segmentation mask identifying {label} within the uploaded file"
 						class="mask fit-height"
+						class:fit-height={!is_full_screen}
 						class:active={active == ann.label}
 						class:inactive={active != ann.label && active != null}
 						src={ann.image.url}
@@ -191,6 +229,7 @@
 		display: block;
 		width: 100%;
 		height: auto;
+		position: absolute;
 	}
 	.container {
 		display: flex;
@@ -210,7 +249,6 @@
 		overflow: hidden;
 	}
 	.fit-height {
-		position: absolute;
 		top: 0;
 		left: 0;
 		width: 100%;
@@ -220,6 +258,7 @@
 	.mask {
 		opacity: 0.85;
 		transition: all 0.2s ease-in-out;
+		position: absolute;
 	}
 	.image-container:hover .mask {
 		opacity: 0.3;
@@ -247,5 +286,14 @@
 		cursor: pointer;
 		border-radius: var(--radius-sm);
 		padding: var(--spacing-sm);
+	}
+
+	.icon-buttons {
+		display: flex;
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		gap: var(--size-1);
+		z-index: 1;
 	}
 </style>
