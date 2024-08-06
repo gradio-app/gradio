@@ -18,7 +18,6 @@ const base = defineConfig({
 	timeout: 30000,
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
-	workers: process.env.CI ? 1 : undefined,
 	retries: 3
 });
 
