@@ -53,7 +53,7 @@ jobs:
       space_url: ${{ steps.upload-demo.outputs.SPACE_URL }}
       js_tarball_url: ${{ steps.upload_js_tarball.outputs.js_tarball_url }}
     needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'true' }}
+    if: ${{ needs.changes.outputs.should_run == 'true'|| github.event.workflow_run.event == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     permissions:
       actions: read

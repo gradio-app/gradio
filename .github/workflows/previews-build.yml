@@ -32,7 +32,7 @@ jobs:
     name: "previews-build"
     runs-on: ubuntu-22.04
     needs: changes
-    if: needs.changes.outputs.should_run == 'true' || (github.ref_name == 'main' && github.repository == 'gradio-app/gradio')
+    if: needs.changes.outputs.should_run == 'true' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
