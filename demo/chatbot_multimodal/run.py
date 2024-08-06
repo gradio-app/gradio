@@ -1,7 +1,6 @@
 import gradio as gr
-from gradio import ChatMessage, FileData
 import plotly.express as px
-
+import os
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
 def random_plot():
@@ -32,8 +31,8 @@ with gr.Blocks(fill_height=True) as demo:
         bubble_full_width=False,
         scale=1,
         placeholder='<h1 style="font-weight: bold; color: #FF6B6B; text-align: center; font-size: 48px; font-family: Arial, sans-serif;">Welcome to Gradio!</h1>',
-        examples=[ChatMessage(role="user", content="Hello!"), ChatMessage(role="user", content=gr.FileData(path="files/avatar.png"))],
-    )
+        examples=[{"text": "Hello!", "file": {"path": "files/avatar.png"}, "icon": "⚡️"}, {"text": "Hello 123 123 123!", "file": {"path": "files/avatar.png"}}],
+    ) 
 
     chat_input = gr.MultimodalTextbox(interactive=True,
                                       file_count="multiple",

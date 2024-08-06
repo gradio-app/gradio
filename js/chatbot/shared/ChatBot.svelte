@@ -17,7 +17,7 @@
 
 	import { Clear } from "@gradio/icons";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { MessageRole, ComponentMessage, ComponentData } from "../types";
+	import type { MessageRole, ExampleMessage } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
@@ -93,7 +93,7 @@
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
 	export let msg_format: "tuples" | "messages" = "tuples";
-	export let examples: Message[] | null = null;
+	export let examples: ExampleMessage[] | null = null;
 
 	let target = document.querySelector("div.gradio-container");
 
@@ -263,13 +263,13 @@
 		return groupedMessages;
 	}
 
-	let examples_test = [
-        { text: "What's the weather like today?", icon: "🌤️" },
-        { text: "Tell me a joke.", icon: "😂" },
-        { text: "How can I improve my productivity?", icon: "📈" },
-        { text: "What's the capital of France?", icon: "🌍" },
-        { text: "Give me a random fact.", icon: "💡" }
-    ];
+	// let examples_test = [
+    //     { text: "What's the weather like today?", icon: "🌤️" },
+    //     { text: "Tell me a joke.", icon: "😂" },
+    //     { text: "How can I improve my productivity?", icon: "📈" },
+    //     { text: "What's the capital of France?", icon: "🌍" },
+    //     { text: "Give me a random fact.", icon: "💡" }
+    // ];
 </script>
 
 {#if show_share_button && value !== null && value.length > 0}
@@ -436,12 +436,23 @@
 				<Markdown message={placeholder} {latex_delimiters} />
 			</center>
 			<div class="examples">
-				{#each examples_test as example}
-					<div class="example">
-						<span class="example-icon">{example.icon}</span>
-						<span>{example.text}</span>
-					</div>
-				{/each}
+				{#if examples !== null}
+					{#each examples as example}
+						<div class="example">
+							<span class="example-text">{example.text}</span>
+							{console.log("!!!", example)}
+							{#if example.file !== null && typeof example.file === "object" && example.file.mime_type?.includes("image")}
+								<Image
+									class="example-image"
+									src={example.file.url}
+									alt="example-secondary"
+								/>
+							{:else}
+								<span class="example-file">{example.file}</span>
+							{/if}
+						</div>
+					{/each}
+				{/if}
 			</div>
 		{/if}
 	</div>
@@ -457,6 +468,7 @@
     }
     .example {
         display: flex;
+		flex-direction: column;
         align-items: center;
         margin: 5px;
         padding: 10px 15px;
@@ -469,7 +481,7 @@
     .example:hover {
         background-color: #444;
     }
-    .example-icon {
+    .example-primary {
         margin-right: 10px;
     }
 

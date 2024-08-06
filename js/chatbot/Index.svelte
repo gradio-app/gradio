@@ -13,8 +13,8 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type {
 		Message,
+		ExampleMessage,
 		TupleFormat,
-		MessageRole,
 		NormalisedMessage
 	} from "./types";
 
@@ -65,7 +65,7 @@
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 	export let placeholder: string | null = null;
-	export let examples: Message[] | null = null;
+	export let examples: ExampleMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 </script>
 
