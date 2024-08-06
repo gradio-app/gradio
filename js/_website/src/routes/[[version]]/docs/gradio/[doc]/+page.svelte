@@ -4,8 +4,6 @@
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 	import { onNavigate } from "$app/navigation";
-	import type { list } from "postcss";
-
 
 	export let data: any = {};
 
