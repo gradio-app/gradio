@@ -55,7 +55,7 @@ jobs:
         with:
           sha: ${{ needs.changes.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: "storybook"
+          name: "UI Tests"
           run_id: ${{ needs.changes.outputs.run_id }}
   deploy:
     environment: storybook
