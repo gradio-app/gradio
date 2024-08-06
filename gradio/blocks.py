@@ -2432,11 +2432,11 @@ Received outputs:
         else:
             self.share = share
 
-        if enable_monitoring == True:
+        if enable_monitoring:
             print(
                 f"Monitoring URL: {self.local_url}monitoring/{self.app.analytics_key}"
             )
-        self.enable_monitoring = enable_monitoring != False
+        self.enable_monitoring = enable_monitoring in [True, None]
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
