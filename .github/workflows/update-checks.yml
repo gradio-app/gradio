@@ -58,5 +58,5 @@ jobs:
         with:
           sha: ${{ needs.changes.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: $CHECK_NAME
+          name: ${{ env.CHECK_NAME }}
           run_id: ${{ needs.changes.outputs.run_id }}
