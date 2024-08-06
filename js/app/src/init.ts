@@ -29,6 +29,7 @@ export function create_components(): {
 	update_value: (updates: UpdateTransaction[]) => void;
 	get_data: (id: number) => any | Promise<any>;
 	close_stream: (id: number) => void;
+	set_time_limit: (id: number, time_limit: number) => void;
 	loading_status: ReturnType<typeof create_loading_status_store>;
 	scheduled_updates: Writable<boolean>;
 	create_layout: (args: {
@@ -338,12 +339,20 @@ export function create_components(): {
 		}
 	}
 
+	function set_time_limit(id: number, time_limit: number): void {
+		const comp = _component_map.get(id);
+		if (comp && comp.instance.set_time_limit) {
+			comp.instance.set_time_limit(time_limit);
+		}
+	}
+
 	return {
 		layout: layout_store,
 		targets: target_map,
 		update_value,
 		get_data,
 		close_stream,
+		set_time_limit,
 		loading_status,
 		scheduled_updates: update_scheduled_store,
 		create_layout: (...args) =>

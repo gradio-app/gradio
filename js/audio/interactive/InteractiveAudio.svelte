@@ -4,6 +4,7 @@
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
+	import { StreamingBar } from "@gradio/statustracker";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
@@ -37,11 +38,16 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let stream_frequency: number;
+	export let stream_every: number;
+
+	let time_limit: number | null = null;
 
 	export const close_stream: () => void = () => {
 		stream_active = false;
-		stop();
+		time_limit = null;
+	};
+	export const set_time_limit = (time: number): void => {
+		time_limit = time;
 	};
 
 	let stream_active = false;
@@ -164,9 +170,7 @@
 			pending_stream.push(payload);
 		} else {
 			let blobParts = [header].concat(pending_stream, [payload]);
-			if (stream_active) {
-				dispatch_blob(blobParts, "stream");
-			}
+			dispatch_blob(blobParts, "stream");
 			pending_stream = [];
 		}
 	}
@@ -187,7 +191,7 @@
 		stream_active = true;
 		header = undefined;
 		if (streaming) {
-			recorder.start((1 / stream_frequency) * 1000);
+			recorder.start(stream_every * 1000);
 		}
 	}
 
@@ -206,6 +210,7 @@
 
 	function stop(): void {
 		recording = false;
+		stream_active = false;
 
 		if (streaming) {
 			dispatch("close_stream");
@@ -228,6 +233,7 @@
 	label={label || i18n("audio.audio")}
 />
 <div class="audio-container">
+	<StreamingBar {time_limit} />
 	{#if value === null || streaming}
 		{#if active_source === "microphone"}
 			<ModifyUpload {i18n} on:clear={clear} absolute={true} />

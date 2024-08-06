@@ -59,12 +59,6 @@ class GradioVersionIncompatibleError(Exception):
     pass
 
 
-class StreamingTimeoutError(Exception):
-    """Raised when a streaming block times out"""
-
-    pass
-
-
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
 

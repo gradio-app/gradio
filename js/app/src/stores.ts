@@ -98,8 +98,7 @@ export function create_loading_status_store(): LoadingStatusStore {
 				eta: eta,
 				status: new_status,
 				message: message,
-				progress: progress,
-				time_limit
+				progress: progress
 			};
 		});
 
@@ -128,8 +127,7 @@ export function create_loading_status_store(): LoadingStatusStore {
 					eta,
 					status,
 					message,
-					progress,
-					time_limit
+					progress
 				}) => {
 					outputs[id] = {
 						queue: queue,
@@ -139,8 +137,7 @@ export function create_loading_status_store(): LoadingStatusStore {
 						message: message,
 						progress,
 						status,
-						fn_index,
-						time_limit: time_limit
+						fn_index
 					};
 				}
 			);

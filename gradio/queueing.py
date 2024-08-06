@@ -63,7 +63,6 @@ class Event:
         self.n_calls = 0
         self.run_time: float = 0
         self.signal = asyncio.Event()
-        self.closed_by_client = False
 
     @property
     def streaming(self):
@@ -612,7 +611,6 @@ class Queue:
                 err = None
                 for event in awake_events:
                     event.run_time += end - start
-                    event.n_calls += 1
                     if event.streaming:
                         response["is_generating"] = not event.is_finished
 
@@ -662,14 +660,6 @@ class Queue:
                                 * len(awake_events),
                             )
                             for closed_event in closed_events:
-                                print("closed event", closed_event.closed_by_client)
-                                if not closed_event.closed_by_client:
-                                    self.log_message(
-                                        closed_event._id,
-                                        "Time limit reached!",
-                                        "info",
-                                        duration=10,
-                                    )
                                 self.send_message(
                                     closed_event,
                                     ProcessCompletedMessage(
@@ -695,16 +685,8 @@ class Queue:
                         end = time.monotonic()
                         for event in awake_events:
                             event.run_time += end - start
-                            event.n_calls += 1
                             if event.streaming:
                                 response["is_generating"] = not event.is_finished
-                                if event.is_finished and not event.closed_by_client:
-                                    self.log_message(
-                                        event._id,
-                                        "Time limit reached!",
-                                        "info",
-                                        duration=10,
-                                    )
                     except BaseException as e:
                         traceback.print_exc()
                         response = None
