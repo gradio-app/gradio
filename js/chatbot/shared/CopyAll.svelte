@@ -41,36 +41,38 @@
 
 <button
 	on:click={handle_copy}
-	class="action"
-	title="copy"
+	title="Copy conversation"
+	class={copied ? "copied" : "copy-text"}
 	aria-label={copied ? "Copied conversation" : "Copy conversation"}
 >
-	{#if !copied}
-		<Copy />
-	{/if}
 	{#if copied}
 		<Check />
+	{:else}
+		<Copy />
 	{/if}
 </button>
 
 <style>
 	button {
-		position: relative;
-		top: 0;
-		right: 0;
-		cursor: pointer;
-		color: var(--body-text-color-subdued);
+		display: flex;
+		position: absolute;
+		top: var(--block-label-margin);
+		right: var(--block-label-margin);
+		align-items: center;
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--border-color-primary);
+		border-top: none;
+		border-right: none;
+		border-radius: var(--block-label-right-radius);
+		background: var(--block-label-background-fill);
+		padding: var(--spacing-sm);
+		width: var(--size-6);
+		height: var(--size-6);
+		overflow: hidden;
+		color: var(--block-label-text-color);
 	}
 
 	button:hover {
 		color: var(--body-text-color);
-	}
-
-	.action {
-		position: absolute;
-		right: var(--size-2);
-		top: var(--size-2);
-		width: var(--size-4);
-		height: var(--size-4);
 	}
 </style>
