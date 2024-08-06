@@ -75,4 +75,4 @@ jobs:
       - name: trigger spaces deploy workflow
         env:
           GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
-        run: gh workflow run deploy-spaces.yml
+        run: gh workflow run previews-build.yml
