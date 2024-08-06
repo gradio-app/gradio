@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   test:
-    name: "test"
+    name: "hygiene-test"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
