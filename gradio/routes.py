@@ -18,7 +18,6 @@ import inspect
 import json
 import mimetypes
 import os
-import posixpath
 import secrets
 import time
 import traceback
@@ -35,6 +34,7 @@ from typing import (
     Optional,
     Type,
     Union,
+    cast,
 )
 
 import fastapi
@@ -73,10 +73,13 @@ from gradio.data_classes import (
     ComponentServerBlobBody,
     ComponentServerJSONBody,
     DataWithFiles,
+    DeveloperPath,
     PredictBody,
     ResetBody,
     SimplePredictBody,
+    UserProvidedPath,
 )
+from gradio.exceptions import InvalidPathError
 from gradio.oauth import attach_oauth
 from gradio.route_utils import (  # noqa: F401
     CustomCORSMiddleware,
@@ -109,9 +112,18 @@ if TYPE_CHECKING:
 
 mimetypes.init()
 
-STATIC_TEMPLATE_LIB = files("gradio").joinpath("templates").as_posix()  # type: ignore
-STATIC_PATH_LIB = files("gradio").joinpath("templates", "frontend", "static").as_posix()  # type: ignore
-BUILD_PATH_LIB = files("gradio").joinpath("templates", "frontend", "assets").as_posix()  # type: ignore
+STATIC_TEMPLATE_LIB = cast(
+    DeveloperPath,
+    files("gradio").joinpath("templates").as_posix(),  # type: ignore
+)
+STATIC_PATH_LIB = cast(
+    DeveloperPath,
+    files("gradio").joinpath("templates", "frontend", "static").as_posix(),  # type: ignore
+)
+BUILD_PATH_LIB = cast(
+    DeveloperPath,
+    files("gradio").joinpath("templates", "frontend", "assets").as_posix(),  # type: ignore
+)
 VERSION = get_package_version()
 
 
@@ -446,7 +458,7 @@ class App(FastAPI):
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
-            static_file = safe_join(STATIC_PATH_LIB, path)
+            static_file = routes_safe_join(STATIC_PATH_LIB, UserProvidedPath(path))
             return FileResponse(static_file)
 
         @app.get("/custom_component/{id}/{type}/{file_name}")
@@ -458,7 +470,6 @@ class App(FastAPI):
             location = next(
                 (item for item in components if item["component_class_id"] == id), None
             )
-
             if location is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
@@ -470,9 +481,14 @@ class App(FastAPI):
             if module_path is None or component_instance is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
-            path = safe_join(
-                str(Path(module_path).parent),
-                f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
+            requested_path = utils.safe_join(
+                component_instance.__class__.TEMPLATE_DIR,
+                UserProvidedPath(f"{type}/{file_name}"),
+            )
+
+            path = routes_safe_join(
+                DeveloperPath(str(Path(module_path).parent)),
+                UserProvidedPath(requested_path),
             )
 
             key = f"{id}-{type}-{file_name}"
@@ -494,7 +510,7 @@ class App(FastAPI):
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
-            build_file = safe_join(BUILD_PATH_LIB, path)
+            build_file = routes_safe_join(BUILD_PATH_LIB, UserProvidedPath(path))
             return FileResponse(build_file)
 
         @app.get("/favicon.ico")
@@ -543,7 +559,7 @@ class App(FastAPI):
 
             is_dir = abs_path.is_dir()
 
-            if in_blocklist or is_dir:
+            if is_dir or in_blocklist:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             created_by_app = False
@@ -1142,7 +1158,14 @@ class App(FastAPI):
                     name = f"tmp{secrets.token_hex(5)}"
                 directory = Path(app.uploaded_file_dir) / temp_file.sha.hexdigest()
                 directory.mkdir(exist_ok=True, parents=True)
-                dest = (directory / name).resolve()
+                try:
+                    dest = utils.safe_join(
+                        DeveloperPath(str(directory)), UserProvidedPath(name)
+                    )
+                except InvalidPathError as err:
+                    raise HTTPException(
+                        status_code=400, detail=f"Invalid file name: {name}"
+                    ) from err
                 temp_file.file.close()
                 # we need to move the temp file to the cache directory
                 # but that's possibly blocking and we're in an async function
@@ -1153,9 +1176,9 @@ class App(FastAPI):
                     os.rename(temp_file.file.name, dest)
                 except OSError:
                     files_to_copy.append(temp_file.file.name)
-                    locations.append(str(dest))
+                    locations.append(dest)
                 output_files.append(dest)
-                blocks.upload_file_set.add(str(dest))
+                blocks.upload_file_set.add(dest)
             if files_to_copy:
                 bg_tasks.add_task(
                     move_uploaded_files_to_cache, files_to_copy, locations
@@ -1218,32 +1241,22 @@ class App(FastAPI):
 ########
 
 
-def safe_join(directory: str, path: str) -> str:
-    """Safely path to a base directory to avoid escaping the base directory.
-    Borrowed from: werkzeug.security.safe_join"""
-    _os_alt_seps: List[str] = [
-        sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
-    ]
-
+def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
+    """Safely join the user path to the directory while performing some additional http-related checks,
+    e.g. ensuring that the full path exists on the local file system and is not a directory"""
     if path == "":
-        raise HTTPException(400)
+        raise fastapi.HTTPException(400)
     if route_utils.starts_with_protocol(path):
-        raise HTTPException(403)
-    filename = posixpath.normpath(path)
-    fullpath = os.path.join(directory, filename)
-    if (
-        any(sep in filename for sep in _os_alt_seps)
-        or os.path.isabs(filename)
-        or filename == ".."
-        or filename.startswith("../")
-        or os.path.isdir(fullpath)
-    ):
-        raise HTTPException(403)
-
-    if not os.path.exists(fullpath):
-        raise HTTPException(404, "File not found")
-
-    return fullpath
+        raise fastapi.HTTPException(403)
+    try:
+        fullpath = Path(utils.safe_join(directory, path))
+    except InvalidPathError as e:
+        raise fastapi.HTTPException(403) from e
+    if fullpath.is_dir():
+        raise fastapi.HTTPException(403)
+    if not fullpath.exists():
+        raise fastapi.HTTPException(404)
+    return str(fullpath)
 
 
 def get_types(cls_set: List[Type]):

@@ -5,6 +5,7 @@ import os
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
+from pathlib import Path
 from typing import Dict
 from unittest.mock import patch
 
@@ -1335,3 +1336,45 @@ def test_docs_url():
             assert r.status_code == 200
     finally:
         demo.close()
+
+
+def test_file_access():
+    with gr.Blocks() as demo:
+        gr.Markdown("Test")
+
+    allowed_dir = (Path(tempfile.gettempdir()) / "test_file_access_dir").resolve()
+    allowed_dir.mkdir(parents=True, exist_ok=True)
+    allowed_file = Path(allowed_dir / "allowed.txt")
+    allowed_file.touch()
+
+    not_allowed_file = Path(tempfile.gettempdir()) / "not_allowed.txt"
+    not_allowed_file.touch()
+
+    app, _, _ = demo.launch(
+        prevent_thread_lock=True,
+        blocked_paths=["test/test_files"],
+        allowed_paths=[str(allowed_dir)],
+    )
+    test_client = TestClient(app)
+    try:
+        with test_client:
+            r = test_client.get(f"/file={allowed_dir}/allowed.txt")
+            assert r.status_code == 200
+            r = test_client.get(f"/file={allowed_dir}/../not_allowed.txt")
+            assert r.status_code == 403
+            r = test_client.get("/file=//test/test_files/cheetah1.jpg")
+            assert r.status_code == 403
+            r = test_client.get("/file=test/test_files/cheetah1.jpg")
+            assert r.status_code == 403
+            r = test_client.get("/file=//test/test_files/cheetah1.jpg")
+            assert r.status_code == 403
+            tmp = Path(tempfile.gettempdir()) / "upload_test.txt"
+            tmp.write_text("Hello")
+            with open(str(tmp), "rb") as f:
+                files = {"files": ("..", f)}
+                response = test_client.post("/upload", files=files)
+                assert response.status_code == 400
+    finally:
+        demo.close()
+        not_allowed_file.unlink()
+        allowed_file.unlink()

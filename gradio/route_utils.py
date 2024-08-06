@@ -42,7 +42,10 @@ from starlette.responses import PlainTextResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from gradio import processing_utils, utils
-from gradio.data_classes import BlocksConfigDict, PredictBody
+from gradio.data_classes import (
+    BlocksConfigDict,
+    PredictBody,
+)
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.state_holder import SessionState

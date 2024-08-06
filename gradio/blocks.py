@@ -56,7 +56,13 @@ from gradio.context import (
     get_render_context,
     set_render_context,
 )
-from gradio.data_classes import BlocksConfigDict, FileData, GradioModel, GradioRootModel
+from gradio.data_classes import (
+    BlocksConfigDict,
+    DeveloperPath,
+    FileData,
+    GradioModel,
+    GradioRootModel,
+)
 from gradio.events import (
     EventData,
     EventListener,
@@ -409,7 +415,7 @@ class BlockContext(Block):
             render=render,
         )
 
-    TEMPLATE_DIR = "./templates/"
+    TEMPLATE_DIR = DeveloperPath("./templates/")
     FRONTEND_DIR = "../../frontend/"
 
     @property
