@@ -1,4 +1,4 @@
-name: "functional"
+name: "functional-lite"
 
 on:
   pull_request:
@@ -29,7 +29,7 @@ jobs:
           filter: "functional"
           token: ${{ secrets.GITHUB_TOKEN }}
   test:
-    name: "functional-test"
+    name: "functional-test-lite"
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
@@ -40,35 +40,15 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
-      - name: install outbreak_forecast dependencies
-        run: |
-          . venv/bin/activate
-          python -m pip install -r demo/outbreak_forecast/requirements.txt
-          python -m pip install -r demo/gradio_pdf_demo/requirements.txt
+          build_lite: true
+          skip_build: true
       - run: pnpm exec playwright install chromium firefox
-      - name: run browser tests
+      - name: Run Lite E2E tests
         run: |
           . venv/bin/activate
-          CI=1 pnpm test:browser
-      - name: upload screenshots
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-screenshots
-          path: |
-            ./test-results
-      - name: run browser component tests
+          pnpm --filter @gradio/app test:browser:lite
+      - name: Get the performance result
         run: |
-          . venv/bin/activate
-          pnpm run test:ct
-      - name: run reload mode test
-        run: |
-          . venv/bin/activate
-          pnpm test:browser:reload
-      - name: upload reload mode screenshots
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: reload-mode-playwright-screenshots
-          path: |
-            ./test-results
+          export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)
+          echo "LITE_APP_LOAD_TIME=$LITE_APP_LOAD_TIME" >> $GITHUB_ENV
+          cat .lite-perf.json  # For debugging
