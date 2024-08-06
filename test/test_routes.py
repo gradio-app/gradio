@@ -5,6 +5,7 @@ import os
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
+from pathlib import Path
 from typing import Dict
 from unittest.mock import patch
 
@@ -1340,9 +1341,6 @@ def test_docs_url():
 def test_file_access():
     with gr.Blocks() as demo:
         gr.Markdown("Test")
-
-    import tempfile
-    from pathlib import Path
 
     allowed_dir = (Path(tempfile.gettempdir()) / "test_file_access_dir").resolve()
     allowed_dir.mkdir(parents=True, exist_ok=True)

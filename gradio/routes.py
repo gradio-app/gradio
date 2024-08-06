@@ -1168,7 +1168,7 @@ class App(FastAPI):
                     ) from err
                 temp_file.file.close()
                 # we need to move the temp file to the cache directory
-                # but that's possibl y blocking and we're in an async function
+                # but that's possibly blocking and we're in an async function
                 # so we try to rename (this is what shutil.move tries first)
                 # which should be super fast.
                 # if that fails, we move in the background.
@@ -1242,7 +1242,8 @@ class App(FastAPI):
 
 
 def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
-    """Safely join the user path to the directory while performing some additional http-related checks."""
+    """Safely join the user path to the directory while performing some additional http-related checks,
+    e.g. ensuring that the full path exists on the local file system and is not a directory"""
     if path == "":
         raise fastapi.HTTPException(400)
     if route_utils.starts_with_protocol(path):

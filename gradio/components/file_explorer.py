@@ -6,7 +6,7 @@ import fnmatch
 import os
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence, cast
+from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence
 
 from gradio_client.documentation import document
 
@@ -86,7 +86,7 @@ class FileExplorer(Component):
             )
             root_dir = root
             self._constructor_args[0]["root_dir"] = root
-        self.root_dir = cast(DeveloperPath, os.path.abspath(root_dir))
+        self.root_dir = DeveloperPath(os.path.abspath(root_dir))
         self.glob = glob
         self.ignore_glob = ignore_glob
         valid_file_count = ["single", "multiple"]
@@ -206,6 +206,5 @@ class FileExplorer(Component):
     def _safe_join(self, folders: list[str]):
         if not folders or len(folders) == 0:
             return self.root_dir
-        head, tail = folders[0], folders[1:]
-        combined_path = UserProvidedPath(os.path.join(head, *tail))
+        combined_path = UserProvidedPath(os.path.join(*folders))
         return safe_join(self.root_dir, combined_path)

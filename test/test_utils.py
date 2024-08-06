@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 from typing_extensions import Literal
 
@@ -396,12 +396,12 @@ def my_check(path_1, path_2):
         return False
 
 
+@settings(derandomize=os.getenv("CI") is not None)
 @given(
     path_1=create_path_string(),
     path_2=create_path_string(),
 )
 def test_is_in_or_equal_fuzzer(path_1, path_2):
-    print(path_1, path_2)
     try:
         # Convert to absolute paths
         abs_path_1 = abspath(path_1)

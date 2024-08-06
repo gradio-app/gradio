@@ -1083,7 +1083,6 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
         return ".." not in str(relative_path)
     except ValueError:
         return False
-    return False
 
 
 @document()
