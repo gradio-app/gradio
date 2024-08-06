@@ -45,7 +45,7 @@ jobs:
       message: website~pending~null
   deploy:
     environment: deploy_website
-    name: "deploy"
+    name: "website-deploy"
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
