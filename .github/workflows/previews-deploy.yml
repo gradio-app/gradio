@@ -121,18 +121,11 @@ jobs:
           --WHEEL_URL https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/ \
           --CLIENT_URL "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python" \
           --GRADIO_VERSION ${{ needs.changes.outputs.gradio_version }}
-      - name: log
-        run: |
-          echo ${{github.event.workflow_run.event }}
-          echo ${{ github.event.workflow_run.conclusion }}
-      - name: log context
-        run: |
-          echo ${{ toJson(github) }}
 
   comment-spaces-success:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: needs.deploy.result == 'success'
+    if: needs.changes.outputs.should_run == 'true' && needs.deploy.result == 'success'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
@@ -156,7 +149,7 @@ jobs:
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: always() && needs.deploy.result == 'failure'
+    if: always() && needs.deploy.result == 'failure' && needs.changes.outputs.should_run == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
