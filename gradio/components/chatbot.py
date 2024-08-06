@@ -172,7 +172,7 @@ class Chatbot(Component):
         likeable: bool = False,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
-        show_copy_all_button = False,
+        show_copy_all_button=False,
     ):
         """
         Parameters:
