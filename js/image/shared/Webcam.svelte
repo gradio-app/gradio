@@ -2,6 +2,7 @@
 	import { createEventDispatcher, onMount } from "svelte";
 	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { StreamingBar } from "@gradio/statustracker";
 	import { type FileData, type Client, prepare_files } from "@gradio/client";
 	import WebcamPermissions from "./WebcamPermissions.svelte";
 	import { fade } from "svelte/transition";
@@ -16,16 +17,21 @@
 	let selected_device: MediaDeviceInfo | null = null;
 	let interval_id = 0;
 	let stop_button: HTMLButtonElement;
+	let time_limit: number | null = null;
 
 	export const close_stream: () => void = () => {
-		if (stop_button) stop_button.click();
+		time_limit = null;
+	};
+
+	export const set_time_limit = (time: number): void => {
+		time_limit = time;
 	};
 
 	let canvas: HTMLCanvasElement;
 	export let streaming = false;
 	export let pending = false;
 	export let root = "";
-	export let stream_frequency = 1;
+	export let stream_every = 1;
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
@@ -201,14 +207,11 @@
 	}
 
 	if (streaming && mode === "image") {
-		interval_id = window.setInterval(
-			() => {
-				if (video_source && !pending) {
-					take_picture();
-				}
-			},
-			(1 / stream_frequency) * 1000
-		);
+		interval_id = window.setInterval(() => {
+			if (video_source && !pending) {
+				take_picture();
+			}
+		}, stream_every * 1000);
 	}
 
 	let options_open = false;
@@ -240,6 +243,7 @@
 	}
 </script>
 
+<StreamingBar {time_limit} />
 <div class="wrap">
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->

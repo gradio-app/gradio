@@ -52,6 +52,7 @@
 		update_value,
 		get_data,
 		close_stream,
+		set_time_limit,
 		loading_status,
 		scheduled_updates,
 		create_layout,
@@ -372,6 +373,11 @@
 
 			function handle_status_update(message: StatusMessage): void {
 				const { fn_index, ...status } = message;
+				if (status.stage === "streaming" && status.time_limit) {
+					dep.inputs.forEach((id) => {
+						set_time_limit(id, status.time_limit);
+					});
+				}
 				//@ts-ignore
 				loading_status.update({
 					...status,

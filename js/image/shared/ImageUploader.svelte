@@ -28,9 +28,10 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let stream_frequency: number;
+	export let stream_every: number;
 
 	export let close_stream: () => void;
+	export let set_time_limit: (arg0: number) => void;
 
 	let upload_input: Upload;
 	let uploading = false;
@@ -142,13 +143,14 @@
 				on:upload={(e) => handle_save(e.detail)}
 				on:close_stream
 				{mirror_webcam}
-				{stream_frequency}
+				{stream_every}
 				{streaming}
 				mode="image"
 				include_audio={false}
 				{i18n}
 				{upload}
 				bind:close_stream
+				bind:set_time_limit
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
