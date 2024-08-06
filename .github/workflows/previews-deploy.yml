@@ -1,7 +1,6 @@
 name: "previews-deploy"
 
 on:
-  workflow_dispatch:
   workflow_run:
     workflows: ["previews-build"]
     types:
@@ -114,8 +113,10 @@ jobs:
           ${{ secrets.SPACES_DEPLOY_TOKEN }} \
           --gradio-version ${{ needs.changes.outputs.gradio_version }} > url.txt
           echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
+      - name: echo context
+        run: echo "${{ toJson(github) }}"
       - name: Upload Website Demos
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event.workflow_run.event == 'workflow_dispatch'
         id: upload-website-demos
         run: |
           python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \

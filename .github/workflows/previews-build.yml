@@ -2,10 +2,6 @@ name: "previews-build"
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
-      - 5.0-dev
 
 env:
   CI: true
