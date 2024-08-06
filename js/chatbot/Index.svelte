@@ -65,6 +65,7 @@
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 	export let placeholder: string | null = null;
+	export let examples: Message[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 </script>
 
@@ -121,6 +122,7 @@
 			{line_breaks}
 			{layout}
 			{placeholder}
+			{examples}
 			upload={gradio.client.upload}
 			_fetch={gradio.client.fetch}
 			load_component={gradio.load_component}

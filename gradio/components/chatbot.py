@@ -172,6 +172,7 @@ class Chatbot(Component):
         likeable: bool = False,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
+        examples: list[ChatMessage | FileMessage | ComponentMessage] | None = None,
     ):
         """
         Parameters:
@@ -202,6 +203,7 @@ class Chatbot(Component):
             likeable: Whether the chat messages display a like or dislike button. Set automatically by the .like method but has to be present in the signature for it to show up in the config.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
+            examples: A list of example messages to display in the chatbot (Max 4 examples). Each message should be a dictionary with a 'content' key. The 'content' key's value supports everything the 'tuples' format supports.
         """
         self.likeable = likeable
         if type not in ["messages", "tuples"]:
@@ -251,6 +253,8 @@ class Chatbot(Component):
                 self.serve_static_file(avatar_images[1]),
             ]
         self.placeholder = placeholder
+        self.examples = examples
+        print("Self.examples: ", self.examples)
 
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
