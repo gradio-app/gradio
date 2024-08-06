@@ -56,7 +56,7 @@ runs:
         source_repo: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
         source_branch: ${{ github.event.pull_request.head.ref || github.ref }}
         pr_number: ${{ github.event.pull_request.number || 'false'}}
-        should_run: ${{ github.event.pull_request.number && 'true' || 'false'}}
+        should_run: ${{ steps.changes.outputs.match }}
         labels: "[${{ join(github.event.pull_request.labels.*.name, ', ') }}]"
         run_id: ${{ github.run_id }}
         gradio_version: ${{ steps.gradio_version.outputs.gradio_version }}
