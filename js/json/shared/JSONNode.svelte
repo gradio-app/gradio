@@ -51,6 +51,7 @@
 					"aria-roledescription",
 					`Line number ${index + 1}`
 				);
+				line_number?.setAttribute("title", `Line number ${index + 1}`);
 			}
 		});
 	}
