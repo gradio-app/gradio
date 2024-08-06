@@ -48,18 +48,18 @@ jobs:
   update-status:
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'false' || github.repository == 'gradio-app/gradio' || contains(needs.changes.outputs.labels, 'no-visual-update') }}
+    if: ${{ needs.changes.outputs.should_run == 'false' || contains(needs.changes.outputs.labels, 'no-visual-update') }}
     steps:
       - name: update status
         uses: gradio-app/github/actions/set-commit-status@main
         with:
           sha: ${{ needs.changes.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: "storybook"
+          name: "UI Tests"
           run_id: ${{ needs.changes.outputs.run_id }}
   deploy:
     environment: storybook
-    name: "deploy"
+    name: "storybook-deploy"
     needs: changes
     if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
     runs-on: ubuntu-latest

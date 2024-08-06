@@ -1,11 +1,8 @@
 name: "previews-build"
 
 on:
+  workflow_dispatch:
   pull_request:
-  push:
-    branches:
-      - main
-      - 5.0-dev
 
 env:
   CI: true
@@ -31,11 +28,11 @@ jobs:
         with:
           filter: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
-  test:
-    name: test
+  build:
+    name: "previews-build"
     runs-on: ubuntu-22.04
     needs: changes
-    if: needs.changes.outputs.should_run == 'true'
+    if: needs.changes.outputs.should_run == 'true' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
@@ -72,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: all_demos
-          path: demo/all_demos
+          path: demo
       - name: Create JS client tarball
         id: create_js_tarball
         continue-on-error: true

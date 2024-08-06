@@ -1,7 +1,6 @@
 name: "previews-deploy"
 
 on:
-  workflow_dispatch:
   workflow_run:
     workflows: ["previews-build"]
     types:
@@ -48,12 +47,13 @@ jobs:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: spaces~pending~null
   deploy:
+    name: "previews-deploy"
     environment: deploy_spaces
     outputs:
       space_url: ${{ steps.upload-demo.outputs.SPACE_URL }}
       js_tarball_url: ${{ steps.upload_js_tarball.outputs.js_tarball_url }}
     needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'true' }}
+    if: ${{ needs.changes.outputs.should_run == 'true'|| github.event.workflow_run.event == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -92,7 +92,7 @@ jobs:
           export AWS_SECRET_ACCESS_KEY=${{ secrets.NPM_PREVIEWS_AWS_S3_SECRET_ACCESS_KEY }}
           export AWS_DEFAULT_REGION=us-east-1
           aws s3 cp ${{ steps.set_tarball_name.outputs.tarball_path }} s3://gradio-npm-previews/${{ needs.changes.outputs.sha }}/
-          echo "js_tarball_url=https://gradio-npm-previews.s3.amazonaws.com/${{ steps.set_tarball_name.outputs.tarball_name }}" >> $GITHUB_OUTPUT
+          echo "js_tarball_url=https://gradio-npm-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/${{ steps.set_tarball_name.outputs.tarball_name }}" >> $GITHUB_OUTPUT
 
       - name: Install Hub Client Library
         run: pip install huggingface-hub==0.23.2
@@ -103,7 +103,7 @@ jobs:
           curl https://raw.githubusercontent.com/gradio-app/gradio/main/scripts/upload_demo_to_space.py -o scripts/upload_demo_to_space.py
           curl https://raw.githubusercontent.com/gradio-app/gradio/main/scripts/upload_website_demos.py -o scripts/upload_website_demos.py
       - name: make dirs
-        run: mkdir -p demo/all_demos && mv all_demos/* demo/all_demos/
+        run: mkdir -p demo && mv all_demos/* demo/
       - name: Upload demo to spaces
         if: github.event.workflow_run.event == 'pull_request'
         id: upload-demo
@@ -114,25 +114,18 @@ jobs:
           --gradio-version ${{ needs.changes.outputs.gradio_version }} > url.txt
           echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
       - name: Upload Website Demos
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event.workflow_run.event == 'workflow_dispatch'
         id: upload-website-demos
         run: |
           python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \
           --WHEEL_URL https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/ \
           --CLIENT_URL "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python" \
           --GRADIO_VERSION ${{ needs.changes.outputs.gradio_version }}
-      - name: log
-        run: |
-          echo ${{github.event.workflow_run.event }}
-          echo ${{ github.event.workflow_run.conclusion }}
-      - name: log context
-        run: |
-          echo ${{ toJson(github) }}
 
   comment-spaces-success:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: needs.deploy.result == 'success'
+    if: needs.changes.outputs.should_run == 'true' && needs.deploy.result == 'success'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
@@ -156,7 +149,7 @@ jobs:
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: always() && needs.deploy.result == 'failure'
+    if: always() && needs.deploy.result == 'failure' && needs.changes.outputs.should_run == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
