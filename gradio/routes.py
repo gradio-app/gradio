@@ -553,13 +553,13 @@ class App(FastAPI):
             abs_path = utils.abspath(path_or_url)
 
             in_blocklist = any(
-                utils.is_in_or_equal(abs_path, blocked_path, prefer_true=True)
+                utils.is_in_or_equal(abs_path, blocked_path)
                 for blocked_path in blocks.blocked_paths
             )
 
             is_dir = abs_path.is_dir()
 
-            if in_blocklist or is_dir:
+            if is_dir or in_blocklist:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             created_by_app = False
@@ -1247,7 +1247,10 @@ def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
         raise fastapi.HTTPException(400)
     if route_utils.starts_with_protocol(path):
         raise fastapi.HTTPException(403)
-    fullpath = Path(utils.safe_join(directory, path))
+    try:
+        fullpath = Path(utils.safe_join(directory, path))
+    except InvalidPathError as e:
+        raise fastapi.HTTPException(403) from e
     if fullpath.is_dir():
         raise fastapi.HTTPException(403)
     if not fullpath.exists():

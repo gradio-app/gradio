@@ -406,7 +406,7 @@ def test_is_in_or_equal_fuzzer(path_1, path_2):
         # Convert to absolute paths
         abs_path_1 = abspath(path_1)
         abs_path_2 = abspath(path_2)
-        result = is_in_or_equal(abs_path_1, abs_path_2, prefer_true=False)
+        result = is_in_or_equal(abs_path_1, abs_path_2)
         assert result == my_check(abs_path_1, abs_path_2)
 
     except Exception as e:
@@ -415,23 +415,23 @@ def test_is_in_or_equal_fuzzer(path_1, path_2):
 
 # Additional test for known edge cases
 @pytest.mark.parametrize(
-    "path_1,path_2,prefer_true,expected",
+    "path_1,path_2,expected",
     [
-        ("/AAA/a/../a", "/AAA", False, True),
-        ("//AA/a", "/tmp", True, True),
-        ("/AAA/..", "/AAA", False, False),
-        ("/a/b/c", "/d/e/f", False, False),
-        (".", "..", False, True),
-        ("..", ".", False, False),
-        ("/a/b/./c", "/a/b", False, True),
-        ("/a/b/../c", "/a", False, True),
-        ("/a/b/c", "/a/b/c/../d", False, False),
-        ("/", "/a", False, False),
-        ("/a", "/", False, True),
+        ("/AAA/a/../a", "/AAA", True),
+        ("//AA/a", "/tmp", False),
+        ("/AAA/..", "/AAA", False),
+        ("/a/b/c", "/d/e/f", False),
+        (".", "..", True),
+        ("..", ".", False),
+        ("/a/b/./c", "/a/b", True),
+        ("/a/b/../c", "/a", True),
+        ("/a/b/c", "/a/b/c/../d", False),
+        ("/", "/a", False),
+        ("/a", "/", True),
     ],
 )
-def test_is_in_or_equal_edge_cases(path_1, path_2, prefer_true, expected):
-    assert is_in_or_equal(path_1, path_2, prefer_true) == expected
+def test_is_in_or_equal_edge_cases(path_1, path_2, expected):
+    assert is_in_or_equal(path_1, path_2) == expected
 
 
 @pytest.mark.parametrize(

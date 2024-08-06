@@ -1066,7 +1066,7 @@ def abspath(path: str | Path) -> Path:
     return Path(os.path.abspath(str(path)))
 
 
-def is_in_or_equal(path_1: str | Path, path_2: str | Path, prefer_true=False) -> bool:
+def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
     """
     True if path_1 is a descendant (i.e. located within) path_2 or if the paths are the
     same, returns False otherwise.
@@ -1082,8 +1082,8 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path, prefer_true=False) ->
         relative_path = path_1.parent.relative_to(path_2)
         return ".." not in str(relative_path)
     except ValueError:
-        return prefer_true
-    return prefer_true
+        return False
+    return False
 
 
 @document()
