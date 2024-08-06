@@ -22,6 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
     steps:
       - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
@@ -29,13 +32,16 @@ jobs:
         with:
           filter: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
-  test:
-    name: test
+  build:
+    name: :storybook-build
     runs-on: ubuntu-22.04
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changes.outputs.source_branch }}
+          repository: ${{ needs.changes.outputs.source_repo }}
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:

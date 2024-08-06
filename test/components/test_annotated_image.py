@@ -59,6 +59,7 @@ class TestAnnotatedImage:
             "proxy_url": None,
             "_selectable": False,
             "key": None,
+            "show_fullscreen_button": True,
         }
 
     def test_in_interface(self):

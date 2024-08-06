@@ -28,25 +28,27 @@
 	import { afterNavigate } from "$app/navigation";
 
 	afterNavigate(() => {
-		for (const node of document.querySelectorAll(".codeblock")) {
-			let children = Array.from(node.querySelectorAll("pre, a"));
-			let textContent = node.textContent;
-			node.innerHTML = "";
+		if (window.innerWidth > 768) {
+			for (const node of document.querySelectorAll(".codeblock")) {
+				let children = Array.from(node.querySelectorAll("pre, a"));
+				let textContent = node.textContent;
+				node.innerHTML = "";
 
-			new CopyButton({
-				target: node,
-				props: {
-					content: textContent ?? ""
+				new CopyButton({
+					target: node,
+					props: {
+						content: textContent ?? ""
+					}
+				});
+				for (const child of children) {
+					node.appendChild(child);
 				}
-			});
-			for (const child of children) {
-				node.appendChild(child);
 			}
+			const script = document.createElement("script");
+			script.src = "https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js";
+			script.type = "module";
+			document.head.appendChild(script);
 		}
-		const script = document.createElement("script");
-		script.src = "https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js";
-		script.type = "module";
-		document.head.appendChild(script);
 	});
 </script>
 
@@ -77,12 +79,3 @@
 <slot />
 
 <Footer />
-
-<style>
-	:global(
-			body:has(.playground) .main-header,
-			body:has(.playground) .main-footer
-		) {
-		display: none;
-	}
-</style>

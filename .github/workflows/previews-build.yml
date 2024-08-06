@@ -31,8 +31,8 @@ jobs:
         with:
           filter: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
-  test:
-    name: test
+  build:
+    name: "previews-build"
     runs-on: ubuntu-22.04
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
@@ -71,7 +71,7 @@ jobs:
       - name: upload demos
         uses: actions/upload-artifact@v4
         with:
-          name: demo
+          name: all_demos
           path: demo/all_demos
       - name: Create JS client tarball
         id: create_js_tarball

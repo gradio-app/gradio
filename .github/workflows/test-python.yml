@@ -33,7 +33,7 @@ jobs:
           filter: "gradio"
           token: ${{ secrets.GITHUB_TOKEN }}
   test:
-    name: "test-python-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
+    name: "test-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
     strategy:

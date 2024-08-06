@@ -1,9 +1,14 @@
 <script lang="ts">
+	// @ts-nocheck
 	import DemosLite from "../../lib/components/DemosLite.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 	import { browser } from "$app/environment";
 	import { gradio_logo } from "$lib/assets";
+	import { afterNavigate } from "$app/navigation";
+	import { clickOutside } from "$lib/components/clickOutside.js";
+	import Code from "@gradio/code";
+	import version_json from "$lib/json/version.json";
 
 	export let data: {
 		demos_by_category: {
@@ -32,6 +37,29 @@
 	let show_nav = true;
 
 	$: show_nav;
+
+	let show_mobile_nav = false;
+
+	$: show_mobile_nav;
+
+	let show_preview = false;
+
+	let on_desktop = false;
+	afterNavigate(() => {
+		if (window.innerWidth > 768) {
+			on_desktop = true;
+		}
+	});
+
+	const mobile_click = (demo_name: string) => {
+		current_selection = demo_name;
+		show_mobile_nav = false;
+	};
+
+	let dummy_elem: any = { classList: { contains: () => false } };
+	let dummy_gradio: any = { dispatch: (_) => {} };
+
+	let version = version_json.version;
 </script>
 
 <MetaTags
@@ -46,10 +74,16 @@
 		type="module"
 		src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"
 	></script>
+	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
+	<script
+		id="gradio-js-script"
+		type="module"
+		src="https://gradio.s3-us-west-2.amazonaws.com/{version}/gradio.js"
+	></script>
 </svelte:head>
 
-<!-- 4.0 Launch BANNER  -->
-<div class="flex-row">
+<!-- Header on Desktop -->
+<div class="flex-row hidden md:flex">
 	<div class="flex flex-row relative items-center px-1 py-1 pr-6 text-lg gap-8">
 		<div class="flex">
 			<a href="/">
@@ -71,57 +105,293 @@
 	</div>
 </div>
 
-<main class="playground flex flex-col justify-between">
-	<div class="container mx-auto px-4 gap-4">
-		<p class="mt-4 mb-8 text-lg text-gray-600 md:hidden">
-			Playground renders best on desktop.
-		</p>
-	</div>
-
-	<div class="w-full border border-gray-200 shadow-xl h-full relative">
-		<div
-			class="w-[200px] h-full rounded-tr-none rounded-bl-xl overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
-			style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; width: {show_nav
-				? 200
-				: 37}px;"
-		>
-			<div class="flex justify-between align-middle h-8 border-b px-2">
+<!-- Desktop -->
+{#if on_desktop}
+	<main class="playground flex-col justify-between hidden md:flex">
+		<div class="w-full border border-gray-200 shadow-xl h-full relative">
+			<div
+				class="w-[200px] h-full rounded-tr-none rounded-bl-xl overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
+				style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; width: {show_nav
+					? 200
+					: 37}px;"
+			>
+				<div class="flex justify-between align-middle h-8 border-b px-2">
+					{#if show_nav}
+						<h3 class="pl-2 pt-1">Demos</h3>
+					{/if}
+					<button
+						on:click={() => (show_nav = !show_nav)}
+						class="float-right text-gray-600 pl-1"
+						>{#if show_nav}&larr;{:else}&rarr;{/if}</button
+					>
+				</div>
 				{#if show_nav}
-					<h3 class="pl-2 pt-1">Demos</h3>
-				{/if}
-				<button
-					on:click={() => (show_nav = !show_nav)}
-					class="float-right text-gray-600 pl-1"
-					>{#if show_nav}&larr;{:else}&rarr;{/if}</button
-				>
-			</div>
-			{#if show_nav}
-				<button
-					on:click={() => (current_selection = "Blank")}
-					class:current-playground-demo={current_selection == "Blank"}
-					class:shared-link={shared == "Blank"}
-					class="thin-link font-light px-4 mt-2 block">Blank</button
-				>
-				{#each data.demos_by_category as { category, demos } (category)}
-					<p class="px-4 my-2">{category}</p>
-					{#each demos as demo, i}
-						<button
-							on:click={() => (current_selection = demo.name)}
-							class:current-playground-demo={current_selection == demo.name}
-							class:shared-link={shared == demo.name}
-							class="thin-link font-light px-4 block">{demo.name}</button
-						>
+					<button
+						on:click={() => (current_selection = "Blank")}
+						class:current-playground-demo={current_selection == "Blank"}
+						class:shared-link={shared == "Blank"}
+						class="thin-link font-light px-4 mt-2 block">Blank</button
+					>
+					{#each data.demos_by_category as { category, demos } (category)}
+						<p class="px-4 my-2">{category}</p>
+						{#each demos as demo, i}
+							<button
+								on:click={() => (current_selection = demo.name)}
+								class:current-playground-demo={current_selection == demo.name}
+								class:shared-link={shared == demo.name}
+								class="thin-link font-light px-4 block">{demo.name}</button
+							>
+						{/each}
 					{/each}
+				{/if}
+			</div>
+
+			<DemosLite demos={all_demos} {current_selection} {show_nav} />
+		</div>
+	</main>
+{:else}
+	<!-- Mobile -->
+	<main class="playground flex-col justify-between flex md:hidden">
+		<div
+			class:hidden={!show_mobile_nav}
+			class="fixed inset-0 bg-black/20 backdrop-blur-md lg:hidden z-50"
+		></div>
+		<div
+			use:clickOutside
+			on:click_outside={() => (show_mobile_nav = false)}
+			class:hidden={!show_mobile_nav}
+			class="max-w-max min-w-[75%] navigation mobile-nav shadow overflow-y-auto fixed backdrop-blur-lg z-50 bg-white pr-6 pl-4 py-4 -ml-4 h-full inset-0 lg:inset-auto lg:shadow-none lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block lg:rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12 lg:min-w-0"
+			id="mobile-nav"
+		>
+			<button
+				on:click={() => (show_mobile_nav = false)}
+				type="button"
+				class="absolute z-10 top-4 right-4 w-2/12 h-4 flex items-center justify-center text-grey-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 p-4 lg:hidden"
+				tabindex="0"
+				data-svelte-h="svelte-1askwj0"
+			>
+				<svg viewBox="0 0 10 10" class="overflow-visible" style="width: 10px"
+					><path
+						d="M0 0L10 10M10 0L0 10"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+					></path></svg
+				>
+			</button>
+
+			{#each data.demos_by_category as { category, demos } (category)}
+				<p class="font-semibold px-4 my-2 block">{category}</p>
+				{#each demos as demo, i}
+					<button
+						on:click={() => mobile_click(demo.name)}
+						class:current-playground-demo={current_selection == demo.name}
+						class:shared-link={shared == demo.name}
+						class="thin-link font-light px-4 block">{demo.name}</button
+					>
 				{/each}
-			{/if}
+			{/each}
 		</div>
 
-		<DemosLite demos={all_demos} {current_selection} {show_nav} />
-	</div>
-</main>
+		{#each data.demos_by_category as { category, demos } (category)}
+			{#each demos as demo, i}
+				<div
+					class:hidden={current_selection !== demo.name}
+					class="flex items-center p-4 border-t border-slate-900/10 lg:hidden dark:border-slate-50/[0.06]"
+				>
+					<button
+						on:click={() => (show_mobile_nav = !show_mobile_nav)}
+						type="button"
+						class="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
+					>
+						<svg width="24" height="24"
+							><path
+								d="M5 6h14M5 12h14M5 18h14"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+							></path></svg
+						>
+					</button>
+					{#if category}
+						<ol class="ml-4 flex text-sm leading-6 whitespace-nowrap min-w-0">
+							<li class="flex items-center">
+								{category}
+								<svg
+									width="3"
+									height="6"
+									aria-hidden="true"
+									class="mx-3 overflow-visible text-slate-400"
+									><path
+										d="M0 0L3 3L0 6"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.5"
+										stroke-linecap="round"
+									></path></svg
+								>
+							</li>
+							<li
+								class="font-semibold text-slate-900 truncate dark:text-slate-200"
+							>
+								{demo.name}
+							</li>
+						</ol>
+					{/if}
+				</div>
+				<div
+					class:hidden={current_selection !== demo.name}
+					class="mobile-window w-[95%] mx-auto relative border rounded-xl border-gray-200 shadow md:hidden"
+				>
+					{#if !show_preview}
+						<Code
+							bind:value={demos[i].code}
+							label=""
+							language="python"
+							target={dummy_elem}
+							gradio={dummy_gradio}
+							lines={10}
+							interactive="false"
+						/>
+					{:else}
+						<gradio-app space={"gradio/" + demo.dir} />
+					{/if}
+				</div>
+			{/each}
+		{/each}
+		<div class="mx-auto mt-4 flex flex-row items-center gap-4">
+			<span
+				class:text-gray-500={show_preview}
+				class:text-gray-600={!show_preview}
+				class:font-semibold={!show_preview}
+				class="text-lg">Code</span
+			>
+			<label class="switch">
+				<input
+					on:click={() => (show_preview = !show_preview)}
+					type="checkbox"
+					class=""
+				/>
+				<span class="slider round"></span>
+			</label>
+			<span
+				class:text-gray-500={!show_preview}
+				class:text-gray-600={show_preview}
+				class:font-semibold={show_preview}
+				class="text-lg">Preview</span
+			>
+		</div>
+		<p class="mt-4 mx-auto text-lg text-gray-600 text-center md:hidden">
+			To edit code and see live changes, use Playground on a desktop.
+		</p>
+	</main>
+{/if}
 
 <style>
 	.code {
 		white-space: pre-wrap;
+	}
+	:global(body) {
+		min-height: 100vh;
+		display: grid;
+		grid-template-rows: auto 1fr auto;
+	}
+
+	.switch {
+		position: relative;
+		width: 60px;
+		height: 34px;
+	}
+
+	.switch input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.slider {
+		position: absolute;
+		cursor: pointer;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #ccc;
+		-webkit-transition: 0.4s;
+		transition: 0.4s;
+	}
+
+	.slider:before {
+		position: absolute;
+		content: "";
+		height: 26px;
+		width: 26px;
+		left: 4px;
+		bottom: 4px;
+		background-color: white;
+		-webkit-transition: 0.4s;
+		transition: 0.4s;
+	}
+
+	input:checked + .slider {
+		background-color: #fc963c;
+	}
+
+	input:focus + .slider {
+		box-shadow: 0 0 1px #fc963c;
+	}
+
+	input:checked + .code-btn {
+		color: #fc963c !important;
+	}
+	input:focus + .code-btn {
+		color: #fc963c !important;
+	}
+
+	input:checked + .slider:before {
+		-webkit-transform: translateX(26px);
+		-ms-transform: translateX(26px);
+		transform: translateX(26px);
+	}
+
+	.slider.round {
+		border-radius: 34px;
+	}
+
+	.slider.round:before {
+		border-radius: 50%;
+	}
+
+	.code-mobile .block {
+		height: 100%;
+	}
+
+	.mobile-window {
+		height: 58vh;
+		overflow-y: scroll;
+	}
+
+	:global(.mobile-window .embed-container .main) {
+		margin: 0 !important;
+		overflow: scroll;
+	}
+	:global(.mobile-window gradio-app) {
+		height: 100%;
+		display: flex;
+	}
+	:global(.mobile-window .gradio-container) {
+		width: 100%;
+		margin: 0px !important;
+	}
+
+	:global(.mobile-window .block .wrap) {
+		display: grid;
+	}
+
+	:global(.mobile-window .block) {
+		height: 100%;
+		overflow: hidden !important;
 	}
 </style>
