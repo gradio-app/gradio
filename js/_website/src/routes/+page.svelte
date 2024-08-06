@@ -53,9 +53,11 @@
 					Gradio is the fastest way to demo your machine learning model with a
 					friendly web interface so that anyone can use it, anywhere!
 				</p>
-				<div class="flex space-x-4 justify-center lg:justify-start">
+				<div
+					class="flex flex-col md:flex-row space-x-4 justify-center lg:justify-start"
+				>
 					<a
-						class="rounded-full bg-gradient-to-br from-orange-500 via-orange-500 to-yellow-500 px-6 py-3 text-lg font-semibold text-white hover:to-yellow-400 hover:drop-shadow-md md:text-xl"
+						class="mx-auto w-fit mb-5 md:m-0 rounded-full bg-gradient-to-br from-orange-500 via-orange-500 to-yellow-500 px-6 py-3 text-lg font-semibold text-white hover:to-yellow-400 hover:drop-shadow-md md:text-xl"
 						href="/guides/quickstart">Get Started</a
 					>
 					<div class="flex items-center justify-center">
