@@ -22,6 +22,7 @@ import time
 import traceback
 import typing
 import urllib.parse
+import uuid
 import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
@@ -51,6 +52,7 @@ import orjson
 from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 
+import gradio
 from gradio.context import get_blocks_context
 from gradio.data_classes import BlocksConfigDict, FileData
 from gradio.exceptions import Error
@@ -433,6 +435,23 @@ def download_if_url(article: str) -> str:
         pass
 
     return article
+
+
+HASH_SEED_PATH = os.path.join(os.path.dirname(gradio.__file__), "hash_seed.txt")
+
+
+def get_hash_seed() -> str:
+    try:
+        if os.path.exists(HASH_SEED_PATH):
+            with open(HASH_SEED_PATH) as j:
+                return j.read().strip()
+        else:
+            with open(HASH_SEED_PATH, "w") as j:
+                seed = uuid.uuid4().hex
+                j.write(seed)
+                return seed
+    except Exception:
+        return uuid.uuid4().hex
 
 
 def get_default_args(func: Callable) -> list[Any]:
