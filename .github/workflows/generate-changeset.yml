@@ -41,9 +41,9 @@ jobs:
     environment: comment_pr
 
     permissions: write-all
-    name: static checks
+    name: version
     needs: get-pr
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: needs.get-pr.outputs.found_pr == 'true'
     outputs:
       skipped: ${{ steps.version.outputs.skipped }}
