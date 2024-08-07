@@ -60,8 +60,8 @@
 		if (!node) return;
 		if (Hls.isSupported() && !stream_active) {
 			const hls = new Hls({
-				maxBufferLength: 1, // 0.5 seconds (500 ms)
-				maxMaxBufferLength: 1, // Maximum max buffer length in seconds
+				maxBufferLength: 10,
+				maxMaxBufferLength: 20,
 				lowLatencyMode: true // Enable low latency mode
 			});
 			hls.loadSource(src);

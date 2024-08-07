@@ -149,8 +149,8 @@
 		if (Hls.isSupported() && !stream_active) {
 			// Set config to start playback after 1 second of data received
 			const hls = new Hls({
-				maxBufferLength: 1,
-				maxMaxBufferLength: 1,
+				maxBufferLength: 10,
+				maxMaxBufferLength: 20,
 				lowLatencyMode: true
 			});
 			hls.loadSource(value.url);
