@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document
 
@@ -29,7 +29,7 @@ class Radio(FormComponent):
         | None = None,
         *,
         value: str | int | float | Callable | None = None,
-        type: str = "value",
+        type: Literal["value", "index"] = "value",
         label: str | None = None,
         info: str | None = None,
         every: Timer | float | None = None,

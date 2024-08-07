@@ -14,6 +14,7 @@ import json
 import json.decoder
 import os
 import pkgutil
+import posixpath
 import re
 import sys
 import tempfile
@@ -38,6 +39,7 @@ from typing import (
     Generic,
     Iterable,
     Iterator,
+    List,
     Literal,
     Optional,
     Sequence,
@@ -53,8 +55,13 @@ from typing_extensions import ParamSpec
 
 import gradio
 from gradio.context import get_blocks_context
-from gradio.data_classes import BlocksConfigDict, FileData
-from gradio.exceptions import Error
+from gradio.data_classes import (
+    BlocksConfigDict,
+    DeveloperPath,
+    FileData,
+    UserProvidedPath,
+)
+from gradio.exceptions import Error, InvalidPathError
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -195,13 +202,13 @@ def _remove_no_reload_codeblocks(file_path: str):
     return code_removed
 
 
-def _find_module(source_file: Path) -> ModuleType:
+def _find_module(source_file: Path) -> ModuleType | None:
     for s, v in sys.modules.items():
         if s not in {"__main__", "__mp_main__"} and getattr(v, "__file__", None) == str(
             source_file
         ):
             return v
-    raise ValueError(f"Cannot find module for source file: {source_file}")
+    return None
 
 
 def watchfn(reloader: SourceFileReloader):
@@ -267,12 +274,13 @@ def watchfn(reloader: SourceFileReloader):
                     changed_in_copy = _remove_no_reload_codeblocks(str(changed))
                     if changed != reloader.demo_file:
                         changed_module = _find_module(changed)
-                        exec(changed_in_copy, changed_module.__dict__)
-                        top_level_parent = sys.modules[
-                            changed_module.__name__.split(".")[0]
-                        ]
-                        if top_level_parent != changed_module:
-                            importlib.reload(top_level_parent)
+                        if changed_module:
+                            exec(changed_in_copy, changed_module.__dict__)
+                            top_level_parent = sys.modules[
+                                changed_module.__name__.split(".")[0]
+                            ]
+                            if top_level_parent != changed_module:
+                                importlib.reload(top_level_parent)
 
                 changed_demo_file = _remove_no_reload_codeblocks(
                     str(reloader.demo_file)
@@ -915,12 +923,20 @@ def get_type_hints(fn):
         for name, param in sig.parameters.items():
             if param.annotation is inspect.Parameter.empty:
                 continue
-            if param.annotation == "gr.OAuthProfile | None":
+            if param.annotation in ["gr.OAuthProfile | None", "None | gr.OAuthProfile"]:
                 # Special case: we want to inject the OAuthProfile value even on Python 3.9
                 type_hints[name] = Optional[OAuthProfile]
-            if param.annotation == "gr.OAuthToken | None":
+            if param.annotation == ["gr.OAuthToken | None", "None | gr.OAuthToken"]:
                 # Special case: we want to inject the OAuthToken value even on Python 3.9
                 type_hints[name] = Optional[OAuthToken]
+            if param.annotation in [
+                "gr.Request | None",
+                "Request | None",
+                "None | gr.Request",
+                "None | Request",
+            ]:
+                # Special case: we want to inject the Request value even on Python 3.9
+                type_hints[name] = Optional[Request]
             if "|" in str(param.annotation):
                 continue
             # To convert the string annotation to a class, we use the
@@ -945,7 +961,7 @@ def is_special_typed_parameter(name, parameter_types):
     hint = parameter_types.get(name)
     if not hint:
         return False
-    is_request = hint == Request
+    is_request = hint in (Request, Optional[Request])
     is_oauth_arg = hint in (
         OAuthProfile,
         Optional[OAuthProfile],
@@ -1055,24 +1071,10 @@ def tex2svg(formula, *_args):
 
 
 def abspath(path: str | Path) -> Path:
-    """Returns absolute path of a str or Path path, but does not resolve symlinks."""
-    path = Path(path)
-
-    if path.is_absolute():
-        return path
-
-    # recursively check if there is a symlink within the path
-    is_symlink = path.is_symlink() or any(
-        parent.is_symlink() for parent in path.parents
-    )
-
-    if is_symlink or path == path.resolve():  # in case path couldn't be resolved
-        return Path.cwd() / path
-    else:
-        return path.resolve()
+    return Path(os.path.abspath(str(path)))
 
 
-def is_in_or_equal(path_1: str | Path, path_2: str | Path):
+def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
     """
     True if path_1 is a descendant (i.e. located within) path_2 or if the paths are the
     same, returns False otherwise.
@@ -1089,7 +1091,6 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
         return ".." not in str(relative_path)
     except ValueError:
         return False
-    return True
 
 
 @document()
@@ -1150,7 +1151,7 @@ def _is_static_file(file_path: Any, static_files: list[Path]) -> bool:
     return any(is_in_or_equal(file_path, static_file) for static_file in static_files)
 
 
-HTML_TAG_RE = re.compile("<.*?>")
+HTML_TAG_RE = re.compile("<[^>]*?(?:\n[^>]*?)*>", re.DOTALL)
 
 
 def remove_html_tags(raw_html: str | None) -> str:
@@ -1465,3 +1466,23 @@ class UnhashableKeyDict(MutableMapping):
 
     def as_list(self):
         return [v for _, v in self.data]
+
+
+def safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
+    """Safely path to a base directory to avoid escaping the base directory.
+    Borrowed from: werkzeug.security.safe_join"""
+    _os_alt_seps: List[str] = [
+        sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
+    ]
+
+    filename = posixpath.normpath(path)
+    fullpath = os.path.join(directory, filename)
+    if (
+        any(sep in filename for sep in _os_alt_seps)
+        or os.path.isabs(filename)
+        or filename == ".."
+        or filename.startswith("../")
+    ):
+        raise InvalidPathError()
+
+    return fullpath

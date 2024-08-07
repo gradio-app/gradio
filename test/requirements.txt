@@ -20,7 +20,7 @@ appnope==0.1.4
     # via ipython
 asyncio==3.4.3
     # via -r requirements.in
-attrs==21.4.0
+attrs==23.1.0
     # via
     #   jsonschema
     #   pytest
@@ -106,6 +106,7 @@ huggingface-hub==0.21.4
     #   gradio-client
     #   tokenizers
     #   transformers
+hypothesis==6.108.9
 idna==3.3
     # via
     #   anyio

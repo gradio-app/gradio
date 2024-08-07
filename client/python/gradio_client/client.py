@@ -1365,7 +1365,7 @@ class Endpoint:
         if self.client.output_dir is not None:
             os.makedirs(self.client.output_dir, exist_ok=True)
 
-        sha1 = hashlib.sha1()
+        sha = hashlib.sha256()
         temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
         temp_dir.mkdir(exist_ok=True, parents=True)
 
@@ -1380,11 +1380,11 @@ class Endpoint:
         ) as response:
             response.raise_for_status()
             with open(temp_dir / Path(url_path).name, "wb") as f:
-                for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
-                    sha1.update(chunk)
+                for chunk in response.iter_bytes(chunk_size=128 * sha.block_size):
+                    sha.update(chunk)
                     f.write(chunk)
 
-        directory = Path(self.client.output_dir) / sha1.hexdigest()
+        directory = Path(self.client.output_dir) / sha.hexdigest()
         directory.mkdir(exist_ok=True, parents=True)
         dest = directory / Path(url_path).name
         shutil.move(temp_dir / Path(url_path).name, dest)

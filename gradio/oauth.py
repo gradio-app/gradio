@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import time
 import typing
 import urllib.parse
 import warnings
@@ -296,7 +297,7 @@ def _get_mocked_oauth_info() -> typing.Dict:
         "expires_in": 3600,
         "id_token": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
         "scope": "openid profile",
-        "expires_at": 1691676444,
+        "expires_at": int(time.time()) + 8 * 60 * 60,  # 8 hours
         "userinfo": {
             "sub": "11111111111111111111111",
             "name": user["fullname"],

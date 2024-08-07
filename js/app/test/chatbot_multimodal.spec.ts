@@ -34,6 +34,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("upload-button").click();
 		const fileChooser = await fileChooserPromise;
 		await fileChooser.setFiles("./test/files/cheetah1.jpg");
+		await expect(page.locator(".thumbnail-item")).toBeVisible();
 		await page.getByTestId("textbox").click();
 		await page.keyboard.press("Enter");
 
@@ -70,6 +71,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("upload-button").click();
 		const fileChooser = await fileChooserPromise;
 		await fileChooser.setFiles("../../test/test_files/audio_sample.wav");
+		await expect(page.locator(".thumbnail-item")).toBeVisible();
 		await page.getByTestId("textbox").click();
 		await page.keyboard.press("Enter");
 
@@ -95,6 +97,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("upload-button").click();
 		const fileChooser = await fileChooserPromise;
 		await fileChooser.setFiles("../../test/test_files/video_sample.mp4");
+		await expect(page.locator(".thumbnail-item")).toBeVisible();
 		await page.getByTestId("textbox").click();
 		await page.keyboard.press("Enter");
 
@@ -236,8 +239,11 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("textbox").click();
 		await page.getByTestId("textbox").fill("hello");
 		await page.keyboard.press("Enter");
-		await page.getByLabel("like", { exact: true }).click();
-		await page.getByLabel("dislike", { exact: true }).click();
+		await expect(
+			page.getByTestId("bot").first().getByRole("paragraph")
+		).toBeVisible();
+		await page.getByLabel("like", { exact: true }).first().click();
+		await page.getByLabel("dislike", { exact: true }).first().click();
 
 		expect(await page.getByLabel("clicked dislike").count()).toEqual(1);
 		expect(await page.getByLabel("clicked like").count()).toEqual(0);
@@ -257,10 +263,7 @@ for (const msg_format of ["tuples", "messages"]) {
 			"./test/files/cheetah1.jpg",
 			"./test/files/cheetah1.jpg"
 		]);
-		expect
-			.poll(async () => await page.locator("thumbnail-image").count(), {
-				timeout: 5000
-			})
-			.toEqual(2);
+
+		await expect(page.locator(".thumbnail-image")).toHaveCount(2);
 	});
 }
