@@ -15,8 +15,13 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
   HF_TOKEN: ${{ vars.HF_TOKEN }}
 
+permissions: {}
+
 jobs:
   changes:
+    permissions:
+      contents: read
+      pull-requests: read
     name: "changes"
     runs-on: ubuntu-latest
     outputs:
@@ -33,6 +38,8 @@ jobs:
           filter: "gradio"
           token: ${{ secrets.GITHUB_TOKEN }}
   test:
+    permissions:
+      contents: read
     name: "test-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
