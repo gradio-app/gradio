@@ -107,9 +107,11 @@ class Dataset(Component):
                     # use the previous name to be backwards-compatible with previously-created
                     # custom components
                     ex = component.as_example(ex)
-                self.samples[-1].append(processing_utils.move_files_to_cache(
-                    ex, component, keep_in_cache=True
-                ))
+                self.samples[-1].append(
+                    processing_utils.move_files_to_cache(
+                        ex, component, keep_in_cache=True
+                    )
+                )
         self.type = type
         self.label = label
         if headers is not None:
