@@ -14,6 +14,7 @@ jobs:
   changes:
     name: "changes"
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
     permissions:
       actions: read
     outputs:
@@ -48,20 +49,20 @@ jobs:
   update-status:
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'false' || contains(needs.changes.outputs.labels, 'no-visual-update') }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && (needs.changes.outputs.should_run == 'false' || contains(needs.changes.outputs.labels, 'no-visual-update')) }}
     steps:
       - name: update status
         uses: gradio-app/github/actions/set-commit-status@main
         with:
           sha: ${{ needs.changes.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: "storybook"
+          name: "UI Tests"
           run_id: ${{ needs.changes.outputs.run_id }}
   deploy:
     environment: storybook
     name: "storybook-deploy"
     needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
     runs-on: ubuntu-latest
     outputs:
       changes: ${{ steps.publish-chromatic.outputs.changeCount }}
@@ -103,14 +104,14 @@ jobs:
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
-      pr_number: ${{ needs.changes.outputs.pr_number }}
+      pr_number: ${{ github.event.workflow_run.conclusion == 'success' && needs.changes.outputs.pr_number }}
       message: |
         storybook~success~${{ needs.deploy.outputs.storybook_url }}
 
   comment-chromatic-fail:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: always() && needs.deploy.result == 'failure'
+    if: always() && github.event.workflow_run.conclusion == 'success' && needs.deploy.result == 'failure'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:

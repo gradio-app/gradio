@@ -2,12 +2,12 @@ name: "update-checks"
 
 on:
   workflow_run:
-    workflows: ["python", "js", "functional"]
+    workflows: ["python", "js", "functional", "functional-lite"]
     types:
       - completed
 
 concurrency:
-  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  group: "${{ github.event.workflow_run.id}}"
   cancel-in-progress: true
 
 jobs:
@@ -39,20 +39,20 @@ jobs:
     environment: commit_status
     runs-on: ubuntu-latest
     needs: changes
+    if: ${{ needs.changes.outputs.should_run == 'false'}}
     steps:
       - name: set js check name
         if: github.event.workflow_run.name == 'js'
-        run: echo "check_name=js-test" >> $GITHUB_ENV
+        run: echo "CHECK_NAME=js / js-test (pull_request)" >> $GITHUB_ENV
       - name: set python check name
         if: github.event.workflow_run.name == 'python'
         run: echo "CHECK_NAME=test-ubuntu-latest-not-flaky" >> $GITHUB_ENV
       - name: set functional check name
         if: github.event.workflow_run.name == 'functional'
-        run: echo "CHECK_NAME=functional-test" >> $GITHUB_ENV
-      - name: set hygiene check name
-        if: github.event.workflow_run.name == 'hygiene'
-        run: echo "CHECK_NAME=hygiene-test" >> $GITHUB_ENV
-
+        run: echo "CHECK_NAME=functional / functional-test (pull_request)" >> $GITHUB_ENV
+      - name: set functional-lite check name
+        if: github.event.workflow_run.name == 'functional-lite'
+        run: echo "CHECK_NAME=functional-lite / functional-test-lite (pull_request)" >> $GITHUB_ENV
       - name: update status
         uses: gradio-app/github/actions/set-commit-status@main
         with:
