@@ -67,6 +67,7 @@
 	export let placeholder: string | null = null;
 	export let examples: ExampleMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
+	console.log("Index exa: ", examples);
 </script>
 
 <Block

@@ -440,15 +440,14 @@
 					{#each examples as example}
 						<div class="example">
 							<span class="example-text">{example.text}</span>
-							{console.log("!!!", example)}
-							{#if example.file !== null && typeof example.file === "object" && example.file.mime_type?.includes("image")}
+							{#if example.file !== undefined && typeof example.file === "object" && example.file.mime_type?.includes("image")}
 								<Image
 									class="example-image"
 									src={example.file.url}
 									alt="example-secondary"
 								/>
-							{:else}
-								<span class="example-file">{example.file}</span>
+							{:else if example.file !== undefined}
+								<span class="example-file"><em>{example.file.orig_name}</em></span>
 							{/if}
 						</div>
 					{/each}
@@ -481,8 +480,14 @@
     .example:hover {
         background-color: #444;
     }
-    .example-primary {
+    .example-text {
         margin-right: 10px;
+    }
+	.example-image {
+        max-height: 100px;
+		max-width: 100px;
+		object-fit: cover;
+		border-radius: 50%;
     }
 
 	.placeholder-container {
