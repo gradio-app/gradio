@@ -31,8 +31,8 @@ with gr.Blocks(fill_height=True) as demo:
         bubble_full_width=False,
         scale=1,
         placeholder='<h1 style="font-weight: bold; color: #FF6B6B; text-align: center; font-size: 48px; font-family: Arial, sans-serif;">Welcome to Gradio!</h1>',
-        examples=[{"text": "Hello!", "file": {"path": "files/avatar.png"}, "icon": "⚡️"}, {"text": "Hello 123 123 123!", "file": {"path": "files/avatar.png"}}],
-    ) 
+        examples=[{"text": "Try this example with this audio.", "file": {"path": "files/cantina.wav"}}, {"text": "Try this example with this image.", "file": {"path": "files/avatar.png"}}, {"text": "This is just text, no files!"}],
+    )
 
     chat_input = gr.MultimodalTextbox(interactive=True,
                                       file_count="multiple",

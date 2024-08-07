@@ -32,7 +32,6 @@ export interface ComponentMessage extends Message {
 }
 
 export interface ExampleMessage {
-	icon?: string;
     text: string
     file?: FileData;
 }
