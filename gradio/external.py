@@ -482,7 +482,7 @@ def from_spaces_interface(
     config = external_utils.streamline_spaces_interface(config)
     api_url = f"{iframe_url}/api/predict/"
     headers = {"Content-Type": "application/json"}
-    if hf_token is not None:
+    if hf_token not in [False, None]:
         headers["Authorization"] = f"Bearer {hf_token}"
 
     # The function should call the API with preprocessed data
