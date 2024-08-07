@@ -32,10 +32,10 @@ jobs:
           filter: "website"
           token: ${{ secrets.GITHUB_TOKEN }}
   build:
-    name: build
+    name: "website-build"
     runs-on: ubuntu-22.04
     needs: changes
-    if: needs.changes.outputs.should_run == 'true'
+    if: needs.changes.outputs.should_run == 'true' || (github.ref_name == 'main' && github.repository == 'gradio-app/gradio')
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
@@ -43,7 +43,6 @@ jobs:
         with:
           always_install_pnpm: true
           skip_build: true
-        # unsafe - pr could have modified the build script
       - name: build client
         run: pnpm --filter @gradio/client build
 

@@ -1,7 +1,10 @@
 from pathlib import Path
 
+import pytest
+
 import gradio as gr
 from gradio.components.file_explorer import FileExplorerData
+from gradio.exceptions import InvalidPathError
 
 
 class TestFileExplorer:
@@ -61,3 +64,9 @@ class TestFileExplorer:
             {"name": "file2.txt", "type": "file", "valid": True},
         ]
         assert tree == answer
+
+    def test_file_explorer_prevents_path_traversal(self, tmpdir):
+        file_explorer = gr.FileExplorer(glob="*.txt", root_dir=Path(tmpdir))
+
+        with pytest.raises(InvalidPathError):
+            file_explorer.preprocess(FileExplorerData(root=[["../file.txt"]]))
