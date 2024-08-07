@@ -6,10 +6,6 @@ on:
     types:
       - completed
 
-concurrency:
-  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
-  cancel-in-progress: true
-
 permissions: {}
 
 jobs:
@@ -52,7 +48,7 @@ jobs:
     name: "website-deploy"
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.should_run == 'true' || github.event.workflow_run.event == 'push'
+    if: needs.changes.outputs.should_run == 'true' || (endsWith(needs.changes.outputs.source_branch, 'main') && github.repository == 'gradio-app/gradio')
     permissions:
       actions: read
     outputs:
@@ -77,21 +73,21 @@ jobs:
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website
 
       - name: Deploy Project Artifacts to Vercel
-        if: needs.changes.outputs.pr_number != 'true'
+        if: needs.changes.outputs.pr_number != 'false'
         id: output_url
         shell: bash
         run: echo "vercel_url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website)" >> $GITHUB_OUTPUT
 
         # production
       - name: Pull Vercel Environment Information
-        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'main'
+        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && endsWith(needs.changes.outputs.source_branch, 'main')
         shell: bash
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website
 
       - name: Deploy Project Artifacts to Vercel
-        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'main'
+        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && endsWith(needs.changes.outputs.source_branch, 'main')
         shell: bash
-        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_DEPLOY_TOKEN }})" --cwd js/_website >> $GITHUB_ENV
+        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website)" >> $GITHUB_ENV
 
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
