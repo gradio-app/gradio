@@ -262,14 +262,6 @@
 
 		return groupedMessages;
 	}
-
-	// let examples_test = [
-    //     { text: "What's the weather like today?", icon: "🌤️" },
-    //     { text: "Tell me a joke.", icon: "😂" },
-    //     { text: "How can I improve my productivity?", icon: "📈" },
-    //     { text: "What's the capital of France?", icon: "🌍" },
-    //     { text: "Give me a random fact.", icon: "💡" }
-    // ];
 </script>
 
 {#if show_share_button && value !== null && value.length > 0}
