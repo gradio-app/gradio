@@ -1,4 +1,5 @@
 import atexit
+import hashlib
 import os
 import platform
 import re
@@ -6,6 +7,7 @@ import stat
 import subprocess
 import sys
 import time
+import warnings
 from pathlib import Path
 from typing import List
 
@@ -21,6 +23,15 @@ if machine == "x86_64":
 BINARY_REMOTE_NAME = f"frpc_{platform.system().lower()}_{machine.lower()}"
 EXTENSION = ".exe" if os.name == "nt" else ""
 BINARY_URL = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_REMOTE_NAME}{EXTENSION}"
+
+CHECKSUMS = {
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_windows_amd64.exe": "cdd756e16622e0e60b697022d8da827a11fefe689325861c58c1003f2f8aa519",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_linux_amd64": "fb74b665633589410540c49dfcef5b6f0fd4a9bd7c9558bcdee2f0e43da0774d",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_linux_arm64": "af13b93897512079ead398224bd58bbaa136fcc5679af023780ee6c0538b3d82",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_darwin_amd64": "6d3bd9f7e92e82fe557ba1d223bdd25317fbc296173a829601926526263c6092",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_darwin_arm64": "0227ae6dafbe59d4e2c4a827d983ecc463eaa61f152216a3ec809c429c08eb31",
+}
+CHUNK_SIZE = 128
 
 BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
 BINARY_FOLDER = Path(__file__).parent
@@ -61,6 +72,18 @@ class Tunnel:
                 file.write(resp.content)
             st = os.stat(BINARY_PATH)
             os.chmod(BINARY_PATH, st.st_mode | stat.S_IEXEC)
+
+            if BINARY_URL in CHECKSUMS:
+                sha = hashlib.sha256()
+                with open(BINARY_PATH, "rb") as f:
+                    for chunk in iter(lambda: f.read(CHUNK_SIZE * sha.block_size), b""):
+                        sha.update(chunk)
+                calculated_hash = sha.hexdigest()
+
+                if calculated_hash != CHECKSUMS[BINARY_URL]:
+                    warnings.warn(
+                        f"Checksum of downloaded binary for creating share links does not match expected value. Please verify the integrity of the downloaded binary located at {BINARY_PATH}."
+                    )
 
     def start_tunnel(self) -> str:
         self.download_binary()

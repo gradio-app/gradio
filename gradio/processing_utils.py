@@ -184,35 +184,35 @@ hash_seed = get_hash_seed().encode("utf-8")
 
 
 def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
-    sha1 = hashlib.sha1()
-    sha1.update(hash_seed)
+    sha = hashlib.sha256()
+    sha.update(hash_seed)
     with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
-            sha1.update(chunk)
-    return sha1.hexdigest()
+        for chunk in iter(lambda: f.read(chunk_num_blocks * sha.block_size), b""):
+            sha.update(chunk)
+    return sha.hexdigest()
 
 
 def hash_url(url: str) -> str:
-    sha1 = hashlib.sha1()
-    sha1.update(hash_seed)
-    sha1.update(url.encode("utf-8"))
-    return sha1.hexdigest()
+    sha = hashlib.sha256()
+    sha.update(hash_seed)
+    sha.update(url.encode("utf-8"))
+    return sha.hexdigest()
 
 
 def hash_bytes(bytes: bytes):
-    sha1 = hashlib.sha1()
-    sha1.update(hash_seed)
-    sha1.update(bytes)
-    return sha1.hexdigest()
+    sha = hashlib.sha256()
+    sha.update(hash_seed)
+    sha.update(bytes)
+    return sha.hexdigest()
 
 
 def hash_base64(base64_encoding: str, chunk_num_blocks: int = 128) -> str:
-    sha1 = hashlib.sha1()
-    sha1.update(hash_seed)
-    for i in range(0, len(base64_encoding), chunk_num_blocks * sha1.block_size):
-        data = base64_encoding[i : i + chunk_num_blocks * sha1.block_size]
-        sha1.update(data.encode("utf-8"))
-    return sha1.hexdigest()
+    sha = hashlib.sha256()
+    sha.update(hash_seed)
+    for i in range(0, len(base64_encoding), chunk_num_blocks * sha.block_size):
+        data = base64_encoding[i : i + chunk_num_blocks * sha.block_size]
+        sha.update(data.encode("utf-8"))
+    return sha.hexdigest()
 
 
 def save_pil_to_cache(

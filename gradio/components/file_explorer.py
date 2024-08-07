@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, server
-from gradio.data_classes import GradioRootModel
+from gradio.data_classes import DeveloperPath, GradioRootModel, UserProvidedPath
+from gradio.utils import safe_join
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -77,7 +78,7 @@ class FileExplorer(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
-        self.root_dir = os.path.abspath(root_dir)
+        self.root_dir = DeveloperPath(os.path.abspath(root_dir))
         self.glob = glob
         self.ignore_glob = ignore_glob
         valid_file_count = ["single", "multiple"]
@@ -194,11 +195,8 @@ class FileExplorer(Component):
 
         return folders + files
 
-    def _safe_join(self, folders):
-        combined_path = os.path.join(self.root_dir, *folders)
-        absolute_path = os.path.abspath(combined_path)
-        if os.path.commonprefix([self.root_dir, absolute_path]) != os.path.abspath(
-            self.root_dir
-        ):
-            raise ValueError("Attempted to navigate outside of root directory")
-        return absolute_path
+    def _safe_join(self, folders: list[str]):
+        if not folders or len(folders) == 0:
+            return self.root_dir
+        combined_path = UserProvidedPath(os.path.join(*folders))
+        return safe_join(self.root_dir, combined_path)

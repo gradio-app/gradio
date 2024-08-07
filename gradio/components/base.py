@@ -21,6 +21,7 @@ from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
 from gradio.data_classes import (
     BaseModel,
+    DeveloperPath,
     FileDataDict,
     GradioDataModel,
     MediaStreamChunk,
@@ -233,7 +234,7 @@ class Component(ComponentBase, Block):
 
         self.component_class_id = self.__class__.get_component_class_id()
 
-    TEMPLATE_DIR = "./templates/"
+    TEMPLATE_DIR = DeveloperPath("./templates/")
     FRONTEND_DIR = "../../frontend/"
 
     def get_config(self):
