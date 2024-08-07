@@ -49,7 +49,7 @@ jobs:
     name: "website-build"
     runs-on: ubuntu-22.04
     needs: changes
-    if: needs.changes.outputs.should_run == 'true' || (github.ref_name == 'main' && github.repository == 'gradio-app/gradio')
+    if: needs.changes.outputs.should_run == 'true' || (endsWith(needs.changes.outputs.source_branch, 'main') && github.repository == 'gradio-app/gradio')
     steps:
       - uses: actions/checkout@v4
         with:
