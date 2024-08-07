@@ -266,19 +266,6 @@ class Chatbot(Component):
                     file_data["orig_name"] = orig_name
                     file_data["mime_type"] = client_utils.get_mimetype(orig_name)
                     self.examples[i]["file"] = file_data
-        print("Updated examples:", self.examples)
-
-        # self.examples = examples
-        # if self.examples is not None:
-        #     for i, example in enumerate(self.examples):
-        #         self.examples[i] = ExampleMessage(**example)
-        #         if "file" in self.examples[i] and self.examples[i]["file"] is not None:
-        #             orig_name = self.examples[i]["file"]['path']
-        #             self.examples[i]["file"] = self.serve_static_file(self.examples[i]["file"]['path'])
-        #             self.examples[i]["file"] = FileData(**self.examples[i]["file"])
-        #             self.examples[i]["file"]["orig_name"] = orig_name
-        #             self.examples[i]["file"]["mime_type"] = client_utils.get_mimetype(self.examples[i]["file"]['path'])
-        # print("3333333333333", self.examples)
 
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
