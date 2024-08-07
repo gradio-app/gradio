@@ -923,12 +923,20 @@ def get_type_hints(fn):
         for name, param in sig.parameters.items():
             if param.annotation is inspect.Parameter.empty:
                 continue
-            if param.annotation == "gr.OAuthProfile | None":
+            if param.annotation in ["gr.OAuthProfile | None", "None | gr.OAuthProfile"]:
                 # Special case: we want to inject the OAuthProfile value even on Python 3.9
                 type_hints[name] = Optional[OAuthProfile]
-            if param.annotation == "gr.OAuthToken | None":
+            if param.annotation == ["gr.OAuthToken | None", "None | gr.OAuthToken"]:
                 # Special case: we want to inject the OAuthToken value even on Python 3.9
                 type_hints[name] = Optional[OAuthToken]
+            if param.annotation in [
+                "gr.Request | None",
+                "Request | None",
+                "None | gr.Request",
+                "None | Request",
+            ]:
+                # Special case: we want to inject the Request value even on Python 3.9
+                type_hints[name] = Optional[Request]
             if "|" in str(param.annotation):
                 continue
             # To convert the string annotation to a class, we use the
@@ -953,7 +961,7 @@ def is_special_typed_parameter(name, parameter_types):
     hint = parameter_types.get(name)
     if not hint:
         return False
-    is_request = hint == Request
+    is_request = hint in (Request, Optional[Request])
     is_oauth_arg = hint in (
         OAuthProfile,
         Optional[OAuthProfile],
@@ -1143,7 +1151,7 @@ def _is_static_file(file_path: Any, static_files: list[Path]) -> bool:
     return any(is_in_or_equal(file_path, static_file) for static_file in static_files)
 
 
-HTML_TAG_RE = re.compile("<.*?>")
+HTML_TAG_RE = re.compile("<[^>]*?(?:\n[^>]*?)*>", re.DOTALL)
 
 
 def remove_html_tags(raw_html: str | None) -> str:
