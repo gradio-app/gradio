@@ -16,8 +16,14 @@ concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   changes:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    permissions:
+      contents: read
+      pull-requests: read
     name: "changes"
     runs-on: ubuntu-latest
     outputs:
@@ -33,6 +39,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   build:
+    permissions:
+      contents: read
     name: "docs-build"
     runs-on: ubuntu-22.04
     needs: changes
@@ -44,7 +52,7 @@ jobs:
         with:
           skip_build: true
       - name: generate docs
-        run: pip install boto3 && python js/_website/generate_jsons/generate.py
+        run: pip install boto3 requests && python js/_website/generate_jsons/generate.py
 
       - name: upload website json artifacts
         uses: actions/upload-artifact@v4
