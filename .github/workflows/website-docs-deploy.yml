@@ -1,8 +1,8 @@
-name: "website-deploy"
+name: "docs-deploy"
 
 on:
   workflow_run:
-    workflows: ["website-build"]
+    workflows: ["docs-build"]
     types:
       - completed
 
@@ -38,6 +38,10 @@ jobs:
         id: json
         with:
           path: output.json
+      - uses: actions/upload-artifact@v4
+        with:
+          path: output.json
+          name: changes
   comment-deploy-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
@@ -55,57 +59,33 @@ jobs:
     if: needs.changes.outputs.should_run == 'true' || github.event.workflow_run.event == 'push'
     permissions:
       actions: read
-    outputs:
-      vercel_url: ${{ steps.output_url.outputs.vercel_url }}
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      - name: download website artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          name: website
-          path: js/_website/.vercel
+          name: website-json
+          path: js/_website/lib/json
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: list files
-        run: ls -R .
+      - uses: actions/download-artifact@v4
+        with:
+          name: website-templates
+          path: js/_website/lib/templates
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull Vercel Environment Information
-        shell: bash
-        if: needs.changes.outputs.pr_number != 'false'
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website
-
-      - name: Deploy Project Artifacts to Vercel
-        if: needs.changes.outputs.pr_number != 'true'
-        id: output_url
-        shell: bash
-        run: echo "vercel_url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website)" >> $GITHUB_OUTPUT
-
-        # production
-      - name: Pull Vercel Environment Information
-        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'main'
-        shell: bash
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website
-
-      - name: Deploy Project Artifacts to Vercel
-        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'main'
-        shell: bash
-        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_DEPLOY_TOKEN }})" --cwd js/_website >> $GITHUB_ENV
-
-  comment-deploy-success:
-    uses: "./.github/workflows/comment-queue.yml"
-    needs: [deploy, changes]
-    if: needs.deploy.result == 'success' && needs.changes.outputs.pr_number != 'false'
-    secrets:
-      gh_token: ${{ secrets.COMMENT_TOKEN }}
-    with:
-      pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: website~success~${{needs.deploy.outputs.vercel_url}}
+      - name: deploy json to aws
+        if: startsWith(needs.changes.outputs.source_branch, 'changeset-release/') && needs.changes.outputs.source_repo == 'gradio-app/gradio'
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ secrets.DOCS_JSON_AWS_S3_ACCESS_KEY }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.DOCS_JSON_AWS_S3_SECRET_ACCESS_KEY }}
+          export AWS_DEFAULT_REGION=us-west-2
+          version=$(jq -r .version js/_website/lib/json/version.json)
+          aws s3 cp ./js/_website/lib/json/ s3://gradio-docs-json/$version/ --recursive
+          aws s3 cp ./js/_website/lib/templates/ s3://gradio-docs-json/$version/templates/ --recursive
   comment-deploy-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: always() &&  needs.deploy.result == 'failure' && needs.changes.outputs.pr_number != 'false'
+    if: always() && needs.deploy.result == 'failure' && needs.changes.outputs.pr_number != 'false'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:

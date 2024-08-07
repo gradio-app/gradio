@@ -12,8 +12,13 @@ on:
         required: true
         default: "7"
 
+permissions: {}
+
 jobs:
   delete-old-spaces:
+    permissions:
+      contents: read
+    environment: deploy_spaces
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
