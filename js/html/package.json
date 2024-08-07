@@ -10,7 +10,8 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
-		"@gradio/utils": "workspace:^"
+		"@gradio/utils": "workspace:^",
+		"@gradio/icons": "workspace:^"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
