@@ -9,7 +9,7 @@ import json
 import os
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence, cast
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document
 
@@ -741,7 +741,7 @@ class Interface(Blocks):
                     batch=self.batch,
                     max_batch_size=self.max_batch_size,
                     concurrency_limit=self.concurrency_limit,
-                    show_progress=self.show_progress
+                    show_progress=self.show_progress,
                 )
 
                 final_event = predict_event.then(
@@ -774,7 +774,7 @@ class Interface(Blocks):
                     batch=self.batch,
                     max_batch_size=self.max_batch_size,
                     concurrency_limit=self.concurrency_limit,
-                    show_progress=self.show_progress
+                    show_progress=self.show_progress,
                 )
 
     def attach_clear_events(
