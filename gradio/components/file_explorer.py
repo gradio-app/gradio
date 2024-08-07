@@ -117,10 +117,10 @@ class FileExplorer(Component):
         )
 
     def example_payload(self) -> Any:
-        return [["Users", "gradio", "app.py"]]
+        return [["gradio", "app.py"]]
 
     def example_value(self) -> Any:
-        return ["Users", "gradio", "app.py"]
+        return os.sep.join(["gradio", "app.py"])
 
     def preprocess(self, payload: FileExplorerData | None) -> list[str] | str | None:
         """
@@ -205,8 +205,9 @@ class FileExplorer(Component):
 
         return folders + files
 
-    def _safe_join(self, folders: list[str]):
+    def _safe_join(self, folders: list[str]) -> str:
         if not folders or len(folders) == 0:
             return self.root_dir
         combined_path = UserProvidedPath(os.path.join(*folders))
-        return safe_join(self.root_dir, combined_path)
+        x = safe_join(self.root_dir, combined_path)
+        return x
