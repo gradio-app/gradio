@@ -19,7 +19,13 @@ import gradio_client.utils as client_utils
 from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.data_classes import BaseModel, DeveloperPath, GradioDataModel
+from gradio.data_classes import (
+    BaseModel,
+    DeveloperPath,
+    FileDataDict,
+    GradioDataModel,
+    MediaStreamChunk,
+)
 from gradio.events import EventListener
 from gradio.layouts import Form
 from gradio.processing_utils import move_files_to_cache
