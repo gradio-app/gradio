@@ -38,7 +38,7 @@ class NativePlot(Component):
     Demos: native_plots
     """
 
-    EVENTS = [Events.select]
+    EVENTS = [Events.select, Events.dbl_click]
 
     def __init__(
         self,
