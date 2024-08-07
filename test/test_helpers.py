@@ -849,9 +849,7 @@ class TestProgressBar:
                 status_updates.append(update)
             time.sleep(0.05)
 
-        assert status_updates[-1] == [
-            (6, "steps"),
-        ]
+        assert status_updates[-1] == (6, "steps")
 
     @pytest.mark.asyncio
     async def test_info_and_warning_alerts(self):
