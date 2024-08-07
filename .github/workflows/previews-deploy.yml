@@ -14,6 +14,7 @@ jobs:
   changes:
     name: "changes"
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
     permissions:
       actions: read
     outputs:
@@ -53,7 +54,7 @@ jobs:
       space_url: ${{ steps.upload-demo.outputs.SPACE_URL }}
       js_tarball_url: ${{ steps.upload_js_tarball.outputs.js_tarball_url }}
     needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'true'|| github.event.workflow_run.event == 'workflow_dispatch' }}
+    if: ${{ (github.event.workflow_run.conclusion == 'success' && needs.changes.outputs.should_run == 'true') || github.event.workflow_run.event == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -149,7 +150,7 @@ jobs:
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: always() && needs.deploy.result == 'failure' && needs.changes.outputs.should_run == 'true'
+    if: always() &&  needs.deploy.result == 'failure' && needs.changes.outputs.should_run == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:

@@ -16,8 +16,13 @@ concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   changes:
+    permissions:
+      contents: read
+      pull-requests: read
     name: "changes"
     runs-on: ubuntu-latest
     outputs:
@@ -34,6 +39,8 @@ jobs:
           filter: "js"
           token: ${{ secrets.GITHUB_TOKEN }}
   test:
+    permissions:
+      contents: read
     name: js-test
     runs-on: ubuntu-22.04
     needs: changes

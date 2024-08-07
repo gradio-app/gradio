@@ -1,4 +1,4 @@
-name: "functional-lite"
+name: "docs-build"
 
 on:
   pull_request:
@@ -6,6 +6,11 @@ on:
     branches:
       - main
       - 5.0-dev
+
+env:
+  CI: true
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+  NODE_OPTIONS: "--max-old-space-size=4096"
 
 concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
@@ -15,6 +20,7 @@ permissions: {}
 
 jobs:
   changes:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     permissions:
       contents: read
       pull-requests: read
@@ -23,39 +29,38 @@ jobs:
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
-      pr_number: ${{ steps.changes.outputs.pr_number }}
+      gradio_version: ${{ steps.changes.outputs.gradio_version }}
       source_branch: ${{ steps.changes.outputs.source_branch }}
-      source_repo: ${{ steps.changes.outputs.source_repo }}
     steps:
       - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
-          filter: "functional"
+          filter: "website"
           token: ${{ secrets.GITHUB_TOKEN }}
-  test:
+
+  build:
     permissions:
       contents: read
-    name: "functional-test-lite"
-    runs-on: ubuntu-latest
+    name: "docs-build"
+    runs-on: ubuntu-22.04
     needs: changes
-    if: needs.changes.outputs.should_run == 'true'
+    if: needs.changes.outputs.should_run == 'true' || (endsWith(needs.changes.outputs.source_branch, 'main') && github.repository == 'gradio-app/gradio')
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
-        id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          always_install_pnpm: true
-          build_lite: true
           skip_build: true
-      - run: pnpm exec playwright install chromium firefox
-      - name: Run Lite E2E tests
-        run: |
-          . venv/bin/activate
-          pnpm --filter @gradio/app test:browser:lite
-      - name: Get the performance result
-        run: |
-          export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)
-          echo "LITE_APP_LOAD_TIME=$LITE_APP_LOAD_TIME" >> $GITHUB_ENV
-          cat .lite-perf.json  # For debugging
+
+        # generated when installing deps
+      - name: upload website json artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-json
+          path: js/_website/src/lib/json
+      - name: upload website json templates
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-templates
+          path: js/_website/src/lib/templates

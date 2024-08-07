@@ -10,10 +10,13 @@ concurrency:
   group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   changes:
     name: "changes"
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
     permissions:
       actions: read
     outputs:
@@ -38,7 +41,7 @@ jobs:
   comment-chromatic-start:
     uses: "./.github/workflows/comment-queue.yml"
     needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'true' }}
+    if: needs.changes.outputs.should_run == 'true' || contains(needs.changes.outputs.labels, 'no-visual-update')
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
@@ -46,9 +49,12 @@ jobs:
       message: |
         storybook~pending~null
   update-status:
+    permissions:
+      actions: read
+      statuses: write
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'false' || contains(needs.changes.outputs.labels, 'no-visual-update') }}
+    if: needs.changes.outputs.should_run == 'false' || contains(needs.changes.outputs.labels, 'no-visual-update')
     steps:
       - name: update status
         uses: gradio-app/github/actions/set-commit-status@main
@@ -58,18 +64,19 @@ jobs:
           name: "UI Tests"
           run_id: ${{ needs.changes.outputs.run_id }}
   deploy:
+    permissions:
+      actions: read
+      contents: read
     environment: storybook
     name: "storybook-deploy"
     needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
+    if: needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update')
     runs-on: ubuntu-latest
     outputs:
       changes: ${{ steps.publish-chromatic.outputs.changeCount }}
       errors: ${{ steps.publish-chromatic.outputs.errorCount }}
       storybook_url: ${{ steps.publish-chromatic.outputs.storybookUrl }}
       build_url: ${{ steps.publish-chromatic.outputs.buildUrl }}
-    permissions:
-      actions: read
     steps:
       - uses: actions/checkout@v4
         with:
