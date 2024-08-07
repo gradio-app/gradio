@@ -9,7 +9,7 @@ with gr.Blocks() as demo:
         return gr.LinePlot(x_lim=(min_w, max_w))
 
     plt.select(select_region, None, plt)
-    plt.dbl_click(lambda: gr.LinePlot(x_lim=None), None, plt)
+    plt.double_click(lambda: gr.LinePlot(x_lim=None), None, plt)
 
 if __name__ == "__main__":
     demo.launch()

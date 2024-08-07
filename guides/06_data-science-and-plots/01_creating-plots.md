@@ -52,7 +52,7 @@ You can use the `.select` listener to select regions of a plot. Click and drag o
 $code_plot_guide_selection
 $demo_plot_guide_selection
 
-You can combine this and the `.dbl_click` listener to create some zoom in/out effects by changing `x_lim` which sets the bounds of the x-axis:
+You can combine this and the `.double_click` listener to create some zoom in/out effects by changing `x_lim` which sets the bounds of the x-axis:
 
 $code_plot_guide_zoom
 $demo_plot_guide_zoom

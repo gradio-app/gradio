@@ -77,7 +77,7 @@
 	}[];
 	export let gradio: Gradio<{
 		select: SelectData;
-		dbl_click: undefined;
+		double_click: undefined;
 		clear_status: LoadingStatus;
 	}>;
 
@@ -161,7 +161,7 @@
 			resizeObserver.observe(chart_element);
 			var debounceTimeout: NodeJS.Timeout;
 			view.addEventListener("dblclick", () => {
-				gradio.dispatch("dbl_click");
+				gradio.dispatch("double_click");
 			});
 			// prevent double-clicks from highlighting text
 			chart_element.addEventListener(

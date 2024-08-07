@@ -12,7 +12,7 @@ with gr.Blocks() as demo:
 
     for plt in plots:
         plt.select(select_region, None, plots)
-        plt.dbl_click(lambda: [gr.LinePlot(x_lim=None)] * len(plots), None, plots)
+        plt.double_click(lambda: [gr.LinePlot(x_lim=None)] * len(plots), None, plots)
 
 if __name__ == "__main__":
     demo.launch()
