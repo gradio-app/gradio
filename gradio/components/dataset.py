@@ -97,6 +97,8 @@ class Dataset(Component):
             component.proxy_url = proxy_url
         self.raw_samples = [[]] if samples is None else samples
         self.samples: list[list] = []
+        print("samples", self.samples)
+        print("raw samples", self.raw_samples)
         for example in self.raw_samples:
             self.samples.append([])
             for i, (component, ex) in enumerate(zip(self._components, example)):

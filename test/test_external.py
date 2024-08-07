@@ -515,6 +515,8 @@ def test_use_api_name_in_call_method():
 
 
 def test_load_custom_component():
+    from gradio_pdf import PDF  # noqa
+
     demo = gr.load("spaces/freddyaboulton/gradiopdf")
     output = demo(
         "test/test_files/sample_file.pdf", "What does this say?", api_name="predict"
