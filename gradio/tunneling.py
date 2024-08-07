@@ -1,4 +1,5 @@
 import atexit
+import hashlib
 import os
 import platform
 import re
@@ -11,8 +12,6 @@ from pathlib import Path
 from typing import List
 
 import httpx
-
-from gradio.processing_utils import hash_file
 
 VERSION = "0.2"
 CURRENT_TUNNELS: List["Tunnel"] = []
@@ -32,6 +31,7 @@ CHECKSUMS = {
     "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_darwin_amd64": "6d3bd9f7e92e82fe557ba1d223bdd25317fbc296173a829601926526263c6092",
     "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_darwin_arm64": "0227ae6dafbe59d4e2c4a827d983ecc463eaa61f152216a3ec809c429c08eb31",
 }
+CHUNK_SIZE = 128
 
 BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
 BINARY_FOLDER = Path(__file__).parent
@@ -74,7 +74,12 @@ class Tunnel:
             os.chmod(BINARY_PATH, st.st_mode | stat.S_IEXEC)
 
             if BINARY_URL in CHECKSUMS:
-                calculated_hash = hash_file(BINARY_PATH)
+                sha = hashlib.sha256()
+                with open(BINARY_PATH, "rb") as f:
+                    for chunk in iter(lambda: f.read(CHUNK_SIZE * sha.block_size), b""):
+                        sha.update(chunk)
+                calculated_hash = sha.hexdigest()
+
                 if calculated_hash != CHECKSUMS[BINARY_URL]:
                     warnings.warn(
                         f"Checksum of downloaded binary for creating share links does not match expected value. Please verify the integrity of the downloaded binary located at {BINARY_PATH}."
