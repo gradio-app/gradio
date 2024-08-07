@@ -30,6 +30,7 @@ jobs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
       gradio_version: ${{ steps.changes.outputs.gradio_version }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
     steps:
       - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
@@ -44,7 +45,7 @@ jobs:
     name: "docs-build"
     runs-on: ubuntu-22.04
     needs: changes
-    if: needs.changes.outputs.should_run == 'true' || (github.ref_name == 'main' && github.repository == 'gradio-app/gradio')
+    if: needs.changes.outputs.should_run == 'true' || (endsWith(needs.changes.outputs.source_branch, 'main') && github.repository == 'gradio-app/gradio')
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
