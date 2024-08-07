@@ -2,6 +2,8 @@
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Gallery from "./Index.svelte";
 	import { allModes } from "../storybook/modes";
+	import { within } from "@testing-library/dom";
+	import { userEvent } from "@storybook/test";
 
 	export const meta = {
 		title: "Components/Gallery",
@@ -134,6 +136,16 @@
 <Story
 	name="Gallery with label"
 	args={{ label: "My Cheetah Gallery", show_label: true }}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+
+		const image = canvas.getByLabelText("Thumbnail 1 of 7");
+		await userEvent.click(image);
+		const expand_btn = canvas.getByRole("button", {
+			name: "View in full screen"
+		});
+		await userEvent.click(expand_btn);
+	}}
 />
 <Story
 	name="Gallery without label"
