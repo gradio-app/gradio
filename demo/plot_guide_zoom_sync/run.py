@@ -8,7 +8,7 @@ with gr.Blocks() as demo:
 
     def select_region(selection: gr.SelectData):
         min_w, max_w = selection.index
-        return [gr.LinePlot(x_lim=(min_w, max_w))] * len(plots)
+        return [gr.LinePlot(x_lim=(min_w, max_w))] * len(plots) # type: ignore
 
     for plt in plots:
         plt.select(select_region, None, plots)
