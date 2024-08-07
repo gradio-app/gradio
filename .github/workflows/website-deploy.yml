@@ -73,7 +73,7 @@ jobs:
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website
 
       - name: Deploy Project Artifacts to Vercel
-        if: needs.changes.outputs.pr_number != 'true'
+        if: needs.changes.outputs.pr_number != 'false'
         id: output_url
         shell: bash
         run: echo "vercel_url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website)" >> $GITHUB_OUTPUT
@@ -87,7 +87,7 @@ jobs:
       - name: Deploy Project Artifacts to Vercel
         if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && endsWith(needs.changes.outputs.source_branch, 'main')
         shell: bash
-        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_DEPLOY_TOKEN }})" --cwd js/_website >> $GITHUB_ENV
+        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website)" >> $GITHUB_ENV
 
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
