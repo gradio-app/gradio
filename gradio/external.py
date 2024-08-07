@@ -400,7 +400,7 @@ def from_spaces(
     print(f"Fetching Space from: {space_url}")
 
     headers = {}
-    if hf_token not in [None, False]:
+    if hf_token not in [False, None]:
         headers["Authorization"] = f"Bearer {hf_token}"
 
     iframe_url = (
