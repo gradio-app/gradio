@@ -570,6 +570,28 @@ class TestRoutes:
         assert "IN CUSTOM LIFESPAN" in captured.out
         assert "AFTER CUSTOM LIFESPAN" in captured.out
 
+    def test_monitoring_link(self):
+        with Blocks() as demo:
+            i = Textbox()
+            o = Textbox()
+            i.change(lambda x: x, i, o)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.get("/monitoring")
+        assert response.status_code == 200
+
+    def test_monitoring_link_disabled(self):
+        with Blocks() as demo:
+            i = Textbox()
+            o = Textbox()
+            i.change(lambda x: x, i, o)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True, enable_monitoring=False)
+        client = TestClient(app)
+        response = client.get("/monitoring")
+        assert response.status_code == 403
+
 
 class TestApp:
     def test_create_app(self):
