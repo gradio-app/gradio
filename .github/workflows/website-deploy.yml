@@ -49,7 +49,7 @@ jobs:
     name: "website-deploy"
     runs-on: ubuntu-latest
     needs: changes
-    if: github.event.workflow_run.conclusion == 'success' && needs.changes.outputs.should_run == 'true'
+    if: github.event.workflow_run.conclusion == 'success' && (needs.changes.outputs.should_run == 'true' || github.event.workflow_run.event == 'push')
     permissions:
       actions: read
     outputs:
