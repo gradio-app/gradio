@@ -103,7 +103,9 @@ class Dataset(Component):
                 # If proxy_url is set, that means it is being loaded from an external Gradio app
                 # which means that the example has already been processed.
                 if self.proxy_url is None:
-                    # The `as_example()` method has been renamed to `process_example()` but we
+                    # We do not need to process examples if the Gradio app is being loaded from
+                    # an external Space because the examples have already been processed. Also,
+                    # the `as_example()` method has been renamed to `process_example()` but we
                     # use the previous name to be backwards-compatible with previously-created
                     # custom components
                     ex = component.as_example(ex)
