@@ -31,7 +31,7 @@ class HTML(Component):
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
-        show_label: bool | None = None,
+        show_label: bool = False,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -44,7 +44,7 @@ class HTML(Component):
             label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
-            show_label: This parameter has no effect.
+            show_label: If True, the label will be displayed. If False, the label will be hidden.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
