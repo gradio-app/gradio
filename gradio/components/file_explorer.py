@@ -19,6 +19,8 @@ if TYPE_CHECKING:
 
 
 class FileExplorerData(GradioRootModel):
+    # The outer list is the list of files selected, and the inner list
+    # is the path to the file as a list, split by the os.sep.
     root: List[List[str]]
 
 
