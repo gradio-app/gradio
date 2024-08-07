@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+	import type { GalleryImage, GalleryVideo } from "types";
 	import type { Gradio, ShareData, SelectData } from "@gradio/utils";
 	import { Block, UploadText } from "@gradio/atoms";
 	import Gallery from "./shared/Gallery.svelte";
@@ -19,7 +20,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: { image: FileData; caption: string | null }[] | null = null;
+	export let value: [GalleryImage | GalleryVideo] | null = null;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;

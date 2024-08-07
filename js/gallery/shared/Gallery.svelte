@@ -7,6 +7,8 @@
 	import { dequal } from "dequal";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { tick } from "svelte";
+	import type { GalleryImage, GalleryVideo } from "types";
+
 
 	import {
 		Download,
@@ -21,8 +23,7 @@
 	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 
-	type GalleryImage = { image: FileData; caption: string | null };
-	type GalleryData = GalleryImage[];
+	type GalleryData = [GalleryImage | GalleryVideo];
 
 	export let show_label = true;
 	export let label: string;
@@ -57,13 +58,16 @@
 	$: was_reset = value == null || value.length === 0 ? true : was_reset;
 
 	let resolved_value: GalleryData | null = null;
-	$: resolved_value =
-		value == null
-			? null
-			: value.map((data) => ({
-					image: data.image as FileData,
-					caption: data.caption
-				}));
+	$: resolved_value = value == null
+		? null
+		: value.map((data) => {
+			if ('video' in data) {
+				return { video: data.video as FileData, caption: data.caption, subtitles: data.subtitles };
+			} else if ('image' in data) {
+				return { image: data.image as FileData, caption: data.caption };
+			} 
+			return {};
+		}) as GalleryData;
 
 	let prev_value: GalleryData | null = value;
 	if (selected_index == null && preview && value?.length) {
