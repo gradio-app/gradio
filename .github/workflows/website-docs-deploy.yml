@@ -38,6 +38,10 @@ jobs:
         id: json
         with:
           path: output.json
+      - uses: actions/upload-artifact@v4
+        with:
+          path: output.json
+          name: changes
   comment-deploy-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
