@@ -1,0 +1,62 @@
+name: "storybook-build"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 5.0-dev
+
+env:
+  CI: true
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+concurrency:
+  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          filter: "visual"
+          token: ${{ secrets.GITHUB_TOKEN }}
+  build:
+    name: :storybook-build
+    runs-on: ubuntu-22.04
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changes.outputs.source_branch }}
+          repository: ${{ needs.changes.outputs.source_repo }}
+      - name: install dependencies
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          always_install_pnpm: true
+          skip_build: "true"
+      - name: build client
+        run: pnpm --filter @gradio/client build
+      - name: generate theme.css
+        run: |
+          . venv/bin/activate
+          python scripts/generate_theme.py --outfile js/storybook/theme.css
+      - name: build storybook
+        run: pnpm build-storybook --quiet
+      - name: upload  storybook
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook-static
+          path: storybook-static

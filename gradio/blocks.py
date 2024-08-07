@@ -56,7 +56,13 @@ from gradio.context import (
     get_render_context,
     set_render_context,
 )
-from gradio.data_classes import BlocksConfigDict, FileData, GradioModel, GradioRootModel
+from gradio.data_classes import (
+    BlocksConfigDict,
+    DeveloperPath,
+    FileData,
+    GradioModel,
+    GradioRootModel,
+)
 from gradio.events import (
     EventData,
     EventListener,
@@ -409,7 +415,7 @@ class BlockContext(Block):
             render=render,
         )
 
-    TEMPLATE_DIR = "./templates/"
+    TEMPLATE_DIR = DeveloperPath("./templates/")
     FRONTEND_DIR = "../../frontend/"
 
     @property
@@ -1295,7 +1301,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             for block in self.blocks.values()
         )
 
-    def unload(self, fn: Callable):
+    def unload(self, fn: Callable[..., Any]) -> None:
         """This listener is triggered when the user closes or refreshes the tab, ending the user session.
         It is useful for cleaning up resources when the app is closed.
         Parameters:

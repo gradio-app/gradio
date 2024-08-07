@@ -1,0 +1,84 @@
+name: "previews-build"
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+env:
+  CI: true
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+concurrency:
+  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      gradio_version: ${{ steps.changes.outputs.gradio_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          filter: "visual"
+          token: ${{ secrets.GITHUB_TOKEN }}
+  build:
+    name: "previews-build"
+    runs-on: ubuntu-22.04
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          always_install_pnpm: true
+          python_version: "3.9"
+          build_lite: "true"
+      - name: Package Lite NPM package
+        working-directory: js/lite
+        run: pnpm pack --pack-destination .
+      - name: Upload Lite NPM package
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradio-lite-${{ github.sha }}
+          path: js/lite/gradio-lite-*.tgz
+      - name: install deps
+        run: python -m pip install build
+      - name: Build pr package
+        run: |
+          python -c 'import json; j = json.load(open("gradio/package.json")); j["version"] = "${{ needs.changes.outputs.gradio_version }}"; json.dump(j, open("gradio/package.json", "w"))'
+          python3 -m build -w
+      - name: Upload Python package
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradio-build
+          path: dist/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl
+      - name: copy demos
+        uses: "gradio-app/github/actions/copy-demos@main"
+        with:
+          gradio_version: "https://gradio-pypi-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl"
+          gradio_client_version: "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
+      - name: upload demos
+        uses: actions/upload-artifact@v4
+        with:
+          name: all_demos
+          path: demo
+      - name: Create JS client tarball
+        id: create_js_tarball
+        continue-on-error: true
+        run: |
+          cd client/js
+          tarball_name=$(npm pack)
+          echo "tarball_name=client/js/$tarball_name" >> $GITHUB_OUTPUT
+      - name: Upload JS client tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: js-client-tarball
+          path: ${{ steps.create_js_tarball.outputs.tarball_name }}

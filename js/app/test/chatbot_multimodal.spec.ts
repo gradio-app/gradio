@@ -34,6 +34,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("upload-button").click();
 		const fileChooser = await fileChooserPromise;
 		await fileChooser.setFiles("./test/files/cheetah1.jpg");
+		await expect(page.locator(".thumbnail-item")).toBeVisible();
 		await page.getByTestId("textbox").click();
 		await page.keyboard.press("Enter");
 
@@ -70,6 +71,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("upload-button").click();
 		const fileChooser = await fileChooserPromise;
 		await fileChooser.setFiles("../../test/test_files/audio_sample.wav");
+		await expect(page.locator(".thumbnail-item")).toBeVisible();
 		await page.getByTestId("textbox").click();
 		await page.keyboard.press("Enter");
 
@@ -95,6 +97,7 @@ for (const msg_format of ["tuples", "messages"]) {
 		await page.getByTestId("upload-button").click();
 		const fileChooser = await fileChooserPromise;
 		await fileChooser.setFiles("../../test/test_files/video_sample.mp4");
+		await expect(page.locator(".thumbnail-item")).toBeVisible();
 		await page.getByTestId("textbox").click();
 		await page.keyboard.press("Enter");
 
