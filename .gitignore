@@ -39,6 +39,7 @@ coverage.xml
 test.txt
 **/snapshots/**/*.png
 playwright-report/
+.hypothesis
 
 # Demos
 demo/tmp.zip

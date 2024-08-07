@@ -9,6 +9,8 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from typing_extensions import Literal
 
 from gradio import EventData, Request
@@ -367,6 +369,69 @@ def test_is_in_or_equal():
     assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
     assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
     assert not is_in_or_equal("/safe_dir/subdir/../../unsafe_file.txt", "/safe_dir/")
+
+
+def create_path_string():
+    return st.lists(
+        st.one_of(
+            st.text(
+                alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-",
+                min_size=1,
+            ),
+            st.just(".."),
+            st.just("."),
+        ),
+        min_size=1,
+        max_size=10,  # Limit depth to avoid excessively long paths
+    ).map(lambda x: os.path.join(*x))
+
+
+def my_check(path_1, path_2):
+    try:
+        path_1 = Path(path_1).resolve()
+        path_2 = Path(path_2).resolve()
+        _ = path_1.relative_to(path_2)
+        return True
+    except ValueError:
+        return False
+
+
+@settings(derandomize=os.getenv("CI") is not None)
+@given(
+    path_1=create_path_string(),
+    path_2=create_path_string(),
+)
+def test_is_in_or_equal_fuzzer(path_1, path_2):
+    try:
+        # Convert to absolute paths
+        abs_path_1 = abspath(path_1)
+        abs_path_2 = abspath(path_2)
+        result = is_in_or_equal(abs_path_1, abs_path_2)
+        assert result == my_check(abs_path_1, abs_path_2)
+
+    except Exception as e:
+        pytest.fail(f"Exception raised: {e}")
+
+
+# Additional test for known edge cases
+@pytest.mark.parametrize(
+    "path_1,path_2,expected",
+    [
+        ("/AAA/a/../a", "/AAA", True),
+        ("//AA/a", "/tmp", False),
+        ("/AAA/..", "/AAA", False),
+        ("/a/b/c", "/d/e/f", False),
+        (".", "..", True),
+        ("..", ".", False),
+        ("/a/b/./c", "/a/b", True),
+        ("/a/b/../c", "/a", True),
+        ("/a/b/c", "/a/b/c/../d", False),
+        ("/", "/a", False),
+        ("/a", "/", True),
+    ],
+)
+def test_is_in_or_equal_edge_cases(path_1, path_2, expected):
+    assert is_in_or_equal(path_1, path_2) == expected
 
 
 @pytest.mark.parametrize(

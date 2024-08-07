@@ -8,7 +8,7 @@ def gif_maker():
     for i in range(30):
         img_array.append(np.random.randint(0, 255, size=(height, width, 3)).astype(np.uint8))
     output_file = "test.mp4"
-    out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 15, (height, width))
+    out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 15, (height, width))  # type: ignore
     for i in range(len(img_array)):
         out.write(img_array[i])
     out.release()
