@@ -14,6 +14,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
+		"@gradio/video": "workspace:^",
 		"@gradio/file": "workspace:^",
 		"dequal": "^2.0.2"
 	},

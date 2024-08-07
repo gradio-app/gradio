@@ -3,6 +3,7 @@
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
+	import { Video } from "@gradio/video/shared";
 	import { dequal } from "dequal";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { tick } from "svelte";
@@ -12,7 +13,8 @@
 		Image as ImageIcon,
 		Maximize,
 		Minimize,
-		Clear
+		Clear,
+		Play
 	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
@@ -219,6 +221,39 @@
 			await document.exitFullscreen();
 		}
 	};
+
+	const captureThumbail = async (url: string): Promise<string> => {
+		return new Promise((resolve, reject) => {
+		const video = document.createElement('video');
+		video.crossOrigin = 'anonymous';
+
+		video.onloadedmetadata = () => {
+			video.currentTime = 1;
+		};
+
+		video.onseeked = () => {
+			const canvas = document.createElement('canvas');
+			canvas.width = video.videoWidth;
+			canvas.height = video.videoHeight;
+			
+			const ctx = canvas.getContext('2d');
+			if (ctx) {
+			ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+			const thumbnailDataUrl = canvas.toDataURL('image/jpeg');
+			resolve(thumbnailDataUrl);
+			} else {
+			reject(new Error('Failed to get canvas context'));
+			}
+		};
+
+		video.onerror = () => {
+			reject(new Error('Failed to load video'));
+		};
+
+		video.src = url;
+		video.load();
+		});
+	};
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -281,21 +316,34 @@
 					{/if}
 				</div>
 				<button
-					class="image-button"
-					on:click={(event) => handle_preview_click(event)}
+					class="media-button"
+					on:click={selected_image.image.mime_type?.includes("image") ? (event) => handle_preview_click(event): pass}
 					style="height: calc(100% - {selected_image.caption
 						? '80px'
 						: '60px'})"
 					aria-label="detailed view of selected image"
 				>
-					<Image
-						data-testid="detailed-image"
-						src={selected_image.image.url}
-						alt={selected_image.caption || ""}
-						title={selected_image.caption || null}
-						class={selected_image.caption && "with-caption"}
-						loading="lazy"
-					/>
+					{#if selected_image.image.mime_type?.includes("image")}
+						<Image
+							data-testid="detailed-image"
+							src={selected_image.image.url}
+							alt={selected_image.caption || ""}
+							title={selected_image.caption || null}
+							class={selected_image.caption && "with-caption"}
+							loading="lazy"
+						/>
+					{:else}
+						<Video
+							src={selected_image.image.url}
+							data-testid={"detailed-video"}
+							alt={selected_image.caption || ""}
+							loading="lazy"
+							loop={false}
+							is_stream={false}
+							muted={false}
+							controls={true}
+						/>
+					{/if}
 				</button>
 				{#if selected_image?.caption}
 					<caption class="caption">
@@ -318,6 +366,7 @@
 								" of " +
 								resolved_value.length}
 						>
+						{#if image.image.mime_type?.includes("image")}
 							<Image
 								src={image.image.url}
 								title={image.caption || null}
@@ -325,6 +374,16 @@
 								alt=""
 								loading="lazy"
 							/>
+						{:else}
+							<Play/>
+							<Image
+								src={captureThumbail((image.image.url !== undefined) ? image.image.url : "")}
+								title={image.caption || null}
+								data-testid={"thumbnail " + (i + 1)}
+								alt=""
+								loading="lazy"
+							/>
+						{/if}
 						</button>
 					{/each}
 				</div>
@@ -369,6 +428,7 @@
 						on:click={() => (selected_index = i)}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
+					{#if entry.image.mime_type?.includes("image")}
 						<Image
 							alt={entry.caption || ""}
 							src={typeof entry.image === "string"
@@ -381,6 +441,16 @@
 								{entry.caption}
 							</div>
 						{/if}
+					{:else}
+						<Play/>
+						<Image
+							src={captureThumbail((entry.image.url !== undefined) ? entry.image.url : "")}
+							title={entry.caption || null}
+							data-testid={"thumbnail " + (i + 1)}
+							alt=""
+							loading="lazy"
+						/>
+					{/if}
 					</button>
 				{/each}
 			</div>
@@ -440,12 +510,12 @@
 		}
 	}
 
-	.image-button {
+	.media-button {
 		height: calc(100% - 60px);
 		width: 100%;
 		display: flex;
 	}
-	.image-button :global(img) {
+	.media-button :global(img), .media-button :global(video){
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
@@ -454,6 +524,14 @@
 		object-fit: cover;
 		width: var(--size-full);
 		height: var(--size-full);
+	}
+	.thumbnails :global(svg) {
+		position: absolute;
+		top: var(--size-2);
+		left: var(--size-2);
+		width: 50%;
+		height: 50%;
+		opacity: 50%;
 	}
 	.preview :global(img.with-caption) {
 		height: var(--size-full);
@@ -514,6 +592,16 @@
 	.thumbnail-item.selected {
 		--ring-color: var(--color-accent);
 		border-color: var(--color-accent);
+	}
+
+	.thumbnail-item :global(svg) {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 50%;
+		height: 50%;
+		opacity: 50%;
+		transform: translate(-50%, -50%);
 	}
 
 	.thumbnail-small {
