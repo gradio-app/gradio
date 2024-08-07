@@ -211,14 +211,14 @@ class TestLoadInterface:
             pass
 
     def test_image_classification_model(self):
-        io = gr.load(name="models/google/vit-base-patch16-224")
+        io = gr.load(name="models/google/vit-base-patch16-224", hf_token=False)
         try:
             assert io("gradio/test_data/lion.jpg")["label"].startswith("lion")
         except TooManyRequestsError:
             pass
 
     def test_translation_model(self):
-        io = gr.load(name="models/t5-base")
+        io = gr.load(name="models/t5-base", hf_token=False)
         try:
             output = io("My name is Sarah and I live in London")
             assert output == "Mein Name ist Sarah und ich lebe in London"
@@ -238,7 +238,7 @@ class TestLoadInterface:
             pass
 
     def test_visual_question_answering(self):
-        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa")
+        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa", hf_token=False)
         try:
             output = io("gradio/test_data/lion.jpg", "What is in the image?")
             assert isinstance(output, dict) and "label" in output
@@ -246,7 +246,7 @@ class TestLoadInterface:
             pass
 
     def test_image_to_text(self):
-        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning")
+        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning", hf_token=False)
         try:
             output = io("gradio/test_data/lion.jpg")
             assert isinstance(output, str)
@@ -255,7 +255,7 @@ class TestLoadInterface:
 
     def test_conversational_in_blocks(self):
         with gr.Blocks() as io:
-            gr.load("models/microsoft/DialoGPT-medium")
+            gr.load("models/microsoft/DialoGPT-medium", hf_token=False)
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post(
@@ -268,7 +268,7 @@ class TestLoadInterface:
         assert "foo" in app.state_holder  # type: ignore
 
     def test_speech_recognition_model(self):
-        io = gr.load("models/facebook/wav2vec2-base-960h")
+        io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=False)
         try:
             output = io("gradio/test_data/test_audio.wav")
             assert output is not None
@@ -371,6 +371,7 @@ class TestLoadInterfaceWithExamples:
                 name="models/google/vit-base-patch16-224",
                 examples=[Path(test_file_dir, "cheetah1.jpg")],
                 cache_examples=True,
+                hf_token=False,
             )
 
     def test_proxy_url(self):
