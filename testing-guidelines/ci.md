@@ -25,7 +25,7 @@ We check to see which source files have changed and run the necessary checks. A 
 
 - **Python checks** - whenever Python source, dependencies or config change.
 - **Javascript checks** - whenever JavaScript source, dependencies or config change.
-- **functional and visual checks** - whenever any sopurce of config changes (most of the time).
+- **functional and visual checks** - whenever any source of config changes (most of the time).
 - **repo hygiene checks** - always.
 
 Checks almost always run when the CI config has changed.
@@ -40,21 +40,22 @@ All tests have a name of something like `test-<type>-<os>-<stability-level>`. `o
 
 This is a simple breakdown of our current quality checks:
 
-| Language   | Check           | operating system | Workflow file            | Notes                                        |
-| ---------- | --------------- | ---------------- | ------------------------ | -------------------------------------------- |
-| Python     | Linting         | linux            | `test-python.yml`        |                                              |
-| Python     | Formatting      | linux            | `test-python.yml`        |                                              |
-| Python     | Type-checking   | linux            | `test-python.yml`        |                                              |
-| Python     | Unit tests      | linux            | `test-python.yml`        |                                              |
-| Python     | Unit tests      | windows          | `test-python.yml`        |                                              |
-| JavaScript | Linting         | linux            | `test-js.yml`            |                                              |
-| JavaScript | Formatting      | linux            | `test-js.yml`            |                                              |
-| JavaScript | Type-checking   | linux            | `test-js.yml`            |                                              |
-| JavaScript | Unit tests      | linux            | `test-js.yml`            |                                              |
-| n/a        | Functional      | linux            | `test-functional/yml`    |                                              |
-| n/a        | Visual          | linux            | `deploy+test-visual/yml` |                                              |
-| n/a        | Large files     | linux            | `test-hygiene.yml`       | Checks that all files are below 5 MB         |
-| n/a        | Notebooks match | linux            | `test-hygiene.yml`       | Ensures that notebooks and demos are in sync |
+| Language   | Check           | operating system | Workflow file              | Notes                                        |
+| ---------- | --------------- | ---------------- | -------------------------- | -------------------------------------------- |
+| Python     | Linting         | linux            | `test-python.yml`          |                                              |
+| Python     | Formatting      | linux            | `test-python.yml`          |                                              |
+| Python     | Type-checking   | linux            | `test-python.yml`          |                                              |
+| Python     | Unit tests      | linux            | `test-python.yml`          |                                              |
+| Python     | Unit tests      | windows          | `test-python.yml`          |                                              |
+| JavaScript | Linting         | linux            | `test-js.yml`              |                                              |
+| JavaScript | Formatting      | linux            | `test-js.yml`              |                                              |
+| JavaScript | Type-checking   | linux            | `test-js.yml`              |                                              |
+| JavaScript | Unit tests      | linux            | `test-js.yml`              |                                              |
+| n/a        | Functional      | linux            | `test-functional.yml`      |                                              |
+| n/a        | Functional Lite | linux            | `test-functional-lite.yml` |                                              |
+| n/a        | Visual          | linux            | `deploy+test-visual/yml`   |                                              |
+| n/a        | Large files     | linux            | `test-hygiene.yml`         | Checks that all files are below 5 MB         |
+| n/a        | Notebooks match | linux            | `test-hygiene.yml`         | Ensures that notebooks and demos are in sync |
 
 One important thing to note is that we split 'flaky' and 'non-flaky' Python unit/integration tests out.
 These tests are flaky because of network requests that they make. They are typically fine, but anything that can cause a red check in PRs makes us less trustworthy of our CI and confidence is the goal!
@@ -369,7 +370,11 @@ For the reasons described above, we chose to use `workflow_run` _heavily_ for th
 - This event runs in the context of main, it doesn't offer any of the conveniences that `push` and `pull_request` events give you, it knows very very little about the workflow run even that triggered it. It _does not_ inherit the triggering workflow's context. This is a huge problem.
 - This workflow kind of runs in the void. It is run in the context of the default branch and so maintains references to that branch, however, it isn't really 'attached' to a commit or ref in any meaningful way and the status of the run (the 'check') is not added to any commits anywhere.
 
-Both of these problems were eventually solve by using the GitHub API in combination with the information we get from the workflow event's context. Getting the commit reference of the pull request that triggered the workflow is the main challenge, when we have that, creating statuses on commits is trivial.
+Both of these problems were eventually solved by using the GitHub API in combination with the information we get from the workflow event's context. Getting the commit reference of the pull request that triggered the workflow is the main challenge, when we have that, creating statuses on commits is trivial.
+
+In addition to this we actually have a fresh security problem when we start running workflows in the context of the default branch. These kinds of runs are 'privileged' and have full access to all secrets, while we have never intentionally expossed any screts to user code, it is possible using some rather esoteric approaches to get them. With this in mind we have to be careful that we do not running user code in these privileged workflows.
+
+Examples of user code can obviously be scripts that live in the contributed branch that we directly call , but also anythinbg that can run some kind of hook or executes code indirectly. For example, the vite config that is used to build the frontend will execute any code in the `vite.config.js` file upon importing it. Python builds can execute various build hooks or plugins, package install can run pre or postinstall hooks, and so on. There are many examples of this.
 
 ##### What branch am I even in?
 
@@ -430,3 +435,9 @@ To solve this particular problem we _always_ trigger our workflows but don't alw
 - If it does run, the workflow does its thing and then updates the commit status to `success` or `failure` depending on the outcome.
 
 We use a composite action to colocate the change detection logic and reuse that across workflows. We use a custom JavaScript action to create the commit statuses, again for easier reuse.
+
+##### A note on security
+
+We have a few security concerns as mentioned above. The solution to this, for the most part, is to only checkout and run user code in unprivileged workflows. Practically speaking this means that we should only run user code in workflows that are triggered by a `pull_request` event. For certain tasks we actually need to build a users code in order to do something privileged, so we build in `pull_request` and save the artifacts which are later reused in the `workflow_run` workflow. In these workflows we do not checkout any code at all in most cases, we only checkout the artifacts we saved in the `pull_request` workflow. The one exception to this is the visual tests which require the git history in order to correctly figure out what has changed.
+
+As a further hardening step, all repository secrets are created inside a github environment and the default `GITHUB_TOKEN` is set to read-only permissions. This means that any workflow that requires secrets to run has to opt into them by setting the correct environment. This achieves two things, making a job pirivileged becomes an intentional step rather than a default, and workflows only have access to secrets that they need to run, minimising damage if one workflow becomes vulnerable.
