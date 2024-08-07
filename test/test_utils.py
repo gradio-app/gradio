@@ -306,7 +306,7 @@ class TestGetTypeHints:
         assert len(get_type_hints(GenericObject())) == 0
 
     def test_is_special_typed_parameter(self):
-        def func(a: list[str], b: Literal["a", "b"], c, d: Request):
+        def func(a: list[str], b: Literal["a", "b"], c, d: Request, e: Request | None):
             pass
 
         hints = get_type_hints(func)
@@ -314,6 +314,7 @@ class TestGetTypeHints:
         assert not is_special_typed_parameter("b", hints)
         assert not is_special_typed_parameter("c", hints)
         assert is_special_typed_parameter("d", hints)
+        assert is_special_typed_parameter("e", hints)
 
     def test_is_special_typed_parameter_with_pipe(self):
         def func(a: Request, b: str | int, c: list[str]):
@@ -501,6 +502,11 @@ class TestFunctionParams:
             pass
 
         assert get_function_params(func) == [("a", False, None), ("b", True, 10)]
+
+        def func2(a, r: Request | None = None, b="abc"):
+            pass
+
+        assert get_function_params(func2) == [("a", False, None), ("b", True, "abc")]
 
     def test_class_method_skip_first_param(self):
         class MyClass:
