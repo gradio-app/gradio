@@ -69,4 +69,4 @@ class TestFileExplorer:
         file_explorer = gr.FileExplorer(glob="*.txt", root_dir=Path(tmpdir))
 
         with pytest.raises(InvalidPathError):
-            file_explorer.preprocess(FileExplorerData(root=[["../file.txt"]]))
+            file_explorer.ls(["../file.txt"])
