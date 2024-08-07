@@ -107,7 +107,9 @@ def from_model(
     api_url = f"https://api-inference.huggingface.co/models/{model_name}"
     print(f"Fetching model from: {model_url}")
 
-    headers = {} if hf_token in [False, None] else {"Authorization": f"Bearer {hf_token}"}
+    headers = (
+        {} if hf_token in [False, None] else {"Authorization": f"Bearer {hf_token}"}
+    )
     response = httpx.request("GET", api_url, headers=headers)
     if response.status_code != 200:
         raise ModelNotFoundError(
@@ -398,7 +400,7 @@ def from_spaces(
     print(f"Fetching Space from: {space_url}")
 
     headers = {}
-    if hf_token is not None:
+    if hf_token not in [None, False]:
         headers["Authorization"] = f"Bearer {hf_token}"
 
     iframe_url = (
