@@ -38,6 +38,7 @@ jobs:
   comment-deploy-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
+    if: github.event.workflow_run.conclusion == 'success' && needs.changes.outputs.should_run == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
@@ -48,7 +49,7 @@ jobs:
     name: "website-deploy"
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.should_run == 'true'
+    if: github.event.workflow_run.conclusion == 'success' && (needs.changes.outputs.should_run == 'true' || github.event.workflow_run.event == 'push')
     permissions:
       actions: read
     outputs:
@@ -115,7 +116,7 @@ jobs:
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: needs.deploy.result == 'success' && needs.changes.outputs.pr_number != 'false'
+    if: github.event.workflow_run.conclusion == 'success' && needs.deploy.result == 'success' && needs.changes.outputs.pr_number != 'false'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
@@ -124,7 +125,7 @@ jobs:
   comment-deploy-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: always() && needs.deploy.result == 'failure' && needs.changes.outputs.pr_number != 'false'
+    if: always() && github.event.workflow_run.conclusion == 'success' && needs.deploy.result == 'failure' && needs.changes.outputs.pr_number != 'false'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
