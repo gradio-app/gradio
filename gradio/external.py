@@ -100,7 +100,9 @@ def load_blocks_from_repo(
     return blocks
 
 
-def from_model(model_name: str, hf_token: str | Literal[False] | None, alias: str | None, **kwargs):
+def from_model(
+    model_name: str, hf_token: str | Literal[False] | None, alias: str | None, **kwargs
+):
     model_url = f"https://huggingface.co/{model_name}"
     api_url = f"https://api-inference.huggingface.co/models/{model_name}"
     print(f"Fetching model from: {model_url}")
