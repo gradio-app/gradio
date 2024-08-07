@@ -372,7 +372,11 @@ def from_model(
     def query_huggingface_inference_endpoints(*data):
         if preprocess is not None:
             data = preprocess(*data)
-        data = fn(*data)  # type: ignore
+        try:
+            data = fn(*data)  # type: ignore
+        except huggingface_hub.utils.HfHubHTTPError as e:
+            if e.server_message and "429" in e.server_message:
+                raise TooManyRequestsError() from e
         if postprocess is not None:
             data = postprocess(data)  # type: ignore
         return data
