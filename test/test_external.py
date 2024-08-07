@@ -202,7 +202,7 @@ class TestLoadInterface:
         assert isinstance(io.output_components[0], gr.Textbox)
 
     def test_sentiment_model(self):
-        io = gr.load("models/distilbert-base-uncased-finetuned-sst-2-english")
+        io = gr.load("models/distilbert-base-uncased-finetuned-sst-2-english", hf_token=False)
         try:
             assert io("I am happy, I love you")["label"] == "POSITIVE"
         except TooManyRequestsError:
