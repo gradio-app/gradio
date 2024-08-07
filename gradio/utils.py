@@ -916,13 +916,18 @@ def get_type_hints(fn):
         for name, param in sig.parameters.items():
             if param.annotation is inspect.Parameter.empty:
                 continue
-            if param.annotation == "gr.OAuthProfile | None":
+            if param.annotation in ["gr.OAuthProfile | None", "None | gr.OAuthProfile"]:
                 # Special case: we want to inject the OAuthProfile value even on Python 3.9
                 type_hints[name] = Optional[OAuthProfile]
-            if param.annotation == "gr.OAuthToken | None":
+            if param.annotation == ["gr.OAuthToken | None", "None | gr.OAuthToken"]:
                 # Special case: we want to inject the OAuthToken value even on Python 3.9
                 type_hints[name] = Optional[OAuthToken]
-            if param.annotation in ["gr.Request | None", "Request | None"]:
+            if param.annotation in [
+                "gr.Request | None",
+                "Request | None",
+                "None | gr.Request",
+                "None | Request",
+            ]:
                 # Special case: we want to inject the Request value even on Python 3.9
                 type_hints[name] = Optional[Request]
             if "|" in str(param.annotation):
