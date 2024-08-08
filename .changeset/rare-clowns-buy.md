@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Fix trailing slash issues on website
+feat:Fix trailing slash link on docs
