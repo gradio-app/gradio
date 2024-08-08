@@ -725,6 +725,9 @@ class Events:
         doc="This listener is triggered when the user changes the value of the {{ component }}.",
     )
     click = EventListener("click", doc="Triggered when the {{ component }} is clicked.")
+    double_click = EventListener(
+        "double_click", doc="Triggered when the {{ component }} is double clicked."
+    )
     submit = EventListener(
         "submit",
         doc="This listener is triggered when the user presses the Enter key while the {{ component }} is focused.",
