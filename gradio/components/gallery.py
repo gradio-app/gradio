@@ -40,10 +40,12 @@ class GalleryImage(GradioModel):
     image: FileData
     caption: Optional[str] = None
 
+
 class GalleryVideo(GradioModel):
     video: FileData
     caption: Optional[str] = None
     subtitles: Optional[FileData] = None
+
 
 class GalleryData(GradioRootModel):
     root: List[GalleryImage | GalleryVideo]
@@ -234,7 +236,9 @@ class Gallery(Component):
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
             return GalleryImage(
-                image=FileData(path=file_path, url=url, orig_name=orig_name, mime_type=mime_type),
+                image=FileData(
+                    path=file_path, url=url, orig_name=orig_name, mime_type=mime_type
+                ),
                 caption=caption,
             )
 

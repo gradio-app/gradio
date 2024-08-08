@@ -77,7 +77,7 @@
 			{label}
 			max_file_size={gradio.max_file_size}
 			file_count={"multiple"}
-			file_types={["image"]}
+			file_types={["image", "video"]}
 			i18n={gradio.i18n}
 			upload={gradio.client.upload}
 			stream_handler={gradio.client.stream}
