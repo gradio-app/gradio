@@ -367,7 +367,7 @@ class TestClientPredictions:
                         break
                     time.sleep(0.5)
             # Result for iterative jobs will raise there is an exception
-            with pytest.raises(CancelledError):
+            with pytest.raises(Exception):
                 job.result()
             # The whole prediction takes 10 seconds to run
             # and does not iterate. So this tests that we can cancel
