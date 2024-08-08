@@ -258,14 +258,17 @@ class TestLoadInterface:
             gr.load("models/microsoft/DialoGPT-medium", hf_token=False)
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post(
-            "/api/predict/",
-            json={"session_hash": "foo", "data": ["Hi!"], "fn_index": 0},
-        )
-        output = response.json()
-        assert isinstance(output["data"], list)
-        assert isinstance(output["data"][0], str)
-        assert "foo" in app.state_holder  # type: ignore
+        try:
+            response = client.post(
+                "/api/predict/",
+                json={"session_hash": "foo", "data": ["Hi!"], "fn_index": 0},
+            )
+            output = response.json()
+            assert isinstance(output["data"], list)
+            assert isinstance(output["data"][0], str)
+            assert "foo" in app.state_holder  # type: ignore
+        except TooManyRequestsError:
+            pass
 
     def test_speech_recognition_model(self):
         io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=False)
@@ -367,12 +370,15 @@ class TestLoadInterfaceWithExamples:
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
-            gr.load(
-                name="models/google/vit-base-patch16-224",
-                examples=[Path(test_file_dir, "cheetah1.jpg")],
-                cache_examples=True,
-                hf_token=False,
-            )
+            try:
+                gr.load(
+                    name="models/google/vit-base-patch16-224",
+                    examples=[Path(test_file_dir, "cheetah1.jpg")],
+                    cache_examples=True,
+                    hf_token=False,
+                )
+            except TooManyRequestsError:
+                pass
 
     def test_proxy_url(self):
         demo = gr.load("spaces/gradio/test-loading-examplesv4-sse")
