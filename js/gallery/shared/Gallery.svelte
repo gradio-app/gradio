@@ -285,7 +285,10 @@
 							Icon={Download}
 							label={i18n("common.download")}
 							on:click={() => {
-								const image = "image" in selected_media ? selected_media?.image : selected_media?.video;
+								const image =
+									"image" in selected_media
+										? selected_media?.image
+										: selected_media?.video;
 								if (image == null) {
 									return;
 								}
@@ -325,7 +328,7 @@
 				</div>
 				<button
 					class="media-button"
-					on:click={'image' in selected_media
+					on:click={"image" in selected_media
 						? (event) => handle_preview_click(event)
 						: null}
 					style="height: calc(100% - {selected_media.caption
@@ -333,7 +336,7 @@
 						: '60px'})"
 					aria-label="detailed view of selected image"
 				>
-					{#if 'image' in selected_media}
+					{#if "image" in selected_media}
 						<Image
 							data-testid="detailed-image"
 							src={selected_media.image.url}
@@ -376,7 +379,7 @@
 								" of " +
 								resolved_value.length}
 						>
-							{#if 'image' in media}
+							{#if "image" in media}
 								<Image
 									src={media.image.url}
 									title={media.caption || null}

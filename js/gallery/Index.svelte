@@ -51,7 +51,6 @@
 
 	$: no_value = value === null ? true : value.length === 0;
 	$: selected_index, dispatch("prop_change", { selected_index });
-
 </script>
 
 <Block
