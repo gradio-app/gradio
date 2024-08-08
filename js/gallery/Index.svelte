@@ -3,15 +3,16 @@
 </script>
 
 <script lang="ts">
-	import type { GalleryImage, GalleryVideo } from "types";
+	import type { GalleryImage, GalleryVideo } from "./types";
 	import type { Gradio, ShareData, SelectData } from "@gradio/utils";
 	import { Block, UploadText } from "@gradio/atoms";
 	import Gallery from "./shared/Gallery.svelte";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { FileData } from "@gradio/client";
 	import { createEventDispatcher } from "svelte";
 	import { BaseFileUpload } from "@gradio/file";
+
+	type GalleryData = GalleryImage | GalleryVideo;
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
@@ -20,7 +21,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [GalleryImage | GalleryVideo] | null = null;
+	export let value: GalleryData[] | null = null;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -48,8 +49,9 @@
 
 	const dispatch = createEventDispatcher();
 
-	$: no_value = Array.isArray(value) ? value.length === 0 : !value;
+	$: no_value = value === null ? true : value.length === 0;
 	$: selected_index, dispatch("prop_change", { selected_index });
+
 </script>
 
 <Block

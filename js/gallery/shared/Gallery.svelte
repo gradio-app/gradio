@@ -7,7 +7,7 @@
 	import { dequal } from "dequal";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { tick } from "svelte";
-	import type { GalleryImage, GalleryVideo } from "types";
+	import type { GalleryImage, GalleryVideo } from "../types";
 
 	import {
 		Download,
@@ -22,11 +22,11 @@
 	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 
-	type GalleryData = [GalleryImage | GalleryVideo];
+	type GalleryData = GalleryImage | GalleryVideo;
 
 	export let show_label = true;
 	export let label: string;
-	export let value: GalleryData | null = null;
+	export let value: GalleryData[] | null = null;
 	export let columns: number | number[] | undefined = [2];
 	export let rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
@@ -56,7 +56,7 @@
 
 	$: was_reset = value == null || value.length === 0 ? true : was_reset;
 
-	let resolved_value: GalleryData | null = null;
+	let resolved_value: GalleryData[] | null = null;
 	$: resolved_value =
 		value == null
 			? null
@@ -71,9 +71,9 @@
 						return { image: data.image as FileData, caption: data.caption };
 					}
 					return {};
-				}) as GalleryData);
+				}) as GalleryData[]);
 
-	let prev_value: GalleryData | null = value;
+	let prev_value: GalleryData[] | null = value;
 	if (selected_index == null && preview && value?.length) {
 		selected_index = 0;
 	}
@@ -211,7 +211,7 @@
 		URL.revokeObjectURL(url);
 	}
 
-	$: selected_image =
+	$: selected_media =
 		selected_index != null && resolved_value != null
 			? resolved_value[selected_index]
 			: null;
@@ -273,7 +273,7 @@
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="gallery-container" bind:this={gallery_container}>
-		{#if selected_image && allow_preview}
+		{#if selected_media && allow_preview}
 			<button
 				on:keydown={on_keydown}
 				class="preview"
@@ -285,7 +285,7 @@
 							Icon={Download}
 							label={i18n("common.download")}
 							on:click={() => {
-								const image = selected_image?.image;
+								const image = "image" in selected_media ? selected_media?.image : selected_media?.video;
 								if (image == null) {
 									return;
 								}
@@ -325,28 +325,28 @@
 				</div>
 				<button
 					class="media-button"
-					on:click={selected_image.image.mime_type?.includes("image")
+					on:click={'image' in selected_media
 						? (event) => handle_preview_click(event)
-						: pass}
-					style="height: calc(100% - {selected_image.caption
+						: null}
+					style="height: calc(100% - {selected_media.caption
 						? '80px'
 						: '60px'})"
 					aria-label="detailed view of selected image"
 				>
-					{#if selected_image.image.mime_type?.includes("image")}
+					{#if 'image' in selected_media}
 						<Image
 							data-testid="detailed-image"
-							src={selected_image.image.url}
-							alt={selected_image.caption || ""}
-							title={selected_image.caption || null}
-							class={selected_image.caption && "with-caption"}
+							src={selected_media.image.url}
+							alt={selected_media.caption || ""}
+							title={selected_media.caption || null}
+							class={selected_media.caption && "with-caption"}
 							loading="lazy"
 						/>
 					{:else}
 						<Video
-							src={selected_image.image.url}
+							src={selected_media.video.url}
 							data-testid={"detailed-video"}
-							alt={selected_image.caption || ""}
+							alt={selected_media.caption || ""}
 							loading="lazy"
 							loop={false}
 							is_stream={false}
@@ -355,9 +355,9 @@
 						/>
 					{/if}
 				</button>
-				{#if selected_image?.caption}
+				{#if selected_media?.caption}
 					<caption class="caption">
-						{selected_image.caption}
+						{selected_media.caption}
 					</caption>
 				{/if}
 				<div
@@ -365,7 +365,7 @@
 					class="thumbnails scroll-hide"
 					data-testid="container_el"
 				>
-					{#each resolved_value as image, i}
+					{#each resolved_value as media, i}
 						<button
 							bind:this={el[i]}
 							on:click={() => (selected_index = i)}
@@ -376,10 +376,10 @@
 								" of " +
 								resolved_value.length}
 						>
-							{#if image.image.mime_type?.includes("image")}
+							{#if 'image' in media}
 								<Image
-									src={image.image.url}
-									title={image.caption || null}
+									src={media.image.url}
+									title={media.caption || null}
 									data-testid={"thumbnail " + (i + 1)}
 									alt=""
 									loading="lazy"
@@ -388,9 +388,9 @@
 								<Play />
 								<Image
 									src={captureThumbail(
-										image.image.url !== undefined ? image.image.url : ""
+										media.video.url !== undefined ? media.video.url : ""
 									)}
-									title={image.caption || null}
+									title={media.caption || null}
 									data-testid={"thumbnail " + (i + 1)}
 									alt=""
 									loading="lazy"
@@ -440,7 +440,7 @@
 						on:click={() => (selected_index = i)}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
-						{#if entry.image.mime_type?.includes("image")}
+						{#if "image" in entry}
 							<Image
 								alt={entry.caption || ""}
 								src={typeof entry.image === "string"
@@ -457,7 +457,7 @@
 							<Play />
 							<Image
 								src={captureThumbail(
-									entry.image.url !== undefined ? entry.image.url : ""
+									entry.video.url !== undefined ? entry.video.url : ""
 								)}
 								title={entry.caption || null}
 								data-testid={"thumbnail " + (i + 1)}

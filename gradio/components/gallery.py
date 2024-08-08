@@ -235,12 +235,20 @@ class Gallery(Component):
                 mime_type = client_utils.get_mimetype(file_path)
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
-            return GalleryImage(
-                image=FileData(
-                    path=file_path, url=url, orig_name=orig_name, mime_type=mime_type
-                ),
-                caption=caption,
-            )
+            if mime_type is not None and "video" in mime_type:
+                return GalleryVideo(
+                    video=FileData(
+                        path=file_path, url=url, orig_name=orig_name, mime_type=mime_type
+                    ),
+                    caption=caption,
+                )
+            else:
+                return GalleryImage(
+                    image=FileData(
+                        path=file_path, url=url, orig_name=orig_name, mime_type=mime_type
+                    ),
+                    caption=caption,
+                )
 
         if wasm_utils.IS_WASM:
             for img in value:
