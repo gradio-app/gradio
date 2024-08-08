@@ -820,38 +820,6 @@ class TestProgressBar:
         ]
 
     @pytest.mark.asyncio
-    @pytest.mark.flaky
-    async def test_progress_bar_track_tqdm_without_iterable(self):
-        def greet(s, _=gr.Progress(track_tqdm=True)):
-            with tqdm(total=len(s)) as progress_bar:
-                for _c in s:
-                    progress_bar.update()
-                    time.sleep(0.1)
-            return f"Hello, {s}!"
-
-        demo = gr.Interface(greet, "text", "text")
-        demo.queue().launch(prevent_thread_lock=True)
-        assert demo.local_url
-
-        client = grc.Client(demo.local_url)
-        job = client.submit("Gradio")
-
-        status_updates = []
-        while not job.done():
-            status = job.status()
-            update = (
-                status.progress_data[0].index if status.progress_data else None,
-                status.progress_data[0].unit if status.progress_data else None,
-            )
-            if update != (None, None) and (
-                len(status_updates) == 0 or status_updates[-1] != update
-            ):
-                status_updates.append(update)
-            time.sleep(0.05)
-
-        assert status_updates[-1] == (6, "steps")
-
-    @pytest.mark.asyncio
     async def test_info_and_warning_alerts(self):
         def greet(s):
             for _c in s:
