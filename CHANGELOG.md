@@ -1,5 +1,15 @@
 # gradio
 
+## 5.0.0-beta.0
+
+### Features
+
+- [#8978](https://github.com/gradio-app/gradio/pull/8978) [`fe9d1cb`](https://github.com/gradio-app/gradio/commit/fe9d1cb0870a5b07d51e8cb05401af47efbacd13) - Improve url downloads for file objects.  Thanks @aliabid94!
+- [#8810](https://github.com/gradio-app/gradio/pull/8810) [`4cf8af9`](https://github.com/gradio-app/gradio/commit/4cf8af9407a44ee914e0be567da38b29f00eff8e) - Prevent invalid values from being submitted to dropdown, etc.  Thanks @abidlabs!
+- [#8959](https://github.com/gradio-app/gradio/pull/8959) [`a0aac66`](https://github.com/gradio-app/gradio/commit/a0aac6694076529ff925ccd34b3503d35e86cb49) - Adds `strict_cors` parameter to `launch()`.  Thanks @abidlabs!
+- [#8797](https://github.com/gradio-app/gradio/pull/8797) [`6e6818c`](https://github.com/gradio-app/gradio/commit/6e6818c3af836051fffdd070a9e33889b246186e) - Deprecate for 5.0.  Thanks @abidlabs!
+- [#8884](https://github.com/gradio-app/gradio/pull/8884) [`3408dba`](https://github.com/gradio-app/gradio/commit/3408dba7560a17371be679d0f01564a5606dc90b) - replace ip addresses with machine-specific hashes.  Thanks @abidlabs!
+
 ## 4.41.0
 
 ### Features
