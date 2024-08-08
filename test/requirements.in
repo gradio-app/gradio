@@ -13,6 +13,7 @@ pydantic[email]
 pytest
 pytest-asyncio
 pytest-cov
+pytest-rerunfailures
 ruff>=0.1.13
 respx
 scikit-image

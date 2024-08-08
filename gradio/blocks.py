@@ -1232,6 +1232,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("zerogpu", None)
                 dependency.pop("id", None)
                 dependency.pop("rendered_in", None)
+                dependency.pop("every", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
                 if is_then_event:

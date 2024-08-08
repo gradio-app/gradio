@@ -101,7 +101,7 @@ class EndpointV3Compatibility:
                     headers=self.client.headers,
                     json=data,
                     verify=self.client.ssl_verify,
-                    auth=self.client.httpx_auth,
+                    **self.client.httpx_kwargs,
                 )
                 result = json.loads(response.content.decode("utf-8"))
             try:
@@ -155,7 +155,7 @@ class EndpointV3Compatibility:
             headers=self.client.headers,
             files=files,
             verify=self.client.ssl_verify,
-            auth=self.client.httpx_auth,
+            **self.client.httpx_kwargs,
         )
         if r.status_code != 200:
             uploaded = file_paths
