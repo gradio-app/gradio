@@ -3,28 +3,30 @@
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
+	import { Video } from "@gradio/video/shared";
 	import { dequal } from "dequal";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { tick } from "svelte";
+	import type { GalleryImage, GalleryVideo } from "../types";
 
 	import {
 		Download,
 		Image as ImageIcon,
 		Maximize,
 		Minimize,
-		Clear
+		Clear,
+		Play
 	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 
-	type GalleryImage = { image: FileData; caption: string | null };
-	type GalleryData = GalleryImage[];
+	type GalleryData = GalleryImage | GalleryVideo;
 
 	export let show_label = true;
 	export let label: string;
-	export let value: GalleryData | null = null;
+	export let value: GalleryData[] | null = null;
 	export let columns: number | number[] | undefined = [2];
 	export let rows: number | number[] | undefined = undefined;
 	export let height: number | "auto" = "auto";
@@ -54,16 +56,24 @@
 
 	$: was_reset = value == null || value.length === 0 ? true : was_reset;
 
-	let resolved_value: GalleryData | null = null;
+	let resolved_value: GalleryData[] | null = null;
 	$: resolved_value =
 		value == null
 			? null
-			: value.map((data) => ({
-					image: data.image as FileData,
-					caption: data.caption
-				}));
+			: (value.map((data) => {
+					if ("video" in data) {
+						return {
+							video: data.video as FileData,
+							caption: data.caption,
+							subtitles: data.subtitles
+						};
+					} else if ("image" in data) {
+						return { image: data.image as FileData, caption: data.caption };
+					}
+					return {};
+				}) as GalleryData[]);
 
-	let prev_value: GalleryData | null = value;
+	let prev_value: GalleryData[] | null = value;
 	if (selected_index == null && preview && value?.length) {
 		selected_index = 0;
 	}
@@ -201,7 +211,7 @@
 		URL.revokeObjectURL(url);
 	}
 
-	$: selected_image =
+	$: selected_media =
 		selected_index != null && resolved_value != null
 			? resolved_value[selected_index]
 			: null;
@@ -219,6 +229,39 @@
 			await document.exitFullscreen();
 		}
 	};
+
+	const captureThumbail = async (url: string): Promise<string> => {
+		return new Promise((resolve, reject) => {
+			const video = document.createElement("video");
+			video.crossOrigin = "anonymous";
+
+			video.onloadedmetadata = () => {
+				video.currentTime = 1;
+			};
+
+			video.onseeked = () => {
+				const canvas = document.createElement("canvas");
+				canvas.width = video.videoWidth;
+				canvas.height = video.videoHeight;
+
+				const ctx = canvas.getContext("2d");
+				if (ctx) {
+					ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+					const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
+					resolve(thumbnailDataUrl);
+				} else {
+					reject(new Error("Failed to get canvas context"));
+				}
+			};
+
+			video.onerror = () => {
+				reject(new Error("Failed to load video"));
+			};
+
+			video.src = url;
+			video.load();
+		});
+	};
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -230,7 +273,7 @@
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="gallery-container" bind:this={gallery_container}>
-		{#if selected_image && allow_preview}
+		{#if selected_media && allow_preview}
 			<button
 				on:keydown={on_keydown}
 				class="preview"
@@ -242,7 +285,10 @@
 							Icon={Download}
 							label={i18n("common.download")}
 							on:click={() => {
-								const image = selected_image?.image;
+								const image =
+									"image" in selected_media
+										? selected_media?.image
+										: selected_media?.video;
 								if (image == null) {
 									return;
 								}
@@ -281,25 +327,40 @@
 					{/if}
 				</div>
 				<button
-					class="image-button"
-					on:click={(event) => handle_preview_click(event)}
-					style="height: calc(100% - {selected_image.caption
+					class="media-button"
+					on:click={"image" in selected_media
+						? (event) => handle_preview_click(event)
+						: null}
+					style="height: calc(100% - {selected_media.caption
 						? '80px'
 						: '60px'})"
 					aria-label="detailed view of selected image"
 				>
-					<Image
-						data-testid="detailed-image"
-						src={selected_image.image.url}
-						alt={selected_image.caption || ""}
-						title={selected_image.caption || null}
-						class={selected_image.caption && "with-caption"}
-						loading="lazy"
-					/>
+					{#if "image" in selected_media}
+						<Image
+							data-testid="detailed-image"
+							src={selected_media.image.url}
+							alt={selected_media.caption || ""}
+							title={selected_media.caption || null}
+							class={selected_media.caption && "with-caption"}
+							loading="lazy"
+						/>
+					{:else}
+						<Video
+							src={selected_media.video.url}
+							data-testid={"detailed-video"}
+							alt={selected_media.caption || ""}
+							loading="lazy"
+							loop={false}
+							is_stream={false}
+							muted={false}
+							controls={true}
+						/>
+					{/if}
 				</button>
-				{#if selected_image?.caption}
+				{#if selected_media?.caption}
 					<caption class="caption">
-						{selected_image.caption}
+						{selected_media.caption}
 					</caption>
 				{/if}
 				<div
@@ -307,7 +368,7 @@
 					class="thumbnails scroll-hide"
 					data-testid="container_el"
 				>
-					{#each resolved_value as image, i}
+					{#each resolved_value as media, i}
 						<button
 							bind:this={el[i]}
 							on:click={() => (selected_index = i)}
@@ -318,13 +379,26 @@
 								" of " +
 								resolved_value.length}
 						>
-							<Image
-								src={image.image.url}
-								title={image.caption || null}
-								data-testid={"thumbnail " + (i + 1)}
-								alt=""
-								loading="lazy"
-							/>
+							{#if "image" in media}
+								<Image
+									src={media.image.url}
+									title={media.caption || null}
+									data-testid={"thumbnail " + (i + 1)}
+									alt=""
+									loading="lazy"
+								/>
+							{:else}
+								<Play />
+								<Image
+									src={captureThumbail(
+										media.video.url !== undefined ? media.video.url : ""
+									)}
+									title={media.caption || null}
+									data-testid={"thumbnail " + (i + 1)}
+									alt=""
+									loading="lazy"
+								/>
+							{/if}
 						</button>
 					{/each}
 				</div>
@@ -369,17 +443,30 @@
 						on:click={() => (selected_index = i)}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
-						<Image
-							alt={entry.caption || ""}
-							src={typeof entry.image === "string"
-								? entry.image
-								: entry.image.url}
-							loading="lazy"
-						/>
-						{#if entry.caption}
-							<div class="caption-label">
-								{entry.caption}
-							</div>
+						{#if "image" in entry}
+							<Image
+								alt={entry.caption || ""}
+								src={typeof entry.image === "string"
+									? entry.image
+									: entry.image.url}
+								loading="lazy"
+							/>
+							{#if entry.caption}
+								<div class="caption-label">
+									{entry.caption}
+								</div>
+							{/if}
+						{:else}
+							<Play />
+							<Image
+								src={captureThumbail(
+									entry.video.url !== undefined ? entry.video.url : ""
+								)}
+								title={entry.caption || null}
+								data-testid={"thumbnail " + (i + 1)}
+								alt=""
+								loading="lazy"
+							/>
 						{/if}
 					</button>
 				{/each}
@@ -440,12 +527,13 @@
 		}
 	}
 
-	.image-button {
+	.media-button {
 		height: calc(100% - 60px);
 		width: 100%;
 		display: flex;
 	}
-	.image-button :global(img) {
+	.media-button :global(img),
+	.media-button :global(video) {
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
@@ -454,6 +542,14 @@
 		object-fit: cover;
 		width: var(--size-full);
 		height: var(--size-full);
+	}
+	.thumbnails :global(svg) {
+		position: absolute;
+		top: var(--size-2);
+		left: var(--size-2);
+		width: 50%;
+		height: 50%;
+		opacity: 50%;
 	}
 	.preview :global(img.with-caption) {
 		height: var(--size-full);
@@ -514,6 +610,16 @@
 	.thumbnail-item.selected {
 		--ring-color: var(--color-accent);
 		border-color: var(--color-accent);
+	}
+
+	.thumbnail-item :global(svg) {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 50%;
+		height: 50%;
+		opacity: 50%;
+		transform: translate(-50%, -50%);
 	}
 
 	.thumbnail-small {

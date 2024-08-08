@@ -87,6 +87,14 @@
 				caption: "A fast cheetah"
 			},
 			{
+				video: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/world.mp4",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/world.mp4",
+					orig_name: "world.mp4"
+				},
+				caption: "The world"
+			},
+			{
 				image: {
 					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
 					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
