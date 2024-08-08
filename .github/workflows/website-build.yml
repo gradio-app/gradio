@@ -1,43 +1,56 @@
 name: "website-build"
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - 5.0-dev
+  workflow_run:
+    workflows: ["docs-deploy"]
+    types:
+      - completed
 
 env:
   CI: true
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
   NODE_OPTIONS: "--max-old-space-size=4096"
 
-concurrency:
-  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
-  cancel-in-progress: true
-
 jobs:
   changes:
+    if: github.event.workflow_run.conclusion == 'success'
     name: "changes"
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
     outputs:
-      should_run: ${{ steps.changes.outputs.should_run }}
-      sha: ${{ steps.changes.outputs.sha }}
-      gradio_version: ${{ steps.changes.outputs.gradio_version }}
+      should_run: ${{ steps.json.outputs.should_run }}
+      sha: ${{ steps.json.outputs.sha }}
+      pr_number: ${{ steps.json.outputs.pr_number }}
+      source_branch: ${{ steps.json.outputs.source_branch }}
+      source_repo: ${{ steps.json.outputs.source_repo }}
+      labels: ${{ steps.json.outputs.labels }}
+      run_id: ${{ steps.json.outputs.run_id }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: "gradio-app/gradio/.github/actions/changes@main"
-        id: changes
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
-          filter: "website"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: changes
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - uses: gradio-app/github/actions/json-to-output@main
+        id: json
+        with:
+          path: output.json
+      - uses: actions/upload-artifact@v4
+        with:
+          path: output.json
+          name: changes
   build:
     name: "website-build"
     runs-on: ubuntu-22.04
     needs: changes
-    if: needs.changes.outputs.should_run == 'true' || (github.ref_name == 'main' && github.repository == 'gradio-app/gradio')
+    if: needs.changes.outputs.should_run == 'true' || (endsWith(needs.changes.outputs.source_branch, 'main') && github.repository == 'gradio-app/gradio')
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changes.outputs.source_branch }}
+          repository: ${{ needs.changes.outputs.source_repo }}
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
@@ -54,14 +67,3 @@ jobs:
         with:
           name: website
           path: js/_website/.vercel
-
-      - name: upload website json artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: website-json
-          path: js/_website/src/lib/json
-      - name: upload website json templates
-        uses: actions/upload-artifact@v4
-        with:
-          name: website-templates
-          path: js/_website/src/lib/templates

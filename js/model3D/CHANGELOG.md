@@ -1,5 +1,19 @@
 # @gradio/model3d
 
+## 0.12.0
+
+### Features
+
+- [#8975](https://github.com/gradio-app/gradio/pull/8975) [`3feea64`](https://github.com/gradio-app/gradio/commit/3feea64a65688d710184604bb44636d513bcc36a) - Prevent overflow in Model3D.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.9
+- @gradio/statustracker@0.7.4
+- @gradio/client@1.5.0
+- @gradio/icons@0.7.0
+- @gradio/upload@0.12.2
+
 ## 0.11.2
 
 ### Dependency updates

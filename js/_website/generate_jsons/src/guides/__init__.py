@@ -18,7 +18,7 @@ for demo_folder in os.listdir(DEMOS_DIR):
     with open(runfile) as run_py:
         demos[demo_folder] = run_py.read().replace(
             'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
-        )
+        ).replace("# type: ignore", "")
 
 
 def format_name(guide_name):
