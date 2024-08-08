@@ -61,7 +61,13 @@
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
-	export let status: "complete" | "pending" | "error" | "generating" | null;
+	export let status:
+		| "complete"
+		| "pending"
+		| "error"
+		| "generating"
+		| "streaming"
+		| null;
 	export let scroll_to_output = false;
 	export let timer = true;
 	export let show_progress: "full" | "minimal" | "hidden" = "full";

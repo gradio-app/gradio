@@ -56,6 +56,7 @@ export class Client {
 	heartbeat_event: EventSource | null = null;
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
+	current_payload: any;
 
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const headers = new Headers(init?.headers || {});
@@ -130,7 +131,7 @@ export class Client {
 		}
 
 		this.options = options;
-
+		this.current_payload = {};
 		this.view_api = view_api.bind(this);
 		this.upload_files = upload_files.bind(this);
 		this.handle_blob = handle_blob.bind(this);
@@ -220,6 +221,10 @@ export class Client {
 
 	close(): void {
 		close_stream(this.stream_status, this.abort_controller);
+	}
+
+	set_current_payload(payload: any): void {
+		this.current_payload = payload;
 	}
 
 	static async duplicate(

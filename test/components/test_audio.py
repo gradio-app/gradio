@@ -72,6 +72,7 @@ class TestAudio:
             "_selectable": False,
             "key": None,
             "loop": False,
+            "stream_every": 0.5,
         }
         assert audio_input.preprocess(None) is None
 
@@ -129,6 +130,7 @@ class TestAudio:
             "_selectable": False,
             "key": None,
             "loop": False,
+            "stream_every": 0.5,
         }
 
         output1 = audio_output.postprocess(y_audio.name).model_dump()  # type: ignore

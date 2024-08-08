@@ -2,6 +2,7 @@
 	import { createEventDispatcher, onMount } from "svelte";
 	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { StreamingBar } from "@gradio/statustracker";
 	import { type FileData, type Client, prepare_files } from "@gradio/client";
 	import WebcamPermissions from "./WebcamPermissions.svelte";
 	import { fade } from "svelte/transition";
@@ -14,11 +15,23 @@
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
 	let selected_device: MediaDeviceInfo | null = null;
+	let interval_id = 0;
+	let stop_button: HTMLButtonElement;
+	let time_limit: number | null = null;
+
+	export const close_stream: () => void = () => {
+		time_limit = null;
+	};
+
+	export const set_time_limit = (time: number): void => {
+		time_limit = time;
+	};
 
 	let canvas: HTMLCanvasElement;
 	export let streaming = false;
 	export let pending = false;
 	export let root = "";
+	export let stream_every = 1;
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
@@ -32,6 +45,7 @@
 		error: string;
 		start_recording: undefined;
 		stop_recording: undefined;
+		close_stream: undefined;
 	}>();
 
 	onMount(() => (canvas = document.createElement("canvas")));
@@ -108,11 +122,15 @@
 				context.drawImage(video_source, -video_source.videoWidth, 0);
 			}
 
+			if (streaming && !recording) {
+				return;
+			}
+
 			canvas.toBlob(
 				(blob) => {
-					dispatch(streaming ? "stream" : "capture", blob);
+					dispatch("capture", blob);
 				},
-				"image/png",
+				`image/${streaming ? "jpeg" : "png"}`,
 				0.8
 			);
 		}
@@ -181,6 +199,7 @@
 			take_recording();
 		}
 		if (!recording && stream) {
+			dispatch("close_stream");
 			stream.getTracks().forEach((track) => track.stop());
 			video_source.srcObject = null;
 			webcam_accessed = false;
@@ -188,11 +207,11 @@
 	}
 
 	if (streaming && mode === "image") {
-		window.setInterval(() => {
+		interval_id = window.setInterval(() => {
 			if (video_source && !pending) {
 				take_picture();
 			}
-		}, 500);
+		}, stream_every * 1000);
 	}
 
 	let options_open = false;
@@ -224,6 +243,7 @@
 	}
 </script>
 
+<StreamingBar {time_limit} />
 <div class="wrap">
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
@@ -243,6 +263,7 @@
 	{:else}
 		<div class="button-wrap">
 			<button
+				bind:this={stop_button}
 				on:click={record_video_or_photo}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>

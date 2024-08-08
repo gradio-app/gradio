@@ -28,6 +28,8 @@ export function create_components(): {
 	targets: Writable<TargetMap>;
 	update_value: (updates: UpdateTransaction[]) => void;
 	get_data: (id: number) => any | Promise<any>;
+	close_stream: (id: number) => void;
+	set_time_limit: (id: number, time_limit: number | undefined) => void;
 	loading_status: ReturnType<typeof create_loading_status_store>;
 	scheduled_updates: Writable<boolean>;
 	create_layout: (args: {
@@ -81,6 +83,8 @@ export function create_components(): {
 			fill_height: boolean;
 		};
 	}): void {
+		// make sure the state is settled before proceeding
+		flush();
 		app = _app;
 		store_keyed_values(_components);
 
@@ -301,7 +305,6 @@ export function create_components(): {
 			}
 			return layout;
 		});
-
 		pending_updates = [];
 		update_scheduled = false;
 		update_scheduled_store.set(false);
@@ -329,11 +332,27 @@ export function create_components(): {
 		return comp.props.value;
 	}
 
+	function close_stream(id: number): void {
+		const comp = _component_map.get(id);
+		if (comp && comp.instance.close_stream) {
+			comp.instance.close_stream();
+		}
+	}
+
+	function set_time_limit(id: number, time_limit: number | undefined): void {
+		const comp = _component_map.get(id);
+		if (comp && comp.instance.set_time_limit) {
+			comp.instance.set_time_limit(time_limit);
+		}
+	}
+
 	return {
 		layout: layout_store,
 		targets: target_map,
 		update_value,
 		get_data,
+		close_stream,
+		set_time_limit,
 		loading_status,
 		scheduled_updates: update_scheduled_store,
 		create_layout: (...args) =>
