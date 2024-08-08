@@ -301,3 +301,17 @@ class TestAPI:
                 "robot ",
                 "robot h",
             ]
+
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_multimodal_api(self, type, connect):
+        def double_multimodal(msg, history):
+            return msg["text"] + " " + msg["text"]
+
+        chatbot = gr.ChatInterface(
+            double_multimodal,
+            type=type,
+            multimodal=True,
+        )
+        with connect(chatbot) as client:
+            result = client.predict({"text": "hello", "files": []}, api_name="/chat")
+            assert result == "hello hello"

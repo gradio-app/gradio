@@ -7,9 +7,10 @@ on:
   issue_comment:
     types: [edited]
 
+permissions: {}
+
 jobs:
   changeset:
-    permissions: write-all
     runs-on: ubuntu-22.04
     if: github.event.sender.login != 'gradio-pr-bot'
     steps:

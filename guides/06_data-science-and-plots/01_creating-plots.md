@@ -45,6 +45,23 @@ If your x-axis is a string type instead, they will act as the category bins auto
 $code_plot_guide_aggregate_nominal
 $demo_plot_guide_aggregate_nominal
 
+## Selecting Regions
+
+You can use the `.select` listener to select regions of a plot. Click and drag on the plot below to select part of the plot.
+
+$code_plot_guide_selection
+$demo_plot_guide_selection
+
+You can combine this and the `.double_click` listener to create some zoom in/out effects by changing `x_lim` which sets the bounds of the x-axis:
+
+$code_plot_guide_zoom
+$demo_plot_guide_zoom
+
+If you had multiple plots with the same x column, your event listeners could target the x limits of all other plots so that the x-axes stay in sync.
+
+$code_plot_guide_zoom_sync
+$demo_plot_guide_zoom_sync
+
 ## Making an Interactive Dashboard
 
 Take a look how you can have an interactive dashboard where the plots are functions of other Components.

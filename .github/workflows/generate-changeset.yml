@@ -13,10 +13,14 @@ concurrency:
   group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   get-pr:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      pull-requests: read
     if: github.event.workflow_run.conclusion == 'success'
     outputs:
       found_pr: ${{ steps.pr_details.outputs.found_pr }}
@@ -38,6 +42,8 @@ jobs:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
       message: changes~pending~null
   version:
+    permissions:
+      contents: read
     environment: changeset
     name: version
     needs: get-pr

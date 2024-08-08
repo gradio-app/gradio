@@ -1,5 +1,14 @@
 # @gradio/code
 
+## 0.8.2
+
+### Dependency updates
+
+- @gradio/atoms@0.7.9
+- @gradio/statustracker@0.7.4
+- @gradio/icons@0.7.0
+- @gradio/upload@0.12.2
+
 ## 0.8.1
 
 ### Fixes

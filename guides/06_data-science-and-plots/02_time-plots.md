@@ -18,7 +18,7 @@ $demo_plot_guide_aggregate_temporal
 
 ## DateTime Components
 
-You can use `gr.DateTime` to accept input datetime data. This works well with plots for defining the x-axis range for the data. The `x_lim` attribute sets the x-axis bounds.
+You can use `gr.DateTime` to accept input datetime data. This works well with plots for defining the x-axis range for the data.
 
 $code_plot_guide_datetime
 $demo_plot_guide_datetime
@@ -36,7 +36,7 @@ Try zooming around in the plots and see how DateTimeRange updates. All the plots
 
 ## RealTime Data
 
-In many cases, you're working with live, realtime date, not a static dataframe. In this case, you'd the plot to update regularly with a `gr.Timer()`. Assuming there's a `get_data` method that gets the latest dataframe:
+In many cases, you're working with live, realtime date, not a static dataframe. In this case, you'd update the plot regularly with a `gr.Timer()`. Assuming there's a `get_data` method that gets the latest dataframe:
 
 ```python
 with gr.Blocks() as demo:
@@ -47,7 +47,7 @@ with gr.Blocks() as demo:
     timer.tick(lambda: [get_data(), get_data()], outputs=[plot1, plot2])
 ```
 
-You can use the `every` shorthand to attach a `Timer` to a component that has a function value:
+You can also use the `every` shorthand to attach a `Timer` to a component that has a function value:
 
 ```python
 with gr.Blocks() as demo:

@@ -1,5 +1,25 @@
 # @gradio/chatbot
 
+## 0.12.4
+
+### Fixes
+
+- [#8847](https://github.com/gradio-app/gradio/pull/8847) [`4d8a473`](https://github.com/gradio-app/gradio/commit/4d8a473632e388a312aee5c705b3c1f79853441b) - Refactor Chatinterface to use Chatbot instead of gr.State variables.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.9
+- @gradio/statustracker@0.7.4
+- @gradio/client@1.5.0
+- @gradio/gallery@0.12.0
+- @gradio/icons@0.7.0
+- @gradio/upload@0.12.2
+- @gradio/markdown@0.9.2
+- @gradio/plot@0.6.3
+- @gradio/image@0.14.0
+- @gradio/audio@0.13.2
+- @gradio/video@0.10.2
+
 ## 0.12.3
 
 ### Dependency updates

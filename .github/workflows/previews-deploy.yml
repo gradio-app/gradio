@@ -41,7 +41,7 @@ jobs:
   comment-spaces-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
-    if: ${{github.event.workflow_run.conclusion == 'success' && needs.changes.outputs.should_run == 'true' }}
+    if: ${{ needs.changes.outputs.should_run == 'true' }}
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
@@ -150,7 +150,7 @@ jobs:
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: always() && github.event.workflow_run.conclusion == 'success' && needs.deploy.result == 'failure' && needs.changes.outputs.should_run == 'true'
+    if: always() &&  needs.deploy.result == 'failure' && needs.changes.outputs.should_run == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
