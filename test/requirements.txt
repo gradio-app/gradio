@@ -201,7 +201,7 @@ pillow==9.2.0
     #   imageio
     #   matplotlib
     #   scikit-image
-pluggy==1.0.0
+pluggy==1.5.0
     # via pytest
 polars==0.20.5
     # via -r requirements.in
