@@ -11,13 +11,16 @@ from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, server
-from gradio.data_classes import GradioRootModel
+from gradio.data_classes import DeveloperPath, GradioRootModel, UserProvidedPath
+from gradio.utils import safe_join
 
 if TYPE_CHECKING:
     from gradio.components import Timer
 
 
 class FileExplorerData(GradioRootModel):
+    # The outer list is the list of files selected, and the inner list
+    # is the path to the file as a list, split by the os.sep.
     root: List[List[str]]
 
 
@@ -85,7 +88,7 @@ class FileExplorer(Component):
             )
             root_dir = root
             self._constructor_args[0]["root_dir"] = root
-        self.root_dir = os.path.abspath(root_dir)
+        self.root_dir = DeveloperPath(os.path.abspath(root_dir))
         self.glob = glob
         self.ignore_glob = ignore_glob
         valid_file_count = ["single", "multiple"]
@@ -114,10 +117,10 @@ class FileExplorer(Component):
         )
 
     def example_payload(self) -> Any:
-        return [["Users", "gradio", "app.py"]]
+        return [["gradio", "app.py"]]
 
     def example_value(self) -> Any:
-        return ["Users", "gradio", "app.py"]
+        return os.sep.join(["gradio", "app.py"])
 
     def preprocess(self, payload: FileExplorerData | None) -> list[str] | str | None:
         """
@@ -137,14 +140,14 @@ class FileExplorer(Component):
             elif len(payload.root) == 0:
                 return None
             else:
-                return self._safe_join(payload.root[0])
+                return os.path.normpath(os.path.join(self.root_dir, *payload.root[0]))
         files = []
         for file in payload.root:
-            file_ = self._safe_join(file)
+            file_ = os.path.normpath(os.path.join(self.root_dir, *file))
             files.append(file_)
         return files
 
-    def _strip_root(self, path):
+    def _strip_root(self, path: str) -> str:
         if path.startswith(self.root_dir):
             return path[len(self.root_dir) + 1 :]
         return path
@@ -167,7 +170,7 @@ class FileExplorer(Component):
         return FileExplorerData(root=root)
 
     @server
-    def ls(self, subdirectory: list | None = None) -> list[dict[str, str]] | None:
+    def ls(self, subdirectory: list[str] | None = None) -> list[dict[str, str]] | None:
         """
         Returns:
             a list of dictionaries, where each dictionary represents a file or subdirectory in the given subdirectory
@@ -202,11 +205,9 @@ class FileExplorer(Component):
 
         return folders + files
 
-    def _safe_join(self, folders):
-        combined_path = os.path.join(self.root_dir, *folders)
-        absolute_path = os.path.abspath(combined_path)
-        if os.path.commonprefix([self.root_dir, absolute_path]) != os.path.abspath(
-            self.root_dir
-        ):
-            raise ValueError("Attempted to navigate outside of root directory")
-        return absolute_path
+    def _safe_join(self, folders: list[str]) -> str:
+        if not folders or len(folders) == 0:
+            return self.root_dir
+        combined_path = UserProvidedPath(os.path.join(*folders))
+        x = safe_join(self.root_dir, combined_path)
+        return x

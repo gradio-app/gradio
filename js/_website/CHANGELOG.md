@@ -1,5 +1,19 @@
 # website
 
+## 0.37.0
+
+### Features
+
+- [#8965](https://github.com/gradio-app/gradio/pull/8965) [`d30432e`](https://github.com/gradio-app/gradio/commit/d30432e9c6d4cc1e5cfd989a1a3ae4aba7e21290) - harden CI.  Thanks @pngwn!
+- [#9043](https://github.com/gradio-app/gradio/pull/9043) [`890bae3`](https://github.com/gradio-app/gradio/commit/890bae3942cc19f2b9040cfb6792adaa3cd478b0) - Filter out type ignore comments from demos on website.  Thanks @aliabd!
+- [#8857](https://github.com/gradio-app/gradio/pull/8857) [`6584aac`](https://github.com/gradio-app/gradio/commit/6584aace9866df582a6a3ff64dd045f1747aba42) - Website fixes for mobile.  Thanks @aliabd!
+- [#9067](https://github.com/gradio-app/gradio/pull/9067) [`f29aef4`](https://github.com/gradio-app/gradio/commit/f29aef4528ad93ab2cb1cf25bd5e3362bb562839) - Fix trailing slash link on docs.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.8.2
+- @gradio/paramviewer@0.4.20
+
 ## 0.36.0
 
 ### Features

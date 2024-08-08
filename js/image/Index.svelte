@@ -51,6 +51,7 @@
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
+	export let show_fullscreen_button: boolean;
 
 	export let gradio: Gradio<{
 		input: never;
@@ -114,6 +115,7 @@
 			selectable={_selectable}
 			{show_share_button}
 			i18n={gradio.i18n}
+			{show_fullscreen_button}
 		/>
 	</Block>
 {:else}

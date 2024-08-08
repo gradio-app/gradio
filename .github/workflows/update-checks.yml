@@ -1,0 +1,68 @@
+name: "update-checks"
+
+on:
+  workflow_run:
+    workflows: ["python", "js", "functional", "functional-lite"]
+    types:
+      - completed
+
+concurrency:
+  group: "${{ github.event.workflow_run.id}}"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    outputs:
+      should_run: ${{ steps.json.outputs.should_run }}
+      sha: ${{ steps.json.outputs.sha }}
+      pr_number: ${{ steps.json.outputs.pr_number }}
+      source_branch: ${{ steps.json.outputs.source_branch }}
+      source_repo: ${{ steps.json.outputs.source_repo }}
+      labels: ${{ steps.json.outputs.labels }}
+      run_id: ${{ steps.json.outputs.run_id }}
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: changes
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - uses: gradio-app/github/actions/json-to-output@main
+        id: json
+        with:
+          path: output.json
+  update-status:
+    permissions:
+      actions: read
+      statuses: write
+      contents: read
+    environment: commit_status
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.should_run == 'false'}}
+    steps:
+      - name: set js check name
+        if: github.event.workflow_run.name == 'js'
+        run: echo "CHECK_NAME=js / js-test (pull_request)" >> $GITHUB_ENV
+      - name: set python check name
+        if: github.event.workflow_run.name == 'python'
+        run: echo "CHECK_NAME=test-ubuntu-latest-not-flaky" >> $GITHUB_ENV
+      - name: set functional check name
+        if: github.event.workflow_run.name == 'functional'
+        run: echo "CHECK_NAME=functional / functional-test (pull_request)" >> $GITHUB_ENV
+      - name: set functional-lite check name
+        if: github.event.workflow_run.name == 'functional-lite'
+        run: echo "CHECK_NAME=functional-lite / functional-test-lite (pull_request)" >> $GITHUB_ENV
+      - name: update status
+        uses: gradio-app/github/actions/set-commit-status@main
+        with:
+          sha: ${{ needs.changes.outputs.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ env.CHECK_NAME }}
+          run_id: ${{ needs.changes.outputs.run_id }}

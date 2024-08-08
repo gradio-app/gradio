@@ -30,7 +30,7 @@ body:
       value: |
         ```python
         import gradio as gr
-        
+
         ```
     validations:
       required: true

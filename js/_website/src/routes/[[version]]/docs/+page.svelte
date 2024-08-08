@@ -56,7 +56,7 @@
 		<div
 			class="shadow-alternate hover:scale-[1.02] group group flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-br px-3 pb-4 pt-6 from-orange-100 via-orange-50 hover:shadow-alternate to-white shadow-none transition-shadow"
 		>
-			<a class="mt-auto mb-2 flex-grow" href="./docs/gradio/" target="_self">
+			<a class="mt-auto mb-2 flex-grow" href="./docs/gradio" target="_self">
 				<div class="text-lg">
 					<p class="font-semibold">Gradio</p>
 				</div>
@@ -145,7 +145,7 @@
 		</a>
 
 		<a
-			href="/main/docs/third-party-clients"
+			href="./docs/third-party-clients"
 			target="_self"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
 				.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"

@@ -9,7 +9,7 @@ import re
 import tempfile
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Literal
 
 import httpx
 import huggingface_hub
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 def load(
     name: str,
     src: str | None = None,
-    hf_token: str | None = None,
+    hf_token: str | Literal[False] | None = None,
     alias: str | None = None,
     **kwargs,
 ) -> Blocks:
@@ -48,7 +48,7 @@ def load(
     Parameters:
         name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
         src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-        hf_token: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens.  Warning: only provide this if you are loading a trusted private Space as it can be read by the Space you are loading.
+        hf_token: optional access token for loading private Hugging Face Hub models or spaces. Will default to the locally saved token if not provided. Pass `token=False` if you don't want to send your token to the server. Find your token here: https://huggingface.co/settings/tokens.  Warning: only provide a token if you are loading a trusted private Space as it can be read by the Space you are loading.
         alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
     Returns:
         a Gradio Blocks object for the given model
@@ -65,7 +65,7 @@ def load(
 def load_blocks_from_repo(
     name: str,
     src: str | None = None,
-    hf_token: str | None = None,
+    hf_token: str | Literal[False] | None = None,
     alias: str | None = None,
     **kwargs,
 ) -> Blocks:
@@ -89,7 +89,7 @@ def load_blocks_from_repo(
     if src.lower() not in factory_methods:
         raise ValueError(f"parameter: src must be one of {factory_methods.keys()}")
 
-    if hf_token is not None:
+    if hf_token is not None and hf_token is not False:
         if Context.hf_token is not None and Context.hf_token != hf_token:
             warnings.warn(
                 """You are loading a model/Space with a different access token than the one you used to load a previous model/Space. This is not recommended, as it may cause unexpected behavior."""
@@ -100,12 +100,16 @@ def load_blocks_from_repo(
     return blocks
 
 
-def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwargs):
+def from_model(
+    model_name: str, hf_token: str | Literal[False] | None, alias: str | None, **kwargs
+):
     model_url = f"https://huggingface.co/{model_name}"
     api_url = f"https://api-inference.huggingface.co/models/{model_name}"
     print(f"Fetching model from: {model_url}")
 
-    headers = {"Authorization": f"Bearer {hf_token}"} if hf_token is not None else {}
+    headers = (
+        {} if hf_token in [False, None] else {"Authorization": f"Bearer {hf_token}"}
+    )
     response = httpx.request("GET", api_url, headers=headers)
     if response.status_code != 200:
         raise ModelNotFoundError(
@@ -368,7 +372,11 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     def query_huggingface_inference_endpoints(*data):
         if preprocess is not None:
             data = preprocess(*data)
-        data = fn(*data)  # type: ignore
+        try:
+            data = fn(*data)  # type: ignore
+        except huggingface_hub.utils.HfHubHTTPError as e:
+            if "429" in str(e):
+                raise TooManyRequestsError() from e
         if postprocess is not None:
             data = postprocess(data)  # type: ignore
         return data
@@ -396,7 +404,7 @@ def from_spaces(
     print(f"Fetching Space from: {space_url}")
 
     headers = {}
-    if hf_token is not None:
+    if hf_token not in [False, None]:
         headers["Authorization"] = f"Bearer {hf_token}"
 
     iframe_url = (
@@ -478,7 +486,7 @@ def from_spaces_interface(
     config = external_utils.streamline_spaces_interface(config)
     api_url = f"{iframe_url}/api/predict/"
     headers = {"Content-Type": "application/json"}
-    if hf_token is not None:
+    if hf_token not in [False, None]:
         headers["Authorization"] = f"Bearer {hf_token}"
 
     # The function should call the API with preprocessed data
