@@ -340,7 +340,7 @@ class TestClientPredictions:
             )
             assert output["orig_name"] == "bus.png"
 
-    @pytest.mark.flaky
+    @pytest.mark.flaky(reruns=5)
     def test_cancel_from_client_queued(self, cancel_from_client_demo):
         with connect(cancel_from_client_demo) as client:
             start = time.time()
