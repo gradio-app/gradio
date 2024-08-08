@@ -99,16 +99,20 @@ class Dataset(Component):
         self.samples: list[list] = []
         for example in self.raw_samples:
             self.samples.append([])
-            for i, (component, ex) in enumerate(zip(self._components, example)):
+            for component, ex in zip(self._components, example):
                 # If proxy_url is set, that means it is being loaded from an external Gradio app
                 # which means that the example has already been processed.
                 if self.proxy_url is None:
-                    # The `as_example()` method has been renamed to `process_example()` but we
+                    # We do not need to process examples if the Gradio app is being loaded from
+                    # an external Space because the examples have already been processed. Also,
+                    # the `as_example()` method has been renamed to `process_example()` but we
                     # use the previous name to be backwards-compatible with previously-created
                     # custom components
-                    self.samples[-1].append(component.as_example(ex))
-                self.samples[-1][i] = processing_utils.move_files_to_cache(
-                    self.samples[-1][i], component, keep_in_cache=True
+                    ex = component.as_example(ex)
+                self.samples[-1].append(
+                    processing_utils.move_files_to_cache(
+                        ex, component, keep_in_cache=True
+                    )
                 )
         self.type = type
         self.label = label
