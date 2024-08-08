@@ -4,10 +4,14 @@ Your dashboard will likely consist of more than just plots. Let's take a look at
 
 ## Filters
 
-Use any of the standard Gradio form components to filter your data. Because the dataframe is not static, we'll use function-as-value format for the LinePlot value.
+Use any of the standard Gradio form components to filter your data. You can do this via event listeners or function-as-value syntax. Let's look at the event listener approach first:
+
+$code_plot_guide_filters_events
+$demo_plot_guide_filters_events
+
+And this would be the function-as-value approach for the same demo.
 
 $code_plot_guide_filters
-$demo_plot_guide_filters
 
 ## Tables and Stats
 
