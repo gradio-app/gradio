@@ -51,9 +51,10 @@
 />
 
 <Story
-	name="JSON viewed as list"
+	name="JSON viewed as list with line limit"
 	args={{
 		value: SAMPLE_JSON,
-		show_indices: true
+		show_indices: true,
+		lines: 10
 	}}
 />

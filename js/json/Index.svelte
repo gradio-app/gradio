@@ -29,6 +29,7 @@
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark";
 	export let show_indices: boolean;
+	export let lines: number | undefined;
 
 	$: {
 		if (value !== old_value) {
@@ -47,6 +48,7 @@
 	{scale}
 	{min_width}
 	padding={false}
+	allow_overflow={false}
 >
 	{#if label}
 		<BlockLabel
@@ -65,5 +67,5 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	<JSON {value} {open} {theme_mode} {show_indices} />
+	<JSON {value} {open} {theme_mode} {show_indices} {lines} />
 </Block>

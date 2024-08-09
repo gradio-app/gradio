@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
-	import { fade } from "svelte/transition";
+	import { onDestroy, onMount } from "svelte";
 	import { JSON as JSONIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
@@ -10,6 +9,17 @@
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark" = "system";
 	export let show_indices = false;
+	export let lines: number | undefined;
+
+	let json_holder: HTMLDivElement;
+	let line_height: number;
+
+	onMount(() => {
+		if (json_holder) {
+			const computed_style = window.getComputedStyle(json_holder);
+			line_height = parseFloat(computed_style.lineHeight);
+		}
+	});
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -41,6 +51,9 @@
 	onDestroy(() => {
 		if (timer) clearTimeout(timer);
 	});
+
+	$: max_height =
+		lines && line_height ? `${(lines + 1) * line_height}px` : "auto";
 </script>
 
 {#if value && value !== '""' && !is_empty(value)}
@@ -57,7 +70,11 @@
 			<Copy />
 		{/if}
 	</button>
-	<div class="json-holder">
+	<div
+		class="json-holder"
+		bind:this={json_holder}
+		style:max-height={max_height}
+	>
 		<JSONNode
 			{value}
 			depth={0}
