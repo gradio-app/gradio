@@ -10,6 +10,7 @@ import re
 import shutil
 import sys
 import threading
+import uuid
 from collections import deque
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
@@ -42,10 +43,7 @@ from starlette.responses import PlainTextResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from gradio import processing_utils, utils
-from gradio.data_classes import (
-    BlocksConfigDict,
-    PredictBody,
-)
+from gradio.data_classes import BlocksConfigDict, MediaStreamChunk, PredictBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.state_holder import SessionState
@@ -307,11 +305,11 @@ async def call_process_api(
         iterator = app.iterators.get(event_id) if event_id is not None else None
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
-            pending_streams: dict[int, list] = (
+            pending_streams: dict[int, MediaStream] = (
                 app.get_blocks().pending_streams[session_hash].get(run_id, {})
             )
             for stream in pending_streams.values():
-                stream.append(None)
+                stream.end_stream()
         raise
 
     if batch_in_single_out:
@@ -386,6 +384,7 @@ class GradioUploadFile(UploadFile):
     ) -> None:
         super().__init__(file, size=size, filename=filename, headers=headers)
         self.sha = hashlib.sha256()
+        self.sha.update(processing_utils.hash_seed)
 
 
 @python_dataclass(frozen=True)
@@ -703,6 +702,7 @@ class CustomCORSMiddleware:
     def __init__(
         self,
         app: ASGIApp,
+        strict_cors: bool = True,
     ) -> None:
         self.app = app
         self.all_methods = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
@@ -713,9 +713,12 @@ class CustomCORSMiddleware:
         }
         self.simple_headers = {"Access-Control-Allow-Credentials": "true"}
         # Any of these hosts suggests that the Gradio app is running locally.
-        # Note: "null" is a special case that happens if a Gradio app is running
-        # as an embedded web component in a local static webpage.
-        self.localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
+        self.localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0"]
+        if not strict_cors:  # type: ignore
+            # Note: "null" is a special case that happens if a Gradio app is running
+            # as an embedded web component in a local static webpage. However, it can
+            # also be used maliciously for CSRF attacks, so it is not allowed by default.
+            self.localhost_aliases.append("null")
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -857,3 +860,23 @@ def create_lifespan_handler(
             yield
 
     return _handler
+
+
+class MediaStream:
+    def __init__(self):
+        self.segments: list[MediaStreamChunk] = []
+        self.ended = False
+        self.segment_index = 0
+        self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+        self.max_length = 5
+
+    async def add_segment(self, data: MediaStreamChunk | None):
+        if not data:
+            return
+
+        segment_id = str(uuid.uuid4())
+        self.segments.append({"id": segment_id, **data})
+        self.max_duration = max(self.max_length, data["duration"]) + 1
+
+    def end_stream(self):
+        self.ended = True

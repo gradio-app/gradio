@@ -11,7 +11,6 @@
 
     let simple_csv_logger_obj = get_object("simplecsvlogger");
     let csv_logger_obj = get_object("csvlogger");
-    let hf_dataset_saver_obj = get_object("huggingfacedatasetsaver");
 </script>
 
 <!--- Title -->
@@ -127,59 +126,4 @@ demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
 ### Guides
 <GuidesSection guides={csv_logger_obj.guides}/>
 {/if}
-
-
-<!--------- HuggingFaceDatasetSaver --------->
-
-<!-- Title -->
-# {hf_dataset_saver_obj.name}
-
-
-<!--- Usage -->
-```python
-gradio.HuggingFaceDatasetSaver(hf_token, dataset_name, ···)
-```
-
-<!--- Description -->
-### Description
-## {@html style_formatted_text(hf_dataset_saver_obj.description)}
-
-<!-- Example Usage --> 
-
-{#if hf_dataset_saver_obj.example}
-### Example Usage
-```python
-import gradio as gr
-hf_writer = gr.HuggingFaceDatasetSaver(HF_API_TOKEN, "image-classification-mistakes")
-def image_classifier(inp):
-    return {'cat': 0.3, 'dog': 0.7}
-demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
-                    allow_flagging="manual", flagging_callback=hf_writer)
-```
-{/if}
-
-{#if (hf_dataset_saver_obj.parameters.length > 0 && hf_dataset_saver_obj.parameters[0].name != "self") || hf_dataset_saver_obj.parameters.length > 1}
-<!--- Initialization -->
-### Initialization
-<ParamTable parameters={hf_dataset_saver_obj.parameters} />
-{/if}
-
-{#if hf_dataset_saver_obj.demos && hf_dataset_saver_obj.demos.length > 0}
-<!--- Demos -->
-### Demos 
-<DemosSection demos={hf_dataset_saver_obj.demos} />
-{/if}
-
-{#if hf_dataset_saver_obj.fns && hf_dataset_saver_obj.fns.length > 0}
-<!--- Methods -->
-### Methods 
-<FunctionsSection fns={hf_dataset_saver_obj.fns} event_listeners={false} />
-{/if}
-
-{#if hf_dataset_saver_obj.guides && hf_dataset_saver_obj.guides.length > 0}
-<!--- Guides -->
-### Guides
-<GuidesSection guides={hf_dataset_saver_obj.guides}/>
-{/if}
-
 

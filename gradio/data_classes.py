@@ -163,12 +163,12 @@ GradioDataModel = Union[GradioModel, GradioRootModel]
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
-    url: Optional[str]  # normalised server url
-    size: Optional[int]  # size in bytes
-    orig_name: Optional[str]  # original filename
-    mime_type: Optional[str]
+    url: NotRequired[Optional[str]]  # normalised server url
+    size: NotRequired[Optional[int]]  # size in bytes
+    orig_name: NotRequired[Optional[str]]  # original filename
+    mime_type: NotRequired[Optional[str]]
     is_stream: bool
-    meta: dict
+    meta: NotRequired[dict]
 
 
 @document()
@@ -334,3 +334,10 @@ class BlocksConfigDict(TypedDict):
     dependencies: NotRequired[list[dict[str, Any]]]
     root: NotRequired[str | None]
     username: NotRequired[str | None]
+
+
+class MediaStreamChunk(TypedDict):
+    data: bytes
+    duration: float
+    extension: str
+    id: NotRequired[str]

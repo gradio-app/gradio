@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
+import subprocess
 import tempfile
 import warnings
 from pathlib import Path
@@ -13,8 +16,8 @@ from gradio_client.documentation import document
 
 import gradio as gr
 from gradio import processing_utils, utils, wasm_utils
-from gradio.components.base import Component
-from gradio.data_classes import FileData, GradioModel
+from gradio.components.base import Component, StreamingOutput
+from gradio.data_classes import FileData, GradioModel, MediaStreamChunk
 from gradio.events import Events
 
 if TYPE_CHECKING:
@@ -31,7 +34,7 @@ class VideoData(GradioModel):
 
 
 @document()
-class Video(Component):
+class Video(StreamingOutput, Component):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -91,6 +94,7 @@ class Video(Component):
         min_length: int | None = None,
         max_length: int | None = None,
         loop: bool = False,
+        streaming: bool = False,
         watermark: str | Path | None = None,
     ):
         """
@@ -121,6 +125,7 @@ class Video(Component):
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             loop: If True, the video will loop when it reaches the end and continue playing from the beginning.
+            streaming: When used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
             watermark: An image file to be included as a watermark on the video. The image is not scaled and is displayed on the bottom right of the video. Valid formats for the image are: jpeg, png.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
@@ -156,6 +161,7 @@ class Video(Component):
         self.show_download_button = show_download_button
         self.min_length = min_length
         self.max_length = max_length
+        self.streaming = streaming
         self.watermark = watermark
         super().__init__(
             label=label,
@@ -263,6 +269,8 @@ class Video(Component):
         Returns:
             VideoData object containing the video and subtitle files.
         """
+        if self.streaming:
+            return value  # type: ignore
         if value is None or value == [None, None] or value == (None, None):
             return None
         if isinstance(value, (str, Path)):
@@ -411,3 +419,91 @@ class Video(Component):
 
     def example_value(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+
+    @staticmethod
+    def get_video_duration_ffprobe(filename: str):
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "quiet",
+                "-print_format",
+                "json",
+                "-show_format",
+                "-show_streams",
+                filename,
+            ],
+            capture_output=True,
+            check=True,
+        )
+
+        data = json.loads(result.stdout)
+
+        duration = None
+        if "format" in data and "duration" in data["format"]:
+            duration = float(data["format"]["duration"])
+        else:
+            for stream in data.get("streams", []):
+                if "duration" in stream:
+                    duration = float(stream["duration"])
+                    break
+
+        return duration
+
+    @staticmethod
+    async def async_convert_mp4_to_ts(mp4_file, ts_file):
+        ff = FFmpeg(  # type: ignore
+            inputs={mp4_file: None},
+            outputs={
+                ts_file: "-c:v libx264 -c:a aac -f mpegts -bsf:v h264_mp4toannexb -bsf:a aac_adtstoasc"
+            },
+            global_options=["-y"],
+        )
+
+        command = ff.cmd.split(" ")
+        process = await asyncio.create_subprocess_exec(
+            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+
+        _, stderr = await process.communicate()
+
+        if process.returncode != 0:
+            error_message = stderr.decode().strip()
+            raise RuntimeError(f"FFmpeg command failed: {error_message}")
+
+        return ts_file
+
+    async def stream_output(
+        self,
+        value: str | None,
+        output_id: str,
+        first_chunk: bool,  # noqa: ARG002
+    ) -> tuple[MediaStreamChunk | None, dict]:
+        output_file = {
+            "video": {
+                "path": output_id,
+                "is_stream": True,
+                "orig_name": "video-stream.ts",
+            }
+        }
+        if value is None:
+            return None, output_file
+
+        ts_file = value
+        if not value.endswith(".ts"):
+            if not value.endswith(".mp4"):
+                raise RuntimeError(
+                    "Video must be in .mp4 or .ts format to be streamed as chunks",
+                )
+            ts_file = value.replace(".mp4", ".ts")
+            await self.async_convert_mp4_to_ts(value, ts_file)
+
+        duration = self.get_video_duration_ffprobe(ts_file)
+        if not duration:
+            raise RuntimeError("Cannot determine video chunk duration")
+        chunk: MediaStreamChunk = {
+            "data": Path(ts_file).read_bytes(),
+            "duration": duration,
+            "extension": ".ts",
+        }
+        return chunk, output_file

@@ -52,6 +52,7 @@ jobs:
           . venv/bin/activate
           python -m pip install -r demo/outbreak_forecast/requirements.txt
           python -m pip install -r demo/gradio_pdf_demo/requirements.txt
+          python -m pip install -r demo/stream_video_out/requirements.txt
       - run: pnpm exec playwright install chromium firefox
       - name: run browser tests
         run: |

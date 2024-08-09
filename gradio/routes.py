@@ -53,6 +53,7 @@ from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
+    Response,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -251,6 +252,7 @@ class App(FastAPI):
         blocks: gradio.Blocks,
         app_kwargs: Dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        strict_cors: bool = True,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -262,7 +264,7 @@ class App(FastAPI):
         app.configure_app(blocks)
 
         if not wasm_utils.IS_WASM:
-            app.add_middleware(CustomCORSMiddleware)
+            app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
 
         @app.get("/user")
         @app.get("/user/")
@@ -613,43 +615,78 @@ class App(FastAPI):
                 media_type="application/octet-stream",
             )
 
-        @app.get(
-            "/stream/{session_hash}/{run}/{component_id}",
-            dependencies=[Depends(login_check)],
-        )
-        async def stream(
-            session_hash: str,
-            run: int,
-            component_id: int,
-            request: fastapi.Request,  # noqa: ARG001
-        ):
-            stream: list = (
+        @app.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
+        async def _(session_hash: str, run: int, component_id: int):
+            stream: route_utils.MediaStream | None = (
                 app.get_blocks()
                 .pending_streams[session_hash]
                 .get(run, {})
                 .get(component_id, None)
             )
-            if stream is None:
-                raise HTTPException(404, "Stream not found.")
 
-            def stream_wrapper():
-                check_stream_rate = 0.01
-                max_wait_time = 120  # maximum wait between yields - assume generator thread has crashed otherwise.
-                wait_time = 0
-                while True:
-                    if len(stream) == 0:
-                        if wait_time > max_wait_time:
-                            return
-                        wait_time += check_stream_rate
-                        time.sleep(check_stream_rate)
-                        continue
-                    wait_time = 0
-                    next_stream = stream.pop(0)
-                    if next_stream is None:
-                        return
-                    yield next_stream
+            if not stream:
+                return Response(status_code=404)
 
-            return StreamingResponse(stream_wrapper())
+            playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+
+            for segment in stream.segments:
+                playlist += f"#EXTINF:{segment['duration']:.3f},\n"
+                playlist += f"{segment['id']}{segment['extension']}\n"  # type: ignore
+
+            if stream.ended:
+                playlist += "#EXT-X-ENDLIST\n"
+
+            return Response(
+                content=playlist, media_type="application/vnd.apple.mpegurl"
+            )
+
+        @app.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
+        async def _(
+            session_hash: str, run: int, component_id: int, segment_id: str, ext: str
+        ):
+            if ext not in ["aac", "ts"]:
+                return Response(status_code=400, content="Unsupported file extension")
+            stream: route_utils.MediaStream | None = (
+                app.get_blocks()
+                .pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
+
+            if not stream:
+                return Response(status_code=404, content="Stream not found")
+
+            segment = next((s for s in stream.segments if s["id"] == segment_id), None)  # type: ignore
+
+            if segment is None:
+                return Response(status_code=404, content="Segment not found")
+
+            if ext == "aac":
+                return Response(content=segment["data"], media_type="audio/aac")
+            else:
+                return Response(content=segment["data"], media_type="video/MP2T")
+
+        @app.get("/stream/{session_hash}/{run}/{component_id}/playlist-file")
+        async def _(session_hash: str, run: int, component_id: int):
+            stream: route_utils.MediaStream | None = (
+                app.get_blocks()
+                .pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
+
+            if not stream:
+                return Response(status_code=404)
+
+            byte_stream = b""
+            extension = ""
+            for segment in stream.segments:
+                extension = segment["extension"]
+                byte_stream += segment["data"]
+
+            media_type = "video/MP2T" if extension == ".ts" else "audio/aac"
+
+            return Response(content=byte_stream, media_type=media_type)
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):

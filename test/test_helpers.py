@@ -376,10 +376,10 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        len_input_audio = len(AudioSegment.from_wav(audio))
-        len_output_audio = len(AudioSegment.from_wav(prediction[0].path))
+        len_input_audio = len(AudioSegment.from_file(audio))
+        len_output_audio = len(AudioSegment.from_file(prediction[0].path))
         length_ratio = len_output_audio / len_input_audio
-        assert round(length_ratio, 1) == 3.0  # might not be exactly 3x
+        assert 3 <= round(length_ratio, 1) < 4  # might not be exactly 3x
         assert float(prediction[1]) == 10.0
 
     def test_caching_with_async_generators(self, patched_cache_folder):

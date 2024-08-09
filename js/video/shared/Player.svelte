@@ -18,6 +18,7 @@
 	export let handle_change: (video: FileData) => void = () => {};
 	export let handle_reset_value: () => void = () => {};
 	export let upload: Client["upload"];
+	export let is_stream: boolean | undefined;
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
@@ -98,6 +99,7 @@
 			preload="auto"
 			{autoplay}
 			{loop}
+			{is_stream}
 			on:click={play_pause}
 			on:play
 			on:pause

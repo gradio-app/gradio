@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import fnmatch
 import os
-import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence
 
@@ -58,7 +57,6 @@ class FileExplorer(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        root: None = None,
     ):
         """
         Parameters:
@@ -82,12 +80,6 @@ class FileExplorer(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
-        if root is not None:
-            warnings.warn(
-                "The `root` parameter has been deprecated. Please use `root_dir` instead."
-            )
-            root_dir = root
-            self._constructor_args[0]["root_dir"] = root
         self.root_dir = DeveloperPath(os.path.abspath(root_dir))
         self.glob = glob
         self.ignore_glob = ignore_glob

@@ -26,6 +26,7 @@ _IGNORE = {
     "FormComponent",
     "Fallback",
     "State",
+    "LogoutButton",
 }
 
 _BEGINNER_FRIENDLY = {"Slider", "Radio", "Checkbox", "Number", "CheckboxGroup", "File"}
@@ -34,10 +35,12 @@ _BEGINNER_FRIENDLY = {"Slider", "Radio", "Checkbox", "Number", "CheckboxGroup", 
 def _get_table_items(module):
     items = []
     for name in module.__all__:
+        if name in _IGNORE:
+            continue
         gr_cls = getattr(module, name)
         if not (
             inspect.isclass(gr_cls) and issubclass(gr_cls, (Component, BlockContext))
-        ) or (name in _IGNORE):
+        ):
             continue
         tags = []
         if "Simple" in name or name in _BEGINNER_FRIENDLY:

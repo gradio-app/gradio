@@ -1,7 +1,7 @@
 import os
 import pathlib
 import tempfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -64,84 +64,6 @@ class TestSimpleFlagging:
             row_count = io.flagging_callback.flag(["test", "test"])
             assert row_count == 1  # no header in SimpleCSVLogger
         io.close()
-
-
-class TestHuggingFaceDatasetSaver:
-    @patch(
-        "huggingface_hub.create_repo",
-        return_value=MagicMock(repo_id="gradio-tests/test"),
-    )
-    @patch("huggingface_hub.hf_hub_download")
-    @patch("huggingface_hub.metadata_update")
-    def test_saver_setup(self, metadata_update, mock_download, mock_create):
-        flagger = flagging.HuggingFaceDatasetSaver("test_token", "test")
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            flagger.setup([gr.Audio(), gr.Textbox()], tmpdirname)
-        mock_create.assert_called_once()
-        mock_download.assert_called()
-
-    @patch(
-        "huggingface_hub.create_repo",
-        return_value=MagicMock(repo_id="gradio-tests/test"),
-    )
-    @patch("huggingface_hub.hf_hub_download")
-    @patch("huggingface_hub.upload_folder")
-    @patch("huggingface_hub.upload_file")
-    @patch("huggingface_hub.metadata_update")
-    def test_saver_flag_same_dir(
-        self, metadata_update, mock_upload_file, mock_upload, mock_download, mock_create
-    ):
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            io = gr.Interface(
-                lambda x: x,
-                "text",
-                "text",
-                flagging_dir=tmpdirname,
-                flagging_callback=flagging.HuggingFaceDatasetSaver("test", "test"),
-            )
-            row_count = io.flagging_callback.flag(["test", "test"], "")
-            assert row_count == 1  # 2 rows written including header
-            row_count = io.flagging_callback.flag(["test", "test"])
-            assert row_count == 2  # 3 rows written including header
-            for _, _, filenames in os.walk(tmpdirname):
-                for f in filenames:
-                    fname = os.path.basename(f)
-                    assert fname in ["data.csv", "dataset_info.json"] or fname.endswith(
-                        ".lock"
-                    )
-
-    @patch(
-        "huggingface_hub.create_repo",
-        return_value=MagicMock(repo_id="gradio-tests/test"),
-    )
-    @patch("huggingface_hub.hf_hub_download")
-    @patch("huggingface_hub.upload_folder")
-    @patch("huggingface_hub.upload_file")
-    @patch("huggingface_hub.metadata_update")
-    def test_saver_flag_separate_dirs(
-        self, metadata_update, mock_upload_file, mock_upload, mock_download, mock_create
-    ):
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            io = gr.Interface(
-                lambda x: x,
-                "text",
-                "text",
-                flagging_dir=tmpdirname,
-                flagging_callback=flagging.HuggingFaceDatasetSaver(
-                    "test", "test", separate_dirs=True
-                ),
-            )
-            row_count = io.flagging_callback.flag(["test", "test"], "")
-            assert row_count == 1  # 2 rows written including header
-            row_count = io.flagging_callback.flag(["test", "test"])
-            assert row_count == 2  # 3 rows written including header
-            for _, _, filenames in os.walk(tmpdirname):
-                for f in filenames:
-                    fname = os.path.basename(f)
-                    assert fname in [
-                        "metadata.jsonl",
-                        "dataset_info.json",
-                    ] or fname.endswith(".lock")
 
 
 class TestDisableFlagging:

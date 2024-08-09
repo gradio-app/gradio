@@ -30,7 +30,6 @@ with gr.Blocks() as demo:
     with gr.Row():
         country = gr.Dropdown(list(countries_cities_dict.keys()), label="Country")
         cities = gr.Dropdown([], label="Cities")
-
     @country.change(inputs=country, outputs=cities)
     def update_cities(country):
         cities = list(countries_cities_dict[country])
