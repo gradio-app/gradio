@@ -577,7 +577,7 @@ def resize_and_crop(img, size, crop_type="center"):
 ##################
 
 
-def audio_from_file(filename: str, crop_min: float =0, crop_max: float=100):
+def audio_from_file(filename: str, crop_min: float = 0, crop_max: float = 100):
     try:
         audio = AudioSegment.from_file(filename)
     except FileNotFoundError as e:

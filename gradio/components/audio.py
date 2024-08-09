@@ -129,7 +129,7 @@ class Audio(
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
-            format: The file extension with which to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. This parameter applies both when this component is used as an input (when `type` is "filepath") to determine which file format to convert user-provided audio to, and when this component is used as an output to determine the format of audio returned to the user. If None, no file format conversion is done and the audio is kept as is. In the case where output audio is returned from the prediction function as numpy array and no `format` is provided, it will be returned as a "wav" file.
+            format: The file extension with which to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. This parameter applies both when this component is used as an input (and `type` is "filepath") to determine which file format to convert user-provided audio to, and when this component is used as an output to determine the format of audio returned to the user. If None, no file format conversion is done and the audio is kept as is. In the case where output audio is returned from the prediction function as numpy array and no `format` is provided, it will be returned as a "wav" file.
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
             show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear. By default, it will be True for output components and False for input components.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
@@ -235,7 +235,12 @@ class Audio(
             needs_conversion = True
 
         # Only extract audio data if necessary
-        if self.min_length is not None or self.max_length is not None or self.type == "numpy" or needs_conversion:
+        if (
+            self.min_length is not None
+            or self.max_length is not None
+            or self.type == "numpy"
+            or needs_conversion
+        ):
             sample_rate, data = processing_utils.audio_from_file(payload.path)
             duration = len(data) / sample_rate
 
@@ -254,7 +259,7 @@ class Audio(
             if not needs_conversion:
                 return payload.path
             output_file = str(Path(payload.path).with_suffix(f".{self.format}"))
-            assert self.format is not None  #noqa: S101
+            assert self.format is not None  # noqa: S101
             processing_utils.audio_to_file(
                 sample_rate, data, output_file, format=self.format
             )
@@ -278,7 +283,7 @@ class Audio(
         orig_name = None
         if value is None:
             return None
-        
+
         if isinstance(value, bytes):
             if self.streaming:
                 return value
@@ -289,7 +294,10 @@ class Audio(
         elif isinstance(value, tuple):
             sample_rate, data = value
             file_path = processing_utils.save_audio_to_cache(
-                data, sample_rate, format=self.format or "wav", cache_dir=self.GRADIO_CACHE
+                data,
+                sample_rate,
+                format=self.format or "wav",
+                cache_dir=self.GRADIO_CACHE,
             )
             orig_name = Path(file_path).name
         elif isinstance(value, (str, Path)):
