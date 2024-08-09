@@ -1,5 +1,11 @@
 # @gradio/dataset
 
+## 0.2.4
+
+### Fixes
+
+- [#8987](https://github.com/gradio-app/gradio/pull/8987) [`7b288cf`](https://github.com/gradio-app/gradio/commit/7b288cf6772ec3dc1fa603db859975e5dab90127) - Fix unexpected rendering of Dataset.  Thanks @Col0ring!
+
 ## 0.2.3
 
 ### Dependency updates
