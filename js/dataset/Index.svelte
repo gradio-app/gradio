@@ -53,7 +53,11 @@
 	}
 
 	$: {
-		samples = sample_labels ? sample_labels.map((e) => [e]) : samples || [];
+		if (sample_labels) {
+			samples = sample_labels.map((e) => [e]);
+		} else if (!samples) {
+			samples = [];
+		}
 		paginate = samples.length > samples_per_page;
 		if (paginate) {
 			visible_pages = [];
