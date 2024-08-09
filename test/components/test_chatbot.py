@@ -58,6 +58,7 @@ class TestChatbot:
             "bubble_full_width": True,
             "line_breaks": True,
             "layout": None,
+            "show_copy_all_button": False,
         }
 
     def test_avatar_images_are_moved_to_cache(self):

@@ -30,6 +30,7 @@
 	import Component from "./Component.svelte";
 	import LikeButtons from "./ButtonPanel.svelte";
 	import type { LoadedComponent } from "../../app/src/types";
+	import CopyAll from "./CopyAll.svelte";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
@@ -80,6 +81,7 @@
 	export let selectable = false;
 	export let likeable = false;
 	export let show_share_button = false;
+	export let show_copy_all_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
@@ -273,6 +275,10 @@
 			{value}
 		/>
 	</div>
+{/if}
+
+{#if show_copy_all_button}
+	<CopyAll {value} />
 {/if}
 
 <div
