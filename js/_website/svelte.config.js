@@ -129,7 +129,10 @@ const config = {
 		files: {
 			lib: "src/lib"
 		},
-		adapter: adapter()
+		adapter: adapter(),
+		paths: {
+			relative: false
+		}
 	}
 };
 
