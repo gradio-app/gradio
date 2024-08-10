@@ -22,6 +22,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: GalleryData[] | null = null;
+	export let file_types: string[] | null = ["image", "video"];
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -78,13 +79,17 @@
 			{label}
 			max_file_size={gradio.max_file_size}
 			file_count={"multiple"}
-			file_types={["image", "video"]}
+			{file_types}
 			i18n={gradio.i18n}
 			upload={gradio.client.upload}
 			stream_handler={gradio.client.stream}
 			on:upload={(e) => {
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
-				value = files.map((x) => ({ image: x, caption: null }));
+				value = files.map((x) =>
+					x.mime_type?.includes("video")
+						? { video: x, caption: null }
+						: { image: x, caption: null }
+				);
 				gradio.dispatch("upload", value);
 			}}
 			on:error={({ detail }) => {

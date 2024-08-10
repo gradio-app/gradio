@@ -64,8 +64,7 @@
 					if ("video" in data) {
 						return {
 							video: data.video as FileData,
-							caption: data.caption,
-							subtitles: data.subtitles
+							caption: data.caption
 						};
 					} else if ("image" in data) {
 						return { image: data.image as FileData, caption: data.caption };
@@ -451,11 +450,6 @@
 									: entry.image.url}
 								loading="lazy"
 							/>
-							{#if entry.caption}
-								<div class="caption-label">
-									{entry.caption}
-								</div>
-							{/if}
 						{:else}
 							<Play />
 							<Image
@@ -467,6 +461,11 @@
 								alt=""
 								loading="lazy"
 							/>
+						{/if}
+						{#if entry.caption}
+							<div class="caption-label">
+								{entry.caption}
+							</div>
 						{/if}
 					</button>
 				{/each}
@@ -629,7 +628,6 @@
 		width: var(--size-9);
 		height: var(--size-9);
 	}
-
 	.thumbnail-small.selected {
 		--ring-color: var(--color-accent);
 		transform: scale(1);

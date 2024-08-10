@@ -44,7 +44,6 @@ class GalleryImage(GradioModel):
 class GalleryVideo(GradioModel):
     video: FileData
     caption: Optional[str] = None
-    subtitles: Optional[FileData] = None
 
 
 class GalleryData(GradioRootModel):
@@ -54,7 +53,7 @@ class GalleryData(GradioRootModel):
 @document()
 class Gallery(Component):
     """
-    Creates a gallery component that allows displaying a grid of images or videos, and optionally captions/subtitles. If used as an input, the user can upload images or videos to the gallery.
+    Creates a gallery component that allows displaying a grid of images or videos, and optionally captions. If used as an input, the user can upload images or videos to the gallery.
     If used as an output, the user can click on individual images or videos to view them at a higher resolution.
 
     Demos: fake_gan
@@ -73,6 +72,7 @@ class Gallery(Component):
         ) = None,
         *,
         format: str = "webp",
+        file_types: list[str] | None = None,
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -104,6 +104,7 @@ class Gallery(Component):
         Parameters:
             value: List of images or videos to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             format: Format to save images before they are returned to the frontend, such as 'jpeg' or 'png'. This parameter only applies to images that are returned from the prediction function as numpy arrays or PIL Images. The format should be supported by the PIL library.
+            file_types: List of file extensions or types of files to be uploaded (e.g. ['image', 'video']). "image" allows only image files to be uploaded, "video" allows only video files to be uploaded, "video" allows only video files to be uploaded, ".mp4" allows only mp4 files to be uploaded, etc. If None, both image and video files types are allowed.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -144,6 +145,7 @@ class Gallery(Component):
         self.selected_index = selected_index
         self.type = type
         self.show_fullscreen_button = show_fullscreen_button
+        self.file_types = file_types
 
         self.show_share_button = (
             (utils.get_space() is not None)
@@ -185,7 +187,11 @@ class Gallery(Component):
             return None
         data = []
         for gallery_element in payload.root:
-            media = self.convert_to_type(gallery_element.image.path, self.type)  # type: ignore
+            media = (
+                gallery_element.video.path
+                if (type(gallery_element) is GalleryVideo)
+                else self.convert_to_type(gallery_element.image.path, self.type)
+            )  # type: ignore
             data.append((media, gallery_element.caption))
         return data
 
@@ -238,14 +244,20 @@ class Gallery(Component):
             if mime_type is not None and "video" in mime_type:
                 return GalleryVideo(
                     video=FileData(
-                        path=file_path, url=url, orig_name=orig_name, mime_type=mime_type
+                        path=file_path,
+                        url=url,
+                        orig_name=orig_name,
+                        mime_type=mime_type,
                     ),
                     caption=caption,
                 )
             else:
                 return GalleryImage(
                     image=FileData(
-                        path=file_path, url=url, orig_name=orig_name, mime_type=mime_type
+                        path=file_path,
+                        url=url,
+                        orig_name=orig_name,
+                        mime_type=mime_type,
                     ),
                     caption=caption,
                 )
