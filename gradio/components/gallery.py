@@ -181,7 +181,7 @@ class Gallery(Component):
         Parameters:
             payload: a list of images or videos, or list of (media, caption) tuples
         Returns:
-            Passes the list of images as a list of (media, caption) tuples, or a list of (image, None) tuples if no captions are provided (which is usually the case). The image can be a `str` file path, a `numpy` array, or a `PIL.Image` object depending on `type`. The video can be a `str` file path.
+            Passes the list of images or videos as a list of (media, caption) tuples, or a list of (media, None) tuples if no captions are provided (which is usually the case). Images can be a `str` file path, a `numpy` array, or a `PIL.Image` object depending on `type`.  Videos are always `str` file path.
         """
         if payload is None or not payload.root:
             return None
