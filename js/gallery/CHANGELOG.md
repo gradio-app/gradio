@@ -1,5 +1,21 @@
 # @gradio/gallery
 
+## 0.12.0
+
+### Features
+
+- [#8964](https://github.com/gradio-app/gradio/pull/8964) [`bf6bbd9`](https://github.com/gradio-app/gradio/commit/bf6bbd971acddbf78f03bea431ed7d1e0003ccf9) - Add min/max-imize button to gr.Image and gr.Gallery.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.9
+- @gradio/statustracker@0.7.4
+- @gradio/client@1.5.0
+- @gradio/icons@0.7.0
+- @gradio/upload@0.12.2
+- @gradio/image@0.14.0
+- @gradio/file@0.9.2
+
 ## 0.11.4
 
 ### Dependency updates

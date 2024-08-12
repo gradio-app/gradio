@@ -225,19 +225,35 @@ code.language-bash {
 }
 
 .tip {
-	@apply bg-gradient-to-br from-orange-50 to-white border-orange-50 border-l-2 border-l-orange-300 text-orange-700 p-4 px-6;
+	@apply bg-gradient-to-br from-green-50 to-white border-green-50 border-l-2 border-l-green-300 text-green-700 p-4 px-6;
 }
 
 .tip strong {
-	@apply text-orange-700;
+	@apply text-green-700;
 }
 
 .tip code {
-	@apply text-orange-700;
+	@apply text-green-700;
 }
 
 .tip a {
-	@apply text-orange-700;
+	@apply text-green-700;
+}
+
+.warning {
+	@apply bg-gradient-to-br from-red-50 to-white border-red-50 border-l-2 border-l-red-300 text-red-700 p-4 px-6;
+}
+
+.warning strong {
+	@apply text-red-700;
+}
+
+.warning code {
+	@apply text-red-700;
+}
+
+.warning a {
+	@apply text-red-700;
 }
 
 .shared-link:before {
