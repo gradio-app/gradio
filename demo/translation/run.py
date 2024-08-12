@@ -14,7 +14,7 @@ def translate(text, src_lang, tgt_lang):
     """
     translation_pipeline = pipeline("translation", model=model, tokenizer=tokenizer, src_lang=src_lang, tgt_lang=tgt_lang, max_length=400, device=device)
     result = translation_pipeline(text)
-    return result[0]['translation_text']  #type: ignore
+    return result[0]['translation_text']  # type: ignore
 
 demo = gr.Interface(
     fn=translate,

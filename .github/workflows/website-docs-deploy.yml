@@ -1,0 +1,93 @@
+name: "docs-deploy"
+
+on:
+  workflow_run:
+    workflows: ["docs-build"]
+    types:
+      - completed
+
+concurrency:
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  changes:
+    if: github.event.workflow_run.conclusion == 'success'
+    name: "changes"
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    outputs:
+      should_run: ${{ steps.json.outputs.should_run }}
+      sha: ${{ steps.json.outputs.sha }}
+      pr_number: ${{ steps.json.outputs.pr_number }}
+      source_branch: ${{ steps.json.outputs.source_branch }}
+      source_repo: ${{ steps.json.outputs.source_repo }}
+      labels: ${{ steps.json.outputs.labels }}
+      run_id: ${{ steps.json.outputs.run_id }}
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: changes
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - uses: gradio-app/github/actions/json-to-output@main
+        id: json
+        with:
+          path: output.json
+      - uses: actions/upload-artifact@v4
+        with:
+          path: output.json
+          name: changes
+  comment-deploy-start:
+    needs: changes
+    uses: "./.github/workflows/comment-queue.yml"
+    if: needs.changes.outputs.should_run == 'true'
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.changes.outputs.pr_number }}
+      message: website~pending~null
+  deploy:
+    environment: deploy_website
+    name: "docs-deploy"
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true' || github.event.workflow_run.event == 'push'
+    permissions:
+      actions: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: website-json
+          path: js/_website/lib/json
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: website-templates
+          path: js/_website/lib/templates
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: deploy json to aws
+        if: startsWith(needs.changes.outputs.source_branch, 'changeset-release/') && needs.changes.outputs.source_repo == 'gradio-app/gradio'
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ secrets.DOCS_JSON_AWS_S3_ACCESS_KEY }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.DOCS_JSON_AWS_S3_SECRET_ACCESS_KEY }}
+          export AWS_DEFAULT_REGION=us-west-2
+          version=$(jq -r .version js/_website/lib/json/version.json)
+          aws s3 cp ./js/_website/lib/json/ s3://gradio-docs-json/$version/ --recursive
+          aws s3 cp ./js/_website/lib/templates/ s3://gradio-docs-json/$version/templates/ --recursive
+  comment-deploy-failure:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [deploy, changes]
+    if: always() && needs.deploy.result == 'failure' && needs.changes.outputs.pr_number != 'false'
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.changes.outputs.pr_number }}
+      message: website~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/

@@ -1383,7 +1383,7 @@ def test_file_access():
             r = test_client.get(f"/file={allowed_dir}/allowed.txt")
             assert r.status_code == 200
             r = test_client.get(f"/file={allowed_dir}/../not_allowed.txt")
-            assert r.status_code == 403
+            assert r.status_code in [403, 404]  # 403 in Linux, 404 in Windows
             r = test_client.get("/file=//test/test_files/cheetah1.jpg")
             assert r.status_code == 403
             r = test_client.get("/file=test/test_files/cheetah1.jpg")
