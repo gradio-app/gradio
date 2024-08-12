@@ -9,11 +9,11 @@
 <style>
 	.streaming-bar {
 		position: absolute;
-		top: 0;
+		bottom: 0;
 		left: 0;
 		right: 0;
 		height: 4px;
-		background-color: var(--color-accent);
+		background-color: var(--primary-600);
 		animation: countdown linear forwards;
 		z-index: 1;
 	}

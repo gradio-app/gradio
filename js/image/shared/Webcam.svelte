@@ -24,7 +24,7 @@
 	};
 
 	export const set_time_limit = (time: number): void => {
-		time_limit = time;
+		if (recording) time_limit = time;
 	};
 
 	let canvas: HTMLCanvasElement;
@@ -243,8 +243,8 @@
 	}
 </script>
 
-<StreamingBar {time_limit} />
 <div class="wrap">
+	<StreamingBar {time_limit} />
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 	<video
@@ -269,11 +269,11 @@
 			>
 				{#if mode === "video" || streaming}
 					{#if recording}
-						<div class="icon red" title="stop recording">
+						<div class="icon color-primary" title="stop recording">
 							<Square />
 						</div>
 					{:else}
-						<div class="icon red" title="start recording">
+						<div class="icon color-primary" title="start recording">
 							<Circle />
 						</div>
 					{/if}
@@ -369,7 +369,6 @@
 	}
 
 	.icon {
-		opacity: 0.8;
 		width: 18px;
 		height: 18px;
 		display: flex;
@@ -377,9 +376,9 @@
 		align-items: center;
 	}
 
-	.red {
-		fill: red;
-		stroke: red;
+	.color-primary {
+		fill: var(--primary-600);
+		stroke: var(--primary-600);
 	}
 
 	.flip {
