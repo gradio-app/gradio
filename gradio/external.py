@@ -48,7 +48,7 @@ def load(
     Parameters:
         name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
         src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-        hf_token: optional Hugging Face token for loading private models or Spaces. By default, no token is sent to the server, set `token=None` to use the locally saved token if there is one (warning: when loading Spaces, only provide a token if you are loading a trusted private Space as it can be read by the Space you are loading). Find your tokens here: https://huggingface.co/settings/tokens.
+        hf_token: optional Hugging Face token for loading private models or Spaces. By default, no token is sent to the server, set `hf_token=None` to use the locally saved token if there is one (warning: when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find your tokens here: https://huggingface.co/settings/tokens.
         alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
     Returns:
         a Gradio Blocks object for the given model
