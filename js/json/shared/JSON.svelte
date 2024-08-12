@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onDestroy } from "svelte";
 	import { JSON as JSONIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
