@@ -71,6 +71,8 @@ def _install_command(
     if pipe.returncode != 0:
         live.update(":red_square: Python installation [bold][red]failed[/][/]")
         live.update(pipe.stderr)
+        raise SystemExit("Python installation failed")
+
     else:
         live.update(":white_check_mark: Python install succeeded!")
 
@@ -85,6 +87,7 @@ def _install_command(
             live.update(":red_square: NPM install [bold][red]failed[/][/]")
             live.update(pipe.stdout)
             live.update(pipe.stderr)
+            raise SystemExit("NPM install failed")
         else:
             live.update(":white_check_mark: NPM install succeeded!")
 
