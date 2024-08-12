@@ -9,7 +9,7 @@ import json
 import os
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence, cast
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
 from gradio_client.documentation import document
 
@@ -419,7 +419,7 @@ class Interface(Blocks):
 
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
-        self.show_progress = show_progress
+        self.show_progress: Literal["full", "hidden", "minimal"] = show_progress
 
         self.batch = batch
         self.max_batch_size = max_batch_size
@@ -693,7 +693,7 @@ class Interface(Blocks):
                     api_name=self.api_name,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
-                    show_progress="hidden" if streaming_event else "full",
+                    show_progress="hidden" if streaming_event else self.show_progress,
                     trigger_mode="always_last",
                 )
         else:
@@ -737,9 +737,7 @@ class Interface(Blocks):
                     batch=self.batch,
                     max_batch_size=self.max_batch_size,
                     concurrency_limit=self.concurrency_limit,
-                    show_progress=cast(
-                        Literal["full", "minimal", "hidden"], self.show_progress
-                    ),
+                    show_progress=self.show_progress,
                 )
 
                 final_event = predict_event.then(
@@ -772,6 +770,7 @@ class Interface(Blocks):
                     batch=self.batch,
                     max_batch_size=self.max_batch_size,
                     concurrency_limit=self.concurrency_limit,
+                    show_progress=self.show_progress,
                 )
 
     def attach_clear_events(
