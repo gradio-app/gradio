@@ -158,7 +158,7 @@ class Audio(
         valid_types = ["numpy", "filepath"]
         if type not in valid_types:
             raise ValueError(
-                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {' '.join(valid_types)}"
             )
         self.type = type
         self.streaming = streaming
@@ -169,7 +169,7 @@ class Audio(
         valid_formats = ["wav", "mp3"]
         if format is not None and format.lower() not in valid_formats:
             raise ValueError(
-                f"Invalid value for parameter `format`: {format}. Please choose from one of: {valid_formats}"
+                f"Invalid value for parameter `format`: {format}. Please choose from one of: {' '.join(valid_formats)}"
             )
         self.format = format and format.lower()
         self.autoplay = autoplay
