@@ -54,6 +54,7 @@ def add_demos():
                 demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
                 with open(demo_file) as run_py:
                     demo_code = run_py.read()
+                    demo_code = demo_code.replace("# type: ignore", "")
                 cls["demos"].append((demo, demo_code))
 
 

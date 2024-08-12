@@ -599,6 +599,28 @@ class TestRoutes:
         assert "IN CUSTOM LIFESPAN" in captured.out
         assert "AFTER CUSTOM LIFESPAN" in captured.out
 
+    def test_monitoring_link(self):
+        with Blocks() as demo:
+            i = Textbox()
+            o = Textbox()
+            i.change(lambda x: x, i, o)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.get("/monitoring")
+        assert response.status_code == 200
+
+    def test_monitoring_link_disabled(self):
+        with Blocks() as demo:
+            i = Textbox()
+            o = Textbox()
+            i.change(lambda x: x, i, o)
+
+        app, _, _ = demo.launch(prevent_thread_lock=True, enable_monitoring=False)
+        client = TestClient(app)
+        response = client.get("/monitoring")
+        assert response.status_code == 403
+
 
 class TestApp:
     def test_create_app(self):
@@ -1390,7 +1412,7 @@ def test_file_access():
             r = test_client.get(f"/file={allowed_dir}/allowed.txt")
             assert r.status_code == 200
             r = test_client.get(f"/file={allowed_dir}/../not_allowed.txt")
-            assert r.status_code == 403
+            assert r.status_code in [403, 404]  # 403 in Linux, 404 in Windows
             r = test_client.get("/file=//test/test_files/cheetah1.jpg")
             assert r.status_code == 403
             r = test_client.get("/file=test/test_files/cheetah1.jpg")

@@ -1039,6 +1039,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 t.start()
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
+        self.enable_monitoring: bool | None = None
 
         self.default_config = BlocksConfig(self)
         super().__init__(render=False, **kwargs)
@@ -1246,6 +1247,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("zerogpu", None)
                 dependency.pop("id", None)
                 dependency.pop("rendered_in", None)
+                dependency.pop("every", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
                 if is_then_event:
@@ -2201,7 +2203,7 @@ Received outputs:
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         max_file_size: str | int | None = None,
         _frontend: bool = True,
-        enable_monitoring: bool = False,
+        enable_monitoring: bool | None = None,
         strict_cors: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -2239,6 +2241,7 @@ Received outputs:
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
+            enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2458,6 +2461,7 @@ Received outputs:
             print(
                 f"Monitoring URL: {self.local_url}monitoring/{self.app.analytics_key}"
             )
+        self.enable_monitoring = enable_monitoring in [True, None]
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.

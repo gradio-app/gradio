@@ -201,7 +201,7 @@ pillow==9.2.0
     #   imageio
     #   matplotlib
     #   scikit-image
-pluggy==1.0.0
+pluggy==1.5.0
     # via pytest
 polars==0.20.5
     # via -r requirements.in
@@ -228,7 +228,7 @@ pyparsing==3.0.9
     # via matplotlib
 pyrsistent==0.18.1
     # via jsonschema
-pytest==7.1.2
+pytest==8.3.2
     # via
     #   -r requirements.in
     #   pytest-asyncio
@@ -236,6 +236,8 @@ pytest==7.1.2
 pytest-asyncio==0.19.0
     # via -r requirements.in
 pytest-cov==3.0.0
+    # via -r requirements.in
+pytest-rerunfailures==14.0
     # via -r requirements.in
 python-dateutil==2.8.2
     # via
