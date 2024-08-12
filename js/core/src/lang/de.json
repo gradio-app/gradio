@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "Mit Gradio erstellt",
+		"clear": "Löschen",
+		"or": "oder",
+		"submit": "Absenden"
+	},
+	"upload_text": {
+		"click_to_upload": "Hochladen",
+		"drop_audio": "Audio hier ablegen",
+		"drop_csv": "CSV Datei hier ablegen",
+		"drop_file": "Datei hier ablegen",
+		"drop_image": "Bild hier ablegen",
+		"drop_video": "Video hier ablegen"
+	}
+}

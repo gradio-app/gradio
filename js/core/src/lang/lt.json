@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "sukurta su gradio",
+		"clear": "Trinti",
+		"or": "arba",
+		"submit": "Pateikti"
+	},
+	"upload_text": {
+		"click_to_upload": "Spustelėkite norėdami įkelti",
+		"drop_audio": "Įkelkite garso įrašą čia",
+		"drop_csv": "Įkelkite CSV čia",
+		"drop_file": "Įkelkite bylą čia",
+		"drop_image": "Įkelkite paveikslėlį čia",
+		"drop_video": "Įkelkite vaizdo įrašą čia"
+	}
+}

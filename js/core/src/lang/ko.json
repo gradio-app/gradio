@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "gradio로 제작되었습니다",
+		"clear": "클리어",
+		"or": "또는",
+		"submit": "제출하기"
+	},
+	"upload_text": {
+		"click_to_upload": "클릭해서 업로드하기",
+		"drop_audio": "오디오를 끌어 놓으세요",
+		"drop_csv": "CSV파일을 끌어 놓으세요",
+		"drop_file": "파일을 끌어 놓으세요",
+		"drop_image": "이미지를 끌어 놓으세요",
+		"drop_video": "비디오를 끌어 놓으세요"
+	}
+}

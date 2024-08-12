@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "utworzone z gradio",
+		"clear": "Wyczyść",
+		"or": "lub",
+		"submit": "Zatwierdź"
+	},
+	"upload_text": {
+		"click_to_upload": "Kliknij, aby przesłać",
+		"drop_audio": "Przeciągnij tutaj audio",
+		"drop_csv": "Przeciągnij tutaj CSV",
+		"drop_file": "Przeciągnij tutaj plik",
+		"drop_image": "Przeciągnij tutaj zdjęcie",
+		"drop_video": "Przeciągnij tutaj video"
+	}
+}

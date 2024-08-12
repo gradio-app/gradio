@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "gradioで作ろう",
+		"clear": "クリア",
+		"or": "または",
+		"submit": "送信"
+	},
+	"upload_text": {
+		"click_to_upload": "クリックしてアップロード",
+		"drop_audio": "ここに音声をドロップ",
+		"drop_csv": "ここにCSVをドロップ",
+		"drop_file": "ここにファイルをドロップ",
+		"drop_image": "ここに画像をドロップ",
+		"drop_video": "ここに動画をドロップ"
+	}
+}

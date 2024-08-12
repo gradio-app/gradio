@@ -1,0 +1,115 @@
+{
+	"3D_model": {
+		"3d_model": "3D模型"
+	},
+	"annotated_image": {
+		"annotated_image": "标注图像"
+	},
+	"audio": {
+		"allow_recording_access": "请允许访问麦克风以进行录音。",
+		"audio": "音频",
+		"record_from_microphone": "从麦克风录制",
+		"stop_recording": "停止录制",
+		"no_device_support": "无法访问媒体设备。请检查您是否在安全来源（https）或本地主机上运行（或者您已经通过 ssl_verify 传递了有效的 SSL 证书），并且您已经允许浏览器访问您的设备。",
+		"stop": "停止",
+		"resume": "继续",
+		"record": "录制",
+		"no_microphone": "找不到麦克风",
+		"pause": "暂停",
+		"play": "播放"
+	},
+	"blocks": {
+		"connection_can_break": "在移动设备上，如果此标签页失去焦点或设备休眠，连接可能会中断，导致您在队列中失去位置。",
+		"long_requests_queue": "有一个长时间的待处理请求队列。复制此空间以跳过。",
+		"lost_connection": "由于离开页面，连接已丢失。重新加入队列..."
+	},
+	"checkbox": {
+		"checkbox": "复选框",
+		"checkbox_group": "复选框组"
+	},
+	"code": {
+		"code": "代码"
+	},
+	"color_picker": {
+		"color_picker": "颜色选择器"
+	},
+	"common": {
+		"built_with": "构建于",
+		"built_with_gradio": "使用 Gradio 构建",
+		"clear": "清除",
+		"download": "下载",
+		"edit": "编辑",
+		"empty": "空",
+		"error": "错误",
+		"hosted_on": "托管在",
+		"loading": "加载中",
+		"logo": "标志",
+		"or": "或",
+		"remove": "移除",
+		"share": "分享",
+		"submit": "提交",
+		"undo": "撤销"
+	},
+	"dataframe": {
+		"incorrect_format": "格式不正确，仅支持 CSV 和 TSV 文件",
+		"new_column": "新列",
+		"new_row": "新行"
+	},
+	"dropdown": {
+		"dropdown": "下拉菜单"
+	},
+	"errors": {
+		"build_error": "存在构建错误",
+		"config_error": "存在配置错误",
+		"contact_page_author": "请联系页面的作者并告知他们。",
+		"no_app_file": "不存在应用文件",
+		"runtime_error": "存在运行时错误",
+		"space_not_working": "\"空间无法工作，原因：\" {0}",
+		"space_paused": "空间已暂停",
+		"use_via_api": "通过 API 使用"
+	},
+	"file": {
+		"uploading": "正在上传..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "高亮文本"
+	},
+	"image": {
+		"allow_webcam_access": "请允许访问网络摄像头以进行录制。",
+		"brush_color": "画笔颜色",
+		"brush_radius": "画笔半径",
+		"image": "图像",
+		"remove_image": "移除图像",
+		"select_brush_color": "选择画笔颜色",
+		"start_drawing": "开始绘画",
+		"use_brush": "使用画笔"
+	},
+	"label": {
+		"label": "标签"
+	},
+	"login": {
+		"enable_cookies": "如果您正在使用隐身模式访问 HuggingFace 空间，您必须启用第三方 cookie。",
+		"incorrect_credentials": "凭据不正确",
+		"login": "登录"
+	},
+	"number": {
+		"number": "数字"
+	},
+	"plot": {
+		"plot": "图表"
+	},
+	"radio": {
+		"radio": "单选框"
+	},
+	"slider": {
+		"slider": "滑块"
+	},
+	"upload_text": {
+		"click_to_upload": "点击上传",
+		"drop_audio": "将音频拖放到此处",
+		"drop_csv": "将 CSV 文件拖放到此处",
+		"drop_file": "将文件拖放到此处",
+		"drop_image": "将图像拖放到此处",
+		"drop_video": "将视频拖放到此处"
+	}
+}

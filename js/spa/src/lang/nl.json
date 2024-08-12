@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "gemaakt met gradio",
+		"clear": "Wis",
+		"or": "of",
+		"submit": "Zend in"
+	},
+	"upload_text": {
+		"click_to_upload": "Klik om the Uploaden",
+		"drop_audio": "Sleep een Geluidsbestand hier",
+		"drop_csv": "Sleep een CSV hier",
+		"drop_file": "Sleep een Document hier",
+		"drop_image": "Sleep een Afbeelding hier",
+		"drop_video": "Sleep een Video hier"
+	}
+}

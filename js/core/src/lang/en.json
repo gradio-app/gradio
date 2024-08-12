@@ -1,0 +1,118 @@
+{
+	"3D_model": {
+		"3d_model": "3D Model"
+	},
+	"annotated_image": {
+		"annotated_image": "Annotated Image"
+	},
+	"audio": {
+		"allow_recording_access": "Please allow access to the microphone for recording.",
+		"audio": "Audio",
+		"record_from_microphone": "Record from microphone",
+		"stop_recording": "Stop recording",
+		"no_device_support": "Media devices could not be accessed. Check that you are running on a secure origin (https) or localhost (or you have passed a valid SSL certificate to ssl_verify), and you have allowed browser access to your device.",
+		"stop": "Stop",
+		"resume": "Resume",
+		"record": "Record",
+		"no_microphone": "No microphone found",
+		"pause": "Pause",
+		"play": "Play"
+	},
+	"blocks": {
+		"connection_can_break": "On mobile, the connection can break if this tab is unfocused or the device sleeps, losing your position in queue.",
+		"long_requests_queue": "There is a long queue of requests pending. Duplicate this Space to skip.",
+		"lost_connection": "Lost connection due to leaving page. Rejoining queue..."
+	},
+	"checkbox": {
+		"checkbox": "Checkbox",
+		"checkbox_group": "Checkbox Group"
+	},
+	"code": {
+		"code": "Code"
+	},
+	"color_picker": {
+		"color_picker": "Color Picker"
+	},
+	"common": {
+		"built_with": "built with",
+		"built_with_gradio": "Built with Gradio",
+		"clear": "Clear",
+		"download": "Download",
+		"edit": "Edit",
+		"empty": "Empty",
+		"error": "Error",
+		"hosted_on": "Hosted on",
+		"loading": "Loading",
+		"logo": "logo",
+		"or": "or",
+		"remove": "Remove",
+		"share": "Share",
+		"submit": "Submit",
+		"undo": "Undo",
+		"no_devices": "No devices found"
+	},
+	"dataframe": {
+		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",
+		"new_column": "New column",
+		"new_row": "New row"
+	},
+	"dropdown": {
+		"dropdown": "Dropdown"
+	},
+	"errors": {
+		"build_error": "there is a build error",
+		"config_error": "there is a config error",
+		"contact_page_author": "Please contact the author of the page to let them know.",
+		"no_app_file": "there is no app file",
+		"runtime_error": "there is a runtime error",
+		"space_not_working": "\"Space isn't working because\" {0}",
+		"space_paused": "the space is paused",
+		"use_via_api": "Use via API"
+	},
+	"file": {
+		"uploading": "Uploading..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "Highlighted Text"
+	},
+	"image": {
+		"allow_webcam_access": "Please allow access to the webcam for recording.",
+		"brush_color": "Brush color",
+		"brush_radius": "Brush radius",
+		"image": "Image",
+		"remove_image": "Remove Image",
+		"select_brush_color": "Select brush color",
+		"start_drawing": "Start drawing",
+		"use_brush": "Use brush"
+	},
+	"label": {
+		"label": "Label"
+	},
+	"login": {
+		"enable_cookies": "If you are visiting a HuggingFace Space in Incognito mode, you must enable third party cookies.",
+		"incorrect_credentials": "Incorrect Credentials",
+		"login": "Login"
+	},
+	"number": {
+		"number": "Number"
+	},
+	"plot": {
+		"plot": "Plot"
+	},
+	"radio": {
+		"radio": "Radio"
+	},
+	"slider": {
+		"slider": "Slider"
+	},
+	"upload_text": {
+		"click_to_upload": "Click to Upload",
+		"drop_audio": "Drop Audio Here",
+		"drop_csv": "Drop CSV Here",
+		"drop_file": "Drop File Here",
+		"drop_image": "Drop Image Here",
+		"drop_video": "Drop Video Here",
+		"drop_gallery": "Drop Image(s) Here",
+		"paste_clipboard": "Paste from Clipboard"
+	}
+}

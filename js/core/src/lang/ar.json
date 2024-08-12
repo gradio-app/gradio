@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "تم الإنشاء بإستخدام Gradio",
+		"clear": "أمسح",
+		"or": "أو",
+		"submit": "أرسل"
+	},
+	"upload_text": {
+		"click_to_upload": "إضغط للتحميل",
+		"drop_audio": "أسقط الملف الصوتي هنا",
+		"drop_csv": "أسقط ملف البيانات هنا",
+		"drop_file": "أسقط الملف هنا",
+		"drop_image": "أسقط الصورة هنا",
+		"drop_video": "أسقط الفيديو هنا"
+	}
+}

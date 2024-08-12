@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"moduleResolution": "node",
-		"module": "es2020",
+		"moduleResolution": "bundler",
+		"module": "ESNext",
 		"lib": ["es2020", "DOM", "dom.iterable"],
 		"target": "es2020",
 		/**

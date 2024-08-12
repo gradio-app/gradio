@@ -1,0 +1,15 @@
+{
+	"common": {
+		"built_with_gradio": "gradio bilan qilingan",
+		"clear": "Tozalash",
+		"submit": "Yubor"
+	},
+	"upload_text": {
+		"click_to_upload": "Yuklash uchun Bosing",
+		"drop_audio": "Audioni Shu Yerga Tashlang",
+		"drop_csv": "CSVni Shu Yerga Tashlang",
+		"drop_file": "Faylni Shu Yerga Tashlang",
+		"drop_image": "Rasmni Shu Yerga Tashlang",
+		"drop_video": "Videoni Shu Yerga Tashlang"
+	}
+}

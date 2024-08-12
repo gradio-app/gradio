@@ -1,0 +1,30 @@
+{
+	"audio": {
+		"allow_recording_access": "Veuillez autoriser l'accès à l'enregistrement",
+		"audio": "Audio",
+		"record_from_microphone": "Enregistrer avec le microphone",
+		"stop_recording": "Arrêter l'enregistrement"
+	},
+	"common": {
+		"built_with": "Construit avec",
+		"built_with_gradio": "Construit avec Gradio",
+		"clear": "Effacer",
+		"download": "Télécharger",
+		"edit": "Éditer",
+		"error": "Erreur",
+		"loading": "Chargement",
+		"logo": "logo",
+		"or": "ou",
+		"remove": "Supprimer",
+		"share": "Partager",
+		"submit": "Soumettre"
+	},
+	"upload_text": {
+		"click_to_upload": "Cliquer pour Télécharger",
+		"drop_audio": "Déposer l'Audio Ici",
+		"drop_csv": "Déposer le CSV Ici",
+		"drop_file": "Déposer le Fichier Ici",
+		"drop_image": "Déposer l'Image Ici",
+		"drop_video": "Déposer la Vidéo Ici"
+	}
+}

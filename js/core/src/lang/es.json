@@ -1,0 +1,17 @@
+{
+	"common": {
+		"built_with_gradio": "Construido con Gradio",
+		"clear": "Limpiar",
+		"or": "o",
+		"submit": "Enviar"
+	},
+	"upload_text": {
+		"click_to_upload": "Haga click para cargar",
+		"drop_audio": "Coloque el audio aquí",
+		"drop_csv": "Coloque el CSV aquí",
+		"drop_file": "Coloque el archivo aquí",
+		"drop_image": "Coloque la imagen aquí",
+		"drop_video": "Coloque el video aquí",
+		"drop_gallery": "Coloque las imagenes aquí"
+	}
+}

@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- An entrypoint for the Wasm version development -->
+<html style="margin: 0; padding: 0; height: 100%">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1"
+		/>
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			rel="preconnect"
+			href="https://fonts.gstatic.com"
+			crossorigin="anonymous"
+		/>
+
+		<script type="module" src="./src/lite/index.ts"></script>
+	</head>
+
+	<body
+		style="
+			margin: 0;
+			padding: 0;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+		"
+	>
+		<div style="flex-grow: 1; overflow: scroll; position: relative">
+			<div id="gradio-app" style="min-height: 100%"></div>
+		</div>
+		<div id="dev-app" style="height: 300px; position: relative"></div>
+	</body>
+</html>

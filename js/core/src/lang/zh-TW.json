@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "使用Gradio構建",
+		"clear": "清除",
+		"or": "或",
+		"submit": "提交"
+	},
+	"upload_text": {
+		"click_to_upload": "點擊上傳",
+		"drop_audio": "拖放音訊至此處",
+		"drop_csv": "拖放CSV至此處",
+		"drop_file": "拖放檔案至此處",
+		"drop_image": "拖放圖片至此處",
+		"drop_video": "拖放影片至此處"
+	}
+}

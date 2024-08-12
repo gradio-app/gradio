@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "בנוי עם גרדיו",
+		"clear": "נקה",
+		"or": "או",
+		"submit": "שלח"
+	},
+	"upload_text": {
+		"click_to_upload": "לחץ כדי להעלות",
+		"drop_audio": "גרור לכאן קובץ שמע",
+		"drop_csv": "גרור csv קובץ לכאן",
+		"drop_file": "גרור קובץ לכאן",
+		"drop_image": "גרור קובץ תמונה לכאן",
+		"drop_video": "גרור קובץ סרטון לכאן"
+	}
+}
