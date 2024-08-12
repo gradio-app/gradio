@@ -75,7 +75,7 @@ class Client:
     def __init__(
         self,
         src: str,
-        hf_token: str | None = None,
+        hf_token: str | Literal[False] | None = False,
         max_workers: int = 40,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
@@ -88,14 +88,14 @@ class Client:
     ):
         """
         Parameters:
-            src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
-            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
-            max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
-            verbose: Whether the client should print statements to the console.
-            headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
-            download_files: Directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
-            ssl_verify: If False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
-            httpx_kwargs: Additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
+            src: either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
+            hf_token: optional Hugging Face token to use to access private Spaces. By default, no token is sent to the server. Set `hf_token=None` to use the locally saved token if there is one (warning: only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find your tokens here: https://huggingface.co/settings/tokens.
+            max_workers: maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
+            verbose: whether the client should print statements to the console.
+            headers: additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
+            download_files: directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
+            ssl_verify: if False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
+            httpx_kwargs: additional keyword arguments to pass to `httpx.Client`, `httpx.stream`, `httpx.get` and `httpx.post`. This can be used to set timeouts, proxies, http auth, etc.
         """
         self.verbose = verbose
         self.hf_token = hf_token
@@ -322,7 +322,7 @@ class Client:
         cls,
         from_id: str,
         to_id: str | None = None,
-        hf_token: str | None = None,
+        hf_token: str | Literal[False] | None = False,
         private: bool = True,
         hardware: Literal[
             "cpu-basic",
@@ -355,7 +355,7 @@ class Client:
         Parameters:
             from_id: The name of the Hugging Face Space to duplicate in the format "{username}/{space_id}", e.g. "gradio/whisper".
             to_id: The name of the new Hugging Face Space to create, e.g. "abidlabs/whisper-duplicate". If not provided, the new Space will be named "{your_HF_username}/{space_id}".
-            hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
+            hf_token: optional Hugging Face token to use to duplicating private Spaces. By default, no token is sent to the server. Set `hf_token=None` to use the locally saved token if there is one. Find your tokens here: https://huggingface.co/settings/tokens.
             private: Whether the new Space should be private (True) or public (False). Defaults to True.
             hardware: The hardware tier to use for the new Space. Defaults to the same hardware tier as the original Space. Options include "cpu-basic", "cpu-upgrade", "t4-small", "t4-medium", "a10g-small", "a10g-large", "a100-large", subject to availability.
             secrets: A dictionary of (secret key, secret value) to pass to the new Space. Defaults to None. Secrets are only used when the Space is duplicated for the first time, and are not updated if the duplicated Space already exists.
@@ -890,7 +890,7 @@ class Client:
         discord_bot_token: str | None = None,
         api_names: list[str | tuple[str, str]] | None = None,
         to_id: str | None = None,
-        hf_token: str | None = None,
+        hf_token: str | Literal[False] | None = False,
         private: bool = False,
     ):
         """
