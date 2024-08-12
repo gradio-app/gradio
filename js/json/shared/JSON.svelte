@@ -42,9 +42,6 @@
 	onDestroy(() => {
 		if (timer) clearTimeout(timer);
 	});
-
-	$: max_height =
-		lines && line_height ? `${(lines + 1) * line_height}px` : "auto";
 </script>
 
 {#if value && value !== '""' && !is_empty(value)}
@@ -61,11 +58,7 @@
 			<Copy />
 		{/if}
 	</button>
-	<div
-		class="json-holder"
-		bind:this={json_holder}
-		style:max-height={max_height}
-	>
+	<div class="json-holder" bind:this={json_holder}>
 		<JSONNode
 			{value}
 			depth={0}
