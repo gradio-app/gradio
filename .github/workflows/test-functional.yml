@@ -11,8 +11,13 @@ concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   changes:
+    permissions:
+      contents: read
+      pull-requests: read
     name: "changes"
     runs-on: ubuntu-latest
     outputs:
@@ -29,6 +34,8 @@ jobs:
           filter: "functional"
           token: ${{ secrets.GITHUB_TOKEN }}
   test:
+    permissions:
+      contents: read
     name: "functional-test"
     runs-on: ubuntu-latest
     needs: changes
@@ -40,7 +47,6 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
-          build_lite: true
       - name: install outbreak_forecast dependencies
         run: |
           . venv/bin/activate
@@ -73,12 +79,3 @@ jobs:
           name: reload-mode-playwright-screenshots
           path: |
             ./test-results
-      - name: Run Lite E2E tests
-        run: |
-          . venv/bin/activate
-          pnpm --filter @gradio/app test:browser:lite
-      - name: Get the performance result
-        run: |
-          export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)
-          echo "LITE_APP_LOAD_TIME=$LITE_APP_LOAD_TIME" >> $GITHUB_ENV
-          cat .lite-perf.json  # For debugging

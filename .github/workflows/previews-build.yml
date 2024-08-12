@@ -1,11 +1,8 @@
 name: "previews-build"
 
 on:
+  workflow_dispatch:
   pull_request:
-  push:
-    branches:
-      - main
-      - 5.0-dev
 
 env:
   CI: true
@@ -16,10 +13,15 @@ concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   changes:
     name: "changes"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
@@ -32,10 +34,12 @@ jobs:
           filter: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
   build:
+    permissions:
+      contents: read
     name: "previews-build"
     runs-on: ubuntu-22.04
     needs: changes
-    if: needs.changes.outputs.should_run == 'true'
+    if: needs.changes.outputs.should_run == 'true' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
@@ -72,7 +76,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: all_demos
-          path: demo/all_demos
+          path: demo
       - name: Create JS client tarball
         id: create_js_tarball
         continue-on-error: true

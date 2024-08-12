@@ -902,7 +902,7 @@ def special_args(
             progress_index = i
             if inputs is not None:
                 inputs.insert(i, param.default)
-        elif type_hint == routes.Request:
+        elif type_hint in (routes.Request, Optional[routes.Request]):
             if inputs is not None:
                 inputs.insert(i, request)
         elif type_hint in (
