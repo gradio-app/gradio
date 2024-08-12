@@ -1,5 +1,5 @@
-import { test, describe, assert, afterEach } from "vitest";
-import { cleanup, render } from "@gradio/tootils";
+import { test, describe, assert, afterEach, vi } from "vitest";
+import { cleanup, render, fireEvent } from "@gradio/tootils";
 import Chatbot from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 import type { FileData } from "@gradio/client";
@@ -203,5 +203,34 @@ describe("Chatbot", () => {
 		const file_link = getAllByTestId("chatbot-file") as HTMLAnchorElement[];
 		assert.isTrue(file_link[0].href.includes("titanic.csv"));
 		assert.isTrue(file_link[0].href.includes("titanic.csv"));
+	});
+
+	test("renders copy all messages button and copies all messages to clipboard", async () => {
+		// mock the clipboard API
+		const clipboard_write_text_mock = vi.fn().mockResolvedValue(undefined);
+
+		Object.defineProperty(navigator, "clipboard", {
+			value: { writeText: clipboard_write_text_mock },
+			configurable: true,
+			writable: true
+		});
+
+		const { getByLabelText } = await render(Chatbot, {
+			loading_status,
+			label: "chatbot",
+			value: [["user message one", "bot message one"]],
+			show_copy_all_button: true
+		});
+
+		const copy_button = getByLabelText("Copy conversation");
+
+		fireEvent.click(copy_button);
+
+		expect(clipboard_write_text_mock).toHaveBeenCalledWith(
+			expect.stringContaining("user: user message one")
+		);
+		expect(clipboard_write_text_mock).toHaveBeenCalledWith(
+			expect.stringContaining("assistant: bot message one")
+		);
 	});
 });
