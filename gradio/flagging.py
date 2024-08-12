@@ -430,7 +430,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 if not deserialized_path.exists():
                     raise FileNotFoundError(f"File {deserialized} not found")
                 row.append(str(deserialized_path.relative_to(self.dataset_dir)))
-            except (FileNotFoundError, TypeError, ValueError):
+            except (FileNotFoundError, TypeError, ValueError, OSError):
                 deserialized = "" if deserialized is None else str(deserialized)
                 row.append(deserialized)
 
