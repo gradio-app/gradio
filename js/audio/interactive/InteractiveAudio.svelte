@@ -47,7 +47,7 @@
 		time_limit = null;
 	};
 	export const set_time_limit = (time: number): void => {
-		time_limit = time;
+		if (stream_active) time_limit = time;
 	};
 
 	let stream_active = false;
