@@ -234,6 +234,8 @@ class Audio(
         if self.format is not None and original_suffix != f".{self.format}":
             needs_conversion = True
 
+        # To avoid possibly-unbound errors
+        duration, sample_rate, data = 0, 0, np.array([])
         # Only extract audio data if necessary
         if (
             self.min_length is not None
