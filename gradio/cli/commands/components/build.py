@@ -172,7 +172,7 @@ def _build(
         if pipe.returncode != 0:
             live.update(":red_square: Build failed!")
             live.update(pipe.stderr)
-            raise SystemExit("Frontend build failed")
+            raise SystemExit("Python build failed")
         else:
             live.update(":white_check_mark: Build succeeded!")
             live.update(
