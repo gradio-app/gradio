@@ -49,7 +49,7 @@ class JSON(Component):
         key: int | str | None = None,
         open: bool = False,
         show_indices: bool = False,
-        height: int | None = None,
+        height: int | str | None = None,
     ):
         """
         Parameters:
