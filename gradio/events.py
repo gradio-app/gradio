@@ -428,6 +428,7 @@ class EventListener(str):
             concurrency_id: str | None = None,
             show_api: bool = True,
             time_limit: int | None = None,
+            stream_every: float = 0.5,
         ) -> Dependency:
             """
             Parameters:
@@ -521,6 +522,7 @@ class EventListener(str):
                 show_api=show_api,
                 connection=_connection,
                 time_limit=time_limit,
+                stream_every=stream_every,
             )
             set_cancel_events(
                 [event_target],
@@ -763,7 +765,6 @@ class Events:
     )
     stream = EventListener(
         "stream",
-        show_progress="hidden",
         config_data=lambda: {"streamable": False},
         callback=lambda block: setattr(block, "streaming", True),
         doc="This listener is triggered when the user streams the {{ component }}.",

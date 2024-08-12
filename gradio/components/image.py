@@ -74,7 +74,6 @@ class Image(StreamingInput, Component):
         key: int | str | None = None,
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
-        stream_every: float = 0.5,
         show_fullscreen_button: bool = True,
     ):
         """
@@ -103,7 +102,6 @@ class Image(StreamingInput, Component):
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            stream_every: The latency (in seconds) at which the image stream is sent to the backend. Defaults to 0.5 seconds.
             show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
         """
         self.format = format
@@ -159,7 +157,6 @@ class Image(StreamingInput, Component):
             key=key,
             value=value,
         )
-        self.stream_every = stream_every
 
     def preprocess(
         self, payload: FileData | None

@@ -199,7 +199,10 @@
 
 <div
 	class="wrap {variant} {show_progress}"
-	class:hide={!status || status === "complete" || show_progress === "hidden"}
+	class:hide={!status ||
+		status === "complete" ||
+		show_progress === "hidden" ||
+		status == "streaming"}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
 		translucent ||

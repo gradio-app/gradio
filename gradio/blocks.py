@@ -517,6 +517,7 @@ class BlockFunction:
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
+        stream_every: float = 0.5,
     ):
         self.fn = fn
         self._id = _id
@@ -556,6 +557,7 @@ class BlockFunction:
         # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
         self.time_limit = time_limit
+        self.stream_every = stream_every
         self.connection = connection
 
         self.spaces_auto_wrap()
@@ -607,6 +609,7 @@ class BlockFunction:
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
             "connection": self.connection,
             "time_limit": self.time_limit,
+            "stream_every": self.stream_every,
         }
 
 
@@ -706,6 +709,7 @@ class BlocksConfig:
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
+        stream_every: float = 0.5,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -735,6 +739,7 @@ class BlocksConfig:
             is_cancel_function: whether this event cancels another running event.
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Only applies if connection is "stream".
+            stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Only applies for "stream" events.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -850,6 +855,7 @@ class BlocksConfig:
             is_cancel_function=is_cancel_function,
             connection=connection,
             time_limit=time_limit,
+            stream_every=stream_every,
         )
 
         self.fns[self.fn_id] = block_fn
