@@ -2,7 +2,6 @@
 	import { onDestroy } from "svelte";
 	import { Copy, Check } from "@gradio/icons";
 	import type { NormalisedMessage } from "../types";
-	import type { log } from "node:console";
 
 	let copied = false;
 	export let value: NormalisedMessage[] | null;
