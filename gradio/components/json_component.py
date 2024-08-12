@@ -49,7 +49,7 @@ class JSON(Component):
         key: int | str | None = None,
         open: bool = False,
         show_indices: bool = False,
-        lines: int | None = None,
+        height: int | None = None,
     ):
         """
         Parameters:
@@ -68,7 +68,7 @@ class JSON(Component):
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             open: If True, all JSON nodes will be expanded when rendered. By default, node levels deeper than 3 are collapsed.
             show_indices: Whether to show numerical indices when displaying the elements of a list within the JSON object.
-            lines: Maximum number of visible lines to show in the component. Overflow will be scrollable.
+            height: Height of the JSON component in pixels. Overflow will be scrollable. If None, the height will be automatically adjusted to fit the content.
         """
         super().__init__(
             label=label,
@@ -88,7 +88,7 @@ class JSON(Component):
 
         self.show_indices = show_indices
         self.open = open
-        self.lines = lines
+        self.height = height
 
     def preprocess(self, payload: dict | list | None) -> dict | list | None:
         """
