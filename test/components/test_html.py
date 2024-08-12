@@ -10,7 +10,7 @@ class TestHTML:
         assert html_component.get_config() == {
             "value": "#Welcome onboard",
             "label": "HTML Input",
-            "show_label": True,
+            "show_label": False,
             "visible": True,
             "elem_id": None,
             "elem_classes": [],

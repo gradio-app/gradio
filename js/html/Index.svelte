@@ -3,7 +3,8 @@
 	import HTML from "./shared/HTML.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { Block } from "@gradio/atoms";
+	import { Block, BlockLabel } from "@gradio/atoms";
+	import { Code as CodeIcon } from "@gradio/icons";
 
 	export let label: string;
 	export let elem_id = "";
@@ -15,11 +16,18 @@
 		change: never;
 		clear_status: LoadingStatus;
 	}>;
+	export let show_label = false;
 
 	$: label, gradio.dispatch("change");
 </script>
 
 <Block {visible} {elem_id} {elem_classes} container={false}>
+	{#if show_label}
+		<span class="label-container">
+			<BlockLabel Icon={CodeIcon} {show_label} {label} float={true} />
+		</span>
+	{/if}
+
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
@@ -45,5 +53,16 @@
 
 	.pending {
 		opacity: 0.2;
+	}
+
+	.label-container :global(label) {
+		top: -8px !important;
+		position: relative !important;
+		left: -8px !important;
+		background: var(--block-background-fill) !important;
+		border-top: var(--block-label-border-width) solid
+			var(--border-color-primary) !important;
+		border-left: var(--block-label-border-width) solid
+			var(--border-color-primary) !important;
 	}
 </style>

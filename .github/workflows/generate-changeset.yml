@@ -38,9 +38,7 @@ jobs:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
       message: changes~pending~null
   version:
-    environment: comment_pr
-
-    permissions: write-all
+    environment: changeset
     name: version
     needs: get-pr
     runs-on: ubuntu-latest
@@ -59,7 +57,7 @@ jobs:
         id: version
         uses: "gradio-app/github/actions/generate-changeset@main"
         with:
-          github_token: ${{ secrets.COMMENT_TOKEN }}
+          github_token: ${{ secrets.CHANGESET_GITHUB_TOKEN }}
           main_pkg: gradio
           pr_number: ${{ needs.get-pr.outputs.pr_number }}
           branch_name: ${{ needs.get-pr.outputs.source_branch }}
