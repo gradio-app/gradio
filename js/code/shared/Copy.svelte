@@ -29,9 +29,9 @@
 
 <button
 	on:click={handle_copy}
-	title="copy"
+	title="Copy message"
 	class:copied
-	aria-label={copied ? "Value copied" : "Copy value"}
+	aria-label={copied ? "Message copied" : "Copy Message"}
 >
 	{#if !copied}
 		<Copy />
