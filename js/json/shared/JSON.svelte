@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onDestroy, onMount } from "svelte";
 	import { JSON as JSONIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
@@ -9,8 +8,6 @@
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark" = "system";
 	export let show_indices = false;
-
-	let json_holder: HTMLDivElement;
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -58,7 +55,7 @@
 			<Copy />
 		{/if}
 	</button>
-	<div class="json-holder" bind:this={json_holder}>
+	<div class="json-holder">
 		<JSONNode
 			{value}
 			depth={0}
