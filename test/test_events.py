@@ -111,6 +111,7 @@ class TestEvent:
             (num1._id, "change"),
             (num2._id, "change"),
             (num3._id, "change"),
+            (0, "load"),
         ]
 
     def test_load_chaining(self):
