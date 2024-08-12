@@ -9,17 +9,8 @@
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark" = "system";
 	export let show_indices = false;
-	export let lines: number | undefined;
 
 	let json_holder: HTMLDivElement;
-	let line_height: number;
-
-	onMount(() => {
-		if (json_holder) {
-			const computed_style = window.getComputedStyle(json_holder);
-			line_height = parseFloat(computed_style.lineHeight);
-		}
-	});
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
