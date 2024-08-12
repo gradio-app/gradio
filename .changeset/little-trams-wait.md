@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Add lines param to gr.JSON
+feat:Add height param to gr.JSON
