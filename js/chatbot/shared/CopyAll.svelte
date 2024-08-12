@@ -2,6 +2,7 @@
 	import { onDestroy } from "svelte";
 	import { Copy, Check } from "@gradio/icons";
 	import type { NormalisedMessage } from "../types";
+	import type { log } from "node:console";
 
 	let copied = false;
 	export let value: NormalisedMessage[] | null;
@@ -18,10 +19,16 @@
 
 	const copy_conversation = (): void => {
 		if (value) {
-			const conversation_text = value
-				.map((message) => `${message.role}: ${message.content}`)
+			const conversation_value = value
+				.map((message) => {
+					if (message.type === "text") {
+						return `${message.role}: ${message.content}`;
+					}
+					return `${message.role}: ${message.content.value.url}`;
+				})
 				.join("\n\n");
-			navigator.clipboard.writeText(conversation_text).catch((err) => {
+
+			navigator.clipboard.writeText(conversation_value).catch((err) => {
 				console.error("Failed to copy conversation: ", err);
 			});
 		}
