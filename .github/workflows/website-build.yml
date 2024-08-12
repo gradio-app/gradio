@@ -32,7 +32,7 @@ jobs:
           filter: "website"
           token: ${{ secrets.GITHUB_TOKEN }}
   build:
-    name: build
+    name: "website-build"
     runs-on: ubuntu-22.04
     needs: changes
     if: needs.changes.outputs.should_run == 'true'

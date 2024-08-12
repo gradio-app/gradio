@@ -34,7 +34,7 @@ jobs:
           filter: "js"
           token: ${{ secrets.GITHUB_TOKEN }}
   test:
-    name: test
+    name: js-test
     runs-on: ubuntu-22.04
     needs: changes
     if: needs.changes.outputs.should_run == 'true'

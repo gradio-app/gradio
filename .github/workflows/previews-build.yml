@@ -31,8 +31,8 @@ jobs:
         with:
           filter: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
-  test:
-    name: test
+  build:
+    name: "previews-build"
     runs-on: ubuntu-22.04
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
