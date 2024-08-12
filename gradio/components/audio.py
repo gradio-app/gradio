@@ -109,7 +109,6 @@ class Audio(
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
-        stream_every: float = 0.5,
     ):
         """
         Parameters:
@@ -139,7 +138,6 @@ class Audio(
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options. [See `gr.WaveformOptions` docs](#waveform-options).
             loop: If True, the audio will loop when it reaches the end and continue playing from the beginning.
-            stream_every: The latency (in seconds) at which the audio stream is sent to the backend. Defaults to 0.5 seconds.
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -186,7 +184,6 @@ class Audio(
             self.waveform_options = waveform_options
         self.min_length = min_length
         self.max_length = max_length
-        self.stream_every = stream_every
         super().__init__(
             label=label,
             every=every,
