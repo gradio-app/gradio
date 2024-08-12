@@ -254,6 +254,7 @@ export interface Dependency {
 	rendered_in: number | null;
 	connection: "stream" | "sse";
 	time_limit: number;
+	stream_every: number;
 }
 
 export interface DependencyTypes {
