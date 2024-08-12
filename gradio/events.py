@@ -574,7 +574,7 @@ def on(
     for all events in the triggers list.
 
     Parameters:
-        triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will listen to changes to any inputs.
+        triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will run on app load and changes to any inputs.
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
         inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
         outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
@@ -656,7 +656,7 @@ def on(
             [EventListenerMethod(input, "change") for input in inputs]
             if inputs is not None
             else []
-        )  # type: ignore
+        ) + [EventListenerMethod(root_block, "load")]  # type: ignore
     else:
         methods = [
             EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore
