@@ -36,7 +36,7 @@
 		? `/proxy=${proxy_url}file=`
 		: `${root}/file=`;
 	let page = 0;
-	
+
 	$: gallery = components.length < 2 || sample_labels !== null;
 	let paginate = samples ? samples.length > samples_per_page : false;
 
