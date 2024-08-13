@@ -472,6 +472,13 @@ class Queue:
                 if event.fn in self.process_time_per_fn
                 else None
             )
+
+            # eta is the time remaining from now until the result will be returned
+            # process_time_for_fn = time to run fn once worker assigned to it
+            # wait_so_far = time till event gets to the head of the queue
+            # time_till_available_worker = time for a worker to be assigned to it once its at the head
+            # For streaming events, we modify this calculation slightly to be the time until the first
+            # chunk is processed.
             rank_eta = (
                 process_time_for_fn + wait_so_far + time_till_available_worker
                 if process_time_for_fn is not None
@@ -490,7 +497,12 @@ class Queue:
             if event_queue.concurrency_limit is None:
                 wait_so_far = 0
             elif wait_so_far is not None and process_time_for_fn is not None:
-                wait_so_far += process_time_for_fn / event_queue.concurrency_limit
+                delta = process_time_for_fn / event_queue.concurrency_limit
+                if event.streaming:
+                    delta = (
+                        time_till_available_worker or 0
+                    ) / event_queue.concurrency_limit
+                wait_so_far += delta
             else:
                 wait_so_far = None
 
