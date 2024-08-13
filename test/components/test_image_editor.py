@@ -70,6 +70,7 @@ class TestImageEditor:
             "layers": True,
             "canvas_size": None,
             "info": None,
+            "show_fullscreen_button": True,
         }
 
     def test_process_example(self):

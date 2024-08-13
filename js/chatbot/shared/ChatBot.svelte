@@ -17,7 +17,7 @@
 
 	import { Clear } from "@gradio/icons";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { MessageRole, ComponentMessage, ComponentData } from "../types";
+	import type { MessageRole } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
@@ -339,6 +339,7 @@
 									class:message-markdown-disabled={!render_markdown}
 									style:user-select="text"
 									class:selectable
+									style:cursor={selectable ? "pointer" : "default"}
 									style:text-align={rtl ? "right" : "left"}
 									on:click={() => handle_select(i, message)}
 									on:keydown={(e) => {

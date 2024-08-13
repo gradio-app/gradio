@@ -75,6 +75,7 @@ class Image(StreamingInput, Component):
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
         info: str | None = None,
+        show_fullscreen_button: bool = True,
     ):
         """
         Parameters:
@@ -103,6 +104,7 @@ class Image(StreamingInput, Component):
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             info: Additional component description.
+            show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
         """
         self.format = format
         self.mirror_webcam = mirror_webcam
@@ -140,6 +142,7 @@ class Image(StreamingInput, Component):
             if show_share_button is None
             else show_share_button
         )
+        self.show_fullscreen_button = show_fullscreen_button
         super().__init__(
             label=label,
             every=every,

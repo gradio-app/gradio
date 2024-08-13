@@ -41,7 +41,7 @@
 />
 
 <Story
-	name="static with info and download button"
+	name="static with label, info and download button"
 	args={{
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
@@ -49,7 +49,16 @@
 			orig_name: "cheetah.jpg"
 		},
 		show_label: true,
-		info: "This is a cheetah"
+		info: "This is a cheetah",
+		show_download_button: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+
+		const expand_btn = canvas.getByRole("button", {
+			name: "View in full screen"
+		});
+		await userEvent.click(expand_btn);
 	}}
 />
 

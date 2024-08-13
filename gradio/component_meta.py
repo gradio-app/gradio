@@ -14,10 +14,12 @@ from gradio.utils import no_raise_exception
 
 INTERFACE_TEMPLATE = '''
 {{ contents }}
+    from typing import Callable, Literal
+    from gradio.blocks import Block
 
     {% for event in events %}
     def {{ event }}(self,
-        fn: Callable | None = None,
+        fn: Callable[..., Any] | None = None,
         inputs: Block | Sequence[Block] | set[Block] | None = None,
         outputs: Block | Sequence[Block] | None = None,
         api_name: str | None | Literal[False] = None,

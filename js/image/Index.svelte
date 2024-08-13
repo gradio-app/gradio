@@ -52,6 +52,7 @@
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
 	export let info: string | undefined = undefined;
+	export let show_fullscreen_button: boolean;
 
 	export let gradio: Gradio<{
 		input: never;
@@ -116,6 +117,7 @@
 			{show_share_button}
 			i18n={gradio.i18n}
 			{info}
+			{show_fullscreen_button}
 		/>
 	</Block>
 {:else}

@@ -1,10 +1,10 @@
-name: "test / visual"
+name: "storybook-deploy"
 
 on:
   workflow_run:
     workflows: ["storybook-build"]
     types:
-      - requested
+      - completed
 
 concurrency:
   group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
@@ -28,8 +28,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: artifact-dir
-          path: different_dir
+          name: changes
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
       - uses: gradio-app/github/actions/json-to-output@main
@@ -58,9 +57,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: "storybook"
           run_id: ${{ needs.changes.outputs.run_id }}
-  test-visual:
+  deploy:
     environment: storybook
-    name: "test-visual"
+    name: "deploy"
     needs: changes
     if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
     runs-on: ubuntu-latest
@@ -72,6 +71,11 @@ jobs:
     permissions:
       actions: read
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changes.outputs.source_branch }}
+          repository: ${{ needs.changes.outputs.source_repo }}
+          fetch-depth: 0
       - name: dowload storybook artifacts
         uses: actions/download-artifact@v4
         with:
@@ -79,6 +83,10 @@ jobs:
           path: storybook-static
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: list artifacts
+        run: ls -R .
+      - name: create dummy pkg.json
+        run: echo "{}" > package.json
       - name: publish to chromatic
         id: publish-chromatic
         uses: chromaui/action@v11
@@ -91,25 +99,21 @@ jobs:
 
   comment-chromatic-end:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [test-visual, changes]
+    needs: [deploy, changes]
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: |
-        storybook~success~${{ needs.test-visual.outputs.storybook_url }}
+        storybook~success~${{ needs.deploy.outputs.storybook_url }}
 
   comment-chromatic-fail:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [test-visual, changes]
-    if: always() && needs.test-visual.result == 'failure'
+    needs: [deploy, changes]
+    if: always() && needs.deploy.result == 'failure'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: |
         storybook~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
-
-# visual~success~${{ needs.chromatic-deployment.outputs.changes }}~${{ needs.chromatic-deployment.outputs.errors }}~${{ needs.chromatic-deployment.outputs.build_url }}
-
-# visual~failure~0~0~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/

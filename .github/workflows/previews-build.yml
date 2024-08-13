@@ -1,4 +1,4 @@
-name: "storybook-build"
+name: "previews-build"
 
 on:
   pull_request:
@@ -52,7 +52,8 @@ jobs:
         with:
           name: gradio-lite-${{ github.sha }}
           path: js/lite/gradio-lite-*.tgz
-
+      - name: install deps
+        run: python -m pip install build
       - name: Build pr package
         run: |
           python -c 'import json; j = json.load(open("gradio/package.json")); j["version"] = "${{ needs.changes.outputs.gradio_version }}"; json.dump(j, open("gradio/package.json", "w"))'
@@ -63,15 +64,15 @@ jobs:
           name: gradio-build
           path: dist/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl
       - name: copy demos
-        uses: gradio-app/gradio/.github/actions/copy-demos@main
+        uses: "gradio-app/github/actions/copy-demos@main"
         with:
-          gradio_version: "https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl"
+          gradio_version: "https://gradio-pypi-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl"
           gradio_client_version: "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
       - name: upload demos
         uses: actions/upload-artifact@v4
         with:
-          name: demos
-          path: demos/all_demos
+          name: all_demos
+          path: demo/all_demos
       - name: Create JS client tarball
         id: create_js_tarball
         continue-on-error: true
@@ -84,9 +85,3 @@ jobs:
         with:
           name: js-client-tarball
           path: ${{ steps.create_js_tarball.outputs.tarball_name }}
-
-      - name: upload  storybook
-        uses: actions/upload-artifact@v4
-        with:
-          name: storybook-static
-          path: storybook-static

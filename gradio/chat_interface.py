@@ -339,6 +339,7 @@ class ChatInterface(Blocks):
             if self.submit_btn
             else [self.textbox.submit]
         )
+
         submit_event = (
             on(
                 submit_triggers,
@@ -351,15 +352,15 @@ class ChatInterface(Blocks):
             )
             .then(
                 self._display_input,
-                [self.saved_input, self.chatbot_state],
-                [self.chatbot, self.chatbot_state],
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
                 show_api=False,
                 queue=False,
             )
             .then(
                 submit_fn,
-                [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                [self.chatbot, self.chatbot_state],
+                [self.saved_input, self.chatbot] + self.additional_inputs,
+                [self.chatbot],
                 show_api=False,
                 concurrency_limit=cast(
                     Union[int, Literal["default"], None], self.concurrency_limit
@@ -375,22 +376,22 @@ class ChatInterface(Blocks):
             retry_event = (
                 self.retry_btn.click(
                     self._delete_prev_fn,
-                    [self.saved_input, self.chatbot_state],
-                    [self.chatbot, self.saved_input, self.chatbot_state],
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot, self.saved_input],
                     show_api=False,
                     queue=False,
                 )
                 .then(
                     self._display_input,
-                    [self.saved_input, self.chatbot_state],
-                    [self.chatbot, self.chatbot_state],
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot],
                     show_api=False,
                     queue=False,
                 )
                 .then(
                     submit_fn,
-                    [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                    [self.chatbot, self.chatbot_state],
+                    [self.saved_input, self.chatbot] + self.additional_inputs,
+                    [self.chatbot],
                     show_api=False,
                     concurrency_limit=cast(
                         Union[int, Literal["default"], None], self.concurrency_limit
@@ -411,8 +412,8 @@ class ChatInterface(Blocks):
         if self.undo_btn:
             self.undo_btn.click(
                 self._delete_prev_fn,
-                [self.saved_input, self.chatbot_state],
-                [self.chatbot, self.saved_input, self.chatbot_state],
+                [self.saved_input, self.chatbot],
+                [self.chatbot, self.saved_input],
                 show_api=False,
                 queue=False,
             ).then(
@@ -427,7 +428,7 @@ class ChatInterface(Blocks):
             self.clear_btn.click(
                 async_lambda(lambda: ([], [], None)),
                 None,
-                [self.chatbot, self.chatbot_state, self.saved_input],
+                [self.chatbot, self.saved_input],
                 queue=False,
                 show_api=False,
             )
@@ -567,7 +568,7 @@ class ChatInterface(Blocks):
             history.append([message, None])  # type: ignore
         elif isinstance(message, str) and self.type == "messages":
             history.append({"role": "user", "content": message})  # type: ignore
-        return history, history  # type: ignore
+        return history  # type: ignore
 
     def response_as_dict(self, response: MessageDict | Message | str) -> MessageDict:
         if isinstance(response, Message):
@@ -613,13 +614,11 @@ class ChatInterface(Blocks):
         else:
             new_response = response
 
-        if self.multimodal and isinstance(message, MultimodalData):
-            self._append_multimodal_history(message, new_response, history)  # type: ignore
-        elif isinstance(message, str) and self.type == "tuples":
-            history.append([message, new_response])  # type: ignore
-        elif isinstance(message, str) and self.type == "messages":
-            history.extend([{"role": "user", "content": message}, new_response])  # type: ignore
-        return history, history  # type: ignore
+        if self.type == "tuples":
+            history_with_input[-1][1] = new_response  # type: ignore
+        elif self.type == "messages":
+            history_with_input.append(new_response)  # type: ignore
+        return history_with_input  # type: ignore
 
     async def _stream_fn(
         self,
@@ -657,40 +656,23 @@ class ChatInterface(Blocks):
                 and isinstance(message, MultimodalData)
                 and self.type == "tuples"
             ):
-                for x in message.files:
-                    history.append([(x,), None])  # type: ignore
-                update = history + [[message.text, first_response]]
-                yield update, update
+                history_with_input[-1][1] = first_response  # type: ignore
+                yield history_with_input
             elif (
                 self.multimodal
                 and isinstance(message, MultimodalData)
                 and self.type == "messages"
             ):
-                for x in message.files:
-                    history.append(
-                        {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
-                    )
-                update = history + [
-                    {"role": "user", "content": message.text},
-                    first_response,
-                ]
-                yield update, update
+                history_with_input.append(first_response)  # type: ignore
+                yield history_with_input
             elif self.type == "tuples":
-                update = history + [[message, first_response]]
-                yield update, update
+                history_with_input[-1][1] = first_response  # type: ignore
+                yield history_with_input
             else:
-                update = history + [
-                    {"role": "user", "content": message},
-                    first_response,
-                ]
-                yield update, update
+                history_with_input.append(first_response)  # type: ignore
+                yield history_with_input
         except StopIteration:
-            if self.multimodal and isinstance(message, MultimodalData):
-                self._append_multimodal_history(message, None, history)
-                yield history, history
-            else:
-                update = history + [[message, None]]
-                yield update, update
+            yield history_with_input
         async for response in generator:
             if self.type == "messages":
                 response = self.response_as_dict(response)
@@ -699,24 +681,21 @@ class ChatInterface(Blocks):
                 and isinstance(message, MultimodalData)
                 and self.type == "tuples"
             ):
-                update = history + [[message.text, response]]
-                yield update, update
+                history_with_input[-1][1] = response  # type: ignore
+                yield history_with_input
             elif (
                 self.multimodal
                 and isinstance(message, MultimodalData)
                 and self.type == "messages"
             ):
-                update = history + [
-                    {"role": "user", "content": message.text},
-                    response,
-                ]
-                yield update, update
+                history_with_input[-1] = response  # type: ignore
+                yield history_with_input
             elif self.type == "tuples":
-                update = history + [[message, response]]
-                yield update, update
+                history_with_input[-1][1] = response  # type: ignore
+                yield history_with_input
             else:
-                update = history + [{"role": "user", "content": message}, response]
-                yield update, update
+                history_with_input[-1] = response  # type: ignore
+                yield history_with_input
 
     async def _api_submit_fn(
         self,
@@ -833,4 +812,4 @@ class ChatInterface(Blocks):
             history = history[:-remove_input]
         else:
             history = history[: -(1 + extra)]
-        return history, message or "", history
+        return history, message or ""  # type: ignore
