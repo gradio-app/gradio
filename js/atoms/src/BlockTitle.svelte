@@ -2,7 +2,6 @@
 	import { default as Info } from "./Info.svelte";
 	export let show_label = true;
 	export let info: string | undefined = undefined;
-	export let info_only = false;
 </script>
 
 <span
@@ -10,14 +9,11 @@
 	class:hide={!show_label}
 	class:has-info={info != null}
 	data-testid="block-info"
-	class:info_only
 >
 	<slot />
 </span>
 {#if info}
-	<span class:info={info_only}>
-		<Info>{info}</Info>
-	</span>
+	<Info>{info}</Info>
 {/if}
 
 <style>
@@ -42,15 +38,8 @@
 		line-height: var(--line-sm);
 	}
 
-	.info_only {
-		display: none;
-	}
-
 	.hide {
 		margin: 0;
 		height: 0;
-	}
-	.info {
-		margin-bottom: calc(var(--size-4) * -1) !important;
 	}
 </style>
