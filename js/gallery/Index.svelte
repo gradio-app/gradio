@@ -87,7 +87,7 @@
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				value = files.map((x) =>
 					x.mime_type?.includes("video")
-						? { video: x, caption: null }
+						? { video: x, caption: null, thumbnail: null}
 						: { image: x, caption: null }
 				);
 				gradio.dispatch("upload", value);
