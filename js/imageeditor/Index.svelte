@@ -124,7 +124,7 @@
 </script>
 
 {#if info}
-	<BlockTitle {info} info_only={true} />
+	<BlockTitle {info} />
 {/if}
 {#if !interactive}
 	<Block
