@@ -8,4 +8,5 @@ export interface GalleryImage {
 export interface GalleryVideo {
 	video: FileData;
 	caption: string | null;
+	thumbnail: string;
 }

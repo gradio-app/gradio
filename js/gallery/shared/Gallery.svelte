@@ -57,20 +57,27 @@
 	$: was_reset = value == null || value.length === 0 ? true : was_reset;
 
 	let resolved_value: GalleryData[] | null = null;
-	$: resolved_value =
-		value == null
-			? null
-			: (value.map((data) => {
-					if ("video" in data) {
-						return {
-							video: data.video as FileData,
-							caption: data.caption
-						};
-					} else if ("image" in data) {
-						return { image: data.image as FileData, caption: data.caption };
-					}
-					return {};
-				}) as GalleryData[]);
+	let thumbnailsGenerated = false;
+
+	$: if (value == null) {
+		resolved_value = null;
+	} else if (!thumbnailsGenerated) {
+		(async () => {
+			const initialResolvedValue = value.map((data) => {
+				if ("video" in data) {
+					return {
+						video: data.video as FileData,
+						caption: data.caption
+					};
+				} else if ("image" in data) {
+					return { image: data.image as FileData, caption: data.caption };
+				}
+				return {};
+			}) as GalleryData[];
+
+			resolved_value = await generateThumbnails(initialResolvedValue);
+		})();
+	}
 
 	let prev_value: GalleryData[] | null = value;
 	if (selected_index == null && preview && value?.length) {
@@ -229,7 +236,7 @@
 		}
 	};
 
-	const captureThumbail = async (url: string): Promise<string> => {
+	const captureThumbnail = async (url: string): Promise<string> => {
 		return new Promise((resolve, reject) => {
 			const video = document.createElement("video");
 			video.crossOrigin = "anonymous";
@@ -261,6 +268,20 @@
 			video.load();
 		});
 	};
+
+	async function generateThumbnails(
+		value: GalleryData[]
+	): Promise<GalleryData[]> {
+		const thumbnailPromises = value.map(async (data) => {
+			if ("video" in data && data.video.url) {
+				const thumbnail = await captureThumbnail(data.video.url);
+				return { ...data, thumbnail };
+			}
+			return data;
+		});
+
+		return Promise.all(thumbnailPromises);
+	}
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -389,9 +410,7 @@
 							{:else}
 								<Play />
 								<Image
-									src={captureThumbail(
-										media.video.url !== undefined ? media.video.url : ""
-									)}
+									src={media.thumbnail !== undefined ? media.thumbnail : ""}
 									title={media.caption || null}
 									data-testid={"thumbnail " + (i + 1)}
 									alt=""
@@ -420,7 +439,7 @@
 						<ModifyUpload
 							{i18n}
 							absolute={false}
-							on:clear={() => (value = null)}
+							on:clear={() => (value = [])}
 						/>
 					</div>
 				{/if}
@@ -453,9 +472,7 @@
 						{:else}
 							<Play />
 							<Image
-								src={captureThumbail(
-									entry.video.url !== undefined ? entry.video.url : ""
-								)}
+								src={entry.thumbnail !== undefined ? entry.thumbnail : ""}
 								title={entry.caption || null}
 								data-testid={"thumbnail " + (i + 1)}
 								alt=""
