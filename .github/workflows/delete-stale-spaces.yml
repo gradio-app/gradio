@@ -33,7 +33,8 @@ jobs:
       - name: Set daysStale
         env:
           DEFAULT_DAYS_STALE: "7"
-        run: echo "DAYS_STALE=${{ github.event.inputs.daysStale || env.DEFAULT_DAYS_STALE }}" >> $GITHUB_ENV
+          DAYS_STALE: ${{ github.event.inputs.daysStale  || env.DEFAULT_DAYS_STALE}}
+        run: echo DAYS_STALE=  "$DAYS_STALE"  >> $GITHUB_ENV
       - name: Find and delete stale spaces
         run: |
           python scripts/delete_old_spaces.py $DAYS_STALE \
