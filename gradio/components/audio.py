@@ -234,15 +234,7 @@ class Audio(
         if self.format is not None and original_suffix != f".{self.format}":
             needs_conversion = True
 
-        # To avoid possibly-unbound errors
-        duration, sample_rate, data = 0, 0, np.array([])
-        # Only extract audio data if necessary
-        if (
-            self.min_length is not None
-            or self.max_length is not None
-            or self.type == "numpy"
-            or needs_conversion
-        ):
+        if self.min_length is not None or self.max_length is not None:
             sample_rate, data = processing_utils.audio_from_file(payload.path)
             duration = len(data) / sample_rate
 
@@ -256,10 +248,11 @@ class Audio(
             )
 
         if self.type == "numpy":
-            return sample_rate, data
+            return processing_utils.audio_from_file(payload.path)
         elif self.type == "filepath":
             if not needs_conversion:
                 return payload.path
+            sample_rate, data = processing_utils.audio_from_file(payload.path)
             output_file = str(Path(payload.path).with_suffix(f".{self.format}"))
             assert self.format is not None  # noqa: S101
             processing_utils.audio_to_file(
