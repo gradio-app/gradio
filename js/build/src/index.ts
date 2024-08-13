@@ -246,7 +246,6 @@ function generate_component_imports(): string {
 		})
 		.filter((x) => x !== undefined);
 
-    console.log({exports})
 
 	const imports = exports.reduce((acc, _export) => {
 		if (!_export) return acc;
