@@ -14,13 +14,13 @@
 		"pybuild:gradio": "cd ../../ && hatch build -t lite",
 		"pybuild:gradio-client": "cd ../../client/python && python -m build",
 		"pybuild": "run-p pybuild:*",
-		"build": "pnpm pybuild && pnpm cssbuild && pnpm --filter @gradio/client build && pnpm --filter @gradio/wasm build && vite build --mode production:lite",
-		"build:frontend": "vite build --mode production:lite",
-		"dev:lite": "run-p dev:lite:*",
-		"dev:lite:self": "vite --port 9876 --mode development:lite",
-		"dev:lite:worker": "pnpm --filter @gradio/wasm dev",
-		"test:browser:lite": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @gradio/spa test:browser",
-		"test:browser:lite:dev": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @gradio/spa test:browser:dev"
+		"build": "pnpm pybuild && pnpm cssbuild && pnpm --filter @gradio/client build && pnpm --filter @gradio/wasm build && vite build --mode production",
+		"build:frontend": "vite build --mode production",
+		"dev": "run-p dev:*",
+		"dev:self": "vite --port 9876 --mode development",
+		"dev:worker": "pnpm --filter @gradio/wasm dev",
+		"test:browser": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @gradio/spa test:browser",
+		"test:browser:dev": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @gradio/spa test:browser:dev"
 	},
 	"devDependencies": {
 		"gradio": "workspace:^",

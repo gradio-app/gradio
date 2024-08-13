@@ -216,9 +216,9 @@ function generate_component_imports(): string {
 	const exports = readdirSync(join(__dirname, "..", ".."))
 		.map((dir) => {
 			if (ignore_list.includes(dir)) return undefined;
-			if (!statSync(join(__dirname, "..", dir)).isDirectory()) return undefined;
+			if (!statSync(join(__dirname, "..","..", dir)).isDirectory()) return undefined;
 
-			const package_json_path = join(__dirname, "..", dir, "package.json");
+			const package_json_path = join(__dirname, "..","..", dir, "package.json");
 			if (existsSync(package_json_path)) {
 				const package_json = JSON.parse(
 					readFileSync(package_json_path, "utf8")

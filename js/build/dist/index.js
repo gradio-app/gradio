@@ -153,8 +153,8 @@ var ignore_list = [
 function generate_component_imports() {
   const exports = readdirSync(join(__dirname, "..", "..")).map((dir) => {
     if (ignore_list.includes(dir)) return void 0;
-    if (!statSync(join(__dirname, "..", dir)).isDirectory()) return void 0;
-    const package_json_path = join(__dirname, "..", dir, "package.json");
+    if (!statSync(join(__dirname, "..", "..", dir)).isDirectory()) return void 0;
+    const package_json_path = join(__dirname, "..", "..", dir, "package.json");
     if (existsSync(package_json_path)) {
       const package_json = JSON.parse(
         readFileSync(package_json_path, "utf8")

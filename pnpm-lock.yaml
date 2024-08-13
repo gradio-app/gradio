@@ -2080,178 +2080,19 @@ importers:
         version: link:../preview
 
   js/spa:
-    dependencies:
-      '@gradio/accordion':
-        specifier: workspace:^
-        version: link:../accordion
-      '@gradio/annotatedimage':
-        specifier: workspace:^
-        version: link:../annotatedimage
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/audio':
-        specifier: workspace:^
-        version: link:../audio
-      '@gradio/box':
-        specifier: workspace:^
-        version: link:../box
+    devDependencies:
       '@gradio/build':
         specifier: workspace:^
         version: link:../build
-      '@gradio/button':
-        specifier: workspace:^
-        version: link:../button
-      '@gradio/chatbot':
-        specifier: workspace:^
-        version: link:../chatbot
-      '@gradio/checkbox':
-        specifier: workspace:^
-        version: link:../checkbox
-      '@gradio/checkboxgroup':
-        specifier: workspace:^
-        version: link:../checkboxgroup
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
-      '@gradio/code':
-        specifier: workspace:^
-        version: link:../code
-      '@gradio/colorpicker':
-        specifier: workspace:^
-        version: link:../colorpicker
-      '@gradio/column':
-        specifier: workspace:^
-        version: link:../column
       '@gradio/core':
         specifier: workspace:^
         version: link:../core
-      '@gradio/dataframe':
-        specifier: workspace:^
-        version: link:../dataframe
-      '@gradio/dataset':
-        specifier: workspace:^
-        version: link:../dataset
-      '@gradio/datetime':
-        specifier: workspace:^
-        version: link:../datetime
-      '@gradio/downloadbutton':
-        specifier: workspace:^
-        version: link:../downloadbutton
-      '@gradio/dropdown':
-        specifier: workspace:^
-        version: link:../dropdown
-      '@gradio/fallback':
-        specifier: workspace:^
-        version: link:../fallback
-      '@gradio/file':
-        specifier: workspace:^
-        version: link:../file
-      '@gradio/fileexplorer':
-        specifier: workspace:^
-        version: link:../fileexplorer
-      '@gradio/form':
-        specifier: workspace:^
-        version: link:../form
-      '@gradio/gallery':
-        specifier: workspace:^
-        version: link:../gallery
-      '@gradio/group':
-        specifier: workspace:^
-        version: link:../group
-      '@gradio/highlightedtext':
-        specifier: workspace:^
-        version: link:../highlightedtext
-      '@gradio/html':
-        specifier: workspace:^
-        version: link:../html
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../icons
-      '@gradio/image':
-        specifier: workspace:^
-        version: link:../image
-      '@gradio/imageeditor':
-        specifier: workspace:^
-        version: link:../imageeditor
-      '@gradio/json':
-        specifier: workspace:^
-        version: link:../json
-      '@gradio/label':
-        specifier: workspace:^
-        version: link:../label
-      '@gradio/markdown':
-        specifier: workspace:^
-        version: link:../markdown
-      '@gradio/model3d':
-        specifier: workspace:^
-        version: link:../model3D
-      '@gradio/multimodaltextbox':
-        specifier: workspace:^
-        version: link:../multimodaltextbox
-      '@gradio/nativeplot':
-        specifier: workspace:^
-        version: link:../nativeplot
-      '@gradio/number':
-        specifier: workspace:^
-        version: link:../number
-      '@gradio/paramviewer':
-        specifier: workspace:^
-        version: link:../paramviewer
-      '@gradio/plot':
-        specifier: workspace:^
-        version: link:../plot
-      '@gradio/radio':
-        specifier: workspace:^
-        version: link:../radio
-      '@gradio/row':
-        specifier: workspace:^
-        version: link:../row
-      '@gradio/simpledropdown':
-        specifier: workspace:^
-        version: link:../simpledropdown
-      '@gradio/simpleimage':
-        specifier: workspace:^
-        version: link:../simpleimage
-      '@gradio/simpletextbox':
-        specifier: workspace:^
-        version: link:../simpletextbox
-      '@gradio/slider':
-        specifier: workspace:^
-        version: link:../slider
-      '@gradio/state':
-        specifier: workspace:^
-        version: link:../state
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../statustracker
-      '@gradio/tabitem':
-        specifier: workspace:^
-        version: link:../tabitem
-      '@gradio/tabs':
-        specifier: workspace:^
-        version: link:../tabs
-      '@gradio/textbox':
-        specifier: workspace:^
-        version: link:../textbox
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
-      '@gradio/timer':
-        specifier: workspace:^
-        version: link:../timer
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../upload
-      '@gradio/uploadbutton':
-        specifier: workspace:^
-        version: link:../uploadbutton
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      '@gradio/video':
-        specifier: workspace:^
-        version: link:../video
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
@@ -2264,21 +2105,6 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
-      d3-dsv:
-        specifier: ^3.0.1
-        version: 3.0.1
-      eventsource:
-        specifier: ^2.0.2
-        version: 2.0.2
-      mime-types:
-        specifier: ^2.1.34
-        version: 2.1.35
-      postcss:
-        specifier: ^8.4.21
-        version: 8.4.38
-      postcss-prefix-selector:
-        specifier: ^1.16.0
-        version: 1.16.1(postcss@8.4.38)
 
   js/state: {}
 

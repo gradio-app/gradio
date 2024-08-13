@@ -2,26 +2,6 @@
 	"name": "@gradio/core",
 	"version": "0.0.1",
 	"type": "module",
-	"scripts": {
-		"dev": "vite --port 9876",
-		"dev:lite": "run-p dev:lite:*",
-		"dev:lite:self": "vite --port 9876 --mode development:lite",
-		"dev:lite:worker": "pnpm --filter @gradio/wasm dev",
-		"build": "vite build --mode production --emptyOutDir",
-		"cssbuild": "python ../../scripts/generate_theme.py --outfile ./src/lite/theme.css",
-		"pybuild:gradio": "cd ../../ && hatch build -t lite",
-		"pybuild:gradio-client": "cd ../../client/python && python -m build",
-		"pybuild": "run-p pybuild:*",
-		"build:lite": "pnpm pybuild && pnpm cssbuild && pnpm --filter @gradio/client build && pnpm --filter @gradio/wasm build && vite build --mode production:lite",
-		"preview": "vite preview",
-		"test:snapshot": "pnpm exec playwright test snapshots/ --config=../../.config/playwright.config.js",
-		"test:browser": "pnpm exec playwright test test/ --grep-invert 'reload.spec.ts' --config=../../.config/playwright.config.js",
-		"test:browser:dev": "pnpm exec playwright test test/ --ui --config=../../.config/playwright.config.js",
-		"test:browser:reload": "CI=1 pnpm exec playwright test test/ --grep 'reload.spec.ts' --config=../../.config/playwright.config.js",
-		"test:browser:lite": "GRADIO_E2E_TEST_LITE=1 pnpm test:browser",
-		"test:browser:lite:dev": "GRADIO_E2E_TEST_LITE=1 pnpm test:browser:dev",
-		"build:css": "pollen -c pollen.config.cjs -o src/pollen-dev.css"
-	},
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
 		"@gradio/annotatedimage": "workspace:^",
@@ -78,15 +58,7 @@
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/video": "workspace:^",
-		"@gradio/wasm": "workspace:^",
-		"@huggingface/space-header": "^1.0.3",
-		"@types/eventsource": "^1.1.15",
-		"cross-env": "^7.0.3",
-		"d3-dsv": "^3.0.1",
-		"eventsource": "^2.0.2",
-		"mime-types": "^2.1.34",
-		"postcss": "^8.4.21",
-		"postcss-prefix-selector": "^1.16.0"
+		"@gradio/wasm": "workspace:^"
 	},
 	"msw": {
 		"workerDirectory": "public"

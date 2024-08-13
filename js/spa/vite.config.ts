@@ -61,59 +61,25 @@ const TEST_MODE = process.env.TEST_MODE || "happy-dom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	const targets = {
-		production: "../../gradio/templates/frontend",
-		"dev:custom": "../../gradio/templates/frontend"
-	};
-	const production = mode === "production" || mode === "production:lite";
-	const development = mode === "development" || mode === "development:lite";
-	const is_lite = mode.endsWith(":lite");
+	const production = mode === "production";
+	const development = mode === "development";
 
 	return {
 		base: "./",
-
 		server: {
 			port: 9876,
-			open: is_lite ? "/lite.html" : "/"
+			open: "/"
 		},
-
 		build: {
 			sourcemap: true,
 			target: "esnext",
-			minify: false,
-			outDir: is_lite ? resolve(__dirname, "../lite/dist") : targets[mode],
-			// To build Gradio-lite as a library, we can't use the library mode
-			// like `lib: is_lite && {}`
-			// because it inevitably enables inlining of all the static file assets,
-			// while we need to disable inlining for the wheel files to pass their URLs to `micropip.install()`.
-			// So we build it as an app and only use the bundled JS and CSS files as library assets, ignoring the HTML file.
-			// See also `lite.ts` about it.
-			rollupOptions: is_lite
-				? {
-						input: "./lite.html",
-						output: {
-							// To use it as a library, we don't add the hash to the file name.
-							entryFileNames: "lite.js",
-							assetFileNames: (file) => {
-								if (file.name?.endsWith(".whl")) {
-									// Python wheel files must follow the naming rules to be installed, so adding a hash to the name is not allowed.
-									return `assets/[name].[ext]`;
-								}
-								if (file.name === "lite.css") {
-									// To use it as a library, we don't add the hash to the file name.
-									return `[name].[ext]`;
-								} else {
-									return `assets/[name]-[hash].[ext]`;
-								}
-							}
-						}
-					}
-				: {
-						external: ["./svelte/svelte.js"],
-						makeAbsoluteExternalsRelative: false
-					}
+			minify: production,
+			outDir: "../../gradio/templates/frontend",
+			rollupOptions: {
+				external: ["./svelte/svelte.js"],
+				makeAbsoluteExternalsRelative: false
+			}
 		},
-
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
@@ -137,11 +103,6 @@ export default defineConfig(({ mode }) => {
 								fileName.indexOf(".svelte") > -1
 							) {
 								return selector;
-							} else if (
-								// For the custom element <gradio-lite>. See theme/src/global.css for the details.
-								/^gradio-lite(\:[^\:]+)?/.test(selector)
-							) {
-								return selector;
 							}
 							return prefixedSelector;
 						}
@@ -151,8 +112,7 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		plugins: [
-			resolve_svelte(development && !is_lite),
-
+			resolve_svelte(development),
 			svelte({
 				inspector: false,
 				compilerOptions: {
@@ -171,10 +131,7 @@ export default defineConfig(({ mode }) => {
 				})
 			}),
 			generate_dev_entry({
-				enable:
-					!development &&
-					!is_lite && // At the moment of https://github.com/gradio-app/gradio/pull/6398, I skipped to make Gradio-lite work custom component. Will do it, and remove this condition.
-					mode !== "test"
+				enable: !development && mode !== "test"
 			}),
 			inject_ejs(),
 			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
@@ -197,21 +154,6 @@ export default defineConfig(({ mode }) => {
 			onConsoleLog(log, type) {
 				if (log.includes("was created with unknown prop")) return false;
 			}
-		},
-
-		resolve: {
-			alias: {
-				// For the Wasm app to import the wheel file URLs.
-				"gradio.whl": resolve(
-					__dirname,
-					`../../dist-lite/gradio-${python_version}-py3-none-any.whl`
-				),
-				"gradio_client.whl": resolve(
-					__dirname,
-					`../../client/python/dist/gradio_client-${client_python_version}-py3-none-any.whl`
-				)
-			}
-		},
-		assetsInclude: ["**/*.whl"] // To pass URLs of built wheel files to the Wasm worker.
+		}
 	};
 });

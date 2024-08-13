@@ -48,10 +48,8 @@ const client_python_version = convert_to_pypi_prerelease(client_version_raw);
 import {
 	inject_ejs,
 	generate_cdn_entry,
-	generate_dev_entry,
 	handle_ce_css,
 	inject_component_loader,
-	resolve_svelte,
 	mock_modules
 } from "@gradio/build";
 
@@ -61,57 +59,46 @@ const TEST_MODE = process.env.TEST_MODE || "happy-dom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	const targets = {
-		production: "../../gradio/templates/frontend",
-		"dev:custom": "../../gradio/templates/frontend"
-	};
-	const production = mode === "production" || mode === "production:lite";
-	const development = mode === "development" || mode === "development:lite";
-	const is_lite = mode.endsWith(":lite");
+	const production = mode === "production";
 
 	return {
 		base: "./",
 
 		server: {
 			port: 9876,
-			open: is_lite ? "/lite.html" : "/"
+			open: "/lite.html"
 		},
 
 		build: {
 			sourcemap: true,
 			target: "esnext",
 			minify: production,
-			outDir: is_lite ? resolve(__dirname, "../lite/dist") : targets[mode],
+			outDir: resolve(__dirname, "../lite/dist"),
 			// To build Gradio-lite as a library, we can't use the library mode
 			// like `lib: is_lite && {}`
 			// because it inevitably enables inlining of all the static file assets,
 			// while we need to disable inlining for the wheel files to pass their URLs to `micropip.install()`.
 			// So we build it as an app and only use the bundled JS and CSS files as library assets, ignoring the HTML file.
 			// See also `lite.ts` about it.
-			rollupOptions: is_lite
-				? {
-						input: "./lite.html",
-						output: {
+			rollupOptions: {
+				input: "./lite.html",
+				output: {
+					// To use it as a library, we don't add the hash to the file name.
+					entryFileNames: "lite.js",
+					assetFileNames: (file) => {
+						if (file.name?.endsWith(".whl")) {
+							// Python wheel files must follow the naming rules to be installed, so adding a hash to the name is not allowed.
+							return `assets/[name].[ext]`;
+						}
+						if (file.name === "lite.css") {
 							// To use it as a library, we don't add the hash to the file name.
-							entryFileNames: "lite.js",
-							assetFileNames: (file) => {
-								if (file.name?.endsWith(".whl")) {
-									// Python wheel files must follow the naming rules to be installed, so adding a hash to the name is not allowed.
-									return `assets/[name].[ext]`;
-								}
-								if (file.name === "lite.css") {
-									// To use it as a library, we don't add the hash to the file name.
-									return `[name].[ext]`;
-								} else {
-									return `assets/[name]-[hash].[ext]`;
-								}
-							}
+							return `[name].[ext]`;
+						} else {
+							return `assets/[name]-[hash].[ext]`;
 						}
 					}
-				: {
-						external: ["./svelte/svelte.js"],
-						makeAbsoluteExternalsRelative: false
-					}
+				}
+			}
 		},
 
 		define: {
@@ -151,8 +138,6 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		plugins: [
-			resolve_svelte(development && !is_lite),
-
 			svelte({
 				inspector: false,
 				compilerOptions: {
@@ -170,12 +155,7 @@ export default defineConfig(({ mode }) => {
 					}
 				})
 			}),
-			generate_dev_entry({
-				enable:
-					!development &&
-					!is_lite && // At the moment of https://github.com/gradio-app/gradio/pull/6398, I skipped to make Gradio-lite work custom component. Will do it, and remove this condition.
-					mode !== "test"
-			}),
+
 			inject_ejs(),
 			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			handle_ce_css(),
