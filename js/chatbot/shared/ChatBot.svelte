@@ -29,7 +29,7 @@
 
 	import Component from "./Component.svelte";
 	import LikeButtons from "./ButtonPanel.svelte";
-	import type { LoadedComponent } from "../../app/src/types";
+	import type { LoadedComponent } from "../../core/src/types";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
