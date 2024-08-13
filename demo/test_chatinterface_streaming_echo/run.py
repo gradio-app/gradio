@@ -16,6 +16,10 @@ chat = gr.ChatInterface(slow_echo, fill_height=True)
 
 with gr.Blocks() as demo:
     chat.render()
+    # We reset the global variable to minimize flakes
+    # this works because CI runs only one test at at time
+    # need to use gr.State if we want to parallelize this test
+    # currently chatinterface does not support that
     demo.unload(reset_runs)
 
 if __name__ == "__main__":
