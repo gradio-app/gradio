@@ -769,6 +769,7 @@ class Events:
         callback=lambda block: setattr(block, "streaming", True),
         doc="This listener is triggered when the user streams the {{ component }}.",
         connection="stream",
+        show_progress="minimal",
     )
     like = EventListener(
         "like",
