@@ -1018,7 +1018,7 @@ importers:
         version: link:../utils
 
   js/core:
-    dependencies:
+    devDependencies:
       '@gradio/accordion':
         specifier: workspace:^
         version: link:../accordion
@@ -1636,7 +1636,7 @@ importers:
         version: link:../preview
 
   js/lite:
-    dependencies:
+    devDependencies:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
@@ -1649,16 +1649,15 @@ importers:
       '@gradio/spa':
         specifier: workspace:^
         version: link:../spa
-      gradio:
+      '@gradio/theme':
         specifier: workspace:^
-        version: link:../../gradio
-    devDependencies:
-      '@gradio/app':
-        specifier: workspace:^
-        version: link:../app
+        version: link:../theme
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      gradio:
+        specifier: workspace:^
+        version: link:../../gradio
 
   js/markdown:
     dependencies:

@@ -7,7 +7,7 @@
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
-	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
 	import { SelectSource } from "@gradio/atoms";
@@ -55,13 +55,13 @@
 	let audio_chunks: Blob[] = [];
 	let module_promises: [
 		Promise<typeof import("extendable-media-recorder")>,
-		Promise<typeof import("extendable-media-recorder-wav-encoder")>
+		Promise<typeof import("extendable-media-recorder-wav-encoder")>,
 	];
 
 	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder")
+			import("extendable-media-recorder-wav-encoder"),
 		];
 	}
 
@@ -88,13 +88,13 @@
 
 	const dispatch_blob = async (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording"
+		event: "stream" | "change" | "stop_recording",
 	): Promise<void> => {
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
 		value = (
 			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
-				Boolean
+				Boolean,
 			) as FileData[]
 		)[0];
 

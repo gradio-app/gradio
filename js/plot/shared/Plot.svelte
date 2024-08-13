@@ -2,7 +2,7 @@
 	//@ts-nocheck
 	import { Plot as PlotIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
-	import type { ThemeMode } from "js/app/src/components/types";
+	import type { ThemeMode } from "js/core/src/components/types";
 	import type { Gradio, SelectData } from "@gradio/utils";
 
 	export let value;
@@ -25,7 +25,7 @@
 		plotly: () => import("./plot_types/PlotlyPlot.svelte"),
 		bokeh: () => import("./plot_types/BokehPlot.svelte"),
 		altair: () => import("./plot_types/AltairPlot.svelte"),
-		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte")
+		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte"),
 	};
 
 	$: {

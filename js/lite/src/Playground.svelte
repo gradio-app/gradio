@@ -4,7 +4,7 @@
 	import { createEventDispatcher, onMount } from "svelte";
 	import { Block } from "@gradio/atoms";
 	import { BaseCode as Code } from "@gradio/code";
-	import lightning from "../images/lightning.svg";
+	import lightning from "./images/lightning.svg";
 
 	export let is_embed: boolean;
 	export let theme_mode: ThemeMode | null = "system";

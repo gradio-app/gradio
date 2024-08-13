@@ -133,7 +133,7 @@ bash scripts/run_all_tests.sh
 pnpm test
 ```
 
-- Browser tests are located in `js/app/test` and are defined as `*spec.ts` files. To run browser tests:
+- Browser tests are located in `js/spa/test` and are defined as `*spec.ts` files. To run browser tests:
 
 ```
 pnpm test:browser

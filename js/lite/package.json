@@ -10,18 +10,25 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "pnpm --filter @gradio/app build:lite"
+		"cssbuild": "python ../../scripts/generate_theme.py --outfile ./src/theme.css",
+		"pybuild:gradio": "cd ../../ && hatch build -t lite",
+		"pybuild:gradio-client": "cd ../../client/python && python -m build",
+		"pybuild": "run-p pybuild:*",
+		"build": "pnpm pybuild && pnpm cssbuild && pnpm --filter @gradio/client build && pnpm --filter @gradio/wasm build && vite build --mode production:lite",
+		"build:frontend": "vite build --mode production:lite",
+		"dev:lite": "run-p dev:lite:*",
+		"dev:lite:self": "vite --port 9876 --mode development:lite",
+		"dev:lite:worker": "pnpm --filter @gradio/wasm dev",
+		"test:browser:lite": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @gradio/spa test:browser",
+		"test:browser:lite:dev": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @gradio/spa test:browser:dev"
 	},
-	"dependencies": {
+	"devDependencies": {
 		"gradio": "workspace:^",
 		"@gradio/atoms": "workspace:^",
 		"@gradio/build": "workspace:^",
 		"@gradio/core": "workspace:^",
-		"@gradio/spa": "workspace:^"
-	},
-	"devDependencies": {
-		"@gradio/app": "workspace:^",
-		"@gradio/wasm": "workspace:^",
-		"gradio": "workspace:^"
+		"@gradio/spa": "workspace:^",
+		"@gradio/theme": "workspace:^",
+		"@gradio/wasm": "workspace:^"
 	}
 }

@@ -58,7 +58,7 @@ export function bootstrap_custom_element(
 				this.innerHTML = "";
 
 				this.controller = create({
-					target: this, // Same as `js/app/src/main.ts`
+					target: this, // Same as `js/spa/src/main.ts`
 					code: gradioLiteAppOptions.code,
 					requirements: gradioLiteAppOptions.requirements,
 					files: gradioLiteAppOptions.files,
