@@ -2,7 +2,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 
 	import { _ } from "svelte-i18n";
-	import { setupi18n } from "../i18n";
+	import { setupi18n } from "@gradio/core";
 
 	setupi18n();
 

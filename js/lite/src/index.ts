@@ -1,5 +1,5 @@
 import { type WorkerProxyOptions } from "@gradio/wasm";
-import type { ThemeMode } from "../types";
+import type { ThemeMode } from "@gradio/core";
 import { bootstrap_custom_element } from "./custom-element";
 
 declare let GRADIO_VERSION: string;

@@ -783,6 +783,18 @@ importers:
         specifier: workspace:^
         version: link:../atoms
 
+  js/build:
+    dependencies:
+      '@gradio/theme':
+        specifier: workspace:^
+        version: link:../theme
+      esbuild:
+        specifier: ^0.21.0
+        version: 0.21.0
+      svelte-i18n:
+        specifier: ^3.6.0
+        version: 3.6.0(svelte@4.2.15)
+
   js/button:
     dependencies:
       '@gradio/client':
@@ -1625,6 +1637,18 @@ importers:
 
   js/lite:
     dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/build':
+        specifier: workspace:^
+        version: link:../build
+      '@gradio/core':
+        specifier: workspace:^
+        version: link:../core
+      '@gradio/spa':
+        specifier: workspace:^
+        version: link:../spa
       gradio:
         specifier: workspace:^
         version: link:../../gradio
@@ -2073,6 +2097,9 @@ importers:
       '@gradio/box':
         specifier: workspace:^
         version: link:../box
+      '@gradio/build':
+        specifier: workspace:^
+        version: link:../build
       '@gradio/button':
         specifier: workspace:^
         version: link:../button

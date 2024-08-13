@@ -22,7 +22,7 @@
 		"test:browser:lite:dev": "GRADIO_E2E_TEST_LITE=1 pnpm test:browser:dev",
 		"build:css": "pollen -c pollen.config.cjs -o src/pollen-dev.css"
 	},
-	"dependencies": {
+	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
 		"@gradio/annotatedimage": "workspace:^",
 		"@gradio/atoms": "workspace:^",
@@ -100,6 +100,7 @@
 			"svelte": "./src/Login.svelte"
 		},
 		"./package.json": "./package.json",
-		".": "./src/index.ts"
-	}
+		".": "./index.ts"
+	},
+	"main": "./index.ts"
 }

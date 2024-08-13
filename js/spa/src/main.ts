@@ -3,10 +3,10 @@ import "@gradio/theme/src/global.css";
 import "@gradio/theme/src/pollen.css";
 import "@gradio/theme/src/typography.css";
 import { Client } from "@gradio/client";
-import { mount_css } from "./css";
+import { mount_css } from "@gradio/core";
 import type Index from "./Index.svelte";
 
-import type { ThemeMode } from "./types";
+import type { ThemeMode } from "@gradio/core";
 
 //@ts-ignore
 import * as svelte from "./svelte/svelte.js";

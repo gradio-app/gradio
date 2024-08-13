@@ -4,7 +4,7 @@
 
 	import type { Client as ClientType } from "@gradio/client";
 
-	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
+	import type { ComponentMeta, Dependency, LayoutNode } from "@gradio/core";
 
 	declare let BUILD_MODE: string;
 	interface Config {
@@ -70,10 +70,10 @@
 	import { onMount, createEventDispatcher, onDestroy } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import { Embed } from "@gradio/core";
-	import type { ThemeMode } from "./types";
+	import type { ThemeMode } from "@gradio/core";
 	import { StatusTracker } from "@gradio/statustracker";
 	import { _ } from "svelte-i18n";
-	import { setupi18n } from "./i18n";
+	import { setupi18n } from "@gradio/core";
 	import type { WorkerProxy } from "@gradio/wasm";
 	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 	import { init } from "@huggingface/space-header";
@@ -352,10 +352,10 @@
 	let Login: typeof import("@gradio/core/login").default;
 
 	async function get_blocks(): Promise<void> {
-		Blocks = (await import("./Blocks.svelte")).default;
+		Blocks = (await import("@gradio/core/blocks")).default;
 	}
 	async function get_login(): Promise<void> {
-		Login = (await import("./Login.svelte")).default;
+		Login = (await import("@gradio/core/login")).default;
 	}
 
 	function load_demo(): void {

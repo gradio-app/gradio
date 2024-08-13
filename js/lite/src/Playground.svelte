@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ThemeMode } from "../types";
+	import type { ThemeMode } from "@gradio/core";
 	import type { WorkerProxy } from "@gradio/wasm";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { Block } from "@gradio/atoms";
@@ -40,7 +40,7 @@
 		} else {
 			const url = new URL(window.location.toString());
 			const url_color_mode: ThemeMode | null = url.searchParams.get(
-				"__theme"
+				"__theme",
 			) as ThemeMode | null;
 			new_theme_mode = theme_mode || url_color_mode || "system";
 		}
@@ -61,7 +61,7 @@
 
 		function update_scheme(): "light" | "dark" {
 			let _theme: "light" | "dark" = window?.matchMedia?.(
-				"(prefers-color-scheme: dark)"
+				"(prefers-color-scheme: dark)",
 			).matches
 				? "dark"
 				: "light";

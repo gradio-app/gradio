@@ -29,6 +29,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/audio": "workspace:^",
 		"@gradio/box": "workspace:^",
+		"@gradio/build": "workspace:^",
 		"@gradio/button": "workspace:^",
 		"@gradio/chatbot": "workspace:^",
 		"@gradio/checkbox": "workspace:^",
@@ -93,5 +94,6 @@
 	"msw": {
 		"workerDirectory": "public"
 	},
-	"main_changeset": true
+	"main_changeset": true,
+	"main": "./src/Index.svelte"
 }

@@ -5,7 +5,7 @@
 	"scripts": {
 		"dev": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/preview build && pnpm --filter @gradio/app dev",
 		"css": "pnpm --filter @gradio/theme generate",
-		"build": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/app build --emptyOutDir && pnpm --filter @gradio/preview build",
+		"build": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/spa build --emptyOutDir && pnpm --filter @gradio/preview build",
 		"preview:cdn-server": "sirv ./gradio/templates/frontend --single --port=4321 --cors",
 		"preview:cdn-app": "pnpm --filter @gradio/cdn-test dev",
 		"preview:cdn-local": "run-p preview:cdn-server preview:cdn-app",

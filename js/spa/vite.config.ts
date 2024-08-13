@@ -53,7 +53,7 @@ import {
 	inject_component_loader,
 	resolve_svelte,
 	mock_modules
-} from "./build_plugins";
+} from "@gradio/build";
 
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
 const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
@@ -80,7 +80,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			sourcemap: true,
 			target: "esnext",
-			minify: production,
+			minify: false,
 			outDir: is_lite ? resolve(__dirname, "../lite/dist") : targets[mode],
 			// To build Gradio-lite as a library, we can't use the library mode
 			// like `lib: is_lite && {}`

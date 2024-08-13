@@ -5,16 +5,16 @@
 	import "@gradio/theme/src/typography.css";
 
 	import { onDestroy, SvelteComponent } from "svelte";
-	import Index from "../Index.svelte";
+	import Index from "@gradio/spa";
 	import Playground from "./Playground.svelte";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
-	import type { ThemeMode } from "../types";
+	import type { ThemeMode } from "@gradio/core";
 	import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 	import { Client } from "@gradio/client";
 	import { wasm_proxied_fetch } from "./fetch";
 	import { wasm_proxied_stream_factory } from "./sse";
 	import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
-	import type { mount_css } from "../css";
+	import type { mount_css } from "@gradio/core";
 
 	// These imports are aliased at built time with Vite. See the `resolve.alias` config in `vite.config.ts`.
 	import gradioWheel from "gradio.whl";
@@ -47,7 +47,7 @@
 		gradioClientWheelUrl: new URL(gradioClientWheel, import.meta.url).href,
 		files: files ?? {},
 		requirements: requirements ?? [],
-		sharedWorkerMode: sharedWorkerMode ?? false
+		sharedWorkerMode: sharedWorkerMode ?? false,
 	});
 	onDestroy(() => {
 		worker_proxy.terminate();
@@ -56,7 +56,7 @@
 	let error: Error | null = null;
 
 	const wrapFunctionWithAppLogic = <TArgs extends any[], TRet extends any>(
-		func: (...args: TArgs) => Promise<TRet>
+		func: (...args: TArgs) => Promise<TRet>,
 	): ((...args: TArgs) => Promise<TRet>) => {
 		return async (...args: TArgs) => {
 			try {
@@ -71,22 +71,22 @@
 		};
 	};
 	worker_proxy.runPythonCode = wrapFunctionWithAppLogic(
-		worker_proxy.runPythonCode.bind(worker_proxy)
+		worker_proxy.runPythonCode.bind(worker_proxy),
 	);
 	worker_proxy.runPythonFile = wrapFunctionWithAppLogic(
-		worker_proxy.runPythonFile.bind(worker_proxy)
+		worker_proxy.runPythonFile.bind(worker_proxy),
 	);
 	worker_proxy.writeFile = wrapFunctionWithAppLogic(
-		worker_proxy.writeFile.bind(worker_proxy)
+		worker_proxy.writeFile.bind(worker_proxy),
 	);
 	worker_proxy.renameFile = wrapFunctionWithAppLogic(
-		worker_proxy.renameFile.bind(worker_proxy)
+		worker_proxy.renameFile.bind(worker_proxy),
 	);
 	worker_proxy.unlink = wrapFunctionWithAppLogic(
-		worker_proxy.unlink.bind(worker_proxy)
+		worker_proxy.unlink.bind(worker_proxy),
 	);
 	worker_proxy.install = wrapFunctionWithAppLogic(
-		worker_proxy.install.bind(worker_proxy)
+		worker_proxy.install.bind(worker_proxy),
 	);
 
 	worker_proxy.addEventListener("initialization-error", (event) => {
