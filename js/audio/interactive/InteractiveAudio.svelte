@@ -43,7 +43,6 @@
 	let time_limit: number | null = null;
 
 	export const close_stream: () => void = () => {
-		stream_active = false;
 		time_limit = null;
 	};
 	export const set_time_limit = (time: number): void => {
