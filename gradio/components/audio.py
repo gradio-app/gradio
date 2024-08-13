@@ -237,15 +237,14 @@ class Audio(
         if self.min_length is not None or self.max_length is not None:
             sample_rate, data = processing_utils.audio_from_file(payload.path)
             duration = len(data) / sample_rate
-
-        if self.min_length is not None and duration < self.min_length:
-            raise Error(
-                f"Audio is too short, and must be at least {self.min_length} seconds"
-            )
-        if self.max_length is not None and duration > self.max_length:
-            raise Error(
-                f"Audio is too long, and must be at most {self.max_length} seconds"
-            )
+            if self.min_length is not None and duration < self.min_length:
+                raise Error(
+                    f"Audio is too short, and must be at least {self.min_length} seconds"
+                )
+            if self.max_length is not None and duration > self.max_length:
+                raise Error(
+                    f"Audio is too long, and must be at most {self.max_length} seconds"
+                )
 
         if self.type == "numpy":
             return processing_utils.audio_from_file(payload.path)
