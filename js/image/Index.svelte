@@ -14,7 +14,7 @@
 	import ImageUploader from "./shared/ImageUploader.svelte";
 	import { afterUpdate } from "svelte";
 
-	import { Block, Empty, UploadText, BlockTitle } from "@gradio/atoms";
+	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { FileData } from "@gradio/client";
@@ -84,9 +84,6 @@
 	let active_source: sources = null;
 </script>
 
-{#if info}
-	<BlockTitle info_only={true} {info} />
-{/if}
 {#if !interactive}
 	<Block
 		{visible}
@@ -118,6 +115,7 @@
 			selectable={_selectable}
 			{show_share_button}
 			i18n={gradio.i18n}
+			{info}
 		/>
 	</Block>
 {:else}
@@ -167,6 +165,7 @@
 			{pending}
 			{streaming}
 			{mirror_webcam}
+			{info}
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
 			upload={gradio.client.upload}

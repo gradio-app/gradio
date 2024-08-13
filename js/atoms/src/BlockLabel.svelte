@@ -4,6 +4,7 @@
 	export let show_label = true;
 	export let disable = false;
 	export let float = true;
+	export let info: string | undefined = undefined;
 </script>
 
 <label
@@ -14,16 +15,23 @@
 	class:hide-label={disable}
 	data-testid="block-label"
 >
-	<span>
-		<Icon />
-	</span>
-	{label}
+	<div class="label-content">
+		<span>
+			<Icon />
+		</span>
+		{label}
+	</div>
+	{#if info}
+		<div class="info-wrapper">
+			<div class="separator"></div>
+			<div class="info">{info}</div>
+		</div>
+	{/if}
 </label>
 
 <style>
 	label {
-		display: inline-flex;
-		align-items: center;
+		display: inline-block;
 		z-index: var(--layer-2);
 		box-shadow: var(--block-label-shadow);
 		border: var(--block-label-border-width) solid var(--border-color-primary);
@@ -37,6 +45,10 @@
 		font-weight: var(--block-label-text-weight);
 		font-size: var(--block-label-text-size);
 		line-height: var(--line-sm);
+	}
+	.label-content {
+		display: inline-flex;
+		align-items: center;
 	}
 	:global(.gr-group) label {
 		border-top-left-radius: 0;
@@ -68,5 +80,21 @@
 		border-width: 0;
 		background: transparent;
 		overflow: visible;
+	}
+	.info-wrapper {
+		max-width: var(--size-52);
+	}
+	.separator {
+		width: 100%;
+		height: 1px;
+		background-color: var(--border-color-primary);
+		margin: 4px 0;
+		opacity: 0.5;
+	}
+	.info {
+		font-size: 0.9em;
+		opacity: 0.7;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
 	}
 </style>

@@ -19,6 +19,7 @@
 	export let selectable = false;
 	export let show_share_button = false;
 	export let i18n: I18nFormatter;
+	export let info: string | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -35,6 +36,7 @@
 
 <BlockLabel
 	{show_label}
+	{info}
 	Icon={ImageIcon}
 	label={!show_label ? "" : label || i18n("image.image")}
 />
