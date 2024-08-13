@@ -96,6 +96,7 @@
 
 	.empty-wrapper {
 		min-height: calc(var(--size-32) - 20px);
+		height: 100%;
 	}
 	button {
 		display: flex;
