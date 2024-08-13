@@ -53,7 +53,6 @@
 	:global(.gr-group) label {
 		border-top-left-radius: 0;
 	}
-
 	label.float {
 		position: absolute;
 		top: var(--block-label-margin);
@@ -64,14 +63,12 @@
 		margin-top: var(--block-label-margin);
 		margin-left: var(--block-label-margin);
 	}
-
 	.hide {
 		height: 0;
 	}
-
 	span {
 		opacity: 0.8;
-		margin-right: var(--size-2);
+		margin: 1px var(--size-2) 1px 0;
 		width: calc(var(--block-label-text-size) - 1px);
 		height: calc(var(--block-label-text-size) - 1px);
 	}
@@ -83,6 +80,7 @@
 	}
 	.info-wrapper {
 		max-width: var(--size-52);
+		margin-top: var(--size-2);
 	}
 	.separator {
 		width: 100%;
