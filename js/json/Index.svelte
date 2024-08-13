@@ -29,6 +29,7 @@
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark";
 	export let show_indices: boolean;
+	export let height: string | number | undefined;
 
 	$: {
 		if (value !== old_value) {
@@ -47,6 +48,8 @@
 	{scale}
 	{min_width}
 	padding={false}
+	allow_overflow={false}
+	{height}
 >
 	{#if label}
 		<BlockLabel
@@ -67,3 +70,9 @@
 
 	<JSON {value} {open} {theme_mode} {show_indices} />
 </Block>
+
+<style>
+	:global(.block) {
+		overflow-y: scroll !important;
+	}
+</style>
