@@ -46,10 +46,8 @@
 		time_limit = null;
 	};
 	export const set_time_limit = (time: number): void => {
-		if (stream_active) time_limit = time;
+		if (recording) time_limit = time;
 	};
-
-	let stream_active = false;
 
 	$: dispatch("drag", dragging);
 
@@ -187,7 +185,6 @@
 		recording = true;
 		dispatch("start_recording");
 		if (!inited) await prepare_audio();
-		stream_active = true;
 		header = undefined;
 		if (streaming) {
 			recorder.start(stream_every * 1000);
@@ -209,7 +206,6 @@
 
 	function stop(): void {
 		recording = false;
-		stream_active = false;
 
 		if (streaming) {
 			dispatch("close_stream");

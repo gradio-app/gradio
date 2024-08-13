@@ -453,7 +453,10 @@ class Queue:
                 if fn not in self.process_time_per_fn:
                     time_till_available_worker = None
                     break
-                process_time = self.process_time_per_fn[fn].avg_time
+                if fn.connection == "stream":
+                    process_time = fn.time_limit or 0
+                else:
+                    process_time = self.process_time_per_fn[fn].avg_time
                 expected_end_times += [
                     start_time + process_time for start_time in start_times
                 ]
@@ -719,7 +722,11 @@ class Queue:
                     )
             end_time = time.time()
             if response is not None:
-                duration = end_time - begin_time
+                duration = (
+                    end_time - begin_time
+                    if not events[0].streaming
+                    else first_iteration
+                )
                 self.process_time_per_fn[events[0].fn].add(duration)
                 for event in events:
                     self.event_analytics[event._id]["process_time"] = duration
