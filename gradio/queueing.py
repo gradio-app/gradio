@@ -702,7 +702,7 @@ class Queue:
                             event.run_time += end - start
                             if event.streaming:
                                 response["is_generating"] = not event.is_finished
-                    except BaseException as e:
+                    except Exception as e:
                         traceback.print_exc()
                         response = None
                         err = e
