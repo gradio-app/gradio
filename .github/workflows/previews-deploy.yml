@@ -119,7 +119,7 @@ jobs:
         id: upload-website-demos
         run: |
           python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \
-          --WHEEL_URL https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/ \
+          --WHEEL_URL https://gradio-pypi-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/ \
           --CLIENT_URL "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python" \
           --GRADIO_VERSION ${{ needs.changes.outputs.gradio_version }}
 
