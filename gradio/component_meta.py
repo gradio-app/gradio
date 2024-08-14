@@ -14,8 +14,10 @@ from gradio.utils import no_raise_exception
 
 INTERFACE_TEMPLATE = '''
 {{ contents }}
-    from typing import Callable, Literal
+    from typing import Callable, Literal, Sequence, Any, TYPE_CHECKING
     from gradio.blocks import Block
+    if TYPE_CHECKING:
+        from gradio.components import Timer
 
     {% for event in events %}
     def {{ event }}(self,

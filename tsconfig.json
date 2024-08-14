@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"moduleResolution": "node",
-		"module": "es2020",
+		"module": "ES2020",
 		"lib": ["es2020", "DOM", "dom.iterable"],
 		"target": "es2020",
 		/**
