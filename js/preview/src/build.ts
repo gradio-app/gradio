@@ -4,6 +4,7 @@ import { build } from "vite";
 import { plugins, make_gradio_plugin } from "./plugins";
 import type { PreRenderedChunk } from "rollup";
 import { examine_module } from "./index";
+import { optimizeDeps } from "vite";
 
 interface BuildOptions {
 	component_dir: string;
@@ -40,7 +41,8 @@ export async function make_build({
 				},
 				build: {
 					target: []
-				}
+				},
+				optimizeDeps: {}
 			};
 
 			if (
@@ -54,6 +56,7 @@ export async function make_build({
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
 				component_config.build.target = m.default.build?.target || "modules";
+				component_config.optimizeDeps = m.default.optimizeDeps || {};
 			}
 
 			const exports: string[][] = [
