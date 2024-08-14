@@ -42,7 +42,10 @@ from starlette.responses import PlainTextResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from gradio import processing_utils, utils
-from gradio.data_classes import BlocksConfigDict, PredictBody
+from gradio.data_classes import (
+    BlocksConfigDict,
+    PredictBody,
+)
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.state_holder import SessionState
@@ -108,6 +111,11 @@ class Obj:
 
     def __repr__(self) -> str:
         return str(self.__dict__)
+
+    def pop(self, item, default=None):
+        if item in self:
+            return self.__dict__.pop(item)
+        return default
 
 
 @document()
@@ -377,7 +385,7 @@ class GradioUploadFile(UploadFile):
         headers: Headers | None = None,
     ) -> None:
         super().__init__(file, size=size, filename=filename, headers=headers)
-        self.sha = hashlib.sha1()
+        self.sha = hashlib.sha256()
 
 
 @python_dataclass(frozen=True)

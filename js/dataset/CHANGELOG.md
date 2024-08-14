@@ -1,5 +1,14 @@
 # @gradio/dataset
 
+## 0.2.2
+
+### Dependency updates
+
+- @gradio/atoms@0.7.8
+- @gradio/utils@0.5.2
+- @gradio/upload@0.12.1
+- @gradio/textbox@0.6.9
+
 ## 0.2.1
 
 ### Dependency updates

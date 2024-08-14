@@ -40,7 +40,7 @@
 	$: show_download =
 		!Array.isArray(message) &&
 		is_component_message(message) &&
-		message.content.value.url;
+		message.content.value?.url;
 </script>
 
 {#if show}

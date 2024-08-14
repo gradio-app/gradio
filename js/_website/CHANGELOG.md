@@ -1,5 +1,18 @@
 # website
 
+## 0.36.0
+
+### Features
+
+- [#8907](https://github.com/gradio-app/gradio/pull/8907) [`9b42ba8`](https://github.com/gradio-app/gradio/commit/9b42ba8f1006c05d60a62450d3036ce0d6784f86) - Update guides esp plots.  Thanks @aliabid94!
+- [#8871](https://github.com/gradio-app/gradio/pull/8871) [`7f1a78c`](https://github.com/gradio-app/gradio/commit/7f1a78c49ed69688ef1d39ef731c64ba934df645) - Add confirmation dialogue if leaving playground.  Thanks @aliabd!
+- [#8908](https://github.com/gradio-app/gradio/pull/8908) [`7c9fc9e`](https://github.com/gradio-app/gradio/commit/7c9fc9ebccf227fa54e3f28ee3abd1bd4f5cf412) - Add docs for Rust client to website.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.8.1
+- @gradio/paramviewer@0.4.19
+
 ## 0.35.0
 
 ### Features

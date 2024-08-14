@@ -56,7 +56,13 @@ from gradio.context import (
     get_render_context,
     set_render_context,
 )
-from gradio.data_classes import BlocksConfigDict, FileData, GradioModel, GradioRootModel
+from gradio.data_classes import (
+    BlocksConfigDict,
+    DeveloperPath,
+    FileData,
+    GradioModel,
+    GradioRootModel,
+)
 from gradio.events import (
     EventData,
     EventListener,
@@ -409,7 +415,7 @@ class BlockContext(Block):
             render=render,
         )
 
-    TEMPLATE_DIR = "./templates/"
+    TEMPLATE_DIR = DeveloperPath("./templates/")
     FRONTEND_DIR = "../../frontend/"
 
     @property
@@ -696,13 +702,13 @@ class BlocksConfig:
         Adds an event to the component's dependencies.
         Parameters:
             targets: a list of EventListenerMethod objects that define the event trigger
-            fn: Callable function
-            inputs: input list
-            outputs: output list
-            preprocess: whether to run the preprocess methods of components
-            postprocess: whether to run the postprocess methods of components
+            fn: the function to run when the event is triggered
+            inputs: the list of input components whose values will be passed to the function
+            outputs: the list of output components whose values will be updated by the function
+            preprocess: whether to run the preprocess methods of the input components before running the function
+            postprocess: whether to run the postprocess methods of the output components after running the function
             scroll_to_output: whether to scroll to output of dependency on trigger
-            show_progress: whether to show progress animation while running.
+            show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
@@ -1018,6 +1024,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 t.start()
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
+        self.enable_monitoring: bool | None = None
 
         self.default_config = BlocksConfig(self)
         super().__init__(render=False, **kwargs)
@@ -1295,7 +1302,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             for block in self.blocks.values()
         )
 
-    def unload(self, fn: Callable):
+    def unload(self, fn: Callable[..., Any]) -> None:
         """This listener is triggered when the user closes or refreshes the tab, ending the user session.
         It is useful for cleaning up resources when the app is closed.
         Parameters:
@@ -2180,7 +2187,7 @@ Received outputs:
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         max_file_size: str | int | None = None,
         _frontend: bool = True,
-        enable_monitoring: bool = False,
+        enable_monitoring: bool | None = None,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2216,6 +2223,7 @@ Received outputs:
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
+            enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2434,6 +2442,7 @@ Received outputs:
             print(
                 f"Monitoring URL: {self.local_url}monitoring/{self.app.analytics_key}"
             )
+        self.enable_monitoring = enable_monitoring in [True, None]
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.

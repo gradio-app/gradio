@@ -145,7 +145,7 @@
 		</a>
 
 		<a
-			href="/main/docs/third-party-clients"
+			href="./docs/third-party-clients"
 			target="_self"
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
 				.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"

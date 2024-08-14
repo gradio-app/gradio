@@ -19,7 +19,7 @@ import gradio_client.utils as client_utils
 from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.data_classes import BaseModel, GradioDataModel
+from gradio.data_classes import BaseModel, DeveloperPath, GradioDataModel
 from gradio.events import EventListener
 from gradio.layouts import Form
 from gradio.processing_utils import move_files_to_cache
@@ -228,7 +228,7 @@ class Component(ComponentBase, Block):
 
         self.component_class_id = self.__class__.get_component_class_id()
 
-    TEMPLATE_DIR = "./templates/"
+    TEMPLATE_DIR = DeveloperPath("./templates/")
     FRONTEND_DIR = "../../frontend/"
 
     def get_config(self):

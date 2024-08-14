@@ -118,6 +118,8 @@
 		position: relative;
 		width: var(--size-full);
 		height: var(--size-full);
+		border-radius: var(--block-radius);
+		overflow: hidden;
 	}
 	.model3D :global(canvas) {
 		width: var(--size-full);

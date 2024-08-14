@@ -17,6 +17,14 @@
 	margin-bottom: 0;
 }
 
+.prose :where(code):not(:where([class~="not-prose"] *)) {
+	word-break: break-all;
+}
+
+.prose :where(a):not(:where([class~="not-prose"] *)) {
+	word-break: break-all;
+}
+
 .group:hover .group-hover\:flex {
 	/* for some reason, group-hover:flex not working on mobile */
 	display: flex;
@@ -145,7 +153,7 @@
 .selected-demo {
 	@apply font-semibold bg-gray-50 rounded text-orange-500;
 }
-code.language-python {
+.codeblock code.language-python {
 	@apply !leading-7 !whitespace-pre-wrap !break-all;
 	line-height: 1 !important;
 }
@@ -167,6 +175,10 @@ code.language-bash {
 }
 .selected-version:before {
 	content: "• ";
+}
+
+.obj p {
+	word-break: break-word;
 }
 
 /* copy button */
@@ -316,4 +328,37 @@ strong {
 
 .obj .codeblock {
 	@apply my-4;
+	display: grid;
+}
+
+.prose .codeblock {
+	@apply my-4;
+	display: grid;
+}
+
+.prose li {
+	display: inline-block;
+}
+
+summary {
+	display: grid !important;
+}
+
+summary code {
+	white-space: nowrap !important;
+	overflow-x: scroll;
+}
+
+summary::after {
+	@apply pl-1 !opacity-100;
+	background: #f9fafb;
+	height: 90%;
+	padding-top: 14px;
+}
+
+@media (min-width: 768px) {
+	body:has(.playground) .main-header,
+	body:has(.playground) .main-footer {
+		display: none;
+	}
 }

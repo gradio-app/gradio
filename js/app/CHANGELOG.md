@@ -1,5 +1,62 @@
 # @gradio/app
 
+## 1.39.1
+
+### Dependency updates
+
+- @gradio/atoms@0.7.8
+- @gradio/icons@0.6.1
+- @gradio/utils@0.5.2
+- @gradio/statustracker@0.7.3
+- @gradio/upload@0.12.1
+- @gradio/image@0.13.1
+- @gradio/video@0.10.1
+- @gradio/code@0.8.1
+- @gradio/paramviewer@0.4.19
+- @gradio/json@0.3.0
+- @gradio/multimodaltextbox@0.5.4
+- @gradio/nativeplot@0.2.0
+- @gradio/annotatedimage@0.6.15
+- @gradio/audio@0.13.1
+- @gradio/chatbot@0.12.3
+- @gradio/datetime@0.1.1
+- @gradio/dropdown@0.7.10
+- @gradio/file@0.9.1
+- @gradio/fileexplorer@0.4.16
+- @gradio/form@0.1.22
+- @gradio/gallery@0.11.4
+- @gradio/highlightedtext@0.7.4
+- @gradio/imageeditor@0.8.1
+- @gradio/label@0.3.10
+- @gradio/markdown@0.9.1
+- @gradio/model3d@0.11.2
+- @gradio/plot@0.6.2
+- @gradio/simpledropdown@0.2.10
+- @gradio/simpleimage@0.6.4
+- @gradio/simpletextbox@0.2.10
+- @gradio/textbox@0.6.9
+- @gradio/button@0.2.48
+- @gradio/dataframe@0.9.1
+- @gradio/dataset@0.2.2
+- @gradio/uploadbutton@0.6.16
+- @gradio/accordion@0.3.20
+- @gradio/checkbox@0.3.10
+- @gradio/checkboxgroup@0.5.10
+- @gradio/colorpicker@0.3.10
+- @gradio/column@0.1.2
+- @gradio/downloadbutton@0.1.25
+- @gradio/fallback@0.3.10
+- @gradio/html@0.3.3
+- @gradio/number@0.4.10
+- @gradio/radio@0.5.10
+- @gradio/row@0.1.3
+- @gradio/slider@0.4.10
+- @gradio/tabitem@0.2.13
+- @gradio/tabs@0.2.12
+- @gradio/timer@0.3.1
+- @gradio/group@0.1.1
+- @gradio/box@0.1.22
+
 ## 1.39.0
 
 ### Features

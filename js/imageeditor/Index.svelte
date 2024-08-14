@@ -55,6 +55,7 @@
 		accept_blobs: (a: any) => void;
 	};
 	export let canvas_size: [number, number] | undefined;
+	export let show_fullscreen_button = true;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -153,6 +154,7 @@
 			selectable={_selectable}
 			{show_share_button}
 			i18n={gradio.i18n}
+			{show_fullscreen_button}
 		/>
 	</Block>
 {:else}
