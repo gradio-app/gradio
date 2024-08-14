@@ -127,10 +127,10 @@
 				</div>
 				{#if show_nav}
 					<button
-						on:click={() => (current_selection = "Blank")}
-						class:current-playground-demo={current_selection == "Blank"}
-						class:shared-link={shared == "Blank"}
-						class="thin-link font-light px-4 mt-2 block">Blank</button
+						on:click={() => (current_selection = "Ask AI")}
+						class:current-playground-demo={current_selection == "Ask AI"}
+						class:shared-link={shared == "Ask AI"}
+						class="thin-link font-light px-4 mt-2 block">Ask AI<sup class="text-orange-500">NEW</sup></button
 					>
 					{#each data.demos_by_category as { category, demos } (category)}
 						<p class="px-4 my-2">{category}</p>

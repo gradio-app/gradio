@@ -430,6 +430,9 @@ importers:
       '@gradio/paramviewer':
         specifier: workspace:^
         version: link:../paramviewer
+      '@huggingface/inference':
+        specifier: ^2.8.0
+        version: 2.8.0
       '@sindresorhus/slugify':
         specifier: ^2.2.0
         version: 2.2.0
@@ -448,6 +451,9 @@ importers:
       prism-svelte:
         specifier: ^0.5.0
         version: 0.5.0
+      undici:
+        specifier: ^6.19.7
+        version: 6.19.7
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^3.2.2
@@ -3365,8 +3371,15 @@ packages:
   '@formatjs/intl-localematcher@0.5.4':
     resolution: {integrity: sha512-zTwEpWOzZ2CiKcB93BLngUX59hQkuZjT2+SAQEscSm52peDW/getsawMcWF1rGRpMCX6D7nSJA3CzJ8gn13N/g==}
 
+  '@huggingface/inference@2.8.0':
+    resolution: {integrity: sha512-Ti681P1qckcCAqgzmL53jBnluPuZGelmMIuXNjgAwC5+RIjF4S0SDQu6oy44ZTwekwNp2ETaZ2sXsOk+45aC4w==}
+    engines: {node: '>=18'}
+
   '@huggingface/space-header@1.0.3':
     resolution: {integrity: sha512-7W9QzGsBNl+IGFRjb3Py2cJpWCNgULL8RR+u69URP8FG4cPVH+5g6kKS2OrapPfZ/IoakFZSoI84ORSToL6qTw==}
+
+  '@huggingface/tasks@0.11.10':
+    resolution: {integrity: sha512-Dbc5xMTjFyo+6SkDnQ7conDXYY7Pd6GA5DVUxqEmLoIMqNNHsC0VkidDdMooSCmBUb456VuZhwrCaPhqyg7stA==}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -9153,6 +9166,10 @@ packages:
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
+  undici@6.19.7:
+    resolution: {integrity: sha512-HR3W/bMGPSr90i8AAp2C4DM3wChFdJPLrWYpIS++LxS8K+W535qftjt+4MyjNYHeWabMj1nvtmLIi7l++iq91A==}
+    engines: {node: '>=18.17'}
+
   unicode-canonical-property-names-ecmascript@2.0.0:
     resolution: {integrity: sha512-yY5PpDlfVIU5+y/BSCxAJRBIS1Zc2dDG3Ujq+sR0U+JjUevW2JhocOF+soROYDSaAezOzOKuyyixhD6mBknSmQ==}
     engines: {node: '>=4'}
@@ -11129,7 +11146,13 @@ snapshots:
     dependencies:
       tslib: 2.6.2
 
+  '@huggingface/inference@2.8.0':
+    dependencies:
+      '@huggingface/tasks': 0.11.10
+
   '@huggingface/space-header@1.0.3': {}
+
+  '@huggingface/tasks@0.11.10': {}
 
   '@humanwhocodes/config-array@0.13.0':
     dependencies:
@@ -17882,6 +17905,8 @@ snapshots:
       which-boxed-primitive: 1.0.2
 
   undici-types@5.26.5: {}
+
+  undici@6.19.7: {}
 
   unicode-canonical-property-names-ecmascript@2.0.0: {}
 

@@ -8,6 +8,43 @@
 	import { svgCheck } from "$lib/assets/copy.js";
 	import { browser } from "$app/environment";
 	import { onMount } from "svelte";
+	import { HfInference } from "@huggingface/inference";
+
+	const HF_ACCESS_TOKEN="";
+	let hf = new HfInference(HF_ACCESS_TOKEN);
+
+	let generated = true;
+
+	let ai_code : string | undefined = "";
+	
+	async function generate_code(query: string) {
+		generated = false;
+		const out = await hf.chatCompletion({
+		model: "meta-llama/Meta-Llama-3.1-405B-Instruct-FP8",
+		messages: [
+			{role: "system", content: "You are a code generator trained on the Gradio python library. Only answer in code, no text, and don't include backticks in the beginning or end. What ever code closely approximates what the user talks about. Make sure the code is a full and valid gradio app."},
+			{ role: "user", content: query }
+		],
+		max_tokens: 1000,
+		temperature: 0.1,
+		seed: 0,
+		});
+		generated = true;
+		console.log(out);
+		ai_code = out.choices[0].message.content;
+	}
+
+	let user_query: string;
+
+	let user_query_elem: HTMLInputElement;
+
+	$: user_query;
+
+	function handle_key_down(e: KeyboardEvent): void {
+		if (e.key === "Enter" && document.activeElement === user_query_elem)  {
+			generate_code(user_query);
+		}
+	}
 
 	export let demos: {
 		name: string;
@@ -19,13 +56,15 @@
 	export let show_nav = true;
 
 	let new_demo = {
-		name: "Blank",
-		dir: "Blank",
-		code: "# Write your own Gradio code here and see what it looks like!\nimport gradio as gr\n\n",
+		name: "Ask AI",
+		dir: "Ask AI",
+		code: "",
 		requirements: []
 	};
 
 	demos.push(new_demo);
+
+	$: demos[demos.length - 1].code = ai_code || "";
 
 	let mounted = false;
 	let controller: any;
@@ -143,6 +182,7 @@
 	$: if (code) {
 		shared = false;
 	}
+
 </script>
 
 <svelte:head>
@@ -152,6 +192,9 @@
 	/>
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>
+
+<svelte:window on:keydown={handle_key_down} />
+
 <div class="flex flex-row" style="position: absolute; top: -6%; right: 0.4%">
 	<button
 		class="border border-gray-300 rounded-md mx-2 px-2 py-.5 my-[3px] text-md text-gray-600 hover:bg-gray-50 flex"
@@ -178,6 +221,7 @@
 	<Slider bind:position bind:show_nav>
 		<div class="flex-row min-w-0 h-full" class:flex={!fullscreen}>
 			{#each demos as demo, i}
+
 				<div
 					hidden={current_selection !== demo.name}
 					class="code-editor w-full border-r"
@@ -187,6 +231,38 @@
 						<h3 class="pt-1">Code</h3>
 						<div class="flex float-right"></div>
 					</div>
+
+					{#if demo.name === "Ask AI" }
+					<div class="search-bar">
+
+						{#if !generated}
+							<div class="loader"></div>
+						{:else}
+							✨
+						{/if}
+						<input
+							bind:this={user_query_elem}
+							bind:value={user_query}
+							placeholder="What do you want to build?"
+							autocomplete="off"
+							autocorrect="off"
+							autocapitalize="off"
+							enterkeyhint="go"
+							spellcheck="false"
+							type="search"
+							id="search-input"
+						/>
+						<button
+							on:click={() => {
+								generate_code(user_query);
+							}}
+							class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
+						>
+						<div class="enter">↵</div>
+						</button>
+					</div>
+					
+					{/if}
 
 					<Code
 						bind:value={demos[i].code}
@@ -325,4 +401,34 @@
 			width: 100% !important;
 		}
 	}
+
+	.search-bar {
+		@apply font-sans text-lg z-10 px-4 relative flex flex-none items-center border-b text-gray-500;
+		border-color: #e5e7eb;
+	}
+
+	.search-bar input {
+		@apply text-lg appearance-none h-14 text-black mx-1	flex-auto min-w-0 border-none cursor-text;
+		outline: none;
+		box-shadow: none;
+	}
+
+	.loader {
+		border: 1px solid #fcc089;
+		border-top: 2px solid #ff7c00;
+		border-radius: 50%;
+		width: 15px;
+		height: 15px;
+		animation: spin 1.2s linear infinite;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+
 </style>
