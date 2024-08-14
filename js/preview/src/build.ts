@@ -4,7 +4,6 @@ import { build } from "vite";
 import { plugins, make_gradio_plugin } from "./plugins";
 import type { PreRenderedChunk } from "rollup";
 import { examine_module } from "./index";
-import { optimizeDeps } from "vite";
 
 interface BuildOptions {
 	component_dir: string;
