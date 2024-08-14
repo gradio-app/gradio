@@ -265,6 +265,7 @@ function resolve_svelte(enable) {
           __dirname,
           "..",
           "..",
+          "..",
           "gradio",
           "templates",
           "frontend",
