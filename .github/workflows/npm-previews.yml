@@ -49,6 +49,6 @@ jobs:
           always_install_pnpm: true
           skip_build: true
       - name: build client
-        run: pnpm --filter @gradio/client @gradio/wasm @gradio/preview build
+        run: pnpm --filter @gradio/client --filter @gradio/wasm --filter @gradio/preview build
       - name: publish npm previews
-        run: pnpx pkg-pr-new publish './js/*' './client/js' --comment=update
+        run: pnpx pkg-pr-new publish './js/*' './client/js' --comment=off
