@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, test } from "vitest";
 import { render, cleanup } from "@gradio/tootils";
-import { setupi18n } from "../src/i18n";
-import { Gradio } from "../src/gradio_helper";
+import { setupi18n } from "../../core/src/i18n";
+import { Gradio } from "../../core/src/gradio_helper";
 
 import StaticAnnotatedImage from "@gradio/annotatedimage";
 import StaticAudio from "@gradio/audio";

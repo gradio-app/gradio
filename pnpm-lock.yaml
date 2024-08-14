@@ -210,6 +210,9 @@ importers:
       '@gradio/column':
         specifier: workspace:^
         version: link:js/column
+      '@gradio/core':
+        specifier: workspace:^
+        version: link:js/core
       '@gradio/dataframe':
         specifier: workspace:^
         version: link:js/dataframe

@@ -99,6 +99,7 @@
 		"@gradio/checkbox": "workspace:^",
 		"@gradio/checkboxgroup": "workspace:^",
 		"@gradio/code": "workspace:^",
+		"@gradio/core": "workspace:^",
 		"@gradio/colorpicker": "workspace:^",
 		"@gradio/column": "workspace:^",
 		"@gradio/dataframe": "workspace:^",
