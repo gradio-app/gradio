@@ -82,7 +82,7 @@ def generate_response(history):
 
 Would be displayed as following:
 
-<img src="https://github.com/freddyaboulton/freddyboulton/assets/41651716/a4bb2b0a-5f8a-4287-814b-4eab278e021e" alt="Gradio chatbot tool display">
+<img src="https://github.com/user-attachments/assets/c1514bc9-bc29-4af1-8c3f-cd4a7c2b217f" alt="Gradio chatbot tool display">
 
 
 All of the types expected by the messages format are documented below:
