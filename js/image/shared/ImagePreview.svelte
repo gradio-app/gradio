@@ -99,7 +99,7 @@
 			{/if}
 		</div>
 		<button on:click={handle_click}>
-			<div class:selectable>
+			<div class:selectable class="wrapper">
 				<Image src={value.url} alt="" loading="lazy" on:load />
 			</div>
 		</button>
@@ -122,6 +122,11 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	.wrapper {
+		width: var(--size-full);
+		height: var(--size-full);
 	}
 
 	.selectable {
