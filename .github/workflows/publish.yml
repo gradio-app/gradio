@@ -32,7 +32,7 @@ jobs:
           pnpm --filter @gradio/client --filter @gradio/lite --filter @gradio/preview build
       - name: create and publish versions
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # @v1
         with:
           version: pnpm ci:version
           commit: "chore: update versions"
