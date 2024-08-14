@@ -122,6 +122,7 @@ class ServerMessage(str, Enum):
     server_stopped = "Server stopped unexpectedly."
     unexpected_error = "unexpected_error"
     close_stream = "close_stream"
+    process_streaming = "process_streaming"
 
 
 class Status(Enum):

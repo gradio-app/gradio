@@ -51,6 +51,8 @@
 		targets,
 		update_value,
 		get_data,
+		close_stream,
+		set_time_limit,
 		loading_status,
 		scheduled_updates,
 		create_layout,
@@ -254,12 +256,13 @@
 		} else {
 			if (dep.backend_fn) {
 				if (dep.trigger_mode === "once") {
-					if (!dep.pending_request) make_prediction(payload);
+					if (!dep.pending_request)
+						make_prediction(payload, dep.connection == "stream");
 				} else if (dep.trigger_mode === "multiple") {
-					make_prediction(payload);
+					make_prediction(payload, dep.connection == "stream");
 				} else if (dep.trigger_mode === "always_last") {
 					if (!dep.pending_request) {
-						make_prediction(payload);
+						make_prediction(payload, dep.connection == "stream");
 					} else {
 						dep.final_event = payload;
 					}
@@ -267,12 +270,24 @@
 			}
 		}
 
-		async function make_prediction(payload: Payload): Promise<void> {
+		async function make_prediction(
+			payload: Payload,
+			streaming = false
+		): Promise<void> {
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
 
 			let submission: ReturnType<typeof app.submit>;
+			app.set_current_payload(payload);
+			if (streaming && submit_map.has(dep_index)) {
+				await app.post_data(
+					// @ts-ignore
+					`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
+					{ ...payload, session_hash: app.session_hash }
+				);
+				return;
+			}
 			try {
 				submission = app.submit(
 					payload.fn_index,
@@ -358,9 +373,15 @@
 
 			function handle_status_update(message: StatusMessage): void {
 				const { fn_index, ...status } = message;
+				if (status.stage === "streaming" && status.time_limit) {
+					dep.inputs.forEach((id) => {
+						set_time_limit(id, status.time_limit);
+					});
+				}
 				//@ts-ignore
 				loading_status.update({
 					...status,
+					time_limit: status.time_limit,
 					status: status.stage,
 					progress: status.progress_data,
 					fn_index
@@ -406,8 +427,10 @@
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
 						}
 					});
-
-					// submission.destroy();
+					dep.inputs.forEach((id) => {
+						close_stream(id);
+					});
+					submit_map.delete(dep_index);
 				}
 				if (status.broken && is_mobile_device && user_left_page) {
 					window.setTimeout(() => {
@@ -518,6 +541,17 @@
 				messages = [new_message(data, -1, event), ...messages];
 			} else if (event == "clear_status") {
 				update_status(id, "complete", data);
+			} else if (event == "close_stream") {
+				const deps = $targets[id]?.[data];
+				deps?.forEach((dep_id) => {
+					if (submit_map.has(dep_id)) {
+						app.post_data(
+							// @ts-ignore
+							`${app.config.root}/stream/${submit_map.get(dep_id).event_id()}/close`,
+							{}
+						);
+					}
+				});
 			} else {
 				const deps = $targets[id]?.[event];
 

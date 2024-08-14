@@ -314,7 +314,6 @@ async def call_process_api(
 
     if batch_in_single_out:
         output["data"] = output["data"][0]
-
     return output
 
 

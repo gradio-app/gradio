@@ -830,7 +830,7 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     #   `float32` and `float64` arrays through)
 
     if hasattr(np, "obj2sctype"):
-        is_subdtype = np.issubdtype(dtype_in, np.obj2sctype(dtype))
+        is_subdtype = np.issubdtype(dtype_in, np.obj2sctype(dtype))  # type: ignore
     else:
         is_subdtype = np.issubdtype(dtype_in, dtypeobj_out.type)
 
