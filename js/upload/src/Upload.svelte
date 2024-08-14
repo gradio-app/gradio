@@ -283,7 +283,9 @@
 		class:flex
 		class:disable_click
 		style:height="100%"
+		style:width="100%"
 		tabindex={hidden ? -1 : 0}
+		style:position={hidden ? "absolute" : "relative"}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation
 		on:dragend|preventDefault|stopPropagation
@@ -319,7 +321,6 @@
 
 	.hidden {
 		display: none;
-		height: 0 !important;
 		position: absolute;
 		width: 0;
 		flex-grow: 0;

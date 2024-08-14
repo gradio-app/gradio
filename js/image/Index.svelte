@@ -81,6 +81,24 @@
 
 	let dragging: boolean;
 	let active_source: sources = null;
+	let upload_component: ImageUploader;
+
+	const handle_drag_event = (event: DragEvent): void => {
+		event.preventDefault();
+		event.stopPropagation();
+	};
+
+	const handle_drop = (event: DragEvent): void => {
+		if (interactive) {
+			event.preventDefault();
+			event.stopPropagation();
+			dragging = false;
+
+			if (upload_component) {
+				upload_component.loadFilesFromDrop(event);
+			}
+		}
+	};
 </script>
 
 {#if !interactive}
@@ -130,6 +148,10 @@
 		{container}
 		{scale}
 		{min_width}
+		on:dragenter={handle_drag_event}
+		on:dragleave={handle_drag_event}
+		on:dragover={handle_drag_event}
+		on:drop={handle_drop}
 	>
 		<StatusTracker
 			autoscroll={gradio.autoscroll}
@@ -139,8 +161,10 @@
 		/>
 
 		<ImageUploader
+			bind:this={upload_component}
 			bind:active_source
 			bind:value
+			bind:dragging
 			selectable={_selectable}
 			{root}
 			{sources}
