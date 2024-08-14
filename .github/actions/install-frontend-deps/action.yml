@@ -48,4 +48,4 @@ runs:
       run: |
         . venv/bin/activate
         python -m pip install -U build hatch packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
-        pnpm --filter @gradio/app build:lite
+        pnpm --filter @gradio/lite build
