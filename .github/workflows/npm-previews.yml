@@ -1,4 +1,4 @@
-name: "js"
+name: "npm"
 
 on:
   pull_request:
@@ -34,7 +34,7 @@ jobs:
         with:
           filter: "js"
           token: ${{ secrets.GITHUB_TOKEN }}
-  test:
+  preview:
     permissions:
       contents: read
     name: js-test
