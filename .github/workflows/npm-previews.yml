@@ -50,4 +50,4 @@ jobs:
       - name: build client
         run: pnpm --filter @gradio/client @gradio/wasm @gradio/preview build
       - name: publish npm previews
-        run: pnpx pkg-pr-new publish './js/*' --comment=update --compact
+        run: pnpx pkg-pr-new publish './js/*' './client/js' --comment=update --compact

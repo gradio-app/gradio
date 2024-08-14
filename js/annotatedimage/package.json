@@ -22,5 +22,10 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/wasm": "workspace:^"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/annotatedimage"
 	}
 }
