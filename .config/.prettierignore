@@ -18,7 +18,7 @@
 **/.mypy_cache/**
 !test-strategy.md
 **/js/_space-test/**
-../js/app/src/lite/theme.css
+../js/lite/src/theme.css
 ../js/storybook/theme.css
 **/gradio_cached_examples/**
 **/storybook-static/**  
