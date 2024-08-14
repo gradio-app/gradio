@@ -7,7 +7,7 @@
 	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import Player from "./Player.svelte";
-	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 
 	export let value: FileData | null = null;
 	export let subtitle: FileData | null = null;
