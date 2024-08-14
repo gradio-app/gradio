@@ -524,200 +524,7 @@ importers:
         specifier: workspace:^
         version: link:../preview
 
-  js/app:
-    dependencies:
-      '@gradio/accordion':
-        specifier: workspace:^
-        version: link:../accordion
-      '@gradio/annotatedimage':
-        specifier: workspace:^
-        version: link:../annotatedimage
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/audio':
-        specifier: workspace:^
-        version: link:../audio
-      '@gradio/box':
-        specifier: workspace:^
-        version: link:../box
-      '@gradio/button':
-        specifier: workspace:^
-        version: link:../button
-      '@gradio/chatbot':
-        specifier: workspace:^
-        version: link:../chatbot
-      '@gradio/checkbox':
-        specifier: workspace:^
-        version: link:../checkbox
-      '@gradio/checkboxgroup':
-        specifier: workspace:^
-        version: link:../checkboxgroup
-      '@gradio/client':
-        specifier: workspace:^
-        version: link:../../client/js
-      '@gradio/code':
-        specifier: workspace:^
-        version: link:../code
-      '@gradio/colorpicker':
-        specifier: workspace:^
-        version: link:../colorpicker
-      '@gradio/column':
-        specifier: workspace:^
-        version: link:../column
-      '@gradio/dataframe':
-        specifier: workspace:^
-        version: link:../dataframe
-      '@gradio/dataset':
-        specifier: workspace:^
-        version: link:../dataset
-      '@gradio/datetime':
-        specifier: workspace:^
-        version: link:../datetime
-      '@gradio/downloadbutton':
-        specifier: workspace:^
-        version: link:../downloadbutton
-      '@gradio/dropdown':
-        specifier: workspace:^
-        version: link:../dropdown
-      '@gradio/fallback':
-        specifier: workspace:^
-        version: link:../fallback
-      '@gradio/file':
-        specifier: workspace:^
-        version: link:../file
-      '@gradio/fileexplorer':
-        specifier: workspace:^
-        version: link:../fileexplorer
-      '@gradio/form':
-        specifier: workspace:^
-        version: link:../form
-      '@gradio/gallery':
-        specifier: workspace:^
-        version: link:../gallery
-      '@gradio/group':
-        specifier: workspace:^
-        version: link:../group
-      '@gradio/highlightedtext':
-        specifier: workspace:^
-        version: link:../highlightedtext
-      '@gradio/html':
-        specifier: workspace:^
-        version: link:../html
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../icons
-      '@gradio/image':
-        specifier: workspace:^
-        version: link:../image
-      '@gradio/imageeditor':
-        specifier: workspace:^
-        version: link:../imageeditor
-      '@gradio/json':
-        specifier: workspace:^
-        version: link:../json
-      '@gradio/label':
-        specifier: workspace:^
-        version: link:../label
-      '@gradio/markdown':
-        specifier: workspace:^
-        version: link:../markdown
-      '@gradio/model3d':
-        specifier: workspace:^
-        version: link:../model3D
-      '@gradio/multimodaltextbox':
-        specifier: workspace:^
-        version: link:../multimodaltextbox
-      '@gradio/nativeplot':
-        specifier: workspace:^
-        version: link:../nativeplot
-      '@gradio/number':
-        specifier: workspace:^
-        version: link:../number
-      '@gradio/paramviewer':
-        specifier: workspace:^
-        version: link:../paramviewer
-      '@gradio/plot':
-        specifier: workspace:^
-        version: link:../plot
-      '@gradio/radio':
-        specifier: workspace:^
-        version: link:../radio
-      '@gradio/row':
-        specifier: workspace:^
-        version: link:../row
-      '@gradio/simpledropdown':
-        specifier: workspace:^
-        version: link:../simpledropdown
-      '@gradio/simpleimage':
-        specifier: workspace:^
-        version: link:../simpleimage
-      '@gradio/simpletextbox':
-        specifier: workspace:^
-        version: link:../simpletextbox
-      '@gradio/slider':
-        specifier: workspace:^
-        version: link:../slider
-      '@gradio/state':
-        specifier: workspace:^
-        version: link:../state
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../statustracker
-      '@gradio/tabitem':
-        specifier: workspace:^
-        version: link:../tabitem
-      '@gradio/tabs':
-        specifier: workspace:^
-        version: link:../tabs
-      '@gradio/textbox':
-        specifier: workspace:^
-        version: link:../textbox
-      '@gradio/theme':
-        specifier: workspace:^
-        version: link:../theme
-      '@gradio/timer':
-        specifier: workspace:^
-        version: link:../timer
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../upload
-      '@gradio/uploadbutton':
-        specifier: workspace:^
-        version: link:../uploadbutton
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      '@gradio/video':
-        specifier: workspace:^
-        version: link:../video
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
-      '@huggingface/space-header':
-        specifier: ^1.0.3
-        version: 1.0.3
-      '@types/eventsource':
-        specifier: ^1.1.15
-        version: 1.1.15
-      cross-env:
-        specifier: ^7.0.3
-        version: 7.0.3
-      d3-dsv:
-        specifier: ^3.0.1
-        version: 3.0.1
-      eventsource:
-        specifier: ^2.0.2
-        version: 2.0.2
-      mime-types:
-        specifier: ^2.1.34
-        version: 2.1.34
-      postcss:
-        specifier: ^8.4.21
-        version: 8.4.31
-      postcss-prefix-selector:
-        specifier: ^1.16.0
-        version: 1.16.0(postcss@8.4.31)
+  js/app: {}
 
   js/atoms:
     dependencies:
@@ -1187,30 +994,6 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
-      '@huggingface/space-header':
-        specifier: ^1.0.3
-        version: 1.0.3
-      '@types/eventsource':
-        specifier: ^1.1.15
-        version: 1.1.15
-      cross-env:
-        specifier: ^7.0.3
-        version: 7.0.3
-      d3-dsv:
-        specifier: ^3.0.1
-        version: 3.0.1
-      eventsource:
-        specifier: ^2.0.2
-        version: 2.0.2
-      mime-types:
-        specifier: ^2.1.34
-        version: 2.1.35
-      postcss:
-        specifier: ^8.4.21
-        version: 8.4.38
-      postcss-prefix-selector:
-        specifier: ^1.16.0
-        version: 1.16.1(postcss@8.4.38)
 
   js/dataframe:
     dependencies:
@@ -7677,16 +7460,8 @@ packages:
     resolution: {integrity: sha512-DMy+ERcEW2q8Z2Po+WNXuw3c5YaUSFjAO5GsJqfEl7UjvtIuFKO6ZrKvcItdy98dwFI2N1tg3zNIdKaQT+aNdA==}
     engines: {node: '>=8.6'}
 
-  mime-db@1.51.0:
-    resolution: {integrity: sha512-5y8A56jg7XVQx2mbv1lu49NR4dokRnhZYTtL+KGfaa27uq4pSTXkwQkFJl4pkRMyNFz/EtYDSkiiEHx3F7UN6g==}
-    engines: {node: '>= 0.6'}
-
   mime-db@1.52.0:
     resolution: {integrity: sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==}
-    engines: {node: '>= 0.6'}
-
-  mime-types@2.1.34:
-    resolution: {integrity: sha512-6cP692WwGIs9XXdOO4++N+7qjqv0rqxxVvJ3VHPh/Sc9mVZcQP+ZGhkKiTvWMQRr2tbHkJP/Yn7Y0npb3ZBs4A==}
     engines: {node: '>= 0.6'}
 
   mime-types@2.1.35:
@@ -8233,11 +8008,6 @@ packages:
     peerDependencies:
       postcss: ^8.2.14
 
-  postcss-prefix-selector@1.16.0:
-    resolution: {integrity: sha512-rdVMIi7Q4B0XbXqNUEI+Z4E+pueiu/CS5E6vRCQommzdQ/sgsS4dK42U7GX8oJR+TJOtT+Qv3GkNo6iijUMp3Q==}
-    peerDependencies:
-      postcss: '>4 <9'
-
   postcss-prefix-selector@1.16.1:
     resolution: {integrity: sha512-Umxu+FvKMwlY6TyDzGFoSUnzW+NOfMBLyC1tAkIjgX+Z/qGspJeRjVC903D7mx7TuBpJlwti2ibXtWuA7fKMeQ==}
     peerDependencies:
@@ -8265,10 +8035,6 @@ packages:
 
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
-
-  postcss@8.4.31:
-    resolution: {integrity: sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ==}
-    engines: {node: ^10 || ^12 || >=14}
 
   postcss@8.4.38:
     resolution: {integrity: sha512-Wglpdk03BSfXkHoQa3b/oulrotAkwrlLDRSOb9D0bN86FdRyE9lppSp33aHNPgBa0JKCoB+drFLZkQoRRYae5A==}
@@ -16230,13 +15996,7 @@ snapshots:
       braces: 3.0.2
       picomatch: 2.3.1
 
-  mime-db@1.51.0: {}
-
   mime-db@1.52.0: {}
-
-  mime-types@2.1.34:
-    dependencies:
-      mime-db: 1.51.0
 
   mime-types@2.1.35:
     dependencies:
@@ -16787,10 +16547,6 @@ snapshots:
       postcss: 8.4.38
       postcss-selector-parser: 6.0.16
 
-  postcss-prefix-selector@1.16.0(postcss@8.4.31):
-    dependencies:
-      postcss: 8.4.31
-
   postcss-prefix-selector@1.16.1(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
@@ -16814,12 +16570,6 @@ snapshots:
       util-deprecate: 1.0.2
 
   postcss-value-parser@4.2.0: {}
-
-  postcss@8.4.31:
-    dependencies:
-      nanoid: 3.3.7
-      picocolors: 1.0.0
-      source-map-js: 1.0.2
 
   postcss@8.4.38:
     dependencies:
