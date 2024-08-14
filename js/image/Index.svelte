@@ -83,20 +83,26 @@
 	let dragging: boolean;
 	let active_source: sources = null;
 	let upload_component: ImageUploader;
-
-	const handle_drag_event = (event: DragEvent): void => {
-		event.preventDefault();
-		event.stopPropagation();
+	const handle_drag_event = (event: Event): void => {
+		const drag_event = event as DragEvent;
+		drag_event.preventDefault();
+		drag_event.stopPropagation();
+		if (drag_event.type === "dragenter" || drag_event.type === "dragover") {
+			dragging = true;
+		} else if (drag_event.type === "dragleave") {
+			dragging = false;
+		}
 	};
 
-	const handle_drop = (event: DragEvent): void => {
+	const handle_drop = (event: Event): void => {
 		if (interactive) {
-			event.preventDefault();
-			event.stopPropagation();
+			const drop_event = event as DragEvent;
+			drop_event.preventDefault();
+			drop_event.stopPropagation();
 			dragging = false;
 
 			if (upload_component) {
-				upload_component.loadFilesFromDrop(event);
+				upload_component.loadFilesFromDrop(drop_event);
 			}
 		}
 	};

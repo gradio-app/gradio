@@ -70,7 +70,7 @@
 		select: SelectData;
 	}>();
 
-	let dragging = false;
+	export let dragging = false;
 
 	$: dispatch("drag", dragging);
 
