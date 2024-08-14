@@ -124,8 +124,10 @@ def test_component_example_payloads(io_components):
     for component in io_components:
         if component == PDF:
             continue
-        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+        elif issubclass(component, gr.components.NativePlot):
             c: Component = component(x="x", y="y")
+        elif component == gr.FileExplorer:
+            c: Component = component(root_dir="gradio")
         else:
             c: Component = component()
         data = c.example_payload()
@@ -140,4 +142,4 @@ def test_component_example_payloads(io_components):
                 data = c.data_model(**data)  # type: ignore
             elif issubclass(c.data_model, GradioRootModel):  # type: ignore
                 data = c.data_model(root=data)  # type: ignore
-        c.preprocess(data)
+        c.preprocess(data)  # type: ignore

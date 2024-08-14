@@ -7,8 +7,6 @@ import node from "@rollup/plugin-node-resolve";
 import cjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 
-const output_svelte_dir = "../../gradio/templates/frontend/assets/svelte";
-
 const onwarn = (warning, warn) => {
 	if (warning.plugin === "typescript") return;
 	if (warning.code === "CIRCULAR_DEPENDENCY") return;
@@ -16,6 +14,21 @@ const onwarn = (warning, warn) => {
 
 	warn(warning);
 };
+
+const require = createRequire(import.meta.url);
+const dir = require.resolve("./package.json");
+
+const output_svelte_dir = join(
+	dir,
+	"..",
+	"..",
+	"..",
+	"gradio",
+	"templates",
+	"frontend",
+	"assets",
+	"svelte"
+);
 
 const plugins = [node({ preferBuiltins: true }), json(), cjs(), ts()];
 

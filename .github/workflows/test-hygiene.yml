@@ -11,9 +11,13 @@ concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   test:
-    name: "test"
+    permissions:
+      contents: read
+    name: "hygiene-test"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +29,6 @@ jobs:
       - name: Assert Notebooks Match
         run: git status | grep "nothing to commit, working tree clean"
       - name: Check for large files
-        uses: actionsdesk/lfs-warning@v3.3
+        uses: actionsdesk/lfs-warning@4b98a8a5e6c429c23c34eee02d71553bca216425 # @v3.3
         with:
           filesizelimit: 5MB
