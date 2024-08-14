@@ -1,6 +1,6 @@
 import { test, describe, assert, afterEach, vi } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
-import { setupi18n } from "../app/src/i18n";
+import { setupi18n } from "../core/src/i18n";
 
 import Gallery from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
