@@ -1,5 +1,4 @@
 import { test, expect, drag_and_drop_file } from "@gradio/tootils";
-import fs from "fs";
 
 test("Image events are dispatched correctly. Downloading the file works and has the correct name.", async ({
 	page
@@ -55,6 +54,31 @@ test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
 	);
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
+});
+
+test("Image drag-to-upload replaces an image successfully.", async ({
+	page
+}) => {
+	await drag_and_drop_file(
+		page,
+		"input[type=file]",
+		"./test/files/cheetah1.jpg",
+		"cheetah1.jpg",
+		"image/*"
+	);
+	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
+	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
+
+	await drag_and_drop_file(
+		page,
+		"input[type=file]",
+		"./test/files/bus.png",
+		"bus.png",
+		"image/*"
+	);
+
+	await expect(page.getByLabel("# Change Events").first()).toHaveValue("2");
+	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
 });
 
 test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
