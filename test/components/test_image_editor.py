@@ -69,7 +69,7 @@ class TestImageEditor:
             "format": "webp",
             "layers": True,
             "canvas_size": None,
-            "info": None,
+            "placeholder": None,
             "show_fullscreen_button": True,
         }
 

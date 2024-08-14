@@ -28,7 +28,6 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
-	export let info: string | undefined = undefined;
 
 	let upload_input: Upload;
 	let uploading = false;
@@ -99,7 +98,7 @@
 	}
 </script>
 
-<BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} {info} />
+<BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} />
 
 <div data-testid="image" class="image-container">
 	{#if value?.url && !active_streaming}

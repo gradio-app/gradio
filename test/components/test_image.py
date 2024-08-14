@@ -54,7 +54,7 @@ class TestImage:
             "key": None,
             "streamable": False,
             "type": "pil",
-            "info": None,
+            "placeholder": None,
         }
         assert image_input.preprocess(None) is None
         image_input = gr.Image()
