@@ -107,7 +107,7 @@ class DownloadButton(Component):
         """
         if value is None:
             return None
-        return FileData(path=str(value))
+        return FileData(path=str(value), orig_name=Path(value).name)
 
     def example_payload(self) -> dict:
         return handle_file(

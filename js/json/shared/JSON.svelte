@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	import { fade } from "svelte/transition";
 	import { JSON as JSONIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
@@ -97,6 +96,7 @@
 
 	.empty-wrapper {
 		min-height: calc(var(--size-32) - 20px);
+		height: 100%;
 	}
 	button {
 		display: flex;

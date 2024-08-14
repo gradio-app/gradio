@@ -668,16 +668,20 @@ class BlocksConfig:
         self,
         targets: Sequence[EventListenerMethod],
         fn: Callable | None,
-        inputs: Component
-        | BlockContext
-        | Sequence[Component | BlockContext]
-        | AbstractSet[Component | BlockContext]
-        | None,
-        outputs: Component
-        | BlockContext
-        | Sequence[Component | BlockContext]
-        | AbstractSet[Component | BlockContext]
-        | None,
+        inputs: (
+            Component
+            | BlockContext
+            | Sequence[Component | BlockContext]
+            | AbstractSet[Component | BlockContext]
+            | None
+        ),
+        outputs: (
+            Component
+            | BlockContext
+            | Sequence[Component | BlockContext]
+            | AbstractSet[Component | BlockContext]
+            | None
+        ),
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
@@ -1233,6 +1237,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("zerogpu", None)
                 dependency.pop("id", None)
                 dependency.pop("rendered_in", None)
+                dependency.pop("every", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
                 if is_then_event:
@@ -2162,7 +2167,9 @@ Received outputs:
         share: bool | None = None,
         debug: bool = False,
         max_threads: int = 40,
-        auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
+        auth: (
+            Callable[[str, str], bool] | tuple[str, str] | list[tuple[str, str]] | None
+        ) = None,
         auth_message: str | None = None,
         prevent_thread_lock: bool = False,
         show_error: bool = False,
