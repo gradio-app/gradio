@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Deal with OAuth too many redirects
+fix:Deal with OAuth too many redirects
