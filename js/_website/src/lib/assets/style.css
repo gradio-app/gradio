@@ -143,6 +143,11 @@
 .obj h4 {
 	@apply mt-8 text-xl text-orange-500 font-light;
 }
+
+.obj p {
+	@apply mb-2 text-lg;
+}
+
 /* playground */
 
 .current-playground-demo {
