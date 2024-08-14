@@ -172,14 +172,9 @@
 			stream_handler={gradio.client.stream}
 		>
 			{#if active_source === "upload" || !active_source}
-				<UploadText i18n={gradio.i18n} type="image" />
+				<UploadText i18n={gradio.i18n} type="image" {placeholder} />
 			{:else if active_source === "clipboard"}
-				<UploadText
-					i18n={gradio.i18n}
-					type="clipboard"
-					mode="short"
-					{placeholder}
-				/>
+				<UploadText i18n={gradio.i18n} type="clipboard" mode="short" />
 			{:else}
 				<Empty unpadded_box={true} size="large"><Image /></Empty>
 			{/if}
