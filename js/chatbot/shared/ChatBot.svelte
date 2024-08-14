@@ -20,7 +20,7 @@
 	import type { MessageRole } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
-	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
 	import MessageBox from "./MessageBox.svelte";
 
@@ -29,7 +29,8 @@
 
 	import Component from "./Component.svelte";
 	import LikeButtons from "./ButtonPanel.svelte";
-	import type { LoadedComponent } from "../../app/src/types";
+	import type { LoadedComponent } from "../../core/src/types";
+
 	import CopyAll from "./CopyAll.svelte";
 
 	export let _fetch: typeof fetch;

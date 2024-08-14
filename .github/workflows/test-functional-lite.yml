@@ -53,7 +53,7 @@ jobs:
       - name: Run Lite E2E tests
         run: |
           . venv/bin/activate
-          pnpm --filter @gradio/app test:browser:lite
+          pnpm --filter @gradio/lite test:browser
       - name: Get the performance result
         run: |
           export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)

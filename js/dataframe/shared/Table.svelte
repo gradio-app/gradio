@@ -7,7 +7,7 @@
 	import { BaseButton } from "@gradio/button";
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
-	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
 	import type {
