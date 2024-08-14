@@ -10,6 +10,7 @@
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import type { ThemeMode } from "@gradio/core";
 	import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
+	import { FAKE_LITE_HOST } from "@gradio/wasm/network";
 	import { Client } from "@gradio/client";
 	import { wasm_proxied_fetch } from "./fetch";
 	import { wasm_proxied_stream_factory } from "./sse";
@@ -181,7 +182,7 @@
 			<Index
 				space={null}
 				src={null}
-				host={null}
+				host={FAKE_LITE_HOST}
 				{info}
 				{container}
 				{is_embed}
