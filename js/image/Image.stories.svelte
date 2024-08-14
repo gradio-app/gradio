@@ -49,7 +49,7 @@
 			orig_name: "cheetah.jpg"
 		},
 		show_label: true,
-		info: "This is a cheetah",
+		placeholder: "This is a cheetah",
 		show_download_button: true
 	}}
 	play={async ({ canvasElement }) => {
