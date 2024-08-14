@@ -15,6 +15,8 @@
 	export let value: any;
 	export let i18n: I18nFormatter;
 	let pending = false;
+
+	const defaultDescription = "Check out this awesome project on Gradio!";
 </script>
 
 <IconButton
@@ -24,7 +26,12 @@
 	on:click={async () => {
 		try {
 			pending = true;
-			const formatted = await formatter(value);
+			let formatted = await formatter(value);
+
+			if (!formatted || formatted.trim() === "") {
+				formatted = defaultDescription;
+			}
+
 			dispatch("share", {
 				description: formatted
 			});
