@@ -212,6 +212,7 @@ class Paint(components.ImageEditor):
         layers: bool = True,
         canvas_size: tuple[int, int] | None = None,
         show_fullscreen_button: bool = True,
+        placeholder: str | None = None,
     ):
         super().__init__(
             value=value,
@@ -245,6 +246,7 @@ class Paint(components.ImageEditor):
             layers=layers,
             canvas_size=canvas_size,
             show_fullscreen_button=show_fullscreen_button,
+            placeholder=placeholder,
         )
 
 
