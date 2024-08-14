@@ -1,5 +1,4 @@
 ---
-"@gradio/app": patch
 "@gradio/audio": patch
 "@gradio/build": patch
 "@gradio/button": patch
@@ -12,6 +11,7 @@
 "@gradio/storybook": patch
 "@gradio/video": patch
 "@gradio/wasm": patch
+"app": patch
 "gradio": patch
 ---
 
