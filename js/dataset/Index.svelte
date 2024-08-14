@@ -14,6 +14,7 @@
 	export let label = "Examples";
 	export let headers: string[];
 	export let samples: any[][] | null = null;
+	let old_samples: any[][] | null = null;
 	export let sample_labels: string[] | null = null;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -35,6 +36,7 @@
 		? `/proxy=${proxy_url}file=`
 		: `${root}/file=`;
 	let page = 0;
+
 	$: gallery = components.length < 2 || sample_labels !== null;
 	let paginate = samples ? samples.length > samples_per_page : false;
 
@@ -57,6 +59,10 @@
 			samples = sample_labels.map((e) => [e]);
 		} else if (!samples) {
 			samples = [];
+		}
+		if (samples !== old_samples) {
+			page = 0;
+			old_samples = samples;
 		}
 		paginate = samples.length > samples_per_page;
 		if (paginate) {

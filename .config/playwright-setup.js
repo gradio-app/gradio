@@ -8,7 +8,7 @@ import kl from "kleur";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const TEST_APP_PATH = join(__dirname, "./test.py");
-const TEST_FILES_PATH = join(__dirname, "..", "js", "app", "test");
+const TEST_FILES_PATH = join(__dirname, "..", "js", "spa", "test");
 const ROOT = join(__dirname, "..");
 
 const test_files = readdirSync(TEST_FILES_PATH)
