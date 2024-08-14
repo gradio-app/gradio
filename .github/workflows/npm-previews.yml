@@ -37,7 +37,7 @@ jobs:
   preview:
     permissions:
       contents: read
-    name: js-test
+    name: npm-previews
     runs-on: ubuntu-22.04
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
@@ -47,7 +47,8 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
           always_install_pnpm: true
+          skip_build: true
       - name: build client
         run: pnpm --filter @gradio/client @gradio/wasm @gradio/preview build
       - name: publish npm previews
-        run: pnpx pkg-pr-new publish './js/*' './client/js' --comment=update --compact
+        run: pnpx pkg-pr-new publish './js/*' './client/js' --comment=update
