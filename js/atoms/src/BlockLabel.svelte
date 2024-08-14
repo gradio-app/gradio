@@ -41,11 +41,13 @@
 	:global(.gr-group) label {
 		border-top-left-radius: 0;
 	}
+
 	label.float {
 		position: absolute;
 		top: var(--block-label-margin);
 		left: var(--block-label-margin);
 	}
+
 	label:not(.float) {
 		position: static;
 		margin-top: var(--block-label-margin);
@@ -54,6 +56,7 @@
 	.hide {
 		height: 0;
 	}
+
 	span {
 		opacity: 0.8;
 		margin-right: var(--size-2);
