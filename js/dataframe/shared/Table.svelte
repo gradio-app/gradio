@@ -15,7 +15,7 @@
 		HeadersWithIDs,
 		Data,
 		Metadata,
-		Datatype,
+		Datatype
 	} from "./utils";
 
 	export let datatype: Datatype | Datatype[];
@@ -117,7 +117,7 @@
 				? row_count[0]
 				: data_row_length < row_count[0]
 					? row_count[0]
-					: data_row_length,
+					: data_row_length
 		)
 			.fill(0)
 			.map((_, i) =>
@@ -126,7 +126,7 @@
 						? col_count[0]
 						: data_row_length > 0
 							? _values[0].length
-							: headers.length,
+							: headers.length
 				)
 					.fill(0)
 					.map((_, j) => {
@@ -135,7 +135,7 @@
 						const obj = { value: _values?.[i]?.[j] ?? "", id };
 						data_binding[id] = obj;
 						return obj;
-					}),
+					})
 			);
 	}
 
@@ -170,14 +170,14 @@
 			headers: _headers.map((h) => h.value),
 			metadata: editable
 				? null
-				: { display_value: display_value, styling: styling },
+				: { display_value: display_value, styling: styling }
 		});
 	}
 
 	function get_sort_status(
 		name: string,
 		_sort?: number,
-		direction?: SortDirection,
+		direction?: SortDirection
 	): "none" | "ascending" | "descending" {
 		if (!_sort) return "none";
 		if (headers[_sort] === name) {
@@ -193,12 +193,12 @@
 			(acc, arr, i) => {
 				const j = arr.reduce(
 					(_acc, _data, k) => (id === _data.id ? k : _acc),
-					-1,
+					-1
 				);
 
 				return j === -1 ? acc : [i, j];
 			},
-			[-1, -1],
+			[-1, -1]
 		);
 	}
 
@@ -210,13 +210,13 @@
 
 	function move_cursor(
 		key: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
-		current_coords: [number, number],
+		current_coords: [number, number]
 	): void {
 		const dir = {
 			ArrowRight: [0, 1],
 			ArrowLeft: [0, -1],
 			ArrowDown: [1, 0],
-			ArrowUp: [-1, 0],
+			ArrowUp: [-1, 0]
 		}[key];
 
 		const i = current_coords[0] + dir[0];
@@ -416,7 +416,7 @@
 
 					els[_id] = { cell: null, input: null };
 					return { id: _id, value: "" };
-				}),
+				})
 		);
 
 		data = data;
@@ -463,7 +463,7 @@
 
 	function guess_delimitaor(
 		text: string,
-		possibleDelimiters: string[],
+		possibleDelimiters: string[]
 	): string[] {
 		return possibleDelimiters.filter(weedOut);
 
@@ -510,7 +510,7 @@
 			const [head, ...rest] = dsvFormat(delimiter).parseRows(e.target.result);
 
 			_headers = make_headers(
-				col_count[1] === "fixed" ? head.slice(0, col_count[0]) : head,
+				col_count[1] === "fixed" ? head.slice(0, col_count[0]) : head
 			);
 
 			values = rest;
@@ -525,7 +525,7 @@
 	let dragging = false;
 
 	function get_max(
-		_d: { value: any; id: string }[][],
+		_d: { value: any; id: string }[][]
 	): { value: any; id: string }[] {
 		let max = _d[0].slice();
 		for (let i = 0; i < _d.length; i++) {
@@ -554,7 +554,7 @@
 		for (let i = 0; i < widths.length; i++) {
 			parent.style.setProperty(
 				`--cell-width-${i}`,
-				`${widths[i] - scrollbar_width / widths.length}px`,
+				`${widths[i] - scrollbar_width / widths.length}px`
 			);
 		}
 	}
@@ -567,7 +567,7 @@
 		_display_value: string[][] | null,
 		_styling: string[][] | null,
 		col?: number,
-		dir?: SortDirection,
+		dir?: SortDirection
 	): void {
 		let id = null;
 		//Checks if the selected cell is still in the data
@@ -581,11 +581,11 @@
 
 		if (dir === "asc") {
 			indices.sort((i, j) =>
-				_data[i][col].value < _data[j][col].value ? -1 : 1,
+				_data[i][col].value < _data[j][col].value ? -1 : 1
 			);
 		} else if (dir === "des") {
 			indices.sort((i, j) =>
-				_data[i][col].value > _data[j][col].value ? -1 : 1,
+				_data[i][col].value > _data[j][col].value ? -1 : 1
 			);
 		} else {
 			return;

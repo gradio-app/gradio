@@ -54,7 +54,8 @@
 							class="highlight">import</span
 						> Client{#if has_file_path}, handle_file{/if}
 
-client = Client(<span class="token string">"{space_id || root}"</span>{#if username !== null}, auth=("{username}", **password**){/if})
+client = Client(<span class="token string">"{space_id || root}"</span
+						>{#if username !== null}, auth=("{username}", **password**){/if})
 result = client.<span class="highlight">predict</span
 						>(<!--
 -->{#each endpoint_parameters as { python_type, example_input, parameter_name, parameter_has_default, parameter_default }, i}<!--
@@ -104,8 +105,7 @@ const result = await client.predict({#if named}<span class="api-name"
 									class="example-inputs"
 									>{parameter_name}: example{component}</span
 								>, <!--
-		--><span class="desc"
-									><!--
+		--><span class="desc"><!--
 		--></span
 								><!--
 		-->{:else}<!--
@@ -137,8 +137,12 @@ console.log(result.data);
 				<div bind:this={bash_post_code}>
 					<pre>curl -X POST {root}call/{dependency.api_name} -s -H "Content-Type: application/json" -d '{"{"}
   "data": [{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}
-    <!-- 
--->{represent_value(example_input, python_type.type, "bash")}{#if i < endpoint_parameters.length - 1},
+							<!-- 
+-->{represent_value(
+								example_input,
+								python_type.type,
+								"bash"
+							)}{#if i < endpoint_parameters.length - 1},
 							{/if}
 						{/each}
 ]{"}"}' \

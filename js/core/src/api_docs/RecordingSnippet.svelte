@@ -134,7 +134,8 @@
 							class="highlight">import</span
 						> Client, file
 
-client = Client(<span class="token string">"{short_root}"</span>{#if username !== null}, auth=("{username}", **password**){/if})
+client = Client(<span class="token string">"{short_root}"</span
+						>{#if username !== null}, auth=("{username}", **password**){/if})
 {#each py_zipped as { call, api_name }}<!--
 -->
 client.<span class="highlight"
@@ -156,9 +157,11 @@ const app = await Client.connect(<span class="token string">"{short_root}"</span
 						>{#if username !== null}, &lbrace;auth: ["{username}", **password**]&rbrace;{/if});
 					{#each js_zipped as { call, api_name }}<!--
 					-->
-await client.predict(<span class="api-name">
+await client.predict(<span
+								class="api-name">
   "/{api_name}"</span
-							>{#if call}, {/if}{call});
+							>{#if call},
+							{/if}{call});
 						{/each}</pre>
 				</div>
 			</code>
