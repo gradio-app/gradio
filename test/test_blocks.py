@@ -1802,3 +1802,18 @@ def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
             )
     finally:
         demo.close()
+
+
+def test_post_process_file_blocked(connect):
+    demo = gr.Interface(lambda s: s, "text", "file")
+    with connect(demo) as client:
+        _ = client.predict("test/test_files/bus.png")
+        with pytest.raises(ValueError):
+            file = pathlib.Path(os.getcwd()) / ".." / "file.txt"
+            file.write_text("Hi")
+            client.predict(str(file))
+
+    my_file = str(pathlib.Path(os.getcwd()) / ".." / "file.txt")
+    demo = gr.Interface(lambda s: s, "text", "file")
+    with connect(demo, allowed_paths=[my_file]) as client:
+        _ = client.predict(my_file)

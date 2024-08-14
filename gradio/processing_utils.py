@@ -466,6 +466,10 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
 
     abs_path = utils.abspath(path)
 
+    # if check_in_upload_folder=True
+    # we are running this during pre-process
+    # in which case only files in the upload_folder (cache_dir)
+    # are accepted
     allowed = [utils.get_upload_folder()]
     if not check_in_upload_folder:
         allowed += blocks.allowed_paths + [os.getcwd(), tempfile.gettempdir()]
@@ -487,7 +491,11 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
             msg += "located in either the current working or your system's temp directory. "
             msg += "To fix this error, please ensure your function returns files located in either "
             msg += f"the current working directory ({os.getcwd()}), your system's temp directory ({tempfile.gettempdir()})"
-            msg += f"or one of the allowed_paths ({','.join(blocks.allowed_paths)})."
+            if blocks.allowed_paths:
+                msg += (
+                    f" or one of the allowed_paths ({','.join(blocks.allowed_paths)})"
+                )
+            msg += "."
         raise InvalidPathError(msg)
     if (
         allowed
