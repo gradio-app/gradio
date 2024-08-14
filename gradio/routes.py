@@ -553,43 +553,23 @@ class App(FastAPI):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             abs_path = utils.abspath(path_or_url)
-
-            in_blocklist = any(
-                utils.is_in_or_equal(abs_path, blocked_path)
-                for blocked_path in blocks.blocked_paths
-            )
-
-            is_dir = abs_path.is_dir()
-
-            if is_dir or in_blocklist:
+            if abs_path.is_dir():
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
-
-            created_by_app = False
-            for temp_file_set in blocks.temp_file_sets:
-                if abs_path in temp_file_set:
-                    created_by_app = True
-                    break
-            in_allowlist = any(
-                utils.is_in_or_equal(abs_path, allowed_path)
-                for allowed_path in blocks.allowed_paths
-            )
-            is_static_file = utils.is_static_file(abs_path)
-            was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
-            is_cached_example = utils.is_in_or_equal(
-                abs_path, utils.abspath(utils.get_cache_folder())
-            )
-
-            if not (
-                created_by_app
-                or in_allowlist
-                or was_uploaded
-                or is_cached_example
-                or is_static_file
-            ):
-                raise HTTPException(403, f"File not allowed: {path_or_url}.")
-
             if not abs_path.exists():
                 raise HTTPException(404, f"File not found: {path_or_url}.")
+
+            from gradio.data_classes import _StaticFiles
+
+            allowed, _ = utils.is_allowed_file(
+                abs_path,
+                blocked_paths=blocks.blocked_paths,
+                allowed_paths=blocks.allowed_paths
+                + [app.uploaded_file_dir, utils.get_cache_folder()]
+                + _StaticFiles.all_paths,
+                file_sets=blocks.temp_file_sets,
+            )
+            if not allowed:
+                raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             range_val = request.headers.get("Range", "").strip()
             if range_val.startswith("bytes=") and "-" in range_val:
