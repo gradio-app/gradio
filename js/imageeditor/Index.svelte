@@ -44,7 +44,7 @@
 		"webcam"
 	];
 	export let interactive: boolean;
-	export let info: string | undefined;
+	export let placeholder: string | undefined;
 
 	export let brush: Brush;
 	export let eraser: Eraser;
@@ -215,6 +215,7 @@
 			status={loading_status?.status}
 			upload={gradio.client.upload}
 			stream_handler={gradio.client.stream}
+			{placeholder}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

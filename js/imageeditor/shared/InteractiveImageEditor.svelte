@@ -49,6 +49,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
+	export let placeholder: string | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -254,7 +255,11 @@
 	{#if !bg && !history && active_mode !== "webcam" && status !== "error"}
 		<div class="empty wrap" style:height={`${editor_height}px`}>
 			{#if sources && sources.length}
-				<div>Upload an image</div>
+				{#if placeholder}
+					{placeholder}
+				{:else}
+					<div>Upload an image</div>
+				{/if}
 			{/if}
 
 			{#if sources && sources.length && brush}
