@@ -13,6 +13,7 @@
 "@gradio/wasm": patch
 "app": patch
 "gradio": patch
+"website": patch
 ---
 
 feat:Initial SSR refactor
