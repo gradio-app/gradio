@@ -282,7 +282,6 @@
 		class:boundedheight
 		class:flex
 		class:disable_click
-		style:height="100%"
 		style:width="100%"
 		tabindex={hidden ? -1 : 0}
 		style:position={hidden ? "absolute" : "relative"}
@@ -317,13 +316,17 @@
 	button {
 		cursor: pointer;
 		width: var(--size-full);
+		height: calc(100% - var(--size-10));
 	}
 
 	.hidden {
 		display: none;
 		position: absolute;
-		width: 0;
 		flex-grow: 0;
+	}
+
+	.hidden :global(svg) {
+		display: none;
 	}
 
 	.center {
