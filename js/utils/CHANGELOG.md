@@ -1,5 +1,11 @@
 # @gradio/utils
 
+## 0.5.2
+
+### Fixes
+
+- [#8927](https://github.com/gradio-app/gradio/pull/8927) [`223688b`](https://github.com/gradio-app/gradio/commit/223688b70a7a3cf4daa92ae77f8fca7b537cc2b4) - Fix `Could not resolve "virtual:component-loader"` in gradio/utils package.  Thanks @benzler!
+
 ## 0.5.1
 
 ### Fixes
