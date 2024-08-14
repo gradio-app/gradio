@@ -55,7 +55,7 @@ describe("Gallery", () => {
 			preview: true,
 			value: [
 				{
-					image: {
+					video: {
 						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4",
 						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4"
 					},

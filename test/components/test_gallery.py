@@ -125,4 +125,8 @@ class TestGallery:
         output = gallery.postprocess(
             [np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)]
         )
-        assert output.root[0].image.path.endswith(".jpeg")
+        assert (
+            output.root[0].image.path.endswith(".jpeg")
+            if hasattr(output.root[0], "image")
+            else False
+        )
