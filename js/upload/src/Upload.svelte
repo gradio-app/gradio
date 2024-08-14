@@ -282,7 +282,6 @@
 		class:boundedheight
 		class:flex
 		class:disable_click
-		style:width="100%"
 		tabindex={hidden ? -1 : 0}
 		style:position={hidden ? "absolute" : "relative"}
 		on:drag|preventDefault|stopPropagation
