@@ -57,27 +57,21 @@
 	$: was_reset = value == null || value.length === 0 ? true : was_reset;
 
 	let resolved_value: GalleryData[] | null = null;
-	let thumbnailsGenerated = false;
 
-	$: if (value == null) {
-		resolved_value = null;
-	} else if (!thumbnailsGenerated) {
-		(async () => {
-			const initialResolvedValue = value.map((data) => {
-				if ("video" in data) {
-					return {
-						video: data.video as FileData,
-						caption: data.caption
-					};
-				} else if ("image" in data) {
-					return { image: data.image as FileData, caption: data.caption };
-				}
-				return {};
-			}) as GalleryData[];
-
-			resolved_value = await generateThumbnails(initialResolvedValue);
-		})();
-	}
+	$: resolved_value =
+		value == null
+			? null
+			: (value.map((data) => {
+					if ("video" in data) {
+						return {
+							video: data.video as FileData,
+							caption: data.caption
+						};
+					} else if ("image" in data) {
+						return { image: data.image as FileData, caption: data.caption };
+					}
+					return {};
+				}) as GalleryData[]);
 
 	let prev_value: GalleryData[] | null = value;
 	if (selected_index == null && preview && value?.length) {
@@ -235,53 +229,6 @@
 			await document.exitFullscreen();
 		}
 	};
-
-	const captureThumbnail = async (url: string): Promise<string> => {
-		return new Promise((resolve, reject) => {
-			const video = document.createElement("video");
-			video.crossOrigin = "anonymous";
-
-			video.onloadedmetadata = () => {
-				video.currentTime = 1;
-			};
-
-			video.onseeked = () => {
-				const canvas = document.createElement("canvas");
-				canvas.width = video.videoWidth;
-				canvas.height = video.videoHeight;
-
-				const ctx = canvas.getContext("2d");
-				if (ctx) {
-					ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-					const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
-					resolve(thumbnailDataUrl);
-				} else {
-					reject(new Error("Failed to get canvas context"));
-				}
-			};
-
-			video.onerror = () => {
-				reject(new Error("Failed to load video"));
-			};
-
-			video.src = url;
-			video.load();
-		});
-	};
-
-	async function generateThumbnails(
-		value: GalleryData[]
-	): Promise<GalleryData[]> {
-		const thumbnailPromises = value.map(async (data) => {
-			if ("video" in data && data.video.url) {
-				const thumbnail = await captureThumbnail(data.video.url);
-				return { ...data, thumbnail };
-			}
-			return data;
-		});
-
-		return Promise.all(thumbnailPromises);
-	}
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -409,12 +356,14 @@
 								/>
 							{:else}
 								<Play />
-								<Image
-									src={media.thumbnail !== undefined ? media.thumbnail : ""}
+								<Video
+									src={media.video.url}
 									title={media.caption || null}
+									is_stream={false}
 									data-testid={"thumbnail " + (i + 1)}
 									alt=""
 									loading="lazy"
+									loop={false}
 								/>
 							{/if}
 						</button>
@@ -471,12 +420,14 @@
 							/>
 						{:else}
 							<Play />
-							<Image
-								src={entry.thumbnail !== undefined ? entry.thumbnail : ""}
+							<Video
+								src={entry.video.url}
 								title={entry.caption || null}
+								is_stream={false}
 								data-testid={"thumbnail " + (i + 1)}
 								alt=""
 								loading="lazy"
+								loop={false}
 							/>
 						{/if}
 						{#if entry.caption}
@@ -636,6 +587,13 @@
 		height: 50%;
 		opacity: 50%;
 		transform: translate(-50%, -50%);
+	}
+
+	.thumbnail-item :global(video) {
+		width: var(--size-full);
+		height: var(--size-full);
+		overflow: hidden;
+		object-fit: cover;
 	}
 
 	.thumbnail-small {

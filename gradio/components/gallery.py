@@ -190,8 +190,8 @@ class Gallery(Component):
             media = (
                 gallery_element.video.path
                 if (type(gallery_element) is GalleryVideo)
-                else self.convert_to_type(gallery_element.image.path, self.type)
-            )  # type: ignore
+                else self.convert_to_type(gallery_element.image.path, self.type) # type: ignore
+            )
             data.append((media, gallery_element.caption))
         return data
 
