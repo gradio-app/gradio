@@ -553,10 +553,8 @@ class App(FastAPI):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             abs_path = utils.abspath(path_or_url)
-            if abs_path.is_dir():
+            if abs_path.is_dir() or not abs_path.exists():
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
-            if not abs_path.exists():
-                raise HTTPException(404, f"File not found: {path_or_url}.")
 
             from gradio.data_classes import _StaticFiles
 

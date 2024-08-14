@@ -487,7 +487,7 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
         elif check_in_upload_folder:
             msg += "it was not uploaded by a user."
         else:
-            msg += "it was not created by the application, uploaded by a user, or "
+            msg += "it was not created by the application, or "
             msg += "located in either the current working or your system's temp directory. "
             msg += "To fix this error, please ensure your function returns files located in either "
             msg += f"the current working directory ({os.getcwd()}), your system's temp directory ({tempfile.gettempdir()})"
@@ -498,9 +498,11 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
             msg += "."
         raise InvalidPathError(msg)
     if (
-        allowed
-        and utils.is_in_or_equal(abs_path, os.getcwd())
+        utils.is_in_or_equal(abs_path, os.getcwd())
         and abs_path.name.startswith(".")
+        and not any(
+            is_in_or_equal(path, allowed_path) for allowed_path in blocks.allowed_paths
+        )
     ):
         raise InvalidPathError(
             "Dotfiles located in the temporary directory cannot be moved to the cache for security reasons. "
