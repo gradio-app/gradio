@@ -104,15 +104,17 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
             # repeatedly. Since cookies cannot get bigger than 4kb, the token will be truncated at some point - hence
             # losing the state. A workaround is to delete the cookie and redirect the user to the login page again.
             # See https://github.com/lepture/authlib/issues/622 for more details.
+
+            # Delete all keys that are related to the OAuth state, just in case
+            for key in list(request.session.keys()):
+                if key.startswith("_state_huggingface"):
+                    request.session.pop(key)
+
+            # Parse query params
             nb_redirects = int(request.query_params.get("_nb_redirects", 0))
             target_url = request.query_params["_target_url"]
 
-            # If the user is redirected more than 3 times, it is very likely that the cookie is not working properly.
-            # (e.g. browser is blocking cookies). In this cache, we redirect the user to `_target_url` and raise an
-            # error.
-            if nb_redirects > 3:
-                return RedirectResponse(target_url)
-
+            # Build /login URI with the same query params as before and bump nb_redirects count
             login_uri = "/login/huggingface"
             login_uri += "?" + urllib.parse.urlencode(
                 {"_nb_redirects": nb_redirects + 1}
@@ -120,10 +122,21 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
             if "_target_url" in request.query_params:
                 # Keep same _target_url as before
                 login_uri += "&" + urllib.parse.urlencode({"_target_url": target_url})
-            for key in list(request.session.keys()):
-                # Delete all keys that are related to the OAuth state
-                if key.startswith("_state_huggingface"):
-                    request.session.pop(key)
+
+            # If the user is redirected more than 3 times, it is very likely that the cookie is not working properly.
+            # (e.g. browser is blocking third-party cookies in iframe). In this case, redirect the user in the
+            # non-iframe view.
+            if nb_redirects > 2:
+                host = os.environ.get("SPACE_HOST")
+                if host is None:  # cannot happen in a Space
+                    raise RuntimeError(
+                        "Gradio is not running in a Space (SPACE_HOST environment variable is not set)."
+                        " Cannot redirect to non-iframe view."
+                    ) from None
+                host_url = "https://" + host.rstrip("/")
+                return RedirectResponse(host_url + login_uri)
+
+            # Redirect the user to the login page again
             return RedirectResponse(login_uri)
 
         # OAuth login worked => store the user info in the session and redirect
