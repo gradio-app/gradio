@@ -1,5 +1,30 @@
 # gradio
 
+## 4.41.0
+
+### Features
+
+- [#8968](https://github.com/gradio-app/gradio/pull/8968) [`38b3682`](https://github.com/gradio-app/gradio/commit/38b3682c3a9b40fb4070f665d94711c43c6fe40e) - Improvements to FRP client download and usage.  Thanks @abidlabs!
+- [#8965](https://github.com/gradio-app/gradio/pull/8965) [`d30432e`](https://github.com/gradio-app/gradio/commit/d30432e9c6d4cc1e5cfd989a1a3ae4aba7e21290) - harden CI.  Thanks @pngwn!
+- [#8972](https://github.com/gradio-app/gradio/pull/8972) [`d4c503a`](https://github.com/gradio-app/gradio/commit/d4c503a471cfd202c56fbddd99d5da431a4b7478) - Type hint Correction.  Thanks @sthemeow!
+- [#8964](https://github.com/gradio-app/gradio/pull/8964) [`bf6bbd9`](https://github.com/gradio-app/gradio/commit/bf6bbd971acddbf78f03bea431ed7d1e0003ccf9) - Add min/max-imize button to gr.Image and gr.Gallery.  Thanks @hannahblair!
+- [#9059](https://github.com/gradio-app/gradio/pull/9059) [`981731a`](https://github.com/gradio-app/gradio/commit/981731acb7da3e78555abeb20f47f3a8a5f0d861) - Fix flaky tests and tests on Windows.  Thanks @abidlabs!
+- [#9021](https://github.com/gradio-app/gradio/pull/9021) [`360350c`](https://github.com/gradio-app/gradio/commit/360350cfc46b7dcc41d8a015b7eb6e7056cc7938) - Minor fixes.  Thanks @aliabid94!
+- [#9064](https://github.com/gradio-app/gradio/pull/9064) [`4ba7b23`](https://github.com/gradio-app/gradio/commit/4ba7b238e22ac042de14a6b69aa9d61536ddffba) - Improve plot guide, add double clicking to plots.  Thanks @aliabid94!
+- [#8975](https://github.com/gradio-app/gradio/pull/8975) [`3feea64`](https://github.com/gradio-app/gradio/commit/3feea64a65688d710184604bb44636d513bcc36a) - Prevent overflow in Model3D.  Thanks @hannahblair!
+- [#8967](https://github.com/gradio-app/gradio/pull/8967) [`2f89877`](https://github.com/gradio-app/gradio/commit/2f89877ac1ef9eab46115187ffe179d5da060edd) - Set `content_disposition_type` and `media_type` on downloaded files.  Thanks @aliabid94!
+- [#8958](https://github.com/gradio-app/gradio/pull/8958) [`4ff91a3`](https://github.com/gradio-app/gradio/commit/4ff91a3e6538872c529b604d36120dd946dc3282) - Fixes some docstrings, particularly for the `show_progress` parameter.  Thanks @abidlabs!
+- [#9020](https://github.com/gradio-app/gradio/pull/9020) [`08b5159`](https://github.com/gradio-app/gradio/commit/08b51590163b306fd874f543f6fcaf23ac7d2646) - Some tweaks to is_in_or_equal.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8962](https://github.com/gradio-app/gradio/pull/8962) [`c68eefb`](https://github.com/gradio-app/gradio/commit/c68eefba6c18ba9fda98220fb273726522dc3340) - fix: httpx timeouts cause gradio to fail during launch.  Thanks @rsamborski!
+- [#8847](https://github.com/gradio-app/gradio/pull/8847) [`4d8a473`](https://github.com/gradio-app/gradio/commit/4d8a473632e388a312aee5c705b3c1f79853441b) - Refactor Chatinterface to use Chatbot instead of gr.State variables.  Thanks @freddyaboulton!
+- [#9054](https://github.com/gradio-app/gradio/pull/9054) [`9fa635a`](https://github.com/gradio-app/gradio/commit/9fa635a8fd0050cc16539b9a3d11846ec71edf13) - Fix multimodal chatinterface api bug.  Thanks @freddyaboulton!
+- [#8847](https://github.com/gradio-app/gradio/pull/8847) [`4d8a473`](https://github.com/gradio-app/gradio/commit/4d8a473632e388a312aee5c705b3c1f79853441b) - fix: wrong named param check for js client.  Thanks @freddyaboulton!
+- [#9011](https://github.com/gradio-app/gradio/pull/9011) [`0978de8`](https://github.com/gradio-app/gradio/commit/0978de8104046250593806c927b416e4ffbbe293) - Passes `gr.Request` if type hint is `Request | None`.  Thanks @abidlabs!
+- [#9053](https://github.com/gradio-app/gradio/pull/9053) [`8b33393`](https://github.com/gradio-app/gradio/commit/8b33393586af695e4ccd07f55453df896785b089) - Fix `show_progress` in `gr.Interface`.  Thanks @abidlabs!
+
 ## 4.40.0
 
 ### Features
