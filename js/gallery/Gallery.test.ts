@@ -63,7 +63,7 @@ describe("Gallery", () => {
 				}
 			]
 		});
-		let item = getByTestId("detailed-video") as HTMLImageElement;
+		let item = getByTestId("detailed-video") as HTMLVideoElement;
 		assert.equal(
 			item.src,
 			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/gallery_component/files/world.mp4"

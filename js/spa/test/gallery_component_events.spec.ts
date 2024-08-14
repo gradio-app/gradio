@@ -34,7 +34,7 @@ test("Gallery click-to-upload, upload and change events work correctly", async (
 	page
 }) => {
 	await page
-		.getByRole("button", { name: "Drop Image(s) Here - or - Click to Upload" })
+		.getByRole("button", { name: "Drop Media Here - or - Click to Upload" })
 		.first()
 		.click();
 	const uploader = await page.locator("input[type=file]").first();
