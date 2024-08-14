@@ -6,4 +6,4 @@
 "gradio": minor
 ---
 
-feat:Add info param to Image
+feat:Add `placeholder` param to Image and ImageEditor to replace upload image text
