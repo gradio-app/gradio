@@ -52,7 +52,7 @@
 		margin-top: var(--block-label-margin);
 		margin-left: var(--block-label-margin);
 	}
-	
+
 	.hide {
 		height: 0;
 	}
