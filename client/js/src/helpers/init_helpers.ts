@@ -27,7 +27,11 @@ export function resolve_root(
 	prioritize_base: boolean
 ): string {
 	if (root_path.startsWith("http://") || root_path.startsWith("https://")) {
-		return prioritize_base ? base_url : root_path;
+		const url: URL = new URL(root_path);
+		const internal_base_url: string = `${url.protocol}//${url.host}`;
+		//for proxy case, we should use the public address rather than internal address
+		const rootPath: string = root_path.replace(internal_base_url, base_url);
+		return prioritize_base ? base_url : rootPath;
 	}
 	return base_url + root_path;
 }
