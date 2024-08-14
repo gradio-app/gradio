@@ -41,7 +41,7 @@ jobs:
   comment-spaces-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
-    if: ${{github.event.workflow_run.conclusion == 'success' && needs.changes.outputs.should_run == 'true' }}
+    if: ${{ needs.changes.outputs.should_run == 'true' }}
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
@@ -119,7 +119,7 @@ jobs:
         id: upload-website-demos
         run: |
           python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \
-          --WHEEL_URL https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/ \
+          --WHEEL_URL https://gradio-pypi-previews.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/ \
           --CLIENT_URL "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python" \
           --GRADIO_VERSION ${{ needs.changes.outputs.gradio_version }}
 
@@ -150,7 +150,7 @@ jobs:
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
-    if: always() && github.event.workflow_run.conclusion == 'success' && needs.deploy.result == 'failure' && needs.changes.outputs.should_run == 'true'
+    if: always() &&  needs.deploy.result == 'failure' && needs.changes.outputs.should_run == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:

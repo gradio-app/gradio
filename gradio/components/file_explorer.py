@@ -19,6 +19,8 @@ if TYPE_CHECKING:
 
 
 class FileExplorerData(GradioRootModel):
+    # The outer list is the list of files selected, and the inner list
+    # is the path to the file as a list, split by the os.sep.
     root: List[List[str]]
 
 
@@ -115,10 +117,10 @@ class FileExplorer(Component):
         )
 
     def example_payload(self) -> Any:
-        return [["Users", "gradio", "app.py"]]
+        return [["gradio", "app.py"]]
 
     def example_value(self) -> Any:
-        return ["Users", "gradio", "app.py"]
+        return os.sep.join(["gradio", "app.py"])
 
     def preprocess(self, payload: FileExplorerData | None) -> list[str] | str | None:
         """
@@ -138,14 +140,14 @@ class FileExplorer(Component):
             elif len(payload.root) == 0:
                 return None
             else:
-                return self._safe_join(payload.root[0])
+                return os.path.normpath(os.path.join(self.root_dir, *payload.root[0]))
         files = []
         for file in payload.root:
-            file_ = self._safe_join(file)
+            file_ = os.path.normpath(os.path.join(self.root_dir, *file))
             files.append(file_)
         return files
 
-    def _strip_root(self, path):
+    def _strip_root(self, path: str) -> str:
         if path.startswith(self.root_dir):
             return path[len(self.root_dir) + 1 :]
         return path
@@ -168,7 +170,7 @@ class FileExplorer(Component):
         return FileExplorerData(root=root)
 
     @server
-    def ls(self, subdirectory: list | None = None) -> list[dict[str, str]] | None:
+    def ls(self, subdirectory: list[str] | None = None) -> list[dict[str, str]] | None:
         """
         Returns:
             a list of dictionaries, where each dictionary represents a file or subdirectory in the given subdirectory
@@ -203,8 +205,9 @@ class FileExplorer(Component):
 
         return folders + files
 
-    def _safe_join(self, folders: list[str]):
+    def _safe_join(self, folders: list[str]) -> str:
         if not folders or len(folders) == 0:
             return self.root_dir
         combined_path = UserProvidedPath(os.path.join(*folders))
-        return safe_join(self.root_dir, combined_path)
+        x = safe_join(self.root_dir, combined_path)
+        return x
