@@ -348,6 +348,7 @@ export function resolve_svelte(enable: boolean): Plugin {
 					__dirname,
 					"..",
 					"..",
+					"..",
 					"gradio",
 					"templates",
 					"frontend",

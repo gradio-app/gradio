@@ -11,7 +11,7 @@
 "@gradio/storybook": patch
 "@gradio/video": patch
 "@gradio/wasm": patch
-"app": patch
+"@gradio/app": patch
 "gradio": patch
 "website": patch
 ---
