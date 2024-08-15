@@ -1,5 +1,33 @@
 # @gradio/multimodaltextbox
 
+## 0.5.5
+
+### Dependency updates
+
+- @gradio/atoms@0.7.9
+- @gradio/statustracker@0.7.4
+- @gradio/client@1.5.0
+- @gradio/icons@0.7.0
+- @gradio/upload@0.12.2
+- @gradio/image@0.14.0
+- @gradio/video@0.10.2
+
+## 0.5.4
+
+### Fixes
+
+- [#8899](https://github.com/gradio-app/gradio/pull/8899) [`20444f9`](https://github.com/gradio-app/gradio/commit/20444f9b56f95240d00759f31a1b831b9eb53160) - Fix Chatbot Multimodal Examples.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.8
+- @gradio/icons@0.6.1
+- @gradio/utils@0.5.2
+- @gradio/statustracker@0.7.3
+- @gradio/upload@0.12.1
+- @gradio/image@0.13.1
+- @gradio/video@0.10.1
+
 ## 0.5.3
 
 ### Dependency updates

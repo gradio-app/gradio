@@ -1,0 +1,51 @@
+{
+	"gradio": [
+		"client/python/**",
+		"gradio/**",
+		"requirements.txt",
+		".github/**",
+		"scripts/**",
+		"test/**"
+	],
+	"js": [
+		"js/**",
+		"client/js/**",
+		".github/**",
+		"package.json",
+		"pnpm-lock.yaml",
+		"tsconfig.json",
+		".config/**"
+	],
+	"functional": [
+		".github/**",
+		"client/**",
+		"demo/**",
+		"gradio/**",
+		"js/**",
+		"scripts/**",
+
+		"globals.d.ts",
+		"package.json",
+		"pnpm-lock.yaml",
+		"pyproject.toml",
+		"requirements.txt",
+		".config/**"
+	],
+	"visual": [
+		".github/workflows/deploy-chromatic.yml",
+		"js!(/_website)/**",
+		"package.json"
+	],
+	"website": [
+		"js/_website/**",
+		"package.json",
+		"pnpm-lock.yaml",
+		"guides/**",
+		"README.md",
+		"CHANGELOG.md",
+		"gradio/**",
+		"client/**",
+		"demo/**",
+		".github/deploy-website.yml"
+	]
+}

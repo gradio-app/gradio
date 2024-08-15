@@ -29,19 +29,16 @@
 
 <button
 	on:click={handle_copy}
-	title="copy"
+	title="Copy message"
 	class:copied
-	aria-roledescription="Copy value"
-	aria-label="Copy"
+	aria-label={copied ? "Message copied" : "Copy Message"}
 >
-	<Copy />
-	{#if copied}
-		<span
-			class="check"
-			transition:fade
-			aria-roledescription="Value copied"
-			aria-label="Copied"><Check /></span
-		>
+	{#if !copied}
+		<Copy />
+	{:else}
+		<span class="check">
+			<Check />
+		</span>
 	{/if}
 </button>
 
@@ -55,14 +52,11 @@
 	}
 
 	.check {
-		position: absolute;
 		top: 0;
 		right: 0;
 		z-index: var(--layer-top);
-		background: var(--background-fill-primary);
-		padding: var(--size-1);
+		background: var(--block-label-background-fill);
 		width: 100%;
 		height: 100%;
-		color: var(--body-text-color);
 	}
 </style>

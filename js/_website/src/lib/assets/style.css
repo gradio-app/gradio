@@ -17,6 +17,14 @@
 	margin-bottom: 0;
 }
 
+.prose :where(code):not(:where([class~="not-prose"] *)) {
+	word-break: break-all;
+}
+
+.prose :where(a):not(:where([class~="not-prose"] *)) {
+	word-break: break-all;
+}
+
 .group:hover .group-hover\:flex {
 	/* for some reason, group-hover:flex not working on mobile */
 	display: flex;
@@ -135,6 +143,11 @@
 .obj h4 {
 	@apply mt-8 text-xl text-orange-500 font-light;
 }
+
+.obj p {
+	@apply mb-2 text-lg;
+}
+
 /* playground */
 
 .current-playground-demo {
@@ -145,7 +158,7 @@
 .selected-demo {
 	@apply font-semibold bg-gray-50 rounded text-orange-500;
 }
-code.language-python {
+.codeblock code.language-python {
 	@apply !leading-7 !whitespace-pre-wrap !break-all;
 	line-height: 1 !important;
 }
@@ -167,6 +180,10 @@ code.language-bash {
 }
 .selected-version:before {
 	content: "• ";
+}
+
+.obj p {
+	word-break: break-word;
 }
 
 /* copy button */
@@ -213,19 +230,35 @@ code.language-bash {
 }
 
 .tip {
-	@apply bg-gradient-to-br from-orange-50 to-white border-orange-50 border-l-2 border-l-orange-300 text-orange-700 p-4 px-6;
+	@apply bg-gradient-to-br from-green-50 to-white border-green-50 border-l-2 border-l-green-300 text-green-700 p-4 px-6;
 }
 
 .tip strong {
-	@apply text-orange-700;
+	@apply text-green-700;
 }
 
 .tip code {
-	@apply text-orange-700;
+	@apply text-green-700;
 }
 
 .tip a {
-	@apply text-orange-700;
+	@apply text-green-700;
+}
+
+.warning {
+	@apply bg-gradient-to-br from-red-50 to-white border-red-50 border-l-2 border-l-red-300 text-red-700 p-4 px-6;
+}
+
+.warning strong {
+	@apply text-red-700;
+}
+
+.warning code {
+	@apply text-red-700;
+}
+
+.warning a {
+	@apply text-red-700;
 }
 
 .shared-link:before {
@@ -316,4 +349,37 @@ strong {
 
 .obj .codeblock {
 	@apply my-4;
+	display: grid;
+}
+
+.prose .codeblock {
+	@apply my-4;
+	display: grid;
+}
+
+.prose li {
+	display: inline-block;
+}
+
+summary {
+	display: grid !important;
+}
+
+summary code {
+	white-space: nowrap !important;
+	overflow-x: scroll;
+}
+
+summary::after {
+	@apply pl-1 !opacity-100;
+	background: #f9fafb;
+	height: 90%;
+	padding-top: 14px;
+}
+
+@media (min-width: 768px) {
+	body:has(.playground) .main-header,
+	body:has(.playground) .main-footer {
+		display: none;
+	}
 }

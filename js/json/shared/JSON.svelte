@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	import { fade } from "svelte/transition";
 	import { JSON as JSONIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
@@ -47,14 +46,12 @@
 	<button
 		on:click={handle_copy}
 		title="copy"
-		class={copied ? "" : "copy-text"}
+		class={copied ? "copied" : "copy-text"}
 		aria-roledescription={copied ? "Copied value" : "Copy value"}
 		aria-label={copied ? "Copied" : "Copy"}
 	>
 		{#if copied}
-			<span in:fade={{ duration: 300 }}>
-				<Check />
-			</span>
+			<Check />
 		{:else}
 			<Copy />
 		{/if}
@@ -78,12 +75,28 @@
 {/if}
 
 <style>
+	:global(.copied svg) {
+		animation: fade ease 300ms;
+		animation-fill-mode: forwards;
+	}
+
+	@keyframes fade {
+		0% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+
 	.json-holder {
 		padding: var(--size-2);
+		overflow-y: scroll;
 	}
 
 	.empty-wrapper {
 		min-height: calc(var(--size-32) - 20px);
+		height: 100%;
 	}
 	button {
 		display: flex;

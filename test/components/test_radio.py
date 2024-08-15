@@ -46,7 +46,7 @@ class TestRadio:
         assert radio.choices == [("a", "a"), ("b", "b"), ("c", "c full")]
 
         with pytest.raises(ValueError):
-            gr.Radio(["a", "b"], type="unknown")
+            gr.Radio(["a", "b"], type="unknown")  # type: ignore
 
     def test_in_interface(self):
         """

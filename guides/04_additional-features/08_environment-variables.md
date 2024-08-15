@@ -97,6 +97,15 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_BLOCKED_PATHS="/users/x/gradio_app/admin,/users/x/gradio_app/keys"
   ```
 
+### 11. `FORWARDED_ALLOW_IPS`
+
+- **Description**: This is not a Gradio-specific environment variable, but rather one used in server configurations, specifically `uvicorn` which is used by Gradio internally. This environment variable is useful when deploying applications behind a reverse proxy. It defines a list of IP addresses that are trusted to forward traffic to your application. When set, the application will trust the `X-Forwarded-For` header from these IP addresses to determine the original IP address of the user making the request. This means that if you use the `gr.Request` [object's](https://www.gradio.app/docs/gradio/request) `client.host` property, it will correctly get the user's IP address instead of the IP address of the reverse proxy server. Note that only trusted IP addresses (i.e. the IP addresses of your reverse proxy servers) should be added, as any server with these IP addresses can modify the `X-Forwarded-For` header and spoof the client's IP address.
+- **Default**: `"127.0.0.1"`
+- **Example**:
+  ```sh
+  export FORWARDED_ALLOW_IPS="127.0.0.1,192.168.1.100"
+  ```
+
 
 ## How to Set Environment Variables
 

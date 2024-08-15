@@ -21,6 +21,6 @@
 	},
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"i18n-ally.localesPaths": [
-		"js/app/src/lang"
+		"js/spa/src/lang"
 	]
 }
