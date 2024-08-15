@@ -7,7 +7,6 @@ import typing
 import urllib.parse
 import warnings
 from dataclasses import dataclass, field
-from typing import Dict
 
 import fastapi
 from fastapi.responses import RedirectResponse
@@ -21,6 +20,7 @@ OAUTH_SCOPES = os.environ.get("OAUTH_SCOPES")
 OPENID_PROVIDER_URL = os.environ.get("OPENID_PROVIDER_URL")
 
 MAX_REDIRECTS = 2
+
 
 def attach_oauth(app: fastapi.FastAPI):
     try:
@@ -118,7 +118,7 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
             target_url = request.query_params.get("_target_url")
 
             # Build /login URI with the same query params as before and bump nb_redirects count
-            query_params: Dict = {"_nb_redirects": nb_redirects + 1}
+            query_params: dict[str, str | int] = {"_nb_redirects": nb_redirects + 1}
             if target_url:
                 query_params["_target_url"] = target_url
 
