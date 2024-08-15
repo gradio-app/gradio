@@ -28,5 +28,10 @@
 		".": "./Index.svelte",
 		"./example": "./Example.svelte",
 		"./package.json": "./package.json"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/imageeditor"
 	}
 }

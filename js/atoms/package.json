@@ -10,5 +10,10 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/icons": "workspace:^"
 	},
-	"main_changeset": true
+	"main_changeset": true,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/atoms"
+	}
 }

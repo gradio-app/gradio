@@ -39,5 +39,10 @@
 	"engines": {
 		"node": ">=18.0.0"
 	},
-	"main_changeset": true
+	"main_changeset": true,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "client/js"
+	}
 }

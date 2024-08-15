@@ -37,5 +37,10 @@
 		"workerDirectory": "public"
 	},
 	"main_changeset": true,
-	"main": "./src/Index.svelte"
+	"main": "./src/Index.svelte",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/spa"
+	}
 }
