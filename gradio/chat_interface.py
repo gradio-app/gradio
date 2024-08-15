@@ -579,6 +579,30 @@ class ChatInterface(Blocks):
             new_response = response
         return cast(MessageDict, new_response)
 
+    def _process_msg_and_trim_history(
+        self,
+        message: str | MultimodalData,
+        history_with_input: TupleFormat | list[MessageDict],
+    ) -> tuple[str | dict, TupleFormat | list[MessageDict]]:
+        if isinstance(message, MultimodalData):
+            remove_input = len(message.files) + int(message.text is not None)
+            history = history_with_input[:-remove_input]
+            message_serialized = message.model_dump()
+        else:
+            history = history_with_input[:-1]
+            message_serialized = message
+        return message_serialized, history
+
+    def _append_history(self, history, message, first_response=True):
+        if self.type == "tuples":
+            history[-1][1] = message  # type: ignore
+        else:
+            message = self.response_as_dict(message)
+            if first_response:
+                history.append(message)  # type: ignore
+            else:
+                history[-1] = message
+
     async def _submit_fn(
         self,
         message: str | MultimodalData,
@@ -586,18 +610,9 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> tuple[TupleFormat, TupleFormat] | tuple[list[MessageDict], list[MessageDict]]:
-        if self.multimodal and isinstance(message, MultimodalData):
-            remove_input = (
-                len(message.files) + 1
-                if message.text is not None
-                else len(message.files)
-            )
-            history = history_with_input[:-remove_input]
-            message_serialized = message.model_dump()
-        else:
-            history = history_with_input[:-1]
-            message_serialized = message
-
+        message_serialized, history = self._process_msg_and_trim_history(
+            message, history_with_input
+        )
         inputs, _, _ = special_args(
             self.fn, inputs=[message_serialized, history, *args], request=request
         )
@@ -609,15 +624,8 @@ class ChatInterface(Blocks):
                 self.fn, *inputs, limiter=self.limiter
             )
 
-        if self.type == "messages":
-            new_response = self.response_as_dict(response)
-        else:
-            new_response = response
+        self._append_history(history_with_input, response)
 
-        if self.type == "tuples":
-            history_with_input[-1][1] = new_response  # type: ignore
-        elif self.type == "messages":
-            history_with_input.append(new_response)  # type: ignore
         return history_with_input  # type: ignore
 
     async def _stream_fn(
@@ -627,17 +635,11 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> AsyncGenerator:
-        if self.multimodal and isinstance(message, MultimodalData):
-            remove_input = (
-                len(message.files) + 1
-                if message.text is not None
-                else len(message.files)
-            )
-            history = history_with_input[:-remove_input]
-        else:
-            history = history_with_input[:-1]
+        message_serialized, history = self._process_msg_and_trim_history(
+            message, history_with_input
+        )
         inputs, _, _ = special_args(
-            self.fn, inputs=[message, history, *args], request=request
+            self.fn, inputs=[message_serialized, history, *args], request=request
         )
 
         if self.is_async:
@@ -649,53 +651,13 @@ class ChatInterface(Blocks):
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
             first_response = await async_iteration(generator)
-            if self.type == "messages":
-                first_response = self.response_as_dict(first_response)
-            if (
-                self.multimodal
-                and isinstance(message, MultimodalData)
-                and self.type == "tuples"
-            ):
-                history_with_input[-1][1] = first_response  # type: ignore
-                yield history_with_input
-            elif (
-                self.multimodal
-                and isinstance(message, MultimodalData)
-                and self.type == "messages"
-            ):
-                history_with_input.append(first_response)  # type: ignore
-                yield history_with_input
-            elif self.type == "tuples":
-                history_with_input[-1][1] = first_response  # type: ignore
-                yield history_with_input
-            else:
-                history_with_input.append(first_response)  # type: ignore
-                yield history_with_input
+            self._append_history(history_with_input, first_response)
+            yield history_with_input
         except StopIteration:
             yield history_with_input
         async for response in generator:
-            if self.type == "messages":
-                response = self.response_as_dict(response)
-            if (
-                self.multimodal
-                and isinstance(message, MultimodalData)
-                and self.type == "tuples"
-            ):
-                history_with_input[-1][1] = response  # type: ignore
-                yield history_with_input
-            elif (
-                self.multimodal
-                and isinstance(message, MultimodalData)
-                and self.type == "messages"
-            ):
-                history_with_input[-1] = response  # type: ignore
-                yield history_with_input
-            elif self.type == "tuples":
-                history_with_input[-1][1] = response  # type: ignore
-                yield history_with_input
-            else:
-                history_with_input[-1] = response  # type: ignore
-                yield history_with_input
+            self._append_history(history_with_input, response, first_response=False)
+            yield history_with_input
 
     async def _examples_fn(
         self, message: str, *args
