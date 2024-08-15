@@ -6,6 +6,7 @@ import typing
 import urllib.parse
 import warnings
 from dataclasses import dataclass, field
+from typing import Dict
 
 import fastapi
 from fastapi.responses import RedirectResponse
@@ -112,16 +113,14 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
 
             # Parse query params
             nb_redirects = int(request.query_params.get("_nb_redirects", 0))
-            target_url = request.query_params["_target_url"]
+            target_url = request.query_params.get("_target_url")
 
             # Build /login URI with the same query params as before and bump nb_redirects count
-            login_uri = "/login/huggingface"
-            login_uri += "?" + urllib.parse.urlencode(
-                {"_nb_redirects": nb_redirects + 1}
-            )
-            if "_target_url" in request.query_params:
-                # Keep same _target_url as before
-                login_uri += "&" + urllib.parse.urlencode({"_target_url": target_url})
+            query_params: Dict = {"_nb_redirects": nb_redirects + 1}
+            if target_url:
+                query_params["_target_url"] = target_url
+
+            login_uri = f"/login/huggingface?{urllib.parse.urlencode(query_params)}"
 
             # If the user is redirected more than 3 times, it is very likely that the cookie is not working properly.
             # (e.g. browser is blocking third-party cookies in iframe). In this case, redirect the user in the
