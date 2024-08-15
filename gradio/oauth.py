@@ -20,6 +20,7 @@ OAUTH_CLIENT_SECRET = os.environ.get("OAUTH_CLIENT_SECRET")
 OAUTH_SCOPES = os.environ.get("OAUTH_SCOPES")
 OPENID_PROVIDER_URL = os.environ.get("OPENID_PROVIDER_URL")
 
+MAX_REDIRECTS = 2
 
 def attach_oauth(app: fastapi.FastAPI):
     try:
@@ -126,7 +127,7 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
             # If the user is redirected more than 3 times, it is very likely that the cookie is not working properly.
             # (e.g. browser is blocking third-party cookies in iframe). In this case, redirect the user in the
             # non-iframe view.
-            if nb_redirects > 2:
+            if nb_redirects > MAX_REDIRECTS:
                 host = os.environ.get("SPACE_HOST")
                 if host is None:  # cannot happen in a Space
                     raise RuntimeError(
