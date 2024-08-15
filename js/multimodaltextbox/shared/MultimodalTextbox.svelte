@@ -411,7 +411,7 @@
 		justify-content: left;
 		align-items: center;
 		gap: var(--spacing-lg);
-		overflow-y: scroll;
+		flex-wrap: wrap;
 	}
 
 	.thumbnail-item {
