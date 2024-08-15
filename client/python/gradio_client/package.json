@@ -3,5 +3,6 @@
 	"version": "1.3.0",
 	"description": "",
 	"python": "true",
-	"main_changeset": true
+	"main_changeset": true,
+	"private": true
 }

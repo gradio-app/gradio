@@ -30,5 +30,10 @@
 		"./package.json": "./package.json"
 	},
 	"main": "index.ts",
-	"main_changeset": true
+	"main_changeset": true,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/video"
+	}
 }

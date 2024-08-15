@@ -27,5 +27,10 @@
 		".": "./Index.svelte",
 		"./package.json": "./package.json",
 		"./base": "./shared/Plot.svelte"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/plot"
 	}
 }
