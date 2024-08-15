@@ -45,7 +45,7 @@
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
-	let dragging = false;
+	export let dragging = false;
 	let uploading = false;
 	let oldValue = value.text;
 	$: dispatch("drag", dragging);
@@ -411,6 +411,7 @@
 		justify-content: left;
 		align-items: center;
 		gap: var(--spacing-lg);
+		overflow-y: scroll;
 	}
 
 	.thumbnail-item {
