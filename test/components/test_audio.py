@@ -7,7 +7,6 @@ import numpy as np
 import pytest
 from gradio_client import media_data
 from gradio_client import utils as client_utils
-from scipy.io import wavfile
 
 import gradio as gr
 from gradio import processing_utils, utils
@@ -56,7 +55,7 @@ class TestAudio:
             "interactive": None,
             "proxy_url": None,
             "type": "numpy",
-            "format": "wav",
+            "format": None,
             "streamable": False,
             "max_length": None,
             "min_length": None,
@@ -114,7 +113,7 @@ class TestAudio:
             "interactive": None,
             "proxy_url": None,
             "type": "filepath",
-            "format": "wav",
+            "format": None,
             "streamable": False,
             "sources": ["upload", "microphone"],
             "waveform_options": {
@@ -166,16 +165,6 @@ class TestAudio:
 
         iface = gr.Interface(generate_noise, "slider", "audio")
         assert iface(100).endswith(".wav")
-
-    def test_audio_preprocess_can_be_read_by_scipy(self, gradio_temp_dir):
-        x_wav = FileData(
-            path=processing_utils.save_base64_to_cache(
-                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
-            )
-        )
-        audio_input = gr.Audio(type="filepath")
-        output = audio_input.preprocess(x_wav)
-        wavfile.read(output)
 
     def test_prepost_process_to_mp3(self, gradio_temp_dir):
         x_wav = FileData(

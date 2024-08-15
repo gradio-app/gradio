@@ -136,7 +136,7 @@
 				{#if prev_obj}
 					<a
 						href="./{prev_obj.name}"
-						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 					>
 						<div class="text-lg">
 							<span class="text-orange-500">&#8592;</span>
@@ -173,7 +173,7 @@
 				{#if prev_obj}
 					<a
 						href="./{prev_obj.name}"
-						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 					>
 						<div class="text-lg">
 							<span class="text-orange-500">&#8592;</span>

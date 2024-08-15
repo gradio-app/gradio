@@ -170,6 +170,16 @@ class TestInterface:
             None,
         )
 
+    def test_show_progress(self):
+        io = Interface(
+            lambda x: x, "textbox", "textbox", api_name="echo", show_progress="hidden"
+        )
+        dependency = next(
+            (d for d in io.config["dependencies"] if d["api_name"] == "echo"),  # type: ignore
+            None,
+        )
+        assert dependency and dependency["show_progress"] == "hidden"
+
     def test_interface_in_blocks_does_not_error(self):
         with Blocks():
             Interface(fn=lambda x: x, inputs=Textbox(), outputs=Image())

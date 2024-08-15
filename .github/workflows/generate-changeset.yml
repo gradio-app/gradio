@@ -13,9 +13,14 @@ concurrency:
   group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   get-pr:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     if: github.event.workflow_run.conclusion == 'success'
     outputs:
       found_pr: ${{ steps.pr_details.outputs.found_pr }}
@@ -23,11 +28,11 @@ jobs:
       source_repo: ${{ steps.pr_details.outputs.source_repo }}
       source_branch: ${{ steps.pr_details.outputs.source_branch }}
     steps:
-    - name: get pr details
-      id: pr_details
-      uses: gradio-app/github/actions/find-pr@main
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: get pr details
+        id: pr_details
+        uses: gradio-app/github/actions/find-pr@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
   comment-changes-start:
     uses: "./.github/workflows/comment-queue.yml"
     needs: get-pr
@@ -37,10 +42,12 @@ jobs:
       pr_number: ${{ needs.get-pr.outputs.pr_number }}
       message: changes~pending~null
   version:
-    permissions: write-all
-    name: static checks
+    permissions:
+      contents: read
+    environment: changeset
+    name: version
     needs: get-pr
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: needs.get-pr.outputs.found_pr == 'true'
     outputs:
       skipped: ${{ steps.version.outputs.skipped }}
@@ -55,8 +62,8 @@ jobs:
       - name: generate changeset
         id: version
         uses: "gradio-app/github/actions/generate-changeset@main"
-        with: 
-          github_token: ${{ secrets.COMMENT_TOKEN }}
+        with:
+          github_token: ${{ secrets.CHANGESET_GITHUB_TOKEN }}
           main_pkg: gradio
           pr_number: ${{ needs.get-pr.outputs.pr_number }}
           branch_name: ${{ needs.get-pr.outputs.source_branch }}

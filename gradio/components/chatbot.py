@@ -175,6 +175,7 @@ class Chatbot(Component):
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
         examples: list[ExampleMessage] | None = None,
+        show_copy_all_button=False,
     ):
         """
         Parameters:
@@ -206,6 +207,7 @@ class Chatbot(Component):
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
             examples: A list of example messages to display in the chatbot. The `main_text` field is required, and the `additional_input` field is optional. The `additional_input` field can be a string or a `FileMessage` object.
+            show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
         """
         self.likeable = likeable
         if type not in ["messages", "tuples"]:
@@ -231,6 +233,7 @@ class Chatbot(Component):
         self.bubble_full_width = bubble_full_width
         self.line_breaks = line_breaks
         self.layout = layout
+        self.show_copy_all_button = show_copy_all_button
         super().__init__(
             label=label,
             every=every,

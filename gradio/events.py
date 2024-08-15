@@ -348,6 +348,7 @@ class EventListener(str):
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         doc: str = "",
+        connection: Literal["sse", "stream"] = "sse",
     ):
         super().__init__()
         self.has_trigger = has_trigger
@@ -358,6 +359,7 @@ class EventListener(str):
         self.trigger_only_on_success = trigger_only_on_success
         self.callback = callback
         self.doc = doc
+        self.connection = connection
         self.listener = self._setup(
             event_name,
             has_trigger,
@@ -365,6 +367,7 @@ class EventListener(str):
             callback,
             trigger_after,
             trigger_only_on_success,
+            connection,
         )
         if doc and self.listener.__doc__:
             self.listener.__doc__ = doc + self.listener.__doc__
@@ -384,6 +387,7 @@ class EventListener(str):
             self.trigger_after,
             self.trigger_only_on_success,
             self.doc,
+            self.connection,  # type: ignore
         )
 
     @staticmethod
@@ -394,6 +398,7 @@ class EventListener(str):
         _callback: Callable | None,
         _trigger_after: int | None,
         _trigger_only_on_success: bool,
+        _connection: Literal["sse", "stream"] = "sse",
     ):
         def event_trigger(
             block: Block | None,
@@ -422,6 +427,8 @@ class EventListener(str):
             concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
             show_api: bool = True,
+            time_limit: int | None = None,
+            stream_every: float = 0.5,
         ) -> Dependency:
             """
             Parameters:
@@ -430,7 +437,7 @@ class EventListener(str):
                 outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
                 api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
                 scroll_to_output: If True, will scroll to output component on completion
-                show_progress: If True, will show progress animation while pending
+                show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
                 queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
                 batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
                 max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
@@ -513,6 +520,9 @@ class EventListener(str):
                 trigger_only_on_success=_trigger_only_on_success,
                 trigger_mode=trigger_mode,
                 show_api=show_api,
+                connection=_connection,
+                time_limit=time_limit,
+                stream_every=stream_every,
             )
             set_cancel_events(
                 [event_target],
@@ -564,13 +574,13 @@ def on(
     for all events in the triggers list.
 
     Parameters:
-        triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will listen to changes to any inputs.
+        triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will run on app load and changes to any inputs.
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
         inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
         outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
         api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
         scroll_to_output: If True, will scroll to output component on completion
-        show_progress: If True, will show progress animation while pending
+        show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
         queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
         batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
         max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
@@ -646,7 +656,7 @@ def on(
             [EventListenerMethod(input, "change") for input in inputs]
             if inputs is not None
             else []
-        )  # type: ignore
+        ) + [EventListenerMethod(root_block, "load")]  # type: ignore
     else:
         methods = [
             EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore
@@ -690,6 +700,9 @@ class Events:
         doc="This listener is triggered when the user changes the value of the {{ component }}.",
     )
     click = EventListener("click", doc="Triggered when the {{ component }} is clicked.")
+    double_click = EventListener(
+        "double_click", doc="Triggered when the {{ component }} is double clicked."
+    )
     submit = EventListener(
         "submit",
         doc="This listener is triggered when the user presses the Enter key while the {{ component }} is focused.",
@@ -752,10 +765,11 @@ class Events:
     )
     stream = EventListener(
         "stream",
-        show_progress="hidden",
         config_data=lambda: {"streamable": False},
         callback=lambda block: setattr(block, "streaming", True),
         doc="This listener is triggered when the user streams the {{ component }}.",
+        connection="stream",
+        show_progress="minimal",
     )
     like = EventListener(
         "like",

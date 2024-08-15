@@ -89,32 +89,32 @@ class ChatInterface(Blocks):
     ):
         """
         Parameters:
-            fn: The function to wrap the chat interface around. Should accept two parameters: a string input message and list of two-element lists of the form [[user_message, bot_message], ...] representing the chat history, and return a string response. See the Chatbot documentation for more information on the chat history format.
-            multimodal: If True, the chat interface will use a gr.MultimodalTextbox component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input.
-            chatbot: An instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
-            textbox: An instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
-            additional_inputs: An instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
-            additional_inputs_accordion: If a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
-            examples: Sample inputs for the function; if provided, appear below the chatbot and can be clicked to populate the chatbot input. Should be a list of strings if `multimodal` is False, and a list of dictionaries (with keys `text` and `files`) if `multimodal` is True.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
-            examples_per_page: If examples are provided, how many to display per page.
+            fn: the function to wrap the chat interface around. Should accept two parameters: a string input message and list of two-element lists of the form [[user_message, bot_message], ...] representing the chat history, and return a string response. See the Chatbot documentation for more information on the chat history format.
+            multimodal: if True, the chat interface will use a gr.MultimodalTextbox component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input.
+            chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
+            textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
+            additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
+            additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
+            examples: sample inputs for the function; if provided, appear below the chatbot and can be clicked to populate the chatbot input. Should be a list of strings if `multimodal` is False, and a list of dictionaries (with keys `text` and `files`) if `multimodal` is True.
+            cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            examples_per_page: if examples are provided, how many to display per page.
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
-            theme: Theme to use, loaded from gradio.themes.
-            css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
-            js: Custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
-            analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
-            submit_btn: Text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
-            stop_btn: Text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button.
-            retry_btn: Text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
-            undo_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
-            clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
-            autofocus: If True, autofocuses to the textbox when the page loads.
-            concurrency_limit: If set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
-            fill_height: If True, the chat interface will expand to the height of window.
-            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
-            show_progress: whether to show progress animation while running.
+            theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+            css: custom css as a string or path to a css file. This css will be included in the demo webpage.
+            js: custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
+            submit_btn: text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
+            stop_btn: text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button.
+            retry_btn: text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
+            undo_btn: text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
+            clear_btn: text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
+            autofocus: if True, autofocuses to the textbox when the page loads.
+            concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
+            fill_height: if True, the chat interface will expand to the height of window.
+            delete_cache: a tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
         """
         super().__init__(
@@ -330,6 +330,7 @@ class ChatInterface(Blocks):
             if self.submit_btn
             else [self.textbox.submit]
         )
+
         submit_event = (
             on(
                 submit_triggers,
@@ -342,15 +343,15 @@ class ChatInterface(Blocks):
             )
             .then(
                 self._display_input,
-                [self.saved_input, self.chatbot_state],
-                [self.chatbot, self.chatbot_state],
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
                 show_api=False,
                 queue=False,
             )
             .then(
                 submit_fn,
-                [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                [self.chatbot, self.chatbot_state],
+                [self.saved_input, self.chatbot] + self.additional_inputs,
+                [self.chatbot],
                 show_api=False,
                 concurrency_limit=cast(
                     Union[int, Literal["default"], None], self.concurrency_limit
@@ -366,22 +367,22 @@ class ChatInterface(Blocks):
             retry_event = (
                 self.retry_btn.click(
                     self._delete_prev_fn,
-                    [self.saved_input, self.chatbot_state],
-                    [self.chatbot, self.saved_input, self.chatbot_state],
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot, self.saved_input],
                     show_api=False,
                     queue=False,
                 )
                 .then(
                     self._display_input,
-                    [self.saved_input, self.chatbot_state],
-                    [self.chatbot, self.chatbot_state],
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot],
                     show_api=False,
                     queue=False,
                 )
                 .then(
                     submit_fn,
-                    [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                    [self.chatbot, self.chatbot_state],
+                    [self.saved_input, self.chatbot] + self.additional_inputs,
+                    [self.chatbot],
                     show_api=False,
                     concurrency_limit=cast(
                         Union[int, Literal["default"], None], self.concurrency_limit
@@ -402,8 +403,8 @@ class ChatInterface(Blocks):
         if self.undo_btn:
             self.undo_btn.click(
                 self._delete_prev_fn,
-                [self.saved_input, self.chatbot_state],
-                [self.chatbot, self.saved_input, self.chatbot_state],
+                [self.saved_input, self.chatbot],
+                [self.chatbot, self.saved_input],
                 show_api=False,
                 queue=False,
             ).then(
@@ -418,7 +419,7 @@ class ChatInterface(Blocks):
             self.clear_btn.click(
                 async_lambda(lambda: ([], [], None)),
                 None,
-                [self.chatbot, self.chatbot_state, self.saved_input],
+                [self.chatbot, self.saved_input],
                 queue=False,
                 show_api=False,
             )
@@ -507,7 +508,7 @@ class ChatInterface(Blocks):
         self.fake_api_btn.click(
             api_fn,
             [self.textbox, self.chatbot_state] + self.additional_inputs,
-            [self.textbox, self.chatbot_state],
+            [self.fake_response_textbox, self.chatbot_state],
             api_name="chat",
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
@@ -558,7 +559,7 @@ class ChatInterface(Blocks):
             history.append([message, None])  # type: ignore
         elif isinstance(message, str) and self.type == "messages":
             history.append({"role": "user", "content": message})  # type: ignore
-        return history, history  # type: ignore
+        return history  # type: ignore
 
     def response_as_dict(self, response: MessageDict | Message | str) -> MessageDict:
         if isinstance(response, Message):
@@ -604,13 +605,11 @@ class ChatInterface(Blocks):
         else:
             new_response = response
 
-        if self.multimodal and isinstance(message, MultimodalData):
-            self._append_multimodal_history(message, new_response, history)  # type: ignore
-        elif isinstance(message, str) and self.type == "tuples":
-            history.append([message, new_response])  # type: ignore
-        elif isinstance(message, str) and self.type == "messages":
-            history.extend([{"role": "user", "content": message}, new_response])  # type: ignore
-        return history, history  # type: ignore
+        if self.type == "tuples":
+            history_with_input[-1][1] = new_response  # type: ignore
+        elif self.type == "messages":
+            history_with_input.append(new_response)  # type: ignore
+        return history_with_input  # type: ignore
 
     async def _stream_fn(
         self,
@@ -648,40 +647,23 @@ class ChatInterface(Blocks):
                 and isinstance(message, MultimodalData)
                 and self.type == "tuples"
             ):
-                for x in message.files:
-                    history.append([(x,), None])  # type: ignore
-                update = history + [[message.text, first_response]]
-                yield update, update
+                history_with_input[-1][1] = first_response  # type: ignore
+                yield history_with_input
             elif (
                 self.multimodal
                 and isinstance(message, MultimodalData)
                 and self.type == "messages"
             ):
-                for x in message.files:
-                    history.append(
-                        {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
-                    )
-                update = history + [
-                    {"role": "user", "content": message.text},
-                    first_response,
-                ]
-                yield update, update
+                history_with_input.append(first_response)  # type: ignore
+                yield history_with_input
             elif self.type == "tuples":
-                update = history + [[message, first_response]]
-                yield update, update
+                history_with_input[-1][1] = first_response  # type: ignore
+                yield history_with_input
             else:
-                update = history + [
-                    {"role": "user", "content": message},
-                    first_response,
-                ]
-                yield update, update
+                history_with_input.append(first_response)  # type: ignore
+                yield history_with_input
         except StopIteration:
-            if self.multimodal and isinstance(message, MultimodalData):
-                self._append_multimodal_history(message, None, history)
-                yield history, history
-            else:
-                update = history + [[message, None]]
-                yield update, update
+            yield history_with_input
         async for response in generator:
             if self.type == "messages":
                 response = self.response_as_dict(response)
@@ -690,83 +672,21 @@ class ChatInterface(Blocks):
                 and isinstance(message, MultimodalData)
                 and self.type == "tuples"
             ):
-                update = history + [[message.text, response]]
-                yield update, update
+                history_with_input[-1][1] = response  # type: ignore
+                yield history_with_input
             elif (
                 self.multimodal
                 and isinstance(message, MultimodalData)
                 and self.type == "messages"
             ):
-                update = history + [
-                    {"role": "user", "content": message.text},
-                    response,
-                ]
-                yield update, update
+                history_with_input[-1] = response  # type: ignore
+                yield history_with_input
             elif self.type == "tuples":
-                update = history + [[message, response]]
-                yield update, update
+                history_with_input[-1][1] = response  # type: ignore
+                yield history_with_input
             else:
-                update = history + [{"role": "user", "content": message}, response]
-                yield update, update
-
-    async def _api_submit_fn(
-        self,
-        message: str,
-        history: TupleFormat | list[MessageDict],
-        request: Request,
-        *args,
-    ) -> tuple[str, TupleFormat | list[MessageDict]]:
-        inputs, _, _ = special_args(
-            self.fn, inputs=[message, history, *args], request=request
-        )
-
-        if self.is_async:
-            response = await self.fn(*inputs)
-        else:
-            response = await anyio.to_thread.run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
-        if self.type == "tuples":
-            history.append([message, response])  # type: ignore
-        else:
-            new_response = self.response_as_dict(response)
-            history.extend([{"role": "user", "content": message}, new_response])  # type: ignore
-        return response, history
-
-    async def _api_stream_fn(
-        self, message: str, history: list[list[str | None]], request: Request, *args
-    ) -> AsyncGenerator:
-        inputs, _, _ = special_args(
-            self.fn, inputs=[message, history, *args], request=request
-        )
-        if self.is_async:
-            generator = self.fn(*inputs)
-        else:
-            generator = await anyio.to_thread.run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
-            generator = SyncToAsyncIterator(generator, self.limiter)
-        try:
-            first_response = await async_iteration(generator)
-            if self.type == "tuples":
-                yield first_response, history + [[message, first_response]]
-            else:
-                first_response = self.response_as_dict(first_response)
-                yield (
-                    first_response,
-                    history + [{"role": "user", "content": message}, first_response],
-                )
-        except StopIteration:
-            yield None, history + [[message, None]]
-        async for response in generator:
-            if self.type == "tuples":
-                yield response, history + [[message, response]]
-            else:
-                new_response = self.response_as_dict(response)
-                yield (
-                    new_response,
-                    history + [{"role": "user", "content": message}, new_response],
-                )
+                history_with_input[-1] = response  # type: ignore
+                yield history_with_input
 
     async def _examples_fn(
         self, message: str, *args
@@ -824,4 +744,4 @@ class ChatInterface(Blocks):
             history = history[:-remove_input]
         else:
             history = history[: -(1 + extra)]
-        return history, message or "", history
+        return history, message or ""  # type: ignore

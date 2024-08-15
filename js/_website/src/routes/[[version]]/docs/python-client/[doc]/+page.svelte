@@ -154,15 +154,17 @@
 				</div>
 			{/if}
 
-			<div class="flex justify-between mt-4 lg:ml-10">
+			<div class="w-full flex flex-wrap justify-between my-4">
 				{#if prev_obj}
 					<a
 						href="./{prev_obj.name}"
-						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 					>
-						<div class="text-lg">
-							<span class="text-orange-500">&#8592;</span>
-							{prev_obj.pretty_name}
+						<div class="flex text-lg">
+							<span class="text-orange-500 mr-1">&#8592;</span>
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{prev_obj.pretty_name}
+							</p>
 						</div>
 					</a>
 				{:else}
@@ -171,11 +173,13 @@
 				{#if next_obj}
 					<a
 						href="./{next_obj.name}"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 					>
-						<div class="text-lg">
-							{next_obj.pretty_name}
-							<span class="text-orange-500">&#8594;</span>
+						<div class="flex text-lg">
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{next_obj.pretty_name}
+							</p>
+							<span class="text-orange-500 ml-1">&#8594;</span>
 						</div>
 					</a>
 				{:else}
@@ -191,15 +195,17 @@
 				</div>
 			</div>
 
-			<div class="flex justify-between mt-4 lg:ml-10">
+			<div class="w-full flex flex-wrap justify-between my-4">
 				{#if prev_obj}
 					<a
 						href="./{prev_obj.name}"
-						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 					>
-						<div class="text-lg">
-							<span class="text-orange-500">&#8592;</span>
-							{prev_obj.pretty_name}
+						<div class="flex text-lg">
+							<span class="text-orange-500 mr-1">&#8592;</span>
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{prev_obj.pretty_name}
+							</p>
 						</div>
 					</a>
 				{:else}
@@ -208,11 +214,13 @@
 				{#if next_obj}
 					<a
 						href="./{next_obj.name}"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 					>
-						<div class="text-lg">
-							{next_obj.pretty_name}
-							<span class="text-orange-500">&#8594;</span>
+						<div class="flex text-lg">
+							<p class="whitespace-nowrap overflow-hidden text-ellipsis">
+								{next_obj.pretty_name}
+							</p>
+							<span class="text-orange-500 ml-1">&#8594;</span>
 						</div>
 					</a>
 				{:else}

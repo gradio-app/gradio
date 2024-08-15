@@ -34,6 +34,7 @@
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = true;
+	export let show_copy_all_button = false;
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
@@ -104,6 +105,7 @@
 			selectable={_selectable}
 			{likeable}
 			{show_share_button}
+			{show_copy_all_button}
 			value={_value}
 			{latex_delimiters}
 			{render_markdown}
