@@ -41,13 +41,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    HTTPException,
-    status,
-)
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -593,6 +587,20 @@ class App(FastAPI):
                 media_type="application/octet-stream",
             )
 
+        @app.post("/stream/{event_id}")
+        async def _(event_id: str, body: PredictBody):
+            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event.data = body
+            event.signal.set()
+            return {"msg": "success"}
+
+        @app.post("/stream/{event_id}/close")
+        async def _(event_id: str):
+            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event.run_time = math.inf
+            event.signal.set()
+            return {"msg": "success"}
+
         @app.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
         async def _(session_hash: str, run: int, component_id: int):
             stream: route_utils.MediaStream | None = (
@@ -740,6 +748,16 @@ class App(FastAPI):
                         # This will mark the state to be deleted in an hour
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
+                        for (
+                            event_id
+                        ) in app.get_blocks()._queue.pending_event_ids_session.get(
+                            session_hash, []
+                        ):
+                            event = app.get_blocks()._queue.event_ids_to_events[
+                                event_id
+                            ]
+                            event.run_time = math.inf
+                            event.signal.set()
                         return
 
             return StreamingResponse(iterator(), media_type="text/event-stream")
