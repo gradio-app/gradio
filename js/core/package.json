@@ -74,5 +74,10 @@
 		"./package.json": "./package.json",
 		".": "./index.ts"
 	},
-	"main": "./index.ts"
+	"main": "./index.ts",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/core"
+	}
 }
