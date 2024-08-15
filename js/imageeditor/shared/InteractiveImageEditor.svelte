@@ -262,10 +262,10 @@
 				{/if}
 			{/if}
 
-			{#if sources && sources.length && brush}
+			{#if sources && sources.length && brush && !placeholder}
 				<div class="or">or</div>
 			{/if}
-			{#if brush}
+			{#if brush && !placeholder}
 				<div>select the draw tool to start</div>
 			{/if}
 		</div>

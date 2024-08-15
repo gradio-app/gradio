@@ -16,6 +16,8 @@
 			}
 		}
 	};
+
+	let md = `**This is bold text** _this is italic_. <br> a new line! `;
 </script>
 
 <Template let:args>
@@ -26,19 +28,6 @@
 		<StaticImage {...args} />
 	</div>
 </Template>
-
-<Story
-	name="static with label and download button"
-	args={{
-		value: {
-			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			orig_name: "cheetah.jpg"
-		},
-		show_label: true,
-		show_download_button: true
-	}}
-/>
 
 <Story
 	name="static with label, info and download button"
@@ -86,7 +75,8 @@
 		},
 		show_label: false,
 		show_download_button: false,
-		interactive: true
+		interactive: true,
+		placeholder: md
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
