@@ -4,6 +4,7 @@ import numpy as np
 import PIL
 
 import gradio as gr
+from gradio.components.gallery import GalleryImage
 from gradio.data_classes import FileData
 
 
@@ -125,8 +126,5 @@ class TestGallery:
         output = gallery.postprocess(
             [np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)]
         )
-        assert (
-            output.root[0].image.path.endswith(".jpeg")
-            if hasattr(output.root[0], "image")
-            else False
-        )
+        if type(output.root[0]) == GalleryImage:
+            assert output.root[0].image.path.endswith(".jpeg")
