@@ -60,6 +60,7 @@ export async function create_server({
 			build: {
 				target: config.build.target
 			},
+			optimizeDeps: config.optimizeDeps,
 			plugins: [
 				...plugins(config),
 				make_gradio_plugin({
@@ -122,6 +123,7 @@ export interface ComponentConfig {
 	build: {
 		target: string | string[];
 	};
+	optimizeDeps: object;
 }
 
 async function generate_imports(
@@ -147,7 +149,8 @@ async function generate_imports(
 		},
 		build: {
 			target: []
-		}
+		},
+		optimizeDeps: {}
 	};
 
 	await Promise.all(
@@ -163,6 +166,7 @@ async function generate_imports(
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
 				component_config.build.target = m.default.build?.target || "modules";
+				component_config.optimizeDeps = m.default.optimizeDeps || {};
 			} else {
 			}
 		})
