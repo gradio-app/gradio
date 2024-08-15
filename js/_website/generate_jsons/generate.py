@@ -95,4 +95,16 @@ docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
 changelog.generate(make_dir(WEBSITE_DIR, "src/lib/json/changelog.json"))
 get_latest_release()
 
+
+with open(make_dir(WEBSITE_DIR, "generate_jsons/src/demos/system_prompt.txt")) as f:
+    system_prompt = f.read()
+
+with open(make_dir(WEBSITE_DIR, "src/lib/json/system_prompt.json"), "w+") as f:
+    json.dump(
+        {
+            "SYSTEM": system_prompt
+        },
+        f,
+    )
+
 print("JSON generated! " + make_dir(WEBSITE_DIR, "src/lib/json/"))

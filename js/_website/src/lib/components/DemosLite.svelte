@@ -9,6 +9,7 @@
 	import { browser } from "$app/environment";
 	import { onMount } from "svelte";
 	import { HfInference } from "@huggingface/inference";
+	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 
 	const HF_ACCESS_TOKEN="";
 	let hf = new HfInference(HF_ACCESS_TOKEN);
@@ -16,23 +17,31 @@
 	let generated = true;
 
 	let ai_code : string | undefined = "";
-	
+
 	async function generate_code(query: string) {
 		generated = false;
-		const out = await hf.chatCompletion({
-		model: "meta-llama/Meta-Llama-3.1-405B-Instruct-FP8",
+		let out = "";
+		for await (const chunk of hf.chatCompletionStream({
+		model: "meta-llama/Meta-Llama-3-70B-Instruct",
 		messages: [
-			{role: "system", content: "You are a code generator trained on the Gradio python library. Only answer in code, no text, and don't include backticks in the beginning or end. What ever code closely approximates what the user talks about. Make sure the code is a full and valid gradio app."},
+			{role: "system", content: SYSTEM_PROMPT.SYSTEM},
 			{ role: "user", content: query }
 		],
 		max_tokens: 1000,
 		temperature: 0.1,
 		seed: 0,
-		});
+		})) {
+		if (chunk.choices && chunk.choices.length > 0) {
+			out += chunk.choices[0].delta.content;
+			out = out.replaceAll("```\n", "");
+			out = out.replaceAll("```", "");
+			ai_code = out;
+			demos[demos.length - 1].code = out ||  "# Describe your app above, and the LLM will generate the code here.";
+		}
+		}
 		generated = true;
-		console.log(out);
-		ai_code = out.choices[0].message.content;
 	}
+
 
 	let user_query: string;
 
@@ -58,13 +67,11 @@
 	let new_demo = {
 		name: "Ask AI",
 		dir: "Ask AI",
-		code: "",
+		code: "# Describe your app above, and the LLM will generate the code here.",
 		requirements: []
 	};
 
 	demos.push(new_demo);
-
-	$: demos[demos.length - 1].code = ai_code || "";
 
 	let mounted = false;
 	let controller: any;
@@ -183,6 +190,7 @@
 		shared = false;
 	}
 
+
 </script>
 
 <svelte:head>
@@ -250,7 +258,8 @@
 							enterkeyhint="go"
 							spellcheck="false"
 							type="search"
-							id="search-input"
+							id="user-query"
+							class:grayed={!generated}
 						/>
 						<button
 							on:click={() => {
@@ -429,6 +438,10 @@
 		100% {
 			transform: rotate(360deg);
 		}
+	}
+
+	.grayed {
+		color: #6b7280 !important;
 	}
 
 </style>
