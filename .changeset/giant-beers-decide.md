@@ -1,7 +1,5 @@
 ---
 "@gradio/image": patch
-"@gradio/imageeditor": patch
-"@gradio/simpleimage": patch
 "@gradio/upload": patch
 "gradio": patch
 ---
