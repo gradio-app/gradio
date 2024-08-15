@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-feat:Allow drag and replace image in `gr.Image` and `gr.ImageEditor`
+feat:Allow drag and replace image in `gr.Image`
