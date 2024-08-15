@@ -282,8 +282,8 @@
 		class:boundedheight
 		class:flex
 		class:disable_click
+		style:height="100%"
 		tabindex={hidden ? -1 : 0}
-		style:position={hidden ? "absolute" : "relative"}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation
 		on:dragend|preventDefault|stopPropagation
@@ -315,7 +315,6 @@
 	button {
 		cursor: pointer;
 		width: var(--size-full);
-		height: calc(100% - var(--size-10));
 	}
 
 	.hidden {

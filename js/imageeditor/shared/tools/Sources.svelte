@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getContext, tick } from "svelte";
+	import { getContext, onMount, tick, createEventDispatcher } from "svelte";
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
 	import {
@@ -35,6 +35,10 @@
 
 	export let active_mode: "webcam" | "color" | null = null;
 	let background: Blob | File | null;
+
+	const dispatch = createEventDispatcher<{
+		upload: never;
+	}>();
 
 	const sources_meta = {
 		upload: {
@@ -178,12 +182,14 @@
 	</div>
 	<div
 		class="upload-container"
-		class:click-disabled={active_mode === "webcam" || $active_tool !== "bg"}
+		class:click-disabled={!!bg ||
+			active_mode === "webcam" ||
+			$active_tool !== "bg"}
 		style:height="{$editor_box.child_height +
 			($editor_box.child_top - $editor_box.parent_top)}px"
 	>
 		<Upload
-			hidden={active_mode === "webcam" || $active_tool !== "bg"}
+			hidden={bg || active_mode === "webcam" || $active_tool !== "bg"}
 			bind:this={upload_component}
 			filetype="image/*"
 			on:load={handle_upload}
