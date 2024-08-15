@@ -20,5 +20,10 @@
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/dropdown"
 	}
 }

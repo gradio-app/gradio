@@ -9,10 +9,9 @@ def reset_runs():
 def slow_echo(message, history):
     global runs  # i didn't want to add state or anything to this demo
     runs = runs + 1
-    for i in range(len(message)):
-        yield f"Run {runs} - You typed: " + message[: i + 1]
+    return f"Run {runs} - You typed: " + message['text']
 
-chat = gr.ChatInterface(slow_echo, fill_height=True)
+chat = gr.ChatInterface(slow_echo, multimodal=True, type="tuples")
 
 with gr.Blocks() as demo:
     chat.render()
