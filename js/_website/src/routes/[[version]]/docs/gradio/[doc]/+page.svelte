@@ -3,6 +3,7 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
+	import { onNavigate } from "$app/navigation";
 
 	export let data: any = {};
 
@@ -83,6 +84,30 @@
 		all_headers = get_headers();
 	}
 
+	let show_nav = false;
+
+	onNavigate(() => {
+		show_nav = false;
+	});
+
+	$: show_nav;
+
+	function get_category(name: string) {
+		if (pages) {
+			for (let category of pages) {
+				for (let page of category.pages) {
+					if (page.name === name) {
+						return [category.category, page.pretty_name];
+					}
+				}
+			}
+		}
+	}
+
+
+	let category_and_name: any[] | undefined = get_category(name);
+
+	$: category_and_name = get_category(name);
 
 </script>
 
@@ -96,11 +121,30 @@
 
 <svelte:window bind:scrollY={y} />
 
-<main class="container mx-auto px-4 flex gap-4">
+<main class="container mx-auto px-4 flex flex-col gap-4">
+	<div class="flex items-center p-4 border-b border-t border-slate-900/10 lg:hidden dark:border-slate-50/[0.06]">
+		<button 
+		on:click={() => (show_nav = !show_nav)}
+		type="button" class="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300">
+			<svg width="24" height="24"><path d="M5 6h14M5 12h14M5 18h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+		</button>
+		{#if category_and_name}
+		<ol class="ml-4 flex text-sm leading-6 whitespace-nowrap min-w-0">
+			<li class="flex items-center">{category_and_name[0]}
+				<svg width="3" height="6" aria-hidden="true" class="mx-3 overflow-visible text-slate-400"><path d="M0 0L3 3L0 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+			</li>
+			<li class="font-semibold text-slate-900 truncate dark:text-slate-200">
+				{category_and_name[1]}
+			</li>
+		</ol>
+		{/if}
+	</div>
+
 	<div class="flex w-full">
 		<DocsNav
 			current_nav_link={name}
 			library_pages={pages}
+			bind:show_nav={show_nav}
 		/>
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
@@ -137,35 +181,36 @@
 					</p>
 				</div>
 			{/if}
+				
 
-			<div class="flex justify-between mt-4 lg:ml-10">
-				{#if prev_obj}
-					<a
-						href="./{prev_obj.name}"
-						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
-					>
-						<div class="text-lg">
-							<span class="text-orange-500">&#8592;</span>
-							{prev_obj.pretty_name}
-						</div>
-					</a>
-				{:else}
-					<div />
-				{/if}
-				{#if next_obj}
-					<a
-						href="./{next_obj.name}"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
-					>
-						<div class="text-lg">
-							{next_obj.pretty_name}
-							<span class="text-orange-500">&#8594;</span>
-						</div>
-					</a>
-				{:else}
-					<div />
-				{/if}
-			</div>
+			<div class="w-full flex flex-wrap justify-between my-4">
+					{#if prev_obj}
+						<a
+							href="./{prev_obj.name}"
+							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+						>
+							<div class="flex text-lg">
+								<span class="text-orange-500 mr-1">&#8592;</span>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj.pretty_name}</p>
+							</div>
+						</a>
+					{:else}
+						<div />
+					{/if}
+					{#if next_obj}
+						<a
+							href="./{next_obj.name}"
+							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
+						>
+							<div class="flex text-lg">
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj.pretty_name}</p>
+								<span class="text-orange-500 ml-1">&#8594;</span>
+							</div>
+						</a>
+					{:else}
+						<div />
+					{/if}
+				</div>
 
 				<div class="flex flex-row">
 					<div class="lg:ml-10 w-full">
@@ -175,16 +220,15 @@
 					</div>
 				</div>
 
-
-				<div class="flex justify-between mt-4 lg:ml-10">
+				<div class="w-full flex flex-wrap justify-between my-4">
 					{#if prev_obj}
 						<a
 							href="./{prev_obj.name}"
-							class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
+							class="lg:ml-10 text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 						>
-							<div class="text-lg">
-								<span class="text-orange-500">&#8592;</span>
-								{prev_obj.pretty_name}
+							<div class="flex text-lg">
+								<span class="text-orange-500 mr-1">&#8592;</span>
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{prev_obj.pretty_name}</p>
 							</div>
 						</a>
 					{:else}
@@ -193,11 +237,11 @@
 					{#if next_obj}
 						<a
 							href="./{next_obj.name}"
-							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
+							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 						>
-							<div class="text-lg">
-								{next_obj.pretty_name}
-								<span class="text-orange-500">&#8594;</span>
+							<div class="flex text-lg">
+								<p class="whitespace-nowrap overflow-hidden text-ellipsis">{next_obj.pretty_name}</p>
+								<span class="text-orange-500 ml-1">&#8594;</span>
 							</div>
 						</a>
 					{:else}

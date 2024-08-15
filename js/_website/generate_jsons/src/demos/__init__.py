@@ -126,7 +126,7 @@ demos_by_category = [
 for category in demos_by_category:
     for demo in category["demos"]:
         code, description, requirements = get_code_description_and_reqs(demo["dir"])
-        demo["code"] = code
+        demo["code"] = code.replace("# type: ignore", "")
         demo["text"] = description
         demo["requirements"] = requirements 
 

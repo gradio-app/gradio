@@ -5,8 +5,8 @@
 	let url_version = "4+";
 </script>
 
-<div>
-	<div class="demo-window overflow-y-auto h-full w-full mb-4">
+<div class="grid">
+	<div class="demo-window overflow-y-auto h-fit w-full mb-4">
 		<div
 			class="relative mx-auto my-auto rounded-md bg-white"
 			style="top: 5%; height: 90%"

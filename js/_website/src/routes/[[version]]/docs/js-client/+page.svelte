@@ -71,7 +71,7 @@
 
 			<div class="lg:ml-10 flex justify-between mt-4"></div>
 			<div class="flex flex-row">
-				<div class=" lg:ml-10 lg:mr-24">
+				<div class="w-full lg:ml-10 lg:mr-24">
 					<div class="prose text-lg max-w-full">
 						{@html readme_html}
 					</div>

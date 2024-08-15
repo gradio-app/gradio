@@ -1,3 +1,5 @@
+# safe runs from main
+
 name: publish
 on:
   push:
@@ -12,6 +14,7 @@ env:
 jobs:
   version_or_publish:
     runs-on: ubuntu-22.04
+    environment: publish
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
@@ -22,7 +25,7 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
-          skip_build: 'false'
+          skip_build: "false"
       - name: Build packages
         run: |
           . venv/bin/activate
@@ -30,15 +33,15 @@ jobs:
           pnpm --filter @gradio/client --filter @gradio/lite --filter @gradio/preview build
       - name: create and publish versions
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # @v1
         with:
           version: pnpm ci:version
           commit: "chore: update versions"
           title: "chore: update versions"
           publish: pnpm ci:publish
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: add label to skip chromatic build
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
@@ -62,8 +65,8 @@ jobs:
         if: steps.changesets.outputs.hasChangesets != 'true'
         uses: "gradio-app/github/actions/publish-pypi@main"
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWSACCESSKEYID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSSECRETKEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.SDK_AWS_S3_BUCKET_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SDK_AWS_S3_BUCKET_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-west-2
         with:
           user: __token__
@@ -73,4 +76,4 @@ jobs:
       - name: trigger spaces deploy workflow
         env:
           GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
-        run: gh workflow run deploy-spaces.yml
+        run: gh workflow run previews-build.yml

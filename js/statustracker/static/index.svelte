@@ -61,7 +61,13 @@
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
-	export let status: "complete" | "pending" | "error" | "generating" | null;
+	export let status:
+		| "complete"
+		| "pending"
+		| "error"
+		| "generating"
+		| "streaming"
+		| null;
 	export let scroll_to_output = false;
 	export let timer = true;
 	export let show_progress: "full" | "minimal" | "hidden" = "full";
@@ -193,7 +199,10 @@
 
 <div
 	class="wrap {variant} {show_progress}"
-	class:hide={!status || status === "complete" || show_progress === "hidden"}
+	class:hide={!status ||
+		status === "complete" ||
+		show_progress === "hidden" ||
+		status == "streaming"}
 	class:translucent={(variant === "center" &&
 		(status === "pending" || status === "error")) ||
 		translucent ||

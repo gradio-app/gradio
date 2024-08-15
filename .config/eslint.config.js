@@ -70,7 +70,7 @@ export default [
 			"**/*.spec.ts",
 			"**/*.test.ts",
 			"**/*.node-test.ts",
-			"js/app/test/**/*",
+			"js/spa/test/**/*",
 			"**/*vite.config.ts",
 			"**/_website/**/*",
 			"**/_spaces-test/**/*",

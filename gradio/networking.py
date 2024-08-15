@@ -5,6 +5,7 @@ creating tunnels.
 
 from __future__ import annotations
 
+import ipaddress
 import os
 import time
 import warnings
@@ -35,6 +36,12 @@ def setup_tunnel(
             raise RuntimeError(
                 "Could not get share link from Gradio API Server."
             ) from e
+        try:
+            ipaddress.ip_address(remote_host)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid IP address received from Gradio API Server: {remote_host}"
+            ) from e
     else:
         remote_host, remote_port = share_server_address.split(":")
         remote_port = int(remote_port)
@@ -55,6 +62,6 @@ def url_ok(url: str) -> bool:
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
             time.sleep(0.500)
-    except (ConnectionError, httpx.ConnectError):
+    except (ConnectionError, httpx.ConnectError, httpx.TimeoutException):
         return False
     return False

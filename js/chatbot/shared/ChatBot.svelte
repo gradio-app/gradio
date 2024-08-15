@@ -20,7 +20,7 @@
 	import type { MessageRole, ExampleMessage } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
-	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
 	import MessageBox from "./MessageBox.svelte";
 
@@ -29,7 +29,9 @@
 
 	import Component from "./Component.svelte";
 	import LikeButtons from "./ButtonPanel.svelte";
-	import type { LoadedComponent } from "../../app/src/types";
+	import type { LoadedComponent } from "../../core/src/types";
+
+	import CopyAll from "./CopyAll.svelte";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
@@ -80,6 +82,7 @@
 	export let selectable = false;
 	export let likeable = false;
 	export let show_share_button = false;
+	export let show_copy_all_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
@@ -276,6 +279,10 @@
 	</div>
 {/if}
 
+{#if show_copy_all_button}
+	<CopyAll {value} />
+{/if}
+
 <div
 	class={layout === "bubble" ? "bubble-wrap" : "panel-wrap"}
 	class:placeholder-container={value === null || value.length === 0}
@@ -340,6 +347,7 @@
 									class:message-markdown-disabled={!render_markdown}
 									style:user-select="text"
 									class:selectable
+									style:cursor={selectable ? "pointer" : "default"}
 									style:text-align={rtl ? "right" : "left"}
 									on:click={() => handle_select(i, message)}
 									on:keydown={(e) => {

@@ -21,9 +21,9 @@ if [ -f "${GRADIO_WHEEL_PATH}" ] && [ -f "${GRADIO_CLIENT_FILE_PATH}" ]; then
   echo "Found gradio and gradio_client wheel files..."
 else
   echo "Building gradio and gradio_client wheel files..."
-  pnpm --filter @gradio/app pybuild
+  pnpm --filter @gradio/lite pybuild
 fi
 
 pnpm --filter @gradio/client build
 
-pnpm --filter @gradio/app dev:lite
+pnpm --filter @gradio/lite dev

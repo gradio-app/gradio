@@ -1,3 +1,4 @@
+**/*.md
 **/js/app/public/**
 **/pnpm-workspace.yaml
 **/js/app/dist/**
@@ -12,12 +13,12 @@
 **/gradio/**
 **/.pnpm-store/**
 **/.venv/**
-**/.github/**
+
 /guides/**
 **/.mypy_cache/**
 !test-strategy.md
 **/js/_space-test/**
-../js/app/src/lite/theme.css
+../js/lite/src/theme.css
 ../js/storybook/theme.css
 **/gradio_cached_examples/**
 **/storybook-static/**  
@@ -25,7 +26,6 @@
 sweep.yaml
 **/.vercel/**
 **/build/**
-**/*.md
 **/src/lib/json/**/*
 **/playwright/.cache/**/*
 **/theme/src/pollen.css

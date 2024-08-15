@@ -98,3 +98,7 @@ class Error(Exception):
 
 class ComponentDefinitionError(NotImplementedError):
     pass
+
+
+class InvalidPathError(ValueError):
+    pass

@@ -1,16 +1,16 @@
-name: 'install frontend'
-description: 'Install frontend deps'
+name: "install frontend"
+description: "Install frontend deps"
 
 inputs:
   always_install_pnpm:
-    description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
-    default: 'false'
+    description: "Dictates whether or not we should install pnpm & dependencies, regardless of the cache"
+    default: "false"
   skip_build:
-    description: 'Skip build'
-    default: 'false'
+    description: "Skip build"
+    default: "false"
   build_lite:
-    description: 'Build lite'
-    default: 'false'
+    description: "Build lite"
+    default: "false"
 
 runs:
   using: "composite"
@@ -22,7 +22,7 @@ runs:
           gradio/templates/*
         key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
     - name: Install pnpm
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # @v4
       with:
         version: 9.1.x
     - uses: actions/setup-node@v4
@@ -48,4 +48,4 @@ runs:
       run: |
         . venv/bin/activate
         python -m pip install -U build hatch packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
-        pnpm --filter @gradio/app build:lite
+        pnpm --filter @gradio/lite build

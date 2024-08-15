@@ -314,7 +314,6 @@ async def call_process_api(
 
     if batch_in_single_out:
         output["data"] = output["data"][0]
-
     return output
 
 
@@ -383,7 +382,8 @@ class GradioUploadFile(UploadFile):
         headers: Headers | None = None,
     ) -> None:
         super().__init__(file, size=size, filename=filename, headers=headers)
-        self.sha = hashlib.sha1()
+        self.sha = hashlib.sha256()
+        self.sha.update(processing_utils.hash_seed)
 
 
 @python_dataclass(frozen=True)
@@ -867,6 +867,7 @@ class MediaStream:
         self.ended = False
         self.segment_index = 0
         self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+        self.max_length = 5
 
     async def add_segment(self, data: MediaStreamChunk | None):
         if not data:
@@ -874,6 +875,7 @@ class MediaStream:
 
         segment_id = str(uuid.uuid4())
         self.segments.append({"id": segment_id, **data})
+        self.max_duration = max(self.max_length, data["duration"]) + 1
 
     def end_stream(self):
         self.ended = True

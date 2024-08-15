@@ -77,6 +77,7 @@
 	}[];
 	export let gradio: Gradio<{
 		select: SelectData;
+		double_click: undefined;
 		clear_status: LoadingStatus;
 	}>;
 
@@ -159,6 +160,19 @@
 			view = result.view;
 			resizeObserver.observe(chart_element);
 			var debounceTimeout: NodeJS.Timeout;
+			view.addEventListener("dblclick", () => {
+				gradio.dispatch("double_click");
+			});
+			// prevent double-clicks from highlighting text
+			chart_element.addEventListener(
+				"mousedown",
+				function (e) {
+					if (e.detail > 1) {
+						e.preventDefault();
+					}
+				},
+				false
+			);
 			if (_selectable) {
 				view.addSignalListener("brush", function (_, value) {
 					if (Object.keys(value).length === 0) return;

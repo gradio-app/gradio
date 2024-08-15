@@ -51,6 +51,7 @@
 					"aria-roledescription",
 					`Line number ${index + 1}`
 				);
+				line_number?.setAttribute("title", `Line number ${index + 1}`);
 			}
 		});
 	}
@@ -200,7 +201,9 @@
 		color: var(--line-number-color);
 		user-select: none;
 		text-overflow: ellipsis;
-		padding-right: 4px;
+		text-overflow: ellipsis;
+		direction: rtl;
+		overflow: hidden;
 	}
 	.content {
 		flex: 1;
