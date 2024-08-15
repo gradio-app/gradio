@@ -186,9 +186,13 @@ class SelectData(EventData):
 
     def __init__(self, target: Block | None, data: Any):
         super().__init__(target, data)
-        self.index: Any = data["index"]
+        self.index: float | tuple[float, float] = data["index"]
         """
         The index of the selected item. Is a tuple if the component is two dimensional or selection is a range.
+        """
+        self.original_index: float | tuple[float, float] = data["original_index"]
+        """
+        The index of the selected item in the original (e.g. unsorted) value of the component. Is a tuple if the component is two dimensional or selection is a range.
         """
         self.value: Any = data["value"]
         """
