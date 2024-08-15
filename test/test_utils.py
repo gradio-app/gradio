@@ -5,6 +5,7 @@ import os
 import sys
 import warnings
 from pathlib import Path
+from typing import Sequence, Set
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -31,6 +32,7 @@ from gradio.utils import (
     get_function_params,
     get_type_hints,
     ipython_check,
+    is_allowed_file,
     is_in_or_equal,
     is_special_typed_parameter,
     kaggle_check,
@@ -387,6 +389,14 @@ def create_path_string():
     ).map(lambda x: os.path.join(*x))
 
 
+def create_path_list():
+    return st.lists(create_path_string(), min_size=0, max_size=5)
+
+
+def create_path_set():
+    return st.sets(create_path_string(), min_size=0, max_size=5)
+
+
 def my_check(path_1, path_2):
     try:
         path_1 = Path(path_1).resolve()
@@ -412,6 +422,52 @@ def test_is_in_or_equal_fuzzer(path_1, path_2):
 
     except Exception as e:
         pytest.fail(f"Exception raised: {e}")
+
+
+@settings(derandomize=os.getenv("CI") is not None)
+@given(
+    path=create_path_string(),
+    blocked_paths=create_path_list(),
+    allowed_paths=create_path_list(),
+    file_sets=st.lists(create_path_set(), min_size=0, max_size=3),
+)
+def test_is_allowed_file_fuzzer(
+    path: Path,
+    blocked_paths: Sequence[Path],
+    allowed_paths: Sequence[Path],
+    file_sets: Sequence[Set[Path]],
+):
+    result, reason = is_allowed_file(path, blocked_paths, allowed_paths, file_sets)
+
+    assert isinstance(result, bool)
+    assert reason in [
+        "in_blocklist",
+        "allowed",
+        "not_created_or_allowed",
+        "created_by_app",
+    ]
+
+    if result:
+        assert reason in ["allowed", "created_by_app"]
+        assert not any(
+            is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths
+        )
+    elif reason == "in_blocklist":
+        assert any(is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths)
+    elif reason == "not_created_or_allowed":
+        assert not any(
+            is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths
+        )
+        assert not any(path in file_set for file_set in file_sets)
+
+    if reason == "allowed":
+        assert any(is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths)
+
+    if reason == "created_by_app":
+        assert not any(
+            is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths
+        )
+        assert result == any(path in file_set for file_set in file_sets)
 
 
 # Additional test for known edge cases
