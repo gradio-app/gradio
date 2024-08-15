@@ -579,17 +579,13 @@ class ChatInterface(Blocks):
             new_response = response
         return cast(MessageDict, new_response)
 
-    def _format_input(
+    def _process_msg_and_trim_history(
         self,
         message: str | MultimodalData,
         history_with_input: TupleFormat | list[MessageDict],
     ) -> tuple[str | dict, TupleFormat | list[MessageDict]]:
         if isinstance(message, MultimodalData):
-            remove_input = (
-                len(message.files) + 1
-                if message.text is not None
-                else len(message.files)
-            )
+            remove_input = len(message.files) + int(message.text is not None)
             history = history_with_input[:-remove_input]
             message_serialized = message.model_dump()
         else:
@@ -598,14 +594,14 @@ class ChatInterface(Blocks):
         return message_serialized, history
 
     def _append_history(self, history, message, first_response=True):
-        if self.type == "messages":
-            message = self.response_as_dict(message)
         if self.type == "tuples":
             history[-1][1] = message  # type: ignore
-        elif self.type == "messages" and first_response:
-            history.append(message)  # type: ignore
-        elif self.type == "messages" and not first_response:
-            history[-1] = message
+        else:
+            message = self.response_as_dict(message)
+            if first_response:
+                history.append(message)  # type: ignore
+            else:
+                history[-1] = message
 
     async def _submit_fn(
         self,
@@ -614,7 +610,9 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> tuple[TupleFormat, TupleFormat] | tuple[list[MessageDict], list[MessageDict]]:
-        message_serialized, history = self._format_input(message, history_with_input)
+        message_serialized, history = self._process_msg_and_trim_history(
+            message, history_with_input
+        )
         inputs, _, _ = special_args(
             self.fn, inputs=[message_serialized, history, *args], request=request
         )
@@ -637,7 +635,9 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> AsyncGenerator:
-        message_serialized, history = self._format_input(message, history_with_input)
+        message_serialized, history = self._process_msg_and_trim_history(
+            message, history_with_input
+        )
         inputs, _, _ = special_args(
             self.fn, inputs=[message_serialized, history, *args], request=request
         )
