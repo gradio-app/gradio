@@ -422,6 +422,11 @@ class Video(StreamingOutput, Component):
 
     @staticmethod
     def get_video_duration_ffprobe(filename: str):
+        if wasm_utils.IS_WASM:
+            raise wasm_utils.WasmUnsupportedError(
+                "ffprobe is not supported in the Wasm mode."
+            )
+
         result = subprocess.run(
             [
                 "ffprobe",
@@ -452,6 +457,11 @@ class Video(StreamingOutput, Component):
 
     @staticmethod
     async def async_convert_mp4_to_ts(mp4_file, ts_file):
+        if wasm_utils.IS_WASM:
+            raise wasm_utils.WasmUnsupportedError(
+                "Streaming is not supported in the Wasm mode."
+            )
+
         ff = FFmpeg(  # type: ignore
             inputs={mp4_file: None},
             outputs={
