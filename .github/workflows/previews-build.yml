@@ -46,7 +46,7 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
-          python_version: "3.9"
+          python_version: "3.10"
           build_lite: "true"
       - name: Package Lite NPM package
         working-directory: js/lite
