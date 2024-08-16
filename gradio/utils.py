@@ -906,6 +906,7 @@ def get_type_hints(fn):
         return {}
     return typing.get_type_hints(fn)
 
+
 def is_special_typed_parameter(name, parameter_types):
     from gradio.helpers import EventData
     from gradio.oauth import OAuthProfile, OAuthToken
