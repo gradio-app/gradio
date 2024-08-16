@@ -414,6 +414,7 @@
 		justify-content: center;
 		align-items: center;
 		margin-bottom: 5px;
+		z-index: var(--layer-1);
 	}
 	.padded-button {
 		padding: 0 10px;
