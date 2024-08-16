@@ -1,8 +1,8 @@
-import { test, describe, assert, afterEach, vi } from "vitest";
+import { test, describe, assert, afterEach } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 import Audio from "./";
 import type { LoadingStatus } from "@gradio/statustracker";
-import { setupi18n } from "../app/src/i18n";
+import { setupi18n } from "../core/src/i18n";
 import ResizeObserver from "resize-observer-polyfill";
 
 global.ResizeObserver = ResizeObserver;

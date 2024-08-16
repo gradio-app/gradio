@@ -28,5 +28,10 @@
 	"dependencies": {
 		"@types/path-browserify": "^1.0.0",
 		"path-browserify": "^1.0.1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/wasm"
 	}
 }

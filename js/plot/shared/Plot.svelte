@@ -2,7 +2,7 @@
 	//@ts-nocheck
 	import { Plot as PlotIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
-	import type { ThemeMode } from "js/app/src/components/types";
+	import type { ThemeMode } from "js/core/src/components/types";
 	import type { Gradio, SelectData } from "@gradio/utils";
 
 	export let value;

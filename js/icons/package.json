@@ -6,5 +6,11 @@
 	"main": "src/index.ts",
 	"author": "",
 	"license": "ISC",
-	"main_changeset": true
+	"private": false,
+	"main_changeset": true,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/icons"
+	}
 }

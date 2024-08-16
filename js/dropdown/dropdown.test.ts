@@ -1,7 +1,7 @@
 import { test, describe, assert, afterEach, vi } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
-import { setupi18n } from "../app/src/i18n";
+import { setupi18n } from "../core/src/i18n";
 
 import Dropdown from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
