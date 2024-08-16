@@ -1,4 +1,3 @@
-import time
 import gradio as gr
 
 runs = 0
@@ -10,11 +9,9 @@ def reset_runs():
 def slow_echo(message, history):
     global runs  # i didn't want to add state or anything to this demo
     runs = runs + 1
-    for i in range(len(message)):
-        time.sleep(0.05)
-        yield f"Run {runs} - You typed: " + message[: i + 1]
+    return f"Run {runs} - You typed: " + message['text']
 
-chat = gr.ChatInterface(slow_echo, type="messages")
+chat = gr.ChatInterface(slow_echo, multimodal=True, type="tuples")
 
 with gr.Blocks() as demo:
     chat.render()
@@ -23,7 +20,6 @@ with gr.Blocks() as demo:
     # need to use gr.State if we want to parallelize this test
     # currently chatinterface does not support that
     demo.unload(reset_runs)
-
 
 if __name__ == "__main__":
     demo.launch()
