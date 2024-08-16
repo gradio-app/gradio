@@ -42,6 +42,7 @@
 	export let stream_every: number;
 
 	export let close_stream: () => void;
+	export let open_stream: () => void;
 	export let set_time_limit: (time: number) => void;
 	export let gradio: Gradio<{
 		input: never;
@@ -246,6 +247,7 @@
 			{trim_region_settings}
 			{stream_every}
 			bind:close_stream
+			bind:open_stream
 			bind:set_time_limit
 			upload={gradio.client.upload}
 			stream_handler={gradio.client.stream}

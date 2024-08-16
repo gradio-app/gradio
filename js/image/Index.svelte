@@ -23,6 +23,7 @@
 	type sources = "upload" | "webcam" | "clipboard" | null;
 
 	export let close_stream: () => void;
+	export let open_stream: () => void;
 	export let set_time_limit: (arg0: number) => void;
 	export let value_is_output = false;
 	export let elem_id = "";
@@ -174,6 +175,7 @@
 			{mirror_webcam}
 			{stream_every}
 			bind:close_stream
+			bind:open_stream
 			bind:set_time_limit
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}

@@ -31,6 +31,7 @@
 	export let stream_every: number;
 
 	export let close_stream: () => void;
+	export let open_stream: () => void;
 	export let set_time_limit: (arg0: number) => void;
 
 	let upload_input: Upload;
@@ -150,6 +151,7 @@
 				{i18n}
 				{upload}
 				bind:close_stream
+				bind:open_stream
 				bind:set_time_limit
 			/>
 		{:else if value !== null && !streaming}

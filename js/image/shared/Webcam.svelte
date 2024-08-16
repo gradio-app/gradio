@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
-	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
+	import {
+		Camera,
+		Circle,
+		Square,
+		DropdownArrow,
+		Spinner
+	} from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { StreamingBar } from "@gradio/statustracker";
 	import { type FileData, type Client, prepare_files } from "@gradio/client";
@@ -15,12 +21,20 @@
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
 	let selected_device: MediaDeviceInfo | null = null;
-	let interval_id = 0;
-	let stop_button: HTMLButtonElement;
 	let time_limit: number | null = null;
+	let queue_joined = false;
+	let stream_open = false;
 
 	export const close_stream: () => void = () => {
 		time_limit = null;
+		queue_joined = false;
+		stream_open = false;
+	};
+
+	export const open_stream: () => void = () => {
+		if (!stream_open) {
+			stream_open = true;
+		}
 	};
 
 	export const set_time_limit = (time: number): void => {
@@ -122,7 +136,7 @@
 				context.drawImage(video_source, -video_source.videoWidth, 0);
 			}
 
-			if (streaming && !recording) {
+			if (streaming && (!recording || (queue_joined && !stream_open))) {
 				return;
 			}
 
@@ -133,8 +147,16 @@
 				`image/${streaming ? "jpeg" : "png"}`,
 				0.8
 			);
+			if (!queue_joined) queue_joined = true;
 		}
 	}
+
+	$: console.log(
+		"queue_joined stream_open recording",
+		queue_joined,
+		stream_open,
+		recording
+	);
 
 	let recording = false;
 	let recorded_blobs: BlobPart[] = [];
@@ -203,11 +225,12 @@
 			stream.getTracks().forEach((track) => track.stop());
 			video_source.srcObject = null;
 			webcam_accessed = false;
+			queue_joined = false;
 		}
 	}
 
 	if (streaming && mode === "image") {
-		interval_id = window.setInterval(() => {
+		window.setInterval(() => {
 			if (video_source && !pending) {
 				take_picture();
 			}
@@ -263,12 +286,15 @@
 	{:else}
 		<div class="button-wrap">
 			<button
-				bind:this={stop_button}
 				on:click={record_video_or_photo}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
 				{#if mode === "video" || streaming}
-					{#if recording}
+					{#if streaming && queue_joined && !stream_open}
+						<div class="icon color-primary" title="spinner">
+							<Spinner />
+						</div>
+					{:else if (streaming && stream_open) || (!streaming && recording)}
 						<div class="icon color-primary" title="stop recording">
 							<Square />
 						</div>

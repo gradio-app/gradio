@@ -51,7 +51,7 @@
 		targets,
 		update_value,
 		get_data,
-		close_stream,
+		modify_stream,
 		set_time_limit,
 		loading_status,
 		scheduled_updates,
@@ -371,6 +371,19 @@
 				];
 			}
 
+			function open_stream_events(
+				status: StatusMessage,
+				id: number,
+				dep: Dependency
+			): void {
+				if (
+					status.original_msg === "process_starts" &&
+					dep.connection === "stream"
+				) {
+					modify_stream(id, "open");
+				}
+			}
+
 			function handle_status_update(message: StatusMessage): void {
 				const { fn_index, ...status } = message;
 				if (status.stage === "streaming" && status.time_limit) {
@@ -378,6 +391,9 @@
 						set_time_limit(id, status.time_limit);
 					});
 				}
+				dep.inputs.forEach((id) => {
+					open_stream_events(message, id, dep);
+				});
 				//@ts-ignore
 				loading_status.update({
 					...status,
@@ -428,7 +444,7 @@
 						}
 					});
 					dep.inputs.forEach((id) => {
-						close_stream(id);
+						modify_stream(id, "close");
 					});
 					submit_map.delete(dep_index);
 				}
