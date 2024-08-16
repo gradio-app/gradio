@@ -1,7 +1,6 @@
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
 from typer import Option
-from typing_extensions import Annotated
 
 from gradio_client import Client
 

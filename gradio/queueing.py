@@ -9,10 +9,9 @@ import traceback
 import uuid
 from collections import defaultdict
 from queue import Queue as ThreadQueue
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 import fastapi
-from typing_extensions import Literal
 
 from gradio import route_utils, routes
 from gradio.data_classes import (
