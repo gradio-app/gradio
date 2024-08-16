@@ -1,5 +1,6 @@
 ---
 "@gradio/image": patch
+"@gradio/multimodaltextbox": patch
 "@gradio/upload": patch
 "gradio": patch
 ---
