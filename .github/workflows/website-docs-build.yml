@@ -53,6 +53,7 @@ jobs:
         with:
           python_version: "3.10"
           skip_build: true
+          test: true
 
         # generated when installing deps
       - name: upload website json artifacts
