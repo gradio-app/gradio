@@ -308,9 +308,10 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        with sync_client.stream("GET", url, follow_redirects=True) as response, open(
-            full_temp_file_path, "wb"
-        ) as f:
+        with (
+            sync_client.stream("GET", url, follow_redirects=True) as response,
+            open(full_temp_file_path, "wb") as f,
+        ):
             for redirect in response.history:
                 check_public_url(str(redirect.url))
 

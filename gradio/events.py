@@ -4,16 +4,15 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import dataclasses
+from collections.abc import Callable, Sequence
 from functools import partial, wraps
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
     Any,
-    Callable,
     Dict,
     List,
     Literal,
-    Sequence,
     Union,
     cast,
 )

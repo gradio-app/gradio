@@ -9,7 +9,6 @@ from rich import print
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from tomlkit import dump, parse
-from typing_extensions import 
 
 from gradio.analytics import custom_component_analytics
 

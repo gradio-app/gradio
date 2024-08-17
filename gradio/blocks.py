@@ -15,16 +15,13 @@ import time
 import warnings
 import webbrowser
 from collections import defaultdict
+from collections.abc import AsyncIterator, Callable, Sequence, Set
 from pathlib import Path
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
-    AbstractSet,
     Any,
-    AsyncIterator,
-    Callable,
     Literal,
-    Sequence,
     cast,
 )
 from urllib.parse import urlparse, urlunparse
@@ -681,14 +678,14 @@ class BlocksConfig:
             Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext]
+            | Set[Component | BlockContext]
             | None
         ),
         outputs: (
             Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext]
+            | Set[Component | BlockContext]
             | None
         ),
         preprocess: bool = True,
@@ -1215,7 +1212,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 raise ValueError(
                     "This config is missing the 'dependencies' field and cannot be loaded."
                 )
-            for dependency, fn in zip(config["dependencies"], fns):
+            for dependency, fn in zip(config["dependencies"], fns, strict=False):
                 # We used to add a "fake_event" to the config to cache examples
                 # without removing it. This was causing bugs in calling gr.load
                 # We fixed the issue by removing "fake_event" from the config in examples.py
@@ -1521,7 +1518,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         if iterator is None:  # If not a generator function that has already run
             if block_fn.inputs_as_dict:
-                processed_input = [dict(zip(block_fn.inputs, processed_input))]
+                processed_input = [
+                    dict(zip(block_fn.inputs, processed_input, strict=False))
+                ]
 
             processed_input, progress_index, _ = special_args(
                 block_fn.fn, processed_input, request, event_data
@@ -1928,11 +1927,11 @@ Received outputs:
                 )
             inputs = [
                 await self.preprocess_data(block_fn, list(i), state, explicit_call)
-                for i in zip(*inputs)
+                for i in zip(*inputs, strict=False)
             ]
             result = await self.call_function(
                 block_fn,
-                list(zip(*inputs)),
+                list(zip(*inputs, strict=False)),
                 None,
                 request,
                 event_id,
@@ -1943,11 +1942,11 @@ Received outputs:
             preds = result["prediction"]
             data = [
                 await self.postprocess_data(block_fn, list(o), state)
-                for o in zip(*preds)
+                for o in zip(*preds, strict=False)
             ]
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)  # type: ignore
-            data = list(zip(*data))
+            data = list(zip(*data, strict=False))
             is_generating, iterator = None, None
         else:
             old_iterator = iterator
@@ -1972,7 +1971,9 @@ Received outputs:
             if state:
                 changed_state_ids = [
                     state_id
-                    for hash_value, state_id in zip(hashed_values, state_ids_to_track)
+                    for hash_value, state_id in zip(
+                        hashed_values, state_ids_to_track, strict=False
+                    )
                     if hash_value != utils.deep_hash(state[state_id])
                 ]
 

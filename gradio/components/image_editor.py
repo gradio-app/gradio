@@ -4,16 +4,15 @@ from __future__ import annotations
 
 import dataclasses
 import warnings
+from collections.abc import Iterable, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Iterable,
     List,
     Literal,
     Optional,
-    Sequence,
     Tuple,
     Union,
     cast,

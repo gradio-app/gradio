@@ -8,10 +8,10 @@ import json
 import os
 import re
 import shutil
-import sys
 import threading
 import uuid
 from collections import deque
+from collections.abc import AsyncGenerator, Callable
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
@@ -20,9 +20,7 @@ from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import (
     TYPE_CHECKING,
     AsyncContextManager,
-    AsyncGenerator,
     BinaryIO,
-    Callable,
     List,
     Optional,
     Tuple,
@@ -646,7 +644,7 @@ class GradioMultiPartParser:
 
 
 def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
-    for file, dest in zip(files, destinations):
+    for file, dest in zip(files, destinations, strict=False):
         shutil.move(file, dest)
 
 

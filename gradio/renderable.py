@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, List, Literal, Sequence, Union, cast
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, List, Literal, Union, cast
 
 from gradio_client.documentation import document
 

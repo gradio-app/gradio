@@ -27,7 +27,7 @@ import uuid
 import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from collections.abc import MutableMapping
+from collections.abc import Callable, Iterable, Iterator, MutableMapping, Sequence
 from contextlib import contextmanager
 from functools import wraps
 from io import BytesIO
@@ -36,14 +36,10 @@ from types import ModuleType
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Generic,
-    Iterable,
-    Iterator,
     List,
     Literal,
     Optional,
-    Sequence,
     TypeVar,
 )
 
@@ -510,7 +506,7 @@ def assert_configs_are_equivalent_besides_ids(
             raise ValueError(f"{c1} does not match {c2}")
 
     def same_children_recursive(children1, chidren2):
-        for child1, child2 in zip(children1, chidren2):
+        for child1, child2 in zip(children1, chidren2, strict=False):
             assert_same_components(child1["id"], child2["id"])
             if "children" in child1 or "children" in child2:
                 same_children_recursive(child1["children"], child2["children"])
@@ -519,12 +515,12 @@ def assert_configs_are_equivalent_besides_ids(
     children2 = config2["layout"]["children"]
     same_children_recursive(children1, children2)
 
-    for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
-        for t1, t2 in zip(d1.pop("targets"), d2.pop("targets")):
+    for d1, d2 in zip(config1["dependencies"], config2["dependencies"], strict=False):
+        for t1, t2 in zip(d1.pop("targets"), d2.pop("targets"), strict=False):
             assert_same_components(t1[0], t2[0])
-        for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs")):
+        for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs"), strict=False):
             assert_same_components(i1, i2)
-        for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
+        for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs"), strict=False):
             assert_same_components(o1, o2)
 
         if d1 != d2:

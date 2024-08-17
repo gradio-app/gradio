@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import json
 import warnings
+from collections.abc import Callable, Sequence
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
     Any,
-    Callable,
     Dict,
     List,
     Literal,
-    Sequence,
 )
 
 import pandas as pd

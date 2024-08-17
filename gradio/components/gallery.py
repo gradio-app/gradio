@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     List,
     Literal,
     Optional,
-    Sequence,
     Tuple,
     Union,
 )

@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Callable, Sequence
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Dict,
     List,
     Literal,
     Optional,
-    Sequence,
     Tuple,
     Union,
 )
@@ -298,7 +297,7 @@ class Dataframe(Component):
                 return DataframeData(headers=list(value.to_dict().keys()), data=[[]])  # type: ignore
             df_dict = value.to_dict()  # type: ignore
             headers = list(df_dict.keys())
-            data = list(zip(*df_dict.values()))
+            data = list(zip(*df_dict.values(), strict=False))
             return DataframeData(headers=headers, data=data)
         elif isinstance(value, (np.ndarray, list)):
             if len(value) == 0:

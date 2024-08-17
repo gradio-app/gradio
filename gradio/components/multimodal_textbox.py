@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence, TypedDict
+from typing import TYPE_CHECKING, Any, List, Literal, TypedDict
 
 import gradio_client.utils as client_utils
 from gradio_client.documentation import document

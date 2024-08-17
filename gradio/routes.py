@@ -5,29 +5,23 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import math
-import sys
-import warnings
-
-if sys.version_info >= (3, 9):
-    from importlib.resources import files
-else:
-    from importlib_resources import files
 import hashlib
 import inspect
 import json
+import math
 import mimetypes
 import os
 import secrets
+import sys
 import time
 import traceback
+import warnings
+from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 from queue import Empty as EmptyQueue
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncIterator,
-    Callable,
     Dict,
     List,
     Literal,
@@ -54,6 +48,7 @@ from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
+from importlib_resources import files
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask

@@ -13,9 +13,10 @@ import shutil
 import subprocess
 import tempfile
 import warnings
+from collections.abc import Callable, Iterable, Sequence
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Literal, Optional
 
 import numpy as np
 import PIL
@@ -227,10 +228,14 @@ class Examples:
                         pass  # If there are more example components than inputs, ignore. This can sometimes be intentional (e.g. loading from a log file where outputs and timestamps are also logged)
 
         inputs_with_examples = [
-            inp for (inp, keep) in zip(inputs, input_has_examples) if keep
+            inp for (inp, keep) in zip(inputs, input_has_examples, strict=False) if keep
         ]
         non_none_examples = [
-            [ex for (ex, keep) in zip(example, input_has_examples) if keep]
+            [
+                ex
+                for (ex, keep) in zip(example, input_has_examples, strict=False)
+                if keep
+            ]
             for example in examples
         ]
         if example_labels is not None and len(example_labels) != len(examples):
@@ -286,7 +291,7 @@ class Examples:
             return self.non_none_processed_examples[example]
         with utils.set_directory(self.working_directory):
             sub = []
-            for component, sample in zip(self.inputs, example):
+            for component, sample in zip(self.inputs, example, strict=False):
                 prediction_value = component.postprocess(sample)
                 if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                     prediction_value = prediction_value.model_dump()
@@ -296,7 +301,9 @@ class Examples:
                     postprocess=True,
                 )
                 sub.append(prediction_value)
-        return [ex for (ex, keep) in zip(sub, self.input_has_examples) if keep]
+        return [
+            ex for (ex, keep) in zip(sub, self.input_has_examples, strict=False) if keep
+        ]
 
     def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
@@ -564,7 +571,7 @@ class Examples:
         output = []
         if self.outputs is None:
             raise ValueError("self.outputs is missing")
-        for component, value in zip(self.outputs, example):
+        for component, value in zip(self.outputs, example, strict=False):
             value_to_use = value
             try:
                 value_as_dict = ast.literal_eval(value)

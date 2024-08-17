@@ -605,7 +605,9 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 text,
                 [c.strip() for c in classnames.split(",")],
             ),
-            "postprocess": lambda result: dict(zip(result["labels"], result["scores"])),
+            "postprocess": lambda result: dict(
+                zip(result["labels"], result["scores"], strict=False)
+            ),
         }
     if pipeline.task == "feature-extraction":
         return {

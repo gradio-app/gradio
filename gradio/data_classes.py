@@ -7,10 +7,10 @@ import pathlib
 import secrets
 import shutil
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from enum import Enum, auto
 from typing import (
     Any,
-    Iterator,
     List,
     Literal,
     NewType,

@@ -3,17 +3,16 @@
 from __future__ import annotations
 
 import inspect
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Dict,
     List,
     Literal,
     Optional,
-    Sequence,
     Tuple,
     Type,
     TypedDict,
