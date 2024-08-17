@@ -9,12 +9,8 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    List,
     Literal,
     Optional,
-    Tuple,
-    Type,
     TypedDict,
     Union,
     cast,
@@ -65,13 +61,13 @@ class FileMessage(GradioModel):
 class ComponentMessage(GradioModel):
     component: str
     value: Any
-    constructor_args: Dict[str, Any]
-    props: Dict[str, Any]
+    constructor_args: dict[str, Any]
+    props: dict[str, Any]
 
 
 class ChatbotDataTuples(GradioRootModel):
-    root: List[
-        Tuple[
+    root: list[
+        tuple[
             Union[str, FileMessage, ComponentMessage, None],
             Union[str, FileMessage, ComponentMessage, None],
         ]

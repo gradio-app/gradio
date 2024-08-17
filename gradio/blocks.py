@@ -751,7 +751,7 @@ class BlocksConfig:
             )
             for target in targets
         ]
-        if isinstance(inputs, AbstractSet):
+        if isinstance(inputs, Set):
             inputs_as_dict = True
             inputs = sorted(inputs, key=lambda x: x._id)
         else:
@@ -761,7 +761,7 @@ class BlocksConfig:
             elif not isinstance(inputs, Sequence):
                 inputs = [inputs]
 
-        if isinstance(outputs, AbstractSet):
+        if isinstance(outputs, Set):
             outputs = sorted(outputs, key=lambda x: x._id)
         elif outputs is None:
             outputs = []
