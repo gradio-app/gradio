@@ -605,7 +605,7 @@ def audio_from_file(
 def audio_to_file(sample_rate, data, filename, format="wav"):
     if format == "wav":
         data = convert_to_16_bit_wav(data)
-    if wasm_utils.IS_WASM:
+    elif wasm_utils.IS_WASM:
         raise wasm_utils.WasmUnsupportedError(
             "Audio formats other than .wav are not supported in the Wasm mode."
         )
