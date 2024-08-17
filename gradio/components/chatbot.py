@@ -92,10 +92,10 @@ class ChatMessage:
 
 
 class ChatbotDataMessages(GradioRootModel):
-    root: List[Message]
+    root: list[Message]
 
 
-TupleFormat = List[List[Union[str, Tuple[str], Tuple[str, str], None]]]
+TupleFormat = list[list[Union[str, tuple[str], tuple[str, str], None]]]
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -480,7 +480,7 @@ class Chatbot(Component):
             an object of type ChatbotData
         """
         data_model = cast(
-            Union[Type[ChatbotDataTuples], Type[ChatbotDataMessages]], self.data_model
+            Union[type[ChatbotDataTuples], type[ChatbotDataMessages]], self.data_model
         )
         if value is None:
             return data_model(root=[])

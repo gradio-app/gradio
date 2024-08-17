@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
 import gradio_client.utils as client_utils
 from gradio_client.documentation import document
@@ -21,12 +21,12 @@ if TYPE_CHECKING:
 
 class MultimodalData(GradioModel):
     text: str
-    files: List[FileData] = Field(default_factory=list)
+    files: list[FileData] = Field(default_factory=list)
 
 
 class MultimodalPostprocess(TypedDict):
     text: str
-    files: List[FileData]
+    files: list[FileData]
 
 
 class MultimodalValue(TypedDict):

@@ -11,11 +11,9 @@ from collections.abc import Iterator
 from enum import Enum, auto
 from typing import (
     Any,
-    List,
     Literal,
     NewType,
     Optional,
-    Tuple,
     TypedDict,
     Union,
 )
@@ -42,7 +40,7 @@ class CancelBody(BaseModel):
 
 
 class SimplePredictBody(BaseModel):
-    data: List[Any]
+    data: list[Any]
     session_hash: Optional[str] = None
 
 
@@ -51,7 +49,7 @@ class PredictBody(BaseModel):
 
     session_hash: Optional[str] = None
     event_id: Optional[str] = None
-    data: List[Any]
+    data: list[Any]
     event_data: Optional[Any] = None
     fn_index: Optional[int] = None
     trigger_id: Optional[int] = None
@@ -96,7 +94,7 @@ class ComponentServerJSONBody(BaseModel):
 
 class DataWithFiles(BaseModel):
     data: Any
-    files: List[Tuple[str, bytes]]
+    files: list[tuple[str, bytes]]
 
 
 class ComponentServerBlobBody(BaseModel):
@@ -268,7 +266,7 @@ class FileData(GradioModel):
 
 
 class ListFiles(GradioRootModel):
-    root: List[FileData]
+    root: list[FileData]
 
     def __getitem__(self, index):
         return self.root[index]
