@@ -77,7 +77,7 @@ class RootWithNestedModel(GradioModel):
     nested_enum: EnumRootModel
     nested_dict: DictModel2
 
-    answer: ClassVar = "Dict(nested_int: int, nested_enum: Dict(color: Literal['red', 'green', 'blue']), nested_dict: Dict(data_dict: Dict(str, list[float])))"
+    answer: ClassVar = "Dict(nested_int: int, nested_enum: Dict(color: Literal['red', 'green', 'blue']), nested_dict: Dict(data_dict: Dict(str, List[float])))"
 
 
 class LessNestedModel(GradioModel):
