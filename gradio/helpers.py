@@ -915,12 +915,8 @@ def special_args(
             if inputs is not None:
                 inputs.insert(i, request)
         elif type_hint in (
-            # Note: "OAuthProfile | None" is equals to Optional[OAuthProfile] in Python
-            #       => it is automatically handled as well by the above condition
-            #       (adding explicit "OAuthProfile | None" would break in Python3.9)
-            #       (same for "OAuthToken")
-            Optional[oauth.OAuthProfile],
-            Optional[oauth.OAuthToken],
+            oauth.OAuthProfile | None,
+            oauth.OAuthToken | None,
             oauth.OAuthProfile,
             oauth.OAuthToken,
         ):
