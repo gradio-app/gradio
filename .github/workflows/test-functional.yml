@@ -47,7 +47,7 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
-          python_version: '3.10'
+          python_version: "3.10"
       - name: install outbreak_forecast dependencies
         run: |
           . venv/bin/activate

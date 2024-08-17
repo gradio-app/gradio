@@ -49,7 +49,7 @@ jobs:
           always_install_pnpm: true
           build_lite: true
           skip_build: true
-          python_version: '3.10'
+          python_version: "3.10"
       - run: pnpm exec playwright install chromium firefox
       - name: Run Lite E2E tests
         run: |
