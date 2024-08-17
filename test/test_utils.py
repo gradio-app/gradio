@@ -5,13 +5,13 @@ import os
 import sys
 import warnings
 from pathlib import Path
+from typing import Literal
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
-from typing_extensions import Literal
 
 from gradio import EventData, Request
 from gradio.external_utils import format_ner_list

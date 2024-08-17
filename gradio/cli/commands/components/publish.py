@@ -4,7 +4,7 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
 import semantic_version
 from huggingface_hub import HfApi
@@ -14,7 +14,6 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from tomlkit import parse
 from typer import Argument, Option
-from typing_extensions import Annotated
 
 from gradio.analytics import custom_component_analytics
 
