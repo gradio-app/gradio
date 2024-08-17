@@ -196,7 +196,7 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[dict[str, Any]]:
     raise ValueError(f"Unsupported transformers pipeline type: {type(pipeline)}")
 
 
-def handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
+def handle_diffusers_pipeline(pipeline: Any) -> Optional[dict[str, Any]]:
     try:
         import diffusers
     except ImportError as ie:
@@ -488,7 +488,7 @@ def handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     raise ValueError(f"Unsupported diffusers pipeline type: {type(pipeline)}")
 
 
-def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
+def handle_transformers_js_pipeline(pipeline: Any) -> dict[str, Any]:
     try:
         from transformers_js_py import as_url, read_audio  # type: ignore
     except ImportError as ie:

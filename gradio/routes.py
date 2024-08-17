@@ -22,11 +22,8 @@ from queue import Empty as EmptyQueue
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    List,
     Literal,
     Optional,
-    Type,
     Union,
     cast,
 )
@@ -1317,7 +1314,7 @@ def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     return str(fullpath)
 
 
-def get_types(cls_set: List[Type]):
+def get_types(cls_set: list[type]):
     docset = []
     types = []
     for cls in cls_set:
