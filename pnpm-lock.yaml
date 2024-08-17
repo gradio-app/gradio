@@ -291,6 +291,15 @@ importers:
       '@gradio/row':
         specifier: workspace:^
         version: link:js/row
+      '@gradio/simpledropdown':
+        specifier: workspace:^
+        version: link:js/simpledropdown
+      '@gradio/simpleimage':
+        specifier: workspace:^
+        version: link:js/simpleimage
+      '@gradio/simpletextbox':
+        specifier: workspace:^
+        version: link:js/simpletextbox
       '@gradio/slider':
         specifier: workspace:^
         version: link:js/slider
@@ -854,6 +863,45 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+
+  js/component-test:
+    devDependencies:
+      '@fontsource/fira-mono':
+        specifier: ^5.0.0
+        version: 5.0.13
+      '@gradio/build':
+        specifier: workspace:^
+        version: link:../build
+      '@neoconfetti/svelte':
+        specifier: ^2.0.0
+        version: 2.2.1
+      '@sveltejs/adapter-auto':
+        specifier: ^3.0.0
+        version: 3.2.2(@sveltejs/kit@2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))))
+      '@sveltejs/kit':
+        specifier: ^2.0.0
+        version: 2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38)))
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^3.0.0
+        version: 3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38)))
+      prettier:
+        specifier: ^3.1.1
+        version: 3.2.5
+      prettier-plugin-svelte:
+        specifier: ^3.1.2
+        version: 3.2.3(prettier@3.2.5)(svelte@4.2.15)
+      svelte:
+        specifier: ^4.2.7
+        version: 4.2.15
+      svelte-check:
+        specifier: ^3.6.0
+        version: 3.7.0(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.5.4
+      vite:
+        specifier: ^5.0.3
+        version: 5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))
 
   js/core:
     devDependencies:
@@ -3394,6 +3442,9 @@ packages:
     resolution: {integrity: sha512-10jjfAKWaDyb8+nAkijcsi9wgz/y26LOc1NKJradNMyCIl6usQcBbhkjX5qhALrSBcOy6TOeksunTYa+a03qNQ==}
     engines: {node: '>=18.x'}
 
+  '@fontsource/fira-mono@5.0.13':
+    resolution: {integrity: sha512-fZDjR2BdAqmauEbTjcIT62zYzbOgDa5+IQH34D2k8Pxmy1T815mAqQkZciWZVQ9dc/BgdTtTUV9HJ2ulBNwchg==}
+
   '@formatjs/ecma402-abstract@1.11.4':
     resolution: {integrity: sha512-EBikYFp2JCdIfGEb5G9dyCkTGDmC57KSHhRQOC3aYxoPWVZvfWCDjZwkGYHN7Lis/fmuWl906bnNTJifDQ3sXw==}
 
@@ -3599,6 +3650,9 @@ packages:
 
   '@ndelangen/get-tarball@3.0.9':
     resolution: {integrity: sha512-9JKTEik4vq+yGosHYhZ1tiH/3WpUS0Nh0kej4Agndhox8pAdWhEx5knFVRcb/ya9knCRCs1rPxNrSXTDdfVqpA==}
+
+  '@neoconfetti/svelte@2.2.1':
+    resolution: {integrity: sha512-2Ts0Rxaf6clW2qG+AKhTwpl01AAyZEAe03XeuQ7Vp+qYIaM3ycuI94j546fmEkUxwACwGI3Zl2cZ/pncTuNcJg==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -11123,6 +11177,8 @@ snapshots:
 
   '@ffmpeg/util@0.12.1': {}
 
+  '@fontsource/fira-mono@5.0.13': {}
+
   '@formatjs/ecma402-abstract@1.11.4':
     dependencies:
       '@formatjs/intl-localematcher': 0.2.25
@@ -11425,6 +11481,8 @@ snapshots:
       gunzip-maybe: 1.4.2
       pump: 3.0.0
       tar-fs: 2.1.1
+
+  '@neoconfetti/svelte@2.2.1': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
