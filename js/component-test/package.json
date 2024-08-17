@@ -1,5 +1,5 @@
 {
-	"name": "kit-template-default",
+	"name": "@gradio/component-test",
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "vite dev",
