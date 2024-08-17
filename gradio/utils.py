@@ -37,7 +37,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
-    List,
     Literal,
     Optional,
     TypeVar,
@@ -1426,7 +1425,7 @@ class UnhashableKeyDict(MutableMapping):
 def safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     """Safely path to a base directory to avoid escaping the base directory.
     Borrowed from: werkzeug.security.safe_join"""
-    _os_alt_seps: List[str] = [
+    _os_alt_seps: list[str] = [
         sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
     ]
 

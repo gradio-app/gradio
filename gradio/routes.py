@@ -236,7 +236,7 @@ class App(FastAPI):
     @staticmethod
     def create_app(
         blocks: gradio.Blocks,
-        app_kwargs: Dict[str, Any] | None = None,
+        app_kwargs: dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         strict_cors: bool = True,
     ) -> App:
