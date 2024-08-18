@@ -17,7 +17,7 @@ class TestGallery:
                 "image": {
                     "path": url,
                     "orig_name": "00015-20230906102032-7778-Wonderwoman VintageMagStyle   _lora_SDXL-VintageMagStyle-Lora_1_, Very detailed, clean, high quality, sharp image.jpg",
-                    "mime_type": None,
+                    "mime_type": "image/jpeg",
                     "size": None,
                     "url": url,
                     "is_stream": False,
@@ -46,7 +46,7 @@ class TestGallery:
                 "image": {
                     "path": str(Path("test") / "test_files" / "foo.png"),
                     "orig_name": "foo.png",
-                    "mime_type": None,
+                    "mime_type": "image/png",
                     "size": None,
                     "url": None,
                     "is_stream": False,
@@ -58,7 +58,7 @@ class TestGallery:
                 "image": {
                     "path": str(Path("test") / "test_files" / "bar.png"),
                     "orig_name": "bar.png",
-                    "mime_type": None,
+                    "mime_type": "image/png",
                     "size": None,
                     "url": None,
                     "is_stream": False,
@@ -70,7 +70,7 @@ class TestGallery:
                 "image": {
                     "path": str(Path("test") / "test_files" / "baz.png"),
                     "orig_name": "baz.png",
-                    "mime_type": None,
+                    "mime_type": "image/png",
                     "size": None,
                     "url": None,
                     "is_stream": False,
@@ -82,7 +82,7 @@ class TestGallery:
                 "image": {
                     "path": str(Path("test") / "test_files" / "qux.png"),
                     "orig_name": "qux.png",
-                    "mime_type": None,
+                    "mime_type": "image/png",
                     "size": None,
                     "url": None,
                     "is_stream": False,
