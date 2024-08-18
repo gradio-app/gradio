@@ -8,7 +8,7 @@
 	import "../../../../theme/src/pollen.css";
 	// import "../theme/src/tokens.css";
 	import "../../../../theme/src/typography.css";
-	import type { PageData } from "../$types";
+	import type { PageData } from "./$types";
 
 	export let data: PageData;
 
@@ -25,7 +25,7 @@
 
 	const client = {
 		upload: noop,
-		fetch: noop
+		fetch: noop,
 	};
 </script>
 

@@ -3,8 +3,6 @@
 	import components from "$lib/component_json";
 
 	const nav_items = Array.from(new Set(components.map((c) => c.name))).sort();
-
-	console.log(nav_items);
 </script>
 
 <header>
