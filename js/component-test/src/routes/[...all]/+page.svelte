@@ -25,7 +25,7 @@
 
 	const client = {
 		upload: noop,
-		fetch: noop,
+		fetch: noop
 	};
 </script>
 
