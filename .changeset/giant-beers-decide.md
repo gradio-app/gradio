@@ -5,4 +5,4 @@
 "gradio": patch
 ---
 
-feat:Allow drag and replace image in `gr.Image`
+feat:Allow drag and replace image in `gr.Image` and Multimodal textbox
