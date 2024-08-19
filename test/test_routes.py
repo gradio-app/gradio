@@ -2,6 +2,7 @@
 
 import functools
 import os
+import pickle
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
@@ -814,6 +815,32 @@ class TestPassingRequest:
             data={"username": "admin", "password": "password"},
         )
         response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+
+    def test_request_is_pickleable(self):
+        """
+        For ZeroGPU, we need to ensure that the gr.Request object is pickle-able.
+        """
+
+        def identity(name, request: gr.Request):
+            pickled = pickle.dumps(request)
+            unpickled = pickle.loads(pickled)
+            assert request.client.host == unpickled.client.host
+            assert request.client.port == unpickled.client.port
+            assert dict(request.query_params) == dict(unpickled.query_params)
+            assert request.query_params["a"] == unpickled.query_params["a"]
+            assert dict(request.headers) == dict(unpickled.headers)
+            assert request.username == unpickled.username
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/predict?a=b", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
