@@ -276,7 +276,7 @@ class TestVideoProcessing:
         )
 
     def raise_ffmpy_runtime_exception(*args, **kwargs):
-        raise ffmpy.FFRuntimeError("", "", "", "")
+        raise ffmpy.FFRuntimeError("", "", "", "")  # type: ignore
 
     @pytest.mark.parametrize(
         "exception_to_raise", [raise_ffmpy_runtime_exception, KeyError(), IndexError()]

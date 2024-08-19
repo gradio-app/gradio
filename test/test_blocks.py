@@ -1802,3 +1802,36 @@ def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
             )
     finally:
         demo.close()
+
+
+def test_post_process_file_blocked(connect):
+    dotfile = pathlib.Path(".foo.txt")
+    file = pathlib.Path(os.getcwd()) / ".." / "file.txt"
+
+    try:
+        demo = gr.Interface(lambda s: s, "text", "file")
+        with connect(demo, show_error=True) as client:
+            _ = client.predict("test/test_files/bus.png")
+            with pytest.raises(
+                ValueError,
+                match="to the gradio cache dir because it was not created by",
+            ):
+                file.write_text("Hi")
+                client.predict(str(file))
+
+        with connect(demo, allowed_paths=[str(file)]) as client:
+            _ = client.predict(str(file))
+
+        dotfile.write_text("foo")
+        with connect(demo, show_error=True) as client:
+            with pytest.raises(ValueError, match="Dotfiles located"):
+                _ = client.predict(str(dotfile))
+
+        with connect(demo, allowed_paths=[str(dotfile)]) as client:
+            _ = client.predict(str(dotfile))
+
+    finally:
+        try:
+            dotfile.unlink()
+        except FileNotFoundError:
+            pass
