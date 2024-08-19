@@ -1771,7 +1771,6 @@ Received outputs:
                     kwargs["render"] = False
 
                     state[block._id] = block.__class__(**kwargs)
-
                     prediction_value = postprocess_update_dict(
                         block=state[block._id],
                         update_dict=prediction_value,
@@ -1908,6 +1907,7 @@ Received outputs:
         batch = block_fn.batch
         state_ids_to_track, hashed_values = self.get_state_ids_to_track(block_fn, state)
         changed_state_ids = []
+        LocalContext.blocks.set(self)
 
         if batch:
             max_batch_size = block_fn.max_batch_size
