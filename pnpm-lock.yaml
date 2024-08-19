@@ -291,6 +291,15 @@ importers:
       '@gradio/row':
         specifier: workspace:^
         version: link:js/row
+      '@gradio/simpledropdown':
+        specifier: workspace:^
+        version: link:js/simpledropdown
+      '@gradio/simpleimage':
+        specifier: workspace:^
+        version: link:js/simpleimage
+      '@gradio/simpletextbox':
+        specifier: workspace:^
+        version: link:js/simpletextbox
       '@gradio/slider':
         specifier: workspace:^
         version: link:js/slider
@@ -854,6 +863,18 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+
+  js/component-test:
+    devDependencies:
+      '@gradio/build':
+        specifier: workspace:^
+        version: link:../build
+      '@sveltejs/adapter-auto':
+        specifier: ^3.0.0
+        version: 3.2.2(@sveltejs/kit@2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))
+      '@sveltejs/kit':
+        specifier: ^2.0.0
+        version: 2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
 
   js/core:
     devDependencies:
