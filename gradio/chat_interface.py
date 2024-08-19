@@ -8,7 +8,8 @@ import builtins
 import functools
 import inspect
 import warnings
-from typing import AsyncGenerator, Callable, Literal, Union, cast
+from collections.abc import AsyncGenerator, Callable
+from typing import Literal, Union, cast
 
 import anyio
 from gradio_client.documentation import document

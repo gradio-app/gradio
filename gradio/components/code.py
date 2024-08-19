@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -159,10 +160,15 @@ class Code(Component):
         Parameters:
             value: Expects a `str` of code.
         Returns:
-            Returns the code as a `str`.
+            Returns the code as a `str` stripped of leading and trailing whitespace.
         """
         if value is None:
             return None
+        if isinstance(value, tuple):
+            raise ValueError(
+                "Code component does not support returning files as tuples anymore. "
+                "Please read the file contents and return as str instead."
+            )
         return value.strip()
 
     def api_info(self) -> dict[str, Any]:

@@ -458,7 +458,9 @@ class TestProcessExamples:
 
     def test_caching_with_batch(self, patched_cache_folder):
         def trim_words(words, lens):
-            trimmed_words = [word[:length] for word, length in zip(words, lens)]
+            trimmed_words = [
+                word[:length] for word, length in zip(words, lens, strict=False)
+            ]
             return [trimmed_words]
 
         io = gr.Interface(
@@ -475,7 +477,9 @@ class TestProcessExamples:
 
     def test_caching_with_batch_multiple_outputs(self, patched_cache_folder):
         def trim_words(words, lens):
-            trimmed_words = [word[:length] for word, length in zip(words, lens)]
+            trimmed_words = [
+                word[:length] for word, length in zip(words, lens, strict=False)
+            ]
             return trimmed_words, lens
 
         io = gr.Interface(
