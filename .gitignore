@@ -84,6 +84,8 @@ test-results
 client/js/dist/*
 client/js/test.js
 .config/test.py
+.svelte-kit
+
 
 # storybook
 storybook-static
