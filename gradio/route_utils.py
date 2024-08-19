@@ -126,15 +126,18 @@ class Request:
     query parameters and other information about the request from within the prediction
     function. The class is a thin wrapper around the fastapi.Request class. Attributes
     of this class include: `headers`, `client`, `query_params`, `session_hash`, and `path_params`. If
-    auth is enabled, the `username` attribute can be used to get the logged in user.
+    auth is enabled, the `username` attribute can be used to get the logged in user. In some environments,
+    the `requests.headers` and `requests.query_params` attributes of this class are automatically
+    converted to to dictionaries, so we recommend converting them to dictionaries before accessing
+    attributes for consistent behavior in different environments.
     Example:
         import gradio as gr
         def echo(text, request: gr.Request):
             if request:
-                print("Request headers dictionary:", request.headers)
-                print("IP address:", request.client.host)
+                print("Request headers dictionary:", dict(request.headers))
                 print("Query parameters:", dict(request.query_params))
-                print("Session hash:", request.session_hash)
+                print("IP address:", request.client.host)
+                print("Gradio session hash:", request.session_hash)
             return text
         io = gr.Interface(echo, "textbox", "textbox").launch()
     Demos: request_ip_headers
