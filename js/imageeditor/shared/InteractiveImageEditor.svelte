@@ -25,6 +25,7 @@
 	import { Tools, Crop, Brush, Sources } from "./tools";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
+	import { parse_placeholder } from "./utils/parse_placeholder";
 
 	export let brush: IBrush | null;
 	export let eraser: Eraser | null;
@@ -256,7 +257,7 @@
 		<div class="empty wrap" style:height={`${editor_height}px`}>
 			{#if sources && sources.length}
 				{#if placeholder}
-					{placeholder}
+					{@html parse_placeholder(placeholder)}
 				{:else}
 					<div>Upload an image</div>
 				{/if}

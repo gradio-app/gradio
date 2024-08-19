@@ -61,6 +61,7 @@
 		height: 100%;
 		padding-top: var(--size-3);
 		text-align: center;
+		margin: auto var(--spacing-lg);
 	}
 
 	.or {
