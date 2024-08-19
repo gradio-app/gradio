@@ -70,7 +70,7 @@
 		select: SelectData;
 	}>();
 
-	let dragging = false;
+	export let dragging = false;
 
 	$: dispatch("drag", dragging);
 
@@ -120,7 +120,7 @@
 			on:error
 			{root}
 			{max_file_size}
-			disable_click={!sources.includes("upload")}
+			disable_click={!sources.includes("upload") || value !== null}
 			{upload}
 			{stream_handler}
 		>
