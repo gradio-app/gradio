@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import json
 import os
+import pickle
 import re
 import shutil
 import sys
@@ -127,7 +128,7 @@ class Request:
     function. The class is a thin wrapper around the fastapi.Request class. Attributes
     of this class include: `headers`, `client`, `query_params`, `session_hash`, and `path_params`. If
     auth is enabled, the `username` attribute can be used to get the logged in user. In some environments,
-    the `requests.headers` and `requests.query_params` attributes of this class are automatically
+    the dict-like attributes (e.g. `requests.headers`, `requests.query_params`) of this class are automatically
     converted to to dictionaries, so we recommend converting them to dictionaries before accessing
     attributes for consistent behavior in different environments.
     Example:
@@ -186,16 +187,27 @@ class Request:
             {
                 "headers": dict(getattr(self, "headers", {})),
                 "query_params": dict(getattr(self, "query_params", {})),
+                "cookies": dict(getattr(self, "cookies", {})),
+                "path_params": dict(getattr(self, "path_params", {})),
                 "client": {
                     "host": getattr(self, "client", {}) and self.client.host,
                     "port": getattr(self, "client", {}) and self.client.port,
                 },
+                "url": getattr(self, "url", ""),
             }
         )
+        if request_state := hasattr(self, "state"):
+            try:
+                pickle.dumps(request_state)
+                self.kwargs["request_state"] = request_state
+            except pickle.PicklingError:
+                pass
         self.request = None
         return self.__dict__
 
     def __setstate__(self, state: dict[str, Any]):
+        if request_state := state.pop("request_state", None):
+            self.state = request_state
         self.__dict__ = state
 
 
