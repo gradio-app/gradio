@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { I18nFormatter } from "@gradio/utils";
 	import { Upload as UploadIcon, ImagePaste } from "@gradio/icons";
-	import { marked } from "marked";
+	import { parse_placeholder } from "./utils/parse_placeholder";
 
 	export let type:
 		| "video"
@@ -16,10 +16,6 @@
 	export let mode: "full" | "short" = "full";
 	export let hovered = false;
 	export let placeholder: string | undefined = undefined;
-
-	function render_markdown(text: string): string {
-		return marked(text);
-	}
 
 	const defs = {
 		image: "upload_text.drop_image",
@@ -42,7 +38,7 @@
 	</span>
 
 	{#if placeholder}
-		{@html render_markdown(placeholder)}
+		{@html parse_placeholder(placeholder)}
 	{:else}
 		{i18n(defs[type] || defs.file)}
 
