@@ -18,6 +18,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import (
     TYPE_CHECKING,
+    Any,
     AsyncContextManager,
     AsyncGenerator,
     BinaryIO,
@@ -156,8 +157,8 @@ class Request:
         """
         self.request = request
         self.username = username
-        self.session_hash = session_hash
-        self.kwargs: dict = kwargs
+        self.session_hash: str | None = session_hash
+        self.kwargs: dict[str, Any] = kwargs
 
     def dict_to_obj(self, d):
         if isinstance(d, dict):
@@ -165,7 +166,7 @@ class Request:
         else:
             return d
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         if self.request:
             return self.dict_to_obj(getattr(self.request, name))
         else:
@@ -176,6 +177,23 @@ class Request:
                     f"'Request' object has no attribute '{name}'"
                 ) from ke
             return self.dict_to_obj(obj)
+
+    def __getstate__(self) -> dict[str, Any]:
+        self.kwargs.update(
+            {
+                "headers": dict(getattr(self, "headers", {})),
+                "query_params": dict(getattr(self, "query_params", {})),
+                "client": {
+                    "host": getattr(self, "client", {}) and self.client.host,
+                    "port": getattr(self, "client", {}) and self.client.port,
+                },
+            }
+        )
+        self.request = None
+        return self.__dict__
+
+    def __setstate__(self, state: dict[str, Any]):
+        self.__dict__ = state
 
 
 class FnIndexInferError(Exception):
