@@ -823,6 +823,7 @@ class TestPassingRequest:
         """
         For ZeroGPU, we need to ensure that the gr.Request object is pickle-able.
         """
+
         def identity(name, request: gr.Request):
             pickled = pickle.dumps(request)
             unpickled = pickle.loads(pickled)
