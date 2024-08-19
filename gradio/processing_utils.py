@@ -307,7 +307,7 @@ def get_public_url(url: str) -> str:
             break
 
     if is_public:
-        return url  # Return original URL if it resolves to a public IP
+        return url
 
     google_resolved_ip = resolve_with_google_dns(hostname)
     if google_resolved_ip and ipaddress.ip_address(google_resolved_ip).is_global:
