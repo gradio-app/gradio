@@ -1,4 +1,4 @@
-// import type { ActionReturn } from "@gradio/tootils";
+// import type { ActionReturn } from "@self/tootils";
 import Tooltip from "./Tooltip.svelte";
 
 interface ActionArgs {

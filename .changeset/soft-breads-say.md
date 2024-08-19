@@ -4,7 +4,7 @@
 "@gradio/atoms": patch
 "@gradio/audio": patch
 "@gradio/box": patch
-"@gradio/build": patch
+"@self/build": patch
 "@gradio/button": patch
 "@gradio/chatbot": patch
 "@gradio/checkbox": patch

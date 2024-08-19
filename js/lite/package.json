@@ -25,7 +25,7 @@
 	"devDependencies": {
 		"gradio": "workspace:^",
 		"@gradio/atoms": "workspace:^",
-		"@gradio/build": "workspace:^",
+		"@self/build": "workspace:^",
 		"@gradio/core": "workspace:^",
 		"@gradio/spa": "workspace:^",
 		"@gradio/theme": "workspace:^",

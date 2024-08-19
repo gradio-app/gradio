@@ -37,8 +37,14 @@
 	"main_changeset": true,
 	"main": "./Index.svelte",
 	"exports": {
-		".": "./Index.svelte",
-		"./example": "./Example.svelte",
+		".": {
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
+		"./example": {
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
 	},
 	"devDependencies": {

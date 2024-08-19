@@ -8,7 +8,7 @@ import {
 	inject_ejs,
 	mock_modules,
 	resolve_svelte
-} from "@gradio/build";
+} from "@self/build";
 
 export default defineConfig({
 	plugins: [sveltekit(), inject_component_loader({ mode: "development" })]

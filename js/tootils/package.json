@@ -1,5 +1,5 @@
 {
-	"name": "@gradio/tootils",
+	"name": "@self/tootils",
 	"version": "0.6.3",
 	"description": "Internal test utilities",
 	"type": "module",

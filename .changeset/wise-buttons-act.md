@@ -1,6 +1,6 @@
 ---
 "@gradio/audio": patch
-"@gradio/build": patch
+"@self/build": patch
 "@gradio/button": patch
 "@gradio/chatbot": patch
 "@gradio/core": patch

@@ -24,7 +24,7 @@
 		"build:css": "pollen -c pollen.config.cjs -o src/pollen-dev.css"
 	},
 	"devDependencies": {
-		"@gradio/build": "workspace:^",
+		"@self/build": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/core": "workspace:^",
 		"@gradio/theme": "workspace:^",

@@ -23,9 +23,6 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:client/js
-      '@gradio/tootils':
-        specifier: workspace:^
-        version: link:js/tootils
       '@manypkg/get-packages':
         specifier: ^2.2.1
         version: 2.2.1
@@ -35,6 +32,12 @@ importers:
       '@playwright/test':
         specifier: ^1.44.1
         version: 1.44.1
+      '@self/tootils':
+        specifier: workspace:^
+        version: link:js/tootils
+      '@sveltejs/package':
+        specifier: ^2.3.4
+        version: 2.3.4(svelte@4.2.15)(typescript@5.5.4)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.0
         version: 3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38)))
@@ -866,7 +869,7 @@ importers:
 
   js/component-test:
     devDependencies:
-      '@gradio/build':
+      '@self/build':
         specifier: workspace:^
         version: link:../build
       '@sveltejs/adapter-auto':
@@ -1475,9 +1478,6 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
-      '@gradio/build':
-        specifier: workspace:^
-        version: link:../build
       '@gradio/core':
         specifier: workspace:^
         version: link:../core
@@ -1490,6 +1490,9 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      '@self/build':
+        specifier: workspace:^
+        version: link:../build
       gradio:
         specifier: workspace:^
         version: link:../../gradio
@@ -1916,9 +1919,6 @@ importers:
 
   js/spa:
     devDependencies:
-      '@gradio/build':
-        specifier: workspace:^
-        version: link:../build
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
@@ -1934,6 +1934,9 @@ importers:
       '@huggingface/space-header':
         specifier: ^1.0.3
         version: 1.0.3
+      '@self/build':
+        specifier: workspace:^
+        version: link:../build
       '@types/eventsource':
         specifier: ^1.1.15
         version: 1.1.15
@@ -4497,6 +4500,13 @@ packages:
       '@sveltejs/vite-plugin-svelte': ^3.0.0
       svelte: ^4.0.0 || ^5.0.0-next.0
       vite: ^5.0.3
+
+  '@sveltejs/package@2.3.4':
+    resolution: {integrity: sha512-A56rLEBVI7DhcfCmjy+D5oya4be/N+kBKX69H0aCkvhgOiAXroqVzeNhWiNiGHhhec3NvpGjtjKI5c4+JAlTZg==}
+    engines: {node: ^16.14 || >=18}
+    hasBin: true
+    peerDependencies:
+      svelte: ^3.44.0 || ^4.0.0 || ^5.0.0-next.1
 
   '@sveltejs/vite-plugin-svelte-inspector@2.1.0':
     resolution: {integrity: sha512-9QX28IymvBlSCqsCll5t0kQVxipsfhFFL+L2t3nTWfXnddYwxBuAEtTtlaVQpRz9c37BhJjltSeY4AJSC03SSg==}
@@ -12706,6 +12716,17 @@ snapshots:
       svelte: 4.2.15
       tiny-glob: 0.2.9
       vite: 5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))
+
+  '@sveltejs/package@2.3.4(svelte@4.2.15)(typescript@5.5.4)':
+    dependencies:
+      chokidar: 3.6.0
+      kleur: 4.1.5
+      sade: 1.8.1
+      semver: 7.6.0
+      svelte: 4.2.15
+      svelte2tsx: 0.7.7(svelte@4.2.15)(typescript@5.5.4)
+    transitivePeerDependencies:
+      - typescript
 
   '@sveltejs/vite-plugin-svelte-inspector@2.1.0(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))':
     dependencies:
