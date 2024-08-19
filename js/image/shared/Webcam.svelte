@@ -136,7 +136,7 @@
 				context.drawImage(video_source, -video_source.videoWidth, 0);
 			}
 
-			if (streaming && !recording) {
+			if (streaming && (!recording || stream_state === "waiting")) {
 				return;
 			}
 

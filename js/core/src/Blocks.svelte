@@ -286,6 +286,11 @@
 					dep.inputs.forEach((id) => modify_stream(id, "waiting"));
 				} else if (
 					submit_map.has(dep_index) &&
+					dep.inputs.some((id) => get_stream_state(id) === "waiting")
+				) {
+					return;
+				} else if (
+					submit_map.has(dep_index) &&
 					dep.inputs.some((id) => get_stream_state(id) === "open")
 				) {
 					await app.post_data(

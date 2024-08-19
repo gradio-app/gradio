@@ -179,6 +179,7 @@
 			pending_stream.push(payload);
 		} else {
 			let blobParts = [header].concat(pending_stream, [payload]);
+			if (!recording || stream_state === "waiting") return;
 			dispatch_blob(blobParts, "stream");
 			pending_stream = [];
 		}
