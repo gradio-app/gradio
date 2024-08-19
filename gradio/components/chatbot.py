@@ -88,15 +88,18 @@ class Message(GradioModel):
     metadata: Metadata = Field(default_factory=Metadata)
     content: Union[str, FileMessage, ComponentMessage]
 
+
 class ExampleMessage(TypedDict):
     text: str
-    file: NotRequired[FileData]
+    files: Optional[Union[FileData, List[FileData]]]
+
 
 @dataclass
 class ChatMessage:
     role: Literal["user", "assistant", "system"]
     content: str | FileData | Component | FileDataDict | tuple | list
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
+
 
 class ChatbotDataMessages(GradioRootModel):
     root: List[Message]
@@ -134,7 +137,7 @@ class Chatbot(Component):
     Guides: creating-a-chatbot
     """
 
-    EVENTS = [Events.change, Events.select, Events.like]
+    EVENTS = [Events.change, Events.select, Events.like, Events.example_select]
 
     def __init__(
         self,
@@ -262,13 +265,26 @@ class Chatbot(Component):
         self.examples = examples
         if self.examples is not None:
             for i, example in enumerate(self.examples):
-                file_info = example.get("file")
-                if file_info is not None:
+                file_info = example.get("files")
+                if isinstance(file_info, list):
+                    files = []
+                    for x, file in enumerate(file_info):
+                        if file is not None:
+                            orig_name = file["path"]
+                            file_data = self.serve_static_file(file["path"])
+                            file_data["orig_name"] = orig_name
+                            file_data["mime_type"] = client_utils.get_mimetype(
+                                orig_name
+                            )
+                            file_info[x] = file_data
+                            files.append(file_data)
+                    self.examples[i]["files"] = files
+                elif file_info is not None:
                     orig_name = file_info["path"]
                     file_data = self.serve_static_file(file_info["path"])
                     file_data["orig_name"] = orig_name
                     file_data["mime_type"] = client_utils.get_mimetype(orig_name)
-                    self.examples[i]["file"] = file_data
+                    self.examples[i]["files"] = file_data
 
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):

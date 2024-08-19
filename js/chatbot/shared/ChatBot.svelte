@@ -135,6 +135,7 @@
 		change: undefined;
 		select: SelectData;
 		like: LikeData;
+		example_select: SelectData;
 	}>();
 
 	beforeUpdate(() => {
@@ -179,6 +180,15 @@
 	}
 
 	$: groupedMessages = value && group_messages(value);
+
+	let examplesVisible = true;
+	function handle_example_select(i: number, example: ExampleMessage): void {
+		examplesVisible = false;
+		dispatch("example_select", {
+			index: i,
+			value: example
+		});
+	}
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -435,60 +445,74 @@
 			<center>
 				<Markdown message={placeholder} {latex_delimiters} />
 			</center>
-			<div class="examples">
-				{#if examples !== null}
-					{#each examples as example}
-						<div class="example">
-							<span class="example-text">{example.text}</span>
-							{#if example.file !== undefined && typeof example.file === "object" && example.file.mime_type?.includes("image")}
-								<Image
-									class="example-image"
-									src={example.file.url}
-									alt="example-secondary"
-								/>
-							{:else if example.file !== undefined}
-								<span class="example-file"><em>{example.file.orig_name}</em></span>
-							{/if}
-						</div>
-					{/each}
-				{/if}
-			</div>
+			{#if examplesVisible}
+				<div class="examples {examplesVisible ? '' : 'hidden'}">
+					{#if examples !== null}
+						{#each examples as example, i}
+							<button
+								class="example"
+								on:click={handle_example_select(i, example)}
+							>
+								<span class="example-text">{example.text}</span>
+								{#if Array.isArray(example.files)}
+									<span class="example-file"
+										><em>{example.files.length} Files</em></span
+									>
+								{:else if example.files !== undefined && typeof example.files === "object" && example.files.mime_type?.includes("image")}
+									<Image
+										class="example-image"
+										src={example.files.url}
+										alt="example-secondary"
+									/>
+								{:else if example.files !== undefined}
+									<span class="example-file"
+										><em>{example.files.orig_name}</em></span
+									>
+								{/if}
+							</button>
+						{/each}
+					{/if}
+				</div>
+			{/if}
 		{/if}
 	</div>
 </div>
 
 <style>
+	.hidden {
+		display: none;
+	}
 	.examples {
-        padding-top: 200px;
+		padding-top: 200px;
 		margin-bottom: -200px;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-    }
-    .example {
-        display: flex;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+	.example {
+		display: flex;
 		flex-direction: column;
-        align-items: center;
-        margin: 5px;
-        padding: 10px 15px;
-        border: 1px solid #444;
-        border-radius: 15px;
-        background-color: #333;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    .example:hover {
-        background-color: #444;
-    }
-    .example-text {
-        margin-right: 10px;
-    }
+		align-items: center;
+		margin: 5px;
+		padding: 10px 15px;
+		border: 1px solid #444;
+		border-radius: 15px;
+		background-color: #333;
+		cursor: pointer;
+		transition: background-color 0.3s;
+	}
+	.example:hover {
+		background-color: #444;
+	}
+	.example-text {
+		margin-right: 10px;
+	}
 	.example-image {
-        max-height: 100px;
+		max-height: 100px;
 		max-width: 100px;
 		object-fit: cover;
 		border-radius: 50%;
-    }
+	}
 
 	.placeholder-container {
 		display: flex;

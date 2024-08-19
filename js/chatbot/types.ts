@@ -32,8 +32,8 @@ export interface ComponentMessage extends Message {
 }
 
 export interface ExampleMessage {
-    text: string
-    file?: FileData;
+	text: string;
+	files?: FileData | FileData[];
 }
 
 export type message_data =
