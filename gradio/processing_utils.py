@@ -462,8 +462,6 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
     if blocks is None or not blocks.is_running:
         return
 
-    import tempfile
-
     abs_path = utils.abspath(path)
 
     # if check_in_upload_folder=True
@@ -478,7 +476,6 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
         abs_path,
         blocked_paths=blocks.blocked_paths,
         allowed_paths=allowed,
-        file_sets=[],
     )
     if not allowed:
         msg = f"Cannot move {abs_path} to the gradio cache dir because "
@@ -491,7 +488,7 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
             msg += "located in either the current working directory or your system's temp directory. "
             msg += "To fix this error, please ensure your function returns files located in either "
             msg += f"the current working directory ({os.getcwd()}), your system's temp directory ({tempfile.gettempdir()}) "
-            msg += f"or add {str(abs_path.parent)} to the allowed_paths parameter."
+            msg += f"or add {str(abs_path.parent)} to the allowed_paths parameter of launch()."
         raise InvalidPathError(msg)
     if (
         utils.is_in_or_equal(abs_path, os.getcwd())
@@ -502,7 +499,7 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
     ):
         raise InvalidPathError(
             "Dotfiles located in the temporary directory cannot be moved to the cache for security reasons. "
-            "Please check whether this file is valid and rename it if so."
+            "If you'd like to specifically allow this file to be served, you can add it to the allowed_paths parameter of launch()."
         )
 
 

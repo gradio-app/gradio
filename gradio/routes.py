@@ -558,7 +558,6 @@ class App(FastAPI):
                 allowed_paths=blocks.allowed_paths
                 + [app.uploaded_file_dir, utils.get_cache_folder()]
                 + _StaticFiles.all_paths,
-                file_sets=blocks.temp_file_sets,
             )
             if not allowed:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
@@ -1211,7 +1210,6 @@ class App(FastAPI):
                     files_to_copy.append(temp_file.file.name)
                     locations.append(dest)
                 output_files.append(dest)
-                blocks.upload_file_set.add(dest)
             if files_to_copy:
                 bg_tasks.add_task(
                     move_uploaded_files_to_cache, files_to_copy, locations

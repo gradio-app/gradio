@@ -1067,8 +1067,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.app_id = random.getrandbits(64)
-        self.upload_file_set = set()
-        self.temp_file_sets = [self.upload_file_set]
+        self.temp_file_sets = []
         self.title = title
         self.show_api = not wasm_utils.IS_WASM
 
@@ -1908,10 +1907,6 @@ Received outputs:
         batch = block_fn.batch
         state_ids_to_track, hashed_values = self.get_state_ids_to_track(block_fn, state)
         changed_state_ids = []
-
-        from gradio.context import LocalContext
-
-        LocalContext.blocks.set(self)
 
         if batch:
             max_batch_size = block_fn.max_batch_size

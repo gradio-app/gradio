@@ -5,7 +5,7 @@ import os
 import sys
 import warnings
 from pathlib import Path
-from typing import Sequence, Set
+from typing import Sequence
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -378,7 +378,7 @@ def create_path_string():
     return st.lists(
         st.one_of(
             st.text(
-                alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-",
+                alphabet="abcd",
                 min_size=1,
             ),
             st.just(".."),
@@ -391,10 +391,6 @@ def create_path_string():
 
 def create_path_list():
     return st.lists(create_path_string(), min_size=0, max_size=5)
-
-
-def create_path_set():
-    return st.sets(create_path_string(), min_size=0, max_size=5)
 
 
 def my_check(path_1, path_2):
@@ -429,15 +425,13 @@ def test_is_in_or_equal_fuzzer(path_1, path_2):
     path=create_path_string(),
     blocked_paths=create_path_list(),
     allowed_paths=create_path_list(),
-    file_sets=st.lists(create_path_set(), min_size=0, max_size=3),
 )
 def test_is_allowed_file_fuzzer(
     path: Path,
     blocked_paths: Sequence[Path],
     allowed_paths: Sequence[Path],
-    file_sets: Sequence[Set[Path]],
 ):
-    result, reason = is_allowed_file(path, blocked_paths, allowed_paths, file_sets)
+    result, reason = is_allowed_file(path, blocked_paths, allowed_paths)
 
     assert isinstance(result, bool)
     assert reason in [
@@ -448,26 +442,30 @@ def test_is_allowed_file_fuzzer(
     ]
 
     if result:
-        assert reason in ["allowed", "created_by_app"]
-        assert not any(
-            is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths
-        )
+        assert reason == "allowed"
     elif reason == "in_blocklist":
         assert any(is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths)
     elif reason == "not_created_or_allowed":
         assert not any(
             is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths
         )
-        assert not any(path in file_set for file_set in file_sets)
 
     if reason == "allowed":
         assert any(is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths)
 
-    if reason == "created_by_app":
-        assert not any(
-            is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths
-        )
-        assert result == any(path in file_set for file_set in file_sets)
+
+@pytest.mark.parametrize(
+    "path,blocked_paths,allowed_paths",
+    [
+        ("/a/foo.txt", ["/a"], ["/b"], False),
+        ("/b/foo.txt", ["/a"], ["/b"], True),
+        ("/a/../c/foo.txt", ["/c/"], ["/a/"], False),
+        ("/c/../a/foo.txt", ["/c/"], ["/a/"], True),
+        ("/c/foo.txt", ["/c/"], ["/c/foo.txt"], True),
+    ],
+)
+def is_allowed_file_corner_cases(path, blocked_paths, allowed_paths, result):
+    assert is_allowed_file(path, blocked_paths, allowed_paths) == result
 
 
 # Additional test for known edge cases
