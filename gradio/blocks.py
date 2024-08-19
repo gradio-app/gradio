@@ -1067,7 +1067,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.app_id = random.getrandbits(64)
-        self.temp_file_sets = []
+        self.upload_file_set = set()
+        self.temp_file_sets = [self.upload_file_set]
         self.title = title
         self.show_api = not wasm_utils.IS_WASM
 
