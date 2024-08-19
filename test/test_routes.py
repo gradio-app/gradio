@@ -819,7 +819,7 @@ class TestPassingRequest:
         output = dict(response.json())
         assert output["data"] == ["test"]
 
-    def test_request_is_pickle_able(self):
+    def test_request_is_pickleable(self):
         """
         For ZeroGPU, we need to ensure that the gr.Request object is pickle-able.
         """
