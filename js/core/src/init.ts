@@ -362,7 +362,8 @@ export function create_components(): {
 		id: number
 	): "open" | "closed" | "waiting" | "not_set" {
 		const comp = _component_map.get(id);
-		if (comp) return comp.instance.get_stream_state();
+		if (comp && comp.instance.get_stream_state)
+			return comp.instance.get_stream_state();
 		return "not_set";
 	}
 
