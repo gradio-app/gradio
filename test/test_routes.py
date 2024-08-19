@@ -830,6 +830,7 @@ class TestPassingRequest:
             assert request.client.host == unpickled.client.host
             assert request.client.port == unpickled.client.port
             assert dict(request.query_params) == dict(unpickled.query_params)
+            assert request.query_params["a"] == unpickled.query_params["a"]
             assert dict(request.headers) == dict(unpickled.headers)
             assert request.username == unpickled.username
             return name
