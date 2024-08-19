@@ -270,6 +270,19 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
     return full_temp_file_path
 
 
+def resolve_with_google_dns(hostname: str):
+    google_dns = '8.8.8.8'
+    try:
+        resolver_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        resolver_socket.settimeout(3)
+        resolver_socket.connect((google_dns, 53))
+        
+        return socket.gethostbyname(hostname)
+    except socket.error:
+        return None
+    finally:
+        resolver_socket.close()
+
 def check_public_url(url: str):
     parsed_url = urlparse(url)
     if parsed_url.scheme not in ["http", "https"]:
@@ -288,7 +301,13 @@ def check_public_url(url: str):
         if family == socket.AF_INET6:
             ip = ip.split("%")[0]  # Remove scope ID if present
 
-        if not ipaddress.ip_address(ip).is_global:
+        ip_addr = ipaddress.ip_address(ip)
+        if not ip_addr.is_global:
+            google_resolved_ip = resolve_with_google_dns(hostname)
+            if google_resolved_ip:
+                google_ip_addr = ipaddress.ip_address(google_resolved_ip)
+                if google_ip_addr.is_global:
+                    return True
             raise httpx.RequestError(
                 f"Non-public IP address found: {ip} for URL: {url}"
             )
