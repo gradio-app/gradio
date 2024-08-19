@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Mapping, Sequence, TypedDict
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 from gradio_client.documentation import document
 

@@ -5,8 +5,9 @@ import datetime
 import os
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Sequence
+from typing import TYPE_CHECKING, Any
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
@@ -87,7 +88,7 @@ class SimpleCSVLogger(FlaggingCallback):
         log_filepath = Path(flagging_dir) / "log.csv"
 
         csv_data = []
-        for component, sample in zip(self.components, flag_data):
+        for component, sample in zip(self.components, flag_data, strict=False):
             save_dir = Path(
                 flagging_dir
             ) / client_utils.strip_invalid_filename_characters(component.label or "")
@@ -153,7 +154,9 @@ class CSVLogger(FlaggingCallback):
         ]
 
         csv_data = []
-        for idx, (component, sample) in enumerate(zip(self.components, flag_data)):
+        for idx, (component, sample) in enumerate(
+            zip(self.components, flag_data, strict=False)
+        ):
             save_dir = Path(
                 flagging_dir
             ) / client_utils.strip_invalid_filename_characters(

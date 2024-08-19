@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 import operator
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from gradio_client.documentation import document
 
@@ -24,7 +25,7 @@ class LabelConfidence(GradioModel):
 
 class LabelData(GradioModel):
     label: Optional[Union[str, int, float]] = None
-    confidences: Optional[List[LabelConfidence]] = None
+    confidences: Optional[list[LabelConfidence]] = None
 
 
 @document()

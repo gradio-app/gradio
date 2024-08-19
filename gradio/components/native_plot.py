@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import json
 import warnings
+from collections.abc import Callable, Sequence, Set
 from typing import (
     TYPE_CHECKING,
-    AbstractSet,
     Any,
-    Callable,
-    Dict,
-    List,
     Literal,
-    Sequence,
 )
 
 import pandas as pd
@@ -25,9 +21,9 @@ if TYPE_CHECKING:
 
 
 class PlotData(GradioModel):
-    columns: List[str]
-    data: List[List[Any]]
-    datatypes: Dict[str, Literal["quantitative", "nominal", "temporal"]]
+    columns: list[str]
+    data: list[list[Any]]
+    datatypes: dict[str, Literal["quantitative", "nominal", "temporal"]]
     mark: str
 
 
@@ -68,7 +64,7 @@ class NativePlot(Component):
         scale: int | None = None,
         min_width: int = 160,
         every: Timer | float | None = None,
-        inputs: Component | Sequence[Component] | AbstractSet[Component] | None = None,
+        inputs: Component | Sequence[Component] | Set[Component] | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,

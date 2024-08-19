@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Optional
+from typing import Annotated, Optional
 
 import huggingface_hub
 from rich import print
 from typer import Option
-from typing_extensions import Annotated
 
 import gradio as gr
 

@@ -16,13 +16,14 @@ import time
 import urllib.parse
 import uuid
 import warnings
+from collections.abc import Callable
 from concurrent.futures import Future
 from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 
 import httpx
 import huggingface_hub
@@ -1303,7 +1304,11 @@ class Endpoint:
 
     def remove_skipped_components(self, *data) -> tuple:
         """"""
-        data = [d for d, oct in zip(data, self.output_component_types) if not oct.skip]
+        data = [
+            d
+            for d, oct in zip(data, self.output_component_types, strict=False)
+            if not oct.skip
+        ]
         return tuple(data)
 
     def reduce_singleton_output(self, *data) -> Any:

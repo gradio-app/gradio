@@ -4,17 +4,14 @@ from __future__ import annotations
 
 import dataclasses
 import warnings
+from collections.abc import Iterable, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Iterable,
-    List,
     Literal,
     Optional,
-    Sequence,
-    Tuple,
     Union,
     cast,
 )
@@ -50,14 +47,14 @@ class EditorExampleValue(TypedDict):
 
 class EditorData(GradioModel):
     background: Optional[FileData] = None
-    layers: List[FileData] = []
+    layers: list[FileData] = []
     composite: Optional[FileData] = None
     id: Optional[str] = None
 
 
 class EditorDataBlobs(GradioModel):
     background: Optional[bytes]
-    layers: List[Union[bytes, None]]
+    layers: list[Union[bytes, None]]
     composite: Optional[bytes]
 
 
@@ -70,7 +67,7 @@ class BlobData(TypedDict):
 
 class AcceptBlobs(GradioModel):
     data: BlobData
-    files: List[Tuple[str, bytes]]
+    files: list[tuple[str, bytes]]
 
 
 @document()

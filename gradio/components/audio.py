@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import dataclasses
 import io
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 import anyio
 import httpx

@@ -6,7 +6,6 @@ import tempfile
 import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
-from typing import Dict
 from unittest.mock import patch
 
 import gradio_client as grc
@@ -1202,7 +1201,7 @@ def test_get_root_url(
     ],
 )
 def test_get_root_url_headers(
-    headers: Dict[str, str], root_path: str, route_path: str, expected_root_url: str
+    headers: dict[str, str], root_path: str, route_path: str, expected_root_url: str
 ):
     scope = {
         "type": "http",
