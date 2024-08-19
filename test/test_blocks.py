@@ -1831,4 +1831,7 @@ def test_post_process_file_blocked(connect):
             _ = client.predict(str(dotfile))
 
     finally:
-        dotfile.unlink()
+        try:
+            dotfile.unlink()
+        except FileNotFoundError:
+            pass
