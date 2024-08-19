@@ -294,7 +294,7 @@ class Dataframe(Component):
                 return DataframeData(headers=list(value.to_dict().keys()), data=[[]])  # type: ignore
             df_dict = value.to_dict()  # type: ignore
             headers = list(df_dict.keys())
-            data = list(zip(*df_dict.values(), strict=False))
+            data = list(zip(*df_dict.values()))
             return DataframeData(headers=headers, data=data)
         elif isinstance(value, (np.ndarray, list)):
             if len(value) == 0:

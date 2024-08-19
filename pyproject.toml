@@ -138,6 +138,7 @@ ignore = [
   "B017",    # pytest.raises considered evil
   "B023",    # function definition in loop (TODO: un-ignore this)
   "B028",    # explicit stacklevel for warnings
+  "B905",    # zip without explicit `strict` argument
   "C901",    # function is too complex (TODO: un-ignore this)
   "E501",    # from scripts/lint_backend.sh
   "PLR091",  # complexity rules
