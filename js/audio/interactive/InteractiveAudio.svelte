@@ -41,18 +41,23 @@
 	export let stream_every: number;
 
 	let time_limit: number | null = null;
-	let queue_joined = false;
+	let stream_state: "open" | "waiting" | "closed" = "closed";
 
-	export const close_stream: () => void = () => {
-		time_limit = null;
-		stream_open = false;
-		queue_joined = false;
+	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
+		state: "open" | "closed" | "waiting"
+	) => {
+		if (state === "closed") {
+			time_limit = null;
+			stream_state = "closed";
+		} else if (state === "waiting") {
+			stream_state = "waiting";
+		} else {
+			stream_state = "open";
+		}
 	};
+
 	export const set_time_limit = (time: number): void => {
 		if (recording) time_limit = time;
-	};
-	export const open_stream: () => void = () => {
-		if (recording) stream_open = true;
 	};
 
 	$: dispatch("drag", dragging);
@@ -174,8 +179,7 @@
 			pending_stream.push(payload);
 		} else {
 			let blobParts = [header].concat(pending_stream, [payload]);
-			if (stream_open || !queue_joined) dispatch_blob(blobParts, "stream");
-			queue_joined = true;
+			dispatch_blob(blobParts, "stream");
 			pending_stream = [];
 		}
 	}
@@ -248,7 +252,7 @@
 					{i18n}
 					{waveform_settings}
 					{waveform_options}
-					waiting={queue_joined && !stream_open}
+					waiting={stream_state === "waiting"}
 				/>
 			{:else}
 				<AudioRecorder

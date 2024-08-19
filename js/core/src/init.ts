@@ -28,7 +28,8 @@ export function create_components(): {
 	targets: Writable<TargetMap>;
 	update_value: (updates: UpdateTransaction[]) => void;
 	get_data: (id: number) => any | Promise<any>;
-	modify_stream: (id: number, action: "open" | "close") => void;
+	modify_stream: (id: number, state: "open" | "waiting" | "closed") => void;
+	get_stream_state: (id: number) => "open" | "waiting" | "closed" | "not_set";
 	set_time_limit: (id: number, time_limit: number | undefined) => void;
 	loading_status: ReturnType<typeof create_loading_status_store>;
 	scheduled_updates: Writable<boolean>;
@@ -347,13 +348,22 @@ export function create_components(): {
 		return comp.props.value;
 	}
 
-	function modify_stream(id: number, action: "open" | "close"): void {
+	function modify_stream(
+		id: number,
+		state: "open" | "closed" | "waiting"
+	): void {
 		const comp = _component_map.get(id);
-		if (comp && comp.instance.close_stream && action == "close") {
-			comp.instance.close_stream();
-		} else if (comp && comp.instance.open_stream && action == "open") {
-			comp.instance.open_stream();
+		if (comp && comp.instance.modify_stream_state) {
+			comp.instance.modify_stream_state(state);
 		}
+	}
+
+	function get_stream_state(
+		id: number
+	): "open" | "closed" | "waiting" | "not_set" {
+		const comp = _component_map.get(id);
+		if (comp) return comp.instance.get_stream_state();
+		return "not_set";
 	}
 
 	function set_time_limit(id: number, time_limit: number | undefined): void {
@@ -369,6 +379,7 @@ export function create_components(): {
 		update_value,
 		get_data,
 		modify_stream,
+		get_stream_state,
 		set_time_limit,
 		loading_status,
 		scheduled_updates: update_scheduled_store,

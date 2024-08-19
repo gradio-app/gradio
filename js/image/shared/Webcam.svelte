@@ -22,18 +22,18 @@
 	let available_video_devices: MediaDeviceInfo[] = [];
 	let selected_device: MediaDeviceInfo | null = null;
 	let time_limit: number | null = null;
-	let queue_joined = false;
-	let stream_open = false;
+	let stream_state: "open" | "waiting" | "closed" = "closed";
 
-	export const close_stream: () => void = () => {
-		time_limit = null;
-		queue_joined = false;
-		stream_open = false;
-	};
-
-	export const open_stream: () => void = () => {
-		if (!stream_open) {
-			stream_open = true;
+	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
+		state: "open" | "closed" | "waiting"
+	) => {
+		if (state === "closed") {
+			time_limit = null;
+			stream_state = "closed";
+		} else if (state === "waiting") {
+			stream_state = "waiting";
+		} else {
+			stream_state = "open";
 		}
 	};
 
@@ -136,7 +136,7 @@
 				context.drawImage(video_source, -video_source.videoWidth, 0);
 			}
 
-			if (streaming && (!recording || (queue_joined && !stream_open))) {
+			if (streaming && !recording) {
 				return;
 			}
 
@@ -147,16 +147,8 @@
 				`image/${streaming ? "jpeg" : "png"}`,
 				0.8
 			);
-			if (!queue_joined) queue_joined = true;
 		}
 	}
-
-	$: console.log(
-		"queue_joined stream_open recording",
-		queue_joined,
-		stream_open,
-		recording
-	);
 
 	let recording = false;
 	let recorded_blobs: BlobPart[] = [];
@@ -225,7 +217,6 @@
 			stream.getTracks().forEach((track) => track.stop());
 			video_source.srcObject = null;
 			webcam_accessed = false;
-			queue_joined = false;
 		}
 	}
 
@@ -290,17 +281,26 @@
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
 				{#if mode === "video" || streaming}
-					{#if streaming && queue_joined && !stream_open}
-						<div class="icon color-primary" title="spinner">
-							<Spinner />
+					{#if streaming && stream_state === "waiting"}
+						<div class="icon-with-text" style="width:var(--size-24);">
+							<div class="icon color-primary" title="spinner">
+								<Spinner />
+							</div>
+							{i18n("audio.waiting")}
 						</div>
-					{:else if (streaming && stream_open) || (!streaming && recording)}
-						<div class="icon color-primary" title="stop recording">
-							<Square />
+					{:else if (streaming && stream_state === "open") || (!streaming && recording)}
+						<div class="icon-with-text">
+							<div class="icon color-primary" title="stop recording">
+								<Square />
+							</div>
+							{i18n("audio.stop")}
 						</div>
 					{:else}
-						<div class="icon color-primary" title="start recording">
-							<Circle />
+						<div class="icon-with-text">
+							<div class="icon color-primary" title="start recording">
+								<Circle />
+							</div>
+							{i18n("audio.record")}
 						</div>
 					{/if}
 				{:else}
@@ -380,6 +380,14 @@
 		border-radius: var(--radius-xl);
 		line-height: var(--size-3);
 		color: var(--button-secondary-text-color);
+	}
+
+	.icon-with-text {
+		width: var(--size-20);
+		align-items: center;
+		margin: 0 var(--spacing-xl);
+		display: flex;
+		justify-content: space-evenly;
 	}
 
 	@media (--screen-md) {

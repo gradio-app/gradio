@@ -17,7 +17,6 @@
 		show_recording_waveform: true
 	};
 	export let waiting = false;
-	$: console.log("waiting", waiting);
 
 	let micWaveform: WaveSurfer;
 	let waveformRecord: RecordPlugin;

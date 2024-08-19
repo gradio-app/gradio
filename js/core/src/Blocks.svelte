@@ -52,6 +52,7 @@
 		update_value,
 		get_data,
 		modify_stream,
+		get_stream_state,
 		set_time_limit,
 		loading_status,
 		scheduled_updates,
@@ -280,13 +281,20 @@
 
 			let submission: ReturnType<typeof app.submit>;
 			app.set_current_payload(payload);
-			if (streaming && submit_map.has(dep_index)) {
-				await app.post_data(
-					// @ts-ignore
-					`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
-					{ ...payload, session_hash: app.session_hash }
-				);
-				return;
+			if (streaming) {
+				if (!submit_map.has(dep_index)) {
+					dep.inputs.forEach((id) => modify_stream(id, "waiting"));
+				} else if (
+					submit_map.has(dep_index) &&
+					dep.inputs.some((id) => get_stream_state(id) === "open")
+				) {
+					await app.post_data(
+						// @ts-ignore
+						`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
+						{ ...payload, session_hash: app.session_hash }
+					);
+					return;
+				}
 			}
 			try {
 				submission = app.submit(
@@ -444,7 +452,7 @@
 						}
 					});
 					dep.inputs.forEach((id) => {
-						modify_stream(id, "close");
+						modify_stream(id, "closed");
 					});
 					submit_map.delete(dep_index);
 				}
