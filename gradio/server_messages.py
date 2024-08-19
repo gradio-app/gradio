@@ -49,7 +49,7 @@ class ProcessCompletedMessage(BaseMessage):
 
 
 class ProcessGeneratingMessage(BaseMessage):
-    msg: Literal[ServerMessage.process_generating, ServerMessage.process_streaming] = (  # type: ignore
+    msg: Literal[ServerMessage.process_generating, ServerMessage.process_generating] = (  # type: ignore
         ServerMessage.process_generating
     )
     output: dict
