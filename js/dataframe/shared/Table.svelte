@@ -68,7 +68,7 @@
 				dispatch("select", {
 					index: [row, col],
 					value: get_data_at(row, col),
-					row_value: data[row].map((d) => d.value),
+					row_value: data[row].map((d) => d.value)
 				});
 			}
 		}
