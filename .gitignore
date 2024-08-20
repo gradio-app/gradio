@@ -34,6 +34,7 @@ gradio/launches.json
 flagged/
 gradio_cached_examples/
 tmp.zip
+gradio/hash_seed.txt
 
 # Tests
 .coverage
