@@ -544,6 +544,7 @@ class App(FastAPI):
             file_extension = os.path.splitext(url_path)[1].lower()
             if file_extension in XSS_VULNERABLE_EXTENSIONS:
                 rp_resp.headers.update({"Content-Disposition": "attachment"})
+                rp_resp.headers.update({"Content-Type": "application/octet-stream"})
             return StreamingResponse(
                 rp_resp.aiter_raw(),
                 status_code=rp_resp.status_code,
