@@ -74,7 +74,8 @@ export default [
 			"**/*vite.config.ts",
 			"**/_website/**/*",
 			"**/_spaces-test/**/*",
-			"**/preview/test/**/*"
+			"**/preview/test/**/*",
+			"**/component-test/**/*"
 		]
 	},
 	{
