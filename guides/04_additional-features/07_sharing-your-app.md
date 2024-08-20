@@ -9,8 +9,7 @@ In this Guide, we dive more deeply into the various aspects of sharing a Gradio 
 5. [Accessing network requests](#accessing-the-network-request-directly)
 6. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
 7. [Authentication](#authentication)
-8. [Security and file access](#security-and-file-access)
-9. [Analytics](#analytics)
+8. [Analytics](#analytics)
 
 ## Sharing Demos
 
