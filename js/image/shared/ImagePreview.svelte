@@ -99,14 +99,26 @@
 			{/if}
 		</div>
 		<button on:click={handle_click}>
-			<div class:selectable>
+			<span class:selectable class="image-frame">
 				<Image src={value.url} alt="" loading="lazy" on:load />
-			</div>
+			</span>
 		</button>
 	</div>
 {/if}
 
 <style>
+	.image-frame :global(img) {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: scale-down;
+	}
+
+	.image-frame {
+		object-fit: cover;
+		width: 100%;
+		height: 100%;
+	}
+
 	.image-container {
 		height: 100%;
 		position: relative;
