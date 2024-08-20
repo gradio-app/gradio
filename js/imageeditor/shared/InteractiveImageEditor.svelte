@@ -282,7 +282,7 @@
 
 <style>
 	h2 {
-		font-size: var(--text-lg);
+		font-size: var(--text-xl);
 	}
 
 	p,
