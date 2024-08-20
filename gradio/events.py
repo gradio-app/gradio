@@ -196,11 +196,11 @@ class SelectData(EventData):
         """
         self.row_value: Any = data.get("row_value")
         """
-        The value of the entire row that the selected item belongs to. Only implemented for the `Dataframe` component.
+        The value of the entire row that the selected item belongs to, as a 1-D list. Only implemented for the `Dataframe` component, returns None for other components.
         """
         self.col_value: Any = data.get("col_value")
         """
-        The value of the entire row that the selected item belongs to. Only implemented for the `Dataframe` component.
+        The value of the entire row that the selected item belongs to, as a 1-D list. Only implemented for the `Dataframe` component, returns None for other components.
         """
         self.selected: bool = data.get("selected", True)
         """
