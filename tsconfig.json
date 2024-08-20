@@ -35,6 +35,7 @@
 	},
 	"exclude": [
 		"**/_website/**/*",
+		"**/component-test/**/*",
 		"**/dist/**/*",
 		"**/public/**/*",
 		"**/.config/**/*",

@@ -31,7 +31,7 @@ jobs:
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
-          filter: "visual"
+          filter: "functional"
           token: ${{ secrets.GITHUB_TOKEN }}
   build:
     permissions:

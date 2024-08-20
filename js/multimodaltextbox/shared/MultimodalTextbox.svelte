@@ -45,10 +45,12 @@
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
-	let dragging = false;
+	export let dragging = false;
 	let uploading = false;
 	let oldValue = value.text;
 	$: dispatch("drag", dragging);
+
+	let full_container: HTMLDivElement;
 
 	$: if (oldValue !== value.text) {
 		dispatch("change", value);
@@ -201,109 +203,168 @@
 			}
 		}
 	}
+
+	function handle_dragenter(event: DragEvent): void {
+		event.preventDefault();
+		dragging = true;
+	}
+
+	function handle_dragleave(event: DragEvent): void {
+		event.preventDefault();
+		const rect = full_container.getBoundingClientRect();
+		const { clientX, clientY } = event;
+		if (
+			clientX <= rect.left ||
+			clientX >= rect.right ||
+			clientY <= rect.top ||
+			clientY >= rect.bottom
+		) {
+			dragging = false;
+		}
+	}
+
+	function handle_drop(event: DragEvent): void {
+		event.preventDefault();
+		dragging = false;
+		if (event.dataTransfer && event.dataTransfer.files) {
+			upload_component.load_files(Array.from(event.dataTransfer.files));
+		}
+	}
 </script>
 
-<!-- svelte-ignore a11y-autofocus -->
-<label class:container>
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	{#if value.files.length > 0 || uploading}
-		<div
-			class="thumbnails scroll-hide"
-			data-testid="container_el"
-			style="display: {value.files.length > 0 || uploading ? 'flex' : 'none'};"
-		>
-			{#each value.files as file, index}
-				<button class="thumbnail-item thumbnail-small">
-					<button
-						class:disabled
-						class="delete-button"
-						on:click={(event) => remove_thumbnail(event, index)}
-						><Clear /></button
-					>
-					{#if file.mime_type && file.mime_type.includes("image")}
-						<Image
-							src={file.url}
-							title={null}
-							alt=""
-							loading="lazy"
-							class={"thumbnail-image"}
-						/>
-					{:else if file.mime_type && file.mime_type.includes("audio")}
-						<Music />
-					{:else if file.mime_type && file.mime_type.includes("video")}
-						<Video />
+<div
+	class="full-container"
+	class:dragging
+	bind:this={full_container}
+	on:dragenter={handle_dragenter}
+	on:dragleave={handle_dragleave}
+	on:dragover|preventDefault
+	on:drop={handle_drop}
+	role="group"
+	aria-label="Multimedia input field"
+>
+	<!-- svelte-ignore a11y-autofocus -->
+	<label class:container>
+		<BlockTitle {show_label} {info}>{label}</BlockTitle>
+		{#if value.files.length > 0 || uploading}
+			<div
+				class="thumbnails scroll-hide"
+				aria-label="Uploaded files"
+				data-testid="container_el"
+				style="display: {value.files.length > 0 || uploading
+					? 'flex'
+					: 'none'};"
+			>
+				{#each value.files as file, index}
+					<span role="listitem" aria-label="File thumbnail">
+						<button class="thumbnail-item thumbnail-small">
+							<button
+								class:disabled
+								class="delete-button"
+								on:click={(event) => remove_thumbnail(event, index)}
+								><Clear /></button
+							>
+							{#if file.mime_type && file.mime_type.includes("image")}
+								<Image
+									src={file.url}
+									title={null}
+									alt=""
+									loading="lazy"
+									class={"thumbnail-image"}
+								/>
+							{:else if file.mime_type && file.mime_type.includes("audio")}
+								<Music />
+							{:else if file.mime_type && file.mime_type.includes("video")}
+								<Video />
+							{:else}
+								<File />
+							{/if}
+						</button>
+					</span>
+				{/each}
+				{#if uploading}
+					<div class="loader" role="status" aria-label="Uploading"></div>
+				{/if}
+			</div>
+		{/if}
+		<div class="input-container">
+			<Upload
+				bind:this={upload_component}
+				on:load={handle_upload}
+				{file_count}
+				{root}
+				{max_file_size}
+				bind:dragging
+				bind:uploading
+				show_progress={false}
+				disable_click={true}
+				bind:hidden_upload
+				on:error
+				hidden={true}
+				{upload}
+				{stream_handler}
+			></Upload>
+			<button
+				data-testid="upload-button"
+				class="upload-button"
+				on:click={handle_upload_click}><Paperclip /></button
+			>
+			<textarea
+				data-testid="textbox"
+				use:text_area_resize={{
+					text: value.text,
+					lines: lines,
+					max_lines: max_lines
+				}}
+				class="scroll-hide"
+				dir={rtl ? "rtl" : "ltr"}
+				bind:value={value.text}
+				bind:this={el}
+				{placeholder}
+				rows={lines}
+				{disabled}
+				{autofocus}
+				on:keypress={handle_keypress}
+				on:blur
+				on:select={handle_select}
+				on:focus
+				on:scroll={handle_scroll}
+				on:paste={handle_paste}
+				style={text_align ? "text-align: " + text_align : ""}
+			/>
+			{#if submit_btn}
+				<button
+					class="submit-button"
+					class:padded-button={submit_btn !== true}
+					on:click={handle_submit}
+				>
+					{#if submit_btn === true}
+						<Send />
 					{:else}
-						<File />
+						Hello World
 					{/if}
 				</button>
-			{/each}
-			{#if uploading}
-				<div class="loader"></div>
 			{/if}
 		</div>
-	{/if}
-	<div class="input-container">
-		<Upload
-			bind:this={upload_component}
-			on:load={handle_upload}
-			{file_count}
-			{root}
-			{max_file_size}
-			bind:dragging
-			bind:uploading
-			show_progress={false}
-			disable_click={true}
-			bind:hidden_upload
-			on:error
-			hidden={true}
-			{upload}
-			{stream_handler}
-		></Upload>
-		<button
-			data-testid="upload-button"
-			class="upload-button"
-			on:click={handle_upload_click}><Paperclip /></button
-		>
-		<textarea
-			data-testid="textbox"
-			use:text_area_resize={{
-				text: value.text,
-				lines: lines,
-				max_lines: max_lines
-			}}
-			class="scroll-hide"
-			dir={rtl ? "rtl" : "ltr"}
-			bind:value={value.text}
-			bind:this={el}
-			{placeholder}
-			rows={lines}
-			{disabled}
-			{autofocus}
-			on:keypress={handle_keypress}
-			on:blur
-			on:select={handle_select}
-			on:focus
-			on:scroll={handle_scroll}
-			on:paste={handle_paste}
-			style={text_align ? "text-align: " + text_align : ""}
-		/>
-		{#if submit_btn}
-			<button
-				class="submit-button"
-				class:padded-button={submit_btn !== true}
-				on:click={handle_submit}
-			>
-				{#if submit_btn === true}
-					<Send />
-				{:else}
-					Hello World
-				{/if}
-			</button>
-		{/if}
-	</div>
-</label>
+	</label>
+</div>
 
 <style>
+	.full-container {
+		width: 100%;
+		position: relative;
+	}
+
+	.full-container.dragging::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		pointer-events: none;
+	}
+
 	.input-container {
 		display: flex;
 		position: relative;
@@ -323,6 +384,8 @@
 		margin-top: 0px;
 		margin-bottom: 0px;
 		resize: none;
+		position: relative;
+		z-index: 1;
 	}
 
 	textarea:disabled {
@@ -351,6 +414,7 @@
 		justify-content: center;
 		align-items: center;
 		margin-bottom: 5px;
+		z-index: var(--layer-1);
 	}
 	.padded-button {
 		padding: 0 10px;
@@ -406,11 +470,11 @@
 	}
 
 	.thumbnails {
-		align-self: flex-start;
 		display: flex;
-		justify-content: left;
 		align-items: center;
 		gap: var(--spacing-lg);
+		overflow-x: scroll;
+		padding-top: var(--spacing-sm);
 	}
 
 	.thumbnail-item {
