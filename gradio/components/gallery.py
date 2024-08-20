@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    List,
     Literal,
     Optional,
-    Sequence,
-    Tuple,
     Union,
 )
 from urllib.parse import urlparse
@@ -33,7 +30,7 @@ if TYPE_CHECKING:
     from gradio.components import Timer
 
 GalleryMediaType = Union[np.ndarray, PIL.Image.Image, Path, str]
-CaptionedGalleryMediaType = Tuple[GalleryMediaType, str]
+CaptionedGalleryMediaType = tuple[GalleryMediaType, str]
 
 
 class GalleryImage(GradioModel):
@@ -47,7 +44,7 @@ class GalleryVideo(GradioModel):
 
 
 class GalleryData(GradioRootModel):
-    root: List[Union[GalleryImage, GalleryVideo]]
+    root: list[Union[GalleryImage, GalleryVideo]]
 
 
 @document()
@@ -85,7 +82,7 @@ class Gallery(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        columns: int | list[int] | Tuple[int, ...] | None = 2,
+        columns: int | list[int] | tuple[int, ...] | None = 2,
         rows: int | list[int] | None = None,
         height: int | float | str | None = None,
         allow_preview: bool = True,
@@ -172,9 +169,9 @@ class Gallery(Component):
     def preprocess(
         self, payload: GalleryData | None
     ) -> (
-        List[tuple[str, str | None]]
-        | List[tuple[PIL.Image.Image, str | None]]
-        | List[tuple[np.ndarray, str | None]]
+        list[tuple[str, str | None]]
+        | list[tuple[PIL.Image.Image, str | None]]
+        | list[tuple[np.ndarray, str | None]]
         | None
     ):
         """

@@ -5,8 +5,8 @@ import re
 import tempfile
 import textwrap
 import warnings
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 import huggingface_hub
 import semantic_version as semver

@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import dataclasses
 import io
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 import anyio
 import httpx
@@ -15,7 +16,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from pydub import AudioSegment
 
-from gradio import processing_utils, utils
+from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.data_classes import FileData, FileDataDict, MediaStreamChunk
 from gradio.events import Events
@@ -310,6 +311,10 @@ class Audio(
 
     @staticmethod
     def _convert_to_adts(data: bytes):
+        if wasm_utils.IS_WASM:
+            raise wasm_utils.WasmUnsupportedError(
+                "Audio streaming is not supported in the Wasm mode."
+            )
         segment = AudioSegment.from_file(io.BytesIO(data))
 
         buffer = io.BytesIO()

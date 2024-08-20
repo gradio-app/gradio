@@ -16,7 +16,7 @@ inputs:
     default: "false"
   python_version:
     description: "Python version"
-    default: "3.8"
+    default: "3.10"
   os:
     description: "OS"
     default: "ubuntu-latest"

@@ -8,24 +8,19 @@ import json
 import os
 import re
 import shutil
-import sys
 import threading
 import uuid
 from collections import deque
-from contextlib import AsyncExitStack, asynccontextmanager
+from collections.abc import AsyncGenerator, Callable
+from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import (
     TYPE_CHECKING,
-    AsyncContextManager,
-    AsyncGenerator,
     BinaryIO,
-    Callable,
-    List,
     Optional,
-    Tuple,
     Union,
 )
 from urllib.parse import urlparse
@@ -485,7 +480,7 @@ class GradioMultiPartParser:
         self.stream = stream
         self.max_files = max_files
         self.max_fields = max_fields
-        self.items: List[Tuple[str, Union[str, UploadFile]]] = []
+        self.items: list[tuple[str, Union[str, UploadFile]]] = []
         self.upload_id = upload_id
         self.upload_progress = upload_progress
         self._current_files = 0
@@ -495,9 +490,9 @@ class GradioMultiPartParser:
         self._current_partial_header_value: bytes = b""
         self._current_part = MultipartPart()
         self._charset = ""
-        self._file_parts_to_write: List[Tuple[MultipartPart, bytes]] = []
-        self._file_parts_to_finish: List[MultipartPart] = []
-        self._files_to_close_on_error: List[_TemporaryFileWrapper] = []
+        self._file_parts_to_write: list[tuple[MultipartPart, bytes]] = []
+        self._file_parts_to_finish: list[MultipartPart] = []
+        self._files_to_close_on_error: list[_TemporaryFileWrapper] = []
 
     def on_part_begin(self) -> None:
         self._current_part = MultipartPart()
@@ -646,7 +641,7 @@ class GradioMultiPartParser:
 
 
 def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
-    for file, dest in zip(files, destinations):
+    for file, dest in zip(files, destinations, strict=False):
         shutil.move(file, dest)
 
 
@@ -832,20 +827,15 @@ async def _delete_state(app: App):
 @asynccontextmanager
 async def _delete_state_handler(app: App):
     """When the server launches, regularly delete expired state."""
-    # The stop event needs to get the current event loop for python 3.8
-    # but the loop parameter is deprecated for 3.8+
-    if sys.version_info < (3, 10):
-        loop = asyncio.get_running_loop()
-        app.stop_event = asyncio.Event(loop=loop)
     asyncio.create_task(_delete_state(app))
     yield
 
 
 def create_lifespan_handler(
-    user_lifespan: Callable[[App], AsyncContextManager] | None,
+    user_lifespan: Callable[[App], AbstractAsyncContextManager] | None,
     frequency: int | None = 1,
     age: int | None = 1,
-) -> Callable[[App], AsyncContextManager]:
+) -> Callable[[App], AbstractAsyncContextManager]:
     """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
 
     @asynccontextmanager

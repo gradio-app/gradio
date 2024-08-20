@@ -27,7 +27,7 @@ import uuid
 import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from collections.abc import MutableMapping
+from collections.abc import Callable, Iterable, Iterator, MutableMapping, Sequence
 from contextlib import contextmanager
 from functools import wraps
 from io import BytesIO
@@ -36,14 +36,9 @@ from types import ModuleType
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Generic,
-    Iterable,
-    Iterator,
-    List,
     Literal,
     Optional,
-    Sequence,
     TypeVar,
 )
 
@@ -119,6 +114,7 @@ class BaseReloader(ABC):
         # not a new queue
         demo._queue = self.running_app.blocks._queue
         demo.max_file_size = self.running_app.blocks.max_file_size
+        demo.is_running = True
         self.running_app.state_holder.reset(demo)
         self.running_app.blocks = demo
 
@@ -510,7 +506,7 @@ def assert_configs_are_equivalent_besides_ids(
             raise ValueError(f"{c1} does not match {c2}")
 
     def same_children_recursive(children1, chidren2):
-        for child1, child2 in zip(children1, chidren2):
+        for child1, child2 in zip(children1, chidren2, strict=False):
             assert_same_components(child1["id"], child2["id"])
             if "children" in child1 or "children" in child2:
                 same_children_recursive(child1["children"], child2["children"])
@@ -519,12 +515,12 @@ def assert_configs_are_equivalent_besides_ids(
     children2 = config2["layout"]["children"]
     same_children_recursive(children1, children2)
 
-    for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
-        for t1, t2 in zip(d1.pop("targets"), d2.pop("targets")):
+    for d1, d2 in zip(config1["dependencies"], config2["dependencies"], strict=False):
+        for t1, t2 in zip(d1.pop("targets"), d2.pop("targets"), strict=False):
             assert_same_components(t1[0], t2[0])
-        for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs")):
+        for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs"), strict=False):
             assert_same_components(i1, i2)
-        for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
+        for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs"), strict=False):
             assert_same_components(o1, o2)
 
         if d1 != d2:
@@ -664,8 +660,7 @@ class SyncToAsyncIterator:
 
 
 async def async_iteration(iterator):
-    # anext not introduced until 3.10 :(
-    return await iterator.__anext__()
+    return await anext(iterator)
 
 
 @contextmanager
@@ -898,55 +893,13 @@ def get_cancelled_fn_indices(
 
 
 def get_type_hints(fn):
-    # Importing gradio with the canonical abbreviation. Used in typing._eval_type.
-    import gradio as gr  # noqa: F401
-    from gradio import OAuthProfile, OAuthToken, Request  # noqa: F401
-
     if inspect.isfunction(fn) or inspect.ismethod(fn):
         pass
     elif callable(fn):
         fn = fn.__call__
     else:
         return {}
-
-    try:
-        return typing.get_type_hints(fn)
-    except TypeError:
-        # On Python 3.9 or earlier, get_type_hints throws a TypeError if the function
-        # has a type annotation that include "|". We resort to parsing the signature
-        # manually using inspect.signature.
-        type_hints = {}
-        sig = inspect.signature(fn)
-        for name, param in sig.parameters.items():
-            if param.annotation is inspect.Parameter.empty:
-                continue
-            if param.annotation in ["gr.OAuthProfile | None", "None | gr.OAuthProfile"]:
-                # Special case: we want to inject the OAuthProfile value even on Python 3.9
-                type_hints[name] = Optional[OAuthProfile]
-            if param.annotation == ["gr.OAuthToken | None", "None | gr.OAuthToken"]:
-                # Special case: we want to inject the OAuthToken value even on Python 3.9
-                type_hints[name] = Optional[OAuthToken]
-            if param.annotation in [
-                "gr.Request | None",
-                "Request | None",
-                "None | gr.Request",
-                "None | Request",
-            ]:
-                # Special case: we want to inject the Request value even on Python 3.9
-                type_hints[name] = Optional[Request]
-            if "|" in str(param.annotation):
-                continue
-            # To convert the string annotation to a class, we use the
-            # internal typing._eval_type function. This is not ideal, but
-            # it's the only way to do it without eval-ing the string.
-            # Since the API is internal, it may change in the future.
-            try:
-                type_hints[name] = typing._eval_type(  # type: ignore
-                    typing.ForwardRef(param.annotation), globals(), locals()
-                )
-            except (NameError, TypeError):
-                pass
-        return type_hints
+    return typing.get_type_hints(fn)
 
 
 def is_special_typed_parameter(name, parameter_types):
@@ -1472,7 +1425,7 @@ class UnhashableKeyDict(MutableMapping):
 def safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     """Safely path to a base directory to avoid escaping the base directory.
     Borrowed from: werkzeug.security.safe_join"""
-    _os_alt_seps: List[str] = [
+    _os_alt_seps: list[str] = [
         sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
     ]
 
@@ -1487,3 +1440,22 @@ def safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
         raise InvalidPathError()
 
     return fullpath
+
+
+def is_allowed_file(
+    path: Path,
+    blocked_paths: Sequence[str | Path],
+    allowed_paths: Sequence[str | Path],
+) -> tuple[bool, Literal["in_blocklist", "allowed", "not_created_or_allowed"]]:
+    in_blocklist = any(
+        is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths
+    )
+    if in_blocklist:
+        return False, "in_blocklist"
+
+    in_allowedlist = any(
+        is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths
+    )
+    if in_allowedlist:
+        return True, "allowed"
+    return False, "not_created_or_allowed"
