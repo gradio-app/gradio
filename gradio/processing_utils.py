@@ -628,6 +628,12 @@ def audio_from_file(
             else ""
         )
         raise RuntimeError(msg) from e
+    except OSError as e:
+        if wasm_utils.IS_WASM:
+            raise wasm_utils.WasmUnsupportedError(
+                "Audio format conversion is not supported in the Wasm mode."
+            ) from e
+        raise e
     if crop_min != 0 or crop_max != 100:
         audio_start = len(audio) * crop_min / 100
         audio_end = len(audio) * crop_max / 100
@@ -641,6 +647,10 @@ def audio_from_file(
 def audio_to_file(sample_rate, data, filename, format="wav"):
     if format == "wav":
         data = convert_to_16_bit_wav(data)
+    elif wasm_utils.IS_WASM:
+        raise wasm_utils.WasmUnsupportedError(
+            "Audio formats other than .wav are not supported in the Wasm mode."
+        )
     audio = AudioSegment(
         data.tobytes(),
         frame_rate=sample_rate,

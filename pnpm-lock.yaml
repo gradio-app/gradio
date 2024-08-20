@@ -1280,6 +1280,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/video':
+        specifier: workspace:^
+        version: link:../video
       dequal:
         specifier: ^2.0.2
         version: 2.0.2

@@ -58,7 +58,7 @@ test("gr.Gallery() triggers the gr.Error modal when an uploaded file exceeds max
 	page
 }) => {
 	const locator = page.getByText(
-		"Gallery Drop Image(s) Here - or - Click to Upload"
+		"Gallery Drop Media Here - or - Click to Upload"
 	);
 	const file_chooser = await get_file_selector(page, locator);
 	await file_chooser.setFiles(["./test/files/cheetah1.jpg"]);
