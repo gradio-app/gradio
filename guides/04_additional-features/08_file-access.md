@@ -6,13 +6,13 @@ This guide will explain which ones as well as some best practices for making sur
 
 ## The Gradio cache
 
-First, it's important to understand that Gradio places files in a special `cache` before returning them to the frontend. Any file in the `cache` is available via URL while the application is running.For example, if your prediction function returns a video file, then Gradio will move that video to the `cache` after your prediction function runs and returns a URL the frontend can use to show the video. 
+First, it's important to understand that Gradio places files in a special `cache` before returning them to the frontend. For example, if your prediction function returns a video file, then Gradio will move that video to the `cache` after your prediction function runs and returns a URL the frontend can use to show the video. Any file in the `cache` is available via URL while the application is running.
 
 Tip: You can customize the location of the `cache` by setting the `GRADIO_TEMP_DIR` environment variable to an absolute path, such as `/home/usr/scripts/project/temp/`. 
 
 ## The files Gradio will move to the cache
 
-Before placing a file in the cache, Gradio will check to see if the file meets at least one of following requirements:
+Before placing a file in the cache, Gradio will check to see if the file meets at least one of following criteria:
 
 1. It was uploaded by a user.
 2. It is in the `allowed_paths` parameter of the `Blocks.launch` method.
@@ -23,15 +23,13 @@ Additionally, files in the current working directory must not start with a perio
 
 If at any time Gradio blocks a file that you would like it to process, add its path to the `allowed_paths` parameter.
 
+Tip: Prefer to read/write files from your prediction function in your application's local directory. But if you need to save files elsewhere, make sure that path is in `allowed_paths`. For example, if you change the default example caching directory to be outside the current working directory.
+
 ## The files Gradio will allow others to access 
 
-While running, Gradio apps ALLOW users to access:
+In short, these are the files located in the `cache` and any other additional paths you grant access to via `allowed_paths` or `gr.set_static_paths`.
 
-- **Files in the `cache`.** 
-
-- **Cached examples created by Gradio.** These are files that are created by Gradio as part of caching examples if you set `cache_examples=True` or `cache_examples="lazy"` in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`. By default, these files are saved in the `gradio_cached_examples/` subdirectory within your app's working directory. You can customize the location of cached example files created by Gradio by setting the environment variable `GRADIO_EXAMPLES_CACHE` to an absolute path or a path relative to your working directory.
-
-- **Files that you explicitly allow via the `allowed_paths` parameter in `launch()`**. This parameter allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
+- **The `allowed_paths` parameter in `launch()`**. This parameter allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
 
 - **Static files that you explicitly set via the `gr.set_static_paths` function**. This parameter allows you to pass in a list of directories or filenames that will be considered static. This means that they will not be copied to the cache and will be served directly from your computer. This can help save disk space and reduce the time your app takes to launch but be mindful of possible security implications.
 
@@ -61,7 +59,6 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 ## Best Practices
 
 * Set a `max_file_size` for your application.
-* Make sure sensitive files are not located in your application's current working directory.
 * Do not treat arbitrary user input as input to a file-based component (`gr.Image`, `gr.File`, etc.).
 * Prefer to use absolute paths in `allowed_paths`. If a path in `allowed_paths` is a directory, any file within that directory can be accessed. If passing a directory is necessary, make sure it only contains files related to your application.
 * Run your gradio application from the same directory the application file is located in. This will narrow the scope of files Gradio will be allowed to move into the cache. 
