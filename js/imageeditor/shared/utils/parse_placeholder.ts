@@ -1,21 +1,21 @@
-export function parse_placeholder(text: string): string {
-	if (!text) return "";
+const RE_HEADING = /^#\s*(.+)$/m;
 
-	const lines = text.split("\n");
+export function inject(text: string): [string | false, string | false] {
+	const trimmed_text = text.trim();
 
-	const processed_lines = lines.map((line) => {
-		line = line.trim();
+	const heading_match = trimmed_text.match(RE_HEADING);
+	const _heading = heading_match ? heading_match[1].trim() : false;
 
-		if (line.startsWith("# ")) {
-			return `<h1>${line.slice(2)}</h1>`;
-		}
+	const heading_end_index = heading_match
+		? trimmed_text.indexOf("\n", heading_match.index)
+		: -1;
 
-		if (line) {
-			return `<p>${line}</p>`;
-		}
+	const remaining_text =
+		heading_end_index !== -1
+			? trimmed_text.substring(heading_end_index + 1).trim()
+			: trimmed_text;
 
-		return "";
-	});
+	const _paragraph = remaining_text || false;
 
-	return processed_lines.join("");
+	return [_heading, _paragraph];
 }

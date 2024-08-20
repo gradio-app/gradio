@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { I18nFormatter } from "@gradio/utils";
 	import { Upload as UploadIcon, ImagePaste } from "@gradio/icons";
-	import { parse_placeholder } from "./utils/parse_placeholder";
+	import { inject } from "./utils/parse_placeholder";
 
 	export let type:
 		| "video"
@@ -26,6 +26,13 @@
 		gallery: "upload_text.drop_gallery",
 		clipboard: "upload_text.paste_clipboard"
 	};
+
+	let heading;
+	let paragraph;
+
+	$: if (placeholder) {
+		[heading, paragraph] = inject(placeholder);
+	}
 </script>
 
 <div class="wrap">
@@ -38,7 +45,12 @@
 	</span>
 
 	{#if placeholder}
-		{@html parse_placeholder(placeholder)}
+		{#if heading}
+			<h2>{heading}</h2>
+		{/if}
+		{#if paragraph}
+			<p>{paragraph}</p>
+		{/if}
 	{:else}
 		{i18n(defs[type] || defs.file)}
 
@@ -50,6 +62,15 @@
 </div>
 
 <style>
+	h2 {
+		font-size: var(--text-lg);
+	}
+
+	p,
+	h2 {
+		white-space: pre-line;
+	}
+
 	.wrap {
 		display: flex;
 		flex-direction: column;

@@ -25,7 +25,7 @@
 	import { Tools, Crop, Brush, Sources } from "./tools";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
-	import { parse_placeholder } from "./utils/parse_placeholder";
+	import { inject } from "./utils/parse_placeholder";
 
 	export let brush: IBrush | null;
 	export let eraser: Eraser | null;
@@ -199,6 +199,13 @@
 
 	let active_mode: "webcam" | "color" | null = null;
 	let editor_height = 0;
+
+	let heading;
+	let paragraph;
+
+	$: if (placeholder) {
+		[heading, paragraph] = inject(placeholder);
+	}
 </script>
 
 <BlockLabel
@@ -257,7 +264,12 @@
 		<div class="empty wrap" style:height={`${editor_height}px`}>
 			{#if sources && sources.length}
 				{#if placeholder}
-					{@html parse_placeholder(placeholder)}
+					{#if heading}
+						<h2>{heading}</h2>
+					{/if}
+					{#if paragraph}
+						<p>{paragraph}</p>
+					{/if}
 				{:else}
 					<div>Upload an image</div>
 				{/if}
@@ -274,6 +286,15 @@
 </ImageEditor>
 
 <style>
+	h2 {
+		font-size: var(--text-lg);
+	}
+
+	p,
+	h2 {
+		white-space: pre-line;
+	}
+
 	.empty {
 		display: flex;
 		flex-direction: column;
@@ -298,7 +319,7 @@
 		align-items: center;
 		color: var(--block-label-text-color);
 		line-height: var(--line-md);
-		font-size: var(--text-lg);
+		font-size: var(--text-md);
 		pointer-events: none;
 	}
 
