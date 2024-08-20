@@ -19,7 +19,7 @@ Before placing a file in the cache, Gradio will check to see if the file meets a
 3. It is in the current working directory of the python interpreter.
 4. It is in the temp directory obtained by `tempfile.gettempdir()`.
 
-Additionally, files in the current working directory must not start with a period (`.`). If no criteria are met, the prediction function that created that file will error. Gradio performs this check so that arbitrary files on your machine are not moved to the cache.
+Additionally, files in the current working directory whose name starts with a period (`.`) will not be moved to the cache. If no criteria are met, the prediction function that created that file will error. Gradio performs this check so that arbitrary files on your machine are not moved to the cache.
 
 If at any time Gradio blocks a file that you would like it to process, add its path to the `allowed_paths` parameter.
 
