@@ -2,6 +2,7 @@ import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 
 export interface SelectData {
+	row_value?: any[];
 	index: number | [number, number];
 	value: any;
 	selected?: boolean;
