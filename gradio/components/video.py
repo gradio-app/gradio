@@ -7,8 +7,9 @@ import json
 import subprocess
 import tempfile
 import warnings
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Literal, Optional
 
 from gradio_client import handle_file
 from gradio_client import utils as client_utils
@@ -378,9 +379,10 @@ class Video(StreamingOutput, Component):
 
         def srt_to_vtt(srt_file_path, vtt_file_path):
             """Convert an SRT subtitle file to a VTT subtitle file"""
-            with open(srt_file_path, encoding="utf-8") as srt_file, open(
-                vtt_file_path, "w", encoding="utf-8"
-            ) as vtt_file:
+            with (
+                open(srt_file_path, encoding="utf-8") as srt_file,
+                open(vtt_file_path, "w", encoding="utf-8") as vtt_file,
+            ):
                 vtt_file.write("WEBVTT\n\n")
                 for subtitle_block in srt_file.read().strip().split("\n\n"):
                     subtitle_lines = subtitle_block.split("\n")

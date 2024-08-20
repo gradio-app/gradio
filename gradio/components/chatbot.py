@@ -3,19 +3,14 @@
 from __future__ import annotations
 
 import inspect
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
-    List,
     Literal,
     Optional,
-    Sequence,
-    Tuple,
-    Type,
     TypedDict,
     Union,
     cast,
@@ -66,13 +61,13 @@ class FileMessage(GradioModel):
 class ComponentMessage(GradioModel):
     component: str
     value: Any
-    constructor_args: Dict[str, Any]
-    props: Dict[str, Any]
+    constructor_args: dict[str, Any]
+    props: dict[str, Any]
 
 
 class ChatbotDataTuples(GradioRootModel):
-    root: List[
-        Tuple[
+    root: list[
+        tuple[
             Union[str, FileMessage, ComponentMessage, None],
             Union[str, FileMessage, ComponentMessage, None],
         ]
@@ -97,10 +92,10 @@ class ChatMessage:
 
 
 class ChatbotDataMessages(GradioRootModel):
-    root: List[Message]
+    root: list[Message]
 
 
-TupleFormat = List[List[Union[str, Tuple[str], Tuple[str, str], None]]]
+TupleFormat = list[list[Union[str, tuple[str], tuple[str, str], None]]]
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -485,7 +480,7 @@ class Chatbot(Component):
             an object of type ChatbotData
         """
         data_model = cast(
-            Union[Type[ChatbotDataTuples], Type[ChatbotDataMessages]], self.data_model
+            Union[type[ChatbotDataTuples], type[ChatbotDataMessages]], self.data_model
         )
         if value is None:
             return data_model(root=[])

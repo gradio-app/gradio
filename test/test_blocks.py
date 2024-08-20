@@ -552,7 +552,8 @@ class TestBlocksPostprocessing:
             return output
 
         assert all(
-            o["value"] == process_and_dump(c) for o, c in zip(output, io_components)
+            o["value"] == process_and_dump(c)
+            for o, c in zip(output, io_components, strict=False)
         )
 
     @pytest.mark.asyncio
@@ -1011,7 +1012,9 @@ class TestCallFunction:
 class TestBatchProcessing:
     def test_raise_exception_if_batching_an_event_thats_not_queued(self):
         def trim(words, lens):
-            trimmed_words = [word[: int(length)] for word, length in zip(words, lens)]
+            trimmed_words = [
+                word[: int(length)] for word, length in zip(words, lens, strict=False)
+            ]
             return [trimmed_words]
 
         msg = "In order to use batching, the queue must be enabled."
@@ -1062,7 +1065,7 @@ class TestBatchProcessing:
         def batch_fn(words, lengths):
             comparisons = []
             trim_words = []
-            for word, length in zip(words, lengths):
+            for word, length in zip(words, lengths, strict=False):
                 trim_words.append(word[:length])
                 comparisons.append(len(word) > length)
             return trim_words, comparisons
@@ -1137,7 +1140,7 @@ class TestBatchProcessing:
 
             def batch_fn(x, y):
                 results = []
-                for word1, word2 in zip(x, y):
+                for word1, word2 in zip(x, y, strict=False):
                     results.append(f"Hello {word1}{word2}")
                 return (results,)
 
@@ -1802,3 +1805,36 @@ def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
             )
     finally:
         demo.close()
+
+
+def test_post_process_file_blocked(connect):
+    dotfile = pathlib.Path(".foo.txt")
+    file = pathlib.Path(os.getcwd()) / ".." / "file.txt"
+
+    try:
+        demo = gr.Interface(lambda s: s, "text", "file")
+        with connect(demo, show_error=True) as client:
+            _ = client.predict("test/test_files/bus.png")
+            with pytest.raises(
+                ValueError,
+                match="to the gradio cache dir because it was not created by",
+            ):
+                file.write_text("Hi")
+                client.predict(str(file))
+
+        with connect(demo, allowed_paths=[str(file)]) as client:
+            _ = client.predict(str(file))
+
+        dotfile.write_text("foo")
+        with connect(demo, show_error=True) as client:
+            with pytest.raises(ValueError, match="Dotfiles located"):
+                _ = client.predict(str(dotfile))
+
+        with connect(demo, allowed_paths=[str(dotfile)]) as client:
+            _ = client.predict(str(dotfile))
+
+    finally:
+        try:
+            dotfile.unlink()
+        except FileNotFoundError:
+            pass
