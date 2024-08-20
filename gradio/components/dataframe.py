@@ -3,16 +3,12 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Callable, Sequence
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
-    List,
     Literal,
     Optional,
-    Sequence,
-    Tuple,
     Union,
 )
 
@@ -46,9 +42,9 @@ def _import_polars():
 
 
 class DataframeData(GradioModel):
-    headers: List[str]
-    data: Union[List[List[Any]], List[Tuple[Any, ...]]]
-    metadata: Optional[Dict[str, Optional[List[Any]]]] = None
+    headers: list[str]
+    data: Union[list[list[Any]], list[tuple[Any, ...]]]
+    metadata: Optional[dict[str, Optional[list[Any]]]] = None
 
 
 @document()

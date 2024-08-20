@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, List, Sequence, Union
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Union
 
 from gradio_client.documentation import document
 
@@ -20,7 +21,7 @@ class HighlightedToken(GradioModel):
 
 
 class HighlightedTextData(GradioRootModel):
-    root: List[HighlightedToken]
+    root: list[HighlightedToken]
 
 
 @document()
