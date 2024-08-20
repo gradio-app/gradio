@@ -1,6 +1,17 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
 
+export interface ValueData {
+	value: any;
+	is_value_data: boolean;
+}
+
+// export class ValueData {
+// 	constructor(public value: any) {
+// 		this.is_value_data = true;
+// 	}
+// }
+
 export interface SelectData {
 	index: number | [number, number];
 	value: any;

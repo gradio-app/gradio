@@ -12,7 +12,7 @@
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
-	import type { ShareData } from "@gradio/utils";
+	import type { ShareData, ValueData } from "@gradio/utils";
 	import MountComponents from "./MountComponents.svelte";
 
 	import logo from "./images/logo.svg";
@@ -211,6 +211,21 @@
 		}
 	}
 
+	async function get_component_value_or_event_data(
+		component_id: number,
+		trigger_id: number | null,
+		event_data: unknown
+	): Promise<any> {
+		if (
+			component_id === trigger_id &&
+			event_data &&
+			(event_data as ValueData).is_value_data === true
+		) {
+			return event_data.value;
+		}
+		return get_data(component_id);
+	}
+
 	async function trigger_api_call(
 		dep_index: number,
 		trigger_id: number | null = null,
@@ -226,7 +241,11 @@
 
 		let payload: Payload = {
 			fn_index: dep_index,
-			data: await Promise.all(dep.inputs.map((id) => get_data(id))),
+			data: await Promise.all(
+				dep.inputs.map((id) =>
+					get_component_value_or_event_data(id, trigger_id, event_data)
+				)
+			),
 			event_data: dep.collects_event_data ? event_data : null,
 			trigger_id: trigger_id
 		};

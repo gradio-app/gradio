@@ -2,7 +2,11 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
-	import type { SelectData, I18nFormatter } from "@gradio/utils";
+	import {
+		type SelectData,
+		type I18nFormatter,
+		type ValueData
+	} from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Webcam from "./Webcam.svelte";
 
@@ -38,8 +42,11 @@
 	export let active_source: source_type = null;
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
-		value = detail;
-		dispatch("upload");
+		// only trigger streaming event if streaming
+		if (!streaming) {
+			value = detail;
+			dispatch("upload");
+		}
 	}
 
 	function handle_clear(): void {
@@ -48,17 +55,22 @@
 		dispatch("change", null);
 	}
 
-	async function handle_save(img_blob: Blob | any): Promise<void> {
+	async function handle_save(
+		img_blob: Blob | any,
+		event: "change" | "stream" | "upload"
+	): Promise<void> {
 		pending = true;
 		const f = await upload_input.load_files([
 			new File([img_blob], `image/${streaming ? "jpeg" : "png"}`)
 		]);
 
-		value = f?.[0] || null;
-
-		await tick();
-
-		dispatch(streaming ? "stream" : "change");
+		if (event === "change" || event === "upload") {
+			value = f?.[0] || null;
+			await tick();
+			dispatch("change");
+		} else {
+			dispatch("stream", { value: f?.[0] || null, is_value_data: true });
+		}
 		pending = false;
 	}
 
@@ -67,7 +79,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change?: never;
-		stream?: never;
+		stream: ValueData;
 		clear?: never;
 		drag: boolean;
 		upload?: never;
@@ -136,11 +148,12 @@
 		{#if active_source === "webcam" && (streaming || (!streaming && !value))}
 			<Webcam
 				{root}
-				on:capture={(e) => handle_save(e.detail)}
-				on:stream={(e) => handle_save(e.detail)}
+				{value}
+				on:capture={(e) => handle_save(e.detail, "change")}
+				on:stream={(e) => handle_save(e.detail, "stream")}
 				on:error
 				on:drag
-				on:upload={(e) => handle_save(e.detail)}
+				on:upload={(e) => handle_save(e.detail, "upload")}
 				on:close_stream
 				{mirror_webcam}
 				{stream_every}
