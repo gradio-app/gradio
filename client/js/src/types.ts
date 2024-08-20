@@ -363,6 +363,7 @@ export interface StatusMessage extends Status {
 	type: "status";
 	endpoint: string;
 	fn_index: number;
+	original_msg?: string;
 }
 
 export interface PayloadMessage extends Payload {

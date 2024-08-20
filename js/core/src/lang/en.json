@@ -16,7 +16,8 @@
 		"record": "Record",
 		"no_microphone": "No microphone found",
 		"pause": "Pause",
-		"play": "Play"
+		"play": "Play",
+		"waiting": "Waiting"
 	},
 	"blocks": {
 		"connection_can_break": "On mobile, the connection can break if this tab is unfocused or the device sleeps, losing your position in queue.",
