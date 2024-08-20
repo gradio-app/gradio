@@ -3,7 +3,6 @@ import type { Client } from "@gradio/client";
 
 export interface SelectData {
 	row_value?: any[];
-	col_value?: any[];
 	index: number | [number, number];
 	value: any;
 	selected?: boolean;

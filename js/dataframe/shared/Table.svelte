@@ -69,7 +69,6 @@
 					index: [row, col],
 					value: get_data_at(row, col),
 					row_value: data[row].map((d) => d.value),
-					col_value: data.map((d) => d[col].value)
 				});
 			}
 		}
