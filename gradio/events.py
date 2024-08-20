@@ -190,13 +190,17 @@ class SelectData(EventData):
         """
         The index of the selected item. Is a tuple if the component is two dimensional or selection is a range.
         """
-        self.original_index: Any = data.get("original_index")
-        """
-        The index of the selected item in the original (e.g. unsorted) value of the component. Currently only implemented for the `Dataframe` component.
-        """
         self.value: Any = data["value"]
         """
         The value of the selected item.
+        """
+        self.row_value: Any = data.get("row_value")
+        """
+        The value of the entire row that the selected item belongs to. Only implemented for the `Dataframe` component.
+        """
+        self.col_value: Any = data.get("col_value")
+        """
+        The value of the entire row that the selected item belongs to. Only implemented for the `Dataframe` component.
         """
         self.selected: bool = data.get("selected", True)
         """
