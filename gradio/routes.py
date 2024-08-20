@@ -606,14 +606,16 @@ class App(FastAPI):
                     )
                     return response
 
-            mime_type, _ = mimetypes.guess_type(abs_path)            
+            mime_type, _ = mimetypes.guess_type(abs_path)
             content_disposition_type = "attachment"
             media_type = "application/octet-stream"
             if mime_type:
                 media_type = mime_type
-                if mime_type.startswith(("image/", "audio/", "video/")):
-                    if not mime_type == "image/svg+xml":
-                        content_disposition_type = "inline"
+                if (
+                    mime_type.startswith(("image/", "audio/", "video/"))
+                    and mime_type != "image/svg+xml"
+                ):
+                    content_disposition_type = "inline"
 
             return FileResponse(
                 abs_path,
