@@ -589,16 +589,26 @@ class App(FastAPI):
             if not abs_path.exists():
                 raise HTTPException(404, f"File not found: {path_or_url}.")
 
-            content_disposition_type = "attachment"
-            media_type = "application/octet-stream"
+            xss_vulnerable_extensions = [
+                ".html",
+                ".htm",
+                ".js",
+                ".php",
+                ".asp",
+                ".aspx",
+                ".jsp",
+                ".xml",
+                ".svg",
+            ]
             mime_type, _ = mimetypes.guess_type(abs_path)
-            if mime_type:
-                media_type = mime_type
-                if (
-                    mime_type.startswith(("image/", "audio/", "video/"))
-                    and mime_type != "image/svg+xml"
-                ):
-                    content_disposition_type = "inline"
+            file_extension = os.path.splitext(abs_path)[1].lower()
+
+            if file_extension in xss_vulnerable_extensions:
+                media_type = "application/octet-stream"
+                content_disposition_type = "attachment"
+            else:
+                media_type = mime_type or "application/octet-stream"
+                content_disposition_type = "inline"
 
             range_val = request.headers.get("Range", "").strip()
             if range_val.startswith("bytes=") and "-" in range_val:
