@@ -1,0 +1,16 @@
+diff --git a/src/cli.js b/src/cli.js
+index 4833dc489359f2fba202668672f3cd8e09c427d5..7aa312f3677b73dbdfd4d0f1bb2b66bd17346cb3 100644
+--- a/src/cli.js
++++ b/src/cli.js
+@@ -28,9 +28,10 @@ prog
+ 		'--tsconfig',
+ 		'A path to a tsconfig or jsconfig file. When not provided, searches for the next upper tsconfig/jsconfig in the workspace path.'
+ 	)
++	.option('-c, --cwd', 'The current working directory')
+ 	.action(async (args) => {
+ 		try {
+-			const config = await load_config();
++			const config = await load_config({cwd: args.cwd});
+ 
+ 			// @ts-expect-error
+ 			if (config.package) {

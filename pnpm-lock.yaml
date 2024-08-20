@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@sveltejs/package@2.3.4':
+    hash: 4pvdbd5i3hdfo2lsgmcosbzkx4
+    path: patches/@sveltejs__package@2.3.4.patch
+
 importers:
 
   .:
@@ -37,7 +42,7 @@ importers:
         version: link:js/tootils
       '@sveltejs/package':
         specifier: ^2.3.4
-        version: 2.3.4(svelte@4.2.15)(typescript@5.5.4)
+        version: 2.3.4(patch_hash=4pvdbd5i3hdfo2lsgmcosbzkx4)(svelte@4.2.15)(typescript@5.5.4)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.0
         version: 3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38)))
@@ -12717,7 +12722,7 @@ snapshots:
       tiny-glob: 0.2.9
       vite: 5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))
 
-  '@sveltejs/package@2.3.4(svelte@4.2.15)(typescript@5.5.4)':
+  '@sveltejs/package@2.3.4(patch_hash=4pvdbd5i3hdfo2lsgmcosbzkx4)(svelte@4.2.15)(typescript@5.5.4)':
     dependencies:
       chokidar: 3.6.0
       kleur: 4.1.5
