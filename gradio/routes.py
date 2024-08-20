@@ -589,6 +589,17 @@ class App(FastAPI):
             if not abs_path.exists():
                 raise HTTPException(404, f"File not found: {path_or_url}.")
 
+            content_disposition_type = "attachment"
+            media_type = "application/octet-stream"
+            mime_type, _ = mimetypes.guess_type(abs_path)
+            if mime_type:
+                media_type = mime_type
+                if (
+                    mime_type.startswith(("image/", "audio/", "video/"))
+                    and mime_type != "image/svg+xml"
+                ):
+                    content_disposition_type = "inline"
+
             range_val = request.headers.get("Range", "").strip()
             if range_val.startswith("bytes=") and "-" in range_val:
                 range_val = range_val[6:]
@@ -597,7 +608,8 @@ class App(FastAPI):
                     start = int(start)
                     end = int(end)
                     headers = dict(request.headers)
-                    headers["Content-Disposition"] = "attachment"
+                    headers["Content-Disposition"] = content_disposition_type
+                    headers["Content-Type"] = media_type
                     response = ranged_response.RangedFileResponse(
                         abs_path,
                         ranged_response.OpenRange(start, end),
@@ -605,17 +617,6 @@ class App(FastAPI):
                         stat_result=os.stat(abs_path),
                     )
                     return response
-
-            mime_type, _ = mimetypes.guess_type(abs_path)
-            content_disposition_type = "attachment"
-            media_type = "application/octet-stream"
-            if mime_type:
-                media_type = mime_type
-                if (
-                    mime_type.startswith(("image/", "audio/", "video/"))
-                    and mime_type != "image/svg+xml"
-                ):
-                    content_disposition_type = "inline"
 
             return FileResponse(
                 abs_path,
