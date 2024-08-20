@@ -1,4 +1,5 @@
 ---
+"@gradio/dataframe": minor
 "@gradio/utils": minor
 "gradio": minor
 ---
