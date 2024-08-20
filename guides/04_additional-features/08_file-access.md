@@ -17,13 +17,13 @@ Before placing a file in the cache, Gradio will check to see if the file meets a
 1. It was uploaded by a user.
 2. It is in the `allowed_paths` parameter of the `Blocks.launch` method.
 3. It is in the current working directory of the python interpreter.
-4. It is in the temp directory obtained by `tempdir.gettempdir()`.
+4. It is in the temp directory obtained by `tempfile.gettempdir()`.
 
 Additionally, files in the current working directory must not start with a period (`.`). If no criteria are met, the prediction function that created that file will error. Gradio performs this check so that arbitrary files on your machine are not moved to the cache.
 
 If at any time Gradio blocks a file that you would like it to process, add its path to the `allowed_paths` parameter.
 
-Tip: Prefer to read/write files from your prediction function in your application's local directory. But if you need to save files elsewhere, make sure that path is in `allowed_paths`. For example, if you change the default example caching directory to be outside the current working directory.
+Tip: Prefer to read/write files from your prediction function in your application's local directory. But if you need to save files elsewhere, make sure that path is in `allowed_paths`. For example, if you change the default examples caching directory to be outside the current working directory.
 
 ## The files Gradio will allow others to access 
 
