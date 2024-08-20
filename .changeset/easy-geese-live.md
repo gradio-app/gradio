@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Allow accessing the entire row and column of selected value in `gr.DataFrame`
+feat:Allow accessing the entire row of selected values in `gr.DataFrame`
