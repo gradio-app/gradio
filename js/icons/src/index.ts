@@ -58,3 +58,5 @@ export { default as VolumeHigh } from "./VolumeHigh.svelte";
 export { default as VolumeMuted } from "./VolumeMuted.svelte";
 export { default as Warning } from "./Warning.svelte";
 export { default as Webcam } from "./Webcam.svelte";
+export { default as ZoomIn } from "./ZoomIn.svelte";
+export { default as ZoomOut } from "./ZoomOut.svelte";

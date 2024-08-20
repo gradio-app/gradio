@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-	import type { Writable, Readable } from "svelte/store";
+	import type { Writable } from "svelte/store";
 	import type { Spring } from "svelte/motion";
 	import { type PixiApp } from "./utils/pixi";
 	import { type CommandManager } from "./utils/commands";
@@ -47,6 +47,9 @@
 			}
 		) => void;
 		reset: (clear_image: boolean, dimensions: [number, number]) => void;
+		zoom_in: () => void;
+		zoom_out: () => void;
+		reset_zoom_pan: () => void;
 	}
 </script>
 
@@ -57,10 +60,12 @@
 	import { Rectangle } from "pixi.js";
 
 	import { command_manager } from "./utils/commands";
+	import { init_zoom_pan } from "./utils/zoom_pan";
 
 	import { type LayerScene } from "./layers/utils";
 	import { create_pixi_app, type ImageBlobs } from "./utils/pixi";
 	import Controls from "./Controls.svelte";
+	import ZoomControls from "./tools/ZoomControls.svelte";
 	export let antialias = true;
 	export let crop_size: [number, number] | undefined;
 	export let changeable = false;
@@ -74,6 +79,30 @@
 	}>();
 	export let crop_constraint = false;
 	export let canvas_size: [number, number] | undefined;
+
+	const zoom_pan_logic = init_zoom_pan();
+	const {
+		zoom_pan_state,
+		reset_zoom_pan,
+		handle_wheel,
+		zoom_to_point,
+		zoom_in,
+		zoom_out
+	} = zoom_pan_logic;
+
+	function handle_canvas_wheel(event: WheelEvent): void {
+		handle_wheel(event);
+	}
+
+	function handle_zoom_in(): void {
+		const rect = pixi_target.getBoundingClientRect();
+		zoom_to_point($zoom_pan_state.scale * 1.5, rect.width / 2, rect.height / 2);
+	}
+
+	function handle_zoom_out(): void {
+		const rect = pixi_target.getBoundingClientRect();
+		zoom_to_point($zoom_pan_state.scale / 1.5, rect.width / 2, rect.height / 2);
+	}
 
 	$: orig_canvas_size = canvas_size;
 
@@ -140,6 +169,9 @@
 		position_spring,
 		command_manager: CommandManager,
 		current_history,
+		zoom_in: handle_zoom_in,
+		zoom_out: handle_zoom_out,
+		reset_zoom_pan,
 		register_context: (
 			type: context_type,
 			{
@@ -278,6 +310,10 @@
 	}
 
 	onMount(() => {
+		canvas_wrap.addEventListener("wheel", handle_canvas_wheel, {
+			passive: false
+		});
+
 		const _size = (canvas_size ? canvas_size : crop_size) || [800, 600];
 		const app = create_pixi_app({
 			target: pixi_target,
@@ -310,6 +346,8 @@
 		resize(...$dimensions);
 
 		return () => {
+			canvas_wrap.removeEventListener("wheel", handle_canvas_wheel);
+
 			$pixi?.destroy();
 			resizer.disconnect();
 			for (const k of $contexts) {
@@ -350,7 +388,8 @@
 			bind:this={pixi_target}
 			class="stage-wrap"
 			class:bg={!bg}
-			style:transform="translate({$position_spring.x}px, {$position_spring.y}px)"
+			style:transform="translate({$position_spring.x}px, {$position_spring.y}px)
+			scale({$zoom_pan_state.scale}) translate({$zoom_pan_state.translate_x}px, {$zoom_pan_state.translate_y}px)"
 		></div>
 	</div>
 	<div class="tools-wrap">
@@ -368,6 +407,8 @@
 			($editor_box.child_left - $editor_box.parent_left) -
 			0.5}px"
 	></div>
+
+	<ZoomControls {zoom_in} {zoom_out} {reset_zoom_pan} />
 </div>
 
 <style>
@@ -395,6 +436,7 @@
 		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
 		overflow: hidden;
+		transition: transform 0.1s ease-out;
 	}
 
 	.tools-wrap {
@@ -405,6 +447,8 @@
 		border: 1px solid var(--block-border-color);
 		border-radius: var(--radius-sm);
 		margin: var(--spacing-xxl) 0 var(--spacing-xxl) 0;
+		background: var(--block-background-fill);
+		z-index: var(--layer-2);
 	}
 
 	.image-container {

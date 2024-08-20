@@ -101,9 +101,11 @@
 			mode
 		);
 
+		const { x, y } = event.getLocalPosition($pixi.layer_container);
+
 		draw.start({
-			x: event.screen.x,
-			y: event.screen.y,
+			x,
+			y,
 			color: selected_color || undefined,
 			size: selected_size,
 			opacity: 1
@@ -127,10 +129,8 @@
 			return;
 		}
 		if (drawing) {
-			draw.continue({
-				x: event.screen.x,
-				y: event.screen.y
-			});
+			const { x, y } = event.getLocalPosition($pixi?.layer_container);
+			draw.continue({ x, y });
 		}
 
 		const x_bound = $crop[0] * $dimensions[0];

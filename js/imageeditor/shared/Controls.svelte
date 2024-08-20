@@ -89,6 +89,7 @@
 		position: absolute;
 		top: var(--size-2);
 		right: var(--size-2);
+		background: var(--block-background-fill);
 	}
 	.row-wrap {
 		display: flex;
@@ -96,5 +97,9 @@
 		justify-content: flex-end;
 		gap: var(--spacing-sm);
 		z-index: var(--layer-5);
+	}
+
+	.row-wrap :global(button) {
+		background-color: var(--block-background-fill);
 	}
 </style>
