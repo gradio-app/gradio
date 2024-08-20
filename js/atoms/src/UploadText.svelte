@@ -58,7 +58,7 @@
 
 <style>
 	h2 {
-		font-size: var(--text-xl);
+		font-size: var(--text-xl) !important;
 	}
 
 	p,
