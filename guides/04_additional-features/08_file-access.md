@@ -27,7 +27,7 @@ Tip: Prefer to read/write files from your prediction function in your applicatio
 
 ## The files Gradio will allow others to access 
 
-In short, these are the files located in the `cache` and any other additional paths you grant access to via `allowed_paths` or `gr.set_static_paths`.
+In short, these are the files located in the `cache` and any other additional paths **YOU** grant access to via `allowed_paths` or `gr.set_static_paths`.
 
 - **The `allowed_paths` parameter in `launch()`**. This parameter allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
 
