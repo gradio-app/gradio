@@ -635,6 +635,7 @@ class App(FastAPI):
                 headers={"Accept-Ranges": "bytes"},
                 content_disposition_type=content_disposition_type,
                 media_type=media_type,
+                filename=abs_path.name,
             )
 
         @app.get(

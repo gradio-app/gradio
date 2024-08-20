@@ -275,9 +275,11 @@ class TestRoutes:
 
         file_response = client.get(f"/file={image_file.name}")
         assert file_response.headers["Content-Type"] == "image/png"
+        assert "inline" in file_response.headers["Content-Disposition"]
 
         file_response = client.get(f"/file={html_file.name}")
         assert file_response.headers["Content-Type"] == "application/octet-stream"
+        assert "attachment" in file_response.headers["Content-Disposition"]
 
     def test_allowed_and_blocked_paths(self):
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
