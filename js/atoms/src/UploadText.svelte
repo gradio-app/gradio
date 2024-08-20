@@ -27,8 +27,8 @@
 		clipboard: "upload_text.paste_clipboard"
 	};
 
-	let heading;
-	let paragraph;
+	let heading: string | undefined;
+	let paragraph: string | undefined;
 
 	$: if (placeholder) {
 		[heading, paragraph] = inject(placeholder);

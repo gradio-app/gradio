@@ -200,8 +200,8 @@
 	let active_mode: "webcam" | "color" | null = null;
 	let editor_height = 0;
 
-	let heading;
-	let paragraph;
+	let heading: string | undefined;
+	let paragraph: string | undefined;
 
 	$: if (placeholder) {
 		[heading, paragraph] = inject(placeholder);
