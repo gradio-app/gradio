@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from gradio_client.utils import ServerMessage
 from pydantic import BaseModel
@@ -19,7 +19,7 @@ class ProgressUnit(BaseModel):
 
 class ProgressMessage(BaseMessage):
     msg: Literal[ServerMessage.progress] = ServerMessage.progress  # type: ignore
-    progress_data: List[ProgressUnit] = []
+    progress_data: list[ProgressUnit] = []
 
 
 class LogMessage(BaseMessage):

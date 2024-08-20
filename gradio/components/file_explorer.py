@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import fnmatch
 import os
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
 class FileExplorerData(GradioRootModel):
     # The outer list is the list of files selected, and the inner list
     # is the path to the file as a list, split by the os.sep.
-    root: List[List[str]]
+    root: list[list[str]]
 
 
 @document()

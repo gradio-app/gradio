@@ -9,7 +9,8 @@ import json
 import os
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -289,7 +290,10 @@ class Interface(Blocks):
 
         if len(self.input_components) == len(self.output_components):
             same_components = [
-                i is o for i, o in zip(self.input_components, self.output_components)
+                i is o
+                for i, o in zip(
+                    self.input_components, self.output_components, strict=False
+                )
             ]
             if all(same_components):
                 self.interface_type = InterfaceTypes.UNIFIED
@@ -445,7 +449,9 @@ class Interface(Blocks):
                     param_names.remove(param_name)
         except (TypeError, ValueError):
             param_names = utils.default_input_labels()
-        for component, param_name in zip(self.input_components, param_names):
+        for component, param_name in zip(
+            self.input_components, param_names, strict=False
+        ):
             if not isinstance(component, Component):
                 raise TypeError(
                     f"Input component must be a Component, not {type(component)}"
@@ -834,7 +840,9 @@ class Interface(Blocks):
         else:
             flag_components = self.input_components + self.output_components
 
-        for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
+        for flag_btn, (label, value) in zip(
+            flag_btns, self.flagging_options, strict=False
+        ):
             if not isinstance(value, str):
                 raise TypeError(
                     f"Flagging option value must be a string, not {value!r}"
@@ -951,7 +959,7 @@ class TabbedInterface(Blocks):
                     f"<h1 style='text-align: center; margin-bottom: 1rem'>{title}</h1>"
                 )
             with Tabs():
-                for interface, tab_name in zip(interface_list, tab_names):
+                for interface, tab_name in zip(interface_list, tab_names, strict=False):
                     with Tab(label=tab_name):
                         interface.render()
 

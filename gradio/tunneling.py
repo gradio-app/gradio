@@ -9,12 +9,11 @@ import sys
 import time
 import warnings
 from pathlib import Path
-from typing import List
 
 import httpx
 
 VERSION = "0.2"
-CURRENT_TUNNELS: List["Tunnel"] = []
+CURRENT_TUNNELS: list["Tunnel"] = []
 
 machine = platform.machine()
 if machine == "x86_64":

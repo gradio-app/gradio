@@ -4,16 +4,12 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import dataclasses
+from collections.abc import Callable, Sequence, Set
 from functools import partial, wraps
 from typing import (
     TYPE_CHECKING,
-    AbstractSet,
     Any,
-    Callable,
-    Dict,
-    List,
     Literal,
-    Sequence,
     Union,
     cast,
 )
@@ -322,7 +318,7 @@ if TYPE_CHECKING:
             int,
             bool,
             bool,
-            Union[Dict[str, Any], List[Dict[str, Any]], None],
+            Union[dict[str, Any], list[dict[str, Any]], None],
             Union[float, None],
             Union[Literal["once", "multiple", "always_last"], None],
             Union[str, None],
@@ -406,12 +402,12 @@ class EventListener(str):
             inputs: Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext]
+            | Set[Component | BlockContext]
             | None = None,
             outputs: Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext]
+            | Set[Component | BlockContext]
             | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
@@ -545,12 +541,12 @@ def on(
     inputs: Component
     | BlockContext
     | Sequence[Component | BlockContext]
-    | AbstractSet[Component | BlockContext]
+    | Set[Component | BlockContext]
     | None = None,
     outputs: Component
     | BlockContext
     | Sequence[Component | BlockContext]
-    | AbstractSet[Component | BlockContext]
+    | Set[Component | BlockContext]
     | None = None,
     *,
     api_name: str | None | Literal[False] = None,
