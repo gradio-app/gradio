@@ -51,4 +51,6 @@ jobs:
       - name: build client
         run: pnpm --filter @gradio/client --filter @gradio/wasm --filter @gradio/preview build
       - name: publish npm previews
-        run: API_URL=https://pkg.pr.new pnpx pkg-pr-new@https://d61368b4.stackblitz-cr.pages.dev/stackblitz-labs/pkg.pr.new/pkg-pr-new@183 publish './js/*' './client/js' --comment=off --json
+        run: API_URL=https://pkg.pr.new pnpx pkg-pr-new@https://d61368b4.stackblitz-cr.pages.dev/stackblitz-labs/pkg.pr.new/pkg-pr-new@183 publish './js/*' './client/js' --comment=off --json=package_previews.json
+      - name: cat output
+        run: cat package_previews.json
