@@ -147,7 +147,7 @@
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 
-		const image = canvas.getByLabelText("Thumbnail 1 of 7");
+		const image = canvas.getByLabelText("Thumbnail 1 of 8");
 		await userEvent.click(image);
 		const expand_btn = canvas.getByRole("button", {
 			name: "View in full screen"
