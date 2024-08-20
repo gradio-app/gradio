@@ -27,12 +27,7 @@
 		clipboard: "upload_text.paste_clipboard"
 	};
 
-	let heading: string | undefined;
-	let paragraph: string | undefined;
-
-	$: if (placeholder) {
-		[heading, paragraph] = inject(placeholder);
-	}
+	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
 </script>
 
 <div class="wrap">
@@ -44,7 +39,7 @@
 		{/if}
 	</span>
 
-	{#if placeholder}
+	{#if heading || paragraph}
 		{#if heading}
 			<h2>{heading}</h2>
 		{/if}
