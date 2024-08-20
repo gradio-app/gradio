@@ -125,6 +125,17 @@ BUILD_PATH_LIB = cast(
     files("gradio").joinpath("templates", "frontend", "assets").as_posix(),  # type: ignore
 )
 VERSION = get_package_version()
+XSS_VULNERABLE_EXTENSIONS = [
+    ".html",
+    ".htm",
+    ".js",
+    ".php",
+    ".asp",
+    ".aspx",
+    ".jsp",
+    ".xml",
+    ".svg",
+]
 
 
 class ORJSONResponse(JSONResponse):
@@ -530,7 +541,9 @@ class App(FastAPI):
             except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err)) from err
             rp_resp = await client.send(rp_req, stream=True)
-            rp_resp.headers.update({"Content-Disposition": "attachment"})
+            file_extension = os.path.splitext(url_path)[1].lower()
+            if file_extension in XSS_VULNERABLE_EXTENSIONS:
+                rp_resp.headers.update({"Content-Disposition": "attachment"})
             return StreamingResponse(
                 rp_resp.aiter_raw(),
                 status_code=rp_resp.status_code,
@@ -589,21 +602,10 @@ class App(FastAPI):
             if not abs_path.exists():
                 raise HTTPException(404, f"File not found: {path_or_url}.")
 
-            xss_vulnerable_extensions = [
-                ".html",
-                ".htm",
-                ".js",
-                ".php",
-                ".asp",
-                ".aspx",
-                ".jsp",
-                ".xml",
-                ".svg",
-            ]
             mime_type, _ = mimetypes.guess_type(abs_path)
             file_extension = os.path.splitext(abs_path)[1].lower()
 
-            if file_extension in xss_vulnerable_extensions:
+            if file_extension in XSS_VULNERABLE_EXTENSIONS:
                 media_type = "application/octet-stream"
                 content_disposition_type = "attachment"
             else:
