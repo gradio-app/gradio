@@ -17,7 +17,7 @@
 		}
 	};
 
-	let md = `**This is bold text** _this is italic_. <br> a new line! `;
+	let md = `# a heading! /n a new line! `;
 </script>
 
 <Template let:args>
