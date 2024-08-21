@@ -26,10 +26,9 @@ export interface WorkerProxyOptions {
 }
 
 export class WorkerProxy extends EventTarget {
-	private worker: globalThis.Worker | globalThis.SharedWorker;
-	private postMessageTarget: globalThis.Worker | MessagePort;
-
-	private firstRunPromiseDelegate = new PromiseDelegate<void>();
+	worker: globalThis.Worker | globalThis.SharedWorker;
+	postMessageTarget: globalThis.Worker | MessagePort;
+	firstRunPromiseDelegate = new PromiseDelegate<void>();
 
 	constructor(options: WorkerProxyOptions) {
 		super();
@@ -138,7 +137,7 @@ export class WorkerProxy extends EventTarget {
 	// returns void immediately, this function returns a promise, which resolves
 	// when a ReplyMessage is received from the worker.
 	// The original implementation is in https://github.com/rstudio/shinylive/blob/v0.1.2/src/pyodide-proxy.ts#L404-L418
-	private postMessageAsync(msg: InMessage): Promise<unknown> {
+	postMessageAsync(msg: InMessage): Promise<unknown> {
 		return new Promise((resolve, reject) => {
 			const channel = new MessageChannel();
 
@@ -157,7 +156,7 @@ export class WorkerProxy extends EventTarget {
 		});
 	}
 
-	private _processWorkerMessage(msg: OutMessage): void {
+	_processWorkerMessage(msg: OutMessage): void {
 		switch (msg.type) {
 			case "progress-update": {
 				this.dispatchEvent(

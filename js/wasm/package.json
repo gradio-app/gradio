@@ -6,6 +6,7 @@
 	"main": "./dist/src/index.js",
 	"exports": {
 		".": {
+			"gradio": "./src/index.ts",
 			"import": "./dist/src/index.js",
 			"types": "./dist/src/index.d.ts"
 		},
@@ -28,7 +29,7 @@
 		"dev:client": "tsc -w --incremental",
 		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
 		"dev": "run-p dev:*",
-		"build:client": "tsc",
+		"build:client": "svelte-package --input=. --cwd=../../.config/ && tsc ",
 		"build:worker": "vite build --config vite.worker.config.js",
 		"build": "run-s build:client build:worker"
 	},
