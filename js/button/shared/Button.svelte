@@ -62,21 +62,23 @@
 		justify-content: center;
 		align-items: center;
 		transition: var(--button-transition);
-		box-shadow: var(--button-shadow);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
+	}
+
+	button:hover {
+		transform: var(--button-transform);
+		transition: all 0.2s;
 	}
 
 	button:hover,
 	button[disabled],
 	a:hover,
 	a.disabled {
-		box-shadow: var(--button-shadow-hover);
 	}
 
 	button:active,
 	a:active {
-		box-shadow: var(--button-shadow-active);
 	}
 
 	button[disabled],
