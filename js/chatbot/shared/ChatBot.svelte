@@ -688,7 +688,7 @@
 		div
 		:not(.image-button)
 		:global(img) {
-		border-radius: 13px;
+		border-radius: var(--radius-xl);
 		margin: var(--size-2);
 		width: 400px;
 		max-width: 30vw;
