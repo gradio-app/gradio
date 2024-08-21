@@ -51,6 +51,7 @@
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
+	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
 
 	export let gradio: Gradio<{
@@ -201,7 +202,7 @@
 			stream_handler={gradio.client.stream}
 		>
 			{#if active_source === "upload" || !active_source}
-				<UploadText i18n={gradio.i18n} type="image" />
+				<UploadText i18n={gradio.i18n} type="image" {placeholder} />
 			{:else if active_source === "clipboard"}
 				<UploadText i18n={gradio.i18n} type="clipboard" mode="short" />
 			{:else}
