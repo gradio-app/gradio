@@ -56,6 +56,7 @@ jobs:
         with:
           always_install_pnpm: true
           skip_build: true
+          python_version: "3.10"
       - name: build client
         run: pnpm --filter @gradio/client build
 
