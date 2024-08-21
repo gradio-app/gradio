@@ -41,9 +41,12 @@ export class WorkerProxy extends EventTarget {
 		// assuming that this module is imported from the Gradio frontend (`@gradio/lite`), which is bundled with Vite.
 		// HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
 		// Read the comment in `cross-origin-worker.ts` for the detail.
-		const workerMaker = new Worker(new URL("./webworker.js", import.meta.url), {
-			/* @vite-ignore */ shared: sharedWorkerMode // `@vite-ignore` is needed to avoid an error `Vite is unable to parse the worker options as the value is not static.`
-		});
+		const workerMaker = new Worker(
+			new URL("../webworker/webworker.js", import.meta.url),
+			{
+				/* @vite-ignore */ shared: sharedWorkerMode // `@vite-ignore` is needed to avoid an error `Vite is unable to parse the worker options as the value is not static.`
+			}
+		);
 
 		this.worker = workerMaker.worker;
 		if (sharedWorkerMode) {

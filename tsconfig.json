@@ -53,7 +53,9 @@
 		"client/js/**",
 		"**/vite.config*",
 		".changeset/*.cjs",
-		"**/storybook-static/**/*"
+		"**/storybook-static/**/*",
+		"**/build/out/**/*",
+		"**/component-test/**/*"
 	],
 	"include": [
 		"**/*.d.ts",

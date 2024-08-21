@@ -31,7 +31,7 @@
 		"./package.json": "./package.json",
 		".": {
 			"gradio": "./index.ts",
-			"svelte": "./dist/index.ts",
+			"svelte": "./dist/index.js",
 			"types": "./dist/index.d.ts"
 		},
 		"./example": {
@@ -41,7 +41,7 @@
 		},
 		"./shared": {
 			"gradio": "./shared/index.ts",
-			"svelte": "./dist/shared/index.ts",
+			"svelte": "./dist/shared/index.js",
 			"types": "./dist/shared/index.d.ts"
 		},
 		"./base": {

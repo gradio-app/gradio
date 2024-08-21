@@ -3,9 +3,9 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"scripts": {
-		"dev": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/preview build && pnpm --filter @self/spa dev",
+		"dev": "pnpm css && pnpm --filter @gradio/preview build && pnpm --filter @self/spa dev",
 		"css": "pnpm --filter @gradio/theme generate",
-		"build": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @self/spa build --emptyOutDir && pnpm --filter @gradio/preview build",
+		"build": "pnpm css && pnpm --filter @self/spa build --emptyOutDir && pnpm --filter @gradio/preview build",
 		"build:lite": "pnpm --filter @gradio/lite build",
 		"format:check": "prettier --ignore-path .config/.prettierignore --check --config .config/.prettierrc.json --plugin prettier-plugin-svelte .",
 		"format:write": "prettier --ignore-path .config/.prettierignore --write --config .config/.prettierrc.json --plugin prettier-plugin-svelte .",
@@ -26,7 +26,7 @@
 		"chromatic": "chromatic",
 		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
 		"website": "pnpm --filter @gradio/website build",
-		"package": "pnpm --filter @gradio/* --filter=!@gradio/lite --filter=!@gradio/wasm --filter=!@gradio/client --filter=!@gradio/preview exec svelte-package --input=. --cwd=../../.config/"
+		"package": "pnpm --filter @gradio/* --filter=!@gradio/lite --filter=!@gradio/client --filter=!@gradio/preview exec svelte-package --input=. --cwd=../../.config/"
 	},
 	"type": "module",
 	"author": "",

@@ -26,7 +26,7 @@
 		"./package.json": "./package.json",
 		".": {
 			"gradio": "./index.ts",
-			"svelte": "./dist/index.ts",
+			"svelte": "./dist/index.js",
 			"types": "./dist/index.d.ts"
 		},
 		"./example": {

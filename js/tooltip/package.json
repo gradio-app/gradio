@@ -17,8 +17,8 @@
 	},
 	"exports": {
 		".": {
-			"gradio": "./src/index.ts",
-			"svelte": "./dist/src/index.ts",
+			"gradio": "./src/index.js",
+			"svelte": "./dist/src/index.js",
 			"types": "./dist/src/index.d.ts"
 		},
 		"./package.json": "./package.json"

@@ -10,7 +10,7 @@
 	"exports": {
 		".": {
 			"gradio": "./index.ts",
-			"svelte": "./dist/index.ts",
+			"svelte": "./dist/index.js",
 			"types": "./dist/index.d.ts"
 		},
 		"./package.json": "./package.json"

@@ -594,9 +594,6 @@ importers:
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
-      svelte2tsx:
-        specifier: ^0.7.15
-        version: 0.7.15(svelte@4.2.15)(typescript@5.5.4)
 
   js/audio:
     dependencies:
@@ -9133,12 +9130,6 @@ packages:
 
   svelte-range-slider-pips@2.0.1:
     resolution: {integrity: sha512-sCHvcTgi0ZYE4c/mwSsdALRsfuqEmpwTsSUdL+PUrumZ8u2gv1GKwZ3GohcAcTB6gfmqRBkyn6ujRXrOIga1gw==}
-
-  svelte2tsx@0.7.15:
-    resolution: {integrity: sha512-91RbLJI448FR1UEZqXSS3ucVMERuWo8ACOhxfkBPK1CL2ocGMOC5bwc8tzFvb/Ji8NqZ7wmSGfvRebcUsiauKA==}
-    peerDependencies:
-      svelte: ^3.55 || ^4.0.0-next.0 || ^4.0 || ^5.0.0-next.0
-      typescript: ^4.9.4 || ^5.0.0
 
   svelte2tsx@0.7.7:
     resolution: {integrity: sha512-HAIxtk5TUHXvCRKApKfxoh1BGT85S/17lS3DvbfxRKFd+Ghr5YScqBvd+sU+p7vJFw48LNkzdFk+ooNVk3e4kA==}
@@ -17827,13 +17818,6 @@ snapshots:
       typescript: 5.5.4
 
   svelte-range-slider-pips@2.0.1: {}
-
-  svelte2tsx@0.7.15(svelte@4.2.15)(typescript@5.5.4):
-    dependencies:
-      dedent-js: 1.0.1
-      pascal-case: 3.1.2
-      svelte: 4.2.15
-      typescript: 5.5.4
 
   svelte2tsx@0.7.7(svelte@4.2.15)(typescript@5.5.4):
     dependencies:
