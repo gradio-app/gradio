@@ -51,7 +51,7 @@ class TestExamples:
 
     def test_handle_directory(self, patched_cache_folder):
         examples = gr.Examples("test/test_files/images", gr.Image())
-        assert len(examples.non_none_processed_examples.as_list()) == 4
+        assert len(examples.non_none_processed_examples.as_list()) == 2
         for row in examples.non_none_processed_examples.as_list():
             for output in row:
                 assert (

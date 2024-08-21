@@ -3,8 +3,8 @@
 	import StaticImage from "./Index.svelte";
 	import { userEvent, within } from "@storybook/test";
 	import { allModes } from "../storybook/modes";
-	import image_file_100x100 from "../../test/test_files/images/image_100x100.webp";
-	import image_file_100x1000 from "../../test/test_files/images/image_100x1000.webp";
+	import image_file_100x100 from "../storybook/test_files/image_100x100.webp";
+	import image_file_100x1000 from "../storybook/test_files/image_100x100.webp";
 
 	export const meta = {
 		title: "Components/Image",
