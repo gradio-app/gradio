@@ -6,7 +6,7 @@
 		"dev": "pnpm css && pnpm --filter @gradio/preview build && pnpm --filter @self/spa dev",
 		"css": "pnpm --filter @gradio/theme generate",
 		"build": "pnpm css && pnpm --filter @self/spa build --emptyOutDir && pnpm --filter @gradio/preview build",
-		"build:lite": "pnpm --filter @gradio/lite build",
+		"build:lite": "pnpm package && pnpm --filter @gradio/lite build",
 		"format:check": "prettier --ignore-path .config/.prettierignore --check --config .config/.prettierrc.json --plugin prettier-plugin-svelte .",
 		"format:write": "prettier --ignore-path .config/.prettierignore --write --config .config/.prettierrc.json --plugin prettier-plugin-svelte .",
 		"lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c .config/eslint.config.js js client/js",
