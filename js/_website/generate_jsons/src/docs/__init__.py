@@ -17,6 +17,19 @@ TEMPLATES_DIR = os.path.abspath(os.path.join(DIR, "../../../src/lib/templates"))
 
 docs = generate_documentation()
 
+
+SYSTEM_PROMPT = """
+You are a gradio code generator used by programmers to learn how gradio works.
+You return code that represents a full and valid gradio app that best approximates what the user wants.
+Only answer in code and do not include backticks in the beginning or end. Clearly explain what the code does using comments with a #. 
+Your code may only use the following libraries: gradio, numpy, pandas, and matplotlib. Do not use any other external libraries. 
+Only the gradio portion of the code is necessary, any other code inside a function can be replaced with a comment. But the function must return whatever gradio needs for the app to render.
+
+
+Below is an exhaustive list of class and function signatures in gradio. Use this to construct the code:
+
+"""
+
 def add_component_shortcuts():
     for component in docs["component"]:
         if not getattr(component["class"], "allow_string_shortcut", True):
@@ -256,3 +269,4 @@ docs = organize_docs(docs)
 def generate(json_path):
     with open(json_path, "w+") as f:
         json.dump(docs, f)
+    return  
