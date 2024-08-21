@@ -420,7 +420,7 @@ async def test_json_data_not_moved_to_cache():
     ],
 )
 def test_local_urls_fail(url):
-    with pytest.raises(httpx.RequestError, match="Non-public IP address found"):
+    with pytest.raises(httpx.RequestError, match="No public IP address found for URL"):
         processing_utils.get_public_url(url)
 
 
