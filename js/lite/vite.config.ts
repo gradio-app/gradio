@@ -180,7 +180,6 @@ export default defineConfig(({ mode }) => {
 		},
 
 		resolve: {
-			conditions: ["gradio"],
 			alias: {
 				// For the Wasm app to import the wheel file URLs.
 				"gradio.whl": resolve(
