@@ -34,7 +34,7 @@
 	const spaces_docs_suffix = "#connecting-to-a-hugging-face-space";
 
 	let api_count = dependencies.filter(
-		(dependency) => dependency.show_api,
+		(dependency) => dependency.show_api
 	).length;
 
 	if (root === "") {
@@ -50,7 +50,7 @@
 	const langs = [
 		["python", python],
 		["javascript", javascript],
-		["bash", bash],
+		["bash", bash]
 	] as const;
 
 	let is_running = false;
