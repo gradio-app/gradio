@@ -1,5 +1,33 @@
 # gradio
 
+## 4.42.0
+
+### Features
+
+- [#9128](https://github.com/gradio-app/gradio/pull/9128) [`747013b`](https://github.com/gradio-app/gradio/commit/747013bbacebae6bfdda554b45e541e80b2894e0) - Allow accessing the entire row of selected values in `gr.DataFrame`.  Thanks @abidlabs!
+- [#8935](https://github.com/gradio-app/gradio/pull/8935) [`f6b2b97`](https://github.com/gradio-app/gradio/commit/f6b2b97d473dd81571410cccc6e1ddfcf9fa00bc) - Initialize the client with the fake host for Lite server.  Thanks @whitphx!
+- [#9031](https://github.com/gradio-app/gradio/pull/9031) [`04b7d32`](https://github.com/gradio-app/gradio/commit/04b7d327ec1227a693fc2dfea51b1e2729851bde) - Allow drag and replace image in `gr.Image` and Multimodal textbox.  Thanks @hannahblair!
+- [#8930](https://github.com/gradio-app/gradio/pull/8930) [`41d5ab9`](https://github.com/gradio-app/gradio/commit/41d5ab987ba9728753be4509490c79041655809b) - Add `placeholder` param to Image and ImageEditor to replace upload image text.  Thanks @hannahblair!
+- [#9023](https://github.com/gradio-app/gradio/pull/9023) [`87e3537`](https://github.com/gradio-app/gradio/commit/87e3537342017c7f19d012f0806a14bc264e09f9) - Add height param to gr.JSON.  Thanks @hannahblair!
+- [#9013](https://github.com/gradio-app/gradio/pull/9013) [`5350f1f`](https://github.com/gradio-app/gradio/commit/5350f1feb20cb7458d188403f319c5087052f695) - Add copy all messages button to chatbot.  Thanks @hannahblair!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor.  Thanks @pngwn!
+
+### Fixes
+
+- [#9078](https://github.com/gradio-app/gradio/pull/9078) [`1a9d729`](https://github.com/gradio-app/gradio/commit/1a9d7297c17a3bc0493be34e8e762350ab7f0844) - Catch OSErrors in `HuggingFaceDatasetSaver._deserialize_components`.  Thanks @davidberenstein1957!
+- [#9088](https://github.com/gradio-app/gradio/pull/9088) [`96f8ffa`](https://github.com/gradio-app/gradio/commit/96f8ffa5eea511290f203c5d13484731e7d82387) - Set non-zero exit codes for custom component build and install commands when failures occur.  Thanks @freddyaboulton!
+- [#9161](https://github.com/gradio-app/gradio/pull/9161) [`173c7b8`](https://github.com/gradio-app/gradio/commit/173c7b8624371d89c40eb667bc28b9955c61b063) - Chatbot Image size and list fixes.  Thanks @dawoodkhan82!
+- [#9151](https://github.com/gradio-app/gradio/pull/9151) [`f1ef94a`](https://github.com/gradio-app/gradio/commit/f1ef94a435439934610497eab34201a586e418e1) - Open media type files in browser.  Thanks @aliabid94!
+- [#9148](https://github.com/gradio-app/gradio/pull/9148) [`8715f10`](https://github.com/gradio-app/gradio/commit/8715f103399c709717084335cfe5e971ebf9f2de) - Allow `gr.Request` to work with ZeroGPU.  Thanks @abidlabs!
+- [#9093](https://github.com/gradio-app/gradio/pull/9093) [`60650d8`](https://github.com/gradio-app/gradio/commit/60650d84b2cfe93fd2ebf2d2997d6c0f382d5f1a) - Reset `Dataset` page to 0 when samples change.  Thanks @abidlabs!
+- [#9116](https://github.com/gradio-app/gradio/pull/9116) [`ba6322e`](https://github.com/gradio-app/gradio/commit/ba6322ec2bb975f15389fe0700816bf671c6819d) - Fix image height content fit.  Thanks @hannahblair!
+- [#9079](https://github.com/gradio-app/gradio/pull/9079) [`d6dc384`](https://github.com/gradio-app/gradio/commit/d6dc3846fd94fe03658f0fa8219d68ddf1f7aa64) - Add more typing to event listeners.  Thanks @JackismyShephard!
+- [#9119](https://github.com/gradio-app/gradio/pull/9119) [`30b5d6f`](https://github.com/gradio-app/gradio/commit/30b5d6f2b75e1ff0ea03c7a6567e43a022871c9f) - Fix chatinterface multimodal bug.  Thanks @freddyaboulton!
+- [#8987](https://github.com/gradio-app/gradio/pull/8987) [`7b288cf`](https://github.com/gradio-app/gradio/commit/7b288cf6772ec3dc1fa603db859975e5dab90127) - Fix unexpected rendering of Dataset.  Thanks @Col0ring!
+- [#9089](https://github.com/gradio-app/gradio/pull/9089) [`508ac84`](https://github.com/gradio-app/gradio/commit/508ac84bc2ffbeff6daae8ae0956e14e7472c4c0) - Set orig_name in downloadbutton postprocess.  Thanks @freddyaboulton!
+- [#8951](https://github.com/gradio-app/gradio/pull/8951) [`6e7d9e5`](https://github.com/gradio-app/gradio/commit/6e7d9e5b848e5af8cae97a4a4f021859c423ffa4) - Deal with OAuth too many redirects.  Thanks @Wauplin!
+
 ## 4.41.0
 
 ### Features
