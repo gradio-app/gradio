@@ -501,7 +501,7 @@ importers:
         specifier: workspace:^
         version: link:../statustracker
       '@gradio/utils':
-        specifier: workspace:0.5.2
+        specifier: workspace:0.6.0
         version: link:../utils
     devDependencies:
       '@gradio/preview':
