@@ -24,7 +24,7 @@
 		"dev": "run-p dev:*",
 		"build:client": "svelte-package --input=. --cwd=../../.config/",
 		"build:worker": "vite build --config vite.worker.config.js",
-		"build": "run-s build:worker build:client"
+		"build": "run-s build:client build:worker"
 	},
 	"devDependencies": {
 		"pyodide": "0.26.1"
