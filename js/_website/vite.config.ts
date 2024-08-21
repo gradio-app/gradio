@@ -4,5 +4,7 @@ import { inject_component_loader } from "../build/out/index.js";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => ({
-	plugins: [sveltekit(), inject_component_loader({ mode })]
+	plugins: [sveltekit(), inject_component_loader({ mode })],
+	resolve: {
+		conditions: ["gradio"]
 }));
