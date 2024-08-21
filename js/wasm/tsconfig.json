@@ -10,6 +10,6 @@
 		"strict": true /* Enable all strict type-checking options. */,
 		"skipLibCheck": true /* Skip type checking all .d.ts files. */
 	},
-	"include": ["src/**/*", "../../globals.d.ts"],
-	"exclude": ["src/webworker/**/*"] // The worker code is bundled by Vite separately. See its config file.
+	"include": ["src/**/*", "svelte/**/*", "network/**/*", "../../globals.d.ts"],
+	"exclude": ["src/webworker/**/*", "**/dist/**/*"] // The worker code is bundled by Vite separately. See its config file.
 }

@@ -23,5 +23,8 @@
 			"import": "./dist/src/index.js"
 		},
 		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"package": "svelte-package --input=. --cwd=../../.config/"
 	}
 }

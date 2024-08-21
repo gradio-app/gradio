@@ -5,14 +5,20 @@
 	"type": "module",
 	"main": "./dist/src/index.js",
 	"exports": {
-		".": "./dist/src/index.js",
+		".": {
+			"import": "./dist/src/index.js",
+			"types": "./dist/src/index.d.ts"
+		},
 		"./package.json": "./package.json",
 		"./svelte": {
 			"gradio": "./svelte/index.ts",
 			"svelte": "./dist/svelte/index.js",
 			"types": "./dist/svelte/index.d.ts"
 		},
-		"./network": "./network/index.ts"
+		"./network": {
+			"import": "./network/index.ts",
+			"types": "./dist/network/index.d.ts"
+		}
 	},
 	"keywords": [],
 	"author": "",
@@ -22,7 +28,7 @@
 		"dev:client": "tsc -w --incremental",
 		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
 		"dev": "run-p dev:*",
-		"build:client": "svelte-package --input=. --cwd=../../.config/",
+		"build:client": "tsc",
 		"build:worker": "vite build --config vite.worker.config.js",
 		"build": "run-s build:client build:worker"
 	},

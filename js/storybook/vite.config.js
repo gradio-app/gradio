@@ -26,5 +26,8 @@ export default defineConfig({
 			})
 		}),
 		inject_component_loader({ mode: "storybook" })
-	]
+	],
+	resolve: {
+		conditions: ["gradio"]
+	}
 });
