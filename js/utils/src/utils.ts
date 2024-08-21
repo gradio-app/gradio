@@ -4,6 +4,7 @@ import type { Client } from "@gradio/client";
 import type { ComponentType, SvelteComponent } from "svelte";
 
 export interface SelectData {
+	row_value?: any[];
 	index: number | [number, number];
 	value: any;
 	selected?: boolean;

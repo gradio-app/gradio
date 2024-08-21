@@ -29,6 +29,7 @@
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
 	export let root: string;
+	export let placeholder: string | undefined = undefined;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -100,7 +101,7 @@
 			{label}
 			{show_label}
 		>
-			<UploadText i18n={gradio.i18n} type="image" />
+			<UploadText i18n={gradio.i18n} type="image" {placeholder} />
 		</ImageUploader>
 	</Block>
 {/if}
