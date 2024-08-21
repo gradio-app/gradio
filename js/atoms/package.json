@@ -7,13 +7,28 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@gradio/icons": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/icons": "workspace:^"
+		"svelte2tsx": "^0.7.15"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"exports": {
+		".": {
+			"gradio": "./src/index.ts",
+			"svelte": "./dist/src/index.ts",
+			"types": "./dist/src/index.d.ts"
+		},
+		"./package.json": "./package.json"
 	},
 	"main_changeset": true,
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/gradio-app/gradio.git",
 		"directory": "js/atoms"
+	},
+	"scripts": {
+		"sv-pkg": "svelte-package --input=. --cwd=../../.config/"
 	}
 }

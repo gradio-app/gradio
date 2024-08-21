@@ -11,5 +11,8 @@ import {
 } from "@self/build";
 
 export default defineConfig({
-	plugins: [sveltekit(), inject_component_loader({ mode: "development" })]
+	plugins: [sveltekit()],
+	resolve: {
+		conditions: ["gradio"]
+	}
 });

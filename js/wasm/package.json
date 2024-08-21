@@ -7,7 +7,11 @@
 	"exports": {
 		".": "./dist/index.js",
 		"./package.json": "./package.json",
-		"./svelte": "./svelte/index.ts",
+		"./svelte": {
+			"gradio": "./svelte/index.ts",
+			"svelte": "./dist/svelte/index.ts",
+			"types": "./dist/svelte/index.d.ts"
+		},
 		"./network": "./network/index.ts"
 	},
 	"keywords": [],
@@ -28,6 +32,9 @@
 	"dependencies": {
 		"@types/path-browserify": "^1.0.0",
 		"path-browserify": "^1.0.1"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",

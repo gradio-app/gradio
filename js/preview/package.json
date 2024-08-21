@@ -37,5 +37,16 @@
 		"vite": "^5.2.9",
 		"which": "4.0.0",
 		"yootils": "^0.3.1"
+	},
+	"optionalDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"exports": {
+		".": {
+			"gradio": "./src/index.ts",
+			"svelte": "./dist/src/index.js",
+			"types": "./dist/index.d.ts"
+		},
+		"./package.json": "./package.json"
 	}
 }

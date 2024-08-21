@@ -45,7 +45,7 @@
 "@gradio/simpleimage": patch
 "@gradio/simpletextbox": patch
 "@gradio/slider": patch
-"@gradio/spa": patch
+"@self/spa": patch
 "@gradio/state": patch
 "@gradio/statustracker": patch
 "@gradio/tabitem": patch

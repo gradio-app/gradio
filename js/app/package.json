@@ -1,5 +1,5 @@
 {
-	"name": "@gradio/app",
+	"name": "@self/app",
 	"version": "1.39.2",
 	"private": true,
 	"scripts": {

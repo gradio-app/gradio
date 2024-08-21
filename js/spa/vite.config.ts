@@ -142,6 +142,9 @@ export default defineConfig(({ mode }) => {
 		optimizeDeps: {
 			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
 		},
+		resolve: {
+			conditions: ["gradio"]
+		},
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],
 			environment: TEST_MODE,

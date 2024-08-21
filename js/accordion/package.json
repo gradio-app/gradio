@@ -13,11 +13,18 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:0.5.2"
 	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
 	},
 	"exports": {
-		".": "./Index.svelte",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
 	},
 	"repository": {

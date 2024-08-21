@@ -7,7 +7,7 @@
 "@gradio/dataframe": patch
 "@gradio/lite": patch
 "@gradio/plot": patch
-"@gradio/spa": patch
+"@self/spa": patch
 "@gradio/storybook": patch
 "@gradio/video": patch
 "@gradio/wasm": patch
