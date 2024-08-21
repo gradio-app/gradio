@@ -3,6 +3,8 @@
 	import StaticImage from "./Index.svelte";
 	import { userEvent, within } from "@storybook/test";
 	import { allModes } from "../storybook/modes";
+	import image_file_100x100 from "../../test/test_files/images/image_100x100.webp";
+	import image_file_100x1000 from "../../test/test_files/images/image_100x1000.webp";
 
 	export const meta = {
 		title: "Components/Image",
@@ -71,6 +73,41 @@
 		},
 		show_label: false,
 		show_download_button: false
+	}}
+/>
+
+<Story
+	name="static with a vertically long image"
+	args={{
+		value: {
+			path: image_file_100x1000,
+			url: image_file_100x1000,
+			orig_name: "image.webp"
+		}
+	}}
+/>
+
+<Story
+	name="static with a vertically long image and a fixed height"
+	args={{
+		value: {
+			path: image_file_100x1000,
+			url: image_file_100x1000,
+			orig_name: "image.webp"
+		},
+		height: "500px"
+	}}
+/>
+
+<Story
+	name="static with a small image and a fixed height"
+	args={{
+		value: {
+			path: image_file_100x100,
+			url: image_file_100x100,
+			orig_name: "image.webp"
+		},
+		height: "500px"
 	}}
 />
 
