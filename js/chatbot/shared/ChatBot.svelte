@@ -682,6 +682,19 @@
 		max-height: 200px;
 	}
 
+	.message-wrap
+		> div
+		:not(.avatar-container)
+		div
+		:not(.image-button)
+		:global(img) {
+		border-radius: var(--radius-xl);
+		margin: var(--size-2);
+		width: 400px;
+		max-width: 30vw;
+		max-height: 30vw;
+	}
+
 	.message-wrap .message :global(a) {
 		color: var(--color-text-link);
 		text-decoration: underline;
@@ -699,12 +712,6 @@
 	.message-wrap .user :global(td),
 	.message-wrap .user :global(th) {
 		border: 1px solid var(--border-color-accent);
-	}
-
-	/* Lists */
-	.message-wrap :global(ol),
-	.message-wrap :global(ul) {
-		padding-inline-start: 2em;
 	}
 
 	/* KaTeX */

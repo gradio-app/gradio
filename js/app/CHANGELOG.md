@@ -1,5 +1,13 @@
 # @gradio/app
 
+## 1.40.0
+
+### Features
+
+- [#8935](https://github.com/gradio-app/gradio/pull/8935) [`f6b2b97`](https://github.com/gradio-app/gradio/commit/f6b2b97d473dd81571410cccc6e1ddfcf9fa00bc) - Initialize the client with the fake host for Lite server.  Thanks @whitphx!
+- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor.  Thanks @pngwn!
+- [#9110](https://github.com/gradio-app/gradio/pull/9110) [`e1e7ad3`](https://github.com/gradio-app/gradio/commit/e1e7ad3add2679cafab5c05856aba6e28c0f2b76) - fix version + pkg name.  Thanks @pngwn!
+
 ## 1.39.2
 
 ### Dependency updates

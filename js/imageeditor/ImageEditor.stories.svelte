@@ -214,6 +214,7 @@
 			orig_name: "cheetah.jpg"
 		},
 		type: "pil",
+		placeholder: "Upload an image of a cat",
 		sources: ["upload", "webcam"],
 		interactive: "true",
 		brush: {
