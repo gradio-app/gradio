@@ -51,7 +51,8 @@
 		targets,
 		update_value,
 		get_data,
-		close_stream,
+		modify_stream,
+		get_stream_state,
 		set_time_limit,
 		loading_status,
 		scheduled_updates,
@@ -280,13 +281,25 @@
 
 			let submission: ReturnType<typeof app.submit>;
 			app.set_current_payload(payload);
-			if (streaming && submit_map.has(dep_index)) {
-				await app.post_data(
-					// @ts-ignore
-					`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
-					{ ...payload, session_hash: app.session_hash }
-				);
-				return;
+			if (streaming) {
+				if (!submit_map.has(dep_index)) {
+					dep.inputs.forEach((id) => modify_stream(id, "waiting"));
+				} else if (
+					submit_map.has(dep_index) &&
+					dep.inputs.some((id) => get_stream_state(id) === "waiting")
+				) {
+					return;
+				} else if (
+					submit_map.has(dep_index) &&
+					dep.inputs.some((id) => get_stream_state(id) === "open")
+				) {
+					await app.post_data(
+						// @ts-ignore
+						`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
+						{ ...payload, session_hash: app.session_hash }
+					);
+					return;
+				}
 			}
 			try {
 				submission = app.submit(
@@ -371,6 +384,19 @@
 				];
 			}
 
+			function open_stream_events(
+				status: StatusMessage,
+				id: number,
+				dep: Dependency
+			): void {
+				if (
+					status.original_msg === "process_starts" &&
+					dep.connection === "stream"
+				) {
+					modify_stream(id, "open");
+				}
+			}
+
 			function handle_status_update(message: StatusMessage): void {
 				const { fn_index, ...status } = message;
 				if (status.stage === "streaming" && status.time_limit) {
@@ -378,6 +404,9 @@
 						set_time_limit(id, status.time_limit);
 					});
 				}
+				dep.inputs.forEach((id) => {
+					open_stream_events(message, id, dep);
+				});
 				//@ts-ignore
 				loading_status.update({
 					...status,
@@ -428,7 +457,7 @@
 						}
 					});
 					dep.inputs.forEach((id) => {
-						close_stream(id);
+						modify_stream(id, "closed");
 					});
 					submit_map.delete(dep_index);
 				}

@@ -92,4 +92,4 @@ runs:
       if: inputs.os == 'ubuntu-latest'
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        python js/_website/generate_jsons/generate.py
+        pip install boto3 && python js/_website/generate_jsons/generate.py

@@ -30,7 +30,7 @@
 	export let stream_handler: Client["stream"];
 	export let stream_every: number;
 
-	export let close_stream: () => void;
+	export let modify_stream: (state: "open" | "closed" | "waiting") => void;
 	export let set_time_limit: (arg0: number) => void;
 
 	let upload_input: Upload;
@@ -75,7 +75,7 @@
 		end_stream: never;
 	}>();
 
-	let dragging = false;
+	export let dragging = false;
 
 	$: dispatch("drag", dragging);
 
@@ -125,7 +125,7 @@
 			on:error
 			{root}
 			{max_file_size}
-			disable_click={!sources.includes("upload")}
+			disable_click={!sources.includes("upload") || value !== null}
 			{upload}
 			{stream_handler}
 		>
@@ -149,7 +149,7 @@
 				include_audio={false}
 				{i18n}
 				{upload}
-				bind:close_stream
+				bind:modify_stream
 				bind:set_time_limit
 			/>
 		{:else if value !== null && !streaming}
