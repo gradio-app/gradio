@@ -115,7 +115,7 @@ class Interface(Blocks):
         | Literal["manual"]
         | None = None,
         flagging_options: list[str] | list[tuple[str, str]] | None = None,
-        flagging_dir: str = "flagged",
+        flagging_dir: str = ".gradio/flagged",
         flagging_callback: FlaggingCallback | None = None,
         analytics_enabled: bool | None = None,
         batch: bool = False,
@@ -150,7 +150,7 @@ class Interface(Blocks):
             article: an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content. If it is an HTTP(S) link to a downloadable remote file, the content of this file is displayed.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: custom css as a string or path to a css file. This css will be included in the demo webpage.
-            allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged, along with the generated output. If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
+            flagging_mode: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged, along with the generated output. If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_FLAGGING_MODE; otherwise defaults to "manual".
             flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
             flagging_dir: what to name the directory where flagged data is stored.
             flagging_callback: either None or an instance of a subclass of FlaggingCallback which will be called when a sample is flagged. If set to None, an instance of gradio.flagging.CSVLogger will be created and logs will be saved to a local CSV file in flagging_dir. Default to None.
@@ -376,7 +376,7 @@ class Interface(Blocks):
         # For allow_flagging: (1) first check for parameter,
         # (2) check for env variable, (3) default to True/"manual"
         if allow_flagging is None:
-            allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")  # type: ignore
+            allow_flagging = os.getenv("GRADIO_FLAGGING_MODE", "manual")  # type: ignore
         if allow_flagging is True:
             warnings.warn(
                 "The `allow_flagging` parameter in `Interface` now"

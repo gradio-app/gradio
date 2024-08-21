@@ -41,7 +41,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_DEBUG=1
   ```
 
-### 5. `GRADIO_ALLOW_FLAGGING`
+### 5. `GRADIO_FLAGGING_MODE`
 
 - **Description**: Controls whether users can flag inputs/outputs in the Gradio interface. See [the Guide on flagging](/guides/using-flagging) for more details.
 - **Default**: `"manual"`

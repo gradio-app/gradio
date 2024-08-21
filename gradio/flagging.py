@@ -223,3 +223,7 @@ class FlagMethod:
 
     def reset(self):
         return gr.Button(value=self.label, interactive=True)
+
+@document()
+class JSONLogger(FlaggingCallback):
+    pass
