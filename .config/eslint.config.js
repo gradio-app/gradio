@@ -63,7 +63,7 @@ const { browser, es2021, node } = globals;
 export default [
 	{
 		ignores: [
-			".svelte-kit/**/*",
+			"**/.svelte-kit/**/*",
 			"**/node_modules/**",
 			"**/dist/**",
 			"**/.config/*",

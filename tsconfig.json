@@ -19,7 +19,10 @@
 		"checkJs": true,
 		"outDir": "dist",
 		"baseUrl": ".",
-
+		"paths": {
+			"./pure": ["./pure.js"],
+			"@gradio/client": ["./client/js/src/index.ts"]
+		},
 		"plugins": [
 			{
 				"name": "typescript-svelte-plugin",
@@ -29,5 +32,34 @@
 			}
 		],
 		"types": ["vite/client"]
-	}
+	},
+	"exclude": [
+		"**/_website/**/*",
+		"**/dist/**/*",
+		"**/public/**/*",
+		"**/.config/**/*",
+		"**/*.test.ts",
+		"**/dist",
+		".github/**/*",
+		"**/demo/**/*",
+		"**/gradio/**/*",
+		"**/guides/**/*",
+		"**/readme_files/**/*",
+		"**/scripts/**/*",
+		"**/test/**/*",
+		"**/website/**/*",
+		"**/node_modules/**/*",
+		"**/venv/**/*",
+		"client/js/**",
+		"**/vite.config*",
+		".changeset/*.cjs",
+		"**/storybook-static/**/*"
+	],
+	"include": [
+		"**/*.d.ts",
+		"**/*.js",
+		"**/*.ts",
+		"**/*.svelte",
+		"client/js/**/*"
+	]
 }
