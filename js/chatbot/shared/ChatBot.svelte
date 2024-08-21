@@ -692,7 +692,7 @@
 		margin: var(--size-2);
 		width: 400px;
 		max-width: 30vw;
-		max-height: auto;
+		max-height: 30vw;
 	}
 
 	.message-wrap .message :global(a) {
