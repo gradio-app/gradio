@@ -18,6 +18,8 @@
 			}
 		}
 	};
+
+	let md = `# a heading! /n a new line! `;
 </script>
 
 <Template let:args>
@@ -30,7 +32,7 @@
 </Template>
 
 <Story
-	name="static with label and download button"
+	name="static with label, info and download button"
 	args={{
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
@@ -38,19 +40,7 @@
 			orig_name: "cheetah.jpg"
 		},
 		show_label: true,
-		show_download_button: true
-	}}
-/>
-
-<Story
-	name="static with label and download button"
-	args={{
-		value: {
-			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			orig_name: "cheetah.jpg"
-		},
-		show_label: true,
+		placeholder: "This is a cheetah",
 		show_download_button: true
 	}}
 	play={async ({ canvasElement }) => {
@@ -122,7 +112,8 @@
 		},
 		show_label: false,
 		show_download_button: false,
-		interactive: true
+		interactive: true,
+		placeholder: md
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
