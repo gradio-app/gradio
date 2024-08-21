@@ -107,33 +107,31 @@
 {/if}
 
 <style>
-	.image-frame :global(img) {
-		width: var(--size-full);
-		height: var(--size-full);
-		object-fit: scale-down;
-	}
-
-	.image-frame {
-		object-fit: cover;
-		width: 100%;
-		height: 100%;
-	}
-
 	.image-container {
 		height: 100%;
 		position: relative;
 	}
-	.image-container :global(img),
-	button {
+
+	.image-container button {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: scale-down;
-		display: block;
 		border-radius: var(--radius-lg);
 
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	.image-frame {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.image-frame :global(img) {
+		max-width: var(--size-full);
+		max-height: var(--size-full);
 	}
 
 	.selectable {
