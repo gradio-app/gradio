@@ -99,9 +99,9 @@
 			{/if}
 		</div>
 		<button on:click={handle_click}>
-			<span class:selectable class="image-frame">
+			<div class:selectable class="image-frame">
 				<Image src={value.url} alt="" loading="lazy" on:load />
-			</span>
+			</div>
 		</button>
 	</div>
 {/if}
@@ -123,15 +123,16 @@
 	}
 
 	.image-frame {
-		width: 100%;
+		width: auto;
 		height: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 	.image-frame :global(img) {
-		max-width: var(--size-full);
-		max-height: var(--size-full);
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: scale-down;
 	}
 
 	.selectable {
