@@ -15,7 +15,7 @@ import warnings
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 import aiofiles
 import httpx
@@ -284,7 +284,7 @@ def resolve_with_google_dns(hostname: str) -> str | None:
                 return answer["data"]
 
 
-def check_public_url(url: str):
+def get_public_url(url: str) -> str:
     parsed_url = urlparse(url)
     if parsed_url.scheme not in ["http", "https"]:
         raise httpx.RequestError(f"Invalid URL: {url}")
@@ -303,11 +303,18 @@ def check_public_url(url: str):
             ip = ip.split("%")[0]  # Remove scope ID if present
 
         if ipaddress.ip_address(ip).is_global:
-            return
+            return url
 
     google_resolved_ip = resolve_with_google_dns(hostname)
     if google_resolved_ip and ipaddress.ip_address(google_resolved_ip).is_global:
-        return
+        if parsed_url.scheme == "https":
+            return url
+        new_parsed = parsed_url._replace(netloc=google_resolved_ip)
+        if parsed_url.port:
+            new_parsed = new_parsed._replace(
+                netloc=f"{google_resolved_ip}:{parsed_url.port}"
+            )
+        return urlunparse(new_parsed)
 
     raise httpx.RequestError(f"No public IP address found for URL: {url}")
 
@@ -315,7 +322,7 @@ def check_public_url(url: str):
 def save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already
     exist. Otherwise returns the path to the existing temp file."""
-    check_public_url(url)
+    url = get_public_url(url)
 
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
@@ -329,7 +336,7 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
             open(full_temp_file_path, "wb") as f,
         ):
             for redirect in response.history:
-                check_public_url(str(redirect.url))
+                get_public_url(str(redirect.url))
 
             for chunk in response.iter_raw():
                 f.write(chunk)
@@ -340,7 +347,7 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
 async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already
     exist. Otherwise returns the path to the existing temp file. Uses async httpx."""
-    check_public_url(url)
+    url = get_public_url(url)
 
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
@@ -351,7 +358,7 @@ async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     if not Path(full_temp_file_path).exists():
         async with async_client.stream("GET", url, follow_redirects=True) as response:
             for redirect in response.history:
-                check_public_url(str(redirect.url))
+                get_public_url(str(redirect.url))
 
             async with aiofiles.open(full_temp_file_path, "wb") as f:
                 async for chunk in response.aiter_raw():
