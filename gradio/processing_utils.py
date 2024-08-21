@@ -10,6 +10,7 @@ import shutil
 import socket
 import subprocess
 import tempfile
+import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
@@ -272,16 +273,15 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 
 
 def resolve_with_google_dns(hostname: str) -> str | None:
-    google_dns = "8.8.8.8"
-    try:
-        resolver_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        resolver_socket.settimeout(3)
-        resolver_socket.connect((google_dns, 53))
-        return socket.gethostbyname(hostname)
-    except OSError:
-        return None
-    finally:
-        resolver_socket.close()
+    url = f"https://dns.google/resolve?name={hostname}&type=A"
+
+    with urllib.request.urlopen(url) as response:
+        data = json.loads(response.read().decode())
+
+    if data.get("Status") == 0 and "Answer" in data:
+        for answer in data["Answer"]:
+            if answer["type"] == 1:
+                return answer["data"]
 
 
 def get_public_url(url: str) -> str:
@@ -297,18 +297,13 @@ def get_public_url(url: str) -> str:
     except socket.gaierror:
         raise httpx.RequestError(f"Cannot resolve hostname: {hostname}") from None
 
-    is_public = False
     for family, _, _, _, sockaddr in addrinfo:
         ip = sockaddr[0]
         if family == socket.AF_INET6:
             ip = ip.split("%")[0]  # Remove scope ID if present
 
         if ipaddress.ip_address(ip).is_global:
-            is_public = True
-            break
-
-    if is_public:
-        return url
+            return url
 
     google_resolved_ip = resolve_with_google_dns(hostname)
     if google_resolved_ip and ipaddress.ip_address(google_resolved_ip).is_global:
