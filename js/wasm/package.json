@@ -29,7 +29,7 @@
 		"dev:client": "tsc -w --incremental",
 		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
 		"dev": "run-p dev:*",
-		"build:client": "svelte-package --input=. --cwd=../../.config/ ",
+		"build:client": "svelte-package --input=. --cwd=../../.config/",
 		"build:worker": "vite build --config vite.worker.config.js",
 		"build": "run-s build:client build:worker"
 	},
