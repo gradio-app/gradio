@@ -12,7 +12,7 @@ class Default(Base):
         *,
         primary_hue: colors.Color | str = colors.orange,
         secondary_hue: colors.Color | str = colors.blue,
-        neutral_hue: colors.Color | str = colors.charcoal,
+        neutral_hue: colors.Color | str = colors.zinc,
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
         text_size: sizes.Size | str = sizes.text_md,
