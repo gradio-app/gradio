@@ -2,9 +2,6 @@ name: "install frontend"
 description: "Install frontend deps"
 
 inputs:
-  always_install_pnpm:
-    description: "Dictates whether or not we should install pnpm & dependencies, regardless of the cache"
-    default: "false"
   skip_build:
     description: "Skip build"
     default: "false"
@@ -34,7 +31,6 @@ runs:
       shell: bash
       run: pnpm i --frozen-lockfile --ignore-scripts
     - name: Build Css
-      if: inputs.always_install_pnpm == 'true'
       shell: bash
       run: pnpm css
     - name: Build frontend
@@ -42,7 +38,7 @@ runs:
       shell: bash
       run: pnpm build
     - name: generate types
-      if: inputs.always_install_pnpm == 'true' || inputs.skip_build == 'false' || inputs.build_lite == 'true'
+      if: inputs.skip_build == 'false' || inputs.build_lite == 'true'
       shell: bash
       run: pnpm package
     - name: Build frontend lite

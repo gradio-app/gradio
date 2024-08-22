@@ -23,7 +23,6 @@ jobs:
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          always_install_pnpm: true
           skip_build: "false"
       - name: Build packages
         run: |
