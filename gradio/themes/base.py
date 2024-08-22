@@ -688,6 +688,7 @@ class Base(ThemeClass):
         button_shadow=None,
         button_shadow_active=None,
         button_transform=None,
+        button_active_transform=None,
         button_shadow_hover=None,
         button_transition=None,
         button_large_padding=None,
@@ -973,6 +974,8 @@ class Base(ThemeClass):
             button_small_text_size: The text size of a button set to "small" size.
             button_small_text_weight: The text weight of a button set to "small" size.
             button_transition: The transition animation duration of a button between regular, hover, and focused states.
+            button_transform: The transform animation of a button on hover.
+            button_active_transform: The transform animation of a button when pressed.
         """
 
         # Body
@@ -1629,7 +1632,10 @@ class Base(ThemeClass):
             self, "button_shadow_active", "none"
         )
         self.button_transform = button_transform or getattr(
-            self, "button_transform", "translateY(1px)"
+            self, "button_transform", "translateY(-0.5px)"
+        )
+        self.button_active_transform = button_active_transform or getattr(
+            self, "button_active_transform", "translateY(-2px)"
         )
         self.button_shadow_hover = button_shadow_hover or getattr(
             self, "button_shadow_hover", "none"
@@ -1838,6 +1844,4 @@ class Base(ThemeClass):
             self, "button_cancel_border_color_hover_dark", "*button_secondary_border_color_hover"
         )
 
-        # Button Styles
-        self.button_transition = getattr(self, "button_transition", "translateY(-0.5px)")
         return self

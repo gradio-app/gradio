@@ -79,6 +79,7 @@
 
 	button:active,
 	a:active {
+		transform: var(--button-active-transform);
 	}
 
 	button[disabled],

@@ -108,5 +108,4 @@ class Default(Base):
 
             # Other
             border_color_accent_subdued="*primary_200",
-            button_transform="translateY(1px)"
         )
