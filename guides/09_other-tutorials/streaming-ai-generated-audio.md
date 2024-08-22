@@ -31,7 +31,7 @@ with gr.Blocks() as block:
             answer = gr.Textbox(label="Answer")
             state = gr.State()
         with gr.Row():
-            audio_in = gr.Audio(label="Speak you question", sources="microphone", type="filepath")
+            audio_in = gr.Audio(label="Speak your question", sources="microphone", type="filepath")
 
     audio_in.stop_recording(generate_response, audio_in, [state, answer, audio_out])\
         .then(fn=read_response, inputs=state, outputs=[answer, audio_out])
@@ -65,7 +65,7 @@ def generate_response(audio):
 
     messages = [{"role": "system", "content": ("You are a magic 8 ball."
                                               "Someone will present to you a situation or question and your job "
-                                              "is to answer with a cryptic addage or proverb such as "
+                                              "is to answer with a cryptic adage or proverb such as "
                                               "'curiosity killed the cat' or 'The early bird gets the worm'."
                                               "Keep your answers short and do not include the phrase 'Magic 8 Ball' in your response. If the question does not make sense or is off-topic, say 'Foolish questions get foolish answers.'"
                                               "For example, 'Magic 8 Ball, should I get a dog?', 'A dog is ready for you but are you ready for the dog?'")},
@@ -111,7 +111,8 @@ model = ParlerTTSForConditionalGeneration.from_pretrained(
 tokenizer = AutoTokenizer.from_pretrained(repo_id)
 feature_extractor = AutoFeatureExtractor.from_pretrained(repo_id)
 
-SAMPLE_RATE = feature_extractor.sampling_rate
+sampling_rate = model.audio_encoder.config.sampling_rate
+frame_rate = model.audio_encoder.config.frame_rate
 
 @spaces.GPU
 def read_response(answer):
