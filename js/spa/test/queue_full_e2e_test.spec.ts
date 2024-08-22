@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("When the queue is full the queue full message gets shown. Also when there is an exception in a user function the queue does not get blocked", async ({
 	page

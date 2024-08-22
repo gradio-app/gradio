@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("submit works", async ({ page }) => {
 	await page.getByTestId("textbox").first().focus();

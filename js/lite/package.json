@@ -19,15 +19,15 @@
 		"dev": "run-p dev:*",
 		"dev:self": "vite --port 9876 --mode development",
 		"dev:worker": "pnpm --filter @gradio/wasm dev",
-		"test:browser": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @gradio/spa test:browser",
-		"test:browser:dev": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @gradio/spa test:browser:dev"
+		"test:browser": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @self/spa test:browser",
+		"test:browser:dev": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @self/spa test:browser:dev"
 	},
 	"devDependencies": {
 		"gradio": "workspace:^",
 		"@gradio/atoms": "workspace:^",
-		"@gradio/build": "workspace:^",
+		"@self/build": "workspace:^",
 		"@gradio/core": "workspace:^",
-		"@gradio/spa": "workspace:^",
+		"@self/spa": "workspace:^",
 		"@gradio/theme": "workspace:^",
 		"@gradio/wasm": "workspace:^"
 	}

@@ -1,5 +1,5 @@
 {
-	"name": "@gradio/spa",
+	"name": "@self/spa",
 	"version": "0.0.2",
 	"private": true,
 	"type": "module",
@@ -24,7 +24,7 @@
 		"build:css": "pollen -c pollen.config.cjs -o src/pollen-dev.css"
 	},
 	"devDependencies": {
-		"@gradio/build": "workspace:^",
+		"@self/build": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/core": "workspace:^",
 		"@gradio/theme": "workspace:^",
@@ -35,6 +35,9 @@
 	},
 	"msw": {
 		"workerDirectory": "public"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"main_changeset": true,
 	"main": "./src/Index.svelte",

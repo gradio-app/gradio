@@ -1,4 +1,4 @@
-# @gradio/component-test
+# @self/component-test
 
 ## 0.1.0
 

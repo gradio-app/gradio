@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"moduleResolution": "node",
-		"module": "ES2020",
+		"moduleResolution": "Bundler",
+		"module": "ESNext",
 		"lib": ["es2020", "DOM", "dom.iterable"],
 		"target": "es2020",
 		/**
@@ -35,12 +35,10 @@
 	},
 	"exclude": [
 		"**/_website/**/*",
-		"**/component-test/**/*",
 		"**/dist/**/*",
 		"**/public/**/*",
 		"**/.config/**/*",
 		"**/*.test.ts",
-		"**/dist",
 		".github/**/*",
 		"**/demo/**/*",
 		"**/gradio/**/*",
@@ -54,13 +52,17 @@
 		"client/js/**",
 		"**/vite.config*",
 		".changeset/*.cjs",
-		"**/storybook-static/**/*"
+		"**/storybook-static/**/*",
+		"**/build/out/**/*",
+		"**/component-test/**/*",
+		"**/js/wasm/src/webworker/**/*"
 	],
 	"include": [
 		"**/*.d.ts",
 		"**/*.js",
 		"**/*.ts",
 		"**/*.svelte",
-		"client/js/**/*"
+		"client/js/**/*",
+		"!**/dist/**/*"
 	]
 }

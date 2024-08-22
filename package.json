@@ -3,10 +3,11 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"scripts": {
-		"dev": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/preview build && pnpm --filter @gradio/spa dev",
+		"dev": "pnpm css && pnpm --filter @gradio/preview build && pnpm --filter @self/spa dev",
+		"dev:lite": "pnpm package && pnpm --filter @gradio/lite dev",
 		"css": "pnpm --filter @gradio/theme generate",
-		"build": "pnpm css && pnpm --filter @gradio/client build && pnpm --filter @gradio/spa build --emptyOutDir && pnpm --filter @gradio/preview build",
-		"build:lite": "pnpm --filter @gradio/lite build",
+		"build": "pnpm css && pnpm --filter @self/spa build --emptyOutDir && pnpm --filter @gradio/preview build",
+		"build:lite": "pnpm package && pnpm --filter @gradio/lite build",
 		"format:check": "prettier --ignore-path .config/.prettierignore --check --config .config/.prettierrc.json --plugin prettier-plugin-svelte .",
 		"format:write": "prettier --ignore-path .config/.prettierignore --write --config .config/.prettierrc.json --plugin prettier-plugin-svelte .",
 		"lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c .config/eslint.config.js js client/js",
@@ -14,18 +15,19 @@
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
 		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts --reporter=verbose",
 		"test:client": "pnpm --filter=@gradio/client test",
-		"test:browser": "pnpm --filter @gradio/spa test:browser",
-		"test:browser:reload": "CUSTOM_TEST=1 pnpm --filter @gradio/spa test:browser:reload",
-		"test:browser:full": "run-s build test:browser",
+		"test:browser": "pnpm --filter @self/spa test:browser",
+		"test:browser:reload": "CUSTOM_TEST=1 pnpm --filter @self/spa test:browser:reload",
+		"test:browser:full": "run-s build package test:browser",
 		"test:browser:verbose": "pnpm test:browser",
-		"test:browser:dev": "pnpm --filter @gradio/spa test:browser:dev",
+		"test:browser:dev": "pnpm --filter @self/spa test:browser:dev",
 		"storybook": "storybook dev -p 6006 --config-dir js/storybook",
 		"build-storybook": "storybook build --config-dir js/storybook --webpack-stats-json",
 		"ci:version": "changeset version && pnpm i --lockfile-only && node ./.changeset/fix_changelogs.cjs",
 		"ci:publish": "pnpm changeset tag && git push origin --tags && pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
 		"chromatic": "chromatic",
 		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
-		"website": "pnpm --filter @gradio/website build"
+		"website": "pnpm --filter @gradio/website build",
+		"package": "pnpm --filter @gradio/* --filter=!@gradio/wasm --filter=!@gradio/lite --filter=!@gradio/client --filter=!@gradio/preview exec svelte-package --input=. --cwd=../../.config/"
 	},
 	"type": "module",
 	"author": "",
@@ -37,10 +39,12 @@
 		"@changesets/get-github-info": "^0.6.0",
 		"@csstools/postcss-global-data": "^2.1.1",
 		"@gradio/client": "workspace:^",
-		"@gradio/tootils": "workspace:^",
 		"@manypkg/get-packages": "^2.2.1",
 		"@playwright/experimental-ct-svelte": "^1.44.1",
 		"@playwright/test": "^1.44.1",
+		"@self/build": "workspace:^",
+		"@self/tootils": "workspace:^",
+		"@sveltejs/package": "^2.3.4",
 		"@sveltejs/vite-plugin-svelte": "^3.1.0",
 		"@tailwindcss/forms": "^0.5.7",
 		"@testing-library/dom": "^10.1.0",
@@ -99,9 +103,9 @@
 		"@gradio/checkbox": "workspace:^",
 		"@gradio/checkboxgroup": "workspace:^",
 		"@gradio/code": "workspace:^",
-		"@gradio/core": "workspace:^",
 		"@gradio/colorpicker": "workspace:^",
 		"@gradio/column": "workspace:^",
+		"@gradio/core": "workspace:^",
 		"@gradio/dataframe": "workspace:^",
 		"@gradio/dataset": "workspace:^",
 		"@gradio/datetime": "workspace:^",
@@ -161,5 +165,10 @@
 	"engines": {
 		"node": ">=18.0.0",
 		"pnpm": "~9.1.0"
+	},
+	"pnpm": {
+		"patchedDependencies": {
+			"@sveltejs/package@2.3.4": "patches/@sveltejs__package@2.3.4.patch"
+		}
 	}
 }

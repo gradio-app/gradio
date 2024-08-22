@@ -72,6 +72,9 @@ export async function make_build({
 							...plugins(component_config),
 							make_gradio_plugin({ mode: "build", svelte_dir })
 						],
+						resolve: {
+							conditions: ["gradio"]
+						},
 						build: {
 							target: component_config.build.target,
 							emptyOutDir: true,

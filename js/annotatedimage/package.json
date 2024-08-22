@@ -5,14 +5,21 @@
 	"type": "module",
 	"author": "",
 	"license": "ISC",
-	"private": true,
+	"private": false,
 	"main_changeset": true,
 	"exports": {
-		".": "./Index.svelte",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",

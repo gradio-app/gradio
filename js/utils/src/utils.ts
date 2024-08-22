@@ -1,5 +1,6 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
+import type { ComponentType, SvelteComponent } from "svelte";
 
 export interface SelectData {
 	row_value?: any[];
@@ -194,10 +195,20 @@ export const format_time = (seconds: number): string => {
 	return `${minutes}:${padded_seconds}`;
 };
 
-type component_loader =
-	typeof import("virtual:component-loader").load_component;
+interface Args {
+	api_url: string;
+	name: string;
+	id?: string;
+	variant: "component" | "example" | "base";
+}
 
-let virtual_component_loader: component_loader | null = null;
+type component_loader = (args: Args) => {
+	name: "string";
+	component: {
+		default: ComponentType<SvelteComponent>;
+	};
+};
+
 export type I18nFormatter = any;
 export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;
@@ -209,7 +220,7 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	autoscroll: boolean;
 	max_file_size: number | null;
 	client: Client;
-	_load_component: component_loader | null = null;
+	_load_component?: component_loader;
 	load_component = _load_component.bind(this);
 
 	constructor(
@@ -221,7 +232,8 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		autoscroll: boolean,
 		max_file_size: number | null,
 		i18n: I18nFormatter = (x: string): string => x,
-		client: Client
+		client: Client,
+		virtual_component_loader?: component_loader
 	) {
 		this.#id = id;
 		this.theme = theme;
@@ -234,18 +246,7 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		this.autoscroll = autoscroll;
 		this.client = client;
 
-		if (!virtual_component_loader) {
-			import("virtual:component-loader")
-				.then((module) => {
-					this._load_component = module.load_component;
-					virtual_component_loader = module.load_component;
-				})
-				.catch((e) => {
-					console.error("Error loading virtual component loader", e);
-				});
-		} else {
-			this._load_component = virtual_component_loader;
-		}
+		this._load_component = virtual_component_loader;
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {

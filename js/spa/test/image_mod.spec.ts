@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("examples_get_updated_correctly", async ({ page }) => {
 	await page.locator(".gallery-item").first().click();

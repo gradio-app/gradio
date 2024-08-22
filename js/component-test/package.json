@@ -1,5 +1,5 @@
 {
-	"name": "@gradio/component-test",
+	"name": "@self/component-test",
 	"version": "0.1.0",
 	"scripts": {
 		"dev": "vite dev",
@@ -9,7 +9,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
 	},
 	"devDependencies": {
-		"@gradio/build": "workspace:^",
+		"@self/build": "workspace:^",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0"
 	},

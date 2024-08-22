@@ -1,4 +1,4 @@
-# @gradio/tootils
+# @self/tootils
 
 ## 0.6.4
 

@@ -1,4 +1,4 @@
-import { test, expect, drag_and_drop_file } from "@gradio/tootils";
+import { test, expect, drag_and_drop_file } from "@self/tootils";
 import fs from "fs";
 
 test("Image events are dispatched correctly. Downloading the file works and has the correct name.", async ({

@@ -3,4 +3,4 @@
 // export { default as css } from "./pollen.css";
 // export { default as typography } from "./typography.css";
 
-export * from "./colors";
+export * from "./colors.js";

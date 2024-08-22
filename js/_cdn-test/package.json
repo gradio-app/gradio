@@ -1,5 +1,5 @@
 {
-	"name": "@gradio/cdn-test",
+	"name": "@self/cdn-test",
 	"private": true,
 	"version": "0.0.1",
 	"scripts": {

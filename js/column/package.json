@@ -9,13 +9,20 @@
 	"private": false,
 	"main": "./Index.svelte",
 	"exports": {
-		".": "./Index.svelte",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",

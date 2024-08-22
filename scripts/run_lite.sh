@@ -26,4 +26,4 @@ fi
 
 pnpm --filter @gradio/client build
 
-pnpm --filter @gradio/lite dev
+pnpm dev:lite

@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test(".success should not run if function fails", async ({ page }) => {
 	const textbox = page.getByLabel("Result");
