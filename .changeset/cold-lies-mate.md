@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Redesign `gr.Button`s
+feat:Redesign `gr.Button()`
