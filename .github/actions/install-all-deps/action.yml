@@ -2,9 +2,6 @@ name: "install all deps"
 description: "Install all deps"
 
 inputs:
-  always_install_pnpm:
-    description: "Dictates whether or not we should install pnpm & dependencies, regardless of the cache"
-    default: "false"
   skip_build:
     description: "Skip build"
     default: "false"
@@ -84,7 +81,6 @@ runs:
     - name: install-frontend
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
-        always_install_pnpm: ${{ inputs.always_install_pnpm }}
         skip_build: ${{ inputs.skip_build }}
         build_lite: ${{ inputs.build_lite }}
     - name: generate json
