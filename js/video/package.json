@@ -23,11 +23,30 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"exports": {
-		".": "./index.ts",
-		"./example": "./Example.svelte",
-		"./shared": "./shared/index.ts",
-		"./base": "./shared/VideoPreview.svelte",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		".": {
+			"gradio": "./index.ts",
+			"svelte": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		},
+		"./example": {
+			"gradio": "./Example.svelte",
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
+		},
+		"./shared": {
+			"gradio": "./shared/index.ts",
+			"svelte": "./dist/shared/index.js",
+			"types": "./dist/shared/index.d.ts"
+		},
+		"./base": {
+			"gradio": "./shared/VideoPreview.svelte",
+			"svelte": "./dist/shared/VideoPreview.svelte",
+			"types": "./dist/shared/VideoPreview.svelte.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"main": "index.ts",
 	"main_changeset": true,

@@ -57,6 +57,9 @@ export async function create_server({
 					allow: [root_dir, component_dir]
 				}
 			},
+			resolve: {
+				conditions: ["gradio"]
+			},
 			build: {
 				target: config.build.target
 			},

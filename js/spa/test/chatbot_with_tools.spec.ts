@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("Chatbot can support agentic demos by displaying messages with metadata", async ({
 	page

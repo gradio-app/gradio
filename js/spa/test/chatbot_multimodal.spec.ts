@@ -1,4 +1,4 @@
-import { test, expect, go_to_testcase } from "@gradio/tootils";
+import { test, expect, go_to_testcase } from "@self/tootils";
 
 for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - text input by a user should be shown in the chatbot as a paragraph`, async ({

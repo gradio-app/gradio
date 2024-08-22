@@ -302,7 +302,7 @@ class TestColorPicker(unittest.TestCase):
 
 ```typescript
 import { test, describe, assert, afterEach } from "vitest";
-import { cleanup, render } from "@gradio/tootils";
+import { cleanup, render } from "@self/tootils";
 
 import ColorPicker from "./ColorPicker.svelte";
 import type { LoadingStatus } from "../StatusTracker/types";
