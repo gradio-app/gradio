@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("UploadButton properly dispatches load event and click event for the single file case.", async ({
 	page
