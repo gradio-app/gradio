@@ -4,6 +4,7 @@
 	"description": "Gradio UI packages",
 	"scripts": {
 		"dev": "pnpm css && pnpm --filter @gradio/preview build && pnpm --filter @self/spa dev",
+		"dev:lite": "pnpm package && pnpm --filter @gradio/lite dev",
 		"css": "pnpm --filter @gradio/theme generate",
 		"build": "pnpm css && pnpm --filter @self/spa build --emptyOutDir && pnpm --filter @gradio/preview build",
 		"build:lite": "pnpm package && pnpm --filter @gradio/lite build",
