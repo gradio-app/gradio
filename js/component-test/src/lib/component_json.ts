@@ -1,3 +1,6 @@
+import base_image from "./images/base.webp";
+import mask_image from "./images/images_mask.png";
+
 export default [
 	{
 		name: "annotatedimage",
@@ -14,7 +17,15 @@ export default [
 			_selectable: false,
 			interactive: true,
 			server: {},
-			value: {},
+			value: {
+				image: { url: base_image },
+				annotations: [
+					{
+						label: "Person",
+						image: mask_image
+					}
+				]
+			},
 			label: "Annotated Image"
 		}
 	},

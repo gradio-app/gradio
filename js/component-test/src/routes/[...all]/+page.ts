@@ -2,6 +2,7 @@ import config from "$lib/component_json";
 
 const comps = {
 	accordion: () => import("@gradio/accordion"),
+	annotatedimage: () => import("@gradio/annotatedimage"),
 	audio: () => import("@gradio/audio"),
 	button: () => import("@gradio/button"),
 	chatbot: () => import("@gradio/chatbot"),
@@ -49,11 +50,19 @@ export const load: PageLoad = async ({ url }) => {
 		(c) => c.name === route_name && !c.props.interactive
 	);
 
+	console.log({
+		route_name,
+		name: interactive_component?.name,
+		comps: comps[interactive_component?.name],
+		comps2: comps[route_name]
+	});
+
 	const comp =
 		route_name in comps
-			? await comps[route_name]()
+			? await comps[route_name as keyof typeof comps]()
 			: await import("@gradio/label");
 
+	console.log(comp);
 	return {
 		component: comp,
 		interactive_component: interactive_component,

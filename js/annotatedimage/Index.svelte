@@ -72,8 +72,8 @@
 				image: value.image as FileData,
 				annotations: value.annotations.map((ann) => ({
 					image: ann.image as FileData,
-					label: ann.label
-				}))
+					label: ann.label,
+				})),
 			};
 			_value = normalized_value;
 
@@ -85,12 +85,12 @@
 			const image_url_promise = resolve_wasm_src(normalized_value.image.url);
 			const annotation_urls_promise = Promise.all(
 				normalized_value.annotations.map((ann) =>
-					resolve_wasm_src(ann.image.url)
-				)
+					resolve_wasm_src(ann.image.url),
+				),
 			);
 			const current_promise = Promise.all([
 				image_url_promise,
-				annotation_urls_promise
+				annotation_urls_promise,
 			]);
 			latest_promise = current_promise;
 			current_promise.then(([image_url, annotation_urls]) => {
@@ -100,15 +100,15 @@
 				const async_resolved_value: typeof _value = {
 					image: {
 						...normalized_value.image,
-						url: image_url ?? undefined
+						url: image_url ?? undefined,
 					},
 					annotations: normalized_value.annotations.map((ann, i) => ({
 						...ann,
 						image: {
 							...ann.image,
-							url: annotation_urls[i] ?? undefined
-						}
-					}))
+							url: annotation_urls[i] ?? undefined,
+						},
+					})),
 				};
 				_value = async_resolved_value;
 			});
@@ -126,7 +126,7 @@
 	function handle_click(i: number, value: string): void {
 		gradio.dispatch("select", {
 			value: label,
-			index: i
+			index: i,
 		});
 	}
 </script>
@@ -194,7 +194,7 @@
 						style={color_map && ann.label in color_map
 							? null
 							: `filter: hue-rotate(${Math.round(
-									(i * 360) / _value?.annotations.length
+									(i * 360) / _value?.annotations.length,
 								)}deg);`}
 					/>
 				{/each}
@@ -207,7 +207,7 @@
 							style="background-color: {color_map && ann.label in color_map
 								? color_map[ann.label] + '88'
 								: `hsla(${Math.round(
-										(i * 360) / _value.annotations.length
+										(i * 360) / _value.annotations.length,
 									)}, 100%, 50%, 0.3)`}"
 							on:mouseover={() => handle_mouseover(ann.label)}
 							on:focus={() => handle_mouseover(ann.label)}

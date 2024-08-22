@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HTMLAnchorAttributes } from "svelte/elements";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 
 	interface DownloadLinkAttributes
 		extends Omit<HTMLAnchorAttributes, "target"> {
@@ -42,14 +42,14 @@
 				method: "GET",
 				path,
 				headers: {},
-				query_string: ""
+				query_string: "",
 			})
 			.then((response) => {
 				if (response.status !== 200) {
 					throw new Error(`Failed to get file ${path} from the Wasm worker.`);
 				}
 				const blob = new Blob([response.body], {
-					type: getHeaderValue(response.headers, "content-type")
+					type: getHeaderValue(response.headers, "content-type"),
 				});
 				const blobUrl = URL.createObjectURL(blob);
 
@@ -64,9 +64,15 @@
 				is_downloading = false;
 			});
 	}
+
+	let should_proxy = false;
+	console.log("HELLO");
+	onMount(() => {
+		should_proxy = should_proxy_wasm_src(href);
+	});
 </script>
 
-{#if worker_proxy && should_proxy_wasm_src(href)}
+{#if worker_proxy && should_proxy}
 	{#if is_downloading}
 		<slot />
 	{:else}

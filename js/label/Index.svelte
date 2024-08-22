@@ -40,6 +40,8 @@
 	}
 
 	$: _label = value.label;
+
+	$: console.log(value);
 </script>
 
 <Block

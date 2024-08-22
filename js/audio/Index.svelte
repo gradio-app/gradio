@@ -5,7 +5,7 @@
 
 	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { afterUpdate } from "svelte";
+	import { afterUpdate, onMount } from "svelte";
 
 	import StaticAudio from "./static/StaticAudio.svelte";
 	import InteractiveAudio from "./interactive/InteractiveAudio.svelte";
@@ -95,9 +95,14 @@
 
 	let waveform_settings: Record<string, any>;
 
-	let color_accent = getComputedStyle(
-		document.documentElement
-	).getPropertyValue("--color-accent");
+	let color_accent = "#fff";
+
+	onMount(() => {
+		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
+			"--color-accent",
+		);
+		set_trim_region_colour();
+	});
 
 	$: waveform_settings = {
 		height: 50,
@@ -113,23 +118,21 @@
 		normalize: true,
 		minPxPerSec: 20,
 		mediaControls: waveform_options.show_controls,
-		sampleRate: waveform_options.sample_rate || 44100
+		sampleRate: waveform_options.sample_rate || 44100,
 	};
 
 	const trim_region_settings = {
 		color: waveform_options.trim_region_color,
 		drag: true,
-		resize: true
+		resize: true,
 	};
 
 	function set_trim_region_colour(): void {
 		document.documentElement.style.setProperty(
 			"--trim-region-color",
-			trim_region_settings.color || color_accent
+			trim_region_settings.color || color_accent,
 		);
 	}
-
-	set_trim_region_colour();
 
 	function handle_error({ detail }: CustomEvent<string>): void {
 		const [level, status] = detail.includes("Invalid file type")

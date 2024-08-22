@@ -9,13 +9,14 @@
 	// import "../theme/src/tokens.css";
 	import "../../../../theme/src/typography.css";
 	import type { PageData } from "./$types";
+	import { onMount } from "svelte";
 
 	export let data: PageData;
 
 	$: ({ component, interactive_component, non_interactive_component, name } =
 		data);
 
-	$: console.log(data);
+	$: console.log(component);
 
 	function identity<T>(x: T): T {
 		return x;
@@ -25,8 +26,14 @@
 
 	const client = {
 		upload: noop,
-		fetch: noop
+		fetch: noop,
 	};
+
+	let target: HTMLElement | null = null;
+
+	onMount(() => {
+		target = document.body;
+	});
 </script>
 
 <svelte:head>
@@ -39,7 +46,7 @@
 		this={component.default}
 		{...interactive_component.props}
 		gradio={{ dispatch: console.warn, i18n: identity, client }}
-		target={document.body}
+		{target}
 	/>
 </div>
 
