@@ -777,11 +777,11 @@ class Events:
         callback=lambda block: setattr(block, "likeable", True),
         doc="This listener is triggered when the user likes/dislikes from within the {{ component }}. This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value. See EventData documentation on how to use this event data.",
     )
-    example_select = EventListener(
-        "example_select",
-        config_data=lambda: {"example_selectable": False},
-        callback=lambda block: setattr(block, "example_selectable", True),
-        doc="This listener is triggered when the user clicks on an example from within the {{ component }}. This event has SelectData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value. See SelectData documentation on how to use this event data.",
+    suggestion_select = EventListener(
+        "suggestion_select",
+        config_data=lambda: {"suggestion_selectable": False},
+        callback=lambda block: setattr(block, "suggestion_selectable", True),
+        doc="This listener is triggered when the user clicks on an suggestion from within the {{ component }}. This event has SelectData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value. See SelectData documentation on how to use this event data.",
     )
     load = EventListener(
         "load",

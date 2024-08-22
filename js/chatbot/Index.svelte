@@ -13,7 +13,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type {
 		Message,
-		ExampleMessage,
+		SuggestionMessage,
 		TupleFormat,
 		NormalisedMessage
 	} from "./types";
@@ -53,13 +53,13 @@
 		error: string;
 		like: LikeData;
 		clear_status: LoadingStatus;
-		example_select: SelectData;
+		suggestion_select: SelectData;
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 	export let placeholder: string | null = null;
-	export let examples: ExampleMessage[] | null = null;
+	export let suggestions: SuggestionMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 
 	let _value: NormalisedMessage[] | null = [];
@@ -118,14 +118,14 @@
 			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
-			on:example_select={(e) => gradio.dispatch("example_select", e.detail)}
+			on:suggestion_select={(e) => gradio.dispatch("suggestion_select", e.detail)}
 			{avatar_images}
 			{sanitize_html}
 			{bubble_full_width}
 			{line_breaks}
 			{layout}
 			{placeholder}
-			{examples}
+			{suggestions}
 			upload={gradio.client.upload}
 			_fetch={gradio.client.fetch}
 			load_component={gradio.load_component}

@@ -31,9 +31,11 @@ export interface ComponentMessage extends Message {
 	content: ComponentData;
 }
 
-export interface ExampleMessage {
+export interface SuggestionMessage {
+	icon?: string;
+	display_text?: string;
 	text: string;
-	files?: FileData | FileData[];
+	files?: FileData[];
 }
 
 export type message_data =

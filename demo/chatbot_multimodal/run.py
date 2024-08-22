@@ -19,7 +19,7 @@ def add_message(history, message):
         history.append((message["text"], None))
     return history, gr.MultimodalTextbox(value=None, interactive=False)
 
-def add_example_message(x: gr.SelectData, history):
+def add_suggestion_message(x: gr.SelectData, history):
     if x.value["text"] is not None:
         history.append((x.value["text"], None))
     if "files" in x.value:
@@ -42,7 +42,7 @@ with gr.Blocks(fill_height=True) as demo:
         bubble_full_width=False,
         scale=1,
         placeholder='<h1 style="font-weight: bold; color: #FF6B6B; text-align: center; font-size: 48px; font-family: Arial, sans-serif;">Welcome to Gradio!</h1>',
-        examples=[{"text": "Try this example with this audio.", "files": {"path": "files/cantina.wav"}}, {"text": "Try this example with this image.", "files": {"path": "files/avatar.png"}}, {"text": "This is just text, no files!"}, {"text": "Try this example with this image.", "files": [{"path": "files/avatar.png"}, {"path": "files/avatar.png"}]}],
+        suggestions=[{"icon": "files/avatar.png", "display_text": "Display Text Here!", "text": "Try this example with this audio.", "files": ["files/cantina.wav"]}, {"text": "Try this example with this image.", "files": ["files/avatar.png"]}, {"text": "This is just text, no files!"}, {"text": "Try this example with this image.", "files": ["files/avatar.png", "files/avatar.png"]}, {"text": "Try this example with this Audio.", "files": ["files/cantina.wav"]}, {"text": "Try this example with this Audio.", "files": ["files/cantina.wav"]}, {"text": "Try this example with this Audio.", "files": ["files/cantina.wav"]}]
     )
 
     chat_input = gr.MultimodalTextbox(interactive=True,
@@ -54,7 +54,7 @@ with gr.Blocks(fill_height=True) as demo:
     bot_msg.then(lambda: gr.MultimodalTextbox(interactive=True), None, [chat_input])
 
     chatbot.like(print_like_dislike, None, None)
-    chatbot.example_select(add_example_message, [chatbot], [chatbot])
+    chatbot.suggestion_select(add_suggestion_message, [chatbot], [chatbot])
 
 if __name__ == "__main__":
     demo.launch()
