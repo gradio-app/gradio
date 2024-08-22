@@ -29,16 +29,14 @@
 		"dev:client": "tsc -w --incremental",
 		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
 		"dev": "run-p dev:*",
-		"build:client": "svelte-package --input=. --cwd=../../.config/ && tsc ",
+		"build:client": "svelte-package --input=. --cwd=../../.config/ ",
 		"build:worker": "vite build --config vite.worker.config.js",
 		"build": "run-s build:client build:worker"
 	},
-	"devDependencies": {
-		"pyodide": "0.26.1"
-	},
 	"dependencies": {
 		"@types/path-browserify": "^1.0.0",
-		"path-browserify": "^1.0.1"
+		"path-browserify": "^1.0.1",
+		"pyodide": "0.26.1"
 	},
 	"peerDependencies": {
 		"svelte": "^4.0.0"

@@ -2327,13 +2327,12 @@ importers:
       path-browserify:
         specifier: ^1.0.1
         version: 1.0.1
-      svelte:
-        specifier: ^4.0.0
-        version: 4.2.15
-    devDependencies:
       pyodide:
         specifier: 0.26.1
         version: 0.26.1(bufferutil@4.0.7)
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
 packages:
 
