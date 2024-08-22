@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("Search bar filters dataframe correctly.", async ({ page }) => {
 	await page.getByTestId("textbox").fill("yam-peleg");

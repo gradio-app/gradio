@@ -1,19 +1,22 @@
 {
-	"name": "@gradio/build",
+	"name": "@self/build",
 	"version": "0.0.2",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "dist/index.js",
+	"main": "out/index.js",
 	"private": "true",
 	"author": "",
 	"license": "ISC",
 	"scripts": {
-		"build": "esbuild src/index.ts --platform=node --format=esm --target=node18 --bundle --packages=external --outfile=dist/index.js"
+		"build": "esbuild src/index.ts --platform=node --format=esm --target=node18 --bundle --packages=external --outfile=out/index.js"
 	},
 	"dependencies": {
 		"@gradio/theme": "workspace:^",
 		"esbuild": "^0.21.0",
 		"svelte-i18n": "^3.6.0"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"main_changeset": true,
 	"repository": {

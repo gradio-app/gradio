@@ -1,4 +1,4 @@
-import { test, expect, go_to_testcase } from "@gradio/tootils";
+import { test, expect, go_to_testcase } from "@self/tootils";
 
 for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - Gallery component properly displayed`, async ({

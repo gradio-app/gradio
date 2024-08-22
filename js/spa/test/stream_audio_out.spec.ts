@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("audio streams correctly", async ({ page }) => {
 	const uploader = await page.locator("input[type=file]");

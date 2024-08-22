@@ -5,7 +5,7 @@
 **/js/wasm/dist/**
 **/js/preview/dist/**
 **/client/js/dist/**
-**/js/lite/dist/**
+**/js/*/dist/**
 **/pnpm-lock.yaml
 **/js/plot/src/Plot.svelte
 **/.svelte-kit/**

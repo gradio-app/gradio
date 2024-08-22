@@ -1,5 +1,5 @@
 import { test, describe, assert, afterEach, vi } from "vitest";
-import { cleanup, render } from "@gradio/tootils";
+import { cleanup, render } from "@self/tootils";
 import { setupi18n } from "../core/src/i18n";
 
 import Gallery from "./Index.svelte";

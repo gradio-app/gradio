@@ -25,9 +25,20 @@
 	"main_changeset": true,
 	"main": "./Index.svelte",
 	"exports": {
-		".": "./Index.svelte",
-		"./example": "./Example.svelte",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
+		"./example": {
+			"gradio": "./Example.svelte",
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",

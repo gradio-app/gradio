@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("test 2d state-based render", async ({ page }) => {
 	await page.getByRole("button", { name: "Increment A" }).click();

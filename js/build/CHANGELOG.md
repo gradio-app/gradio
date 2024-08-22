@@ -1,4 +1,4 @@
-# @gradio/build
+# @self/build
 
 ## 0.0.2
 

@@ -11,8 +11,8 @@ export class WasmWorkerEventSource extends EventTarget {
 	 */
 	public readyState: number;
 
-	private port: MessagePort;
-	private url: URL;
+	port: MessagePort;
+	url: URL;
 
 	// This class partially implements the EventSource interface (https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsource-interface).
 	// Reconnection is not implemented, so this class doesn't maitain a reconnection time and a  last event ID string and the stream interpreter ignores the field related to these, e.g. "id" and "retry".
@@ -80,7 +80,7 @@ export class WasmWorkerEventSource extends EventTarget {
 		this.readyState = 2;
 	}
 
-	private _handleAsgiSendEvent(e: MessageEvent<SendEvent>): void {
+	_handleAsgiSendEvent(e: MessageEvent<SendEvent>): void {
 		const asgiSendEvent: SendEvent = e.data;
 
 		if (asgiSendEvent.type === "http.response.start") {
@@ -118,7 +118,7 @@ export class WasmWorkerEventSource extends EventTarget {
 		}
 	}
 
-	private interpretEventStream(streamContent: string): void {
+	interpretEventStream(streamContent: string): void {
 		// This method implements the steps described in the following section of the spec:
 		// "9.2.6 Interpreting an event stream" (https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation)
 		const self = this;

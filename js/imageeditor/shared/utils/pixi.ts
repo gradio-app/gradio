@@ -11,7 +11,6 @@ import {
 } from "pixi.js";
 
 import { type LayerScene } from "../layers/utils";
-import { background } from "@storybook/theming";
 
 /**
  * interface holding references to pixi app components

@@ -8,6 +8,7 @@
 	"license": "ISC",
 	"exports": {
 		".": {
+			"gradio": "./src/index.ts",
 			"import": "./dist/index.js"
 		},
 		"./package.json": "./package.json"

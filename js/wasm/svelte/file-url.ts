@@ -1,7 +1,7 @@
 import { getWorkerProxyContext } from "./context";
 import { is_self_host } from "../network/host";
 import { getHeaderValue } from "../src/http";
-import type { WorkerProxy } from "../dist";
+import type { WorkerProxy } from "../src/worker-proxy";
 
 type MediaSrc = string | undefined | null;
 

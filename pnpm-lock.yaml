@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@sveltejs/package@2.3.4':
+    hash: flygqco6z3nrhhrndh6d2cl72q
+    path: patches/@sveltejs__package@2.3.4.patch
+
 importers:
 
   .:
@@ -23,9 +28,6 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:client/js
-      '@gradio/tootils':
-        specifier: workspace:^
-        version: link:js/tootils
       '@manypkg/get-packages':
         specifier: ^2.2.1
         version: 2.2.1
@@ -35,6 +37,15 @@ importers:
       '@playwright/test':
         specifier: ^1.44.1
         version: 1.44.1
+      '@self/build':
+        specifier: workspace:^
+        version: link:js/build
+      '@self/tootils':
+        specifier: workspace:^
+        version: link:js/tootils
+      '@sveltejs/package':
+        specifier: ^2.3.4
+        version: 2.3.4(patch_hash=flygqco6z3nrhhrndh6d2cl72q)(svelte@4.2.15)(typescript@5.5.4)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.0
         version: 3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38)))
@@ -503,6 +514,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:0.6.0
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -531,6 +545,9 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -574,6 +591,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
   js/audio:
     dependencies:
@@ -613,6 +633,9 @@ importers:
       resize-observer-polyfill:
         specifier: ^1.5.1
         version: 1.5.1
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
       svelte-range-slider-pips:
         specifier: ^2.0.1
         version: 2.0.1
@@ -629,6 +652,9 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
   js/build:
     dependencies:
@@ -638,6 +664,9 @@ importers:
       esbuild:
         specifier: ^0.21.0
         version: 0.21.0
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
       svelte-i18n:
         specifier: ^3.6.0
         version: 3.6.0(svelte@4.2.15)
@@ -653,6 +682,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -705,6 +737,9 @@ importers:
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/audio':
         specifier: workspace:^
@@ -730,6 +765,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -746,6 +784,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -831,6 +872,9 @@ importers:
       codemirror:
         specifier: ^6.0.1
         version: 6.0.1(@lezer/common@1.0.2)
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -847,12 +891,19 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
 
   js/column:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -866,7 +917,7 @@ importers:
 
   js/component-test:
     devDependencies:
-      '@gradio/build':
+      '@self/build':
         specifier: workspace:^
         version: link:../build
       '@sveltejs/adapter-auto':
@@ -877,6 +928,10 @@ importers:
         version: 2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
 
   js/core:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/accordion':
         specifier: workspace:^
@@ -1094,6 +1149,9 @@ importers:
       marked:
         specifier: ^12.0.0
         version: 12.0.0
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1116,6 +1174,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1135,6 +1196,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1151,6 +1215,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1170,6 +1237,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1189,6 +1259,9 @@ importers:
       '@zerodevx/svelte-json-view':
         specifier: ^1.0.7
         version: 1.0.7(svelte@4.2.15)
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1217,6 +1290,9 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1251,6 +1327,9 @@ importers:
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1267,6 +1346,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1301,12 +1383,19 @@ importers:
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
 
   js/group:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1329,6 +1418,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1348,12 +1440,19 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
 
-  js/icons: {}
+  js/icons:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
   js/image:
     dependencies:
@@ -1387,6 +1486,9 @@ importers:
       resize-observer-polyfill:
         specifier: ^1.5.1
         version: 1.5.1
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1424,6 +1526,9 @@ importers:
       pixi.js:
         specifier: ^7.3.2
         version: 7.3.2(@pixi/utils@7.3.2)
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
       tinycolor2:
         specifier: ^1.6.0
         version: 1.6.0
@@ -1446,6 +1551,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1465,6 +1573,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1475,21 +1586,21 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
-      '@gradio/build':
-        specifier: workspace:^
-        version: link:../build
       '@gradio/core':
         specifier: workspace:^
         version: link:../core
-      '@gradio/spa':
-        specifier: workspace:^
-        version: link:../spa
       '@gradio/theme':
         specifier: workspace:^
         version: link:../theme
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      '@self/build':
+        specifier: workspace:^
+        version: link:../build
+      '@self/spa':
+        specifier: workspace:^
+        version: link:../spa
       gradio:
         specifier: workspace:^
         version: link:../../gradio
@@ -1538,6 +1649,9 @@ importers:
       prismjs:
         specifier: 1.29.0
         version: 1.29.0
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1581,6 +1695,9 @@ importers:
       gsplat:
         specifier: ^1.0.5
         version: 1.0.5
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1612,6 +1729,9 @@ importers:
       '@gradio/video':
         specifier: workspace:^
         version: link:../video
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1634,6 +1754,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
       vega:
         specifier: ^5.23.0
         version: 5.23.0
@@ -1659,6 +1782,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1678,6 +1804,9 @@ importers:
       prismjs:
         specifier: ^1.29.0
         version: 1.29.0
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1709,6 +1838,9 @@ importers:
       plotly.js-dist-min:
         specifier: ^2.10.1
         version: 2.10.1
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
       vega:
         specifier: ^5.23.0
         version: 5.23.0
@@ -1776,6 +1908,10 @@ importers:
       yootils:
         specifier: ^0.3.1
         version: 0.3.1
+    optionalDependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@rollup/plugin-commonjs':
         specifier: ^25.0.4
@@ -1806,12 +1942,19 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
 
   js/row:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1837,6 +1980,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1874,6 +2020,9 @@ importers:
       resize-observer-polyfill:
         specifier: ^1.5.1
         version: 1.5.1
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1893,6 +2042,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1909,16 +2061,20 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
 
   js/spa:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
-      '@gradio/build':
-        specifier: workspace:^
-        version: link:../build
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
@@ -1934,6 +2090,9 @@ importers:
       '@huggingface/space-header':
         specifier: ^1.0.3
         version: 1.0.3
+      '@self/build':
+        specifier: workspace:^
+        version: link:../build
       '@types/eventsource':
         specifier: ^1.1.15
         version: 1.1.15
@@ -1941,7 +2100,11 @@ importers:
         specifier: ^7.0.3
         version: 7.0.3
 
-  js/state: {}
+  js/state:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
   js/statustracker:
     dependencies:
@@ -1960,6 +2123,9 @@ importers:
       dompurify:
         specifier: ^3.0.3
         version: 3.0.3
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1978,6 +2144,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -1988,6 +2157,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -2007,24 +2179,38 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
 
-  js/theme: {}
+  js/theme:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
   js/timer:
     dependencies:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
 
-  js/tooltip: {}
+  js/tooltip:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
   js/tootils:
     dependencies:
@@ -2034,6 +2220,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
   js/upload:
     dependencies:
@@ -2052,6 +2241,9 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
   js/uploadbutton:
     dependencies:
@@ -2067,6 +2259,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -2116,6 +2311,9 @@ importers:
       mrmime:
         specifier: ^2.0.0
         version: 2.0.0
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
     devDependencies:
       '@gradio/preview':
         specifier: workspace:^
@@ -2129,10 +2327,12 @@ importers:
       path-browserify:
         specifier: ^1.0.1
         version: 1.0.1
-    devDependencies:
       pyodide:
         specifier: 0.26.1
         version: 0.26.1(bufferutil@4.0.7)
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
 packages:
 
@@ -3526,10 +3726,6 @@ packages:
     resolution: {integrity: sha512-IzL8ZoEDIBRWEzlCcRhOaCupYyN5gdIK+Q6fbFdPDg6HqX6jpkItn7DFIpW9LQzXG6Df9sA7+OKnq0qlz/GaQg==}
     engines: {node: '>=6.0.0'}
 
-  '@jridgewell/resolve-uri@3.1.1':
-    resolution: {integrity: sha512-dSYZh7HhCDtCKm4QakX0xFpsRDqjjtZf/kjI/v3T3Nwt5r8/qz/M19F9ySyOqU94SXBmeG9ttTul+YnR4LOxFA==}
-    engines: {node: '>=6.0.0'}
-
   '@jridgewell/resolve-uri@3.1.2':
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
     engines: {node: '>=6.0.0'}
@@ -3544,9 +3740,6 @@ packages:
 
   '@jridgewell/sourcemap-codec@1.4.15':
     resolution: {integrity: sha512-eF2rxCRulEKXHTRiDrDy6erMYWqNw4LPdQ8UQA4huuxaQsVeRPFl2oM8oDGxMFhJUWZf9McpLtJasDDZb/Bpeg==}
-
-  '@jridgewell/trace-mapping@0.3.20':
-    resolution: {integrity: sha512-R8LcPeWZol2zR8mmH3JeKQ6QRCFb7XgUhV9ZlGhHLGyg4wpPiPZNQOOWhFZhxKw8u//yTbNGI42Bx/3paXEQ+Q==}
 
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
@@ -4497,6 +4690,13 @@ packages:
       '@sveltejs/vite-plugin-svelte': ^3.0.0
       svelte: ^4.0.0 || ^5.0.0-next.0
       vite: ^5.0.3
+
+  '@sveltejs/package@2.3.4':
+    resolution: {integrity: sha512-A56rLEBVI7DhcfCmjy+D5oya4be/N+kBKX69H0aCkvhgOiAXroqVzeNhWiNiGHhhec3NvpGjtjKI5c4+JAlTZg==}
+    engines: {node: ^16.14 || >=18}
+    hasBin: true
+    peerDependencies:
+      svelte: ^3.44.0 || ^4.0.0 || ^5.0.0-next.1
 
   '@sveltejs/vite-plugin-svelte-inspector@2.1.0':
     resolution: {integrity: sha512-9QX28IymvBlSCqsCll5t0kQVxipsfhFFL+L2t3nTWfXnddYwxBuAEtTtlaVQpRz9c37BhJjltSeY4AJSC03SSg==}
@@ -11230,7 +11430,7 @@ snapshots:
 
   '@inquirer/core@7.1.0':
     dependencies:
-      '@inquirer/type': 1.2.1
+      '@inquirer/type': 1.3.1
       '@types/mute-stream': 0.0.4
       '@types/node': 20.12.8
       '@types/wrap-ansi': 3.0.0
@@ -11297,15 +11497,13 @@ snapshots:
     dependencies:
       '@jridgewell/set-array': 1.1.2
       '@jridgewell/sourcemap-codec': 1.4.15
-      '@jridgewell/trace-mapping': 0.3.20
+      '@jridgewell/trace-mapping': 0.3.25
 
   '@jridgewell/gen-mapping@0.3.5':
     dependencies:
       '@jridgewell/set-array': 1.2.1
       '@jridgewell/sourcemap-codec': 1.4.15
       '@jridgewell/trace-mapping': 0.3.25
-
-  '@jridgewell/resolve-uri@3.1.1': {}
 
   '@jridgewell/resolve-uri@3.1.2': {}
 
@@ -11314,11 +11512,6 @@ snapshots:
   '@jridgewell/set-array@1.2.1': {}
 
   '@jridgewell/sourcemap-codec@1.4.15': {}
-
-  '@jridgewell/trace-mapping@0.3.20':
-    dependencies:
-      '@jridgewell/resolve-uri': 3.1.1
-      '@jridgewell/sourcemap-codec': 1.4.15
 
   '@jridgewell/trace-mapping@0.3.25':
     dependencies:
@@ -12706,6 +12899,17 @@ snapshots:
       svelte: 4.2.15
       tiny-glob: 0.2.9
       vite: 5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))
+
+  '@sveltejs/package@2.3.4(patch_hash=flygqco6z3nrhhrndh6d2cl72q)(svelte@4.2.15)(typescript@5.5.4)':
+    dependencies:
+      chokidar: 3.6.0
+      kleur: 4.1.5
+      sade: 1.8.1
+      semver: 7.6.0
+      svelte: 4.2.15
+      svelte2tsx: 0.7.7(svelte@4.2.15)(typescript@5.5.4)
+    transitivePeerDependencies:
+      - typescript
 
   '@sveltejs/vite-plugin-svelte-inspector@2.1.0(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))':
     dependencies:

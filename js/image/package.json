@@ -24,11 +24,30 @@
 	"main_changeset": true,
 	"main": "./Index.svelte",
 	"exports": {
-		".": "./Index.svelte",
-		"./shared": "./shared/index.ts",
-		"./example": "./Example.svelte",
-		"./base": "./shared/ImagePreview.svelte",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
+		"./example": {
+			"gradio": "./Example.svelte",
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
+		},
+		"./base": {
+			"gradio": "./shared/ImagePreview.svelte",
+			"svelte": "./dist/shared/ImagePreview.svelte",
+			"types": "./dist/shared/ImagePreview.svelte.d.ts"
+		},
+		"./shared": {
+			"gradio": "./shared/index.ts",
+			"svelte": "./dist/shared/index.js",
+			"types": "./dist/shared/index.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",
