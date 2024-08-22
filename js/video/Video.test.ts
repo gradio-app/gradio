@@ -8,7 +8,7 @@ import {
 	beforeEach,
 	expect
 } from "vitest";
-import { spy, spyOn } from "tinyspy";
+import { spyOn } from "tinyspy";
 import { cleanup, render } from "@self/tootils";
 import { setupi18n } from "../core/src/i18n";
 

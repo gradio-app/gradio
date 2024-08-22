@@ -1,4 +1,3 @@
-// import type { ActionReturn } from "@self/tootils";
 import Tooltip from "./Tooltip.svelte";
 
 interface ActionArgs {
