@@ -16,11 +16,11 @@
 			"import": "./dist/src/index.js",
 			"types": "./dist/src/index.d.ts"
 		},
-		"./reset.css": "./src/reset.css",
-		"./global.css": "./src/global.css",
-		"./tokens.css": "./src/tokens.css",
-		"./typography.css": "./src/typography.css",
-		"./pollen.css": "./src/pollen.css",
+		"./reset.css": "./dist/src/reset.css",
+		"./global.css": "./dist/src/global.css",
+		"./tokens.css": "./dist/src/tokens.css",
+		"./typography.css": "./dist/src/typography.css",
+		"./pollen.css": "./dist/src/pollen.css",
 		"./package.json": "./package.json"
 	},
 	"peerDependencies": {
