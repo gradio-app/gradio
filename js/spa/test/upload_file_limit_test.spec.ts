@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 async function error_modal_showed(page) {
 	const toast = page.getByTestId("toast-body");

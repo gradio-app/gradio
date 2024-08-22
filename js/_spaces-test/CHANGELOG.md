@@ -1,4 +1,4 @@
-# @gradio/spaces-test
+# @self/spaces-test
 
 ## 0.0.1
 

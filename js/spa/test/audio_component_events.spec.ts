@@ -1,4 +1,4 @@
-import { test, expect, drag_and_drop_file } from "@gradio/tootils";
+import { test, expect, drag_and_drop_file } from "@self/tootils";
 import { chromium } from "playwright";
 
 test("Audio events are dispatched correctly. File downloading works and file has correct name.", async ({

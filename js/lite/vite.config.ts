@@ -51,7 +51,7 @@ import {
 	handle_ce_css,
 	inject_component_loader,
 	mock_modules
-} from "@gradio/build";
+} from "@self/build";
 
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
 const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";

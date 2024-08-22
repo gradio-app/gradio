@@ -1,4 +1,4 @@
-import { test, expect, drag_and_drop_file } from "@gradio/tootils";
+import { test, expect, drag_and_drop_file } from "@self/tootils";
 
 test("Video click-to-upload uploads video successfuly. Clear, play, and pause buttons dispatch events correctly. Downloading the file works and has the correct name.", async ({
 	page
