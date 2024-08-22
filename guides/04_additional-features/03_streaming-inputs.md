@@ -57,5 +57,3 @@ with gr.Blocks() as demo:
 
 demo.launch()
 ```
-
-For a beginning-to-end demo of a conversational chatbot that covers streaming audio in more depth please see this [guide](/guides/talking-to-a-chatbot).
