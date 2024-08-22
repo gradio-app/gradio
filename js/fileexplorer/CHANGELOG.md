@@ -1,5 +1,22 @@
 # @gradio/fileexplorer
 
+## 0.4.18
+
+### Features
+
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.6.0
+- @gradio/upload@0.12.3
+- @gradio/atoms@0.8.0
+- @gradio/client@1.5.1
+- @gradio/statustracker@0.7.5
+- @gradio/icons@0.7.1
+- @gradio/checkbox@0.3.12
+- @gradio/file@0.9.3
+
 ## 0.4.17
 
 ### Dependency updates

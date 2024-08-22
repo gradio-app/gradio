@@ -25,7 +25,8 @@
 		"ci:publish": "pnpm changeset tag && git push origin --tags && pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
 		"chromatic": "chromatic",
 		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
-		"website": "pnpm --filter @gradio/website build"
+		"website": "pnpm --filter @gradio/website build",
+		"package": "echo \"hi\""
 	},
 	"type": "module",
 	"author": "",

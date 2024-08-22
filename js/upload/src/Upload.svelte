@@ -319,10 +319,12 @@
 
 	.hidden {
 		display: none;
-		height: 0 !important;
 		position: absolute;
-		width: 0;
 		flex-grow: 0;
+	}
+
+	.hidden :global(svg) {
+		display: none;
 	}
 
 	.center {

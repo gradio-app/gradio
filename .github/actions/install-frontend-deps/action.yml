@@ -42,10 +42,13 @@ runs:
       if: inputs.skip_build == 'false' && steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
+    - name: generate types
+      shell: bash
+      run: pnpm package
     - name: Build frontend lite
       if: inputs.build_lite == 'true'
       shell: bash
       run: |
         . venv/bin/activate
         python -m pip install -U build hatch packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
-        pnpm --filter @gradio/lite build
+        pnpm build:lite
