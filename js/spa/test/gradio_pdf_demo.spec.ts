@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("Custom PDF component demo can be loaded and inference function works .", async ({
 	page

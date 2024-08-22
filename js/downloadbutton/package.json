@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/downloadbutton",
-	"version": "0.1.26",
+	"version": "0.1.27",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -17,8 +17,15 @@
 	"main": "./Index.svelte",
 	"main_changeset": true,
 	"exports": {
-		".": "./Index.svelte",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",

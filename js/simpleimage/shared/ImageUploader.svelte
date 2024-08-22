@@ -74,7 +74,7 @@
 	.image-frame :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: contain;
+		object-fit: scale-down;
 	}
 
 	.image-frame {
