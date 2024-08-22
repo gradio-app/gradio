@@ -1,5 +1,19 @@
 # @gradio/json
 
+## 0.4.0
+
+### Features
+
+- [#9023](https://github.com/gradio-app/gradio/pull/9023) [`87e3537`](https://github.com/gradio-app/gradio/commit/87e3537342017c7f19d012f0806a14bc264e09f9) - Add height param to gr.JSON.  Thanks @hannahblair!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.6.0
+- @gradio/atoms@0.8.0
+- @gradio/statustracker@0.7.5
+- @gradio/icons@0.7.1
+
 ## 0.3.1
 
 ### Dependency updates

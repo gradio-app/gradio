@@ -125,6 +125,17 @@ BUILD_PATH_LIB = cast(
     files("gradio").joinpath("templates", "frontend", "assets").as_posix(),  # type: ignore
 )
 VERSION = get_package_version()
+XSS_VULNERABLE_EXTENSIONS = [
+    ".html",
+    ".htm",
+    ".js",
+    ".php",
+    ".asp",
+    ".aspx",
+    ".jsp",
+    ".xml",
+    ".svg",
+]
 
 
 class ORJSONResponse(JSONResponse):
@@ -530,7 +541,10 @@ class App(FastAPI):
             except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err)) from err
             rp_resp = await client.send(rp_req, stream=True)
-            rp_resp.headers.update({"Content-Disposition": "attachment"})
+            file_extension = os.path.splitext(url_path)[1].lower()
+            if file_extension in XSS_VULNERABLE_EXTENSIONS:
+                rp_resp.headers.update({"Content-Disposition": "attachment"})
+                rp_resp.headers.update({"Content-Type": "application/octet-stream"})
             return StreamingResponse(
                 rp_resp.aiter_raw(),
                 status_code=rp_resp.status_code,
@@ -589,6 +603,16 @@ class App(FastAPI):
             if not abs_path.exists():
                 raise HTTPException(404, f"File not found: {path_or_url}.")
 
+            mime_type, _ = mimetypes.guess_type(abs_path)
+            file_extension = os.path.splitext(abs_path)[1].lower()
+
+            if file_extension in XSS_VULNERABLE_EXTENSIONS:
+                media_type = "application/octet-stream"
+                content_disposition_type = "attachment"
+            else:
+                media_type = mime_type or "application/octet-stream"
+                content_disposition_type = "inline"
+
             range_val = request.headers.get("Range", "").strip()
             if range_val.startswith("bytes=") and "-" in range_val:
                 range_val = range_val[6:]
@@ -597,7 +621,8 @@ class App(FastAPI):
                     start = int(start)
                     end = int(end)
                     headers = dict(request.headers)
-                    headers["Content-Disposition"] = "attachment"
+                    headers["Content-Disposition"] = content_disposition_type
+                    headers["Content-Type"] = media_type
                     response = ranged_response.RangedFileResponse(
                         abs_path,
                         ranged_response.OpenRange(start, end),
@@ -609,8 +634,9 @@ class App(FastAPI):
             return FileResponse(
                 abs_path,
                 headers={"Accept-Ranges": "bytes"},
-                content_disposition_type="attachment",
-                media_type="application/octet-stream",
+                content_disposition_type=content_disposition_type,
+                media_type=media_type,
+                filename=abs_path.name,
             )
 
         @app.get(

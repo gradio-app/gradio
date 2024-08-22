@@ -1,5 +1,13 @@
 # @gradio/wasm
 
+## 0.13.0
+
+### Features
+
+- [#8935](https://github.com/gradio-app/gradio/pull/8935) [`f6b2b97`](https://github.com/gradio-app/gradio/commit/f6b2b97d473dd81571410cccc6e1ddfcf9fa00bc) - Initialize the client with the fake host for Lite server.  Thanks @whitphx!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor.  Thanks @pngwn!
+
 ## 0.12.0
 
 ### Features

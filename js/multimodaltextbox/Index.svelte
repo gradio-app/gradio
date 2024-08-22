@@ -50,16 +50,19 @@
 	export let interactive: boolean;
 	export let root: string;
 	export let file_count: "single" | "multiple" | "directory";
+
+	let dragging: boolean;
 </script>
 
 <Block
 	{visible}
 	{elem_id}
-	{elem_classes}
+	elem_classes={[...elem_classes, "multimodal-textbox"]}
 	{scale}
 	{min_width}
 	allow_overflow={false}
 	padding={container}
+	border_mode={dragging ? "focus" : "base"}
 >
 	{#if loading_status}
 		<StatusTracker
@@ -73,6 +76,7 @@
 	<MultimodalTextbox
 		bind:value
 		bind:value_is_output
+		bind:dragging
 		{file_types}
 		{root}
 		{label}
@@ -103,3 +107,11 @@
 		stream_handler={gradio.client.stream}
 	/>
 </Block>
+
+<style>
+	:global(.form .block.multimodal-textbox) {
+		box-shadow: var(--block-shadow) !important;
+		border-width: var(--block-border-width) !important;
+		border-radius: var(--block-radius) !important;
+	}
+</style>

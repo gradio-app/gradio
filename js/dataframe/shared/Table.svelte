@@ -65,7 +65,11 @@
 		if (selected !== false) {
 			const [row, col] = selected;
 			if (!isNaN(row) && !isNaN(col)) {
-				dispatch("select", { index: [row, col], value: get_data_at(row, col) });
+				dispatch("select", {
+					index: [row, col],
+					value: get_data_at(row, col),
+					row_value: data[row].map((d) => d.value)
+				});
 			}
 		}
 	}

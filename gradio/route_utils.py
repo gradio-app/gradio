@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import json
 import os
+import pickle
 import re
 import shutil
 import sys
@@ -18,6 +19,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import (
     TYPE_CHECKING,
+    Any,
     AsyncContextManager,
     AsyncGenerator,
     BinaryIO,
@@ -125,15 +127,18 @@ class Request:
     query parameters and other information about the request from within the prediction
     function. The class is a thin wrapper around the fastapi.Request class. Attributes
     of this class include: `headers`, `client`, `query_params`, `session_hash`, and `path_params`. If
-    auth is enabled, the `username` attribute can be used to get the logged in user.
+    auth is enabled, the `username` attribute can be used to get the logged in user. In some environments,
+    the dict-like attributes (e.g. `requests.headers`, `requests.query_params`) of this class are automatically
+    converted to to dictionaries, so we recommend converting them to dictionaries before accessing
+    attributes for consistent behavior in different environments.
     Example:
         import gradio as gr
         def echo(text, request: gr.Request):
             if request:
-                print("Request headers dictionary:", request.headers)
-                print("IP address:", request.client.host)
+                print("Request headers dictionary:", dict(request.headers))
                 print("Query parameters:", dict(request.query_params))
-                print("Session hash:", request.session_hash)
+                print("IP address:", request.client.host)
+                print("Gradio session hash:", request.session_hash)
             return text
         io = gr.Interface(echo, "textbox", "textbox").launch()
     Demos: request_ip_headers
@@ -156,8 +161,8 @@ class Request:
         """
         self.request = request
         self.username = username
-        self.session_hash = session_hash
-        self.kwargs: dict = kwargs
+        self.session_hash: str | None = session_hash
+        self.kwargs: dict[str, Any] = kwargs
 
     def dict_to_obj(self, d):
         if isinstance(d, dict):
@@ -165,7 +170,7 @@ class Request:
         else:
             return d
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         if self.request:
             return self.dict_to_obj(getattr(self.request, name))
         else:
@@ -176,6 +181,34 @@ class Request:
                     f"'Request' object has no attribute '{name}'"
                 ) from ke
             return self.dict_to_obj(obj)
+
+    def __getstate__(self) -> dict[str, Any]:
+        self.kwargs.update(
+            {
+                "headers": dict(getattr(self, "headers", {})),
+                "query_params": dict(getattr(self, "query_params", {})),
+                "cookies": dict(getattr(self, "cookies", {})),
+                "path_params": dict(getattr(self, "path_params", {})),
+                "client": {
+                    "host": getattr(self, "client", {}) and self.client.host,
+                    "port": getattr(self, "client", {}) and self.client.port,
+                },
+                "url": getattr(self, "url", ""),
+            }
+        )
+        if request_state := hasattr(self, "state"):
+            try:
+                pickle.dumps(request_state)
+                self.kwargs["request_state"] = request_state
+            except pickle.PicklingError:
+                pass
+        self.request = None
+        return self.__dict__
+
+    def __setstate__(self, state: dict[str, Any]):
+        if request_state := state.pop("request_state", None):
+            self.state = request_state
+        self.__dict__ = state
 
 
 class FnIndexInferError(Exception):
