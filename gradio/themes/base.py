@@ -1642,7 +1642,7 @@ class Base(ThemeClass):
             self, "button_large_padding", "*spacing_lg calc(2 * *spacing_lg)"
         )
         self.button_large_radius = button_large_radius or getattr(
-            self, "button_large_radius", "*radius_lg"
+            self, "button_large_radius", "*radius_md"
         )
         self.button_large_text_size = button_large_text_size or getattr(
             self, "button_large_text_size", "*text_lg"
@@ -1655,7 +1655,7 @@ class Base(ThemeClass):
             self, "button_small_padding", "*spacing_sm calc(1.5 * *spacing_sm)"
         )
         self.button_small_radius = button_small_radius or getattr(
-            self, "button_small_radius", "*radius_sm"
+            self, "button_small_radius", "*radius_md"
         )
         self.button_small_text_size = button_small_text_size or getattr(
             self, "button_small_text_size", "*text_sm"
@@ -1732,7 +1732,7 @@ class Base(ThemeClass):
         )
         self.button_secondary_background_fill = (
             button_secondary_background_fill
-            or getattr(self, "button_secondary_background_fill", "*neutral_100")
+            or getattr(self, "button_secondary_background_fill", "*neutral_200")
         )
         self.button_secondary_background_fill_dark = (
             button_secondary_background_fill_dark
@@ -1743,7 +1743,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_secondary_background_fill_hover",
-                "*neutral_200"
+                "*neutral_300"
             )
         )
         self.button_secondary_background_fill_hover_dark = (
@@ -1766,7 +1766,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_secondary_border_color_hover",
-                "*neutral_300",
+                "*neutral_400",
             )
         )
         self.button_secondary_border_color_hover_dark = (
@@ -1839,5 +1839,5 @@ class Base(ThemeClass):
         )
 
         # Button Styles
-        self.button_transition = "background-color 0.3s ease"
+        self.button_transition = getattr(self, "button_transition", "translateY(-0.5px)")
         return self
