@@ -8,4 +8,4 @@ pnpm_required
 rm -rf gradio/_frontend_code
 rm -rf gradio/templates/*
 
-pnpm --filter @gradio/lite build
+pnpm build:lite
