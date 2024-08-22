@@ -51,8 +51,6 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
           always_install_pnpm: true
-      - name: generate types
-        run: pnpm package
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: build the wasm module
