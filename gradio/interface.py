@@ -110,7 +110,7 @@ class Interface(Blocks):
         article: str | None = None,
         theme: Theme | str | None = None,
         css: str | None = None,
-        allow_flagging: Literal["never"]
+        flagging_mode: Literal["never"]
         | Literal["auto"]
         | Literal["manual"]
         | None = None,
@@ -134,6 +134,10 @@ class Interface(Blocks):
         delete_cache: tuple[int, int] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         fill_width: bool = False,
+        allow_flagging: Literal["never"]
+        | Literal["auto"]
+        | Literal["manual"]
+        | None = None,
         **kwargs,
     ):
         """
@@ -151,7 +155,7 @@ class Interface(Blocks):
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: custom css as a string or path to a css file. This css will be included in the demo webpage.
             flagging_mode: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged, along with the generated output. If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_FLAGGING_MODE; otherwise defaults to "manual".
-            flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
+            flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if flagging_mode is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
             flagging_dir: what to name the directory where flagged data is stored.
             flagging_callback: either None or an instance of a subclass of FlaggingCallback which will be called when a sample is flagged. If set to None, an instance of gradio.flagging.CSVLogger will be created and logs will be saved to a local CSV file in flagging_dir. Default to None.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
@@ -373,33 +377,21 @@ class Interface(Blocks):
 
         self.simple_server = None
 
-        # For allow_flagging: (1) first check for parameter,
-        # (2) check for env variable, (3) default to True/"manual"
-        if allow_flagging is None:
-            allow_flagging = os.getenv("GRADIO_FLAGGING_MODE", "manual")  # type: ignore
-        if allow_flagging is True:
+        # For flagging_mode: (1) first check for `flagging_mode` parameter (or its alias `allow_flagging`), 
+        # (2) check for env variable, (3) default to "manual"
+        if allow_flagging is not None:
             warnings.warn(
-                "The `allow_flagging` parameter in `Interface` now"
-                "takes a string value ('auto', 'manual', or 'never')"
-                ", not a boolean. Setting parameter to: 'manual'."
+                "The `allow_flagging` parameter in `Interface` is deprecated."
+                "Use `flagging_mode` instead."
             )
-            self.allow_flagging = "manual"
-        elif allow_flagging == "manual":
-            self.allow_flagging = "manual"
-        elif allow_flagging is False:
-            warnings.warn(
-                "The `allow_flagging` parameter in `Interface` now"
-                "takes a string value ('auto', 'manual', or 'never')"
-                ", not a boolean. Setting parameter to: 'never'."
-            )
-            self.allow_flagging = "never"
-        elif allow_flagging == "never":
-            self.allow_flagging = "never"
-        elif allow_flagging == "auto":
-            self.allow_flagging = "auto"
+            flagging_mode = allow_flagging
+        if flagging_mode is None:
+            flagging_mode = os.getenv("GRADIO_FLAGGING_MODE", "manual")  # type: ignore
+        elif flagging_mode in ["manual", "never", "auto"]:
+            self.flagging_mode = flagging_mode
         else:
             raise ValueError(
-                "Invalid value for `allow_flagging` parameter."
+                "Invalid value for `flagging_mode` parameter."
                 "Must be: 'auto', 'manual', or 'never'."
             )
 
@@ -469,7 +461,7 @@ class Interface(Blocks):
                 else:
                     component.label = f"output {i}"
 
-        if self.allow_flagging != "never":
+        if self.flagging_mode != "never":
             if self.interface_type == InterfaceTypes.UNIFIED:
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)  # type: ignore
             elif self.interface_type == InterfaceTypes.INPUT_ONLY:
@@ -592,9 +584,9 @@ class Interface(Blocks):
                         or inspect.isasyncgenfunction(self.fn)
                     ) and not self.live:
                         _stop_btn = Button(**self.stop_btn_parms)
-                    if self.allow_flagging == "manual":
+                    if self.flagging_mode == "manual":
                         flag_btns = self.render_flag_btns()
-                    elif self.allow_flagging == "auto":
+                    elif self.flagging_mode == "auto":
                         flag_btns = [_submit_btn]
         return (
             _submit_btn,
@@ -640,9 +632,9 @@ class Interface(Blocks):
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
                         _stop_btn = Button(**self.stop_btn_parms)
-                if self.allow_flagging == "manual":
+                if self.flagging_mode == "manual":
                     flag_btns = self.render_flag_btns()
-                elif self.allow_flagging == "auto":
+                elif self.flagging_mode == "auto":
                     if _submit_btn is None:
                         raise RenderError("Submit button not rendered")
                     flag_btns = [_submit_btn]
@@ -821,7 +813,7 @@ class Interface(Blocks):
         ):
             return
 
-        if self.allow_flagging == "auto":
+        if self.flagging_mode == "auto":
             flag_method = FlagMethod(
                 self.flagging_callback, "", "", visual_feedback=False
             )

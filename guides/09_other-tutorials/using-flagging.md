@@ -15,23 +15,23 @@ Flagging with Gradio's `Interface` is especially easy. By default, underneath th
 
 There are [four parameters](https://gradio.app/docs/interface#initialization) in `gradio.Interface` that control how flagging works. We will go over them in greater detail.
 
-- `allow_flagging`: this parameter can be set to either `"manual"` (default), `"auto"`, or `"never"`.
+- `flagging_mode`: this parameter can be set to either `"manual"` (default), `"auto"`, or `"never"`.
   - `manual`: users will see a button to flag, and samples are only flagged when the button is clicked.
   - `auto`: users will not see a button to flag, but every sample will be flagged automatically.
   - `never`: users will not see a button to flag, and no sample will be flagged.
 - `flagging_options`: this parameter can be either `None` (default) or a list of strings.
   - If `None`, then the user simply clicks on the **Flag** button and no additional options are shown.
-  - If a list of strings are provided, then the user sees several buttons, corresponding to each of the strings that are provided. For example, if the value of this parameter is `["Incorrect", "Ambiguous"]`, then buttons labeled **Flag as Incorrect** and **Flag as Ambiguous** appear. This only applies if `allow_flagging` is `"manual"`.
+  - If a list of strings are provided, then the user sees several buttons, corresponding to each of the strings that are provided. For example, if the value of this parameter is `["Incorrect", "Ambiguous"]`, then buttons labeled **Flag as Incorrect** and **Flag as Ambiguous** appear. This only applies if `flagging_mode` is `"manual"`.
   - The chosen option is then logged along with the input and output.
 - `flagging_dir`: this parameter takes a string.
   - It represents what to name the directory where flagged data is stored.
 - `flagging_callback`: this parameter takes an instance of a subclass of the `FlaggingCallback` class
   - Using this parameter allows you to write custom code that gets run when the flag button is clicked
-  - By default, this is set to an instance of `gr.CSVLogger`
+  - By default, this is set to an instance of `gr.JSONLogger`
 
 ## What happens to flagged data?
 
-Within the directory provided by the `flagging_dir` argument, a CSV file will log the flagged data.
+Within the directory provided by the `flagging_dir` argument, a JSON file will log the flagged data.
 
 Here's an example: The code below creates the calculator interface embedded below it:
 
