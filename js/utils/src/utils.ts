@@ -1,6 +1,5 @@
 import type { ActionReturn } from "svelte/action";
 import type { Client } from "@gradio/client";
-// import type { Args } from "@gradio/core";
 import type { ComponentType, SvelteComponent } from "svelte";
 
 export interface SelectData {

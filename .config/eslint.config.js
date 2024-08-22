@@ -75,7 +75,8 @@ export default [
 			"**/_website/**/*",
 			"**/_spaces-test/**/*",
 			"**/preview/test/**/*",
-			"**/component-test/**/*"
+			"**/component-test/**/*",
+			"**/js/wasm/src/webworker/**/*"
 		]
 	},
 	{
