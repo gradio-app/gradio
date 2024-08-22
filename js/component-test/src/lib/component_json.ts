@@ -14,7 +14,8 @@ export default [
 			_selectable: false,
 			interactive: true,
 			server: {},
-			value: null
+			value: {},
+			label: "Annotated Image"
 		}
 	},
 	{
