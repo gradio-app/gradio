@@ -46,7 +46,6 @@ jobs:
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          always_install_pnpm: true
           build_lite: true
           skip_build: true
       - run: pnpm exec playwright install chromium firefox
