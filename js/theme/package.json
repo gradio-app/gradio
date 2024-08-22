@@ -17,24 +17,24 @@
 			"types": "./dist/src/index.d.ts"
 		},
 		"./reset.css": {
-			"import": "./dist/src/reset.css",
-			"gradio": "./src/reset.css"
+			"gradio": "./src/reset.css",
+			"import": "./dist/src/reset.css"
 		},
 		"./global.css": {
-			"import": "./dist/src/global.css",
-			"gradio": "./src/global.css"
+			"gradio": "./src/global.css",
+			"import": "./dist/src/global.css"
 		},
 		"./tokens": {
-			"import": "./dist/src/tokens.js",
-			"gradio": "./src/tokens.ts"
+			"gradio": "./src/tokens.ts",
+			"import": "./dist/src/tokens.js"
 		},
 		"./typography.css": {
-			"import": "./dist/src/typography.css",
-			"gradio": "./src/typography.css"
+			"gradio": "./src/typography.css",
+			"import": "./dist/src/typography.css"
 		},
 		"./pollen.css": {
-			"import": "./dist/src/pollen.css",
-			"gradio": "./src/pollen.css"
+			"gradio": "./src/pollen.css",
+			"import": "./dist/src/pollen.css"
 		},
 		"./package.json": "./package.json"
 	},
