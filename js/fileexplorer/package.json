@@ -5,7 +5,6 @@
 	"type": "module",
 	"author": "",
 	"license": "ISC",
-	"private": true,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/checkbox": "workspace:^",
