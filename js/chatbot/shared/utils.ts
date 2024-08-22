@@ -6,8 +6,7 @@ import type {
 	ComponentData,
 	TextMessage,
 	NormalisedMessage,
-	Message,
-	ExampleMessage
+	Message
 } from "../types";
 
 export const format_chat_for_sharing = async (
@@ -156,32 +155,6 @@ export function normalise_tuples(
 		});
 	});
 	return msg.filter((message) => message != null) as NormalisedMessage[];
-}
-
-export function normalise_example(
-	example: ExampleMessage | null
-): NormalisedMessage[] | null {
-	let messages: NormalisedMessage[] = [];
-	if (example === null) return example;
-	if (example.text !== "") {
-		messages.push({
-			role: "assistant",
-			content: example.text,
-			metadata: { title: null },
-			type: "text",
-			index: messages.length === 0 ? 0 : messages.length - 1
-		});
-	}
-	if (example.file !== undefined && example.file.url !== undefined) {
-		messages.push({
-			role: "assistant",
-			content: convert_file_message_to_component_message(example),
-			metadata: { title: null },
-			type: "component",
-			index: messages.length === 0 ? 0 : messages.length - 1
-		});
-	}
-	return messages;
 }
 
 export function is_component_message(

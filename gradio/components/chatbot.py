@@ -89,9 +89,11 @@ class Message(GradioModel):
     content: Union[str, FileMessage, ComponentMessage]
 
 
-class ExampleMessage(TypedDict):
+class SuggestionMessage(TypedDict):
+    icon: NotRequired[str]
+    display_text: NotRequired[str]
     text: str
-    files: Optional[Union[FileData, List[FileData]]]
+    files: NotRequired[list[str]]
 
 
 @dataclass
@@ -137,7 +139,7 @@ class Chatbot(Component):
     Guides: creating-a-chatbot
     """
 
-    EVENTS = [Events.change, Events.select, Events.like, Events.example_select]
+    EVENTS = [Events.change, Events.select, Events.like, Events.suggestion_select]
 
     def __init__(
         self,
@@ -177,7 +179,7 @@ class Chatbot(Component):
         likeable: bool = False,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
-        examples: list[ExampleMessage] | None = None,
+        suggestions: list[SuggestionMessage] | None = None,
         show_copy_all_button=False,
     ):
         """
@@ -209,7 +211,7 @@ class Chatbot(Component):
             likeable: Whether the chat messages display a like or dislike button. Set automatically by the .like method but has to be present in the signature for it to show up in the config.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
-            examples: A list of example messages to display in the chatbot. The `main_text` field is required, and the `additional_input` field is optional. The `additional_input` field can be a string or a `FileMessage` object.
+            suggestions: A list of suggestion messages to display in the chatbot. The `main_text` field is required, and the `additional_input` field is optional. The `additional_input` field can be a string or a `FileMessage` object.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
         """
         self.likeable = likeable
@@ -262,29 +264,29 @@ class Chatbot(Component):
             ]
         self.placeholder = placeholder
 
-        self.examples = examples
-        if self.examples is not None:
-            for i, example in enumerate(self.examples):
-                file_info = example.get("files")
-                if isinstance(file_info, list):
-                    files = []
+        self.suggestions = suggestions
+        if self.suggestions is not None:
+            for i, suggestion in enumerate(self.suggestions):
+                if "icon" in suggestion:
+                    suggestion["icon"] = self.serve_static_file(suggestion["icon"])
+                file_info = suggestion.get("files")
+                if file_info is not None and not isinstance(file_info, list):
+                    raise Error(
+                        "Data incompatible with files format. The 'files' passed should be a list of file paths or URLs."
+                    )
+                files = []
+                if file_info is not None:
                     for x, file in enumerate(file_info):
                         if file is not None:
-                            orig_name = file["path"]
-                            file_data = self.serve_static_file(file["path"])
+                            orig_name = file
+                            file_data = self.serve_static_file(file)
                             file_data["orig_name"] = orig_name
                             file_data["mime_type"] = client_utils.get_mimetype(
                                 orig_name
                             )
                             file_info[x] = file_data
                             files.append(file_data)
-                    self.examples[i]["files"] = files
-                elif file_info is not None:
-                    orig_name = file_info["path"]
-                    file_data = self.serve_static_file(file_info["path"])
-                    file_data["orig_name"] = orig_name
-                    file_data["mime_type"] = client_utils.get_mimetype(orig_name)
-                    self.examples[i]["files"] = file_data
+                self.suggestions[i]["files"] = files
 
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):

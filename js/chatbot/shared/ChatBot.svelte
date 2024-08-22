@@ -17,7 +17,7 @@
 
 	import { Clear } from "@gradio/icons";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { MessageRole, ExampleMessage } from "../types";
+	import type { MessageRole, SuggestionMessage } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
@@ -96,7 +96,7 @@
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
 	export let msg_format: "tuples" | "messages" = "tuples";
-	export let examples: ExampleMessage[] | null = null;
+	export let suggestions: SuggestionMessage[] | null = null;
 
 	let target = document.querySelector("div.gradio-container");
 
@@ -135,7 +135,7 @@
 		change: undefined;
 		select: SelectData;
 		like: LikeData;
-		example_select: SelectData;
+		suggestion_select: SelectData;
 	}>();
 
 	beforeUpdate(() => {
@@ -181,12 +181,12 @@
 
 	$: groupedMessages = value && group_messages(value);
 
-	let examplesVisible = true;
-	function handle_example_select(i: number, example: ExampleMessage): void {
-		examplesVisible = false;
-		dispatch("example_select", {
+	let suggestionsVisible = true;
+	function handle_suggestion_select(i: number, suggestion: SuggestionMessage): void {
+		suggestionsVisible = false;
+		dispatch("suggestion_select", {
 			index: i,
-			value: example
+			value: suggestion
 		});
 	}
 
@@ -442,54 +442,117 @@
 				<Pending {layout} />
 			{/if}
 		{:else if placeholder !== null}
-			<center>
+			<div class="placeholder">
 				<Markdown message={placeholder} {latex_delimiters} />
-			</center>
-			{#if examplesVisible}
-				<div class="examples {examplesVisible ? '' : 'hidden'}">
-					{#if examples !== null}
-						{#each examples as example, i}
+			</div>
+		{/if}
+		<!-- {#if suggestionsVisible}
+				<div class="suggestions">
+					{#if suggestions !== null}
+						{#each suggestions as suggestion, i}
 							<button
-								class="example"
-								on:click={handle_example_select(i, example)}
+								class="suggestion"
+								on:click={handle_suggestion_select(i, suggestion)}
 							>
-								<span class="example-text">{example.text}</span>
-								{#if Array.isArray(example.files)}
-									<span class="example-file"
-										><em>{example.files.length} Files</em></span
-									>
-								{:else if example.files !== undefined && typeof example.files === "object" && example.files.mime_type?.includes("image")}
+								{#if suggestion.icon !== undefined}
 									<Image
-										class="example-image"
-										src={example.files.url}
-										alt="example-secondary"
+										class="suggestion-icon"
+										src={suggestion.icon.url}
+										alt="suggestion-icon"
 									/>
-								{:else if example.files !== undefined}
-									<span class="example-file"
-										><em>{example.files.orig_name}</em></span
-									>
+								{/if}
+								{#if suggestion.display_text !== undefined}
+									<span class="suggestion-display-text">{suggestion.display_text}</span>
+								{:else}
+									<span class="suggestion-text">{suggestion.text}</span>
+									{#if suggestion.files.length > 1}
+										<span class="suggestion-file"
+											><em>{suggestion.files.length} Files</em></span
+										>
+									{:else if suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
+										<Image
+											class="suggestion-image"
+											src={suggestion.files[0].url}
+											alt="suggestion-image"
+										/>
+									{:else if suggestion.files[0] !== undefined}
+										<span class="suggestion-file"
+											><em>{suggestion.files[0].orig_name}</em></span
+										>
+									{/if}
 								{/if}
 							</button>
 						{/each}
 					{/if}
 				</div>
-			{/if}
-		{/if}
+		{/if} -->
 	</div>
+
+	<!-- {#if placeholder !== null}
+			<center>
+				<Markdown message={placeholder} {latex_delimiters} />
+			</center>
+		{/if} -->
+		{#if suggestionsVisible}
+				<div class="suggestions">
+					{#if suggestions !== null}
+						{#each suggestions as suggestion, i}
+							<button
+								class="suggestion"
+								on:click={handle_suggestion_select(i, suggestion)}
+							>
+								{#if suggestion.icon !== undefined}
+									<Image
+										class="suggestion-icon"
+										src={suggestion.icon.url}
+										alt="suggestion-icon"
+									/>
+								{/if}
+								{#if suggestion.display_text !== undefined}
+									<span class="suggestion-display-text">{suggestion.display_text}</span>
+								{:else}
+									<span class="suggestion-text">{suggestion.text}</span>
+									{#if suggestion.files.length > 1}
+										<span class="suggestion-file"
+											><em>{suggestion.files.length} Files</em></span
+										>
+									{:else if suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
+										<Image
+											class="suggestion-image"
+											src={suggestion.files[0].url}
+											alt="suggestion-image"
+										/>
+									{:else if suggestion.files[0] !== undefined}
+										<span class="suggestion-file"
+											><em>{suggestion.files[0].orig_name}</em></span
+										>
+									{/if}
+								{/if}
+							</button>
+						{/each}
+					{/if}
+				</div>
+		{/if}
 </div>
 
 <style>
 	.hidden {
 		display: none;
 	}
-	.examples {
+
+	.suggestions {
 		padding-top: 200px;
 		margin-bottom: -200px;
 		display: flex;
 		flex-direction: row;
-		align-items: center;
+		align-self: center;
 	}
-	.example {
+
+	.suggestions :global(img) {
+		pointer-events: none;
+	}
+
+	.suggestion {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -500,21 +563,54 @@
 		background-color: #333;
 		cursor: pointer;
 		transition: background-color 0.3s;
-	}
-	.example:hover {
-		background-color: #444;
-	}
-	.example-text {
-		margin-right: 10px;
-	}
-	.example-image {
-		max-height: 100px;
-		max-width: 100px;
-		object-fit: cover;
-		border-radius: 50%;
+		min-width: 170px;
 	}
 
+	.suggestion:hover {
+		background-color: #444;
+	}
+
+	.suggestion-icon {
+		font-size: 1.2rem;
+		margin-right: 5px;
+		align-self: flex-start;
+	}
+
+	.suggestion-display-text,
+	.suggestion-text,
+	.suggestion-file {
+		margin: 5px 0;
+		text-align: left;
+	}
+
+	.suggestion-text {
+		flex-grow: 1;
+		font-size: 1rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.suggestion-image {
+		max-height: 80px;
+		max-width: 80px;
+		object-fit: cover;
+		border-radius: 50%;
+		margin-top: 5px;
+		align-self: flex-start;
+	}
+
+	@media screen and (max-width: 600px) {
+		.suggestion-text {
+			font-size: 0.8rem;
+		}
+	}
+
+	.placeholder {
+		align-self: center;
+		height: 100%;
+	}
 	.placeholder-container {
+		flex-direction: column;
 		display: flex;
 		justify-content: center;
 		align-items: center;
