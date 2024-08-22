@@ -107,6 +107,15 @@ Environment variables in Gradio provide a way to customize your applications and
   ```
 
 
+### 12. `GRADIO_EXAMPLES_CACHE`
+
+- **Description**:  If you set `cache_examples=True` or `cache_examples="lazy"` in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`, Gradio will run your prediction function and save the results to disk. By default, this is in the `gradio_cached_examples/` subdirectory within your app's working directory. You can customize the location of cached example files created by Gradio by setting the environment variable `GRADIO_EXAMPLES_CACHE` to an absolute path or a path relative to your working directory.
+- **Default**: `"gradio_cached_examples/"`
+- **Example**:
+  ```sh
+  export GRADIO_EXAMPLES_CACHE="custom_cached_examples/"
+  ```
+
 ## How to Set Environment Variables
 
 To set environment variables in your terminal, use the `export` command followed by the variable name and its value. For example:
@@ -123,4 +132,6 @@ GRADIO_SERVER_NAME="localhost"
 ```
 
 Then, use a tool like `dotenv` to load these variables when running your application.
+
+
 
