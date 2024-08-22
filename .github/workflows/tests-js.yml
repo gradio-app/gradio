@@ -49,8 +49,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
-        with:
-          always_install_pnpm: true
       - name: build client
         run: pnpm --filter @gradio/client build
       - name: build the wasm module
