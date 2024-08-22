@@ -25,6 +25,7 @@
 		"./package.json": "./package.json"
 	},
 	"scripts": {
-		"package": "svelte-package --input=. --cwd=../../.config/"
+		"package": "svelte-package --input=. --cwd=../../.config/",
+		"build": "esbuild src/index.ts --format=esm --outfile=dist/src/index.js --sourcemap  --platform=node"
 	}
 }

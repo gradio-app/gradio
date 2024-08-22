@@ -50,8 +50,6 @@ jobs:
           build_lite: true
           skip_build: true
       - run: pnpm exec playwright install chromium firefox
-      - name: package for npm
-        run: pnpm package
       - name: Run Lite E2E tests
         run: |
           . venv/bin/activate
