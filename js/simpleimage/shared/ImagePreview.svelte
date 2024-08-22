@@ -45,7 +45,7 @@
 	button {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: contain;
+		object-fit: scale-down;
 		display: block;
 		border-radius: var(--radius-lg);
 	}

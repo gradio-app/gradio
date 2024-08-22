@@ -1,0 +1,18 @@
+{
+	"name": "@gradio/component-test",
+	"version": "0.1.0",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+	},
+	"devDependencies": {
+		"@gradio/build": "workspace:^",
+		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/kit": "^2.0.0"
+	},
+	"type": "module",
+	"private": "true"
+}

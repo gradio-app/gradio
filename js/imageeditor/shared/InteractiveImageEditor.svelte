@@ -25,6 +25,7 @@
 	import { Tools, Crop, Brush, Sources } from "./tools";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
+	import { inject } from "./utils/parse_placeholder";
 
 	export let brush: IBrush | null;
 	export let eraser: Eraser | null;
@@ -49,6 +50,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
+	export let placeholder: string | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -197,6 +199,8 @@
 
 	let active_mode: "webcam" | "color" | null = null;
 	let editor_height = 0;
+
+	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
 </script>
 
 <BlockLabel
@@ -254,13 +258,22 @@
 	{#if !bg && !history && active_mode !== "webcam" && status !== "error"}
 		<div class="empty wrap" style:height={`${editor_height}px`}>
 			{#if sources && sources.length}
-				<div>Upload an image</div>
+				{#if heading || paragraph}
+					{#if heading}
+						<h2>{heading}</h2>
+					{/if}
+					{#if paragraph}
+						<p>{paragraph}</p>
+					{/if}
+				{:else}
+					<div>Upload an image</div>
+				{/if}
 			{/if}
 
-			{#if sources && sources.length && brush}
+			{#if sources && sources.length && brush && !placeholder}
 				<div class="or">or</div>
 			{/if}
-			{#if brush}
+			{#if brush && !placeholder}
 				<div>select the draw tool to start</div>
 			{/if}
 		</div>
@@ -268,6 +281,15 @@
 </ImageEditor>
 
 <style>
+	h2 {
+		font-size: var(--text-xl);
+	}
+
+	p,
+	h2 {
+		white-space: pre-line;
+	}
+
 	.empty {
 		display: flex;
 		flex-direction: column;
@@ -292,7 +314,7 @@
 		align-items: center;
 		color: var(--block-label-text-color);
 		line-height: var(--line-md);
-		font-size: var(--text-lg);
+		font-size: var(--text-md);
 		pointer-events: none;
 	}
 
