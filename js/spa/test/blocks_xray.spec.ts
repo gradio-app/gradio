@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("renders the correct elements", async ({ page }) => {
 	const description = await page.getByTestId("markdown");

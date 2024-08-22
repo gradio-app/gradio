@@ -42,6 +42,10 @@ runs:
       if: inputs.skip_build == 'false' && steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
+    - name: generate types
+      if: inputs.always_install_pnpm == 'true' || inputs.skip_build == 'false' || inputs.build_lite == 'true'
+      shell: bash
+      run: pnpm package
     - name: Build frontend lite
       if: inputs.build_lite == 'true'
       shell: bash

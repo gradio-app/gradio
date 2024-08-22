@@ -1,4 +1,4 @@
-# @gradio/storybook
+# @self/storybook
 
 ## 0.6.1
 

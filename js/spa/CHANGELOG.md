@@ -1,4 +1,4 @@
-# @gradio/spa
+# @self/spa
 
 ## 0.0.2
 
