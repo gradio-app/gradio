@@ -22,7 +22,7 @@ Before placing a file in the cache, Gradio will check to see if the file meets a
 
 Note: files in the current working directory whose name starts with a period (`.`) will not be moved to the cache, since they often contain sensitive information. 
 
-If none of these criteria are met, the prediction function that created that file will raise an exception instead of moving the file to cache. Gradio performs this check so that arbitrary files on your machine cannot be accessed.
+If none of these criteria are met, the prediction function that is returning that file will raise an exception instead of moving the file to cache. Gradio performs this check so that arbitrary files on your machine cannot be accessed.
 
 Tip: If at any time Gradio blocks a file that you would like it to process, add its path to the `allowed_paths` parameter.
 
@@ -38,7 +38,7 @@ In short, these are the files located in the `cache` and any other additional pa
 
 While running, Gradio apps will NOT ALLOW users to access:
 
-- **Files that you explicitly block via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
+- **Files that you explicitly block via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default, or by the `allowed_paths` parameter or the `gr.set_static_paths` function.
 
 - **Any other paths on the host machine**. Users should NOT be able to access other arbitrary paths on the host.
 
@@ -60,6 +60,6 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 ## Best Practices
 
 * Set a `max_file_size` for your application.
-* Do not treat arbitrary user input as input to a file-based component (`gr.Image`, `gr.File`, etc.). For example, the following interface would allow anyone to move an arbitrary file in your local directory to the cache: `gr.Interface(lambda s: s, "text", "file")`. This is because the user input is treated as an arbitrary file path. 
-* Make `allowed_paths` as small as possible. If a path in `allowed_paths` is a directory, any file within that directory can be accessed. Ma sure the entires of `allowed_paths` only contains files related to your application.
-* Run your gradio application from the same directory the application file is located in. This will narrow the scope of files Gradio will be allowed to move into the cache. For examples, prefer `python app.py` to `python Users/sources/project/app.py`.
+* Do not return arbitrary user input from a function that is connected to a file-based output component (`gr.Image`, `gr.File`, etc.). For example, the following interface would allow anyone to move an arbitrary file in your local directory to the cache: `gr.Interface(lambda s: s, "text", "file")`. This is because the user input is treated as an arbitrary file path. 
+* Make `allowed_paths` as small as possible. If a path in `allowed_paths` is a directory, any file within that directory can be accessed. Make sure the entires of `allowed_paths` only contains files related to your application.
+* Run your gradio application from the same directory the application file is located in. This will narrow the scope of files Gradio will be allowed to move into the cache. For example, prefer `python app.py` to `python Users/sources/project/app.py`.
