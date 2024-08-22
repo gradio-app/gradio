@@ -17,10 +17,25 @@
 		"@gradio/preview": "workspace:^"
 	},
 	"exports": {
-		".": "./Index.svelte",
-		"./base": "./Index.svelte",
-		"./example": "./Example.svelte",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
+		"./example": {
+			"gradio": "./Example.svelte",
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
+		},
+		"./base": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",

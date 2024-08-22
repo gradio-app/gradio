@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 import { readFileSync } from "fs";
 
 test("when using an iterative function the UI should update over time as iteration results are received", async ({

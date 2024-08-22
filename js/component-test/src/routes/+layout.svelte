@@ -1,6 +1,14 @@
 <script>
 	import Header from "./Header.svelte";
 	import "../app.css";
+	import "../theme.css";
+
+	import "../../../theme/src/reset.css";
+	import "../../../theme/src/global.css";
+
+	import "../../../theme/src/pollen.css";
+	// import "../theme/src/tokens.css";
+	import "../../../theme/src/typography.css";
 </script>
 
 <div class="app">

@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("No errors on generation", async ({ page }) => {
 	await page.getByRole("button", { name: "Start" }).click();

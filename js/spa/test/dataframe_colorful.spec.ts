@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("first couple of cells in table are highlighted correctly", async ({
 	page
