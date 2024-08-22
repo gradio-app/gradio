@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("clicking through tabs shows correct content", async ({ page }) => {
 	await page.getByRole("tab", { name: "Tab 2" }).click();

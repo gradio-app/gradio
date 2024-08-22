@@ -183,11 +183,12 @@ function get_export_path(
 	path: string,
 	root: string,
 	pkg_json: Record<string, any>
-): string | undefined {
-	if (!pkg_json.exports) return undefined;
+): boolean {
+	if (!pkg_json.exports) return false;
+	if ( typeof pkg_json.exports[`${path}`] === "object") return true;
 	const _path = join(root, "..", `${pkg_json.exports[`${path}`]}`);
 
-	return existsSync(_path) ? _path : undefined;
+	return existsSync(_path);
 }
 
 const ignore_list = [

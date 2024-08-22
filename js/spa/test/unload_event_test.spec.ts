@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 import { readFileSync } from "fs";
 
 test("when a user closes the page, the unload event should be triggered", async ({
