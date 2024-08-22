@@ -31,7 +31,6 @@ runs:
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
     - name: Install deps
-      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always_install_pnpm == 'true'
       shell: bash
       run: pnpm i --frozen-lockfile --ignore-scripts
     - name: Build Css
