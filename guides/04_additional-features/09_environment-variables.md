@@ -48,7 +48,7 @@ Environment variables in Gradio provide a way to customize your applications and
 - **Options**: `"never"`, `"manual"`, `"auto"`
 - **Example**:
   ```sh
-  export GRADIO_ALLOW_FLAGGING="never"
+  export GRADIO_FLAGGING_MODE="never"
   ```
 
 ### 6. `GRADIO_TEMP_DIR`
