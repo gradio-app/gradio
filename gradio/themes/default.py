@@ -71,7 +71,6 @@ class Default(Base):
             checkbox_label_background_fill_dark="linear-gradient(to top, *neutral_900, *neutral_800)",
             checkbox_label_background_fill_hover="linear-gradient(to top, *neutral_100, white)",
             checkbox_label_background_fill_hover_dark="linear-gradient(to top, *neutral_900, *neutral_800)",
-
             # Primary Button
             button_primary_background_fill="*primary_500",
             button_primary_background_fill_dark="*primary_600",
@@ -81,7 +80,6 @@ class Default(Base):
             button_primary_border_color_dark="*primary_500",
             button_primary_text_color="black",
             button_primary_text_color_dark="black",
-
             # Secondary Button
             button_secondary_background_fill="*neutral_200",
             button_secondary_background_fill_dark="*neutral_700",
@@ -91,7 +89,6 @@ class Default(Base):
             button_secondary_border_color_dark="*neutral_600",
             button_secondary_text_color="*neutral_900",
             button_secondary_text_color_dark="white",
-
             # Cancel Button
             button_cancel_background_fill=colors.red.c500,
             button_cancel_background_fill_dark=colors.red.c700,
@@ -105,7 +102,6 @@ class Default(Base):
             button_cancel_text_color_dark="white",
             button_cancel_text_color_hover="black",
             button_cancel_text_color_hover_dark="white",
-
             # Other
             border_color_accent_subdued="*primary_200",
         )
