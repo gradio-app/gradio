@@ -221,6 +221,7 @@
 			event_data &&
 			(event_data as ValueData).is_value_data === true
 		) {
+			// @ts-ignore
 			return event_data.value;
 		}
 		return get_data(component_id);

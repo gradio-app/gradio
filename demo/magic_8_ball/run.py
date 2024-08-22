@@ -77,7 +77,7 @@ def generate_response(audio):
                 {"role": "user", "content": f"Magic 8 Ball please answer this question -  {question}"}]
     
     response = client.chat_completion(messages, max_tokens=64, seed=random.randint(1, 5000), model="mistralai/Mistral-7B-Instruct-v0.3")
-    response = response.choices[0].message.content.replace("Magic 8 Ball", "")
+    response = response.choices[0].message.content.replace("Magic 8 Ball", "") # type: ignore
     return response, None, None
 
 @spaces.GPU
@@ -124,8 +124,10 @@ with gr.Blocks() as demo:
             answer = gr.Textbox(label="Answer")
             state = gr.State()
         with gr.Row():
+            gr.Markdown("Example questions: 'Should I get a dog?', 'What is the meaning of life?'")
             audio_in = gr.Audio(label="Speak you question", sources="microphone", type="filepath")
-
+    with gr.Row():
+        gr.HTML("""<h3 style='text-align: center;'> Examples: 'What is the meaning of life?', 'Should I get a dog?' </h3>""")
     audio_in.stop_recording(generate_response, audio_in, [state, answer, audio_out]).then(fn=read_response, inputs=state, outputs=[answer, audio_out])
 
 

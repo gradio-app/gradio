@@ -53,7 +53,7 @@
 	export let include_audio: boolean;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
-	export let value: FileData | null;
+	export let value: FileData | null = null;
 
 	const dispatch = createEventDispatcher<{
 		stream: undefined;
@@ -219,6 +219,9 @@
 			stream.getTracks().forEach((track) => track.stop());
 			video_source.srcObject = null;
 			webcam_accessed = false;
+			window.setTimeout(() => {
+				value = null;
+			}, 500);
 			value = null;
 		}
 	}

@@ -6,12 +6,6 @@ export interface ValueData {
 	is_value_data: boolean;
 }
 
-// export class ValueData {
-// 	constructor(public value: any) {
-// 		this.is_value_data = true;
-// 	}
-// }
-
 export interface SelectData {
 	index: number | [number, number];
 	value: any;
