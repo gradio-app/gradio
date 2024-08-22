@@ -41,7 +41,15 @@
 	export let streaming: boolean;
 	export let stream_every: number;
 
-	export let close_stream: () => void;
+	let stream_state = "closed";
+	let _modify_stream: (state: "open" | "closed" | "waiting") => void;
+	export function modify_stream_state(
+		state: "open" | "closed" | "waiting"
+	): void {
+		stream_state = state;
+		_modify_stream(state);
+	}
+	export const get_stream_state: () => void = () => stream_state;
 	export let set_time_limit: (time: number) => void;
 	export let gradio: Gradio<{
 		input: never;
@@ -245,7 +253,7 @@
 			{waveform_options}
 			{trim_region_settings}
 			{stream_every}
-			bind:close_stream
+			bind:modify_stream={_modify_stream}
 			bind:set_time_limit
 			upload={gradio.client.upload}
 			stream_handler={gradio.client.stream}
