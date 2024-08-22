@@ -107,7 +107,7 @@ iface = gr.Interface(
     calculator,
     ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
-    allow_flagging="manual",
+    flagging_mode="manual",
     flagging_options=["wrong sign", "off by one", "other"]
 )
 
@@ -148,6 +148,6 @@ $demo_blocks_flag
 
 ## Privacy
 
-Important Note: please make sure your users understand when the data they submit is being saved, and what you plan on doing with it. This is especially important when you use `allow_flagging=auto` (when all of the data submitted through the demo is being flagged)
+Important Note: please make sure your users understand when the data they submit is being saved, and what you plan on doing with it. This is especially important when you use `flagging_mode=auto` (when all of the data submitted through the demo is being flagged)
 
 ### That's all! Happy building :)
