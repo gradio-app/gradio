@@ -16,6 +16,7 @@ const comps = {
 	downloadbutton: () => import("@gradio/downloadbutton"),
 	dropdown: () => import("@gradio/dropdown"),
 	file: () => import("@gradio/file"),
+	form: () => import("@gradio/form"),
 	gallery: () => import("@gradio/gallery"),
 	highlightedtext: () => import("@gradio/highlightedtext"),
 	html: () => import("@gradio/html"),
@@ -26,6 +27,7 @@ const comps = {
 	markdown: () => import("@gradio/markdown"),
 	model3d: () => import("@gradio/model3d"),
 	multimodaltextbox: () => import("@gradio/multimodaltextbox"),
+	nativeplot: () => import("@gradio/nativeplot"),
 	number: () => import("@gradio/number"),
 	paramviewer: () => import("@gradio/paramviewer"),
 	plot: () => import("@gradio/plot"),
@@ -49,13 +51,6 @@ export const load: PageLoad = async ({ url }) => {
 	const non_interactive_component = config.find(
 		(c) => c.name === route_name && !c.props.interactive
 	);
-
-	console.log({
-		route_name,
-		name: interactive_component?.name,
-		comps: comps[interactive_component?.name],
-		comps2: comps[route_name]
-	});
 
 	const comp =
 		route_name in comps

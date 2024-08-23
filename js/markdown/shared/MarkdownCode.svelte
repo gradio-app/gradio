@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { afterUpdate } from "svelte";
-	import DOMPurify from "dompurify";
+	import { afterUpdate, onMount } from "svelte";
+	import DOMPurify from "isomorphic-dompurify";
 	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
@@ -18,6 +18,7 @@
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let header_links = false;
+	export let root: string;
 
 	let el: HTMLSpanElement;
 	let html: string;
@@ -30,20 +31,11 @@
 
 	const is_external_url = (link: string | null): boolean => {
 		try {
-			return !!link && new URL(link, location.href).origin !== location.origin;
+			return !!link && new URL(link).origin !== new URL(root).origin;
 		} catch (e) {
 			return false;
 		}
 	};
-
-	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
-		if ("target" in node) {
-			if (is_external_url(node.getAttribute("href"))) {
-				node.setAttribute("target", "_blank");
-				node.setAttribute("rel", "noopener noreferrer");
-			}
-		}
-	});
 
 	function escapeRegExp(string: string): string {
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -74,7 +66,15 @@
 				(match, p1) => latexBlocks[parseInt(p1, 10)]
 			);
 		}
-
+		DOMPurify.addHook("afterSanitizeAttributes", function (node) {
+			if ("target" in node) {
+				if (is_external_url(node.getAttribute("href"))) {
+					node.setAttribute("target", "_blank");
+					node.setAttribute("rel", "noopener noreferrer");
+				}
+			}
+		});
+		const is_browser = typeof window !== "undefined";
 		if (sanitize_html) {
 			parsedValue = DOMPurify.sanitize(parsedValue);
 		}
@@ -87,6 +87,7 @@
 	} else {
 		html = "";
 	}
+
 	async function render_html(value: string): Promise<void> {
 		if (latex_delimiters.length > 0 && value) {
 			const containsDelimiter = latex_delimiters.some(

@@ -8,11 +8,11 @@
 	export let actual_height: number;
 	export let table_scrollbar_width: number;
 	export let start = 0;
-	export let end = 0;
+	export let end = 20;
 	export let selected: number | false;
 	let height = "100%";
 
-	let average_height: number;
+	let average_height = 30;
 	let bottom = 0;
 	let contents: HTMLTableSectionElement;
 	let head_height = 0;
@@ -22,19 +22,25 @@
 	let rows: HTMLCollectionOf<HTMLTableRowElement>;
 	let top = 0;
 	let viewport: HTMLTableElement;
-	let viewport_height = 0;
+	let viewport_height = 200;
 	let visible: { index: number; data: any[] }[] = [];
 	let viewport_box: DOMRectReadOnly;
 
-	$: viewport_height = viewport_box?.height || 0;
+	$: viewport_height = viewport_box?.height || 200;
 
-	$: if (mounted) requestAnimationFrame(() => refresh_height_map(sortedItems));
+	const is_browser = typeof window !== "undefined";
+	const raf = is_browser
+		? window.requestAnimationFrame
+		: (cb: (...args: any[]) => void) => cb();
+
+	$: mounted && raf(() => refresh_height_map(sortedItems));
 
 	let content_height = 0;
 	async function refresh_height_map(_items: typeof items): Promise<void> {
 		if (viewport_height === 0) {
 			return;
 		}
+
 		const { scrollTop } = viewport;
 		table_scrollbar_width = viewport.offsetWidth - viewport.clientWidth;
 
@@ -87,7 +93,7 @@
 	$: scroll_and_render(selected);
 
 	async function scroll_and_render(n: number | false): Promise<void> {
-		requestAnimationFrame(async () => {
+		raf(async () => {
 			if (typeof n !== "number") return;
 			const direction = typeof n !== "number" ? false : is_in_view(n);
 			if (direction === true) {
@@ -232,10 +238,17 @@
 
 	$: sortedItems = items;
 
-	$: visible = sortedItems.slice(start, end).map((data, i) => {
-		return { index: i + start, data };
-	});
+	$: visible = is_browser
+		? sortedItems.slice(start, end).map((data, i) => {
+				return { index: i + start, data };
+			})
+		: sortedItems
+				.slice(0, (max_height / sortedItems.length) * average_height + 1)
+				.map((data, i) => {
+					return { index: i + start, data };
+				});
 
+	$: actual_height = visible.length * average_height + 10;
 	onMount(() => {
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		mounted = true;

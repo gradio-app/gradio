@@ -29,7 +29,6 @@ let maybeWorkerProxy: WorkerProxy | undefined;
 
 export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
 	const is_browser = typeof window !== "undefined";
-	console.log({ is_browser });
 	if (src == null || !is_browser || !should_proxy_wasm_src(src)) {
 		return src;
 	}

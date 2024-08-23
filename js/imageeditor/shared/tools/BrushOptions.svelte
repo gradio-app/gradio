@@ -17,7 +17,7 @@
 	export let parent_width: number;
 	export let parent_height: number;
 	export let parent_left: number;
-	export let toolbar_box: DOMRect;
+	export let toolbar_box: DOMRect | Record<string, never>;
 	export let show_swatch: boolean;
 
 	let color_picker = false;

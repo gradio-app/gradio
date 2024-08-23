@@ -168,7 +168,11 @@
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
 	>
 		<div class="waveform-container">
-			<div id="waveform" bind:this={container} />
+			<div
+				id="waveform"
+				bind:this={container}
+				style:height={container ? null : "58px"}
+			/>
 		</div>
 
 		<div class="timestamps">
@@ -181,25 +185,25 @@
 			</div>
 		</div>
 
-		{#if waveform}
-			<WaveformControls
-				{container}
-				{waveform}
-				{playing}
-				{audio_duration}
-				{i18n}
-				{interactive}
-				{handle_trim_audio}
-				bind:mode
-				bind:trimDuration
-				bind:show_volume_slider
-				show_redo={interactive}
-				{handle_reset_value}
-				{waveform_options}
-				{trim_region_settings}
-				{editable}
-			/>
-		{/if}
+		<!-- {#if waveform} -->
+		<WaveformControls
+			{container}
+			{waveform}
+			{playing}
+			{audio_duration}
+			{i18n}
+			{interactive}
+			{handle_trim_audio}
+			bind:mode
+			bind:trimDuration
+			bind:show_volume_slider
+			show_redo={interactive}
+			{handle_reset_value}
+			{waveform_options}
+			{trim_region_settings}
+			{editable}
+		/>
+		<!-- {/if} -->
 	</div>
 {/if}
 
