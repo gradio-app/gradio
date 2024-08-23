@@ -1805,7 +1805,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_cancel_background_fill_dark",
-                "*button_secondary_background_fill_dark",
+                "*neutral_700",
             )
         )
         self.button_cancel_background_fill_hover = (
