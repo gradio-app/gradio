@@ -5,9 +5,9 @@ import datetime
 import os
 import re
 import time
-import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from multiprocessing import Lock
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -195,18 +195,26 @@ class CSVLogger(FlaggingCallback):
     """
     The default implementation of the FlaggingCallback abstract class in gradio>=5.0. Each flagged
     sample (both the input and output data) is logged to a CSV file with headers on the machine running 
-    the gradio app.
+    the gradio app. Unlike ClassicCSVLogger, this implementation is concurrent-safe and it creates a new 
+    dataset file every time the headers of the CSV (derived from the labels of the components) change. It also 
+    only creates columns for "username" and "flag" if the flag_option and username are provided, respectively.
+
     Example:
         import gradio as gr
         def image_classifier(inp):
             return {'cat': 0.3, 'dog': 0.7}
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
-                            flagging_callback=JSONLogger())
+                            flagging_callback=CSVLogger())
     Guides: using-flagging
     """
 
-    def __init__(self, simplify_file_data: bool = True):
-        self.simplify_file_data = simplify_file_data
+    def __init__(
+            self,
+            simplify_file_data: bool = True,
+            verbose: bool = True
+        ):
+        self.simplify_file_data = simplify_file_data  # If CSVLogger is being used to cache examples, this is set to False to preserve the original FileData class
+        self.verbose = verbose
 
     def setup(
         self,
@@ -252,6 +260,10 @@ class CSVLogger(FlaggingCallback):
             with open(self.dataset_filepath, "w", newline="", encoding="utf-8") as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(utils.sanitize_list_for_csv(headers))
+            if self.verbose:
+                print("Created dataset file at:", self.dataset_filepath)
+        elif self.verbose:
+                print("Using existing dataset file at:", self.dataset_filepath)
 
     def flag(
         self,
@@ -261,12 +273,11 @@ class CSVLogger(FlaggingCallback):
     ) -> int:
         if self.first_time:
             additional_headers = []
-            if flag_option:
+            if flag_option is not None:
                 additional_headers.append("flag")
-            if username:
+            if username is not None:
                 additional_headers.append("username")
             self._create_dataset_file(additional_headers=additional_headers)
-            print("Saving ")
 
         csv_data = []
         for idx, (component, sample) in enumerate(
@@ -286,8 +297,11 @@ class CSVLogger(FlaggingCallback):
                 if self.simplify_file_data:
                     data = utils.simplify_file_data_in_str(data)
                 csv_data.append(data)
-        csv_data.append(flag_option)
-        csv_data.append(username if username is not None else "")
+
+        if flag_option is not None:
+            csv_data.append(flag_option)
+        if username is not None:
+            csv_data.append(username)
         csv_data.append(str(datetime.datetime.now()))
 
         with open(self.dataset_filepath, "a", newline="", encoding="utf-8") as csvfile:

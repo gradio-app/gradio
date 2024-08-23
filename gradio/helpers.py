@@ -272,7 +272,7 @@ class Examples:
                 sample_labels=example_labels,
             )
 
-        self.cache_logger = CSVLogger(simplify_file_data=False)
+        self.cache_logger = CSVLogger(simplify_file_data=False, verbose=False)
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
         self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
