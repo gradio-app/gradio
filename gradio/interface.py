@@ -377,7 +377,7 @@ class Interface(Blocks):
 
         self.simple_server = None
 
-        # For flagging_mode: (1) first check for `flagging_mode` parameter (or its alias `allow_flagging`), 
+        # For flagging_mode: (1) first check for `flagging_mode` parameter (or its alias `allow_flagging`),
         # (2) check for env variable, (3) default to "manual"
         if allow_flagging is not None:
             warnings.warn(

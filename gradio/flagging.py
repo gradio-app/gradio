@@ -7,7 +7,6 @@ import re
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from multiprocessing import Lock
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -194,9 +193,9 @@ class ClassicCSVLogger(FlaggingCallback):
 class CSVLogger(FlaggingCallback):
     """
     The default implementation of the FlaggingCallback abstract class in gradio>=5.0. Each flagged
-    sample (both the input and output data) is logged to a CSV file with headers on the machine running 
-    the gradio app. Unlike ClassicCSVLogger, this implementation is concurrent-safe and it creates a new 
-    dataset file every time the headers of the CSV (derived from the labels of the components) change. It also 
+    sample (both the input and output data) is logged to a CSV file with headers on the machine running
+    the gradio app. Unlike ClassicCSVLogger, this implementation is concurrent-safe and it creates a new
+    dataset file every time the headers of the CSV (derived from the labels of the components) change. It also
     only creates columns for "username" and "flag" if the flag_option and username are provided, respectively.
 
     Example:
@@ -208,11 +207,7 @@ class CSVLogger(FlaggingCallback):
     Guides: using-flagging
     """
 
-    def __init__(
-            self,
-            simplify_file_data: bool = True,
-            verbose: bool = True
-        ):
+    def __init__(self, simplify_file_data: bool = True, verbose: bool = True):
         self.simplify_file_data = simplify_file_data  # If CSVLogger is being used to cache examples, this is set to False to preserve the original FileData class
         self.verbose = verbose
 
@@ -230,18 +225,24 @@ class CSVLogger(FlaggingCallback):
 
         if additional_headers is None:
             additional_headers = []
-        headers = [
-            getattr(component, "label", None) or f"component {idx}"
-            for idx, component in enumerate(self.components)
-        ] + additional_headers + [
-            "timestamp",
-        ]
+        headers = (
+            [
+                getattr(component, "label", None) or f"component {idx}"
+                for idx, component in enumerate(self.components)
+            ]
+            + additional_headers
+            + [
+                "timestamp",
+            ]
+        )
         headers = utils.sanitize_list_for_csv(headers)
         dataset_files = list(Path(self.flagging_dir).glob("dataset*.csv"))
 
         if dataset_files:
-            latest_file = max(dataset_files, key=lambda f: int(re.findall(r'\d+', f.stem)[0]))
-            latest_num = int(re.findall(r'\d+', latest_file.stem)[0])
+            latest_file = max(
+                dataset_files, key=lambda f: int(re.findall(r"\d+", f.stem)[0])
+            )
+            latest_num = int(re.findall(r"\d+", latest_file.stem)[0])
 
             with open(latest_file, newline="", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile)
@@ -257,13 +258,15 @@ class CSVLogger(FlaggingCallback):
             self.dataset_filepath = self.flagging_dir / "dataset1.csv"
 
         if not Path(self.dataset_filepath).exists():
-            with open(self.dataset_filepath, "w", newline="", encoding="utf-8") as csvfile:
+            with open(
+                self.dataset_filepath, "w", newline="", encoding="utf-8"
+            ) as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(utils.sanitize_list_for_csv(headers))
             if self.verbose:
                 print("Created dataset file at:", self.dataset_filepath)
         elif self.verbose:
-                print("Using existing dataset file at:", self.dataset_filepath)
+            print("Using existing dataset file at:", self.dataset_filepath)
 
     def flag(
         self,
@@ -283,8 +286,11 @@ class CSVLogger(FlaggingCallback):
         for idx, (component, sample) in enumerate(
             zip(self.components, flag_data, strict=False)
         ):
-            save_dir = self.flagging_dir / client_utils.strip_invalid_filename_characters(
-                getattr(component, "label", None) or f"component {idx}"
+            save_dir = (
+                self.flagging_dir
+                / client_utils.strip_invalid_filename_characters(
+                    getattr(component, "label", None) or f"component {idx}"
+                )
             )
             if utils.is_prop_update(sample):
                 csv_data.append(str(sample))
@@ -311,6 +317,7 @@ class CSVLogger(FlaggingCallback):
         with open(self.dataset_filepath, encoding="utf-8") as csvfile:
             line_count = len(list(csv.reader(csvfile))) - 1
         return line_count
+
 
 class FlagMethod:
     """
@@ -347,4 +354,3 @@ class FlagMethod:
 
     def reset(self):
         return gr.Button(value=self.label, interactive=True)
-
