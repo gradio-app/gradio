@@ -15,7 +15,14 @@
 	},
 	"main_changeset": true,
 	"exports": {
-		".": "./src/index.ts"
+		".": {
+			"gradio": "./src/index.ts",
+			"svelte": "./dist/src/index.js",
+			"types": "./dist/src/index.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",

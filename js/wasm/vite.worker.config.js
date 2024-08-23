@@ -22,7 +22,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
 	build: {
-		outDir: "dist",
+		outDir: "dist/webworker",
 		rollupOptions: {
 			input: path.join(__dirname, "src/webworker/index.ts"),
 			// Ref: https://github.com/rollup/rollup/issues/2616#issuecomment-1431551704

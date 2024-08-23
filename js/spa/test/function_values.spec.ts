@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("Test Country Filter", async ({ page }) => {
 	const countries_list = page.getByTestId("json");

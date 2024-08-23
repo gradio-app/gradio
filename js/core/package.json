@@ -66,13 +66,24 @@
 	"main_changeset": true,
 	"exports": {
 		"./blocks": {
-			"svelte": "./src/Blocks.svelte"
+			"gradio": "./src/Blocks.svelte",
+			"svelte": "./dist/src/Blocks.svelte",
+			"types": "./dist/src/Blocks.svelte.d.ts"
 		},
 		"./login": {
-			"svelte": "./src/Login.svelte"
+			"gradio": "./src/Login.svelte",
+			"svelte": "./dist/src/Login.svelte",
+			"types": "./dist/src/Login.svelte.d.ts"
 		},
 		"./package.json": "./package.json",
-		".": "./index.ts"
+		".": {
+			"gradio": "./index.ts",
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"main": "./index.ts",
 	"repository": {

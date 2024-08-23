@@ -10,6 +10,37 @@
 	"scripts": {
 		"generate": "pollen -c src/pollen.config.cjs"
 	},
+	"exports": {
+		".": {
+			"gradio": "./src/index.ts",
+			"import": "./dist/src/index.js",
+			"types": "./dist/src/index.d.ts"
+		},
+		"./reset.css": {
+			"gradio": "./src/reset.css",
+			"import": "./dist/src/reset.css"
+		},
+		"./global.css": {
+			"gradio": "./src/global.css",
+			"import": "./dist/src/global.css"
+		},
+		"./tokens": {
+			"gradio": "./src/tokens.ts",
+			"import": "./dist/src/tokens.js"
+		},
+		"./typography.css": {
+			"gradio": "./src/typography.css",
+			"import": "./dist/src/typography.css"
+		},
+		"./pollen.css": {
+			"gradio": "./src/pollen.css",
+			"import": "./dist/src/pollen.css"
+		},
+		"./package.json": "./package.json"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
 	"main_changeset": true,
 	"repository": {
 		"type": "git",

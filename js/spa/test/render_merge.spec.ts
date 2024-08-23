@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("Test re-renders reattach components and listeners", async ({ page }) => {
 	const output = page.getByLabel("Textbox", { exact: true });

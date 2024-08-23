@@ -7,5 +7,5 @@
 	"access": "public",
 	"baseBranch": "main",
 	"updateInternalDependencies": "patch",
-	"ignore": ["@gradio/spaces-test", "@gradio/cdn-test"]
+	"ignore": ["@self/spaces-test", "@self/cdn-test"]
 }

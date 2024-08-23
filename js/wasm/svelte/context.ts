@@ -1,5 +1,5 @@
 import { setContext, getContext } from "svelte";
-import type { WorkerProxy } from "../dist";
+import type { WorkerProxy } from "../src/worker-proxy";
 
 const WORKER_PROXY_CONTEXT_KEY = "WORKER_PROXY_CONTEXT_KEY";
 
