@@ -3,7 +3,9 @@ from __future__ import annotations
 import csv
 import datetime
 import os
+import re
 import time
+import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
@@ -39,7 +41,7 @@ class FlaggingCallback(ABC):
     def flag(
         self,
         flag_data: list[Any],
-        flag_option: str = "",
+        flag_option: str | None = None,
         username: str | None = None,
     ) -> int:
         """
@@ -81,7 +83,7 @@ class SimpleCSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: list[Any],
-        flag_option: str = "",  # noqa: ARG002
+        flag_option: str | None = None,  # noqa: ARG002
         username: str | None = None,  # noqa: ARG002
     ) -> int:
         flagging_dir = self.flagging_dir
@@ -138,7 +140,7 @@ class ClassicCSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: list[Any],
-        flag_option: str = "",
+        flag_option: str | None = None,
         username: str | None = None,
     ) -> int:
         flagging_dir = self.flagging_dir
@@ -212,34 +214,65 @@ class CSVLogger(FlaggingCallback):
         flagging_dir: str | Path,
     ):
         self.components = components
-        self.flagging_dir = flagging_dir
-        os.makedirs(flagging_dir, exist_ok=True)
+        self.flagging_dir = Path(flagging_dir)
+        self.first_time = True
+
+    def _create_dataset_file(self, additional_headers: list[str] | None = None):
+        os.makedirs(self.flagging_dir, exist_ok=True)
+
+        if additional_headers is None:
+            additional_headers = []
+        headers = [
+            getattr(component, "label", None) or f"component {idx}"
+            for idx, component in enumerate(self.components)
+        ] + additional_headers + [
+            "timestamp",
+        ]
+        headers = utils.sanitize_list_for_csv(headers)
+        dataset_files = list(Path(self.flagging_dir).glob("dataset*.csv"))
+
+        if dataset_files:
+            latest_file = max(dataset_files, key=lambda f: int(re.findall(r'\d+', f.stem)[0]))
+            latest_num = int(re.findall(r'\d+', latest_file.stem)[0])
+
+            with open(latest_file, newline="", encoding="utf-8") as csvfile:
+                reader = csv.reader(csvfile)
+                existing_headers = next(reader, None)
+
+            if existing_headers != headers:
+                new_num = latest_num + 1
+                self.dataset_filepath = self.flagging_dir / f"dataset{new_num}.csv"
+            else:
+                self.dataset_filepath = latest_file
+
+        else:
+            self.dataset_filepath = self.flagging_dir / "dataset1.csv"
+
+        if not Path(self.dataset_filepath).exists():
+            with open(self.dataset_filepath, "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(utils.sanitize_list_for_csv(headers))
 
     def flag(
         self,
         flag_data: list[Any],
-        flag_option: str = "",
+        flag_option: str | None = None,
         username: str | None = None,
     ) -> int:
-        flagging_dir = self.flagging_dir
-        log_filepath = Path(flagging_dir) / "log.csv"
-        is_new = not Path(log_filepath).exists()
-        headers = [
-            getattr(component, "label", None) or f"component {idx}"
-            for idx, component in enumerate(self.components)
-        ] + [
-            "flag",
-            "username",
-            "timestamp",
-        ]
+        if self.first_time:
+            additional_headers = []
+            if flag_option:
+                additional_headers.append("flag")
+            if username:
+                additional_headers.append("username")
+            self._create_dataset_file(additional_headers=additional_headers)
+            print("Saving ")
 
         csv_data = []
         for idx, (component, sample) in enumerate(
             zip(self.components, flag_data, strict=False)
         ):
-            save_dir = Path(
-                flagging_dir
-            ) / client_utils.strip_invalid_filename_characters(
+            save_dir = self.flagging_dir / client_utils.strip_invalid_filename_characters(
                 getattr(component, "label", None) or f"component {idx}"
             )
             if utils.is_prop_update(sample):
@@ -257,13 +290,11 @@ class CSVLogger(FlaggingCallback):
         csv_data.append(username if username is not None else "")
         csv_data.append(str(datetime.datetime.now()))
 
-        with open(log_filepath, "a", newline="", encoding="utf-8") as csvfile:
+        with open(self.dataset_filepath, "a", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
-            if is_new:
-                writer.writerow(utils.sanitize_list_for_csv(headers))
             writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
-        with open(log_filepath, encoding="utf-8") as csvfile:
+        with open(self.dataset_filepath, encoding="utf-8") as csvfile:
             line_count = len(list(csv.reader(csvfile))) - 1
         return line_count
 
@@ -277,7 +308,7 @@ class FlagMethod:
         self,
         flagging_callback: FlaggingCallback,
         label: str,
-        value: str,
+        value: str | None,
         visual_feedback: bool = True,
     ):
         self.flagging_callback = flagging_callback
