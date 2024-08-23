@@ -905,7 +905,11 @@ class App(FastAPI):
                     data = message.message
                 else:
                     return None
+<<<<<<< Updated upstream
                 return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+=======
+                return f"event: {event}\ndata: {orjson.dumps(data, default=str).decode('utf-8')}\n\n"
+>>>>>>> Stashed changes
 
             return await queue_data_helper(request, event_id, process_msg)
 

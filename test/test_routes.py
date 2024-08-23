@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 import gradio_client as grc
 import numpy as np
+import orjson
 import pandas as pd
 import pytest
 import requests
@@ -1454,3 +1455,18 @@ def test_file_access():
         demo.close()
         not_allowed_file.unlink()
         allowed_file.unlink()
+
+
+def test_bash_api_serialization():
+    demo = gr.Interface(lambda x: x, "json", "json")
+
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    with test_client:
+        submit = test_client.post("/call/predict", json={"data": [{"a": 1}]})
+        event_id = submit.json()["event_id"]
+        response = test_client.get(f"/call/predict/{event_id}")
+        assert response.status_code == 200
+        assert "event: complete\ndata:" in response.text
+        assert orjson.dumps({"a": 1}, default=str).decode("utf-8") in response.text
