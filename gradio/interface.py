@@ -396,7 +396,7 @@ class Interface(Blocks):
             )
 
         if flagging_options is None:
-            self.flagging_options = [("Flag", "")]
+            self.flagging_options = [("Flag", None)]
         elif not (isinstance(flagging_options, list)):
             raise ValueError(
                 "flagging_options must be a list of strings or list of (string, string) tuples."
@@ -815,7 +815,7 @@ class Interface(Blocks):
 
         if self.flagging_mode == "auto":
             flag_method = FlagMethod(
-                self.flagging_callback, "", "", visual_feedback=False
+                self.flagging_callback, "", None, visual_feedback=False
             )
             _submit_event.success(
                 flag_method,
@@ -835,7 +835,7 @@ class Interface(Blocks):
         for flag_btn, (label, value) in zip(
             flag_btns, self.flagging_options, strict=False
         ):
-            if not isinstance(value, str):
+            if value is not None and not isinstance(value, str):
                 raise TypeError(
                     f"Flagging option value must be a string, not {value!r}"
                 )

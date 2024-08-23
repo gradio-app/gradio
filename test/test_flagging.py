@@ -35,7 +35,7 @@ class TestDefaultFlagging:
             io.launch(prevent_thread_lock=True)
             io.flagging_callback.flag([image, image])
             io.close()
-            with open(os.path.join(tmpdirname, "log.csv")) as f:
+            with open(os.path.join(tmpdirname, "dataset1.csv")) as f:
                 flagged_data = f.readlines()[1].split(",")[0]
                 assert flagged_data.endswith("bus.png")
         io.close()
@@ -45,7 +45,7 @@ class TestDefaultFlagging:
             io = gr.Interface(lambda x: x, "text", "text", flagging_dir=tmpdirname)
             io.launch(prevent_thread_lock=True)
             io.flagging_callback.flag(["test", "test"])
-            assert os.listdir(tmpdirname) == ["log.csv"]
+            assert os.listdir(tmpdirname) == ["dataset1.csv"]
 
 
 class TestSimpleFlagging:

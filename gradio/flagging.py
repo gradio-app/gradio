@@ -7,6 +7,7 @@ import re
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from multiprocessing import Lock
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -120,7 +121,7 @@ class ClassicCSVLogger(FlaggingCallback):
         def image_classifier(inp):
             return {'cat': 0.3, 'dog': 0.7}
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
-                            flagging_callback=CSVLogger())
+                            flagging_callback=ClassicCSVLogger())
     Guides: using-flagging
     """
 
@@ -207,9 +208,22 @@ class CSVLogger(FlaggingCallback):
     Guides: using-flagging
     """
 
-    def __init__(self, simplify_file_data: bool = True, verbose: bool = True):
-        self.simplify_file_data = simplify_file_data  # If CSVLogger is being used to cache examples, this is set to False to preserve the original FileData class
+    def __init__(
+        self,
+        simplify_file_data: bool = True,
+        verbose: bool = True,
+        dataset_file_name: str | None = None,
+    ):
+        """
+        Parameters:
+            simplify_file_data: If True, the file data will be simplified before being written to the CSV file. If CSVLogger is being used to cache examples, this is set to False to preserve the original FileData class
+            verbose: If True, prints messages to the console about the dataset file creation
+            dataset_file_name: The name of the dataset file to be created (should end in ".csv"). If None, the dataset file will be named "dataset1.csv" or the next available number.
+        """
+        self.simplify_file_data = simplify_file_data
         self.verbose = verbose
+        self.dataset_file_name = dataset_file_name
+        self.lock = Lock()
 
     def setup(
         self,
@@ -238,7 +252,9 @@ class CSVLogger(FlaggingCallback):
         headers = utils.sanitize_list_for_csv(headers)
         dataset_files = list(Path(self.flagging_dir).glob("dataset*.csv"))
 
-        if dataset_files:
+        if self.dataset_file_name:
+            self.dataset_filepath = self.flagging_dir / self.dataset_file_name
+        elif dataset_files:
             latest_file = max(
                 dataset_files, key=lambda f: int(re.findall(r"\d+", f.stem)[0])
             )
@@ -253,7 +269,6 @@ class CSVLogger(FlaggingCallback):
                 self.dataset_filepath = self.flagging_dir / f"dataset{new_num}.csv"
             else:
                 self.dataset_filepath = latest_file
-
         else:
             self.dataset_filepath = self.flagging_dir / "dataset1.csv"
 
@@ -310,12 +325,15 @@ class CSVLogger(FlaggingCallback):
             csv_data.append(username)
         csv_data.append(str(datetime.datetime.now()))
 
-        with open(self.dataset_filepath, "a", newline="", encoding="utf-8") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(utils.sanitize_list_for_csv(csv_data))
+        with self.lock:
+            with open(
+                self.dataset_filepath, "a", newline="", encoding="utf-8"
+            ) as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(utils.sanitize_list_for_csv(csv_data))
+            with open(self.dataset_filepath, encoding="utf-8") as csvfile:
+                line_count = len(list(csv.reader(csvfile))) - 1
 
-        with open(self.dataset_filepath, encoding="utf-8") as csvfile:
-            line_count = len(list(csv.reader(csvfile))) - 1
         return line_count
 
 
