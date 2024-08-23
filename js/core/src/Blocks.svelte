@@ -238,7 +238,7 @@
 				.then((v: unknown[]) => {
 					if (dep.backend_fn) {
 						payload.data = v;
-						make_prediction(payload);
+						trigger_prediction(dep, payload);
 					} else {
 						handle_update(v, dep_index);
 					}
@@ -253,16 +253,20 @@
 			);
 		} else {
 			if (dep.backend_fn) {
-				if (dep.trigger_mode === "once") {
-					if (!dep.pending_request) make_prediction(payload);
-				} else if (dep.trigger_mode === "multiple") {
+				trigger_prediction(dep, payload);
+			}
+		}
+
+		function trigger_prediction(dep: Dependency, payload: Payload): void {
+			if (dep.trigger_mode === "once") {
+				if (!dep.pending_request) make_prediction(payload);
+			} else if (dep.trigger_mode === "multiple") {
+				make_prediction(payload);
+			} else if (dep.trigger_mode === "always_last") {
+				if (!dep.pending_request) {
 					make_prediction(payload);
-				} else if (dep.trigger_mode === "always_last") {
-					if (!dep.pending_request) {
-						make_prediction(payload);
-					} else {
-						dep.final_event = payload;
-					}
+				} else {
+					dep.final_event = payload;
 				}
 			}
 		}
