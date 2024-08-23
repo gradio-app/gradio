@@ -112,7 +112,7 @@ class SimpleCSVLogger(FlaggingCallback):
 @document()
 class CSVLogger(FlaggingCallback):
     """
-    The default implementation of the FlaggingCallback abstract class. Each flagged
+    The classic implementation of the FlaggingCallback abstract class in gradio<5.0. Each flagged
     sample (both the input and output data) is logged to a CSV file with headers on the machine running the gradio app.
     Example:
         import gradio as gr
@@ -188,6 +188,32 @@ class CSVLogger(FlaggingCallback):
         return line_count
 
 
+@document()
+class JSONLogger(FlaggingCallback):
+    """
+    The default implementation of the FlaggingCallback abstract class in gradio>=5.0. Each flagged
+    sample (both the input and output data) is logged to a CSV file with headers on the machine running the gradio app.
+    Example:
+        import gradio as gr
+        def image_classifier(inp):
+            return {'cat': 0.3, 'dog': 0.7}
+        demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
+                            flagging_callback=JSONLogger())
+    Guides: using-flagging
+    """
+
+    def __init__(self, simplify_file_data: bool = True):
+        self.simplify_file_data = simplify_file_data
+
+    def setup(
+        self,
+        components: Sequence[Component],
+        flagging_dir: str | Path,
+    ):
+        self.components = components
+        self.flagging_dir = flagging_dir
+        os.makedirs(flagging_dir, exist_ok=True)
+
 class FlagMethod:
     """
     Helper class that contains the flagging options and calls the flagging method. Also
@@ -224,6 +250,3 @@ class FlagMethod:
     def reset(self):
         return gr.Button(value=self.label, interactive=True)
 
-@document()
-class JSONLogger(FlaggingCallback):
-    pass
