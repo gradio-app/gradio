@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Some changes to Flagging for 5.0
+feat:Minor changes to flagging for 5.0
