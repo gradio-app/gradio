@@ -15,11 +15,11 @@ const base = defineConfig({
 		}
 	},
 	expect: { timeout: 5000 },
-	timeout: 10000,
+	timeout: 5000,
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined,
-	retries: 2
+	retries: 1
 });
 
 const normal = defineConfig(base, {
