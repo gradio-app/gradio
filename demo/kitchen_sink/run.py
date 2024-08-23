@@ -84,8 +84,8 @@ def fn(
 demo = gr.Interface(
     fn,
     inputs=[
-        gr.Textbox(value="Lorem ipsum", label="Textbox", max_length=20),
-        gr.Textbox(lines=3, placeholder="Type here..", label="Textbox 2", max_length=20),
+        gr.Textbox(value="Lorem ipsum", label="Textbox"),
+        gr.Textbox(lines=3, placeholder="Type here..", label="Textbox 2"),
         gr.Number(label="Number", value=42),
         gr.Slider(10, 20, value=15, label="Slider: 10 - 20"),
         gr.Slider(maximum=20, step=0.04, label="Slider: step @ 0.04"),
