@@ -97,10 +97,6 @@
 				Boolean
 			) as FileData[]
 		)[0];
-
-		if (event === "stop_recording") {
-			console.log("stop_recording");
-		}
 		dispatch(event, value);
 	};
 
