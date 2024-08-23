@@ -1,6 +1,7 @@
 """Contains tests for networking.py and app.py"""
 
 import functools
+import json
 import os
 import pickle
 import tempfile
@@ -12,7 +13,6 @@ from unittest.mock import patch
 
 import gradio_client as grc
 import numpy as np
-import orjson
 import pandas as pd
 import pytest
 import requests
@@ -1469,4 +1469,4 @@ def test_bash_api_serialization():
         response = test_client.get(f"/call/predict/{event_id}")
         assert response.status_code == 200
         assert "event: complete\ndata:" in response.text
-        assert orjson.dumps({"a": 1}, default=str).decode("utf-8") in response.text
+        assert json.dumps({"a": 1}) in response.text
