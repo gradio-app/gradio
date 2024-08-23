@@ -49,7 +49,7 @@
 			control: { type: "boolean" },
 			defaultValue: false
 		},
-		maxlength: {
+		max_length: {
 			description: "The maximum number of characters allowed in the textbox",
 			control: { type: "number" }
 		}

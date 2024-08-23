@@ -43,7 +43,7 @@
 	export let autofocus = false;
 	export let autoscroll = true;
 	export let interactive: boolean;
-	export let maxlength: number | undefined = undefined;
+	export let max_length: number | undefined = undefined;
 </script>
 
 <Block
@@ -80,7 +80,7 @@
 		{autofocus}
 		{container}
 		{autoscroll}
-		{maxlength}
+		{max_length}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}

@@ -26,7 +26,7 @@
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
-	export let maxlength: number | undefined = undefined;
+	export let max_length: number | undefined = undefined;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -195,7 +195,7 @@
 				{placeholder}
 				{disabled}
 				{autofocus}
-				{maxlength}
+				maxlength={max_length}
 				on:keypress={handle_keypress}
 				on:blur
 				on:select={handle_select}
@@ -212,7 +212,7 @@
 				{placeholder}
 				{disabled}
 				{autofocus}
-				{maxlength}
+				maxlength={max_length}
 				on:keypress={handle_keypress}
 				on:blur
 				on:select={handle_select}
@@ -229,7 +229,7 @@
 				{placeholder}
 				{disabled}
 				{autofocus}
-				{maxlength}
+				maxlength={max_length}
 				on:keypress={handle_keypress}
 				on:blur
 				on:select={handle_select}
@@ -264,7 +264,7 @@
 			rows={lines}
 			{disabled}
 			{autofocus}
-			{maxlength}
+			maxlength={max_length}
 			on:keypress={handle_keypress}
 			on:blur
 			on:select={handle_select}
