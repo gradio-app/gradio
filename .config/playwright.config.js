@@ -19,7 +19,7 @@ const base = defineConfig({
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined,
-	retries: 1
+	retries: 0
 });
 
 const normal = defineConfig(base, {
