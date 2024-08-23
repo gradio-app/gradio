@@ -1,20 +1,20 @@
 ---
-"@gradio/annotatedimage": minor
-"@gradio/audio": minor
-"@gradio/chatbot": minor
-"@gradio/code": minor
-"@gradio/dataframe": minor
-"@gradio/dataset": minor
-"@gradio/dropdown": minor
-"@gradio/file": minor
-"@gradio/imageeditor": minor
-"@gradio/markdown": minor
-"@gradio/model3d": minor
-"@gradio/nativeplot": minor
-"@gradio/paramviewer": minor
-"@gradio/wasm": minor
-"@self/component-test": minor
-"gradio": minor
+"@gradio/annotatedimage": patch
+"@gradio/audio": patch
+"@gradio/chatbot": patch
+"@gradio/code": patch
+"@gradio/dataframe": patch
+"@gradio/dataset": patch
+"@gradio/dropdown": patch
+"@gradio/file": patch
+"@gradio/imageeditor": patch
+"@gradio/markdown": patch
+"@gradio/model3d": patch
+"@gradio/nativeplot": patch
+"@gradio/paramviewer": patch
+"@gradio/wasm": patch
+"@self/component-test": patch
+"gradio": patch
 ---
 
 feat:make all component SSR compatible
