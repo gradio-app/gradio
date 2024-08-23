@@ -1,6 +1,5 @@
 import { test, describe, assert, afterEach } from "vitest";
-import { spy } from "tinyspy";
-import { cleanup, fireEvent, render, get_text, wait } from "@gradio/tootils";
+import { cleanup, render } from "@self/tootils";
 import event from "@testing-library/user-event";
 
 import Textbox from "./Index.svelte";

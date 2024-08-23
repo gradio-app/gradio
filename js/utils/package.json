@@ -15,5 +15,17 @@
 		"type": "git",
 		"url": "git+https://github.com/gradio-app/gradio.git",
 		"directory": "js/utils"
+	},
+	"exports": {
+		".": {
+			"gradio": "./src/index.ts",
+			"types": "./dist/src/index.d.ts",
+			"import": "./dist/src/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"package": "svelte-package --input=. --cwd=../../.config/",
+		"build": "esbuild src/index.ts --format=esm --outfile=dist/src/index.js --sourcemap  --platform=node"
 	}
 }

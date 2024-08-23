@@ -124,9 +124,10 @@ function handle_ce_css() {
 var __filename = url.fileURLToPath(import.meta.url);
 var __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 function get_export_path(path, root, pkg_json) {
-  if (!pkg_json.exports) return void 0;
+  if (!pkg_json.exports) return false;
+  if (typeof pkg_json.exports[`${path}`] === "object") return true;
   const _path = join(root, "..", `${pkg_json.exports[`${path}`]}`);
-  return existsSync(_path) ? _path : void 0;
+  return existsSync(_path);
 }
 var ignore_list = [
   "tootils",

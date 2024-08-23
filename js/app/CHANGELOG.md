@@ -1,4 +1,4 @@
-# @gradio/app
+# @self/app
 
 ## 1.40.0
 

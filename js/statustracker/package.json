@@ -8,11 +8,12 @@
 	"license": "ISC",
 	"main_changeset": true,
 	"exports": {
-		".": "./index.ts",
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
+		".": {
+			"gradio": "./index.ts",
+			"svelte": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		},
+		"./package.json": "./package.json"
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
@@ -23,6 +24,9 @@
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",

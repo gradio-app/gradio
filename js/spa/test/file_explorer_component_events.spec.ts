@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("File Explorer is interactive and re-runs the server_fn when root is updated", async ({
 	page

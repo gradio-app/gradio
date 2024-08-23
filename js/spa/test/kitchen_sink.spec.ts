@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("test inputs", async ({ page, browser }) => {
 	const context = await browser.newContext({
