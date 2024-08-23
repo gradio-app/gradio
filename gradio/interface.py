@@ -386,7 +386,7 @@ class Interface(Blocks):
             )
             flagging_mode = allow_flagging
         if flagging_mode is None:
-            flagging_mode = os.getenv("GRADIO_FLAGGING_MODE", "manual")  # type: ignore
+            self.flagging_mode = os.getenv("GRADIO_FLAGGING_MODE", "manual")
         elif flagging_mode in ["manual", "never", "auto"]:
             self.flagging_mode = flagging_mode
         else:
