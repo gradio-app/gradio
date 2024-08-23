@@ -100,7 +100,7 @@ class TestInterfaceSetsUpFlagging:
     @pytest.mark.parametrize(
         "options, processed_options",
         [
-            (None, [("Flag", "")]),
+            (None, [("Flag", None)]),
             (["yes", "no"], [("Flag as yes", "yes"), ("Flag as no", "no")]),
             ([("abc", "de"), ("123", "45")], [("abc", "de"), ("123", "45")]),
         ],
