@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -123,8 +124,8 @@ class Chatbot(Component):
     Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This
     component is usually used as an output component.
 
-    Demos: chatbot_simple, chatbot_core_components_simple
-    Guides: creating-a-chatbot
+    Demos: chatbot_simple, chatbot_streaming, chatbot_with_tools, chatbot_core_components
+    Guides: creating-a-chatbot-fast, creating-a-custom-chatbot-with-blocks, agents-and-tool-usage
     """
 
     EVENTS = [Events.change, Events.select, Events.like]
@@ -172,7 +173,7 @@ class Chatbot(Component):
         """
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            type: The format of the messages. If 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed. If 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content' key's value supports everything the 'tuples' format supports. The 'role' key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output.
+            type: The format of the messages. If 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content` key's value should be one of the following - (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, (3) a dictionary with a 'path' key corresponding to the file to display or (4) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The 'role' key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. Each message can be a valid type of the `content` key in the 'messages' format. Additionally, if the message is None, it will not be displayed.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -207,6 +208,11 @@ class Chatbot(Component):
         if type == "messages":
             self.data_model = ChatbotDataMessages
         else:
+            # DeprecationWarning gets filtered out by default
+            warnings.warn(
+                "The 'tuples' format is deprecated and will be removed in version 6 of Gradio. Please use the 'messages' format instead.",
+                UserWarning,
+            )
             self.data_model = ChatbotDataTuples
         self.height = height
         self.rtl = rtl
