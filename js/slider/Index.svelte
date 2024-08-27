@@ -80,7 +80,7 @@
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
 	$: value, handle_change();
 
-	function handle_resize() {
+	function handle_resize(): void {
 		window_width = window.innerWidth;
 	}
 </script>
