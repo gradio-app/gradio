@@ -297,7 +297,7 @@
 
 {#if value !== null && value.length > 0}
 	<div class="button-row">
-		{#if true}
+		{#if show_share_button}
 			<ShareButton
 				{i18n}
 				on:error
@@ -309,7 +309,7 @@
 		<ActionButton handle_action={() => dispatch("clear")} action="clear">
 			<Trash />
 		</ActionButton>
-		{#if true}
+		{#if show_copy_all_button}
 			<CopyAll {value} />
 		{/if}
 	</div>
