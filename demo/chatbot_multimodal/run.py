@@ -42,7 +42,7 @@ with gr.Blocks(fill_height=True) as demo:
         bubble_full_width=False,
         scale=1,
         placeholder='<h1 style="font-weight: bold; color: #FF6B6B; text-align: center; font-size: 48px; font-family: Arial, sans-serif;">Welcome to Gradio!</h1>',
-        suggestions=[{"icon": "files/avatar.png", "display_text": "Display Text Here!", "text": "Try this example with this audio.", "files": ["files/cantina.wav"]}, {"text": "Try this example with this image.", "files": ["files/avatar.png"]}, {"text": "This is just text, no files!"}, {"text": "Try this example with this image.", "files": ["files/avatar.png", "files/avatar.png"]}, {"text": "Try this example with this Audio.", "files": ["files/cantina.wav"]}, {"text": "Try this example with this Audio.", "files": ["files/cantina.wav"]}, {"text": "Try this example with this Audio.", "files": ["files/cantina.wav"]}]
+        suggestions=[{"icon": "files/avatar.png", "display_text": "Display Text Here!", "text": "Try this example with this audio.", "files": ["files/cantina.wav"]}, {"text": "Try this example with this image.", "files": ["files/avatar.png"]}, {"text": "This is just text, no files!"}, {"text": "Try this example with this image.", "files": ["files/avatar.png", "files/avatar.png"]}, {"text": "Try this example with this Audio.", "files": ["files/cantina.wav"]}]
     )
 
     chat_input = gr.MultimodalTextbox(interactive=True,

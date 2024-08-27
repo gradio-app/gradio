@@ -446,53 +446,7 @@
 				<Markdown message={placeholder} {latex_delimiters} />
 			</div>
 		{/if}
-		<!-- {#if suggestionsVisible}
-				<div class="suggestions">
-					{#if suggestions !== null}
-						{#each suggestions as suggestion, i}
-							<button
-								class="suggestion"
-								on:click={handle_suggestion_select(i, suggestion)}
-							>
-								{#if suggestion.icon !== undefined}
-									<Image
-										class="suggestion-icon"
-										src={suggestion.icon.url}
-										alt="suggestion-icon"
-									/>
-								{/if}
-								{#if suggestion.display_text !== undefined}
-									<span class="suggestion-display-text">{suggestion.display_text}</span>
-								{:else}
-									<span class="suggestion-text">{suggestion.text}</span>
-									{#if suggestion.files.length > 1}
-										<span class="suggestion-file"
-											><em>{suggestion.files.length} Files</em></span
-										>
-									{:else if suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
-										<Image
-											class="suggestion-image"
-											src={suggestion.files[0].url}
-											alt="suggestion-image"
-										/>
-									{:else if suggestion.files[0] !== undefined}
-										<span class="suggestion-file"
-											><em>{suggestion.files[0].orig_name}</em></span
-										>
-									{/if}
-								{/if}
-							</button>
-						{/each}
-					{/if}
-				</div>
-		{/if} -->
 	</div>
-
-	<!-- {#if placeholder !== null}
-			<center>
-				<Markdown message={placeholder} {latex_delimiters} />
-			</center>
-		{/if} -->
 		{#if suggestionsVisible}
 				<div class="suggestions">
 					{#if suggestions !== null}
@@ -502,11 +456,13 @@
 								on:click={handle_suggestion_select(i, suggestion)}
 							>
 								{#if suggestion.icon !== undefined}
+								<div class="suggestion-icon-container">
 									<Image
 										class="suggestion-icon"
 										src={suggestion.icon.url}
 										alt="suggestion-icon"
 									/>
+								</div>
 								{/if}
 								{#if suggestion.display_text !== undefined}
 									<span class="suggestion-display-text">{suggestion.display_text}</span>
@@ -546,6 +502,7 @@
 		display: flex;
 		flex-direction: row;
 		align-self: center;
+		width: 100%;
 	}
 
 	.suggestions :global(img) {
@@ -570,10 +527,12 @@
 		background-color: #444;
 	}
 
-	.suggestion-icon {
-		font-size: 1.2rem;
-		margin-right: 5px;
+	.suggestion-icon-container {
+		display: flex;
 		align-self: flex-start;
+		margin-left: 5px;
+		width: 30px;
+		height: 30px;
 	}
 
 	.suggestion-display-text,
@@ -581,13 +540,14 @@
 	.suggestion-file {
 		margin: 5px 0;
 		text-align: left;
-	}
-
-	.suggestion-text {
 		flex-grow: 1;
 		font-size: 1rem;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	.suggestion-display-text {
+		left: 0px;
 	}
 
 	.suggestion-image {
@@ -607,14 +567,15 @@
 
 	.placeholder {
 		align-self: center;
+		display: flex;
+		justify-content: center;
 		height: 100%;
 	}
 	.placeholder-container {
-		flex-direction: column;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		height: 100%;
+		flex-direction: column;
 	}
 	.panel-wrap {
 		width: 100%;
