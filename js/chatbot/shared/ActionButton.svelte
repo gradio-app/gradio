@@ -16,7 +16,7 @@
 <style>
 	button {
 		cursor: pointer;
-		color: var(--body-text-color);
+		color: var(--body-text-color-subdued);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -26,12 +26,6 @@
 
 	button:hover,
 	button:focus {
-		color: var(--color-accent);
+		color: var(--body-text-color);
 	}
-
-	/* .selected,
-	.selected:focus,
-	.selected:hover {
-		color: var(--color-accent);
-	} */
 </style>

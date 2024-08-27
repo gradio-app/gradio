@@ -61,9 +61,6 @@
 <style>
 	button {
 		display: flex;
-		position: absolute;
-		top: var(--block-label-margin);
-		right: var(--block-label-margin);
 		align-items: center;
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);

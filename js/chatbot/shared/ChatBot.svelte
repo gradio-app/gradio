@@ -297,7 +297,7 @@
 
 {#if value !== null && value.length > 0}
 	<div class="button-row">
-		{#if show_share_button}
+		{#if true}
 			<ShareButton
 				{i18n}
 				on:error
@@ -306,12 +306,12 @@
 				{value}
 			/>
 		{/if}
-		{#if show_copy_all_button}
-			<CopyAll {value} />
-		{/if}
 		<ActionButton handle_action={() => dispatch("clear")} action="clear">
 			<Trash />
 		</ActionButton>
+		{#if true}
+			<CopyAll {value} />
+		{/if}
 	</div>
 {/if}
 
@@ -701,6 +701,7 @@
 		right: var(--size-2);
 		align-items: center;
 		justify-content: space-evenly;
+		gap: var(--spacing-md);
 	}
 
 	.selectable {
