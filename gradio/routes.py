@@ -163,8 +163,10 @@ file_upload_statuses = FileUploadProgress()
 
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
 
 class App(FastAPI):
     """
@@ -865,7 +867,6 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            print("HELLO")
             if body.session_hash is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -1252,7 +1253,6 @@ class App(FastAPI):
                 )
             return output_files
 
-        @app.on_event("startup")
         @router.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:
@@ -1307,7 +1307,7 @@ class App(FastAPI):
                 )
             else:
                 raise HTTPException(status_code=403, detail="Invalid key.")
-            
+
         app.include_router(router)
 
         return app

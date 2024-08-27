@@ -330,7 +330,9 @@ class TestRoutes:
         file_response = client.get(f"/gradio_api/file={created_file}")
         assert file_response.is_success
 
-        backwards_compatible_file_response = client.get(f"/gradio_api/file/{created_file}")
+        backwards_compatible_file_response = client.get(
+            f"/gradio_api/file/{created_file}"
+        )
         assert backwards_compatible_file_response.is_success
 
         file_response_with_full_range = client.get(
@@ -367,7 +369,10 @@ class TestRoutes:
         app = FastAPI()
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
         app = gr.mount_gradio_app(
-            app, demo, path="/gradio_api/echo", app_kwargs={"docs_url": "/gradio_api/docs-custom"}
+            app,
+            demo,
+            path="/gradio_api/echo",
+            app_kwargs={"docs_url": "/gradio_api/docs-custom"},
         )
         # Use context manager to trigger start up events
         with TestClient(app) as client:
@@ -456,10 +461,14 @@ class TestRoutes:
 
         demo = gr.Interface(lambda s: f"Hello from ps, {s}!", "textbox", "textbox")
 
-        app = gr.mount_gradio_app(app, demo, path="/gradio_api/demo", auth_dependency=get_user)
+        app = gr.mount_gradio_app(
+            app, demo, path="/gradio_api/demo", auth_dependency=get_user
+        )
 
         with TestClient(app) as client:
-            assert client.get("/gradio_api/demo", headers={"user": "abubakar"}).is_success
+            assert client.get(
+                "/gradio_api/demo", headers={"user": "abubakar"}
+            ).is_success
             assert not client.get("/gradio_api/demo").is_success
 
     def test_static_file_missing(self, test_client):
@@ -487,7 +496,9 @@ class TestRoutes:
     def test_do_not_expose_existence_of_files_outside_working_directory(
         self, test_client
     ):
-        response = test_client.get(r"/gradio_api/file=../fake-file-that-does-not-exist.js")
+        response = test_client.get(
+            r"/gradio_api/file=../fake-file-that-does-not-exist.js"
+        )
         assert response.status_code == 403  # not a 404
 
     def test_proxy_route_is_restricted_to_load_urls(self):
@@ -909,7 +920,8 @@ def test_predict_route_is_blocked_if_api_open_false():
     assert io.show_api
     client = TestClient(app)
     result = client.post(
-        "/gradio_api/api/predict", json={"fn_index": 0, "data": [5], "session_hash": "foo"}
+        "/gradio_api/api/predict",
+        json={"fn_index": 0, "data": [5], "session_hash": "foo"},
     )
     assert result.status_code == 404
 
@@ -930,7 +942,9 @@ def test_predict_route_not_blocked_if_queue_disabled():
     assert demo.show_api
     client = TestClient(app)
 
-    result = client.post("/gradio_api/api/blocked", json={"data": [], "session_hash": "foo"})
+    result = client.post(
+        "/gradio_api/api/blocked", json={"data": [], "session_hash": "foo"}
+    )
     assert result.status_code == 404
     result = client.post(
         "/gradio_api/api/not_blocked", json={"data": ["freddy"], "session_hash": "foo"}
@@ -1062,7 +1076,8 @@ def test_api_name_set_for_all_events(connect):
             "/gradio_api/api/greet_me", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["Hello"]
         assert client.post(
-            "/gradio_api/api/Say__goodbye", json={"data": ["freddy"], "session_hash": "foo"}
+            "/gradio_api/api/Say__goodbye",
+            json={"data": ["freddy"], "session_hash": "foo"},
         ).json()["data"] == ["Goodbye"]
         assert client.post(
             "/gradio_api/api/lambda", json={"data": ["freddy"], "session_hash": "foo"}
@@ -1078,14 +1093,19 @@ def test_api_name_set_for_all_events(connect):
         ).json()["data"] == ["From partial: freddy"]
         with pytest.raises(FnIndexInferError):
             client.post(
-                "/gradio_api/api/Say_goodbye", json={"data": ["freddy"], "session_hash": "foo"}
+                "/gradio_api/api/Say_goodbye",
+                json={"data": ["freddy"], "session_hash": "foo"},
             )
 
     with connect(demo) as client:
         assert client.predict("freddy", api_name="/gradio_api/greet") == "Hello freddy"
-        assert client.predict("freddy", api_name="/gradio_api/goodbye") == "Goodbye freddy"
+        assert (
+            client.predict("freddy", api_name="/gradio_api/goodbye") == "Goodbye freddy"
+        )
         assert client.predict("freddy", api_name="/gradio_api/greet_me") == "Hello"
-        assert client.predict("freddy", api_name="/gradio_api/Say__goodbye") == "Goodbye"
+        assert (
+            client.predict("freddy", api_name="/gradio_api/Say__goodbye") == "Goodbye"
+        )
 
 
 class TestShowAPI:
@@ -1217,8 +1237,18 @@ def test_get_root_url(
     "headers, root_path, route_path, expected_root_url",
     [
         ({}, "/gradio_api/gradio/", "/gradio_api/", "http://gradio.app/gradio"),
-        ({"x-forwarded-proto": "http"}, "/gradio_api/gradio/", "/gradio_api/", "http://gradio.app/gradio"),
-        ({"x-forwarded-proto": "https"}, "/gradio_api/gradio/", "/gradio_api/", "https://gradio.app/gradio"),
+        (
+            {"x-forwarded-proto": "http"},
+            "/gradio_api/gradio/",
+            "/gradio_api/",
+            "http://gradio.app/gradio",
+        ),
+        (
+            {"x-forwarded-proto": "https"},
+            "/gradio_api/gradio/",
+            "/gradio_api/",
+            "https://gradio.app/gradio",
+        ),
         (
             {"x-forwarded-host": "gradio.dev"},
             "/gradio_api/gradio/",
@@ -1432,7 +1462,9 @@ def test_docs_url():
         button = gr.Button()
         button.click(lambda n: n + 1, [num], [num])
 
-    app, _, _ = demo.launch(app_kwargs={"docs_url": "/gradio_api/docs"}, prevent_thread_lock=True)
+    app, _, _ = demo.launch(
+        app_kwargs={"docs_url": "/gradio_api/docs"}, prevent_thread_lock=True
+    )
     try:
         test_client = TestClient(app)
         with test_client:
