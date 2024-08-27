@@ -2484,6 +2484,9 @@ Received outputs:
             and not networking.url_ok(self.local_url)
             and not self.share
         ):
+            print(self.local_url)
+            print(networking.url_ok(self.local_url))    
+
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )

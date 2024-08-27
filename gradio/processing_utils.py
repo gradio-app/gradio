@@ -438,10 +438,10 @@ def move_files_to_cache(
                 if keep_in_cache:
                     block.keep_in_cache.add(payload.path)
 
-        url_prefix = "/stream/" if payload.is_stream else "/file="
+        url_prefix = "gradio_api/stream/" if payload.is_stream else "gradio_api/file="
         if block.proxy_url:
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
+            url = f"gradio_api/proxy={proxy_url}{url_prefix}{payload.path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
@@ -548,10 +548,10 @@ async def async_move_files_to_cache(
                 if keep_in_cache:
                     block.keep_in_cache.add(payload.path)
 
-        url_prefix = "/stream/" if payload.is_stream else "/file="
+        url_prefix = "/gradio_api/stream/" if payload.is_stream else "/gradio_api/file="
         if block.proxy_url:
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
+            url = f"/gradio_api/proxy={proxy_url}{url_prefix}{payload.path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):

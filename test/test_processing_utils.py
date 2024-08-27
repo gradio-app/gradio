@@ -332,7 +332,7 @@ def test_add_root_url():
     data = {
         "file": {
             "path": "path",
-            "url": "/file=path",
+            "url": "/gradio_api/file=path",
             "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
@@ -385,7 +385,7 @@ async def test_json_data_not_moved_to_cache():
         root={
             "file": {
                 "path": "path",
-                "url": "/file=path",
+                "url": "/gradio_api/file=path",
                 "meta": {"_type": "gradio.FileData"},
             }
         }
