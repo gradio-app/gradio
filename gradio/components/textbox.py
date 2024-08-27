@@ -86,7 +86,7 @@ class Textbox(FormComponent):
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
-            max_length: maximum number of characters allowed in the textbox. If None, there is no maximum length.
+            max_length: maximum number of characters (including newlines) allowed in the textbox. If None, there is no maximum length.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
