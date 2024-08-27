@@ -50,27 +50,27 @@ def test_client():
 
 class TestRoutes:
     def test_get_main_route(self, test_client):
-        response = test_client.get("/")
+        response = test_client.get("/gradio_api/")
         assert response.status_code == 200
 
     def test_static_files_served_safely(self, test_client):
         # Make sure things outside the static folder are not accessible
-        response = test_client.get(r"/static/..%2findex.html")
+        response = test_client.get(r"/gradio_api/static/..%2findex.html")
         assert response.status_code == 403
-        response = test_client.get(r"/static/..%2f..%2fapi_docs.html")
+        response = test_client.get(r"/gradio_api/static/..%2f..%2fapi_docs.html")
         assert response.status_code == 403
 
     def test_get_config_route(self, test_client):
-        response = test_client.get("/config/")
+        response = test_client.get("/gradio_api/config/")
         assert response.status_code == 200
 
     def test_favicon_route(self, test_client):
-        response = test_client.get("/favicon.ico")
+        response = test_client.get("/gradio_api/favicon.ico")
         assert response.status_code == 200
 
     def test_upload_path(self, test_client):
         with open("test/test_files/alphabet.txt", "rb") as f:
-            response = test_client.post("/upload", files={"files": f})
+            response = test_client.post("/gradio_api/upload", files={"files": f})
         assert response.status_code == 200
         file = response.json()[0]
         assert "alphabet" in file
@@ -83,7 +83,7 @@ class TestRoutes:
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
         with open("test/test_files/alphabet.txt", "rb") as f:
-            response = test_client.post("/upload", files={"files": f})
+            response = test_client.post("/gradio_api/upload", files={"files": f})
         assert response.status_code == 200
         file = response.json()[0]
         assert "alphabet" in file
@@ -94,7 +94,7 @@ class TestRoutes:
 
     def test_predict_route(self, test_client):
         response = test_client.post(
-            "/api/predict/", json={"data": ["test"], "fn_index": 0}
+            "/gradio_api/api/predict/", json={"data": ["test"], "fn_index": 0}
         )
         assert response.status_code == 200
         output = dict(response.json())
@@ -109,12 +109,12 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/p/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/p/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test1"]
 
-        response = client.post("/api/q/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/q/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test2"]
@@ -128,12 +128,12 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/p/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/p/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test0"]
 
-        response = client.post("/api/p_1/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/p_1/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test1"]
@@ -148,23 +148,23 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/p/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/p/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test0"]
 
-        response = client.post("/api/p_1/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/p_1/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test1"]
 
-        response = client.post("/api/p_1_1/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/p_1_1/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test2"]
 
     def test_predict_route_without_fn_index(self, test_client):
-        response = test_client.post("/api/predict/", json={"data": ["test"]})
+        response = test_client.post("/gradio_api/api/predict/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["testtest"]
@@ -184,14 +184,14 @@ class TestRoutes:
         demo.queue(api_open=True)
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/pred/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/pred/", json={"data": ["test"]})
         output = dict(response.json())
         assert output["data"] == ["Hello test"]
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post(
-            "/api/pred/", json={"data": [["test", "test2"]], "batched": True}
+            "/gradio_api/api/pred/", json={"data": [["test", "test2"]], "batched": True}
         )
         output = dict(response.json())
         assert output["data"] == [["Hello test", "Hello test2"]]
@@ -207,13 +207,13 @@ class TestRoutes:
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post(
-            "/api/predict/",
+            "/gradio_api/api/predict/",
             json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
         )
         output = dict(response.json())
         assert output["data"] == ["test", None]
         response = client.post(
-            "/api/predict/",
+            "/gradio_api/api/predict/",
             json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
         )
         output = dict(response.json())
@@ -227,7 +227,7 @@ class TestRoutes:
         io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        file_response = client.get(f"/file={allowed_file.name}")
+        file_response = client.get(f"/gradio_api/file={allowed_file.name}")
         assert file_response.status_code == 403
         io.close()
 
@@ -237,7 +237,7 @@ class TestRoutes:
             allowed_paths=[os.path.dirname(allowed_file.name)],
         )
         client = TestClient(app)
-        file_response = client.get(f"/file={allowed_file.name}")
+        file_response = client.get(f"/gradio_api/file={allowed_file.name}")
         assert file_response.status_code == 200
         assert len(file_response.text) == len(media_data.BASE64_IMAGE)
         io.close()
@@ -248,7 +248,7 @@ class TestRoutes:
             allowed_paths=[os.path.abspath(allowed_file.name)],
         )
         client = TestClient(app)
-        file_response = client.get(f"/file={allowed_file.name}")
+        file_response = client.get(f"/gradio_api/file={allowed_file.name}")
         assert file_response.status_code == 200
         assert len(file_response.text) == len(media_data.BASE64_IMAGE)
         io.close()
@@ -272,11 +272,11 @@ class TestRoutes:
         )
         client = TestClient(app)
 
-        file_response = client.get(f"/file={image_file.name}")
+        file_response = client.get(f"/gradio_api/file={image_file.name}")
         assert file_response.headers["Content-Type"] == "image/png"
         assert "inline" in file_response.headers["Content-Disposition"]
 
-        file_response = client.get(f"/file={html_file.name}")
+        file_response = client.get(f"/gradio_api/file={html_file.name}")
         assert file_response.headers["Content-Type"] == "application/octet-stream"
         assert "attachment" in file_response.headers["Content-Disposition"]
 
@@ -288,7 +288,7 @@ class TestRoutes:
                 allowed_paths=[os.path.dirname(tmp_file.name)],
             )
             client = TestClient(app)
-            file_response = client.get(f"/file={tmp_file.name}")
+            file_response = client.get(f"/gradio_api/file={tmp_file.name}")
             assert file_response.status_code == 200
         io.close()
         os.remove(tmp_file.name)
@@ -301,7 +301,7 @@ class TestRoutes:
                 blocked_paths=[os.path.dirname(tmp_file.name)],
             )
             client = TestClient(app)
-            file_response = client.get(f"/file={tmp_file.name}")
+            file_response = client.get(f"/gradio_api/file={tmp_file.name}")
             assert file_response.status_code == 403
         io.close()
         os.remove(tmp_file.name)
@@ -312,9 +312,9 @@ class TestRoutes:
         )
         client = TestClient(app)
         with open("test/test_files/alphabet.txt", "rb") as f:
-            file_response = test_client.post("/upload", files={"files": f})
+            file_response = test_client.post("/gradio_api/upload", files={"files": f})
         response = client.post(
-            "/api/predict/",
+            "/gradio_api/api/predict/",
             json={
                 "data": [
                     {
@@ -327,20 +327,20 @@ class TestRoutes:
             },
         ).json()
         created_file = response["data"][0]["path"]
-        file_response = client.get(f"/file={created_file}")
+        file_response = client.get(f"/gradio_api/file={created_file}")
         assert file_response.is_success
 
-        backwards_compatible_file_response = client.get(f"/file/{created_file}")
+        backwards_compatible_file_response = client.get(f"/gradio_api/file/{created_file}")
         assert backwards_compatible_file_response.is_success
 
         file_response_with_full_range = client.get(
-            f"/file={created_file}", headers={"Range": "bytes=0-"}
+            f"/gradio_api/file={created_file}", headers={"Range": "bytes=0-"}
         )
         assert file_response_with_full_range.is_success
         assert file_response.text == file_response_with_full_range.text
 
         file_response_with_partial_range = client.get(
-            f"/file={created_file}", headers={"Range": "bytes=0-10"}
+            f"/gradio_api/file={created_file}", headers={"Range": "bytes=0-10"}
         )
         assert file_response_with_partial_range.is_success
         assert len(file_response_with_partial_range.text) == 11
@@ -355,23 +355,23 @@ class TestRoutes:
             lambda s: f"Hello from py, {s}!", "textbox", "textbox"
         ).queue()
 
-        app = gr.mount_gradio_app(app, demo, path="/ps")
-        app = gr.mount_gradio_app(app, demo1, path="/py")
+        app = gr.mount_gradio_app(app, demo, path="/gradio_api/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/gradio_api/py")
 
         # Use context manager to trigger start up events
         with TestClient(app) as client:
-            assert client.get("/ps").is_success
-            assert client.get("/py").is_success
+            assert client.get("/gradio_api/ps").is_success
+            assert client.get("/gradio_api/py").is_success
 
     def test_mount_gradio_app_with_app_kwargs(self):
         app = FastAPI()
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
         app = gr.mount_gradio_app(
-            app, demo, path="/echo", app_kwargs={"docs_url": "/docs-custom"}
+            app, demo, path="/gradio_api/echo", app_kwargs={"docs_url": "/gradio_api/docs-custom"}
         )
         # Use context manager to trigger start up events
         with TestClient(app) as client:
-            assert client.get("/echo/docs-custom").is_success
+            assert client.get("/gradio_api/echo/docs-custom").is_success
 
     def test_mount_gradio_app_with_auth_and_params(self):
         app = FastAPI()
@@ -379,15 +379,15 @@ class TestRoutes:
         app = gr.mount_gradio_app(
             app,
             demo,
-            path="/echo",
+            path="/gradio_api/echo",
             auth=("a", "b"),
-            root_path="/echo",
+            root_path="/gradio_api/echo",
             allowed_paths=["test/test_files/bus.png"],
         )
         # Use context manager to trigger start up events
         with TestClient(app) as client:
-            assert client.get("/echo/config").status_code == 401
-        assert demo.root_path == "/echo"
+            assert client.get("/gradio_api/echo/config").status_code == 401
+        assert demo.root_path == "/gradio_api/echo"
         assert demo.allowed_paths == ["test/test_files/bus.png"]
         assert demo.show_error
 
@@ -405,13 +405,13 @@ class TestRoutes:
             lambda s: f"Hello from py, {s}!", "textbox", "textbox"
         ).queue()
 
-        app = gr.mount_gradio_app(app, demo, path="/ps")
-        app = gr.mount_gradio_app(app, demo1, path="/py")
+        app = gr.mount_gradio_app(app, demo, path="/gradio_api/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/gradio_api/py")
 
         # Use context manager to trigger start up events
         with TestClient(app) as client:
-            assert client.get("/ps").is_success
-            assert client.get("/py").is_success
+            assert client.get("/gradio_api/ps").is_success
+            assert client.get("/gradio_api/py").is_success
 
     def test_mount_gradio_app_with_startup(self):
         app = FastAPI()
@@ -427,13 +427,13 @@ class TestRoutes:
             lambda s: f"Hello from py, {s}!", "textbox", "textbox"
         ).queue()
 
-        app = gr.mount_gradio_app(app, demo, path="/ps")
-        app = gr.mount_gradio_app(app, demo1, path="/py")
+        app = gr.mount_gradio_app(app, demo, path="/gradio_api/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/gradio_api/py")
 
         # Use context manager to trigger start up events
         with TestClient(app) as client:
-            assert client.get("/ps").is_success
-            assert client.get("/py").is_success
+            assert client.get("/gradio_api/ps").is_success
+            assert client.get("/gradio_api/py").is_success
 
     def test_gradio_app_with_auth_dependency(self):
         def block_anonymous(request: Request):
@@ -445,8 +445,8 @@ class TestRoutes:
         )
 
         with TestClient(app) as client:
-            assert not client.get("/", headers={}).is_success
-            assert client.get("/", headers={"user": "abubakar"}).is_success
+            assert not client.get("/gradio_api/", headers={}).is_success
+            assert client.get("/gradio_api/", headers={"user": "abubakar"}).is_success
 
     def test_mount_gradio_app_with_auth_dependency(self):
         app = FastAPI()
@@ -456,38 +456,38 @@ class TestRoutes:
 
         demo = gr.Interface(lambda s: f"Hello from ps, {s}!", "textbox", "textbox")
 
-        app = gr.mount_gradio_app(app, demo, path="/demo", auth_dependency=get_user)
+        app = gr.mount_gradio_app(app, demo, path="/gradio_api/demo", auth_dependency=get_user)
 
         with TestClient(app) as client:
-            assert client.get("/demo", headers={"user": "abubakar"}).is_success
-            assert not client.get("/demo").is_success
+            assert client.get("/gradio_api/demo", headers={"user": "abubakar"}).is_success
+            assert not client.get("/gradio_api/demo").is_success
 
     def test_static_file_missing(self, test_client):
-        response = test_client.get(r"/static/not-here.js")
+        response = test_client.get(r"/gradio_api/static/not-here.js")
         assert response.status_code == 404
 
     def test_asset_file_missing(self, test_client):
-        response = test_client.get(r"/assets/not-here.js")
+        response = test_client.get(r"/gradio_api/assets/not-here.js")
         assert response.status_code == 404
 
     def test_cannot_access_files_in_working_directory(self, test_client):
-        response = test_client.get(r"/file=not-here.js")
+        response = test_client.get(r"/gradio_api/file=not-here.js")
         assert response.status_code == 403
-        response = test_client.get(r"/file=subdir/.env")
+        response = test_client.get(r"/gradio_api/file=subdir/.env")
         assert response.status_code == 403
 
     def test_cannot_access_directories_in_working_directory(self, test_client):
-        response = test_client.get(r"/file=gradio")
+        response = test_client.get(r"/gradio_api/file=gradio")
         assert response.status_code == 403
 
     def test_block_protocols_that_expose_windows_credentials(self, test_client):
-        response = test_client.get(r"/file=//11.0.225.200/share")
+        response = test_client.get(r"/gradio_api/file=//11.0.225.200/share")
         assert response.status_code == 403
 
     def test_do_not_expose_existence_of_files_outside_working_directory(
         self, test_client
     ):
-        response = test_client.get(r"/file=../fake-file-that-does-not-exist.js")
+        response = test_client.get(r"/gradio_api/file=../fake-file-that-does-not-exist.js")
         assert response.status_code == 403  # not a 404
 
     def test_proxy_route_is_restricted_to_load_urls(self):
@@ -531,9 +531,9 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.get("/")
+        response = client.get("/gradio_api/")
         assert response.is_success
-        response = client.get("/config/")
+        response = client.get("/gradio_api/config/")
         assert response.is_success
 
     def test_default_cors_restrictions(self):
@@ -544,21 +544,21 @@ class TestRoutes:
             "host": "localhost:7860",
             "origin": "https://example.com",
         }
-        file_response = client.get("/config", headers=custom_headers)
+        file_response = client.get("/gradio_api/config", headers=custom_headers)
         assert "access-control-allow-origin" not in file_response.headers
 
         custom_headers = {
             "host": "localhost:7860",
             "origin": "null",
         }
-        file_response = client.get("/config", headers=custom_headers)
+        file_response = client.get("/gradio_api/config", headers=custom_headers)
         assert "access-control-allow-origin" not in file_response.headers
 
         custom_headers = {
             "host": "localhost:7860",
             "origin": "127.0.0.1",
         }
-        file_response = client.get("/config", headers=custom_headers)
+        file_response = client.get("/gradio_api/config", headers=custom_headers)
         assert file_response.headers["access-control-allow-origin"] == "127.0.0.1"
 
         io.close()
@@ -571,14 +571,14 @@ class TestRoutes:
             "host": "localhost:7860",
             "origin": "https://example.com",
         }
-        file_response = client.get("/config", headers=custom_headers)
+        file_response = client.get("/gradio_api/config", headers=custom_headers)
         assert "access-control-allow-origin" not in file_response.headers
 
         custom_headers = {
             "host": "localhost:7860",
             "origin": "null",
         }
-        file_response = client.get("/config", headers=custom_headers)
+        file_response = client.get("/gradio_api/config", headers=custom_headers)
         assert file_response.headers["access-control-allow-origin"] == "null"
 
         io.close()
@@ -634,7 +634,7 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.get("/monitoring")
+        response = client.get("/gradio_api/monitoring")
         assert response.status_code == 200
 
     def test_monitoring_link_disabled(self):
@@ -645,7 +645,7 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True, enable_monitoring=False)
         client = TestClient(app)
-        response = client.get("/monitoring")
+        response = client.get("/gradio_api/monitoring")
         assert response.status_code == 403
 
 
@@ -665,23 +665,23 @@ class TestAuthenticatedRoutes:
         client = TestClient(app)
 
         response = client.post(
-            "/login",
+            "/gradio_api/login",
             data={"username": "test", "password": "correct_password"},
         )
         assert response.status_code == 200
 
         response = client.post(
-            "/login",
+            "/gradio_api/login",
             data={"username": "test", "password": "incorrect_password"},
         )
         assert response.status_code == 400
 
         client.post(
-            "/login",
+            "/gradio_api/login",
             data={"username": "test", "password": "correct_password"},
         )
         response = client.post(
-            "/login",
+            "/gradio_api/login",
             data={"username": " test ", "password": "correct_password"},
         )
         assert response.status_code == 200
@@ -695,20 +695,20 @@ class TestAuthenticatedRoutes:
         client = TestClient(app)
 
         client.post(
-            "/login",
+            "/gradio_api/login",
             data={"username": "test", "password": "correct_password"},
         )
 
         response = client.post(
-            "/run/predict",
+            "/gradio_api/run/predict",
             json={"data": ["test"]},
         )
         assert response.status_code == 200
 
-        response = client.get("/logout")
+        response = client.get("/gradio_api/logout")
 
         response = client.post(
-            "/run/predict",
+            "/gradio_api/run/predict",
             json={"data": ["test"]},
         )
         assert response.status_code == 401
@@ -721,19 +721,19 @@ class TestAuthenticatedRoutes:
         )
         client = TestClient(app)
         client.post(
-            "/login",
+            "/gradio_api/login",
             data={"username": "test", "password": "correct_password"},
         )
 
         response = client.get(
-            "/monitoring",
+            "/gradio_api/monitoring",
         )
         assert response.status_code == 200
 
-        response = client.get("/logout")
+        response = client.get("/gradio_api/logout")
 
         response = client.get(
-            "/monitoring",
+            "/gradio_api/monitoring",
         )
         assert response.status_code == 401
 
@@ -754,14 +754,14 @@ class TestDevMode:
     def test_mount_gradio_app_set_dev_mode_false(self):
         app = FastAPI()
 
-        @app.get("/")
+        @app.get("/gradio_api/")
         def read_main():
             return {"message": "Hello!"}
 
         with gr.Blocks() as blocks:
             gr.Textbox("Hello from gradio!")
 
-        app = routes.mount_gradio_app(app, blocks, path="/gradio")
+        app = routes.mount_gradio_app(app, blocks, path="/gradio_api/gradio")
         gradio_fast_api = next(
             route for route in app.routes if isinstance(route, starlette.routing.Mount)
         )
@@ -779,7 +779,7 @@ class TestPassingRequest:
         )
         client = TestClient(app)
 
-        response = client.post("/api/predict/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/predict/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
@@ -794,7 +794,7 @@ class TestPassingRequest:
         )
         client = TestClient(app)
 
-        response = client.post("/api/chat/", json={"data": ["test", None]})
+        response = client.post("/gradio_api/api/chat/", json={"data": ["test", None]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test", None]
@@ -814,7 +814,7 @@ class TestPassingRequest:
         )
         client = TestClient(app)
 
-        response = client.post("/api/chat/", json={"data": ["test", None]})
+        response = client.post("/gradio_api/api/chat/", json={"data": ["test", None]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["t", None]
@@ -835,7 +835,7 @@ class TestPassingRequest:
         )
         client = TestClient(app)
 
-        response = client.post("/api/predict/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/predict/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
@@ -850,7 +850,7 @@ class TestPassingRequest:
         )
         client = TestClient(app)
 
-        response = client.post("/api/predict/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/predict/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
@@ -866,10 +866,10 @@ class TestPassingRequest:
         client = TestClient(app)
 
         client.post(
-            "/login",
+            "/gradio_api/login",
             data={"username": "admin", "password": "password"},
         )
-        response = client.post("/api/predict/", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/predict/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
@@ -895,7 +895,7 @@ class TestPassingRequest:
         )
         client = TestClient(app)
 
-        response = client.post("/api/predict?a=b", json={"data": ["test"]})
+        response = client.post("/gradio_api/api/predict?a=b", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
@@ -909,7 +909,7 @@ def test_predict_route_is_blocked_if_api_open_false():
     assert io.show_api
     client = TestClient(app)
     result = client.post(
-        "/api/predict", json={"fn_index": 0, "data": [5], "session_hash": "foo"}
+        "/gradio_api/api/predict", json={"fn_index": 0, "data": [5], "session_hash": "foo"}
     )
     assert result.status_code == 404
 
@@ -930,10 +930,10 @@ def test_predict_route_not_blocked_if_queue_disabled():
     assert demo.show_api
     client = TestClient(app)
 
-    result = client.post("/api/blocked", json={"data": [], "session_hash": "foo"})
+    result = client.post("/gradio_api/api/blocked", json={"data": [], "session_hash": "foo"})
     assert result.status_code == 404
     result = client.post(
-        "/api/not_blocked", json={"data": ["freddy"], "session_hash": "foo"}
+        "/gradio_api/api/not_blocked", json={"data": ["freddy"], "session_hash": "foo"}
     )
     assert result.status_code == 200
     assert result.json()["data"] == ["Hello, freddy!"]
@@ -954,7 +954,7 @@ def test_predict_route_not_blocked_if_routes_open():
     client = TestClient(app)
 
     result = client.post(
-        "/api/not_blocked", json={"data": ["freddy"], "session_hash": "foo"}
+        "/gradio_api/api/not_blocked", json={"data": ["freddy"], "session_hash": "foo"}
     )
     assert result.status_code == 200
     assert result.json()["data"] == ["Hello, freddy!"]
@@ -989,7 +989,7 @@ def test_orjson_serialization():
         gr.DataFrame(df)
     app, _, _ = demo.launch(prevent_thread_lock=True)
     test_client = TestClient(app)
-    response = test_client.get("/")
+    response = test_client.get("/gradio_api/")
     assert response.status_code == 200
     demo.close()
 
@@ -1053,39 +1053,39 @@ def test_api_name_set_for_all_events(connect):
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
         assert client.post(
-            "/api/greet", json={"data": ["freddy"], "session_hash": "foo"}
+            "/gradio_api/api/greet", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["Hello freddy"]
         assert client.post(
-            "/api/goodbye", json={"data": ["freddy"], "session_hash": "foo"}
+            "/gradio_api/api/goodbye", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["Goodbye freddy"]
         assert client.post(
-            "/api/greet_me", json={"data": ["freddy"], "session_hash": "foo"}
+            "/gradio_api/api/greet_me", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["Hello"]
         assert client.post(
-            "/api/Say__goodbye", json={"data": ["freddy"], "session_hash": "foo"}
+            "/gradio_api/api/Say__goodbye", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["Goodbye"]
         assert client.post(
-            "/api/lambda", json={"data": ["freddy"], "session_hash": "foo"}
+            "/gradio_api/api/lambda", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["freddy"]
         assert client.post(
-            "/api/foo-2", json={"data": ["freddy"], "session_hash": "foo"}
+            "/gradio_api/api/foo-2", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["freddy foo"]
         assert client.post(
-            "/api/Callable", json={"data": ["freddy"], "session_hash": "foo"}
+            "/gradio_api/api/Callable", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["From __call__"]
         assert client.post(
-            "/api/partial", json={"data": ["freddy"], "session_hash": "foo"}
+            "/gradio_api/api/partial", json={"data": ["freddy"], "session_hash": "foo"}
         ).json()["data"] == ["From partial: freddy"]
         with pytest.raises(FnIndexInferError):
             client.post(
-                "/api/Say_goodbye", json={"data": ["freddy"], "session_hash": "foo"}
+                "/gradio_api/api/Say_goodbye", json={"data": ["freddy"], "session_hash": "foo"}
             )
 
     with connect(demo) as client:
-        assert client.predict("freddy", api_name="/greet") == "Hello freddy"
-        assert client.predict("freddy", api_name="/goodbye") == "Goodbye freddy"
-        assert client.predict("freddy", api_name="/greet_me") == "Hello"
-        assert client.predict("freddy", api_name="/Say__goodbye") == "Goodbye"
+        assert client.predict("freddy", api_name="/gradio_api/greet") == "Hello freddy"
+        assert client.predict("freddy", api_name="/gradio_api/goodbye") == "Goodbye freddy"
+        assert client.predict("freddy", api_name="/gradio_api/greet_me") == "Hello"
+        assert client.predict("freddy", api_name="/gradio_api/Say__goodbye") == "Goodbye"
 
 
 class TestShowAPI:
@@ -1113,7 +1113,7 @@ def test_component_server_endpoints(connect):
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
         success_req = client.post(
-            "/component_server/",
+            "/gradio_api/component_server/",
             json={
                 "session_hash": "123",
                 "component_id": file_explorer._id,
@@ -1124,7 +1124,7 @@ def test_component_server_endpoints(connect):
         assert success_req.status_code == 200
         assert len(success_req.json()) > 0
         fail_req = client.post(
-            "/component_server/",
+            "/gradio_api/component_server/",
             json={
                 "session_hash": "123",
                 "component_id": file_explorer._id,
@@ -1138,64 +1138,64 @@ def test_component_server_endpoints(connect):
 @pytest.mark.parametrize(
     "request_url, route_path, root_path, expected_root_url",
     [
-        ("http://localhost:7860/", "/", None, "http://localhost:7860"),
+        ("http://localhost:7860/", "/gradio_api/", None, "http://localhost:7860"),
         (
             "http://localhost:7860/demo/test",
-            "/demo/test",
+            "/gradio_api/demo/test",
             None,
             "http://localhost:7860",
         ),
         (
             "http://localhost:7860/demo/test/",
-            "/demo/test",
+            "/gradio_api/demo/test",
             None,
             "http://localhost:7860",
         ),
         (
             "http://localhost:7860/demo/test?query=1",
-            "/demo/test",
+            "/gradio_api/demo/test",
             None,
             "http://localhost:7860",
         ),
         (
             "http://localhost:7860/demo/test?query=1",
-            "/demo/test/",
-            "/gradio/",
+            "/gradio_api/demo/test/",
+            "/gradio_api/gradio/",
             "http://localhost:7860/gradio",
         ),
         (
             "http://localhost:7860/demo/test?query=1",
-            "/demo/test",
-            "/gradio/",
+            "/gradio_api/demo/test",
+            "/gradio_api/gradio/",
             "http://localhost:7860/gradio",
         ),
         (
             "https://localhost:7860/demo/test?query=1",
-            "/demo/test",
-            "/gradio/",
+            "/gradio_api/demo/test",
+            "/gradio_api/gradio/",
             "https://localhost:7860/gradio",
         ),
         (
             "https://www.gradio.app/playground/",
-            "/",
-            "/playground",
+            "/gradio_api/",
+            "/gradio_api/playground",
             "https://www.gradio.app/playground",
         ),
         (
             "https://www.gradio.app/playground/",
-            "/",
-            "/playground",
+            "/gradio_api/",
+            "/gradio_api/playground",
             "https://www.gradio.app/playground",
         ),
         (
             "https://www.gradio.app/playground/",
-            "/",
+            "/gradio_api/",
             "",
             "https://www.gradio.app/playground",
         ),
         (
             "https://www.gradio.app/playground/",
-            "/",
+            "/gradio_api/",
             "http://www.gradio.app/",
             "http://www.gradio.app",
         ),
@@ -1216,25 +1216,25 @@ def test_get_root_url(
 @pytest.mark.parametrize(
     "headers, root_path, route_path, expected_root_url",
     [
-        ({}, "/gradio/", "/", "http://gradio.app/gradio"),
-        ({"x-forwarded-proto": "http"}, "/gradio/", "/", "http://gradio.app/gradio"),
-        ({"x-forwarded-proto": "https"}, "/gradio/", "/", "https://gradio.app/gradio"),
+        ({}, "/gradio_api/gradio/", "/gradio_api/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "http"}, "/gradio_api/gradio/", "/gradio_api/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "https"}, "/gradio_api/gradio/", "/gradio_api/", "https://gradio.app/gradio"),
         (
             {"x-forwarded-host": "gradio.dev"},
-            "/gradio/",
-            "/",
+            "/gradio_api/gradio/",
+            "/gradio_api/",
             "http://gradio.dev/gradio",
         ),
         (
             {"x-forwarded-host": "gradio.dev"},
-            "/gradio/",
-            "/config",
+            "/gradio_api/gradio/",
+            "/gradio_api/config",
             "http://gradio.dev/gradio",
         ),
         (
             {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
-            "/",
-            "/",
+            "/gradio_api/",
+            "/gradio_api/",
             "https://gradio.dev",
         ),
         (
@@ -1242,14 +1242,14 @@ def test_get_root_url(
                 "x-forwarded-host": "gradio.dev,internal.gradio.dev",
                 "x-forwarded-proto": "https,http",
             },
-            "/",
-            "/",
+            "/gradio_api/",
+            "/gradio_api/",
             "https://gradio.dev",
         ),
         (
             {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
             "http://google.com",
-            "/",
+            "/gradio_api/",
             "http://google.com",
         ),
     ],
@@ -1399,12 +1399,12 @@ def test_compare_passwords_securely():
         ("localhost:7860", False),
         ("localhost", False),
         ("C:/Users/username", False),
-        ("//path", True),
+        ("/gradio_api//path", True),
         ("\\\\path", True),
-        ("/usr/bin//test", False),
-        ("/\\10.0.225.200/share", True),
+        ("/gradio_api/usr/bin//test", False),
+        ("/gradio_api/\\10.0.225.200/share", True),
         ("\\/10.0.225.200/share", True),
-        ("/home//user", False),
+        ("/gradio_api/home//user", False),
         ("C:\\folder\\file", False),
     ],
 )
@@ -1419,10 +1419,10 @@ def test_max_file_size_used_in_upload_route(connect):
     app, _, _ = demo.launch(prevent_thread_lock=True, max_file_size="1kb")
     test_client = TestClient(app)
     with open("test/test_files/cheetah1.jpg", "rb") as f:
-        r = test_client.post("/upload", files={"files": f})
+        r = test_client.post("/gradio_api/upload", files={"files": f})
         assert r.status_code == 413
     with open("test/test_files/alphabet.txt", "rb") as f:
-        r = test_client.post("/upload", files={"files": f})
+        r = test_client.post("/gradio_api/upload", files={"files": f})
         assert r.status_code == 200
 
 
@@ -1432,11 +1432,11 @@ def test_docs_url():
         button = gr.Button()
         button.click(lambda n: n + 1, [num], [num])
 
-    app, _, _ = demo.launch(app_kwargs={"docs_url": "/docs"}, prevent_thread_lock=True)
+    app, _, _ = demo.launch(app_kwargs={"docs_url": "/gradio_api/docs"}, prevent_thread_lock=True)
     try:
         test_client = TestClient(app)
         with test_client:
-            r = test_client.get("/docs")
+            r = test_client.get("/gradio_api/docs")
             assert r.status_code == 200
     finally:
         demo.close()
@@ -1462,21 +1462,21 @@ def test_file_access():
     test_client = TestClient(app)
     try:
         with test_client:
-            r = test_client.get(f"/file={allowed_dir}/allowed.txt")
+            r = test_client.get(f"/gradio_api/file={allowed_dir}/allowed.txt")
             assert r.status_code == 200
-            r = test_client.get(f"/file={allowed_dir}/../not_allowed.txt")
+            r = test_client.get(f"/gradio_api/file={allowed_dir}/../not_allowed.txt")
             assert r.status_code in [403, 404]  # 403 in Linux, 404 in Windows
-            r = test_client.get("/file=//test/test_files/cheetah1.jpg")
+            r = test_client.get("/gradio_api/file=//test/test_files/cheetah1.jpg")
             assert r.status_code == 403
-            r = test_client.get("/file=test/test_files/cheetah1.jpg")
+            r = test_client.get("/gradio_api/file=test/test_files/cheetah1.jpg")
             assert r.status_code == 403
-            r = test_client.get("/file=//test/test_files/cheetah1.jpg")
+            r = test_client.get("/gradio_api/file=//test/test_files/cheetah1.jpg")
             assert r.status_code == 403
             tmp = Path(tempfile.gettempdir()) / "upload_test.txt"
             tmp.write_text("Hello")
             with open(str(tmp), "rb") as f:
                 files = {"files": ("..", f)}
-                response = test_client.post("/upload", files=files)
+                response = test_client.post("/gradio_api/upload", files=files)
                 assert response.status_code == 400
     finally:
         demo.close()

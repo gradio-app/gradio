@@ -19,7 +19,14 @@ import {
 	process_endpoint
 } from "../helpers/api_info";
 import semiver from "semiver";
-import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
+import {
+	BROKEN_CONNECTION_MSG,
+	QUEUE_FULL_MSG,
+	SSE_URL,
+	SSE_DATA_URL,
+	RESET_URL,
+	CANCEL_URL
+} from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
 
@@ -133,14 +140,14 @@ export function submit(
 				}
 
 				if ("event_id" in cancel_request) {
-					await fetch(`${config.root}/cancel`, {
+					await fetch(`${config.root}/${CANCEL_URL}`, {
 						headers: { "Content-Type": "application/json" },
 						method: "POST",
 						body: JSON.stringify(cancel_request)
 					});
 				}
 
-				await fetch(`${config.root}/reset`, {
+				await fetch(`${config.root}/${RESET_URL}`, {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",
 					body: JSON.stringify(reset_request)
@@ -413,7 +420,7 @@ export function submit(
 						session_hash: session_hash
 					}).toString();
 					let url = new URL(
-						`${config.root}/queue/join?${
+						`${config.root}/${SSE_URL}?${
 							url_params ? url_params + "&" : ""
 						}${params}`
 					);
@@ -564,7 +571,7 @@ export function submit(
 							: Promise.resolve(null);
 					const post_data_promise = zerogpu_auth_promise.then((headers) => {
 						return post_data(
-							`${config.root}/queue/join?${url_params}`,
+							`${config.root}/${SSE_DATA_URL}?${url_params}`,
 							{
 								...payload,
 								session_hash

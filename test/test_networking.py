@@ -14,7 +14,7 @@ class TestInterfaceErrors:
         io = Interface(lambda x: 1 / x, "number", "number")
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/predict/", json={"data": [0], "fn_index": 0})
+        response = client.post("/gradio_api/api/predict/", json={"data": [0], "fn_index": 0})
         assert response.status_code == 500
         assert "error" in response.json()
         io.close()
@@ -23,7 +23,7 @@ class TestInterfaceErrors:
         io = Interface(lambda x: 1 / x, "number", "number")
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/predict/", json={"fn_index": [0]})
+        response = client.post("/gradio_api/api/predict/", json={"fn_index": [0]})
         assert response.status_code == 422
         io.close()
 
@@ -43,9 +43,9 @@ def test_start_server_app_kwargs():
         show_error=True,
         prevent_thread_lock=True,
         app_kwargs={
-            "docs_url": "/docs",
+            "docs_url": "/gradio_api/docs",
         },
     )
     client = TestClient(app)
-    assert client.get("/docs").status_code == 200
+    assert client.get("/gradio_api/docs").status_code == 200
     io.close()

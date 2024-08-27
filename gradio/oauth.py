@@ -34,10 +34,13 @@ def attach_oauth(app: fastapi.FastAPI):
     # Add `/login/huggingface`, `/login/callback` and `/logout` routes to enable OAuth in the Gradio app.
     # If the app is running in a Space, OAuth is enabled normally. Otherwise, we mock the "real" routes to make the
     # user log in with a fake user profile - without any calls to hf.co.
+    router = fastapi.APIRouter(prefix="/gradio_api")
+    app.include_router(router)
+
     if get_space() is not None:
-        _add_oauth_routes(app)
+        _add_oauth_routes(router)
     else:
-        _add_mocked_oauth_routes(app)
+        _add_mocked_oauth_routes(router)
 
     # Session Middleware requires a secret key to sign the cookies. Let's use a hash
     # of the OAuth secret key to make it unique to the Space + updated in case OAuth
@@ -53,7 +56,7 @@ def attach_oauth(app: fastapi.FastAPI):
     )
 
 
-def _add_oauth_routes(app: fastapi.FastAPI) -> None:
+def _add_oauth_routes(app: fastapi.APIRouter) -> None:
     """Add OAuth routes to the FastAPI app (login, callback handler and logout)."""
     try:
         from authlib.integrations.base_client.errors import MismatchingStateError
@@ -69,6 +72,7 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
         "OAuth is required but {} environment variable is not set. Make sure you've enabled OAuth in your Space by"
         " setting `hf_oauth: true` in the Space metadata."
     )
+
     if OAUTH_CLIENT_ID is None:
         raise ValueError(msg.format("OAUTH_CLIENT_ID"))
     if OAUTH_CLIENT_SECRET is None:
@@ -151,7 +155,7 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
         return _redirect_to_target(request)
 
 
-def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
+def _add_mocked_oauth_routes(app: fastapi.APIRouter) -> None:
     """Add fake oauth routes if Gradio is run locally and OAuth is enabled.
 
     Clicking on a gr.LoginButton will have the same behavior as in a Space (i.e. gets redirected in a new tab) but
@@ -184,7 +188,7 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        logout_url = str(request.url).replace("/logout", "/")  # preserve query params
+        logout_url = str(request.url).replace("/gradio_api/logout", "/")  # preserve query params
         return RedirectResponse(url=logout_url)
 
 

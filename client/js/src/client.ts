@@ -32,7 +32,12 @@ import {
 } from "./helpers/init_helpers";
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
-import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
+import {
+	API_INFO_ERROR_MSG,
+	CONFIG_ERROR_MSG,
+	HEARTBEAT_URL,
+	COMPONENT_SERVER_URL
+} from "./constants";
 
 export class Client {
 	app_reference: string;
@@ -193,7 +198,7 @@ export class Client {
 		if (this.config && this.config.connect_heartbeat) {
 			// connect to the heartbeat endpoint via GET request
 			const heartbeat_url = new URL(
-				`${this.config.root}/heartbeat/${this.session_hash}`
+				`${this.config.root}/${HEARTBEAT_URL}/${this.session_hash}`
 			);
 
 			// if the jwt is available, add it to the query params
@@ -390,12 +395,15 @@ export class Client {
 		}
 
 		try {
-			const response = await this.fetch(`${root_url}/component_server/`, {
-				method: "POST",
-				body: body,
-				headers,
-				credentials: "include"
-			});
+			const response = await this.fetch(
+				`${root_url}/${COMPONENT_SERVER_URL}/`,
+				{
+					method: "POST",
+					body: body,
+					headers,
+					credentials: "include"
+				}
+			);
 
 			if (!response.ok) {
 				throw new Error(
