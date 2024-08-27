@@ -22,7 +22,15 @@
 
 	type sources = "upload" | "webcam" | "clipboard" | null;
 
-	export let close_stream: () => void;
+	let stream_state = "closed";
+	let _modify_stream: (state: "open" | "closed" | "waiting") => void;
+	export function modify_stream_state(
+		state: "open" | "closed" | "waiting"
+	): void {
+		stream_state = state;
+		_modify_stream(state);
+	}
+	export const get_stream_state: () => void = () => stream_state;
 	export let set_time_limit: (arg0: number) => void;
 	export let value_is_output = false;
 	export let elem_id = "";
@@ -54,6 +62,7 @@
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
+	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
 
 	export let gradio: Gradio<{
@@ -86,6 +95,30 @@
 
 	let dragging: boolean;
 	let active_source: sources = null;
+	let upload_component: ImageUploader;
+	const handle_drag_event = (event: Event): void => {
+		const drag_event = event as DragEvent;
+		drag_event.preventDefault();
+		drag_event.stopPropagation();
+		if (drag_event.type === "dragenter" || drag_event.type === "dragover") {
+			dragging = true;
+		} else if (drag_event.type === "dragleave") {
+			dragging = false;
+		}
+	};
+
+	const handle_drop = (event: Event): void => {
+		if (interactive) {
+			const drop_event = event as DragEvent;
+			drop_event.preventDefault();
+			drop_event.stopPropagation();
+			dragging = false;
+
+			if (upload_component) {
+				upload_component.loadFilesFromDrop(drop_event);
+			}
+		}
+	};
 </script>
 
 {#if !interactive}
@@ -136,6 +169,10 @@
 		{container}
 		{scale}
 		{min_width}
+		on:dragenter={handle_drag_event}
+		on:dragleave={handle_drag_event}
+		on:dragover={handle_drag_event}
+		on:drop={handle_drop}
 	>
 		<StatusTracker
 			autoscroll={gradio.autoscroll}
@@ -145,8 +182,10 @@
 		/>
 
 		<ImageUploader
+			bind:this={upload_component}
 			bind:active_source
 			bind:value
+			bind:dragging
 			selectable={_selectable}
 			{root}
 			{sources}
@@ -173,7 +212,7 @@
 			{streaming}
 			{mirror_webcam}
 			{stream_every}
-			bind:close_stream
+			bind:modify_stream={_modify_stream}
 			bind:set_time_limit
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
@@ -181,7 +220,7 @@
 			stream_handler={gradio.client.stream}
 		>
 			{#if active_source === "upload" || !active_source}
-				<UploadText i18n={gradio.i18n} type="image" />
+				<UploadText i18n={gradio.i18n} type="image" {placeholder} />
 			{:else if active_source === "clipboard"}
 				<UploadText i18n={gradio.i18n} type="clipboard" mode="short" />
 			{:else}

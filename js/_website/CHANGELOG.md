@@ -1,5 +1,19 @@
 # website
 
+## 0.38.0
+
+### Features
+
+- [#9102](https://github.com/gradio-app/gradio/pull/9102) [`efdc323`](https://github.com/gradio-app/gradio/commit/efdc3231a7bde38cfe45d10086d0d36a24c1b9b4) - Initial SSR refactor.  Thanks @pngwn!
+- [#9104](https://github.com/gradio-app/gradio/pull/9104) [`cf02f7d`](https://github.com/gradio-app/gradio/commit/cf02f7d7854b8ead864533581f7379a3fe61840f) - Fix chatinterface e2e test.  Thanks @freddyaboulton!
+- [#9075](https://github.com/gradio-app/gradio/pull/9075) [`3258968`](https://github.com/gradio-app/gradio/commit/325896837113d1c45de0dcff1972a8686730f695) - Add warning to guides and change styling of tip.  Thanks @aliabd!
+- [#9108](https://github.com/gradio-app/gradio/pull/9108) [`474102a`](https://github.com/gradio-app/gradio/commit/474102a8b404c23ffcfa7e1396a78bed621a9585) - Better text styling on docs.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.9.0
+- @gradio/paramviewer@0.4.21
+
 ## 0.37.0
 
 ### Features

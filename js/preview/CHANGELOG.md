@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.11.0
+
+### Features
+
+- [#9091](https://github.com/gradio-app/gradio/pull/9091) [`bbbd1f5`](https://github.com/gradio-app/gradio/commit/bbbd1f5ebee9143db8628af64c5669d99f2574d7) - Be able to set optimizeDeps options in gradio.config.js.  Thanks @freddyaboulton!
+
 ## 0.10.2
 
 ### Fixes

@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("video streams from ts files correctly", async ({ page }) => {
 	test.skip(!!process.env.CI, "Not supported in CI");

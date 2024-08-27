@@ -116,6 +116,7 @@ class Sketchpad(components.ImageEditor):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
+        placeholder: str | None = None,
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
         _selectable: bool = False,
@@ -151,6 +152,7 @@ class Sketchpad(components.ImageEditor):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            placeholder=placeholder,
             mirror_webcam=mirror_webcam,
             show_share_button=show_share_button,
             _selectable=_selectable,
@@ -211,6 +213,7 @@ class Paint(components.ImageEditor):
         layers: bool = True,
         canvas_size: tuple[int, int] | None = None,
         show_fullscreen_button: bool = True,
+        placeholder: str | None = None,
     ):
         super().__init__(
             value=value,
@@ -244,6 +247,7 @@ class Paint(components.ImageEditor):
             layers=layers,
             canvas_size=canvas_size,
             show_fullscreen_button=show_fullscreen_button,
+            placeholder=placeholder,
         )
 
 
@@ -286,6 +290,7 @@ class ImageMask(components.ImageEditor):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
+        placeholder: str | None = None,
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
         _selectable: bool = False,
@@ -321,6 +326,7 @@ class ImageMask(components.ImageEditor):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            placeholder=placeholder,
             mirror_webcam=mirror_webcam,
             show_share_button=show_share_button,
             _selectable=_selectable,

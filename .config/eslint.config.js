@@ -63,7 +63,7 @@ const { browser, es2021, node } = globals;
 export default [
 	{
 		ignores: [
-			".svelte-kit/**/*",
+			"**/.svelte-kit/**/*",
 			"**/node_modules/**",
 			"**/dist/**",
 			"**/.config/*",
@@ -74,7 +74,9 @@ export default [
 			"**/*vite.config.ts",
 			"**/_website/**/*",
 			"**/_spaces-test/**/*",
-			"**/preview/test/**/*"
+			"**/preview/test/**/*",
+			"**/component-test/**/*",
+			"**/js/wasm/src/webworker/**/*"
 		]
 	},
 	{

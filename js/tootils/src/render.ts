@@ -104,7 +104,8 @@ export async function render<
 				//@ts-ignore
 				(s) => s,
 				// @ts-ignore
-				{ client: {} }
+				{ client: {} },
+				() => {}
 			)
 		}
 	});
