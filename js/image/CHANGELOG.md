@@ -1,5 +1,27 @@
 # @gradio/image
 
+## 0.15.0
+
+### Features
+
+- [#9031](https://github.com/gradio-app/gradio/pull/9031) [`04b7d32`](https://github.com/gradio-app/gradio/commit/04b7d327ec1227a693fc2dfea51b1e2729851bde) - Allow drag and replace image in `gr.Image` and Multimodal textbox.  Thanks @hannahblair!
+- [#8930](https://github.com/gradio-app/gradio/pull/8930) [`41d5ab9`](https://github.com/gradio-app/gradio/commit/41d5ab987ba9728753be4509490c79041655809b) - Add `placeholder` param to Image and ImageEditor to replace upload image text.  Thanks @hannahblair!
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+
+### Fixes
+
+- [#9116](https://github.com/gradio-app/gradio/pull/9116) [`ba6322e`](https://github.com/gradio-app/gradio/commit/ba6322ec2bb975f15389fe0700816bf671c6819d) - Fix image height content fit.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.6.0
+- @gradio/upload@0.12.3
+- @gradio/atoms@0.8.0
+- @gradio/client@1.5.1
+- @gradio/statustracker@0.7.5
+- @gradio/wasm@0.13.0
+- @gradio/icons@0.7.1
+
 ## 0.14.0
 
 ### Features

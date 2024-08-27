@@ -2,6 +2,7 @@
 
 import functools
 import os
+import pickle
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
@@ -251,6 +252,33 @@ class TestRoutes:
         assert file_response.status_code == 200
         assert len(file_response.text) == len(media_data.BASE64_IMAGE)
         io.close()
+
+    def test_response_attachment_format(self):
+        image_file = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".png")
+        image_file.write(media_data.BASE64_IMAGE)
+        image_file.flush()
+
+        html_file = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".html")
+        html_file.write("<html>Hello, world!</html>")
+        html_file.flush()
+
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(
+            prevent_thread_lock=True,
+            allowed_paths=[
+                os.path.dirname(image_file.name),
+                os.path.dirname(html_file.name),
+            ],
+        )
+        client = TestClient(app)
+
+        file_response = client.get(f"/file={image_file.name}")
+        assert file_response.headers["Content-Type"] == "image/png"
+        assert "inline" in file_response.headers["Content-Disposition"]
+
+        file_response = client.get(f"/file={html_file.name}")
+        assert file_response.headers["Content-Type"] == "application/octet-stream"
+        assert "attachment" in file_response.headers["Content-Disposition"]
 
     def test_allowed_and_blocked_paths(self):
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
@@ -842,6 +870,32 @@ class TestPassingRequest:
             data={"username": "admin", "password": "password"},
         )
         response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+
+    def test_request_is_pickleable(self):
+        """
+        For ZeroGPU, we need to ensure that the gr.Request object is pickle-able.
+        """
+
+        def identity(name, request: gr.Request):
+            pickled = pickle.dumps(request)
+            unpickled = pickle.loads(pickled)
+            assert request.client.host == unpickled.client.host
+            assert request.client.port == unpickled.client.port
+            assert dict(request.query_params) == dict(unpickled.query_params)
+            assert request.query_params["a"] == unpickled.query_params["a"]
+            assert dict(request.headers) == dict(unpickled.headers)
+            assert request.username == unpickled.username
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/predict?a=b", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]

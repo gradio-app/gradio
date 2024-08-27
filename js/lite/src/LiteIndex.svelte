@@ -1,11 +1,11 @@
 <script lang="ts">
-	import "@gradio/theme/src/reset.css";
-	import "@gradio/theme/src/global.css";
-	import "@gradio/theme/src/pollen.css";
-	import "@gradio/theme/src/typography.css";
+	import "@gradio/theme/reset.css";
+	import "@gradio/theme/global.css";
+	import "@gradio/theme/pollen.css";
+	import "@gradio/theme/typography.css";
 
 	import { onDestroy, SvelteComponent } from "svelte";
-	import Index from "@gradio/spa";
+	import Index from "@self/spa";
 	import Playground from "./Playground.svelte";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import type { ThemeMode } from "@gradio/core";

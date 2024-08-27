@@ -4,3 +4,6 @@ declare namespace svelteHTML {
 		mozdirectory?: boolean | string;
 	}
 }
+declare module "@lezer/highlight";
+declare module "dequal/lite";
+declare module "dequal";

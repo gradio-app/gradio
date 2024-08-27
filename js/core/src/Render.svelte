@@ -4,6 +4,7 @@
 	import type { ComponentMeta, ThemeMode } from "./types";
 	import type { Client } from "@gradio/client";
 	import RenderComponent from "./RenderComponent.svelte";
+	import { load_component } from "virtual:component-loader";
 
 	export let root: string;
 
@@ -66,7 +67,8 @@
 		autoscroll,
 		max_file_size,
 		formatter,
-		client
+		client,
+		load_component
 	);
 </script>
 

@@ -9,8 +9,7 @@ In this Guide, we dive more deeply into the various aspects of sharing a Gradio 
 5. [Accessing network requests](#accessing-the-network-request-directly)
 6. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
 7. [Authentication](#authentication)
-8. [Security and file access](#security-and-file-access)
-9. [Analytics](#analytics)
+8. [Analytics](#analytics)
 
 ## Sharing Demos
 
@@ -408,42 +407,6 @@ if __name__ == '__main__':
 
 There are actually two separate Gradio apps in this example! One that simply displays a log in button (this demo is accessible to any user), while the other main demo is only accessible to users that are logged in. You can try this example out on [this Space](https://huggingface.co/spaces/gradio/oauth-example).
 
-
-
-## Security and File Access
-
-Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on the host machine to users of your Gradio app.
-
-In particular, Gradio apps ALLOW users to access to four kinds of files:
-
-- **Temporary files created by Gradio.** These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary cache on your device and then send the path to the file to the front end. You can customize the location of temporary cache files created by Gradio by setting the environment variable `GRADIO_TEMP_DIR` to an absolute path, such as `/home/usr/scripts/project/temp/`. You can delete the files created by your app when it shuts down with the `delete_cache` parameter of `gradio.Blocks`, `gradio.Interface`, and `gradio.ChatInterface`. This parameter is a tuple of integers of the form `[frequency, age]` where `frequency` is how often to delete files and `age` is the time in seconds since the file was last modified.
-
-
-- **Cached examples created by Gradio.** These are files that are created by Gradio as part of caching examples for faster runtimes, if you set `cache_examples=True` or `cache_examples="lazy"` in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`. By default, these files are saved in the `gradio_cached_examples/` subdirectory within your app's working directory. You can customize the location of cached example files created by Gradio by setting the environment variable `GRADIO_EXAMPLES_CACHE` to an absolute path or a path relative to your working directory.
-
-- **Files that you explicitly allow via the `allowed_paths` parameter in `launch()`**. This parameter allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
-
-- **Static files that you explicitly set via the `gr.set_static_paths` function**. This parameter allows you to pass in a list of directories or filenames that will be considered static. This means that they will not be copied to the cache and will be served directly from your computer. This can help save disk space and reduce the time your app takes to launch but be mindful of possible security implications.
-
-Gradio DOES NOT ALLOW access to:
-
-- **Files that you explicitly block via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
-
-- **Any other paths on the host machine**. Users should NOT be able to access other arbitrary paths on the host.
-
-Sharing your Gradio application will also allow users to upload files to your computer or server. You can set a maximum file size for uploads to prevent abuse and to preserve disk space. You can do this with the `max_file_size` parameter of `.launch`. For example, the following two code snippets limit file uploads to 5 megabytes per file.
-
-```python
-import gradio as gr
-
-demo = gr.Interface(lambda x: x, "image", "image")
-
-demo.launch(max_file_size="5mb")
-# or
-demo.launch(max_file_size=5 * gr.FileSize.MB)
-```
-
-Please make sure you are running the latest version of `gradio` for these security settings to apply.
 
 ## Analytics
 

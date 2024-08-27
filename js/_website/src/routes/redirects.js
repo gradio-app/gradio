@@ -173,5 +173,6 @@ export const redirects = {
 	"/docs/no-reload": "/docs/gradio/NO_RELOAD",
 	"/docs/python-client/python-client": "/docs/python-client/introduction",
 	"/docs/python-client/js-client": "/docs/js-client",
-	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface"
+	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface",
+	"/guides/sharing-your-app#security-and-file-access": "/guides/file-access"
 };

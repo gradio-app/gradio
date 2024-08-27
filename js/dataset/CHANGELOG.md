@@ -1,5 +1,24 @@
 # @gradio/dataset
 
+## 0.2.4
+
+### Features
+
+- [#9118](https://github.com/gradio-app/gradio/pull/9118) [`e1c404d`](https://github.com/gradio-app/gradio/commit/e1c404da1143fb52b659d03e028bdba1badf443d) - setup npm-previews of all packages.  Thanks @pngwn!
+
+### Fixes
+
+- [#9093](https://github.com/gradio-app/gradio/pull/9093) [`60650d8`](https://github.com/gradio-app/gradio/commit/60650d84b2cfe93fd2ebf2d2997d6c0f382d5f1a) - Reset `Dataset` page to 0 when samples change.  Thanks @abidlabs!
+- [#8987](https://github.com/gradio-app/gradio/pull/8987) [`7b288cf`](https://github.com/gradio-app/gradio/commit/7b288cf6772ec3dc1fa603db859975e5dab90127) - Fix unexpected rendering of Dataset.  Thanks @Col0ring!
+
+### Dependency updates
+
+- @gradio/utils@0.6.0
+- @gradio/upload@0.12.3
+- @gradio/atoms@0.8.0
+- @gradio/client@1.5.1
+- @gradio/textbox@0.6.11
+
 ## 0.2.3
 
 ### Dependency updates

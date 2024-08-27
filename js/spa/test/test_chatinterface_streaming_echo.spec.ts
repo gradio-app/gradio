@@ -1,4 +1,4 @@
-import { test, expect, go_to_testcase } from "@gradio/tootils";
+import { test, expect, go_to_testcase } from "@self/tootils";
 
 const cases = [
 	"tuples",

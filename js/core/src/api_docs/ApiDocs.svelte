@@ -7,7 +7,7 @@
 	import type { Payload } from "../types";
 
 	import ApiBanner from "./ApiBanner.svelte";
-	import Button from "../../../button/shared/Button.svelte";
+	import { BaseButton as Button } from "@gradio/button";
 	import ParametersSnippet from "./ParametersSnippet.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
 	import CodeSnippet from "./CodeSnippet.svelte";

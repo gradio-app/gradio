@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("gr.DateTime shows correct values", async ({ page }) => {
 	await page.locator("#date1").getByRole("textbox").first().click();
