@@ -598,7 +598,7 @@ export function submit(
 							event_id_final = event_id;
 							let callback = async function (_data: object): Promise<void> {
 								try {
-									const { type, status, data } = handle_message(
+									const { type, status, data, original_msg } = handle_message(
 										_data,
 										last_status[fn_index]
 									);
@@ -614,6 +614,7 @@ export function submit(
 											endpoint: _endpoint,
 											fn_index,
 											time: new Date(),
+											original_msg: original_msg,
 											...status
 										});
 									} else if (type === "complete") {

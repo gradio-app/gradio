@@ -41,10 +41,21 @@
 	export let stream_every: number;
 
 	let time_limit: number | null = null;
+	let stream_state: "open" | "waiting" | "closed" = "closed";
 
-	export const close_stream: () => void = () => {
-		time_limit = null;
+	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
+		state: "open" | "closed" | "waiting"
+	) => {
+		if (state === "closed") {
+			time_limit = null;
+			stream_state = "closed";
+		} else if (state === "waiting") {
+			stream_state = "waiting";
+		} else {
+			stream_state = "open";
+		}
 	};
+
 	export const set_time_limit = (time: number): void => {
 		if (recording) time_limit = time;
 	};
@@ -60,6 +71,7 @@
 	let pending_stream: Uint8Array[] = [];
 	let submit_pending_stream_on_pending_end = false;
 	let inited = false;
+	let stream_open = false;
 
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
@@ -167,6 +179,7 @@
 			pending_stream.push(payload);
 		} else {
 			let blobParts = [header].concat(pending_stream, [payload]);
+			if (!recording || stream_state === "waiting") return;
 			dispatch_blob(blobParts, "stream");
 			pending_stream = [];
 		}
@@ -240,6 +253,7 @@
 					{i18n}
 					{waveform_settings}
 					{waveform_options}
+					waiting={stream_state === "waiting"}
 				/>
 			{:else}
 				<AudioRecorder

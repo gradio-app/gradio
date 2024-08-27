@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
-	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
+	import {
+		Camera,
+		Circle,
+		Square,
+		DropdownArrow,
+		Spinner
+	} from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { StreamingBar } from "@gradio/statustracker";
 	import { type FileData, type Client, prepare_files } from "@gradio/client";
@@ -15,12 +21,20 @@
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
 	let selected_device: MediaDeviceInfo | null = null;
-	let interval_id = 0;
-	let stop_button: HTMLButtonElement;
 	let time_limit: number | null = null;
+	let stream_state: "open" | "waiting" | "closed" = "closed";
 
-	export const close_stream: () => void = () => {
-		time_limit = null;
+	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
+		state: "open" | "closed" | "waiting"
+	) => {
+		if (state === "closed") {
+			time_limit = null;
+			stream_state = "closed";
+		} else if (state === "waiting") {
+			stream_state = "waiting";
+		} else {
+			stream_state = "open";
+		}
 	};
 
 	export const set_time_limit = (time: number): void => {
@@ -122,7 +136,7 @@
 				context.drawImage(video_source, -video_source.videoWidth, 0);
 			}
 
-			if (streaming && !recording) {
+			if (streaming && (!recording || stream_state === "waiting")) {
 				return;
 			}
 
@@ -207,7 +221,7 @@
 	}
 
 	if (streaming && mode === "image") {
-		interval_id = window.setInterval(() => {
+		window.setInterval(() => {
 			if (video_source && !pending) {
 				take_picture();
 			}
@@ -263,18 +277,30 @@
 	{:else}
 		<div class="button-wrap">
 			<button
-				bind:this={stop_button}
 				on:click={record_video_or_photo}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
 				{#if mode === "video" || streaming}
-					{#if recording}
-						<div class="icon color-primary" title="stop recording">
-							<Square />
+					{#if streaming && stream_state === "waiting"}
+						<div class="icon-with-text" style="width:var(--size-24);">
+							<div class="icon color-primary" title="spinner">
+								<Spinner />
+							</div>
+							{i18n("audio.waiting")}
+						</div>
+					{:else if (streaming && stream_state === "open") || (!streaming && recording)}
+						<div class="icon-with-text">
+							<div class="icon color-primary" title="stop recording">
+								<Square />
+							</div>
+							{i18n("audio.stop")}
 						</div>
 					{:else}
-						<div class="icon color-primary" title="start recording">
-							<Circle />
+						<div class="icon-with-text">
+							<div class="icon color-primary" title="start recording">
+								<Circle />
+							</div>
+							{i18n("audio.record")}
 						</div>
 					{/if}
 				{:else}
@@ -354,6 +380,14 @@
 		border-radius: var(--radius-xl);
 		line-height: var(--size-3);
 		color: var(--button-secondary-text-color);
+	}
+
+	.icon-with-text {
+		width: var(--size-20);
+		align-items: center;
+		margin: 0 var(--spacing-xl);
+		display: flex;
+		justify-content: space-evenly;
 	}
 
 	@media (--screen-md) {

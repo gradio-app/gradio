@@ -26,10 +26,9 @@ export interface WorkerProxyOptions {
 }
 
 export class WorkerProxy extends EventTarget {
-	private worker: globalThis.Worker | globalThis.SharedWorker;
-	private postMessageTarget: globalThis.Worker | MessagePort;
-
-	private firstRunPromiseDelegate = new PromiseDelegate<void>();
+	worker: globalThis.Worker | globalThis.SharedWorker;
+	postMessageTarget: globalThis.Worker | MessagePort;
+	firstRunPromiseDelegate = new PromiseDelegate<void>();
 
 	constructor(options: WorkerProxyOptions) {
 		super();
@@ -41,9 +40,12 @@ export class WorkerProxy extends EventTarget {
 		// assuming that this module is imported from the Gradio frontend (`@gradio/lite`), which is bundled with Vite.
 		// HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
 		// Read the comment in `cross-origin-worker.ts` for the detail.
-		const workerMaker = new Worker(new URL("./webworker.js", import.meta.url), {
-			/* @vite-ignore */ shared: sharedWorkerMode // `@vite-ignore` is needed to avoid an error `Vite is unable to parse the worker options as the value is not static.`
-		});
+		const workerMaker = new Worker(
+			new URL("../webworker/webworker.js", import.meta.url),
+			{
+				/* @vite-ignore */ shared: sharedWorkerMode // `@vite-ignore` is needed to avoid an error `Vite is unable to parse the worker options as the value is not static.`
+			}
+		);
 
 		this.worker = workerMaker.worker;
 		if (sharedWorkerMode) {
@@ -135,7 +137,7 @@ export class WorkerProxy extends EventTarget {
 	// returns void immediately, this function returns a promise, which resolves
 	// when a ReplyMessage is received from the worker.
 	// The original implementation is in https://github.com/rstudio/shinylive/blob/v0.1.2/src/pyodide-proxy.ts#L404-L418
-	private postMessageAsync(msg: InMessage): Promise<unknown> {
+	postMessageAsync(msg: InMessage): Promise<unknown> {
 		return new Promise((resolve, reject) => {
 			const channel = new MessageChannel();
 
@@ -154,7 +156,7 @@ export class WorkerProxy extends EventTarget {
 		});
 	}
 
-	private _processWorkerMessage(msg: OutMessage): void {
+	_processWorkerMessage(msg: OutMessage): void {
 		switch (msg.type) {
 			case "progress-update": {
 				this.dispatchEvent(

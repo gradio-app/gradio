@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("test theme builder changes are applied", async ({ page }) => {
 	await page.getByLabel("Theme", { exact: true }).click();
