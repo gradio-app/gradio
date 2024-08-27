@@ -68,14 +68,12 @@ class TestInit:
             chatbot=gr.Chatbot(height=400),
             textbox=gr.Textbox(placeholder="Type Message", container=False, scale=7),
             title="Test",
-            clear_btn="Clear",
         )
         gr.ChatInterface(
             chat,
             chatbot=gr.Chatbot(height=400),
             textbox=gr.MultimodalTextbox(container=False, scale=7),
             title="Test",
-            clear_btn="Clear",
         )
 
     def test_events_attached(self):
