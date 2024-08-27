@@ -12,6 +12,7 @@ import subprocess
 import tempfile
 import urllib.request
 import warnings
+from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -272,6 +273,7 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
     return full_temp_file_path
 
 
+@lru_cache(maxsize=256)
 def resolve_with_google_dns(hostname: str) -> str | None:
     url = f"https://dns.google/resolve?name={hostname}&type=A"
 
@@ -284,18 +286,29 @@ def resolve_with_google_dns(hostname: str) -> str | None:
                 return answer["data"]
 
 
+# Always return these URLs as is, without checking to see if they resolve
+# to an internal IP address. This is because Hugging Face uses DNS splitting,
+# which means that requests from HF Spaces to HF Datasets, Models, or Spaces
+# may resolve to internal IP addresses even if they are publicly accessible.
+PUBLIC_URL_WHITELIST = ["hf.co", "huggingface.co", "hf.space"]
+
+
 def get_public_url(url: str) -> str:
     parsed_url = urlparse(url)
     if parsed_url.scheme not in ["http", "https"]:
-        raise httpx.RequestError(f"Invalid URL: {url}")
+        raise httpx.RequestError(f"Invalid scheme for URL: {url}")
     hostname = parsed_url.hostname
     if not hostname:
-        raise httpx.RequestError(f"Invalid URL: {url}")
+        raise httpx.RequestError(f"Invalid URL: {url}, missing hostname")
+    if hostname.lower() in PUBLIC_URL_WHITELIST:
+        return url
 
     try:
         addrinfo = socket.getaddrinfo(hostname, None)
-    except socket.gaierror:
-        raise httpx.RequestError(f"Cannot resolve hostname: {hostname}") from None
+    except socket.gaierror as e:
+        raise httpx.RequestError(
+            f"Cannot resolve URL with hostname: {hostname}, please download this file and use the path instead."
+        ) from e
 
     for family, _, _, _, sockaddr in addrinfo:
         ip = sockaddr[0]
@@ -316,7 +329,9 @@ def get_public_url(url: str) -> str:
             )
         return urlunparse(new_parsed)
 
-    raise httpx.RequestError(f"No public IP address found for URL: {url}")
+    raise httpx.RequestError(
+        f"No public IP address found for URL: {url}, please download this file and use the path instead."
+    )
 
 
 def save_url_to_cache(url: str, cache_dir: str) -> str:

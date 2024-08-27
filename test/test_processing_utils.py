@@ -430,6 +430,7 @@ def test_local_urls_fail(url):
         "https://google.com",
         "https://8.8.8.8/",
         "http://93.184.215.14.nip.io/",
+        "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/luigi/luigi.ply",
     ],
 )
 def test_public_urls_pass(url):
