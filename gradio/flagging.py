@@ -255,20 +255,23 @@ class CSVLogger(FlaggingCallback):
         if self.dataset_file_name:
             self.dataset_filepath = self.flagging_dir / self.dataset_file_name
         elif dataset_files:
-            latest_file = max(
-                dataset_files, key=lambda f: int(re.findall(r"\d+", f.stem)[0])
-            )
-            latest_num = int(re.findall(r"\d+", latest_file.stem)[0])
+            try:
+                latest_file = max(
+                    dataset_files, key=lambda f: int(re.findall(r"\d+", f.stem)[0])
+                )
+                latest_num = int(re.findall(r"\d+", latest_file.stem)[0])
 
-            with open(latest_file, newline="", encoding="utf-8") as csvfile:
-                reader = csv.reader(csvfile)
-                existing_headers = next(reader, None)
+                with open(latest_file, newline="", encoding="utf-8") as csvfile:
+                    reader = csv.reader(csvfile)
+                    existing_headers = next(reader, None)
 
-            if existing_headers != headers:
-                new_num = latest_num + 1
-                self.dataset_filepath = self.flagging_dir / f"dataset{new_num}.csv"
-            else:
-                self.dataset_filepath = latest_file
+                if existing_headers != headers:
+                    new_num = latest_num + 1
+                    self.dataset_filepath = self.flagging_dir / f"dataset{new_num}.csv"
+                else:
+                    self.dataset_filepath = latest_file
+            except Exception:
+                self.dataset_filepath = self.flagging_dir / "dataset1.csv"
         else:
             self.dataset_filepath = self.flagging_dir / "dataset1.csv"
 
@@ -296,6 +299,7 @@ class CSVLogger(FlaggingCallback):
             if username is not None:
                 additional_headers.append("username")
             self._create_dataset_file(additional_headers=additional_headers)
+            self.first_time = False
 
         csv_data = []
         for idx, (component, sample) in enumerate(
