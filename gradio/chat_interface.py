@@ -194,21 +194,6 @@ class ChatInterface(Blocks):
                     type=self.type,
                 )
 
-            with Row():
-                for btn in [clear_btn]:
-                    if btn is not None:
-                        if isinstance(btn, Button):
-                            btn.render()
-                        elif isinstance(btn, str):
-                            btn = Button(
-                                btn, variant="secondary", size="sm", min_width=60
-                            )
-                        else:
-                            raise ValueError(
-                                f"All the _btn parameters must be a gr.Button, string, or None, not {builtins.type(btn)}"
-                            )
-                    self.buttons.append(btn)  # type: ignore
-
             with Group():
                 with Row():
                     if textbox:
@@ -276,7 +261,6 @@ class ChatInterface(Blocks):
                 self.fake_api_btn = Button("Fake API", visible=False)
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
                 (
-                    self.clear_btn,
                     self.submit_btn,
                     self.stop_btn,
                 ) = self.buttons
@@ -407,15 +391,6 @@ class ChatInterface(Blocks):
             show_api=False,
             queue=False,
         )
-
-        if self.clear_btn:
-            self.clear_btn.click(
-                async_lambda(lambda: ([], [], None)),
-                None,
-                [self.chatbot, self.saved_input],
-                queue=False,
-                show_api=False,
-            )
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], event_to_cancel: Dependency
