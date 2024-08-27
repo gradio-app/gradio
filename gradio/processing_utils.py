@@ -288,9 +288,9 @@ def resolve_with_google_dns(hostname: str) -> str | None:
 
 # Always return these URLs as is, without checking to see if they resolve
 # to an internal IP address. This is because Hugging Face uses DNS splitting,
-# which means that requests from HF Spaces to HF Datasets, Models, or Spaces
+# which means that requests from HF Spaces to HF Datasets or HF Models
 # may resolve to internal IP addresses even if they are publicly accessible.
-PUBLIC_URL_WHITELIST = ["hf.co", "huggingface.co", "hf.space"]
+PUBLIC_URL_WHITELIST = ["hf.co", "huggingface.co"]
 
 
 def get_public_url(url: str) -> str:
