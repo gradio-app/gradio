@@ -99,7 +99,7 @@
 			{/if}
 		</div>
 		<button on:click={handle_click}>
-			<div class:selectable>
+			<div class:selectable class="image-frame">
 				<Image src={value.url} alt="" loading="lazy" on:load />
 			</div>
 		</button>
@@ -111,17 +111,28 @@
 		height: 100%;
 		position: relative;
 	}
-	.image-container :global(img),
-	button {
+
+	.image-container button {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: contain;
-		display: block;
 		border-radius: var(--radius-lg);
 
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	.image-frame {
+		width: auto;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.image-frame :global(img) {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: scale-down;
 	}
 
 	.selectable {
@@ -152,6 +163,6 @@
 	:global(.image-container:fullscreen img) {
 		max-width: 90vw;
 		max-height: 90vh;
-		object-fit: contain;
+		object-fit: scale-down;
 	}
 </style>

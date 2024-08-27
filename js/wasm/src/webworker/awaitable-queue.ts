@@ -39,11 +39,11 @@ export class AwaitableQueue<T> {
 		this._notifyAll();
 	}
 
-	private async _wait(): Promise<void> {
+	async _wait(): Promise<void> {
 		await this._promise;
 	}
 
-	private _notifyAll(): void {
+	_notifyAll(): void {
 		if (this._resolve) {
 			this._resolve();
 		}
