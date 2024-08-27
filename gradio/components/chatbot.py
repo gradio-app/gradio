@@ -127,7 +127,7 @@ class Chatbot(Component):
     Guides: creating-a-chatbot
     """
 
-    EVENTS = [Events.change, Events.select, Events.like]
+    EVENTS = [Events.change, Events.select, Events.like, Events.retry, Events.undo]
 
     def __init__(
         self,

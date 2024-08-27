@@ -36,6 +36,8 @@
 	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let _retryable = false;
+	export let _undoable = false;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -112,12 +114,20 @@
 			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
+			on:retry={() => gradio.dispatch("retry")}
+			on:undo={() => gradio.dispatch("undo")}
+			on:clear={() => {
+				value = [];
+				gradio.dispatch("clear");
+			}}
 			{avatar_images}
 			{sanitize_html}
 			{bubble_full_width}
 			{line_breaks}
 			{layout}
 			{placeholder}
+			{_retryable}
+			{_undoable}
 			upload={gradio.client.upload}
 			_fetch={gradio.client.fetch}
 			load_component={gradio.load_component}

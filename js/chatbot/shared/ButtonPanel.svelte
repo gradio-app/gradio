@@ -6,8 +6,13 @@
 	import { DownloadLink } from "@gradio/wasm/svelte";
 	import type { NormalisedMessage, TextMessage } from "../types";
 	import { is_component_message } from "./utils";
+	import ActionButton from "./ActionButton.svelte";
+	import { Redo } from "@gradio/icons";
+	import Remove from "./Remove.svelte";
 
 	export let likeable: boolean;
+	export let _retryable: boolean;
+	export let _undoable: boolean;
 	export let show_copy_button: boolean;
 	export let show: boolean;
 	export let message: NormalisedMessage | NormalisedMessage[];
@@ -60,6 +65,16 @@
 					<DownloadIcon />
 				</span>
 			</DownloadLink>
+		{/if}
+		{#if _retryable}
+			<ActionButton {handle_action} action="retry">
+				<Redo />
+			</ActionButton>
+		{/if}
+		{#if _undoable}
+			<ActionButton {handle_action} action="undo">
+				<Remove />
+			</ActionButton>
 		{/if}
 		{#if likeable}
 			<LikeDislike {handle_action} padded={show_copy || show_download} />

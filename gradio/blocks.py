@@ -259,8 +259,9 @@ class Block:
         config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
         if self.rendered_in is not None:
             config["rendered_in"] = self.rendered_in._id
-        if (_selectable := getattr(self, "_selectable", None)) is not None:
-            config["_selectable"] = _selectable
+        for event_attribute in ["_selectable", "_undoable", "_retryable"]:
+            if (attributable := getattr(self, event_attribute, None)) is not None:
+                config[event_attribute] = attributable
         return config
 
     @classmethod

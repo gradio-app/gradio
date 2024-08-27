@@ -15,7 +15,7 @@
 	import { ShareButton } from "@gradio/atoms";
 	import { Image } from "@gradio/image/shared";
 
-	import { Clear } from "@gradio/icons";
+	import { Clear, Trash } from "@gradio/icons";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { MessageRole } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
@@ -23,6 +23,7 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
 	import MessageBox from "./MessageBox.svelte";
+	import ActionButton from "./ActionButton.svelte";
 
 	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
@@ -96,6 +97,8 @@
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
 	export let msg_format: "tuples" | "messages" = "tuples";
+	export let _retryable = false;
+	export let _undoable = false;
 
 	let target = document.querySelector("div.gradio-container");
 
@@ -134,6 +137,9 @@
 		change: undefined;
 		select: SelectData;
 		like: LikeData;
+		undo: undefined;
+		retry: undefined;
+		clear: undefined;
 	}>();
 
 	beforeUpdate(() => {
@@ -179,6 +185,21 @@
 
 	$: groupedMessages = value && group_messages(value);
 
+	function is_last_bot_message(
+		messages: NormalisedMessage[],
+		total_length: number
+	): boolean {
+		const is_bot = messages[messages.length - 1].role === "assistant";
+		const last_index = messages[messages.length - 1].index;
+		let is_last;
+		if (Array.isArray(last_index)) {
+			is_last = 2 * last_index[0] + last_index[1] === total_length - 1;
+		} else {
+			is_last = last_index === total_length - 1;
+		}
+		return is_last && is_bot;
+	}
+
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
 			index: message.index,
@@ -191,6 +212,14 @@
 		message: NormalisedMessage,
 		selected: string | null
 	): void {
+		if (selected === "undo") {
+			dispatch("undo");
+			return;
+		} else if (selected === "retry") {
+			dispatch("retry");
+			return;
+		}
+
 		if (msg_format === "tuples") {
 			dispatch("like", {
 				index: message.index,
@@ -266,20 +295,24 @@
 	}
 </script>
 
-{#if show_share_button && value !== null && value.length > 0}
-	<div class="share-button">
-		<ShareButton
-			{i18n}
-			on:error
-			on:share
-			formatter={format_chat_for_sharing}
-			{value}
-		/>
+{#if value !== null && value.length > 0}
+	<div class="button-row">
+		{#if show_share_button}
+			<ShareButton
+				{i18n}
+				on:error
+				on:share
+				formatter={format_chat_for_sharing}
+				{value}
+			/>
+		{/if}
+		{#if show_copy_all_button}
+			<CopyAll {value} />
+		{/if}
+		<ActionButton handle_action={() => dispatch("clear")} action="clear">
+			<Trash />
+		</ActionButton>
 	</div>
-{/if}
-
-{#if show_copy_all_button}
-	<CopyAll {value} />
 {/if}
 
 <div
@@ -417,9 +450,14 @@
 					</div>
 				</div>
 				<LikeButtons
-					show={likeable || show_copy_button}
+					show={likeable ||
+						(_retryable && is_last_bot_message(messages, value.length)) ||
+						(_undoable && is_last_bot_message(messages, value.length)) ||
+						show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					{likeable}
+					_retryable={_retryable && is_last_bot_message(messages, value.length)}
+					_undoable={_undoable && is_last_bot_message(messages, value.length)}
 					{show_copy_button}
 					message={msg_format === "tuples" ? messages[0] : messages}
 					position={role === "user" ? "right" : "left"}
@@ -656,10 +694,13 @@
 		padding: 6px;
 	}
 
-	.share-button {
+	.button-row {
+		display: flex;
 		position: absolute;
-		top: 4px;
-		right: 6px;
+		top: var(--size-2);
+		right: var(--size-2);
+		align-items: center;
+		justify-content: space-evenly;
 	}
 
 	.selectable {
