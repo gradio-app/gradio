@@ -188,7 +188,9 @@ def _add_mocked_oauth_routes(app: fastapi.APIRouter) -> None:
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        logout_url = str(request.url).replace("/gradio_api/logout", "/")  # preserve query params
+        logout_url = str(request.url).replace(
+            "/gradio_api/logout", "/"
+        )  # preserve query params
         return RedirectResponse(url=logout_url)
 
 

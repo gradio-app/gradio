@@ -14,7 +14,9 @@ class TestInterfaceErrors:
         io = Interface(lambda x: 1 / x, "number", "number")
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/gradio_api/api/predict/", json={"data": [0], "fn_index": 0})
+        response = client.post(
+            "/gradio_api/api/predict/", json={"data": [0], "fn_index": 0}
+        )
         assert response.status_code == 500
         assert "error" in response.json()
         io.close()

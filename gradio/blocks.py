@@ -2401,6 +2401,7 @@ Received outputs:
                 )
             self.server_name = server_name
             self.local_url = local_url
+            self.local_api_url = f"{self.local_url}gradio_api/"
             self.server_port = server_port
             self.server = server
             self.is_running = True
@@ -2429,7 +2430,9 @@ Received outputs:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
                 httpx.get(
-                    f"{self.local_url}startup-events", verify=ssl_verify, timeout=None
+                    f"{self.local_api_url}startup-events",
+                    verify=ssl_verify,
+                    timeout=None,
                 )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
@@ -2485,7 +2488,7 @@ Received outputs:
             and not self.share
         ):
             print(self.local_url)
-            print(networking.url_ok(self.local_url))    
+            print(networking.url_ok(self.local_url))
 
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."

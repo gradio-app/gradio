@@ -835,23 +835,28 @@ class TestStateHolder:
         client = TestClient(app)
 
         session_1 = client.post(
-            "/gradio_api/api/predict/", json={"data": [5, 5], "session_hash": "1", "fn_index": 0}
+            "/gradio_api/api/predict/",
+            json={"data": [5, 5], "session_hash": "1", "fn_index": 0},
         )
         assert session_1.json()["data"][0] == 5
         session_1 = client.post(
-            "/gradio_api/api/predict/", json={"data": [2, 2], "session_hash": "1", "fn_index": 0}
+            "/gradio_api/api/predict/",
+            json={"data": [2, 2], "session_hash": "1", "fn_index": 0},
         )
         assert "error" in session_1.json()  # error because min is 5 and num is 2
         session_2 = client.post(
-            "/gradio_api/api/predict/", json={"data": [5, 5], "session_hash": "2", "fn_index": 0}
+            "/gradio_api/api/predict/",
+            json={"data": [5, 5], "session_hash": "2", "fn_index": 0},
         )
         assert session_2.json()["data"][0] == 5
         session_3 = client.post(
-            "/gradio_api/api/predict/", json={"data": [5, 5], "session_hash": "3", "fn_index": 0}
+            "/gradio_api/api/predict/",
+            json={"data": [5, 5], "session_hash": "3", "fn_index": 0},
         )
         assert session_3.json()["data"][0] == 5
         session_1 = client.post(
-            "/gradio_api/api/predict/", json={"data": [2, 2], "session_hash": "1", "fn_index": 0}
+            "/gradio_api/api/predict/",
+            json={"data": [2, 2], "session_hash": "1", "fn_index": 0},
         )
         assert (
             "error" not in session_1.json()
