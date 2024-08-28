@@ -18,6 +18,7 @@
 	export let message: NormalisedMessage | NormalisedMessage[];
 	export let position: "right" | "left";
 	export let avatar: FileData | null;
+	export let disable: boolean;
 
 	export let handle_action: (selected: string | null) => void;
 	export let layout: "bubble" | "panel";
@@ -67,12 +68,12 @@
 			</DownloadLink>
 		{/if}
 		{#if _retryable}
-			<ActionButton {handle_action} action="retry">
+			<ActionButton {handle_action} action="retry" disabled={disable}>
 				<Redo />
 			</ActionButton>
 		{/if}
 		{#if _undoable}
-			<ActionButton {handle_action} action="undo">
+			<ActionButton {handle_action} action="undo" disabled={disable}>
 				<Remove />
 			</ActionButton>
 		{/if}

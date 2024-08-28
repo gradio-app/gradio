@@ -107,6 +107,7 @@
 			{render_markdown}
 			{theme_mode}
 			pending_message={loading_status?.status === "pending"}
+			generating={loading_status?.status === "generating"}
 			{rtl}
 			{show_copy_button}
 			on:change={() => gradio.dispatch("change", value)}

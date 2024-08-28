@@ -12,10 +12,9 @@
 		type ComponentType,
 		tick
 	} from "svelte";
-	import { ShareButton } from "@gradio/atoms";
 	import { Image } from "@gradio/image/shared";
 
-	import { Clear, Trash } from "@gradio/icons";
+	import { Clear, Trash, Community } from "@gradio/icons";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { MessageRole } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
@@ -24,6 +23,7 @@
 	import Pending from "./Pending.svelte";
 	import MessageBox from "./MessageBox.svelte";
 	import ActionButton from "./ActionButton.svelte";
+	import { ShareError } from "@gradio/utils";
 
 	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
@@ -80,6 +80,7 @@
 		display: boolean;
 	}[];
 	export let pending_message = false;
+	export let generating = false;
 	export let selectable = false;
 	export let likeable = false;
 	export let show_share_button = false;
@@ -140,6 +141,8 @@
 		undo: undefined;
 		retry: undefined;
 		clear: undefined;
+		share: any;
+		error: string;
 	}>();
 
 	beforeUpdate(() => {
@@ -298,13 +301,24 @@
 {#if value !== null && value.length > 0}
 	<div class="button-row">
 		{#if show_share_button}
-			<ShareButton
-				{i18n}
-				on:error
-				on:share
-				formatter={format_chat_for_sharing}
-				{value}
-			/>
+			<ActionButton
+				action="share"
+				handle_action={async () => {
+					try {
+						// @ts-ignore
+						const formatted = await format_chat_for_sharing(value);
+						dispatch("share", {
+							description: formatted
+						});
+					} catch (e) {
+						console.error(e);
+						let message = e instanceof ShareError ? e.message : "Share failed.";
+						dispatch("error", message);
+					}
+				}}
+			>
+				<Community />
+			</ActionButton>
 		{/if}
 		<ActionButton handle_action={() => dispatch("clear")} action="clear">
 			<Trash />
@@ -458,6 +472,7 @@
 					{likeable}
 					_retryable={_retryable && is_last_bot_message(messages, value.length)}
 					_undoable={_undoable && is_last_bot_message(messages, value.length)}
+					disable={generating}
 					{show_copy_button}
 					message={msg_format === "tuples" ? messages[0] : messages}
 					position={role === "user" ? "right" : "left"}
@@ -697,11 +712,12 @@
 	.button-row {
 		display: flex;
 		position: absolute;
-		top: var(--size-2);
-		right: var(--size-2);
+		top: var(--size-1);
+		right: var(--size-4);
 		align-items: center;
 		justify-content: space-evenly;
 		gap: var(--spacing-md);
+		z-index: 1;
 	}
 
 	.selectable {
