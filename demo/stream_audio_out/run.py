@@ -2,6 +2,8 @@ import gradio as gr
 from pydub import AudioSegment
 from time import sleep
 import os
+import tempfile
+from pathlib import Path
 
 with gr.Blocks() as demo:
     input_audio = gr.Audio(label="Input Audio", type="filepath", format="mp3")
@@ -9,7 +11,7 @@ with gr.Blocks() as demo:
         with gr.Column():
             stream_as_file_btn = gr.Button("Stream as File")
             format = gr.Radio(["wav", "mp3"], value="wav", label="Format")
-            stream_as_file_output = gr.Audio(streaming=True, elem_id="stream_as_file_output", autoplay=True)
+            stream_as_file_output = gr.Audio(streaming=True, elem_id="stream_as_file_output", autoplay=True, visible=False)
 
             def stream_file(audio_file, format):
                 audio = AudioSegment.from_file(audio_file)
@@ -19,8 +21,9 @@ with gr.Blocks() as demo:
                     chunk = audio[chunk_size * i : chunk_size * (i + 1)]
                     i += 1
                     if chunk:
-                        file = f"/tmp/{i}.{format}"
-                        chunk.export(file, format=format)
+                        file = Path(tempfile.gettempdir()) / "stream_audio_demo" / f"{i}.{format}"
+                        file.parent.mkdir(parents=True, exist_ok=True)
+                        chunk.export(str(file), format=format)
                         yield file
                         sleep(0.5)
 

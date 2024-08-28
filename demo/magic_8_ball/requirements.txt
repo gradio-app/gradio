@@ -1,0 +1,3 @@
+https://gradio-builds.s3.amazonaws.com/bed454c3d22cfacedc047eb3b0ba987b485ac3fd/gradio-4.40.0-py3-none-any.whl
+git+https://github.com/huggingface/parler-tts.git
+accelerate
