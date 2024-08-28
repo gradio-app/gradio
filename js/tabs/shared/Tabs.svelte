@@ -27,13 +27,12 @@
 	export let selected: number | string | object;
 
 	let tabs: Tab[] = [];
-	let overflow_tabs: Tab[] = [];
 	let overflow_menu_open = false;
 	let overflow_menu: HTMLElement;
 
 	$: has_tabs = tabs.length > 0;
 
-	let main_nav: HTMLElement;
+	let tab_nav_el: HTMLElement;
 	let overflow_nav: HTMLElement;
 
 	const selected_tab = writable<false | object | number | string>(false);
@@ -113,29 +112,30 @@
 	}
 
 	function handle_menu_overflow(): void {
-		if (!main_nav) {
+		if (!tab_nav_el) {
 			console.error("Menu elements not found");
 			return;
 		}
 
 		let all_items: HTMLElement[] = [];
 
-		[main_nav, overflow_nav].forEach((menu) => {
+		[tab_nav_el, overflow_nav].forEach((menu) => {
 			Array.from(menu.querySelectorAll("button")).forEach((item) =>
 				all_items.push(item as HTMLElement)
 			);
 		});
 
-		all_items.forEach((item) => main_nav.appendChild(item));
+		all_items.forEach((item) => tab_nav_el.appendChild(item));
 
 		const nav_items: HTMLElement[] = [];
 		const overflow_items: HTMLElement[] = [];
 
-		Array.from(main_nav.querySelectorAll("button")).forEach((item) => {
-			const itemRect = item.getBoundingClientRect();
-			const menu1Rect = main_nav.getBoundingClientRect();
+		Array.from(tab_nav_el.querySelectorAll("button")).forEach((item) => {
+			const tab_rect = item.getBoundingClientRect();
+			const tab_menu_rect = tab_nav_el.getBoundingClientRect();
 			is_overflowing =
-				itemRect.right > menu1Rect.right || itemRect.left < menu1Rect.left;
+				tab_rect.right > tab_menu_rect.right ||
+				tab_rect.left < tab_menu_rect.left;
 
 			if (is_overflowing) {
 				overflow_items.push(item as HTMLElement);
@@ -144,7 +144,7 @@
 			}
 		});
 
-		nav_items.forEach((item) => main_nav.appendChild(item));
+		nav_items.forEach((item) => tab_nav_el.appendChild(item));
 		overflow_items.forEach((item) => overflow_nav.appendChild(item));
 	}
 </script>
@@ -152,7 +152,7 @@
 {#if has_tabs}
 	<div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
 		<div class="tab-wrapper">
-			<div class="tab-container" bind:this={main_nav} role="tablist">
+			<div class="tab-container" bind:this={tab_nav_el} role="tablist">
 				{#each tabs as t, i (t.id)}
 					<button
 						role="tab"
@@ -189,22 +189,7 @@
 					class="overflow-dropdown"
 					bind:this={overflow_nav}
 					class:hide={!overflow_menu_open}
-				>
-					{#each overflow_tabs as t}
-						<button
-							on:click|stopPropagation={() => {
-								change_tab(t.id);
-								dispatch("select", {
-									value: t.name,
-									index: tabs.indexOf(t)
-								});
-								overflow_menu_open = false;
-							}}
-						>
-							{t.name}
-						</button>
-					{/each}
-				</div>
+				/>
 			</span>
 		</div>
 	</div>
