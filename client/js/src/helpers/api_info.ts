@@ -243,9 +243,11 @@ export function handle_message(
 		| "log"
 		| "none"
 		| "heartbeat"
+		| "streaming"
 		| "unexpected_error";
 	data?: any;
 	status?: Status;
+	original_msg?: string;
 } {
 	const queue = true;
 	switch (data.msg) {
@@ -317,6 +319,20 @@ export function handle_message(
 				},
 				data: data.success ? data.output : null
 			};
+		case "process_streaming":
+			return {
+				type: "streaming",
+				status: {
+					queue,
+					message: data.output.error,
+					stage: "streaming",
+					time_limit: data.time_limit,
+					code: data.code,
+					progress_data: data.progress_data,
+					eta: data.eta
+				},
+				data: data.output
+			};
 		case "process_completed":
 			if ("error" in data.output) {
 				return {
@@ -358,7 +374,8 @@ export function handle_message(
 					position: 0,
 					success: data.success,
 					eta: data.eta
-				}
+				},
+				original_msg: "process_starts"
 			};
 	}
 

@@ -10,16 +10,23 @@ import json
 import sys
 import warnings
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Sequence
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Sequence, Type
+from typing import TYPE_CHECKING, Any
 
 import gradio_client.utils as client_utils
 
 from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.data_classes import BaseModel, DeveloperPath, GradioDataModel
+from gradio.data_classes import (
+    BaseModel,
+    DeveloperPath,
+    FileDataDict,
+    GradioDataModel,
+    MediaStreamChunk,
+)
 from gradio.events import EventListener
 from gradio.layouts import Form
 from gradio.processing_utils import move_files_to_cache
@@ -166,7 +173,7 @@ class Component(ComponentBase, Block):
         # This gets overridden when `select` is called
         self._selectable = False
         if not hasattr(self, "data_model"):
-            self.data_model: Type[GradioDataModel] | None = None
+            self.data_model: type[GradioDataModel] | None = None
 
         Block.__init__(
             self,
@@ -371,9 +378,9 @@ class StreamingOutput(metaclass=abc.ABCMeta):
         self.streaming: bool
 
     @abc.abstractmethod
-    def stream_output(
+    async def stream_output(
         self, value, output_id: str, first_chunk: bool
-    ) -> tuple[bytes | None, Any]:
+    ) -> tuple[MediaStreamChunk | None, FileDataDict | dict]:
         pass
 
 

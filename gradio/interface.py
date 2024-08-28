@@ -9,7 +9,8 @@ import json
 import os
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -99,13 +100,14 @@ class Interface(Blocks):
         inputs: str | Component | Sequence[str | Component] | None,
         outputs: str | Component | Sequence[str | Component] | None,
         examples: list[Any] | list[list[Any]] | str | None = None,
+        *,
         cache_examples: bool | Literal["lazy"] | None = None,
         examples_per_page: int = 10,
+        example_labels: list[str] | None = None,
         live: bool = False,
         title: str | None = None,
         description: str | None = None,
         article: str | None = None,
-        thumbnail: str | None = None,
         theme: Theme | str | None = None,
         css: str | None = None,
         allow_flagging: Literal["never"]
@@ -126,13 +128,11 @@ class Interface(Blocks):
         head: str | None = None,
         additional_inputs: str | Component | Sequence[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
-        *,
         submit_btn: str | Button = "Submit",
         stop_btn: str | Button = "Stop",
         clear_btn: str | Button | None = "Clear",
         delete_cache: tuple[int, int] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
-        example_labels: list[str] | None = None,
         fill_width: bool = False,
         **kwargs,
     ):
@@ -148,7 +148,6 @@ class Interface(Blocks):
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
             article: an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content. If it is an HTTP(S) link to a downloadable remote file, the content of this file is displayed.
-            thumbnail: this parameter has been deprecated and has no effect.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: custom css as a string or path to a css file. This css will be included in the demo webpage.
             allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged, along with the generated output. If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
@@ -291,7 +290,10 @@ class Interface(Blocks):
 
         if len(self.input_components) == len(self.output_components):
             same_components = [
-                i is o for i, o in zip(self.input_components, self.output_components)
+                i is o
+                for i, o in zip(
+                    self.input_components, self.output_components, strict=False
+                )
             ]
             if all(same_components):
                 self.interface_type = InterfaceTypes.UNIFIED
@@ -322,8 +324,6 @@ class Interface(Blocks):
         if article is not None:
             article = utils.download_if_url(article)
         self.article = article
-
-        self.thumbnail = thumbnail
 
         self.examples = examples
         self.examples_per_page = examples_per_page
@@ -449,7 +449,9 @@ class Interface(Blocks):
                     param_names.remove(param_name)
         except (TypeError, ValueError):
             param_names = utils.default_input_labels()
-        for component, param_name in zip(self.input_components, param_names):
+        for component, param_name in zip(
+            self.input_components, param_names, strict=False
+        ):
             if not isinstance(component, Component):
                 raise TypeError(
                     f"Input component must be a Component, not {type(component)}"
@@ -838,7 +840,9 @@ class Interface(Blocks):
         else:
             flag_components = self.input_components + self.output_components
 
-        for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
+        for flag_btn, (label, value) in zip(
+            flag_btns, self.flagging_options, strict=False
+        ):
             if not isinstance(value, str):
                 raise TypeError(
                     f"Flagging option value must be a string, not {value!r}"
@@ -955,7 +959,7 @@ class TabbedInterface(Blocks):
                     f"<h1 style='text-align: center; margin-bottom: 1rem'>{title}</h1>"
                 )
             with Tabs():
-                for interface, tab_name in zip(interface_list, tab_names):
+                for interface, tab_name in zip(interface_list, tab_names, strict=False):
                     with Tab(label=tab_name):
                         interface.render()
 

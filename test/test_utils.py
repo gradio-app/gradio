@@ -4,14 +4,15 @@ import json
 import os
 import sys
 import warnings
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Literal
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
-from typing_extensions import Literal
 
 from gradio import EventData, Request
 from gradio.external_utils import format_ner_list
@@ -31,6 +32,7 @@ from gradio.utils import (
     get_function_params,
     get_type_hints,
     ipython_check,
+    is_allowed_file,
     is_in_or_equal,
     is_special_typed_parameter,
     kaggle_check,
@@ -376,7 +378,7 @@ def create_path_string():
     return st.lists(
         st.one_of(
             st.text(
-                alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-",
+                alphabet="abcd",
                 min_size=1,
             ),
             st.just(".."),
@@ -385,6 +387,10 @@ def create_path_string():
         min_size=1,
         max_size=10,  # Limit depth to avoid excessively long paths
     ).map(lambda x: os.path.join(*x))
+
+
+def create_path_list():
+    return st.lists(create_path_string(), min_size=0, max_size=5)
 
 
 def my_check(path_1, path_2):
@@ -412,6 +418,54 @@ def test_is_in_or_equal_fuzzer(path_1, path_2):
 
     except Exception as e:
         pytest.fail(f"Exception raised: {e}")
+
+
+@settings(derandomize=os.getenv("CI") is not None)
+@given(
+    path=create_path_string(),
+    blocked_paths=create_path_list(),
+    allowed_paths=create_path_list(),
+)
+def test_is_allowed_file_fuzzer(
+    path: Path,
+    blocked_paths: Sequence[Path],
+    allowed_paths: Sequence[Path],
+):
+    result, reason = is_allowed_file(path, blocked_paths, allowed_paths)
+
+    assert isinstance(result, bool)
+    assert reason in [
+        "in_blocklist",
+        "allowed",
+        "not_created_or_allowed",
+        "created_by_app",
+    ]
+
+    if result:
+        assert reason == "allowed"
+    elif reason == "in_blocklist":
+        assert any(is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths)
+    elif reason == "not_created_or_allowed":
+        assert not any(
+            is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths
+        )
+
+    if reason == "allowed":
+        assert any(is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths)
+
+
+@pytest.mark.parametrize(
+    "path,blocked_paths,allowed_paths",
+    [
+        ("/a/foo.txt", ["/a"], ["/b"], False),
+        ("/b/foo.txt", ["/a"], ["/b"], True),
+        ("/a/../c/foo.txt", ["/c/"], ["/a/"], False),
+        ("/c/../a/foo.txt", ["/c/"], ["/a/"], True),
+        ("/c/foo.txt", ["/c/"], ["/c/foo.txt"], True),
+    ],
+)
+def is_allowed_file_corner_cases(path, blocked_paths, allowed_paths, result):
+    assert is_allowed_file(path, blocked_paths, allowed_paths) == result
 
 
 # Additional test for known edge cases

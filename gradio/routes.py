@@ -5,34 +5,25 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import math
-import sys
-import warnings
-
-if sys.version_info >= (3, 9):
-    from importlib.resources import files
-else:
-    from importlib_resources import files
 import hashlib
 import inspect
 import json
+import math
 import mimetypes
 import os
 import secrets
+import sys
 import time
 import traceback
+import warnings
+from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 from queue import Empty as EmptyQueue
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncIterator,
-    Callable,
-    Dict,
-    List,
     Literal,
     Optional,
-    Type,
     Union,
     cast,
 )
@@ -41,24 +32,20 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    HTTPException,
-    status,
-)
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
+    Response,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
+from importlib_resources import files
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -260,8 +247,9 @@ class App(FastAPI):
     @staticmethod
     def create_app(
         blocks: gradio.Blocks,
-        app_kwargs: Dict[str, Any] | None = None,
+        app_kwargs: dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        strict_cors: bool = True,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -273,7 +261,7 @@ class App(FastAPI):
         app.configure_app(blocks)
 
         if not wasm_utils.IS_WASM:
-            app.add_middleware(CustomCORSMiddleware)
+            app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
 
         @app.get("/user")
         @app.get("/user/")
@@ -565,43 +553,20 @@ class App(FastAPI):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             abs_path = utils.abspath(path_or_url)
-
-            in_blocklist = any(
-                utils.is_in_or_equal(abs_path, blocked_path)
-                for blocked_path in blocks.blocked_paths
-            )
-
-            is_dir = abs_path.is_dir()
-
-            if is_dir or in_blocklist:
+            if abs_path.is_dir() or not abs_path.exists():
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            created_by_app = False
-            for temp_file_set in blocks.temp_file_sets:
-                if abs_path in temp_file_set:
-                    created_by_app = True
-                    break
-            in_allowlist = any(
-                utils.is_in_or_equal(abs_path, allowed_path)
-                for allowed_path in blocks.allowed_paths
-            )
-            is_static_file = utils.is_static_file(abs_path)
-            was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
-            is_cached_example = utils.is_in_or_equal(
-                abs_path, utils.abspath(utils.get_cache_folder())
-            )
+            from gradio.data_classes import _StaticFiles
 
-            if not (
-                created_by_app
-                or in_allowlist
-                or was_uploaded
-                or is_cached_example
-                or is_static_file
-            ):
+            allowed, _ = utils.is_allowed_file(
+                abs_path,
+                blocked_paths=blocks.blocked_paths,
+                allowed_paths=blocks.allowed_paths
+                + [app.uploaded_file_dir, utils.get_cache_folder()]
+                + _StaticFiles.all_paths,
+            )
+            if not allowed:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
-
-            if not abs_path.exists():
-                raise HTTPException(404, f"File not found: {path_or_url}.")
 
             mime_type, _ = mimetypes.guess_type(abs_path)
             file_extension = os.path.splitext(abs_path)[1].lower()
@@ -639,43 +604,92 @@ class App(FastAPI):
                 filename=abs_path.name,
             )
 
-        @app.get(
-            "/stream/{session_hash}/{run}/{component_id}",
-            dependencies=[Depends(login_check)],
-        )
-        async def stream(
-            session_hash: str,
-            run: int,
-            component_id: int,
-            request: fastapi.Request,  # noqa: ARG001
-        ):
-            stream: list = (
+        @app.post("/stream/{event_id}")
+        async def _(event_id: str, body: PredictBody):
+            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event.data = body
+            event.signal.set()
+            return {"msg": "success"}
+
+        @app.post("/stream/{event_id}/close")
+        async def _(event_id: str):
+            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            event.run_time = math.inf
+            event.signal.set()
+            return {"msg": "success"}
+
+        @app.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
+        async def _(session_hash: str, run: int, component_id: int):
+            stream: route_utils.MediaStream | None = (
                 app.get_blocks()
                 .pending_streams[session_hash]
                 .get(run, {})
                 .get(component_id, None)
             )
-            if stream is None:
-                raise HTTPException(404, "Stream not found.")
 
-            def stream_wrapper():
-                check_stream_rate = 0.01
-                max_wait_time = 120  # maximum wait between yields - assume generator thread has crashed otherwise.
-                wait_time = 0
-                while True:
-                    if len(stream) == 0:
-                        if wait_time > max_wait_time:
-                            return
-                        wait_time += check_stream_rate
-                        time.sleep(check_stream_rate)
-                        continue
-                    wait_time = 0
-                    next_stream = stream.pop(0)
-                    if next_stream is None:
-                        return
-                    yield next_stream
+            if not stream:
+                return Response(status_code=404)
 
-            return StreamingResponse(stream_wrapper())
+            playlist = f"#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:{stream.max_duration}\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+
+            for segment in stream.segments:
+                playlist += f"#EXTINF:{segment['duration']:.3f},\n"
+                playlist += f"{segment['id']}{segment['extension']}\n"  # type: ignore
+
+            if stream.ended:
+                playlist += "#EXT-X-ENDLIST\n"
+
+            return Response(
+                content=playlist, media_type="application/vnd.apple.mpegurl"
+            )
+
+        @app.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
+        async def _(
+            session_hash: str, run: int, component_id: int, segment_id: str, ext: str
+        ):
+            if ext not in ["aac", "ts"]:
+                return Response(status_code=400, content="Unsupported file extension")
+            stream: route_utils.MediaStream | None = (
+                app.get_blocks()
+                .pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
+
+            if not stream:
+                return Response(status_code=404, content="Stream not found")
+
+            segment = next((s for s in stream.segments if s["id"] == segment_id), None)  # type: ignore
+
+            if segment is None:
+                return Response(status_code=404, content="Segment not found")
+
+            if ext == "aac":
+                return Response(content=segment["data"], media_type="audio/aac")
+            else:
+                return Response(content=segment["data"], media_type="video/MP2T")
+
+        @app.get("/stream/{session_hash}/{run}/{component_id}/playlist-file")
+        async def _(session_hash: str, run: int, component_id: int):
+            stream: route_utils.MediaStream | None = (
+                app.get_blocks()
+                .pending_streams[session_hash]
+                .get(run, {})
+                .get(component_id, None)
+            )
+
+            if not stream:
+                return Response(status_code=404)
+
+            byte_stream = b""
+            extension = ""
+            for segment in stream.segments:
+                extension = segment["extension"]
+                byte_stream += segment["data"]
+
+            media_type = "video/MP2T" if extension == ".ts" else "audio/aac"
+
+            return Response(content=byte_stream, media_type=media_type)
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):
@@ -751,6 +765,16 @@ class App(FastAPI):
                         # This will mark the state to be deleted in an hour
                         if session_hash in app.state_holder.session_data:
                             app.state_holder.session_data[session_hash].is_closed = True
+                        for (
+                            event_id
+                        ) in app.get_blocks()._queue.pending_event_ids_session.get(
+                            session_hash, []
+                        ):
+                            event = app.get_blocks()._queue.event_ids_to_events[
+                                event_id
+                            ]
+                            event.run_time = math.inf
+                            event.signal.set()
                         return
 
             return StreamingResponse(iterator(), media_type="text/event-stream")
@@ -891,12 +915,13 @@ class App(FastAPI):
             event_id: str,
         ):
             def process_msg(message: EventMessage) -> str | None:
+                msg = message.model_dump()
                 if isinstance(message, ProcessCompletedMessage):
                     event = "complete" if message.success else "error"
-                    data = message.output.get("data")
+                    data = msg["output"].get("data")
                 elif isinstance(message, ProcessGeneratingMessage):
                     event = "generating" if message.success else "error"
-                    data = message.output.get("data")
+                    data = msg["output"].get("data")
                 elif isinstance(message, HeartbeatMessage):
                     event = "heartbeat"
                     data = None
@@ -1293,7 +1318,7 @@ def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     return str(fullpath)
 
 
-def get_types(cls_set: List[Type]):
+def get_types(cls_set: list[type]):
     docset = []
     types = []
     for cls in cls_set:

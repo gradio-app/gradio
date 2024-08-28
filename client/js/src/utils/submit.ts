@@ -66,6 +66,8 @@ export function submit(
 		let websocket: WebSocket;
 		let stream: EventSource | null;
 		let protocol = config.protocol ?? "ws";
+		let event_id_final = "";
+		let event_id_cb: () => string = () => event_id_final;
 
 		const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 		let payload: Payload;
@@ -449,7 +451,6 @@ export function submit(
 								close();
 							}
 						} else if (type === "data") {
-							event_id = _data.event_id as string;
 							let [_, status] = await post_data(`${config.root}/queue/data`, {
 								...payload,
 								session_hash,
@@ -480,7 +481,7 @@ export function submit(
 								visible: data.visible,
 								fn_index
 							});
-						} else if (type === "generating") {
+						} else if (type === "generating" || type === "streaming") {
 							fire_event({
 								type: "status",
 								time: new Date(),
@@ -594,9 +595,10 @@ export function submit(
 							});
 						} else {
 							event_id = response.event_id as string;
+							event_id_final = event_id;
 							let callback = async function (_data: object): Promise<void> {
 								try {
-									const { type, status, data } = handle_message(
+									const { type, status, data, original_msg } = handle_message(
 										_data,
 										last_status[fn_index]
 									);
@@ -612,6 +614,7 @@ export function submit(
 											endpoint: _endpoint,
 											fn_index,
 											time: new Date(),
+											original_msg: original_msg,
 											...status
 										});
 									} else if (type === "complete") {
@@ -639,7 +642,7 @@ export function submit(
 											fn_index
 										});
 										return;
-									} else if (type === "generating") {
+									} else if (type === "generating" || type === "streaming") {
 										fire_event({
 											type: "status",
 											time: new Date(),
@@ -651,6 +654,7 @@ export function submit(
 										});
 										if (
 											data &&
+											dependency.connection !== "stream" &&
 											["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
 										) {
 											apply_diff_stream(pending_diff_streams, event_id!, data);
@@ -790,7 +794,8 @@ export function submit(
 				close();
 				return next();
 			},
-			cancel
+			cancel,
+			event_id: event_id_cb
 		};
 
 		return iterator;

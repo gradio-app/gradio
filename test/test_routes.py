@@ -1,13 +1,13 @@
 """Contains tests for networking.py and app.py"""
 
 import functools
+import json
 import os
 import pickle
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
-from typing import Dict
 from unittest.mock import patch
 
 import gradio_client as grc
@@ -537,7 +537,7 @@ class TestRoutes:
         response = client.get("/config/")
         assert response.is_success
 
-    def test_cors_restrictions(self):
+    def test_default_cors_restrictions(self):
         io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
@@ -547,12 +547,41 @@ class TestRoutes:
         }
         file_response = client.get("/config", headers=custom_headers)
         assert "access-control-allow-origin" not in file_response.headers
+
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "null",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert "access-control-allow-origin" not in file_response.headers
+
         custom_headers = {
             "host": "localhost:7860",
             "origin": "127.0.0.1",
         }
         file_response = client.get("/config", headers=custom_headers)
         assert file_response.headers["access-control-allow-origin"] == "127.0.0.1"
+
+        io.close()
+
+    def test_loose_cors_restrictions(self):
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(prevent_thread_lock=True, strict_cors=False)
+        client = TestClient(app)
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "https://example.com",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert "access-control-allow-origin" not in file_response.headers
+
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "null",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert file_response.headers["access-control-allow-origin"] == "null"
+
         io.close()
 
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
@@ -1227,7 +1256,7 @@ def test_get_root_url(
     ],
 )
 def test_get_root_url_headers(
-    headers: Dict[str, str], root_path: str, route_path: str, expected_root_url: str
+    headers: dict[str, str], root_path: str, route_path: str, expected_root_url: str
 ):
     scope = {
         "type": "http",
@@ -1454,3 +1483,35 @@ def test_file_access():
         demo.close()
         not_allowed_file.unlink()
         allowed_file.unlink()
+
+
+def test_bash_api_serialization():
+    demo = gr.Interface(lambda x: x, "json", "json")
+
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    with test_client:
+        submit = test_client.post("/call/predict", json={"data": [{"a": 1}]})
+        event_id = submit.json()["event_id"]
+        response = test_client.get(f"/call/predict/{event_id}")
+        assert response.status_code == 200
+        assert "event: complete\ndata:" in response.text
+        assert json.dumps({"a": 1}) in response.text
+
+
+def test_bash_api_multiple_inputs_outputs():
+    demo = gr.Interface(
+        lambda x, y: (y, x), ["textbox", "number"], ["number", "textbox"]
+    )
+
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+
+    with test_client:
+        submit = test_client.post("/call/predict", json={"data": ["abc", 123]})
+        event_id = submit.json()["event_id"]
+        response = test_client.get(f"/call/predict/{event_id}")
+        assert response.status_code == 200
+        assert "event: complete\ndata:" in response.text
+        assert json.dumps([123, "abc"]) in response.text

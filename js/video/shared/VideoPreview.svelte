@@ -51,13 +51,14 @@
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if value === null || value.url === undefined}
+{#if !value || value.url === undefined}
 	<Empty unpadded_box={true} size="large"><Video /></Empty>
 {:else}
 	{#key value.url}
 		<Player
 			src={value.url}
 			subtitle={subtitle?.url}
+			is_stream={value.is_stream}
 			{autoplay}
 			on:play
 			on:pause
@@ -73,7 +74,12 @@
 	{/key}
 	<div class="icon-buttons" data-testid="download-div">
 		{#if show_download_button}
-			<DownloadLink href={value.url} download={value.orig_name || value.path}>
+			<DownloadLink
+				href={value.is_stream
+					? value.url?.replace("playlist.m3u8", "playlist-file")
+					: value.url}
+				download={value.orig_name || value.path}
+			>
 				<IconButton Icon={Download} label="Download" />
 			</DownloadLink>
 		{/if}

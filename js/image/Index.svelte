@@ -22,6 +22,16 @@
 
 	type sources = "upload" | "webcam" | "clipboard" | null;
 
+	let stream_state = "closed";
+	let _modify_stream: (state: "open" | "closed" | "waiting") => void;
+	export function modify_stream_state(
+		state: "open" | "closed" | "waiting"
+	): void {
+		stream_state = state;
+		_modify_stream(state);
+	}
+	export const get_stream_state: () => void = () => stream_state;
+	export let set_time_limit: (arg0: number) => void;
 	export let value_is_output = false;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -35,6 +45,7 @@
 
 	export let height: number | undefined;
 	export let width: number | undefined;
+	export let stream_every: number;
 
 	export let _selectable = false;
 	export let container = true;
@@ -66,6 +77,7 @@
 		select: SelectData;
 		share: ShareData;
 		clear_status: LoadingStatus;
+		close_stream: string;
 	}>;
 
 	$: {
@@ -191,11 +203,17 @@
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
+			on:close_stream={() => {
+				gradio.dispatch("close_stream", "stream");
+			}}
 			{label}
 			{show_label}
 			{pending}
 			{streaming}
 			{mirror_webcam}
+			{stream_every}
+			bind:modify_stream={_modify_stream}
+			bind:set_time_limit
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
 			upload={gradio.client.upload}
