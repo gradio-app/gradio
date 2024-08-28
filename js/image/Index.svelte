@@ -9,7 +9,7 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData, ValueData } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import ImageUploader from "./shared/ImageUploader.svelte";
 	import { afterUpdate } from "svelte";
@@ -70,7 +70,7 @@
 		change: never;
 		error: string;
 		edit: never;
-		stream: never;
+		stream: ValueData;
 		drag: never;
 		upload: never;
 		clear: never;
@@ -89,6 +89,7 @@
 			}
 		}
 	}
+
 	afterUpdate(() => {
 		value_is_output = false;
 	});
@@ -193,7 +194,7 @@
 			on:clear={() => {
 				gradio.dispatch("clear");
 			}}
-			on:stream={() => gradio.dispatch("stream")}
+			on:stream={({ detail }) => gradio.dispatch("stream", detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
