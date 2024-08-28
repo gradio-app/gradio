@@ -210,7 +210,7 @@ class Chatbot(Component):
         else:
             # DeprecationWarning gets filtered out by default
             warnings.warn(
-                "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version Gradio. Please set type='messages' instead.",
+                "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead.",
                 UserWarning,
             )
             self.data_model = ChatbotDataTuples
