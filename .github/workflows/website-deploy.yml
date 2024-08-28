@@ -87,11 +87,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy js/_website/build/ --project-name=gradio-website
 
-      # - name: print deployment-url
-      #   env:
-      #     DEPLOYMENT_URL: ${{ steps.cloudflare-preview.outputs.deployment-url }}
-      #   run: echo $DEPLOYMENT_URL
-
         # production
       - name: Pull Vercel Environment Information
         if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
