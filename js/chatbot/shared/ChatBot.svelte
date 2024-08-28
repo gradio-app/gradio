@@ -180,9 +180,12 @@
 	}
 
 	$: groupedMessages = value && group_messages(value);
-
+	$: if (value !== null && value.length > 0) suggestionsVisible = false;
 	let suggestionsVisible = true;
-	function handle_suggestion_select(i: number, suggestion: SuggestionMessage): void {
+	function handle_suggestion_select(
+		i: number,
+		suggestion: SuggestionMessage
+	): void {
 		suggestionsVisible = false;
 		dispatch("suggestion_select", {
 			index: i,
@@ -447,48 +450,50 @@
 			</div>
 		{/if}
 	</div>
-		{#if suggestionsVisible}
-				<div class="suggestions">
-					{#if suggestions !== null}
-						{#each suggestions as suggestion, i}
-							<button
-								class="suggestion"
-								on:click={handle_suggestion_select(i, suggestion)}
+	{#if suggestionsVisible}
+		<div class="suggestions">
+			{#if suggestions !== null}
+				{#each suggestions as suggestion, i}
+					<button
+						class="suggestion"
+						on:click={handle_suggestion_select(i, suggestion)}
+					>
+						{#if suggestion.icon !== undefined}
+							<div class="suggestion-icon-container">
+								<Image
+									class="suggestion-icon"
+									src={suggestion.icon.url}
+									alt="suggestion-icon"
+								/>
+							</div>
+						{/if}
+						{#if suggestion.display_text !== undefined}
+							<span class="suggestion-display-text"
+								>{suggestion.display_text}</span
 							>
-								{#if suggestion.icon !== undefined}
-								<div class="suggestion-icon-container">
-									<Image
-										class="suggestion-icon"
-										src={suggestion.icon.url}
-										alt="suggestion-icon"
-									/>
-								</div>
-								{/if}
-								{#if suggestion.display_text !== undefined}
-									<span class="suggestion-display-text">{suggestion.display_text}</span>
-								{:else}
-									<span class="suggestion-text">{suggestion.text}</span>
-									{#if suggestion.files.length > 1}
-										<span class="suggestion-file"
-											><em>{suggestion.files.length} Files</em></span
-										>
-									{:else if suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
-										<Image
-											class="suggestion-image"
-											src={suggestion.files[0].url}
-											alt="suggestion-image"
-										/>
-									{:else if suggestion.files[0] !== undefined}
-										<span class="suggestion-file"
-											><em>{suggestion.files[0].orig_name}</em></span
-										>
-									{/if}
-								{/if}
-							</button>
-						{/each}
-					{/if}
-				</div>
-		{/if}
+						{:else}
+							<span class="suggestion-text">{suggestion.text}</span>
+							{#if suggestion.files.length > 1}
+								<span class="suggestion-file"
+									><em>{suggestion.files.length} Files</em></span
+								>
+							{:else if suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
+								<Image
+									class="suggestion-image"
+									src={suggestion.files[0].url}
+									alt="suggestion-image"
+								/>
+							{:else if suggestion.files[0] !== undefined}
+								<span class="suggestion-file"
+									><em>{suggestion.files[0].orig_name}</em></span
+								>
+							{/if}
+						{/if}
+					</button>
+				{/each}
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -497,12 +502,10 @@
 	}
 
 	.suggestions {
-		padding-top: 200px;
-		margin-bottom: -200px;
+		padding-top: calc(var(--spacing-xxl) * 10);
+		margin-bottom: calc(var(--spacing-xxl) * -10);
 		display: flex;
 		flex-direction: row;
-		align-self: center;
-		width: 100%;
 	}
 
 	.suggestions :global(img) {
@@ -513,55 +516,50 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		margin: 5px;
-		padding: 10px 15px;
-		border: 1px solid #444;
-		border-radius: 15px;
-		background-color: #333;
+		margin: var(--spacing-md);
+		padding: var(--spacing-md) var(--spacing-md);
+		border: 0.05px solid var(--border-color-accent-subdued);
+		border-radius: var(--radius-xl);
+		background-color: var(--background-fill-secondary);
 		cursor: pointer;
-		transition: background-color 0.3s;
-		min-width: 170px;
 	}
 
 	.suggestion:hover {
-		background-color: #444;
+		background-color: var(--color-accent-soft);
 	}
 
 	.suggestion-icon-container {
 		display: flex;
 		align-self: flex-start;
-		margin-left: 5px;
-		width: 30px;
-		height: 30px;
+		margin-left: var(--spacing-md);
+		width: var(--size-8);
+		height: var(--size-8);
 	}
 
 	.suggestion-display-text,
 	.suggestion-text,
 	.suggestion-file {
-		margin: 5px 0;
+		display: flex;
+		align-self: flex-start;
+		margin: var(--spacing-md);
 		text-align: left;
 		flex-grow: 1;
-		font-size: 1rem;
-		overflow: hidden;
+		font-size: var(--chatbot-body-text-size);
 		text-overflow: ellipsis;
 	}
 
-	.suggestion-display-text {
-		left: 0px;
-	}
-
 	.suggestion-image {
-		max-height: 80px;
-		max-width: 80px;
+		max-height: var(--size-6);
+		max-width: var(--size-6);
 		object-fit: cover;
-		border-radius: 50%;
-		margin-top: 5px;
+		border-radius: var(--radius-xl);
+		margin-top: var(--spacing-md);
 		align-self: flex-start;
 	}
 
 	@media screen and (max-width: 600px) {
 		.suggestion-text {
-			font-size: 0.8rem;
+			font-size: var(--chatbot-body-text-size);
 		}
 	}
 
