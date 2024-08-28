@@ -1713,10 +1713,10 @@ class Base(ThemeClass):
             )
         )
         self.button_primary_text_color = button_primary_text_color or getattr(
-            self, "button_primary_text_color", "black"
+            self, "button_primary_text_color", "white"
         )
         self.button_primary_text_color_dark = button_primary_text_color_dark or getattr(
-            self, "button_primary_text_color_dark", "black"
+            self, "button_primary_text_color_dark", "white"
         )
         self.button_primary_text_color_hover = (
             button_primary_text_color_hover

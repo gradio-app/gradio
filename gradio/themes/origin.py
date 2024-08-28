@@ -80,6 +80,8 @@ class Origin(Base):
             button_primary_background_fill_hover_dark="linear-gradient(to bottom right, *primary_500, *primary_500)",
             button_primary_border_color="none",
             button_primary_border_color_dark="*primary_500",
+            button_primary_border_color_hover="none",
+            button_primary_border_color_hover_dark="*primary_500",
             button_primary_text_color="*primary_600",
             button_primary_text_color_dark="white",
             # Secondary Button
@@ -89,6 +91,8 @@ class Origin(Base):
             button_secondary_background_fill_hover_dark="linear-gradient(to bottom right, *neutral_600, *neutral_600)",
             button_secondary_border_color="*neutral_200",
             button_secondary_border_color_dark="*neutral_600",
+            button_secondary_border_color_hover="*neutral_200",
+            button_secondary_border_color_hover_dark="*neutral_600",
             button_secondary_text_color="*neutral_800",
             button_secondary_text_color_dark="white",
             # Cancel Button
@@ -98,6 +102,8 @@ class Origin(Base):
             button_cancel_background_fill_hover_dark=f"linear-gradient(to bottom right, {colors.red.c600}, {colors.red.c600})",
             button_cancel_border_color=colors.red.c200,
             button_cancel_border_color_dark=colors.red.c600,
+            button_cancel_border_color_hover=colors.red.c200,
+            button_cancel_border_color_hover_dark=colors.red.c600,
             button_cancel_text_color=colors.red.c600,
             button_cancel_text_color_dark="white",
             # Other
