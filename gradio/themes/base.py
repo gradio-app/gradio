@@ -347,7 +347,7 @@ class Base(ThemeClass):
         *,
         primary_hue: colors.Color | str = colors.blue,
         secondary_hue: colors.Color | str = colors.blue,
-        neutral_hue: colors.Color | str = colors.gray,
+        neutral_hue: colors.Color | str = colors.zinc,
         text_size: sizes.Size | str = sizes.text_md,
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
