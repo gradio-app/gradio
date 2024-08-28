@@ -101,7 +101,7 @@ def bot(history):
     return history
 ```
 
-In addition, it can handle media files, such as images, audio, and video. You can use the `MultimodalTextbox` component to easily upload all types of media files to your chatbot. To pass in a media file, we must pass in the file a dictionary with a `path` key pointing to a local file and an `alt_text` key.. The `alt_text` is optional, so you can also just pass in a tuple with a single element `{"path": "filepath"}`, like this:
+In addition, it can handle media files, such as images, audio, and video. You can use the `MultimodalTextbox` component to easily upload all types of media files to your chatbot. To pass in a media file, we must pass in the file a dictionary with a `path` key pointing to a local file and an `alt_text` key. The `alt_text` is optional, so you can also just pass in a tuple with a single element `{"path": "filepath"}`, like this:
 
 ```python
 def add_message(history, message):
