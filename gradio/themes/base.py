@@ -1173,7 +1173,7 @@ class Base(ThemeClass):
         self.block_padding = block_padding or getattr(
             self, "block_padding", "*spacing_xl calc(*spacing_xl + 2px)"
         )
-        self.block_radius = block_radius or getattr(self, "block_radius", "*radius_lg")
+        self.block_radius = block_radius or getattr(self, "block_radius", "*radius_sm")
         self.block_shadow = block_shadow or getattr(self, "block_shadow", "none")
         self.block_shadow_dark = block_shadow_dark or getattr(
             self, "block_shadow_dark", None
@@ -1609,7 +1609,7 @@ class Base(ThemeClass):
         self.table_odd_background_fill_dark = table_odd_background_fill_dark or getattr(
             self, "table_odd_background_fill_dark", "*neutral_900"
         )
-        self.table_radius = table_radius or getattr(self, "table_radius", "*radius_lg")
+        self.table_radius = table_radius or getattr(self, "table_radius", "*radius_sm")
         self.table_row_focus = table_row_focus or getattr(
             self, "table_row_focus", "*color_accent_soft"
         )
