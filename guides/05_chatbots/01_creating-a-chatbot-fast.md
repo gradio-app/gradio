@@ -23,11 +23,23 @@ $ pip install --upgrade gradio
 When working with `gr.ChatInterface()`, the first thing you should do is define your chat function. Your chat function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order).
 
 - `message`: a `str` representing the user's input.
-- `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`. If you set `type="messages"`, the history will be a list of dictionaries with `role` and `content` keys. Please see the chatbot [docs](/docs/gradio/chatbot) for an in-depth explanation of the chatbot format.
+- `history`: If you set type="messages" in gr.ChatInterface, the history will be a list of dictionaries with `role` and `content` keys. Please see the chatbot [docs](/docs/gradio/chatbot) for an in-depth explanation of the chatbot format. 
+
+Here is an example value of the `history`:
+
+```python
+[
+    {"role": "user", "content": "What is the capital of France"},
+    {"role": "assistant", "content": "France"}
+]
+```
+
 
 Your function should return a single string response, which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
 
-Let's take a look at a few examples.
+Tip: It's strongly recommended to set type="messages" in `gr.ChatInterface`. Setting type="tuples" is deprecated and will be removed in Gradi 6.0.
+
+Let's take a look at a few example applications.
 
 ## Example: a chatbot that responds yes or no
 
@@ -211,7 +223,7 @@ gr.ChatInterface(
     fake,
     type="messages",
     textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
-    chatbot=gr.Chatbot(placeholder="Play music by any artist!", type="messages"),
+    chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
 ).launch()
 ```
 
@@ -230,7 +242,7 @@ gr.ChatInterface(
     fake,
     type="messages",
     textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
-    chatbot=gr.Chatbot(placeholder="Play music by any artist!", type="messages"),
+    chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
 ).launch()
 ```
 

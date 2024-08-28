@@ -10,6 +10,13 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("chatbot");
+
+    let embedded_demo_obj = `[
+        {"role": "user", "content": "Hello World"},
+        {"role": "assistant", "content": "Hey Gradio!"},
+        {"role": "user", "content": "❤️"},
+        {"role": "assistant", "content": "😍"}
+    ]`
 </script>
 
 <!--- Title -->
@@ -17,7 +24,7 @@
 
 <!--- Usage -->
 ```python
-gradio.Chatbot(···)
+gradio.Chatbot(type="messages", ···)
 ```
 
 <!-- Embedded Component -->
@@ -25,7 +32,8 @@ gradio.Chatbot(···)
 <gradio-lite shared-worker>
 import gradio as gr
 with gr.Blocks() as demo:
-    gr.Chatbot(value=[["Hello World","Hey Gradio!"],["❤️","😍"],["🔥","🤗"]])
+    gr.Chatbot(value={embedded_demo_obj},
+            type="messages")
 demo.launch()
 </gradio-lite>
 </div>
@@ -45,7 +53,7 @@ The `'tuples'` type is deprecated and will be removed in version 6.0 of Gradio.
 
 If the `type` is `'messages'`, then the data sent to/from the chatbot will be a list of dictionaries
 with `role` and `content` keys. This format is compliant with the format expected by most LLM APIs (HuggingChat, OpenAI, Claude).
-The `role` key is either `'user'` or `'`assistant'` and the `content` key can be one of the following:
+The `role` key is either `'user'` or `'assistant'` and the `content` key can be one of the following:
 
 1. A string (markdown/html is also supported).
 2. A dictionary with `path` and `alt_text` keys. In this case, the file at `path` will be displayed in the chat history. Image, audio, and video files are fully embedded and visualized in the chat bubble. 
@@ -88,7 +96,30 @@ def generate_response(history):
     return history
 ```
 
-Additionally, when `type` is `messages`, you can provide additional metadata regarding any tools used to generate the response.
+### Tuples format
+
+If `type` is `'tuples'`, then the data sent to/from the chatbot will be a list of tuples.
+The first element of each tuple is the user message and the second element is the bot's response.
+Each element can be a string (markdown/html is supported),
+a tuple (in which case the first element is a filepath that will be displayed in the chatbot),
+or a gradio component (see the Examples section for more details).
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} />
+
+
+{#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
+<!--- Shortcuts -->
+### Shortcuts
+<ShortcutTable shortcuts={obj.string_shortcuts} />
+{/if}
+
+### Examples
+
+** Displaying Thoughts/Tool Usage **
+
+When `type` is `messages`, you can provide additional metadata regarding any tools used to generate the response.
 This is useful for displaying the thought process of LLM agents. For example,
 
 ```python
@@ -116,27 +147,6 @@ def generate_response(history):
         )
     return history
 ```
-
-### Tuples format
-
-If `type` is `'tuples'`, then the data sent to/from the chatbot will be a list of tuples.
-The first element of each tuple is the user message and the second element is the bot's response.
-Each element can be a string (markdown/html is supported),
-a tuple (in which case the first element is a filepath that will be displayed in the chatbot),
-or a gradio component (see the Examples section for more details).
-
-<!--- Initialization -->
-### Initialization
-<ParamTable parameters={obj.parameters} />
-
-
-{#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
-<!--- Shortcuts -->
-### Shortcuts
-<ShortcutTable shortcuts={obj.string_shortcuts} />
-{/if}
-
-### Examples
 
 **Using Gradio Components Inside `gr.Chatbot`**
 

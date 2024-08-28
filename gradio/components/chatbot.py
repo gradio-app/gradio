@@ -173,7 +173,7 @@ class Chatbot(Component):
         """
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            type: The format of the messages. If 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content` key's value should be one of the following - (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, (3) a dictionary with a 'path' key corresponding to the file to display or (4) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The 'role' key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. Each message can be a valid type of the `content` key in the 'messages' format. Additionally, if the message is None, it will not be displayed.
+            type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -210,7 +210,7 @@ class Chatbot(Component):
         else:
             # DeprecationWarning gets filtered out by default
             warnings.warn(
-                "The 'tuples' format is deprecated and will be removed in version 6 of Gradio. Please use the 'messages' format instead.",
+                "The 'tuples' format for chatbot messages is deprecated and will be removed in version 6 of Gradio. Please set type='messages' instead.",
                 UserWarning,
             )
             self.data_model = ChatbotDataTuples
