@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Literal, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
 

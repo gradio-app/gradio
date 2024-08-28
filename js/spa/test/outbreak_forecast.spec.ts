@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("selecting matplotlib should show matplotlib image and pressing clear should clear output", async ({
 	page

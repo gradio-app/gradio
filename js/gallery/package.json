@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/gallery",
-	"version": "0.12.0",
+	"version": "0.12.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -14,6 +14,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
+		"@gradio/video": "workspace:^",
 		"@gradio/file": "workspace:^",
 		"dequal": "^2.0.2"
 	},
@@ -23,9 +24,20 @@
 	"main": "./Index.svelte",
 	"main_changeset": true,
 	"exports": {
-		".": "./Index.svelte",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
 		"./package.json": "./package.json",
-		"./base": "./shared/Gallery.svelte"
+		"./base": {
+			"gradio": "./shared/Gallery.svelte",
+			"svelte": "./dist/shared/Gallery.svelte",
+			"types": "./dist/shared/Gallery.svelte.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",

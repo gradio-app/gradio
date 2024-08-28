@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import copy
 import json
-from typing import TYPE_CHECKING, Any, Literal, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 

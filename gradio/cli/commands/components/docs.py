@@ -3,12 +3,11 @@ from __future__ import annotations
 import importlib
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
 import requests
 import tomlkit as toml
 from typer import Argument, Option
-from typing_extensions import Annotated
 
 from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.display import LivePanelDisplay
@@ -201,5 +200,5 @@ def run_command(
 
     if type_mode == "simple":
         live.update(
-            "\n:orange_circle: [red]The docs were generated in simple mode. Updating python to a version greater than 3.9 will result in richer documentation.[/]"
+            "\n:orange_circle: [red]The docs were generated in simple mode. Updating python to a more recent version will result in richer documentation.[/]"
         )

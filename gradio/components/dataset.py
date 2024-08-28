@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Literal, Sequence
+from collections.abc import Sequence
+from typing import Any, Literal
 
 from gradio_client.documentation import document
 
@@ -99,7 +100,7 @@ class Dataset(Component):
         self.samples: list[list] = []
         for example in self.raw_samples:
             self.samples.append([])
-            for component, ex in zip(self._components, example):
+            for component, ex in zip(self._components, example, strict=False):
                 # If proxy_url is set, that means it is being loaded from an external Gradio app
                 # which means that the example has already been processed.
                 if self.proxy_url is None:

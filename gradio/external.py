@@ -8,8 +8,9 @@ import os
 import re
 import tempfile
 import warnings
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal
+from typing import TYPE_CHECKING, Literal
 
 import httpx
 import huggingface_hub

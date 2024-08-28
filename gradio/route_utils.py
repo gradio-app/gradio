@@ -6,26 +6,23 @@ import hashlib
 import hmac
 import json
 import os
+import pickle
 import re
 import shutil
-import sys
 import threading
 import uuid
 from collections import deque
-from contextlib import AsyncExitStack, asynccontextmanager
+from collections.abc import AsyncGenerator, Callable
+from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import (
     TYPE_CHECKING,
-    AsyncContextManager,
-    AsyncGenerator,
+    Any,
     BinaryIO,
-    Callable,
-    List,
     Optional,
-    Tuple,
     Union,
 )
 from urllib.parse import urlparse
@@ -123,15 +120,18 @@ class Request:
     query parameters and other information about the request from within the prediction
     function. The class is a thin wrapper around the fastapi.Request class. Attributes
     of this class include: `headers`, `client`, `query_params`, `session_hash`, and `path_params`. If
-    auth is enabled, the `username` attribute can be used to get the logged in user.
+    auth is enabled, the `username` attribute can be used to get the logged in user. In some environments,
+    the dict-like attributes (e.g. `requests.headers`, `requests.query_params`) of this class are automatically
+    converted to to dictionaries, so we recommend converting them to dictionaries before accessing
+    attributes for consistent behavior in different environments.
     Example:
         import gradio as gr
         def echo(text, request: gr.Request):
             if request:
-                print("Request headers dictionary:", request.headers)
-                print("IP address:", request.client.host)
+                print("Request headers dictionary:", dict(request.headers))
                 print("Query parameters:", dict(request.query_params))
-                print("Session hash:", request.session_hash)
+                print("IP address:", request.client.host)
+                print("Gradio session hash:", request.session_hash)
             return text
         io = gr.Interface(echo, "textbox", "textbox").launch()
     Demos: request_ip_headers
@@ -154,8 +154,8 @@ class Request:
         """
         self.request = request
         self.username = username
-        self.session_hash = session_hash
-        self.kwargs: dict = kwargs
+        self.session_hash: str | None = session_hash
+        self.kwargs: dict[str, Any] = kwargs
 
     def dict_to_obj(self, d):
         if isinstance(d, dict):
@@ -163,7 +163,7 @@ class Request:
         else:
             return d
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         if self.request:
             return self.dict_to_obj(getattr(self.request, name))
         else:
@@ -174,6 +174,34 @@ class Request:
                     f"'Request' object has no attribute '{name}'"
                 ) from ke
             return self.dict_to_obj(obj)
+
+    def __getstate__(self) -> dict[str, Any]:
+        self.kwargs.update(
+            {
+                "headers": dict(getattr(self, "headers", {})),
+                "query_params": dict(getattr(self, "query_params", {})),
+                "cookies": dict(getattr(self, "cookies", {})),
+                "path_params": dict(getattr(self, "path_params", {})),
+                "client": {
+                    "host": getattr(self, "client", {}) and self.client.host,
+                    "port": getattr(self, "client", {}) and self.client.port,
+                },
+                "url": getattr(self, "url", ""),
+            }
+        )
+        if request_state := hasattr(self, "state"):
+            try:
+                pickle.dumps(request_state)
+                self.kwargs["request_state"] = request_state
+            except pickle.PicklingError:
+                pass
+        self.request = None
+        return self.__dict__
+
+    def __setstate__(self, state: dict[str, Any]):
+        if request_state := state.pop("request_state", None):
+            self.state = request_state
+        self.__dict__ = state
 
 
 class FnIndexInferError(Exception):
@@ -485,7 +513,7 @@ class GradioMultiPartParser:
         self.stream = stream
         self.max_files = max_files
         self.max_fields = max_fields
-        self.items: List[Tuple[str, Union[str, UploadFile]]] = []
+        self.items: list[tuple[str, Union[str, UploadFile]]] = []
         self.upload_id = upload_id
         self.upload_progress = upload_progress
         self._current_files = 0
@@ -495,9 +523,9 @@ class GradioMultiPartParser:
         self._current_partial_header_value: bytes = b""
         self._current_part = MultipartPart()
         self._charset = ""
-        self._file_parts_to_write: List[Tuple[MultipartPart, bytes]] = []
-        self._file_parts_to_finish: List[MultipartPart] = []
-        self._files_to_close_on_error: List[_TemporaryFileWrapper] = []
+        self._file_parts_to_write: list[tuple[MultipartPart, bytes]] = []
+        self._file_parts_to_finish: list[MultipartPart] = []
+        self._files_to_close_on_error: list[_TemporaryFileWrapper] = []
 
     def on_part_begin(self) -> None:
         self._current_part = MultipartPart()
@@ -646,7 +674,7 @@ class GradioMultiPartParser:
 
 
 def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
-    for file, dest in zip(files, destinations):
+    for file, dest in zip(files, destinations, strict=False):
         shutil.move(file, dest)
 
 
@@ -832,20 +860,15 @@ async def _delete_state(app: App):
 @asynccontextmanager
 async def _delete_state_handler(app: App):
     """When the server launches, regularly delete expired state."""
-    # The stop event needs to get the current event loop for python 3.8
-    # but the loop parameter is deprecated for 3.8+
-    if sys.version_info < (3, 10):
-        loop = asyncio.get_running_loop()
-        app.stop_event = asyncio.Event(loop=loop)
     asyncio.create_task(_delete_state(app))
     yield
 
 
 def create_lifespan_handler(
-    user_lifespan: Callable[[App], AsyncContextManager] | None,
+    user_lifespan: Callable[[App], AbstractAsyncContextManager] | None,
     frequency: int | None = 1,
     age: int | None = 1,
-) -> Callable[[App], AsyncContextManager]:
+) -> Callable[[App], AbstractAsyncContextManager]:
     """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
 
     @asynccontextmanager

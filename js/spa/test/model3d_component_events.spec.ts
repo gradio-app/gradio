@@ -1,4 +1,4 @@
-import { test, expect, drag_and_drop_file } from "@gradio/tootils";
+import { test, expect, drag_and_drop_file } from "@self/tootils";
 
 test("Model3D click-to-upload uploads file successfuly. Upload and clear events work correctly. Downloading works.", async ({
 	page

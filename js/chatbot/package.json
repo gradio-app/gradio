@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/chatbot",
-	"version": "0.12.4",
+	"version": "0.13.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -32,8 +32,15 @@
 	"main_changeset": true,
 	"main": "./Index.svelte",
 	"exports": {
-		".": "./Index.svelte",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
 	},
 	"repository": {
 		"type": "git",

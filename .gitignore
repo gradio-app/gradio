@@ -35,6 +35,7 @@ gradio/hash_seed.txt
 flagged/
 gradio_cached_examples/
 tmp.zip
+gradio/hash_seed.txt
 
 # Tests
 .coverage
@@ -84,6 +85,8 @@ test-results
 client/js/dist/*
 client/js/test.js
 .config/test.py
+.svelte-kit
+
 
 # storybook
 storybook-static

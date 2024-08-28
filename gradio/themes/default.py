@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
@@ -12,7 +12,7 @@ class Default(Base):
         *,
         primary_hue: colors.Color | str = colors.orange,
         secondary_hue: colors.Color | str = colors.blue,
-        neutral_hue: colors.Color | str = colors.gray,
+        neutral_hue: colors.Color | str = colors.zinc,
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
         text_size: sizes.Size | str = sizes.text_md,

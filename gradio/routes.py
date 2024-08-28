@@ -5,34 +5,25 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import math
-import sys
-import warnings
-
-if sys.version_info >= (3, 9):
-    from importlib.resources import files
-else:
-    from importlib_resources import files
 import hashlib
 import inspect
 import json
+import math
 import mimetypes
 import os
 import secrets
+import sys
 import time
 import traceback
+import warnings
+from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 from queue import Empty as EmptyQueue
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncIterator,
-    Callable,
-    Dict,
-    List,
     Literal,
     Optional,
-    Type,
     Union,
     cast,
 )
@@ -54,6 +45,7 @@ from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
+from importlib_resources import files
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -120,6 +112,17 @@ BUILD_PATH_LIB = cast(
     files("gradio").joinpath("templates", "frontend", "assets").as_posix(),  # type: ignore
 )
 VERSION = get_package_version()
+XSS_VULNERABLE_EXTENSIONS = [
+    ".html",
+    ".htm",
+    ".js",
+    ".php",
+    ".asp",
+    ".aspx",
+    ".jsp",
+    ".xml",
+    ".svg",
+]
 
 
 class ORJSONResponse(JSONResponse):
@@ -244,7 +247,7 @@ class App(FastAPI):
     @staticmethod
     def create_app(
         blocks: gradio.Blocks,
-        app_kwargs: Dict[str, Any] | None = None,
+        app_kwargs: dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         strict_cors: bool = True,
     ) -> App:
@@ -526,7 +529,10 @@ class App(FastAPI):
             except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err)) from err
             rp_resp = await client.send(rp_req, stream=True)
-            rp_resp.headers.update({"Content-Disposition": "attachment"})
+            file_extension = os.path.splitext(url_path)[1].lower()
+            if file_extension in XSS_VULNERABLE_EXTENSIONS:
+                rp_resp.headers.update({"Content-Disposition": "attachment"})
+                rp_resp.headers.update({"Content-Type": "application/octet-stream"})
             return StreamingResponse(
                 rp_resp.aiter_raw(),
                 status_code=rp_resp.status_code,
@@ -547,43 +553,30 @@ class App(FastAPI):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             abs_path = utils.abspath(path_or_url)
-
-            in_blocklist = any(
-                utils.is_in_or_equal(abs_path, blocked_path)
-                for blocked_path in blocks.blocked_paths
-            )
-
-            is_dir = abs_path.is_dir()
-
-            if is_dir or in_blocklist:
+            if abs_path.is_dir() or not abs_path.exists():
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            created_by_app = False
-            for temp_file_set in blocks.temp_file_sets:
-                if abs_path in temp_file_set:
-                    created_by_app = True
-                    break
-            in_allowlist = any(
-                utils.is_in_or_equal(abs_path, allowed_path)
-                for allowed_path in blocks.allowed_paths
-            )
-            is_static_file = utils.is_static_file(abs_path)
-            was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
-            is_cached_example = utils.is_in_or_equal(
-                abs_path, utils.abspath(utils.get_cache_folder())
-            )
+            from gradio.data_classes import _StaticFiles
 
-            if not (
-                created_by_app
-                or in_allowlist
-                or was_uploaded
-                or is_cached_example
-                or is_static_file
-            ):
+            allowed, _ = utils.is_allowed_file(
+                abs_path,
+                blocked_paths=blocks.blocked_paths,
+                allowed_paths=blocks.allowed_paths
+                + [app.uploaded_file_dir, utils.get_cache_folder()]
+                + _StaticFiles.all_paths,
+            )
+            if not allowed:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            if not abs_path.exists():
-                raise HTTPException(404, f"File not found: {path_or_url}.")
+            mime_type, _ = mimetypes.guess_type(abs_path)
+            file_extension = os.path.splitext(abs_path)[1].lower()
+
+            if file_extension in XSS_VULNERABLE_EXTENSIONS:
+                media_type = "application/octet-stream"
+                content_disposition_type = "attachment"
+            else:
+                media_type = mime_type or "application/octet-stream"
+                content_disposition_type = "inline"
 
             range_val = request.headers.get("Range", "").strip()
             if range_val.startswith("bytes=") and "-" in range_val:
@@ -593,7 +586,8 @@ class App(FastAPI):
                     start = int(start)
                     end = int(end)
                     headers = dict(request.headers)
-                    headers["Content-Disposition"] = "attachment"
+                    headers["Content-Disposition"] = content_disposition_type
+                    headers["Content-Type"] = media_type
                     response = ranged_response.RangedFileResponse(
                         abs_path,
                         ranged_response.OpenRange(start, end),
@@ -605,8 +599,9 @@ class App(FastAPI):
             return FileResponse(
                 abs_path,
                 headers={"Accept-Ranges": "bytes"},
-                content_disposition_type="attachment",
-                media_type="application/octet-stream",
+                content_disposition_type=content_disposition_type,
+                media_type=media_type,
+                filename=abs_path.name,
             )
 
         @app.post("/stream/{event_id}")
@@ -920,12 +915,13 @@ class App(FastAPI):
             event_id: str,
         ):
             def process_msg(message: EventMessage) -> str | None:
+                msg = message.model_dump()
                 if isinstance(message, ProcessCompletedMessage):
                     event = "complete" if message.success else "error"
-                    data = message.output.get("data")
+                    data = msg["output"].get("data")
                 elif isinstance(message, ProcessGeneratingMessage):
                     event = "generating" if message.success else "error"
-                    data = message.output.get("data")
+                    data = msg["output"].get("data")
                 elif isinstance(message, HeartbeatMessage):
                     event = "heartbeat"
                     data = None
@@ -1322,7 +1318,7 @@ def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     return str(fullpath)
 
 
-def get_types(cls_set: List[Type]):
+def get_types(cls_set: list[type]):
     docset = []
     types = []
     for cls in cls_set:

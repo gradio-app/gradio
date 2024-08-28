@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("updates frontend correctly", async ({ page }) => {
 	const short_btn = await page.getByLabel("short");

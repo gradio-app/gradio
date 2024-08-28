@@ -46,8 +46,9 @@ jobs:
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          always_install_pnpm: true
-      - name: install outbreak_forecast dependencies
+          python_version: "3.10"
+          test: true
+      - name: install dependencies for specific tests
         run: |
           . venv/bin/activate
           python -m pip install -r demo/outbreak_forecast/requirements.txt

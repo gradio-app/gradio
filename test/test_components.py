@@ -101,6 +101,11 @@ def test_constructor_args():
 
 
 def test_template_component_configs(io_components):
+    """
+    This test ensures that every "template" (the classes defined in gradio/template.py)
+    has all of the arguments that its parent class has. E.g. the constructor of the `Sketchpad`
+    class should have all of the arguments that the constructor of `ImageEditor` has
+    """
     template_components = [c for c in io_components if getattr(c, "is_template", False)]
     for component in template_components:
         component_parent_class = inspect.getmro(component)[1]

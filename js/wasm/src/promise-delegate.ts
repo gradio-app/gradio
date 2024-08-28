@@ -1,9 +1,9 @@
 type PromiseImplFn<T> = ConstructorParameters<typeof Promise<T>>[0];
 
 export class PromiseDelegate<T> {
-	private promiseInternal: Promise<T>;
-	private resolveInternal!: Parameters<PromiseImplFn<T>>[0];
-	private rejectInternal!: Parameters<PromiseImplFn<T>>[1];
+	promiseInternal: Promise<T>;
+	resolveInternal!: Parameters<PromiseImplFn<T>>[0];
+	rejectInternal!: Parameters<PromiseImplFn<T>>[1];
 
 	constructor() {
 		this.promiseInternal = new Promise((resolve, reject) => {

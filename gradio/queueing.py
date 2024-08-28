@@ -9,10 +9,9 @@ import traceback
 import uuid
 from collections import defaultdict
 from queue import Queue as ThreadQueue
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 import fastapi
-from typing_extensions import Literal
 
 from gradio import route_utils, routes
 from gradio.data_classes import (
@@ -540,7 +539,7 @@ class Queue:
         events: list[Event], timeouts: list[float]
     ) -> tuple[list[Event], list[Event]]:
         tasks = []
-        for event, timeout in zip(events, timeouts):
+        for event, timeout in zip(events, timeouts, strict=False):
             tasks.append(
                 asyncio.create_task(Queue.wait_for_event_or_timeout(event, timeout))
             )
@@ -551,7 +550,7 @@ class Queue:
         done = [d.result() for d in done]
         awake_events = []
         closed_events = []
-        for result, event in zip(done, events):
+        for result, event in zip(done, events, strict=False):
             if result == "signal":
                 awake_events.append(event)
             else:
@@ -592,7 +591,10 @@ class Queue:
 
             if batch:
                 body.data = list(
-                    zip(*[event.data.data for event in events if event.data])
+                    zip(
+                        *[event.data.data for event in events if event.data],
+                        strict=False,
+                    )
                 )
                 body.request = events[0].request
                 body.batched = True
@@ -687,7 +689,12 @@ class Queue:
                         if batch:
                             body.data = list(
                                 zip(
-                                    *[event.data.data for event in events if event.data]
+                                    *[
+                                        event.data.data
+                                        for event in events
+                                        if event.data
+                                    ],
+                                    strict=False,
                                 )
                             )
                         response = await route_utils.call_process_api(
@@ -723,7 +730,9 @@ class Queue:
                 output = copy.deepcopy(response)
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
-                        output["data"] = list(zip(*response.get("data")))[e]
+                        output["data"] = list(zip(*response.get("data"), strict=False))[
+                            e
+                        ]
                     success = response is not None
                     self.send_message(
                         event,

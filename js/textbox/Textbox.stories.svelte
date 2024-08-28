@@ -48,6 +48,10 @@
 			description: "Whether to render right-to-left",
 			control: { type: "boolean" },
 			defaultValue: false
+		},
+		max_length: {
+			description: "The maximum number of characters allowed in the textbox",
+			control: { type: "number" }
 		}
 	}}
 />

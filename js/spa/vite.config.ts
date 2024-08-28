@@ -53,7 +53,7 @@ import {
 	inject_component_loader,
 	resolve_svelte,
 	mock_modules
-} from "@gradio/build";
+} from "@self/build";
 
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
 const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
@@ -141,6 +141,9 @@ export default defineConfig(({ mode }) => {
 		],
 		optimizeDeps: {
 			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
+		},
+		resolve: {
+			conditions: ["gradio"]
 		},
 		test: {
 			setupFiles: [resolve(__dirname, "../../.config/setup_vite_tests.ts")],
