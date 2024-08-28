@@ -50,6 +50,9 @@
 		error: string;
 		like: LikeData;
 		clear_status: LoadingStatus;
+		retry: null;
+		undo: null;
+		clear: null;
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 

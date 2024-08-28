@@ -44,7 +44,7 @@
 	export let transforms: "crop"[] = ["crop"];
 	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
-	export let status: "pending" | "complete" | "error" = "complete";
+	export let status: "pending" | "complete" | "error" | "generating" | "streaming" = "complete";
 	export let canvas_size: [number, number] | undefined;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
