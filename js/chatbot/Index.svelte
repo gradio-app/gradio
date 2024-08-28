@@ -118,7 +118,8 @@
 			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
-			on:suggestion_select={(e) => gradio.dispatch("suggestion_select", e.detail)}
+			on:suggestion_select={(e) =>
+				gradio.dispatch("suggestion_select", e.detail)}
 			{avatar_images}
 			{sanitize_html}
 			{bubble_full_width}

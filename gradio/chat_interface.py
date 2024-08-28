@@ -32,8 +32,7 @@ from gradio.components.chatbot import (
     TupleFormat,
 )
 from gradio.components.multimodal_textbox import MultimodalData
-from gradio.events import Dependency, on
-from gradio.helpers import create_examples as Examples  # noqa: N812
+from gradio.events import Dependency, SelectData, on
 from gradio.helpers import special_args
 from gradio.layouts import Accordion, Group, Row
 from gradio.routes import Request
@@ -71,7 +70,8 @@ class ChatInterface(Blocks):
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
-        suggestions: list[SuggestionMessage] | None = None,
+        cache_examples: bool | Literal["lazy"] | None = None,
+        examples: list[SuggestionMessage] | None = None,
         title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
@@ -99,7 +99,8 @@ class ChatInterface(Blocks):
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
-            suggestions: A list of suggestion messages to display in the chatbot. The `main_text` field is required, and the `additional_input` field is optional. The `additional_input` field can be a string or a `FileMessage` object.
+            cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            examples: A list of examples messages to display in the chatbot. The `main_text` field is required, and the `additional_input` field is optional. The `additional_input` field can be a string or a `FileMessage` object.
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
@@ -143,8 +144,10 @@ class ChatInterface(Blocks):
         ) or inspect.isasyncgenfunction(self.fn)
         self.buttons: list[Button | None] = []
 
-        self.suggestions = suggestions
+        self.examples = examples
 
+        if cache_examples is not None:
+            raise NotImplementedError()
         if additional_inputs:
             if not isinstance(additional_inputs, list):
                 additional_inputs = [additional_inputs]
@@ -196,7 +199,7 @@ class ChatInterface(Blocks):
                     scale=1,
                     height=200 if fill_height else None,
                     type=self.type,
-                    suggestions=self.suggestions,
+                    suggestions=self.examples,
                 )
 
             with Row():
@@ -342,6 +345,21 @@ class ChatInterface(Blocks):
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
             )
+        )
+
+        self.chatbot.suggestion_select(
+            self._examples_fn, [self.chatbot], [self.chatbot]
+        ).then(
+            submit_fn,
+            [self.saved_input, self.chatbot],
+            [self.chatbot],
+            show_api=False,
+            concurrency_limit=cast(
+                Union[int, Literal["default"], None], self.concurrency_limit
+            ),
+            show_progress=cast(
+                Literal["full", "minimal", "hidden"], self.show_progress
+            ),
         )
         self._setup_stop_events(submit_triggers, submit_event)
 
@@ -596,7 +614,6 @@ class ChatInterface(Blocks):
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-
         self._append_history(history_with_input, response)
 
         return history_with_input  # type: ignore
@@ -632,21 +649,12 @@ class ChatInterface(Blocks):
             self._append_history(history_with_input, response, first_response=False)
             yield history_with_input
 
-    async def _examples_fn(
-        self, message: str, *args
-    ) -> TupleFormat | list[MessageDict]:
-        inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
-
-        if self.is_async:
-            response = await self.fn(*inputs)
-        else:
-            response = await anyio.to_thread.run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
-        if self.type == "tuples":
-            return [[message, response]]
-        else:
-            return [{"role": "user", "content": message}, response]
+    async def _examples_fn(self, x: SelectData, history):
+        message = MultimodalData(**cast(dict, x.value))
+        self.saved_input.value = message
+        if self.multimodal:
+            self._append_multimodal_history(message, None, history)
+        return history
 
     async def _examples_stream_fn(
         self,
