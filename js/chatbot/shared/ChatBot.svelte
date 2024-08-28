@@ -712,12 +712,16 @@
 	.button-row {
 		display: flex;
 		position: absolute;
-		top: var(--size-1);
 		right: var(--size-4);
 		align-items: center;
 		justify-content: space-evenly;
 		gap: var(--spacing-md);
 		z-index: 1;
+		padding-left: var(--size-2);
+		background: var(--block-label-background-fill);
+		border-radius: var(--radius-md);
+		box-shadow: var(--block-label-shadow);
+		padding-top: var(--size-1);
 	}
 
 	.selectable {

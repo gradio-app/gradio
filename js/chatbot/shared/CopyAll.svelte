@@ -62,12 +62,12 @@
 	button {
 		display: flex;
 		align-items: center;
-		box-shadow: var(--shadow-drop);
 		padding: var(--spacing-sm);
 		width: var(--size-6);
 		height: var(--size-6);
 		overflow: hidden;
 		color: var(--body-text-color-subdued);
+		padding-top: var(--size-1);
 	}
 
 	button:hover {
