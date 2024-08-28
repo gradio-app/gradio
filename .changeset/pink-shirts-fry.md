@@ -1,5 +1,4 @@
 ---
-"@gradio/column": minor
 "@gradio/lite": minor
 "@gradio/theme": minor
 "@self/cdn-test": minor
