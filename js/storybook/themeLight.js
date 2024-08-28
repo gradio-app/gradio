@@ -8,7 +8,7 @@ export default create({
 	brandImage: Logo,
 	brandTarget: "_blank",
 
-	fontBase: '"Source Sans Pro", sans-serif',
+	fontBase: '"Asap", sans-serif',
 	fontCode: "monospace",
 
 	// theme colours

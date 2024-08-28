@@ -156,7 +156,7 @@ You could also create your own custom `Size` objects and pass them in.
 
 The final 2 constructor arguments set the fonts of the theme. You can pass a list of fonts to each of these arguments to specify fallbacks. If you provide a string, it will be loaded as a system font. If you provide a `gradio.themes.GoogleFont`, the font will be loaded from Google Fonts.
 
-- `font`: This sets the primary font of the theme. In the default theme, this is set to `gradio.themes.GoogleFont("Source Sans Pro")`.
+- `font`: This sets the primary font of the theme. In the default theme, this is set to `gradio.themes.GoogleFont("Asap")`.
 - `font_mono`: This sets the monospace font of the theme. In the default theme, this is set to `gradio.themes.GoogleFont("IBM Plex Mono")`.
 
 You could modify these values such as the following:
