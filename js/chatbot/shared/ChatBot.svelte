@@ -718,10 +718,12 @@
 		gap: var(--spacing-md);
 		z-index: 1;
 		padding-left: var(--size-2);
+		padding-right: var(--size-2);
 		background: var(--block-label-background-fill);
 		border-radius: var(--radius-md);
 		box-shadow: var(--block-label-shadow);
 		padding-top: var(--size-1);
+		padding-bottom: var(--size-1);
 	}
 
 	.selectable {
