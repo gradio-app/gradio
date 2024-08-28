@@ -20,7 +20,7 @@ $ pip install --upgrade gradio
 
 ## Defining a chat function
 
-When working with `gr.ChatInterface()`, the first thing you should do is define your chat function. Your chat function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order).
+When working with `gr.ChatInterface()`, the first thing you should do is define your chat function. Your chat function should take two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
 
 - `message`: a `str` representing the user's input.
 - `history`: If you set type="messages" in gr.ChatInterface, the history will be a list of dictionaries with `role` and `content` keys. Please see the chatbot [docs](/docs/gradio/chatbot) for an in-depth explanation of the chatbot format. 
@@ -37,7 +37,7 @@ Here is an example value of the `history`:
 
 Your function should return a single string response, which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
 
-Tip: It's strongly recommended to set type="messages" in `gr.ChatInterface`. Setting type="tuples" is deprecated and will be removed in Gradi 6.0.
+Tip: It's strongly recommended to set type="messages" in gr.ChatInterface. Setting type="tuples" is deprecated and will be removed in the next version of Gradio.
 
 Let's take a look at a few example applications.
 
@@ -59,7 +59,7 @@ Now, we can plug this into `gr.ChatInterface()` and call the `.launch()` method 
 ```python
 import gradio as gr
 
-gr.ChatInterface(random_response).launch()
+gr.ChatInterface(random_response, type="messages").launch()
 ```
 
 That's it! Here's our running demo, try it out:

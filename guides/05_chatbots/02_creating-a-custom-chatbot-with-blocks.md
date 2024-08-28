@@ -16,7 +16,7 @@ You can [read the Guide to Blocks first](https://gradio.app/blocks-and-event-lis
 
 ## A Simple Chatbot Demo
 
-Let's start with recreating the simple demo above. As you may have noticed, our bot simply randomly responds "How are you?", "I love you", or "I'm very hungry" to any input. Here's the code to create this with Gradio:
+Let's start with recreating the simple demo above. As you may have noticed, our bot simply randomly responds "How are you?", "Today is a great day", or "I'm very hungry" to any input. Here's the code to create this with Gradio:
 
 $code_chatbot_simple
 
@@ -49,13 +49,12 @@ There are several ways we can improve the user experience of the chatbot above. 
 
 $code_chatbot_streaming
 
-You'll notice that when a user submits their message, we now _chain_ three event events with `.then()`:
+You'll notice that when a user submits their message, we now _chain_ two event events with `.then()`:
 
-1. The first method `user()` updates the chatbot with the user message and clears the input field. This method also makes the input field non interactive so that the user can't send another message while the chatbot is responding. Because we want this to happen instantly, we set `queue=False`, which would skip any queue had it been enabled. The chatbot's history is appended with `{"role": "user", "content": user_message}`.
+1. The first method `user()` updates the chatbot with the user message and clears the input field. Because we want this to happen instantly, we set `queue=False`, which would skip any queue had it been enabled. The chatbot's history is appended with `{"role": "user", "content": user_message}`.
 
 2. The second method, `bot()` updates the chatbot history with the bot's response. Finally, we construct the message character by character and `yield` the intermediate outputs as they are being constructed. Gradio automatically turns any function with the `yield` keyword [into a streaming output interface](/guides/key-features/#iterative-outputs).
 
-3. The third method makes the input field interactive again so that users can send another message to the bot.
 
 Of course, in practice, you would replace `bot()` with your own more complex function, which might call a pretrained model or an API, to generate a response.
 
@@ -102,7 +101,7 @@ def bot(history):
     return history
 ```
 
-In addition, it can handle media files, such as images, audio, and video. You can use the `MultimodalTextbox` component to easily upload all types of media files to your chatbot. To pass in a media file, we must pass in the file as a tuple of two strings, like this: `(filepath, alt_text)`. The `alt_text` is optional, so you can also just pass in a tuple with a single element `(filepath,)`, like this:
+In addition, it can handle media files, such as images, audio, and video. You can use the `MultimodalTextbox` component to easily upload all types of media files to your chatbot. To pass in a media file, we must pass in the file a dictionary with a `path` key pointing to a local file and an `alt_text` key.. The `alt_text` is optional, so you can also just pass in a tuple with a single element `{"path": "filepath"}`, like this:
 
 ```python
 def add_message(history, message):
