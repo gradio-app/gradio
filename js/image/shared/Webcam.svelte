@@ -30,6 +30,7 @@
 		if (state === "closed") {
 			time_limit = null;
 			stream_state = "closed";
+			value = null;
 		} else if (state === "waiting") {
 			stream_state = "waiting";
 		} else {
@@ -52,6 +53,7 @@
 	export let include_audio: boolean;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
+	export let value: FileData | null = null;
 
 	const dispatch = createEventDispatcher<{
 		stream: undefined;
@@ -142,7 +144,7 @@
 
 			canvas.toBlob(
 				(blob) => {
-					dispatch("capture", blob);
+					dispatch(streaming ? "stream" : "capture", blob);
 				},
 				`image/${streaming ? "jpeg" : "png"}`,
 				0.8
@@ -168,10 +170,10 @@
 						"sample." + mimeType.substring(6)
 					);
 					const val = await prepare_files([_video_blob]);
-					let value = (
+					let val_ = (
 						(await upload(val, root))?.filter(Boolean) as FileData[]
 					)[0];
-					dispatch("capture", value);
+					dispatch("capture", val_);
 					dispatch("stop_recording");
 				}
 			};
@@ -217,6 +219,10 @@
 			stream.getTracks().forEach((track) => track.stop());
 			video_source.srcObject = null;
 			webcam_accessed = false;
+			window.setTimeout(() => {
+				value = null;
+			}, 500);
+			value = null;
 		}
 	}
 
@@ -264,7 +270,12 @@
 	<video
 		bind:this={video_source}
 		class:flip={mirror_webcam}
-		class:hide={!webcam_accessed}
+		class:hide={!webcam_accessed || (webcam_accessed && !!value)}
+	/>
+	<!-- svelte-ignore a11y-missing-attribute -->
+	<img
+		src={value?.url}
+		class:hide={!webcam_accessed || (webcam_accessed && !value)}
 	/>
 	{#if !webcam_accessed}
 		<div
