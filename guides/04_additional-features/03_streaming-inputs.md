@@ -5,6 +5,7 @@ In the previous guide, we covered how to stream a sequence of outputs from an ev
 Currently, the `gr.Image` and the `gr.Audio` components support input streaming via the `stream` event.
 Let's create the simplest streaming app possible, which simply returns the webcam stream unmodified.
 
+$code_streaming_filter_unified
 $demo_streaming_simple
 
 Try it out! The streaming event is triggered when the user starts recording. Under the hood, the webcam will take a photo every 0.1 seconds and send it to the server. The server will then return that image.
@@ -19,6 +20,7 @@ There are two unique keyword arguments for the `stream` event:
 
 Let's create a demo where a user can choose a filter to apply to their webcam stream. Users can choose from an edge-detection filter, a cartoon filter, or simply flipping the stream vertically.
 
+$code_streaming_filter_unified
 $demo_streaming_filter
 
 You will notice that if you change the filter value it will immediately take effect in the output stream. That is an important difference of stream events in comparison to other Gradio events. The input values of the stream can be changed while the stream is being processed. 
@@ -29,6 +31,7 @@ For some image streaming demos, like the one above, we don't need to display sep
 
 We can do so by just specifying the input image component as the output of the stream event.
 
+$code_streaming_filter_unified
 $demo_streaming_filter_unified
 
 ## Keeping track of past inputs or outputs
