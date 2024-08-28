@@ -352,7 +352,7 @@ class Base(ThemeClass):
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Source Sans Pro"),
+            fonts.GoogleFont("Asap"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
