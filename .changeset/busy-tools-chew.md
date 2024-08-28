@@ -1,5 +1,6 @@
 ---
 "@gradio/chatbot": minor
+"@gradio/statustracker": minor
 "gradio": minor
 ---
 
