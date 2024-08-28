@@ -1,0 +1,94 @@
+diff --git a/src/cli.js b/src/cli.js
+index 4833dc489359f2fba202668672f3cd8e09c427d5..7aa312f3677b73dbdfd4d0f1bb2b66bd17346cb3 100644
+--- a/src/cli.js
++++ b/src/cli.js
+@@ -28,9 +28,10 @@ prog
+ 		'--tsconfig',
+ 		'A path to a tsconfig or jsconfig file. When not provided, searches for the next upper tsconfig/jsconfig in the workspace path.'
+ 	)
++	.option('-c, --cwd', 'The current working directory')
+ 	.action(async (args) => {
+ 		try {
+-			const config = await load_config();
++			const config = await load_config({cwd: args.cwd});
+ 
+ 			// @ts-expect-error
+ 			if (config.package) {
+diff --git a/src/index.js b/src/index.js
+index a6cbda297cbb23329ceb669942fdba0e7e1c274c..1e813b042739f565829bed56347a44e9c62121eb 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -28,27 +28,47 @@ async function do_build(options, analyse_code) {
+ 		throw new Error(`${path.relative('.', input)} does not exist`);
+ 	}
+ 
++	const tmp_input = path.join(input, 'tmp_input')
++
+ 	rimraf(temp);
++	rimraf(tmp_input)
+ 	mkdirp(temp);
+-
+-	const files = scan(input, extensions);
++	mkdirp(tmp_input)
++	copy(input, tmp_input, {
++		filter: (p) => 
++			!p.includes('node_modules') && 
++			!p.includes('dist') && 
++			!p.includes('tmp_input') && 
++			!p.includes('public') &&
++			!p.endsWith('.stories.svelte') && 
++			!p.endsWith('.test.ts') && 
++			!p.endsWith('.spec.ts') && 
++			!p.endsWith('.md') &&
++			!p.endsWith('package.json') &&
++			!p.endsWith('.gitignore') &&
++			!p.endsWith('.svelte-kit')
++	})
++
++	const files = scan(tmp_input, extensions);
+ 
+ 	if (options.types) {
+-		await emit_dts(input, temp, options.cwd, alias, files);
++		await emit_dts(tmp_input, temp, options.cwd, alias, files);
+ 	}
+ 
+ 	for (const file of files) {
+-		await process_file(input, temp, file, options.config.preprocess, alias, tsconfig, analyse_code);
++		await process_file(tmp_input, temp, file, options.config.preprocess, alias, tsconfig, analyse_code);
+ 	}
+ 
+ 	rimraf(output);
+ 	mkdirp(output);
+ 	copy(temp, output);
++	rimraf(path.join(temp, ".."))
++	rimraf(tmp_input)
+ 
+ 	console.log(
+ 		colors
+ 			.bold()
+-			.green(`${path.relative(options.cwd, input)} -> ${path.relative(options.cwd, output)}`)
++			.green(`${path.relative(path.join(options.cwd, "..", ".."), input)} -> ${path.relative(options.cwd, output)}`)
+ 	);
+ }
+ 
+diff --git a/src/typescript.js b/src/typescript.js
+index 810871d5015257f05199192ed275f051492ca923..53d3c2516086cca5285858c6113a81d885dfebdc 100644
+--- a/src/typescript.js
++++ b/src/typescript.js
+@@ -20,6 +20,7 @@ import { load_pkg_json } from './config.js';
+  */
+ export async function emit_dts(input, output, cwd, alias, files) {
+ 	const tmp = `${output}/__package_types_tmp__`;
++	const root = path.resolve(cwd, "..", "..")
+ 	rimraf(tmp);
+ 	mkdirp(tmp);
+ 
+@@ -32,7 +33,7 @@ export async function emit_dts(input, output, cwd, alias, files) {
+ 		svelteShimsPath: no_svelte_3
+ 			? require.resolve('svelte2tsx/svelte-shims-v4.d.ts')
+ 			: require.resolve('svelte2tsx/svelte-shims.d.ts'),
+-		declarationDir: path.relative(cwd, tmp)
++		declarationDir: path.relative(root, tmp)
+ 	});
+ 
+ 	const handwritten = new Set();

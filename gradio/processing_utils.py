@@ -10,11 +10,13 @@ import shutil
 import socket
 import subprocess
 import tempfile
+import urllib.request
 import warnings
+from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 import aiofiles
 import httpx
@@ -23,8 +25,9 @@ from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
 from gradio import utils, wasm_utils
+from gradio.context import LocalContext
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
-from gradio.exceptions import Error
+from gradio.exceptions import Error, InvalidPathError
 from gradio.utils import abspath, get_hash_seed, get_upload_folder, is_in_or_equal
 
 with warnings.catch_warnings():
@@ -270,36 +273,71 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
     return full_temp_file_path
 
 
-def check_public_url(url: str):
+@lru_cache(maxsize=256)
+def resolve_with_google_dns(hostname: str) -> str | None:
+    url = f"https://dns.google/resolve?name={hostname}&type=A"
+
+    with urllib.request.urlopen(url) as response:
+        data = json.loads(response.read().decode())
+
+    if data.get("Status") == 0 and "Answer" in data:
+        for answer in data["Answer"]:
+            if answer["type"] == 1:
+                return answer["data"]
+
+
+# Always return these URLs as is, without checking to see if they resolve
+# to an internal IP address. This is because Hugging Face uses DNS splitting,
+# which means that requests from HF Spaces to HF Datasets or HF Models
+# may resolve to internal IP addresses even if they are publicly accessible.
+PUBLIC_URL_WHITELIST = ["hf.co", "huggingface.co"]
+
+
+def get_public_url(url: str) -> str:
     parsed_url = urlparse(url)
     if parsed_url.scheme not in ["http", "https"]:
-        raise httpx.RequestError(f"Invalid URL: {url}")
+        raise httpx.RequestError(f"Invalid scheme for URL: {url}")
     hostname = parsed_url.hostname
     if not hostname:
-        raise httpx.RequestError(f"Invalid URL: {url}")
+        raise httpx.RequestError(f"Invalid URL: {url}, missing hostname")
+    if hostname.lower() in PUBLIC_URL_WHITELIST:
+        return url
 
     try:
         addrinfo = socket.getaddrinfo(hostname, None)
-    except socket.gaierror:
-        raise httpx.RequestError(f"Cannot resolve hostname: {hostname}") from None
+    except socket.gaierror as e:
+        raise httpx.RequestError(
+            f"Cannot resolve URL with hostname: {hostname}, please download this file and use the path instead."
+        ) from e
 
     for family, _, _, _, sockaddr in addrinfo:
         ip = sockaddr[0]
         if family == socket.AF_INET6:
             ip = ip.split("%")[0]  # Remove scope ID if present
 
-        if not ipaddress.ip_address(ip).is_global:
-            raise httpx.RequestError(
-                f"Non-public IP address found: {ip} for URL: {url}"
-            )
+        if ipaddress.ip_address(ip).is_global:
+            return url
 
-    return True
+    google_resolved_ip = resolve_with_google_dns(hostname)
+    if google_resolved_ip and ipaddress.ip_address(google_resolved_ip).is_global:
+        if parsed_url.scheme == "https":
+            return url
+        new_parsed = parsed_url._replace(netloc=google_resolved_ip)
+        if parsed_url.port:
+            new_parsed = new_parsed._replace(
+                netloc=f"{google_resolved_ip}:{parsed_url.port}"
+            )
+        return urlunparse(new_parsed)
+
+    raise httpx.RequestError(
+        f"No public IP address found for URL: {url}, please download this file and use the path instead."
+    )
 
 
 def save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already
     exist. Otherwise returns the path to the existing temp file."""
-    check_public_url(url)
+    url = get_public_url(url)
 
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
@@ -308,11 +346,12 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        with sync_client.stream("GET", url, follow_redirects=True) as response, open(
-            full_temp_file_path, "wb"
-        ) as f:
+        with (
+            sync_client.stream("GET", url, follow_redirects=True) as response,
+            open(full_temp_file_path, "wb") as f,
+        ):
             for redirect in response.history:
-                check_public_url(str(redirect.url))
+                get_public_url(str(redirect.url))
 
             for chunk in response.iter_raw():
                 f.write(chunk)
@@ -323,7 +362,7 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
 async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already
     exist. Otherwise returns the path to the existing temp file. Uses async httpx."""
-    check_public_url(url)
+    url = get_public_url(url)
 
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
@@ -334,7 +373,7 @@ async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     if not Path(full_temp_file_path).exists():
         async with async_client.stream("GET", url, follow_redirects=True) as response:
             for redirect in response.history:
-                check_public_url(str(redirect.url))
+                get_public_url(str(redirect.url))
 
             async with aiofiles.open(full_temp_file_path, "wb") as f:
                 async for chunk in response.aiter_raw():
@@ -426,14 +465,8 @@ def move_files_to_cache(
             pass
         elif not block.proxy_url:
             # If the file is on a remote server, do not move it to cache.
-            if check_in_upload_folder and not client_utils.is_http_url_like(
-                payload.path
-            ):
-                path = os.path.abspath(payload.path)
-                if not is_in_or_equal(path, get_upload_folder()):
-                    raise ValueError(
-                        f"File {path} is not in the upload folder and cannot be accessed."
-                    )
+            if not client_utils.is_http_url_like(payload.path):
+                _check_allowed(payload.path, check_in_upload_folder)
             if not payload.is_stream:
                 temp_file_path = block.move_resource_to_block_cache(payload.path)
                 if temp_file_path is None:
@@ -460,6 +493,52 @@ def move_files_to_cache(
         data = data.model_dump()
 
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
+
+
+def _check_allowed(path: str | Path, check_in_upload_folder: bool):
+    blocks = LocalContext.blocks.get()
+    if blocks is None or not blocks.is_running:
+        return
+
+    abs_path = utils.abspath(path)
+
+    # if check_in_upload_folder=True
+    # we are running this during pre-process
+    # in which case only files in the upload_folder (cache_dir)
+    # are accepted
+    allowed = [utils.get_upload_folder()]
+    if not check_in_upload_folder:
+        allowed += blocks.allowed_paths + [os.getcwd(), tempfile.gettempdir()]
+
+    allowed, reason = utils.is_allowed_file(
+        abs_path,
+        blocked_paths=blocks.blocked_paths,
+        allowed_paths=allowed,
+    )
+    if not allowed:
+        msg = f"Cannot move {abs_path} to the gradio cache dir because "
+        if reason == "in_blocklist":
+            msg += f"it is located in one of the blocked_paths ({', '.join(blocks.blocked_paths)})."
+        elif check_in_upload_folder:
+            msg += "it was not uploaded by a user."
+        else:
+            msg += "it was not created by the application or it is not "
+            msg += "located in either the current working directory or your system's temp directory. "
+            msg += "To fix this error, please ensure your function returns files located in either "
+            msg += f"the current working directory ({os.getcwd()}), your system's temp directory ({tempfile.gettempdir()}) "
+            msg += f"or add {str(abs_path.parent)} to the allowed_paths parameter of launch()."
+        raise InvalidPathError(msg)
+    if (
+        utils.is_in_or_equal(abs_path, os.getcwd())
+        and abs_path.name.startswith(".")
+        and not any(
+            is_in_or_equal(path, allowed_path) for allowed_path in blocks.allowed_paths
+        )
+    ):
+        raise InvalidPathError(
+            "Dotfiles located in the temporary directory cannot be moved to the cache for security reasons. "
+            "If you'd like to specifically allow this file to be served, you can add it to the allowed_paths parameter of launch()."
+        )
 
 
 async def async_move_files_to_cache(
@@ -494,14 +573,8 @@ async def async_move_files_to_cache(
             pass
         elif not block.proxy_url:
             # If the file is on a remote server, do not move it to cache.
-            if check_in_upload_folder and not client_utils.is_http_url_like(
-                payload.path
-            ):
-                path = os.path.abspath(payload.path)
-                if not is_in_or_equal(path, get_upload_folder()):
-                    raise ValueError(
-                        f"File {path} is not in the upload folder and cannot be accessed."
-                    )
+            if not client_utils.is_http_url_like(payload.path):
+                _check_allowed(payload.path, check_in_upload_folder)
             if not payload.is_stream:
                 temp_file_path = await block.async_move_resource_to_block_cache(
                     payload.path
@@ -592,6 +665,12 @@ def audio_from_file(
             else ""
         )
         raise RuntimeError(msg) from e
+    except OSError as e:
+        if wasm_utils.IS_WASM:
+            raise wasm_utils.WasmUnsupportedError(
+                "Audio format conversion is not supported in the Wasm mode."
+            ) from e
+        raise e
     if crop_min != 0 or crop_max != 100:
         audio_start = len(audio) * crop_min / 100
         audio_end = len(audio) * crop_max / 100
@@ -605,6 +684,10 @@ def audio_from_file(
 def audio_to_file(sample_rate, data, filename, format="wav"):
     if format == "wav":
         data = convert_to_16_bit_wav(data)
+    elif wasm_utils.IS_WASM:
+        raise wasm_utils.WasmUnsupportedError(
+            "Audio formats other than .wav are not supported in the Wasm mode."
+        )
     audio = AudioSegment(
         data.tobytes(),
         frame_rate=sample_rate,

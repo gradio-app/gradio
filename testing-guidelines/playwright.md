@@ -98,6 +98,6 @@ npx playwright codegen <url>
 
 This will open up a Chromium session where each interaction with the page will be converted into a playwright accessor.
 
-NOTE: Only copy the `test("test-name", ....)` not the imports. For playwright to work when running in the gradio CI, `test` and `expect` need to be imported from `@gradio/tootils`.
+NOTE: Only copy the `test("test-name", ....)` not the imports. For playwright to work when running in the gradio CI, `test` and `expect` need to be imported from `@self/tootils`.
 
 ![code_gen_demo](https://github.com/gradio-app/gradio/assets/41651716/96003fba-d17c-46b9-9c6d-35218fbdfb6f)

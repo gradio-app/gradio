@@ -1,6 +1,5 @@
 import os
 import threading
-from typing import Dict
 
 import httpx
 
@@ -28,7 +27,7 @@ en = {
 }
 
 
-def get_updated_messaging(en: Dict):
+def get_updated_messaging(en: dict):
     try:
         updated_messaging = httpx.get(MESSAGING_API_ENDPOINT, timeout=3).json()
         en.update(updated_messaging)

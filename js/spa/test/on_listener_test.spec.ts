@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("On listener works.", async ({ page }) => {
 	const name_box = await page.locator("textarea").nth(0);

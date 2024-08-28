@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 import { chromium } from "playwright";
 // we cannot currently test the waveform canvas with playwright (https://github.com/microsoft/playwright/issues/23964)
 // so this test covers the interactive elements around the waveform canvas

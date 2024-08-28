@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Payload, Dependency } from "../types";
-	import Button from "../../../button/shared/Button.svelte";
+	import { BaseButton as Button } from "@gradio/button";
 
 	export let api_calls: Payload[] = [];
 	export let dependencies: Dependency[];

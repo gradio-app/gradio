@@ -46,7 +46,6 @@ jobs:
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
         with:
-          always_install_pnpm: true
           skip_build: true
       - name: build client
         run: pnpm --filter @gradio/client --filter @gradio/wasm --filter @gradio/preview build

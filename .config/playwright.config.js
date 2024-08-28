@@ -14,8 +14,8 @@ const base = defineConfig({
 			]
 		}
 	},
-	expect: { timeout: 15000 },
-	timeout: 30000,
+	expect: { timeout: 10000 },
+	timeout: 10000,
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined,

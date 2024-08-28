@@ -247,6 +247,7 @@ export function handle_message(
 		| "unexpected_error";
 	data?: any;
 	status?: Status;
+	original_msg?: string;
 } {
 	const queue = true;
 	switch (data.msg) {
@@ -373,7 +374,8 @@ export function handle_message(
 					position: 0,
 					success: data.success,
 					eta: data.eta
-				}
+				},
+				original_msg: "process_starts"
 			};
 	}
 

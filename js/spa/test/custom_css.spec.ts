@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("renders the correct elements", async ({ page }) => {
 	await expect(page.getByTestId("markdown")).toHaveCount(2);
@@ -66,6 +66,6 @@ test(".dark styles are applied corrently", async ({ page }) => {
 	);
 	await expect(page.locator(".darktest h3")).toHaveCSS(
 		"color",
-		"rgb(31, 41, 55)"
+		"rgb(39, 39, 42)"
 	);
 });
