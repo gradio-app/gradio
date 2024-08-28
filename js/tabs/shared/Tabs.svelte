@@ -74,14 +74,22 @@
 
 	function change_tab(id: object | string | number): void {
 		const tab_to_activate = tabs.find((t) => t.id === id);
-		if (tab_to_activate?.interactive && tab_to_activate.visible) {
+		if (
+			tab_to_activate &&
+			tab_to_activate.interactive &&
+			tab_to_activate.visible
+		) {
 			selected = id;
 			$selected_tab = id;
 			$selected_tab_index = tabs.findIndex((t) => t.id === id);
 			dispatch("change");
 			overflow_menu_open = false;
+		} else {
+			console.warn("Attempted to select a non-interactive or hidden tab.");
 		}
 	}
+
+	$: tabs, selected !== null && change_tab(selected);
 
 	onMount(() => {
 		handle_menu_overflow();
@@ -168,7 +176,7 @@
 			</div>
 			<span
 				class="overflow-menu"
-				class:hidden={!is_overflowing}
+				class:hide={!is_overflowing}
 				bind:this={overflow_menu}
 			>
 				<button
@@ -180,7 +188,7 @@
 				<div
 					class="overflow-dropdown"
 					bind:this={overflow_nav}
-					class:hidden={!overflow_menu_open}
+					class:hide={!overflow_menu_open}
 				>
 					{#each overflow_tabs as t}
 						<button
@@ -209,6 +217,10 @@
 <style>
 	.tabs {
 		position: relative;
+	}
+
+	.hide {
+		display: none;
 	}
 
 	.tab-wrapper {
@@ -325,10 +337,6 @@
 		text-overflow: ellipsis;
 	}
 
-	.hidden {
-		display: none;
-	}
-
 	.overflow-menu > button {
 		padding: var(--size-1) var(--size-2);
 		min-width: auto;
@@ -343,7 +351,7 @@
 		background-color: var(--background-fill-secondary);
 	}
 
-	.overflow-menu svg {
+	.overflow-menu :global(svg) {
 		width: 16px;
 		height: 16px;
 	}
