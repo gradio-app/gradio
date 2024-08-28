@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import ffmpy
+import httpx
 import numpy as np
 import pytest
 from gradio_client import media_data
@@ -275,7 +276,7 @@ class TestVideoProcessing:
         )
 
     def raise_ffmpy_runtime_exception(*args, **kwargs):
-        raise ffmpy.FFRuntimeError("", "", "", "")
+        raise ffmpy.FFRuntimeError("", "", "", "")  # type: ignore
 
     @pytest.mark.parametrize(
         "exception_to_raise", [raise_ffmpy_runtime_exception, KeyError(), IndexError()]
@@ -283,11 +284,12 @@ class TestVideoProcessing:
     def test_video_has_playable_codecs_catches_exceptions(
         self, exception_to_raise, test_file_dir
     ):
-        with patch(
-            "ffmpy.FFprobe.run", side_effect=exception_to_raise
-        ), tempfile.NamedTemporaryFile(
-            suffix="out.avi", delete=False
-        ) as tmp_not_playable_vid:
+        with (
+            patch("ffmpy.FFprobe.run", side_effect=exception_to_raise),
+            tempfile.NamedTemporaryFile(
+                suffix="out.avi", delete=False
+            ) as tmp_not_playable_vid,
+        ):
             shutil.copy(
                 str(test_file_dir / "bad_video_sample.mp4"),
                 tmp_not_playable_vid.name,
@@ -404,3 +406,32 @@ async def test_json_data_not_moved_to_cache():
         )
         == data
     )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://localhost",
+        "http://127.0.0.1/file/a/b/c",
+        "http://[::1]",
+        "https://192.168.0.1",
+        "http://10.0.0.1?q=a",
+        "http://192.168.1.250.nip.io",
+    ],
+)
+def test_local_urls_fail(url):
+    with pytest.raises(httpx.RequestError, match="No public IP address found for URL"):
+        processing_utils.get_public_url(url)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://google.com",
+        "https://8.8.8.8/",
+        "http://93.184.215.14.nip.io/",
+        "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/luigi/luigi.ply",
+    ],
+)
+def test_public_urls_pass(url):
+    assert processing_utils.get_public_url(url)

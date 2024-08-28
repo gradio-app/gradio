@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 import gradio_client.utils as client_utils
 import numpy as np
@@ -28,7 +29,7 @@ class Annotation(GradioModel):
 
 class AnnotatedImageData(GradioModel):
     image: FileData
-    annotations: List[Annotation]
+    annotations: list[Annotation]
 
 
 @document()

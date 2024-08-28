@@ -630,6 +630,9 @@ importers:
       extendable-media-recorder-wav-encoder:
         specifier: ^7.0.76
         version: 7.0.76
+      hls.js:
+        specifier: ^1.5.13
+        version: 1.5.13
       resize-observer-polyfill:
         specifier: ^1.5.1
         version: 1.5.1
@@ -1380,6 +1383,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/video':
+        specifier: workspace:^
+        version: link:../video
       dequal:
         specifier: ^2.0.2
         version: 2.0.2
@@ -2308,6 +2314,9 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
+      hls.js:
+        specifier: ^1.5.13
+        version: 1.5.13
       mrmime:
         specifier: ^2.0.0
         version: 2.0.0
@@ -6929,6 +6938,9 @@ packages:
 
   headers-polyfill@4.0.3:
     resolution: {integrity: sha512-IScLbePpkvO846sIwOtOTDjutRMWdXdJmXdMvk6gCBHxFO8d+QKOQedyZSxFTTFYRSmlgSTDtXqqq4pcenBXLQ==}
+
+  hls.js@1.5.13:
+    resolution: {integrity: sha512-xRgKo84nsC7clEvSfIdgn/Tc0NOT+d7vdiL/wvkLO+0k0juc26NRBPPG1SfB8pd5bHXIjMW/F5VM8VYYkOYYdw==}
 
   hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
@@ -15513,6 +15525,8 @@ snapshots:
   headers-polyfill@4.0.2: {}
 
   headers-polyfill@4.0.3: {}
+
+  hls.js@1.5.13: {}
 
   hosted-git-info@2.8.9: {}
 

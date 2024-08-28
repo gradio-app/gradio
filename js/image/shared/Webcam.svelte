@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
-	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
+	import {
+		Camera,
+		Circle,
+		Square,
+		DropdownArrow,
+		Spinner
+	} from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { StreamingBar } from "@gradio/statustracker";
 	import { type FileData, type Client, prepare_files } from "@gradio/client";
 	import WebcamPermissions from "./WebcamPermissions.svelte";
 	import { fade } from "svelte/transition";
@@ -14,11 +21,31 @@
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
 	let selected_device: MediaDeviceInfo | null = null;
+	let time_limit: number | null = null;
+	let stream_state: "open" | "waiting" | "closed" = "closed";
+
+	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
+		state: "open" | "closed" | "waiting"
+	) => {
+		if (state === "closed") {
+			time_limit = null;
+			stream_state = "closed";
+		} else if (state === "waiting") {
+			stream_state = "waiting";
+		} else {
+			stream_state = "open";
+		}
+	};
+
+	export const set_time_limit = (time: number): void => {
+		if (recording) time_limit = time;
+	};
 
 	let canvas: HTMLCanvasElement;
 	export let streaming = false;
 	export let pending = false;
 	export let root = "";
+	export let stream_every = 1;
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
@@ -32,6 +59,7 @@
 		error: string;
 		start_recording: undefined;
 		stop_recording: undefined;
+		close_stream: undefined;
 	}>();
 
 	onMount(() => (canvas = document.createElement("canvas")));
@@ -108,11 +136,15 @@
 				context.drawImage(video_source, -video_source.videoWidth, 0);
 			}
 
+			if (streaming && (!recording || stream_state === "waiting")) {
+				return;
+			}
+
 			canvas.toBlob(
 				(blob) => {
-					dispatch(streaming ? "stream" : "capture", blob);
+					dispatch("capture", blob);
 				},
-				"image/png",
+				`image/${streaming ? "jpeg" : "png"}`,
 				0.8
 			);
 		}
@@ -181,6 +213,7 @@
 			take_recording();
 		}
 		if (!recording && stream) {
+			dispatch("close_stream");
 			stream.getTracks().forEach((track) => track.stop());
 			video_source.srcObject = null;
 			webcam_accessed = false;
@@ -192,7 +225,7 @@
 			if (video_source && !pending) {
 				take_picture();
 			}
-		}, 500);
+		}, stream_every * 1000);
 	}
 
 	let options_open = false;
@@ -225,6 +258,7 @@
 </script>
 
 <div class="wrap">
+	<StreamingBar {time_limit} />
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 	<video
@@ -247,13 +281,26 @@
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
 				{#if mode === "video" || streaming}
-					{#if recording}
-						<div class="icon red" title="stop recording">
-							<Square />
+					{#if streaming && stream_state === "waiting"}
+						<div class="icon-with-text" style="width:var(--size-24);">
+							<div class="icon color-primary" title="spinner">
+								<Spinner />
+							</div>
+							{i18n("audio.waiting")}
+						</div>
+					{:else if (streaming && stream_state === "open") || (!streaming && recording)}
+						<div class="icon-with-text">
+							<div class="icon color-primary" title="stop recording">
+								<Square />
+							</div>
+							{i18n("audio.stop")}
 						</div>
 					{:else}
-						<div class="icon red" title="start recording">
-							<Circle />
+						<div class="icon-with-text">
+							<div class="icon color-primary" title="start recording">
+								<Circle />
+							</div>
+							{i18n("audio.record")}
 						</div>
 					{/if}
 				{:else}
@@ -335,6 +382,14 @@
 		color: var(--button-secondary-text-color);
 	}
 
+	.icon-with-text {
+		width: var(--size-20);
+		align-items: center;
+		margin: 0 var(--spacing-xl);
+		display: flex;
+		justify-content: space-evenly;
+	}
+
 	@media (--screen-md) {
 		button {
 			bottom: var(--size-4);
@@ -348,7 +403,6 @@
 	}
 
 	.icon {
-		opacity: 0.8;
 		width: 18px;
 		height: 18px;
 		display: flex;
@@ -356,9 +410,9 @@
 		align-items: center;
 	}
 
-	.red {
-		fill: red;
-		stroke: red;
+	.color-primary {
+		fill: var(--primary-600);
+		stroke: var(--primary-600);
 	}
 
 	.flip {

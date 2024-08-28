@@ -59,7 +59,7 @@ jobs:
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          python_version: "3.8"
+          python_version: "3.10"
           os: ${{ matrix.os }}
           test: true
       - name: Lint
