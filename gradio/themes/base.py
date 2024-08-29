@@ -1725,19 +1725,6 @@ class Base(ThemeClass):
             self, "button_large_text_weight", "600"
         )
 
-        self.button_small_padding = button_small_padding or getattr(
-            self, "button_small_padding", "*spacing_sm calc(1.5 * *spacing_sm)"
-        )
-        self.button_small_radius = button_small_radius or getattr(
-            self, "button_small_radius", "*radius_md"
-        )
-        self.button_small_text_size = button_small_text_size or getattr(
-            self, "button_small_text_size", "*text_sm"
-        )
-        self.button_small_text_weight = button_small_text_weight or getattr(
-            self, "button_small_text_weight", "600"
-        )
-
         self.button_primary_background_fill = button_primary_background_fill or getattr(
             self, "button_primary_background_fill", "*primary_500"
         )
@@ -1863,6 +1850,19 @@ class Base(ThemeClass):
                 "button_secondary_text_color_hover_dark",
                 "*button_secondary_text_color",
             )
+        )
+
+        self.button_small_padding = button_small_padding or getattr(
+            self, "button_small_padding", "*spacing_sm calc(1.5 * *spacing_sm)"
+        )
+        self.button_small_radius = button_small_radius or getattr(
+            self, "button_small_radius", "*radius_md"
+        )
+        self.button_small_text_size = button_small_text_size or getattr(
+            self, "button_small_text_size", "*text_sm"
+        )
+        self.button_small_text_weight = button_small_text_weight or getattr(
+            self, "button_small_text_weight", "600"
         )
 
         return self
