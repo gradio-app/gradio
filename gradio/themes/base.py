@@ -993,7 +993,7 @@ class Base(ThemeClass):
         self.body_text_weight = body_text_weight or getattr(
             self, "body_text_weight", "400"
         )
-        self.embed_radius = embed_radius or getattr(self, "embed_radius", "*radius_lg")
+        self.embed_radius = embed_radius or getattr(self, "embed_radius", "*radius_sm")
         # Core Colors
         self.color_accent = color_accent or getattr(
             self, "color_accent", "*primary_500"
@@ -1173,7 +1173,7 @@ class Base(ThemeClass):
         self.block_padding = block_padding or getattr(
             self, "block_padding", "*spacing_xl calc(*spacing_xl + 2px)"
         )
-        self.block_radius = block_radius or getattr(self, "block_radius", "*radius_lg")
+        self.block_radius = block_radius or getattr(self, "block_radius", "*radius_sm")
         self.block_shadow = block_shadow or getattr(self, "block_shadow", "none")
         self.block_shadow_dark = block_shadow_dark or getattr(
             self, "block_shadow_dark", None
@@ -1216,7 +1216,7 @@ class Base(ThemeClass):
             self, "block_title_text_weight", "400"
         )
         self.container_radius = container_radius or getattr(
-            self, "container_radius", "*radius_lg"
+            self, "container_radius", "*radius_sm"
         )
         self.form_gap_width = form_gap_width or getattr(self, "form_gap_width", "0px")
         self.layout_gap = layout_gap or getattr(self, "layout_gap", "*spacing_xxl")
@@ -1546,7 +1546,7 @@ class Base(ThemeClass):
         self.input_placeholder_color_dark = input_placeholder_color_dark or getattr(
             self, "input_placeholder_color_dark", "*neutral_500"
         )
-        self.input_radius = input_radius or getattr(self, "input_radius", "*radius_lg")
+        self.input_radius = input_radius or getattr(self, "input_radius", "*radius_sm")
         self.input_shadow = input_shadow or getattr(self, "input_shadow", "none")
         self.input_shadow_dark = input_shadow_dark or getattr(
             self, "input_shadow_dark", None
@@ -1609,7 +1609,7 @@ class Base(ThemeClass):
         self.table_odd_background_fill_dark = table_odd_background_fill_dark or getattr(
             self, "table_odd_background_fill_dark", "*neutral_900"
         )
-        self.table_radius = table_radius or getattr(self, "table_radius", "*radius_lg")
+        self.table_radius = table_radius or getattr(self, "table_radius", "*radius_sm")
         self.table_row_focus = table_row_focus or getattr(
             self, "table_row_focus", "*color_accent_soft"
         )
@@ -1696,7 +1696,7 @@ class Base(ThemeClass):
             self, "button_large_padding", "*spacing_lg calc(2 * *spacing_lg)"
         )
         self.button_large_radius = button_large_radius or getattr(
-            self, "button_large_radius", "*radius_lg"
+            self, "button_large_radius", "*radius_sm"
         )
         self.button_large_text_size = button_large_text_size or getattr(
             self, "button_large_text_size", "*text_lg"
@@ -1851,7 +1851,7 @@ class Base(ThemeClass):
             self, "button_small_padding", "*spacing_sm calc(2 * *spacing_sm)"
         )
         self.button_small_radius = button_small_radius or getattr(
-            self, "button_small_radius", "*radius_lg"
+            self, "button_small_radius", "*radius_sm"
         )
         self.button_small_text_size = button_small_text_size or getattr(
             self, "button_small_text_size", "*text_md"
