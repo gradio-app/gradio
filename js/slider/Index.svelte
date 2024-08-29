@@ -216,31 +216,34 @@
 
 	/* firefox */
 	input[type="range"]::-moz-range-track {
-		height: var(--size-1);
+		height: var(--size-2);
 		background: var(--neutral-200);
 		border-radius: var(--radius-xl);
 	}
 
 	input[type="range"]::-moz-range-thumb {
+		appearance: none;
 		height: var(--size-4);
 		width: var(--size-4);
-		background-color: var(--color-accent);
+		background-color: white;
 		border-radius: 50%;
-		border: var(--size-0-5) solid var(--color-accent);
-		margin-top: calc(-1 * (var(--size-4) - var(--size-1)) / 2);
-		box-shadow: 0 0 0 var(--size-0-5) var(--neutral-50);
+		border: none;
+		margin-top: calc(-1 * (var(--size-4) - var(--size-2)) / 2);
+		box-shadow:
+			0 0 0 1px rgba(247, 246, 246, 0.739),
+			1px 1px 4px rgba(0, 0, 0, 0.1);
 	}
 
 	input[type="range"]::-moz-range-progress {
+		height: var(--size-2);
 		background-color: var(--color-accent);
-		height: var(--size-1);
 		border-radius: var(--radius-xl);
 	}
 
 	input[type="number"] {
 		display: block;
 		outline: none;
-		border: 1px solid var(--neutral-200);
+		border: 1px solid var(--input-border-color);
 		border-radius: var(--radius-sm);
 		background: var(--input-background-fill);
 		padding: var(--size-2) var(--size-3);
@@ -255,7 +258,6 @@
 
 	input[type="number"]:focus {
 		box-shadow: none;
-		border-color: var(--color-accent);
 		border-width: 2px;
 	}
 
@@ -291,12 +293,12 @@
 	}
 
 	.min_value {
-		margin-right: var(--size-2);
+		margin-right: var(--size-0-5);
 	}
 
 	.max_value {
-		margin-left: var(--size-2);
-		margin-right: var(--size-2);
+		margin-left: var(--size-0-5);
+		margin-right: var(--size-0-5);
 	}
 
 	@media (max-width: 480px) {
@@ -315,7 +317,7 @@
 	.tab-like-container {
 		display: flex;
 		align-items: stretch;
-		border: 1px solid var(--neutral-200);
+		border: 1px solid var(--input-border-color);
 		border-radius: var(--radius-sm);
 		overflow: hidden;
 		height: var(--size-6);
@@ -332,6 +334,7 @@
 
 	input[type="number"]:focus {
 		box-shadow: inset 0 0 0 1px var(--color-accent);
+		border-radius: 3px 0 0px 3px;
 	}
 
 	.reset-button {
@@ -340,7 +343,7 @@
 		justify-content: center;
 		background: none;
 		border: none;
-		border-left: 1px solid var(--neutral-200);
+		border-left: 1px solid var(--input-border-color);
 		cursor: pointer;
 		font-size: var(--text-sm);
 		color: var(--body-text-color);
@@ -350,7 +353,7 @@
 	}
 
 	.reset-button:hover:not(:disabled) {
-		background-color: var(--neutral-100);
+		background-color: var(--background-fill-secondary);
 	}
 
 	.reset-button:disabled {
