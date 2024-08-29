@@ -115,9 +115,8 @@ class Tunnel:
             "--server_addr",
             f"{self.remote_host}:{self.remote_port}",
             "--disable_log_color",
-            "--tls_enable"
-            "--tls_trusted_ca_file",
-            CERTIFICATE_PATH
+            "--tls_enable" "--tls_trusted_ca_file",
+            CERTIFICATE_PATH,
         ]
         self.proc = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
