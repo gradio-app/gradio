@@ -420,8 +420,8 @@ async def test_json_data_not_moved_to_cache():
     ],
 )
 def test_local_urls_fail(url):
-    with pytest.raises(httpx.RequestError, match="Non-public IP address found"):
-        processing_utils.check_public_url(url)
+    with pytest.raises(httpx.RequestError, match="No public IP address found for URL"):
+        processing_utils.get_public_url(url)
 
 
 @pytest.mark.parametrize(
@@ -430,7 +430,8 @@ def test_local_urls_fail(url):
         "https://google.com",
         "https://8.8.8.8/",
         "http://93.184.215.14.nip.io/",
+        "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/luigi/luigi.ply",
     ],
 )
 def test_public_urls_pass(url):
-    assert processing_utils.check_public_url(url)
+    assert processing_utils.get_public_url(url)

@@ -52,6 +52,7 @@ class TextArea(components.Textbox):
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         show_copy_button: bool = False,
+        max_length: int | None = None,
     ):
         super().__init__(
             value=value,
@@ -78,6 +79,7 @@ class TextArea(components.Textbox):
             text_align=text_align,
             rtl=rtl,
             show_copy_button=show_copy_button,
+            max_length=max_length,
         )
 
 
