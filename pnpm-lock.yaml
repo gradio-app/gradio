@@ -515,7 +515,7 @@ importers:
         specifier: workspace:^
         version: link:../statustracker
       '@gradio/utils':
-        specifier: workspace:0.6.0
+        specifier: workspace:0.7.0-beta.0
         version: link:../utils
       svelte:
         specifier: ^4.0.0
