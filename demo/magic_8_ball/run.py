@@ -16,7 +16,13 @@ from streamer import ParlerTTSStreamer
 import time
 
 
-device = "cuda:0" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+device = (
+    "cuda:0"
+    if torch.cuda.is_available()
+    else "mps"
+    if torch.backends.mps.is_available()
+    else "cpu"
+)
 torch_dtype = torch.float16 if device != "cpu" else torch.float32
 
 repo_id = "parler-tts/parler_tts_mini_v0.1"
@@ -40,7 +46,7 @@ def numpy_to_mp3(audio_array, sampling_rate):
     # Normalize audio_array if it's floating-point
     if np.issubdtype(audio_array.dtype, np.floating):
         max_val = np.max(np.abs(audio_array))
-        audio_array = (audio_array / max_val) * 32767 # Normalize to 16-bit range
+        audio_array = (audio_array / max_val) * 32767  # Normalize to 16-bit range
         audio_array = audio_array.astype(np.int16)
 
     # Create an audio segment from the numpy array
@@ -48,7 +54,7 @@ def numpy_to_mp3(audio_array, sampling_rate):
         audio_array.tobytes(),
         frame_rate=sampling_rate,
         sample_width=audio_array.dtype.itemsize,
-        channels=1
+        channels=1,
     )
 
     # Export the audio segment to MP3 bytes - use a high bitrate to maximise quality
@@ -60,6 +66,7 @@ def numpy_to_mp3(audio_array, sampling_rate):
     mp3_io.close()
 
     return mp3_bytes
+
 
 sampling_rate = model.audio_encoder.config.sampling_rate
 frame_rate = model.audio_encoder.config.frame_rate
@@ -73,7 +80,10 @@ def generate_response(audio):
 
     messages = [
         {"role": "system", "content": ("You are a magic 8 ball. ...")},
-        {"role": "user", "content": f"Magic 8 Ball please answer this question -  {question}"}
+        {
+            "role": "user",
+            "content": f"Magic 8 Ball please answer this question -  {question}",
+        },
     ]
 
     response = client.text_generation(
@@ -81,12 +91,12 @@ def generate_response(audio):
         prompt=str(messages),
         max_new_tokens=64,
         temperature=0.7,
-        seed=random.randint(1, 5000)
+        seed=random.randint(1, 5000),
     )
 
     if isinstance(response, str):
         response_text = response
-    elif hasattr(response, 'generated_text'):
+    elif hasattr(response, "generated_text"):
         response_text = response.generated_text
     else:
         response_text = str(response)
@@ -94,9 +104,9 @@ def generate_response(audio):
     response_text = response_text.replace("Magic 8 Ball", "")
     return response_text, None, None
 
+
 @spaces.GPU
 def read_response(answer):
-
     play_steps_in_s = 2.0
     play_steps = int(frame_rate * play_steps_in_s)
 
@@ -120,7 +130,9 @@ def read_response(answer):
     thread.start()
     start = time.time()
     for new_audio in streamer:
-        print(f"Sample of length: {round(new_audio.shape[0] / sampling_rate, 2)} seconds after {time.time() - start} seconds")
+        print(
+            f"Sample of length: {round(new_audio.shape[0] / sampling_rate, 2)} seconds after {time.time() - start} seconds"
+        )
         yield answer, numpy_to_mp3(new_audio, sampling_rate=sampling_rate)
 
 
@@ -134,15 +146,25 @@ with gr.Blocks() as demo:
     )
     with gr.Group():
         with gr.Row():
-            audio_out = gr.Audio(label="Spoken Answer", streaming=True, autoplay=True, loop=False)
+            audio_out = gr.Audio(
+                label="Spoken Answer", streaming=True, autoplay=True, loop=False
+            )
             answer = gr.Textbox(label="Answer")
             state = gr.State()
         with gr.Row():
-            gr.Markdown("Example questions: 'Should I get a dog?', 'What is the meaning of life?'")
-            audio_in = gr.Audio(label="Speak you question", sources="microphone", type="filepath")
+            gr.Markdown(
+                "Example questions: 'Should I get a dog?', 'What is the meaning of life?'"
+            )
+            audio_in = gr.Audio(
+                label="Speak you question", sources="microphone", type="filepath"
+            )
     with gr.Row():
-        gr.HTML("""<h3 style='text-align: center;'> Examples: 'What is the meaning of life?', 'Should I get a dog?' </h3>""")
-    audio_in.stop_recording(generate_response, audio_in, [state, answer, audio_out]).then(fn=read_response, inputs=state, outputs=[answer, audio_out])
+        gr.HTML(
+            """<h3 style='text-align: center;'> Examples: 'What is the meaning of life?', 'Should I get a dog?' </h3>"""
+        )
+    audio_in.stop_recording(
+        generate_response, audio_in, [state, answer, audio_out]
+    ).then(fn=read_response, inputs=state, outputs=[answer, audio_out])
 
 
 if __name__ == "__main__":
