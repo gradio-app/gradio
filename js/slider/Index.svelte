@@ -19,6 +19,8 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value = 0;
+	let initial_value = value;
+
 	export let label = gradio.i18n("slider.slider");
 	export let info: string | undefined = undefined;
 	export let container = true;
@@ -39,7 +41,7 @@
 
 	let window_width: number;
 
-	$: is_mobile = window_width <= 420;
+	$: minimum_value = minimum ?? 0;
 
 	function handle_change(): void {
 		gradio.dispatch("change");
@@ -83,6 +85,13 @@
 	function handle_resize(): void {
 		window_width = window.innerWidth;
 	}
+
+	function reset_value(): void {
+		value = initial_value;
+		set_slider_range();
+		gradio.dispatch("change");
+		gradio.dispatch("release", value);
+	}
 </script>
 
 <svelte:window on:resize={handle_resize} />
@@ -100,7 +109,7 @@
 			<label for={id}>
 				<BlockTitle {show_label} {info}>{label}</BlockTitle>
 			</label>
-			{#if is_mobile}
+			<div class="tab-like-container">
 				<input
 					aria-label={`number input for ${label}`}
 					data-testid="number-input"
@@ -114,11 +123,19 @@
 					{disabled}
 					on:pointerup={handle_release}
 				/>
-			{/if}
+				<button
+					class="reset-button"
+					on:click={reset_value}
+					{disabled}
+					aria-label="Reset to default value"
+				>
+					↺
+				</button>
+			</div>
 		</div>
 
 		<div class="slider_input_container">
-			<span class="min_value">{minimum}</span>
+			<span class="min_value">{minimum_value}</span>
 			<input
 				type="range"
 				{id}
@@ -133,22 +150,6 @@
 				aria-label={`range slider for ${label}`}
 			/>
 			<span class="max_value">{maximum}</span>
-
-			{#if !is_mobile}
-				<input
-					aria-label={`number input for ${label}`}
-					data-testid="number-input"
-					type="number"
-					bind:value
-					bind:this={number_input}
-					min={minimum}
-					max={maximum}
-					on:blur={clamp}
-					{step}
-					{disabled}
-					on:pointerup={handle_release}
-				/>
-			{/if}
 		</div>
 	</div>
 </Block>
@@ -165,6 +166,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		flex-wrap: wrap;
 	}
 
 	.slider_input_container {
@@ -179,21 +181,13 @@
 		width: 100%;
 		cursor: pointer;
 		outline: none;
-		overflow: hidden;
 		border-radius: var(--radius-xl);
 		min-width: var(--size-28);
 	}
 
 	/* webkit track */
 	input[type="range"]::-webkit-slider-runnable-track {
-		height: var(--size-5);
-		background: var(--neutral-200);
-		border-radius: var(--radius-xl);
-	}
-
-	/* firefox track */
-	input[type="range"]::-moz-range-track {
-		height: var(--size-5);
+		height: var(--size-2);
 		background: var(--neutral-200);
 		border-radius: var(--radius-xl);
 	}
@@ -202,42 +196,67 @@
 	input[type="range"]::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		appearance: none;
-		height: var(--size-5);
-		width: var(--size-5);
-		background-color: var(--neutral-200);
-		border-radius: var(--radius-xl);
-		border: var(--size-0-5) solid var(--color-accent);
-		box-shadow: -407px 0 0 400px var(--color-accent);
+		height: var(--size-4);
+		width: var(--size-4);
+		background-color: white;
+		border-radius: 50%;
+		margin-top: -5px;
+		box-shadow:
+			0 0 0 1px rgba(247, 246, 246, 0.739),
+			1px 1px 4px rgba(0, 0, 0, 0.1);
 	}
 
-	/* firefox thumb */
-	input[type="range"]::-moz-range-thumb {
-		height: var(--size-5);
-		width: var(--size-5);
-		background-color: var(--neutral-200);
+	input[type="range"]::-webkit-slider-runnable-track {
+		background: linear-gradient(
+			to right,
+			var(--color-accent) var(--range_progress),
+			var(--neutral-200) var(--range_progress)
+		);
+	}
+
+	/* firefox */
+	input[type="range"]::-moz-range-track {
+		height: var(--size-1);
+		background: var(--neutral-200);
 		border-radius: var(--radius-xl);
+	}
+
+	input[type="range"]::-moz-range-thumb {
+		height: var(--size-4);
+		width: var(--size-4);
+		background-color: var(--color-accent);
+		border-radius: 50%;
 		border: var(--size-0-5) solid var(--color-accent);
-		box-shadow: -407px 0 0 400px var(--color-accent);
+		margin-top: calc(-1 * (var(--size-4) - var(--size-1)) / 2);
+		box-shadow: 0 0 0 var(--size-0-5) var(--neutral-50);
+	}
+
+	input[type="range"]::-moz-range-progress {
+		background-color: var(--color-accent);
+		height: var(--size-1);
+		border-radius: var(--radius-xl);
 	}
 
 	input[type="number"] {
 		display: block;
 		outline: none;
-		border: var(--input-border-width) solid var(--input-border-color);
-		border-radius: var(--radius-xs);
+		border: 1px solid var(--neutral-200);
+		border-radius: var(--radius-sm);
 		background: var(--input-background-fill);
-		padding: var(--size-2);
-		height: var(--size-5);
+		padding: var(--size-2) var(--size-3);
+		height: var(--size-8);
 		color: var(--body-text-color);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 		text-align: center;
-		min-width: var(--size-3);
+		min-width: var(--size-16);
+		transition: border-color 0.15s ease-in-out;
 	}
 
 	input[type="number"]:focus {
 		box-shadow: none;
-		border-color: var(--input-border-color-focus);
+		border-color: var(--color-accent);
+		border-width: 2px;
 	}
 
 	input:disabled,
@@ -288,8 +307,54 @@
 	}
 
 	@media (max-width: 420px) {
-		.head input[type="number"] {
-			margin-bottom: var(--spacing-lg);
+		.head .tab-like-container {
+			margin-bottom: var(--size-4);
 		}
+	}
+
+	.tab-like-container {
+		display: flex;
+		align-items: stretch;
+		border: 1px solid var(--neutral-200);
+		border-radius: var(--radius-sm);
+		overflow: hidden;
+		height: var(--size-6);
+	}
+
+	input[type="number"] {
+		border: none;
+		border-radius: 0;
+		padding: var(--size-1) var(--size-2);
+		height: 100%;
+		min-width: var(--size-14);
+		font-size: var(--text-sm);
+	}
+
+	input[type="number"]:focus {
+		box-shadow: inset 0 0 0 1px var(--color-accent);
+	}
+
+	.reset-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: none;
+		border: none;
+		border-left: 1px solid var(--neutral-200);
+		cursor: pointer;
+		font-size: var(--text-sm);
+		color: var(--body-text-color);
+		padding: 0 var(--size-2);
+		min-width: var(--size-6);
+		transition: background-color 0.15s ease-in-out;
+	}
+
+	.reset-button:hover:not(:disabled) {
+		background-color: var(--neutral-100);
+	}
+
+	.reset-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 </style>
