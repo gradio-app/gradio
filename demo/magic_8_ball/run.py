@@ -67,18 +67,32 @@ frame_rate = model.audio_encoder.config.frame_rate
 
 def generate_response(audio):
     gr.Info("Transcribing Audio", duration=5)
-    question = client.automatic_speech_recognition(audio).text
-    messages = [{"role": "system", "content": ("You are a magic 8 ball."
-                                              "Someone will present to you a situation or question and your job "
-                                              "is to answer with a cryptic addage or proverb such as "
-                                              "'curiosity killed the cat' or 'The early bird gets the worm'."
-                                              "Keep your answers short and do not include the phrase 'Magic 8 Ball' in your response. If the question does not make sense or is off-topic, say 'Foolish questions get foolish answers.'"
-                                              "For example, 'Magic 8 Ball, should I get a dog?', 'A dog is ready for you but are you ready for the dog?'")},
-                {"role": "user", "content": f"Magic 8 Ball please answer this question -  {question}"}]
-    
-    response = client.chat_completion(messages, max_tokens=64, seed=random.randint(1, 5000), model="mistralai/Mistral-7B-Instruct-v0.3")
-    response = response.choices[0].message.content.replace("Magic 8 Ball", "") # type: ignore
-    return response, None, None
+
+    asr_result = client.automatic_speech_recognition(audio)
+    question = asr_result if isinstance(asr_result, str) else str(asr_result)
+
+    messages = [
+        {"role": "system", "content": ("You are a magic 8 ball. ...")},
+        {"role": "user", "content": f"Magic 8 Ball please answer this question -  {question}"}
+    ]
+
+    response = client.text_generation(
+        model="mistralai/Mistral-7B-Instruct-v0.3",
+        prompt=str(messages),
+        max_new_tokens=64,
+        temperature=0.7,
+        seed=random.randint(1, 5000)
+    )
+
+    if isinstance(response, str):
+        response_text = response
+    elif hasattr(response, 'generated_text'):
+        response_text = response.generated_text
+    else:
+        response_text = str(response)
+
+    response_text = response_text.replace("Magic 8 Ball", "")
+    return response_text, None, None
 
 @spaces.GPU
 def read_response(answer):
@@ -92,14 +106,14 @@ def read_response(answer):
     streamer = ParlerTTSStreamer(model, device=device, play_steps=play_steps)
     prompt = tokenizer(answer, return_tensors="pt").to(device)
 
-    generation_kwargs = dict(
-        input_ids=description_tokens.input_ids,
-        prompt_input_ids=prompt.input_ids,
-        streamer=streamer,
-        do_sample=True,
-        temperature=1.0,
-        min_new_tokens=10,
-    )
+    generation_kwargs = {
+        "input_ids": description_tokens.input_ids,
+        "prompt_input_ids": prompt.input_ids,
+        "streamer": streamer,
+        "do_sample": True,
+        "temperature": 1.0,
+        "min_new_tokens": 10,
+    }
 
     set_seed(SEED)
     thread = Thread(target=model.generate, kwargs=generation_kwargs)
@@ -112,7 +126,7 @@ def read_response(answer):
 
 with gr.Blocks() as demo:
     gr.HTML(
-        f"""
+        """
         <h1 style='text-align: center;'> Magic 8 Ball 🎱 </h1>
         <h3 style='text-align: center;'> Ask a question and receive wisdom </h3>
         <p style='text-align: center;'> Powered by <a href="https://github.com/huggingface/parler-tts"> Parler-TTS</a>
