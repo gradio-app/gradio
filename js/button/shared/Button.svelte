@@ -87,6 +87,7 @@
 		opacity: 0.5;
 		filter: grayscale(30%);
 		cursor: not-allowed;
+		transform: none;
 	}
 
 	.hidden {
@@ -100,9 +101,16 @@
 	}
 	.primary:hover,
 	.primary[disabled] {
-		border-color: var(--button-primary-border-color-hover);
 		background: var(--button-primary-background-fill-hover);
 		color: var(--button-primary-text-color-hover);
+	}
+
+	.primary:hover {
+		border-color: var(--button-primary-border-color-hover);
+	}
+
+	.primary[disabled] {
+		border-color: var(--button-primary-border-color);
 	}
 
 	.secondary {
@@ -114,22 +122,35 @@
 
 	.secondary:hover,
 	.secondary[disabled] {
-		border-color: var(--button-secondary-border-color-hover);
 		background: var(--button-secondary-background-fill-hover);
 		color: var(--button-secondary-text-color-hover);
 	}
 
+	.secondary:hover {
+		border-color: var(--button-secondary-border-color-hover);
+	}
+
+	.secondary[disabled] {
+		border-color: var(--button-secondary-border-color);
+	}
+
 	.stop {
-		border: var(--button-border-width) solid var(--button-cancel-border-color);
 		background: var(--button-cancel-background-fill);
 		color: var(--button-cancel-text-color);
+		border: var(--button-border-width) solid var(--button-cancel-border-color);
 	}
 
 	.stop:hover,
 	.stop[disabled] {
-		border-color: var(--button-cancel-border-color-hover);
 		background: var(--button-cancel-background-fill-hover);
-		color: var(--button-cancel-text-color-hover);
+	}
+
+	.stop:hover {
+		border-color: var(--button-cancel-border-color-hover);
+	}
+
+	.stop[disabled] {
+		border-color: var(--button-cancel-border-color);
 	}
 
 	.sm {

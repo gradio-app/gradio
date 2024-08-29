@@ -95,7 +95,7 @@ class Default(Base):
             button_cancel_background_fill_hover=colors.red.c300,
             button_cancel_background_fill_hover_dark=colors.red.c800,
             button_cancel_border_color=colors.red.c200,
-            button_cancel_border_color_dark=colors.red.c500,
+            button_cancel_border_color_dark=colors.red.c600,
             button_cancel_border_color_hover=colors.red.c700,
             button_cancel_border_color_hover_dark=colors.red.c600,
             button_cancel_text_color="black",
