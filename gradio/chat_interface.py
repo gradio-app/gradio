@@ -184,7 +184,6 @@ class ChatInterface(Blocks):
                 Markdown(description)
 
             if chatbot:
-                breakpoint()
                 if self.type != chatbot.type:
                     warnings.warn(
                         "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
