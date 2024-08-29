@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:tls tunnel
+feat:Adds TLS to FRP tunnel
