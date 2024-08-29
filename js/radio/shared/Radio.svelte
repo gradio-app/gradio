@@ -87,9 +87,18 @@
 
 	input:checked,
 	input:checked:hover {
-		border-color: var(--checkbox-border-color-selected);
-		background-image: var(--radio-circle);
-		background-color: var(--checkbox-background-color-selected);
+		border-color: var(--color-accent);
+		background-color: var(--color-accent);
+	}
+
+	input:checked::after {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		border-radius: 50%;
+		background-color: white;
 	}
 
 	input:hover {
@@ -98,14 +107,15 @@
 	}
 
 	input:focus {
-		border-color: var(--checkbox-border-color-focus);
+		border-color: var(--color-accent);
+		box-shadow: 0 0 0 2px var(--color-accent-light);
 		background-color: var(--checkbox-background-color-focus);
 	}
 
 	input:checked:focus {
-		border-color: var(--checkbox-border-color-focus);
-		background-image: var(--radio-circle);
-		background-color: var(--checkbox-background-color-selected);
+		border-color: var(--color-accent);
+		box-shadow: 0 0 0 2px var(--color-accent-light);
+		background-color: var(--color-accent);
 	}
 
 	input[disabled],

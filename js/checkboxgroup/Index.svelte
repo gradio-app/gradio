@@ -146,24 +146,20 @@
 	input:checked,
 	input:checked:hover,
 	input:checked:focus {
-		border-color: var(--checkbox-border-color-selected);
+		border-color: var(--color-accent);
 		background-image: var(--checkbox-check);
-		background-color: var(--checkbox-background-color-selected);
+		background-color: var(--color-accent);
 	}
 
-	input:checked:focus {
-		border-color: var(--checkbox-border-color-focus);
-		background-image: var(--checkbox-check);
-		background-color: var(--checkbox-background-color-selected);
+	input:focus {
+		border-color: var(--color-accent);
+		outline: none;
+		box-shadow: 0 0 0 2px var(--color-accent-soft);
 	}
 
 	input:hover {
 		border-color: var(--checkbox-border-color-hover);
 		background-color: var(--checkbox-background-color-hover);
-	}
-
-	input:not(:checked):focus {
-		border-color: var(--checkbox-border-color-focus);
 	}
 
 	input[disabled],
