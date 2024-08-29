@@ -19,7 +19,6 @@ from gradio.tunneling import CERTIFICATE_PATH, Tunnel
 GRADIO_API_SERVER = "https://api.gradio.app/v3/tunnel-request"
 GRADIO_SHARE_SERVER_ADDRESS = os.getenv("GRADIO_SHARE_SERVER_ADDRESS")
 
-
 def setup_tunnel(
     local_host: str, local_port: int, share_token: str, share_server_address: str | None
 ) -> str:
