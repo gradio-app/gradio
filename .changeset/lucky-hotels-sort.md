@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Reduce borders and separation 
+feat:Remove grey background behind all components
