@@ -93,7 +93,7 @@ def generate_response(audio):
         },
     ]
 
-    response = client.chat_completion(
+    response = client.chat_completion( # type: ignore
         messages,
         max_tokens=64,
         seed=random.randint(1, 5000),

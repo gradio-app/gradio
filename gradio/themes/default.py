@@ -17,7 +17,7 @@ class Default(Base):
         radius_size: sizes.Size | str = sizes.radius_md,
         text_size: sizes.Size | str = sizes.text_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("Source Sans Pro"),
+            fonts.GoogleFont("IBM Plex Sans"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
