@@ -47,7 +47,7 @@ demo.launch()
 
 The data format accepted by the Chatbot is dictated by the `type` parameter.
 This parameter can take two values, `'tuples'` and `'messages'`. 
-The `'tuples'` type is deprecated and will be removed in version 6.0 of Gradio.
+The `'tuples'` type is deprecated and will be removed in a future version of Gradio.
 
 ### Message format
 
@@ -60,26 +60,23 @@ The `role` key is either `'user'` or `'assistant'` and the `content` key can be 
 The `path` key can point to a valid publicly available URL. The `alt_text` key is optional but it's good practice to provide [alt text](https://en.wikipedia.org/wiki/Alt_attribute).
 3. An instance of another Gradio component. 
 
+<br>
 We will show examples for all three cases below -
 
 ```python
 def generate_response(history):
-    
     # A plain text response
     history.append(
         {"role": "assistant", content="I am happy to provide you that report and plot."}
     )
-    
     # Embed the quaterly sales report in the chat
     history.append(
         {"role": "assistant", content={"path": "quaterly_sales.txt", "alt_text": "Sales Report for Q2 2024"}}
     )
-    
     # Make a plot of sales data
     history.append(
         {"role": "assistant", content=gr.Plot(value=make_plot_from_file('quaterly_sales.txt'))}
     )
-    
     return history
 ```
 
