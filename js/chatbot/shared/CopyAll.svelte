@@ -62,12 +62,9 @@
 	button {
 		display: flex;
 		align-items: center;
-		padding: var(--spacing-sm);
-		width: var(--size-6);
-		height: var(--size-6);
-		overflow: hidden;
+		width: var(--size-4);
+		height: var(--size-4);
 		color: var(--body-text-color-subdued);
-		padding-top: var(--size-1);
 	}
 
 	button:hover {

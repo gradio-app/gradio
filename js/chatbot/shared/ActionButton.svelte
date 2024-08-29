@@ -2,6 +2,7 @@
 	export let handle_action: (action: string | null) => void;
 	export let action: string;
 	export let disabled = false;
+	export let height = "var(--size-4)";
 </script>
 
 <button
@@ -9,6 +10,7 @@
 	on:click={() => {
 		handle_action(action);
 	}}
+	style={`height: ${height}; width: ${height}`}
 	aria-label={`${action} button`}
 	class={`${action}-button`}
 >
@@ -22,8 +24,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-4);
-		height: var(--size-4);
 	}
 
 	button:hover,

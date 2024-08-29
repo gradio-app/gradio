@@ -7,7 +7,7 @@
 	import type { NormalisedMessage, TextMessage } from "../types";
 	import { is_component_message } from "./utils";
 	import ActionButton from "./ActionButton.svelte";
-	import { Redo } from "@gradio/icons";
+	import { Undo } from "@gradio/icons";
 	import Remove from "./Remove.svelte";
 
 	export let likeable: boolean;
@@ -68,12 +68,22 @@
 			</DownloadLink>
 		{/if}
 		{#if _retryable}
-			<ActionButton {handle_action} action="retry" disabled={disable}>
-				<Redo />
+			<ActionButton
+				{handle_action}
+				action="retry"
+				disabled={disable}
+				height={"var(--size-3)"}
+			>
+				<Undo />
 			</ActionButton>
 		{/if}
 		{#if _undoable}
-			<ActionButton {handle_action} action="undo" disabled={disable}>
+			<ActionButton
+				{handle_action}
+				action="undo"
+				disabled={disable}
+				height="var(--size-3)"
+			>
 				<Remove />
 			</ActionButton>
 		{/if}
@@ -97,8 +107,7 @@
 		border-radius: var(--radius-md);
 		display: flex;
 		align-items: center;
-
-		height: var(--size-7);
+		height: var(--size-6);
 		align-self: self-end;
 		margin: 0px calc(var(--spacing-xl) * 3);
 		padding-left: 5px;
