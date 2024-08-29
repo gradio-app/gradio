@@ -58,9 +58,9 @@ class Default(Base):
             input_shadow="0 0 0 *shadow_spread transparent, *shadow_inset",
             input_shadow_focus="0 0 0 *shadow_spread *secondary_50, *shadow_inset",
             input_shadow_focus_dark="0 0 0 *shadow_spread *neutral_700, *shadow_inset",
-            checkbox_label_shadow="none",
-            block_shadow="none",
-            form_gap_width="0px",
+            checkbox_label_shadow="*shadow_drop",
+            block_shadow="*shadow_drop",
+            form_gap_width="1px",
             # Button borders
             input_border_width="1px",
             input_background_fill="white",
