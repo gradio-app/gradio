@@ -9,15 +9,15 @@ import ipaddress
 import os
 import time
 import warnings
+from pathlib import Path
 
 import httpx
 
 from gradio.routes import App  # HACK: to avoid circular import # noqa: F401
-from gradio.tunneling import Tunnel
+from gradio.tunneling import CERTIFICATE_PATH, Tunnel
 
-GRADIO_API_SERVER = "https://api.gradio.app/v2/tunnel-request"
+GRADIO_API_SERVER = "https://api.gradio.app/v3/tunnel-request"
 GRADIO_SHARE_SERVER_ADDRESS = os.getenv("GRADIO_SHARE_SERVER_ADDRESS")
-
 
 def setup_tunnel(
     local_host: str, local_port: int, share_token: str, share_server_address: str | None
@@ -32,6 +32,10 @@ def setup_tunnel(
             response = httpx.get(GRADIO_API_SERVER, timeout=30)
             payload = response.json()[0]
             remote_host, remote_port = payload["host"], int(payload["port"])
+            certificate = payload["root_ca"]
+            Path(CERTIFICATE_PATH).parent.mkdir(parents=True, exist_ok=True)
+            with open(CERTIFICATE_PATH, "w") as f:
+                f.write(certificate)
         except Exception as e:
             raise RuntimeError(
                 "Could not get share link from Gradio API Server."
