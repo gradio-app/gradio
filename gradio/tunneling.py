@@ -12,7 +12,7 @@ from pathlib import Path
 
 import httpx
 
-VERSION = "0.2"
+VERSION = "0.3"
 CURRENT_TUNNELS: list["Tunnel"] = []
 
 machine = platform.machine()
@@ -24,11 +24,11 @@ EXTENSION = ".exe" if os.name == "nt" else ""
 BINARY_URL = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_REMOTE_NAME}{EXTENSION}"
 
 CHECKSUMS = {
-    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_windows_amd64.exe": "cdd756e16622e0e60b697022d8da827a11fefe689325861c58c1003f2f8aa519",
-    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_linux_amd64": "fb74b665633589410540c49dfcef5b6f0fd4a9bd7c9558bcdee2f0e43da0774d",
-    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_linux_arm64": "af13b93897512079ead398224bd58bbaa136fcc5679af023780ee6c0538b3d82",
-    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_darwin_amd64": "6d3bd9f7e92e82fe557ba1d223bdd25317fbc296173a829601926526263c6092",
-    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_darwin_arm64": "0227ae6dafbe59d4e2c4a827d983ecc463eaa61f152216a3ec809c429c08eb31",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_windows_amd64.exe": "cdd756e16622e0e60b697022d8da827a11fefe689325861c58c1003f2f8aa519",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_amd64": "fb74b665633589410540c49dfcef5b6f0fd4a9bd7c9558bcdee2f0e43da0774d",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_arm64": "af13b93897512079ead398224bd58bbaa136fcc5679af023780ee6c0538b3d82",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_darwin_amd64": "6d3bd9f7e92e82fe557ba1d223bdd25317fbc296173a829601926526263c6092",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_darwin_arm64": "0227ae6dafbe59d4e2c4a827d983ecc463eaa61f152216a3ec809c429c08eb31",
 }
 CHUNK_SIZE = 128
 
@@ -41,6 +41,8 @@ TUNNEL_ERROR_MESSAGE = (
     "Could not create share URL. "
     "Please check the appended log from frpc for more information:"
 )
+
+CERTIFICATE_PATH = ".gradio/certificate.pem"
 
 
 class Tunnel:
@@ -113,6 +115,8 @@ class Tunnel:
             "--server_addr",
             f"{self.remote_host}:{self.remote_port}",
             "--disable_log_color",
+            "--tls_enable" "--tls_trusted_ca_file",
+            CERTIFICATE_PATH,
         ]
         self.proc = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
