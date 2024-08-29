@@ -618,7 +618,7 @@
 		align-self: flex-end;
 	}
 	.message-row.bubble {
-		margin: calc(var(--spacing-xl) * 3);
+		margin: calc(var(--spacing-xl) * 2);
 		margin-bottom: var(--spacing-xl);
 	}
 
@@ -648,8 +648,9 @@
 		background: var(--background-fill-secondary);
 	}
 
-	.message-row.panel.user-row {
+	.message-row.bubble.user-row {
 		align-self: flex-end;
+		max-width: calc(100% - var(--spacing-xl) * 6);
 	}
 
 	.message-row.bubble.bot-row {

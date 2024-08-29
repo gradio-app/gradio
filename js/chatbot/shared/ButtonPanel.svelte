@@ -7,7 +7,7 @@
 	import type { NormalisedMessage, TextMessage } from "../types";
 	import { is_component_message } from "./utils";
 	import ActionButton from "./ActionButton.svelte";
-	import { Undo } from "@gradio/icons";
+	import { Retry } from "@gradio/icons";
 	import Remove from "./Remove.svelte";
 
 	export let likeable: boolean;
@@ -74,7 +74,7 @@
 				disabled={disable}
 				height={"var(--size-3)"}
 			>
-				<Undo />
+				<Retry />
 			</ActionButton>
 		{/if}
 		{#if _undoable}
