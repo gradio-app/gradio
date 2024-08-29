@@ -1669,19 +1669,7 @@ class Base(ThemeClass):
                 "*button_secondary_border_color_dark",
             )
         )
-        self.button_cancel_text_color = button_cancel_text_color or getattr(
-            self, "button_cancel_text_color", "*button_secondary_text_color"
-        )
-        self.button_cancel_text_color_dark = button_cancel_text_color_dark or getattr(
-            self, "button_cancel_text_color_dark", "*button_secondary_text_color_dark"
-        )
-        self.button_cancel_text_color_hover = button_cancel_text_color_hover or getattr(
-            self, "button_cancel_text_color_hover", "*button_secondary_text_color_hover"
-        )
-        self.button_cancel_text_color_hover_dark = (
-            button_cancel_text_color_hover_dark
-            or getattr(self, "button_cancel_text_color_hover_dark", "white")
-        )
+
         self.button_cancel_border_color_hover = (
             button_cancel_border_color_hover
             or getattr(
@@ -1697,6 +1685,20 @@ class Base(ThemeClass):
                 "button_cancel_border_color_hover_dark",
                 "*button_secondary_border_color_hover",
             )
+        )
+
+        self.button_cancel_text_color = button_cancel_text_color or getattr(
+            self, "button_cancel_text_color", "*button_secondary_text_color"
+        )
+        self.button_cancel_text_color_dark = button_cancel_text_color_dark or getattr(
+            self, "button_cancel_text_color_dark", "*button_secondary_text_color_dark"
+        )
+        self.button_cancel_text_color_hover = button_cancel_text_color_hover or getattr(
+            self, "button_cancel_text_color_hover", "*button_secondary_text_color_hover"
+        )
+        self.button_cancel_text_color_hover_dark = (
+            button_cancel_text_color_hover_dark
+            or getattr(self, "button_cancel_text_color_hover_dark", "white")
         )
 
         self.button_transform = button_transform or getattr(
