@@ -39,7 +39,7 @@
 	export let value: EditorData | null = {
 		background: null,
 		layers: [],
-		composite: null
+		composite: null,
 	};
 	export let transforms: "crop"[] = ["crop"];
 	export let layers: boolean;
@@ -77,27 +77,27 @@
 		const bg = blobs.background
 			? upload(
 					await prepare_files([new File([blobs.background], "background.png")]),
-					root
+					root,
 				)
 			: Promise.resolve(null);
 
 		const layers = blobs.layers
 			.filter(is_not_null)
 			.map(async (blob, i) =>
-				upload(await prepare_files([new File([blob], `layer_${i}.png`)]), root)
+				upload(await prepare_files([new File([blob], `layer_${i}.png`)]), root),
 			);
 
 		const composite = blobs.composite
 			? upload(
 					await prepare_files([new File([blobs.composite], "composite.png")]),
-					root
+					root,
 				)
 			: Promise.resolve(null);
 
 		const [background, composite_, ...layers_] = await Promise.all([
 			bg,
 			composite,
-			...layers
+			...layers,
 		]);
 
 		return {
@@ -105,7 +105,7 @@
 			layers: layers_
 				.flatMap((layer) => (Array.isArray(layer) ? layer : [layer]))
 				.filter(is_file_data),
-			composite: Array.isArray(composite_) ? composite_[0] : composite_
+			composite: Array.isArray(composite_) ? composite_[0] : composite_,
 		};
 	}
 
@@ -159,14 +159,14 @@
 				id,
 				"background",
 				new File([blobs.background], "background.png"),
-				null
+				null,
 			]);
 		if (blobs.composite)
 			images.push([
 				id,
 				"composite",
 				new File([blobs.composite], "composite.png"),
-				null
+				null,
 			]);
 		blobs.layers.forEach((layer, i) => {
 			if (layer)
@@ -174,7 +174,7 @@
 					id as string,
 					`layer`,
 					new File([layer], `layer_${i}.png`),
-					i
+					i,
 				]);
 		});
 
@@ -182,9 +182,9 @@
 			images.map(async ([image_id, type, data, index]) => {
 				return accept_blobs({
 					binary: true,
-					data: { file: data, id: image_id, type, index }
+					data: { file: data, id: image_id, type, index },
 				});
-			})
+			}),
 		);
 		image_id = id;
 		dispatch("change");
@@ -214,6 +214,7 @@
 	crop_size={Array.isArray(crop_size) ? crop_size : undefined}
 	bind:this={editor}
 	bind:height={editor_height}
+	parent_height={height}
 	{changeable}
 	on:save
 	on:change={handle_change}

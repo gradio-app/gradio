@@ -26,7 +26,7 @@
 	const marked = create_marked({
 		header_links,
 		line_breaks,
-		latex_delimiters
+		latex_delimiters,
 	});
 
 	const is_external_url = (link: string | null): boolean => {
@@ -36,6 +36,15 @@
 			return false;
 		}
 	};
+
+	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
+		if ("target" in node) {
+			if (is_external_url(node.getAttribute("href"))) {
+				node.setAttribute("target", "_blank");
+				node.setAttribute("rel", "noopener noreferrer");
+			}
+		}
+	});
 
 	function escapeRegExp(string: string): string {
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -51,7 +60,7 @@
 				const rightDelimiter = escapeRegExp(delimiter.right);
 				const regex = new RegExp(
 					`${leftDelimiter}([\\s\\S]+?)${rightDelimiter}`,
-					"g"
+					"g",
 				);
 				parsedValue = parsedValue.replace(regex, (match, p1) => {
 					latexBlocks.push(match);
@@ -63,18 +72,10 @@
 
 			parsedValue = parsedValue.replace(
 				/%%%LATEX_BLOCK_(\d+)%%%/g,
-				(match, p1) => latexBlocks[parseInt(p1, 10)]
+				(match, p1) => latexBlocks[parseInt(p1, 10)],
 			);
 		}
-		DOMPurify.addHook("afterSanitizeAttributes", function (node) {
-			if ("target" in node) {
-				if (is_external_url(node.getAttribute("href"))) {
-					node.setAttribute("target", "_blank");
-					node.setAttribute("rel", "noopener noreferrer");
-				}
-			}
-		});
-		const is_browser = typeof window !== "undefined";
+
 		if (sanitize_html) {
 			parsedValue = DOMPurify.sanitize(parsedValue);
 		}
@@ -92,12 +93,12 @@
 		if (latex_delimiters.length > 0 && value) {
 			const containsDelimiter = latex_delimiters.some(
 				(delimiter) =>
-					value.includes(delimiter.left) && value.includes(delimiter.right)
+					value.includes(delimiter.left) && value.includes(delimiter.right),
 			);
 			if (containsDelimiter) {
 				render_math_in_element(el, {
 					delimiters: latex_delimiters,
-					throwOnError: false
+					throwOnError: false,
 				});
 			}
 		}

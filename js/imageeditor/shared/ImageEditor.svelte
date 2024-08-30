@@ -40,11 +40,11 @@
 			type: context_type,
 			{
 				reset_fn,
-				init_fn
+				init_fn,
 			}: {
 				reset_fn?: () => void;
 				init_fn?: (dimensions?: [number, number]) => void;
-			}
+			},
 		) => void;
 		reset: (clear_image: boolean, dimensions: [number, number]) => void;
 	}
@@ -74,6 +74,7 @@
 	}>();
 	export let crop_constraint = false;
 	export let canvas_size: [number, number] | undefined;
+	export let parent_height: number;
 
 	$: orig_canvas_size = canvas_size;
 
@@ -84,17 +85,17 @@
 
 	let editor_box: EditorContext["editor_box"] = writable({
 		parent_width: 0,
-		parent_height: 400,
+		parent_height: parent_height,
 		parent_top: 0,
 		parent_left: 0,
 		parent_right: 0,
 		parent_bottom: 0,
 		child_width: 0,
-		child_height: 400,
+		child_height: parent_height,
 		child_top: 0,
 		child_left: 0,
 		child_right: 0,
-		child_bottom: 0
+		child_bottom: 0,
 	});
 
 	$: height = $editor_box.child_height;
@@ -104,8 +105,8 @@
 		{ x: 0, y: 0 },
 		{
 			stiffness: 0.1,
-			damping: 0.5
-		}
+			damping: 0.5,
+		},
 	);
 	const pixi = writable<PixiApp | null>(null);
 
@@ -128,7 +129,7 @@
 	> = writable({});
 	const contexts: Writable<context_type[]> = writable([]);
 	const toolbar_box: Writable<DOMRect | Record<string, never>> = writable(
-		is_browser ? new DOMRect() : {}
+		is_browser ? new DOMRect() : {},
 	);
 
 	const sort_order = ["bg", "layers", "crop", "draw", "erase"] as const;
@@ -147,11 +148,11 @@
 			type: context_type,
 			{
 				reset_fn,
-				init_fn
+				init_fn,
 			}: {
 				reset_fn?: () => void;
 				init_fn?: (dimensions?: [number, number]) => void;
-			}
+			},
 		) => {
 			contexts.update((c) => [...c, type]);
 			init_context.update((c) => ({ ...c, [type]: init_fn }));
@@ -180,7 +181,7 @@
 				CommandManager.reset();
 				$pixi?.resize?.(...dimensions);
 			}
-		}
+		},
 	});
 
 	let pixi_target: HTMLDivElement;
@@ -195,7 +196,7 @@
 			top: parent_top,
 			left: parent_left,
 			right: parent_right,
-			bottom: parent_bottom
+			bottom: parent_bottom,
 		} = canvas_wrap.getBoundingClientRect();
 		const {
 			width: child_width,
@@ -203,7 +204,7 @@
 			top: child_top,
 			left: child_left,
 			right: child_right,
-			bottom: child_bottom
+			bottom: child_bottom,
 		} = child.getBoundingClientRect();
 		editor_box.set({
 			child_width,
@@ -218,7 +219,7 @@
 			parent_left,
 			parent_right,
 			parent_top,
-			parent_bottom
+			parent_bottom,
 		});
 	}
 
@@ -258,9 +259,9 @@
 				Math.round(l * $dimensions[0]),
 				Math.round(t * $dimensions[1]),
 				Math.round(w * $dimensions[0]),
-				Math.round(h * $dimensions[1])
+				Math.round(h * $dimensions[1]),
 			),
-			$dimensions
+			$dimensions,
 		);
 	}
 
@@ -270,7 +271,7 @@
 	export function handle_remove(): void {
 		editor_context.reset(
 			true,
-			orig_canvas_size ? orig_canvas_size : $dimensions
+			orig_canvas_size ? orig_canvas_size : $dimensions,
 		);
 		if (!sources.length) {
 			set_tool("draw");
@@ -285,7 +286,7 @@
 		const app = create_pixi_app({
 			target: pixi_target,
 			dimensions: _size,
-			antialias
+			antialias,
 		});
 
 		function resize(width: number, height: number): void {
