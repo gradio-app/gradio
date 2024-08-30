@@ -40,6 +40,13 @@ with gr.Blocks() as demo:
       gr.Button(variant="secondary", size="sm", interactive=False)
       gr.Button(variant="stop", size="sm", interactive=False)
 
+   with gr.Group():
+      gr.Button(variant="primary")
+      gr.Button(variant="primary")
+      gr.Button(variant="secondary")
+      gr.Button(variant="secondary")
+      gr.Button(variant="stop")
+      gr.Button(variant="stop")
 
 
 demo.launch()

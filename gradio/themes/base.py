@@ -1791,35 +1791,35 @@ class Base(ThemeClass):
         )
         self.button_secondary_background_fill = (
             button_secondary_background_fill
-            or getattr(self, "button_secondary_background_fill", "*neutral_200")
+            or getattr(self, "button_secondary_background_fill", "*neutral_300")
         )
         self.button_secondary_background_fill_dark = (
             button_secondary_background_fill_dark
-            or getattr(self, "button_secondary_background_fill_dark", "*neutral_700")
+            or getattr(self, "button_secondary_background_fill_dark", "*neutral_600")
         )
         self.button_secondary_background_fill_hover = (
             button_secondary_background_fill_hover
-            or getattr(self, "button_secondary_background_fill_hover", "*neutral_300")
+            or getattr(self, "button_secondary_background_fill_hover", "*neutral_400")
         )
         self.button_secondary_background_fill_hover_dark = (
             button_secondary_background_fill_hover_dark
             or getattr(
-                self, "button_secondary_background_fill_hover_dark", "*neutral_800"
+                self, "button_secondary_background_fill_hover_dark", "*neutral_700"
             )
         )
         self.button_secondary_border_color = button_secondary_border_color or getattr(
-            self, "button_secondary_border_color", "transparent"
+            self, "button_secondary_border_color", "*neutral_300"
         )
         self.button_secondary_border_color_dark = (
             button_secondary_border_color_dark
-            or getattr(self, "button_secondary_border_color_dark", "*neutral_600")
+            or getattr(self, "button_secondary_border_color_dark", "*neutral_500")
         )
         self.button_secondary_border_color_hover = (
             button_secondary_border_color_hover
             or getattr(
                 self,
                 "button_secondary_border_color_hover",
-                "*neutral_400",
+                "*neutral_500",
             )
         )
         self.button_secondary_border_color_hover_dark = (
@@ -1831,7 +1831,7 @@ class Base(ThemeClass):
             )
         )
         self.button_secondary_text_color = button_secondary_text_color or getattr(
-            self, "button_secondary_text_color", "*neutral_900"
+            self, "button_secondary_text_color", "black"
         )
         self.button_secondary_text_color_dark = (
             button_secondary_text_color_dark
