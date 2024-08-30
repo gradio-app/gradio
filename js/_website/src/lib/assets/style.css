@@ -336,6 +336,31 @@ strong {
 	padding-inline-start: 40px;
 }
 
+ol {
+	list-style: decimal;
+}
+
+ul {
+	list-style: circle;
+}
+
+li {
+	display: list-item;
+}
+
+.results ul {
+	list-style: none;
+}
+
+.results ol {
+	list-style: none;
+}
+
+:where(ol > li)::marker {
+	font-weight: 400;
+	color: #6b7280;
+}
+
 .embedded-component .gradio-container {
 	padding: var(--size-4) 0 0 0 !important;
 }
@@ -355,10 +380,6 @@ strong {
 .prose .codeblock {
 	@apply my-4;
 	display: grid;
-}
-
-.prose li {
-	display: inline-block;
 }
 
 summary {

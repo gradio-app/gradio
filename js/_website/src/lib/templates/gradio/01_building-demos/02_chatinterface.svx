@@ -17,7 +17,7 @@
 
 <!--- Usage -->
 ```python
-gradio.ChatInterface(fn, ···)
+gradio.ChatInterface(fn, type="messages", ···)
 ```
 
 <!--- Description -->
@@ -36,7 +36,7 @@ import gradio as gr
 def echo(message, history):
     return message
 
-demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="Echo Bot")
+demo = gr.ChatInterface(fn=echo, type="messages", examples=["hello", "hola", "merhaba"], title="Echo Bot")
 demo.launch()
 ```
 
@@ -57,7 +57,7 @@ def vote(data: gr.LikeData):
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(placeholder="<strong>Your Personal Yes-Man</strong><br>Ask Me Anything")
     chatbot.like(vote, None, None)
-    gr.ChatInterface(fn=yes, chatbot=chatbot)
+    gr.ChatInterface(fn=yes, type="messages", chatbot=chatbot)
     
 demo.launch()
 ```
