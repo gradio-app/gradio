@@ -1655,7 +1655,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_cancel_background_fill_hover_dark",
-                "*button_secondary_background_fill_hover_dark",
+                "*button_secondary_background_fill_hover",
             )
         )
         self.button_cancel_border_color = button_cancel_border_color or getattr(
@@ -1666,7 +1666,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_cancel_border_color_dark",
-                "*button_secondary_border_color_dark",
+                "*button_secondary_border_color",
             )
         )
 
@@ -1691,7 +1691,7 @@ class Base(ThemeClass):
             self, "button_cancel_text_color", "*button_secondary_text_color"
         )
         self.button_cancel_text_color_dark = button_cancel_text_color_dark or getattr(
-            self, "button_cancel_text_color_dark", "*button_secondary_text_color_dark"
+            self, "button_cancel_text_color_dark", "*button_secondary_text_color"
         )
         self.button_cancel_text_color_hover = button_cancel_text_color_hover or getattr(
             self, "button_cancel_text_color_hover", "*button_secondary_text_color_hover"
