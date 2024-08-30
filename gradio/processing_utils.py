@@ -586,7 +586,9 @@ async def async_move_files_to_cache(
                 if keep_in_cache:
                     block.keep_in_cache.add(payload.path)
 
-        url_prefix = f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
+        url_prefix = (
+            f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
+        )
         if block.proxy_url:
             proxy_url = block.proxy_url.rstrip("/")
             url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{payload.path}"
