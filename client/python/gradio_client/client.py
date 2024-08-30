@@ -154,20 +154,27 @@ class Client:
         self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = (
             self.config.get("protocol", "ws")
         )
-        self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
+        api_prefix: str = self.config.get("api_prefix", "")
+        api_prefix = api_prefix.lstrip("/") + "/"
+        self.src_prefixed = urllib.parse.urljoin(self.src, api_prefix)
+
+        self.api_url = urllib.parse.urljoin(self.src_prefixed, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
-            self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
+            self.src_prefixed,
+            utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL,
         )
-        self.heartbeat_url = urllib.parse.urljoin(self.src, utils.HEARTBEAT_URL)
+        self.heartbeat_url = urllib.parse.urljoin(
+            self.src_prefixed, utils.HEARTBEAT_URL
+        )
         self.sse_data_url = urllib.parse.urljoin(
-            self.src,
+            self.src_prefixed,
             utils.SSE_DATA_URL_V0 if self.protocol == "sse" else utils.SSE_DATA_URL,
         )
         self.ws_url = urllib.parse.urljoin(
-            self.src.replace("http", "ws", 1), utils.WS_URL
+            self.src_prefixed.replace("http", "ws", 1), utils.WS_URL
         )
-        self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
-        self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
+        self.upload_url = urllib.parse.urljoin(self.src_prefixed, utils.UPLOAD_URL)
+        self.reset_url = urllib.parse.urljoin(self.src_prefixed, utils.RESET_URL)
         self.app_version = version.parse(self.config.get("version", "2.0"))
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
@@ -552,7 +559,7 @@ class Client:
         return job
 
     def _get_api_info(self):
-        api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
+        api_info_url = urllib.parse.urljoin(self.src_prefixed, utils.RAW_API_INFO_URL)
         if self.app_version > version.Version("3.36.1"):
             r = httpx.get(
                 api_info_url,
@@ -832,7 +839,7 @@ class Client:
 
     def _login(self, auth: tuple[str, str]):
         resp = httpx.post(
-            urllib.parse.urljoin(self.src, utils.LOGIN_URL),
+            urllib.parse.urljoin(self.src_prefixed, utils.LOGIN_URL),
             data={"username": auth[0], "password": auth[1]},
             verify=self.ssl_verify,
             **self.httpx_kwargs,
@@ -864,7 +871,7 @@ class Client:
             )
         else:  # to support older versions of Gradio
             r = httpx.get(
-                self.src,
+                self.src_prefixed,
                 headers=self.headers,
                 cookies=self.cookies,
                 verify=self.ssl_verify,

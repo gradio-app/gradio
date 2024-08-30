@@ -332,6 +332,7 @@ class BlocksConfigDict(TypedDict):
     dependencies: NotRequired[list[dict[str, Any]]]
     root: NotRequired[str | None]
     username: NotRequired[str | None]
+    api_prefix: str
 
 
 class MediaStreamChunk(TypedDict):
