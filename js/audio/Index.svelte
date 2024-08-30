@@ -99,7 +99,7 @@
 
 	onMount(() => {
 		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
-			"--color-accent",
+			"--color-accent"
 		);
 		set_trim_region_colour();
 		waveform_settings.waveColor = waveform_options.waveform_color || "#9ca3af";
@@ -120,19 +120,19 @@
 		barRadius: 10,
 		dragToSeek: true,
 		normalize: true,
-		minPxPerSec: 20,
+		minPxPerSec: 20
 	};
 
 	const trim_region_settings = {
 		color: waveform_options.trim_region_color,
 		drag: true,
-		resize: true,
+		resize: true
 	};
 
 	function set_trim_region_colour(): void {
 		document.documentElement.style.setProperty(
 			"--trim-region-color",
-			trim_region_settings.color || color_accent,
+			trim_region_settings.color || color_accent
 		);
 	}
 
