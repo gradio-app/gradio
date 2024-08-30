@@ -155,12 +155,11 @@ test("Slider Change event", async ({ mount, page }) => {
 
 	await expect(sliderNumberInput).toHaveValue("7");
 
-	// simulate releasing the slider
 	await sliderRangeInput.evaluate((el: HTMLInputElement) => {
 		el.dispatchEvent(new Event("pointerup", { bubbles: true }));
 	});
 
-	// Check if events were dispatched
+	// More than one change event and one release event.
 	await expect(events.change).toBeGreaterThanOrEqual(1);
 	await expect(events.release).toBeGreaterThanOrEqual(1);
 });
