@@ -85,6 +85,9 @@ importers:
       babylonjs-loaders:
         specifier: ^5.57.1
         version: 5.57.1
+      esbuild:
+        specifier: ^0.21.0
+        version: 0.21.0
       eslint:
         specifier: ^9.1.1
         version: 9.1.1
@@ -1635,9 +1638,6 @@ importers:
       '@types/prismjs':
         specifier: 1.26.4
         version: 1.26.4
-      dompurify:
-        specifier: ^3.0.3
-        version: 3.0.3
       github-slugger:
         specifier: ^2.0.0
         version: 2.0.0

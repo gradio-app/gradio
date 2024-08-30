@@ -21,7 +21,12 @@ export default defineConfig({
 		}
 	},
 	optimizeDeps: {
-		exclude: ["@gradio/video", "@ffmpeg/ffmpeg", "@ffmpeg/util"]
+		exclude: [
+			"@gradio/video",
+			"@ffmpeg/ffmpeg",
+			"@ffmpeg/util",
+			"@gradio/utils"
+		]
 	},
 	assetsInclude: ["**/*.glb"],
 	server: {

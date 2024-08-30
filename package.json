@@ -57,6 +57,7 @@
 		"autoprefixer": "^10.4.19",
 		"babylonjs": "^5.57.1",
 		"babylonjs-loaders": "^5.57.1",
+		"esbuild": "^0.21.0",
 		"eslint": "^9.1.1",
 		"eslint-plugin-svelte": "^2.38.0",
 		"globals": "^15.1.0",
