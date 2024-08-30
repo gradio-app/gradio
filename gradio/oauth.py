@@ -12,6 +12,8 @@ import fastapi
 from fastapi.responses import RedirectResponse
 from huggingface_hub import HfFolder, whoami
 
+from route_utils import API_PREFIX
+
 from .utils import get_space
 
 OAUTH_CLIENT_ID = os.environ.get("OAUTH_CLIENT_ID")
@@ -34,7 +36,7 @@ def attach_oauth(app: fastapi.FastAPI):
     # Add `/login/huggingface`, `/login/callback` and `/logout` routes to enable OAuth in the Gradio app.
     # If the app is running in a Space, OAuth is enabled normally. Otherwise, we mock the "real" routes to make the
     # user log in with a fake user profile - without any calls to hf.co.
-    router = fastapi.APIRouter(prefix="/gradio_api")
+    router = fastapi.APIRouter(prefix=API_PREFIX)
     app.include_router(router)
 
     if get_space() is not None:
@@ -189,7 +191,7 @@ def _add_mocked_oauth_routes(app: fastapi.APIRouter) -> None:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
         logout_url = str(request.url).replace(
-            "/gradio_api/logout", "/"
+            f"{API_PREFIX}/logout", "/"
         )  # preserve query params
         return RedirectResponse(url=logout_url)
 

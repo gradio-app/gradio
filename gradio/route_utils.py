@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 
 
 config_lock = threading.Lock()
-
+API_PREFIX = "/gradio_api"
 
 class Obj:
     """
