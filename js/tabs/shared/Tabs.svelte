@@ -220,7 +220,7 @@
 	.tab-container {
 		display: flex;
 		align-items: center;
-		width: 90%;
+		width: 100%;
 		position: relative;
 		overflow: hidden;
 		height: var(--size-8);
