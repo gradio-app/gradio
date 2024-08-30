@@ -8,12 +8,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 build/
+!js/build/
+!js/build/dist/
 __tmp/*
 *.pyi
 !gradio/stubs/**/*.pyi
 py.typed
 .ipynb_checkpoints/
 .python-version
+=23.2
 
 # JS build
 gradio/templates/*
@@ -31,6 +34,7 @@ gradio/launches.json
 flagged/
 gradio_cached_examples/
 tmp.zip
+gradio/hash_seed.txt
 
 # Tests
 .coverage
@@ -38,6 +42,8 @@ coverage.xml
 test.txt
 **/snapshots/**/*.png
 playwright-report/
+.hypothesis
+.lite-perf.json
 
 # Demos
 demo/tmp.zip
@@ -78,6 +84,8 @@ test-results
 client/js/dist/*
 client/js/test.js
 .config/test.py
+.svelte-kit
+
 
 # storybook
 storybook-static

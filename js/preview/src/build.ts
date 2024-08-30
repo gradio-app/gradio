@@ -40,7 +40,8 @@ export async function make_build({
 				},
 				build: {
 					target: []
-				}
+				},
+				optimizeDeps: {}
 			};
 
 			if (
@@ -54,6 +55,7 @@ export async function make_build({
 				component_config.plugins = m.default.plugins || [];
 				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
 				component_config.build.target = m.default.build?.target || "modules";
+				component_config.optimizeDeps = m.default.optimizeDeps || {};
 			}
 
 			const exports: string[][] = [
@@ -70,6 +72,9 @@ export async function make_build({
 							...plugins(component_config),
 							make_gradio_plugin({ mode: "build", svelte_dir })
 						],
+						resolve: {
+							conditions: ["gradio"]
+						},
 						build: {
 							target: component_config.build.target,
 							emptyOutDir: true,

@@ -1,0 +1,53 @@
+name: "npm"
+
+on:
+  pull_request:
+
+env:
+  CI: true
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+concurrency:
+  group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  changes:
+    permissions:
+      contents: read
+      pull-requests: read
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      pr_number: ${{ steps.changes.outputs.pr_number }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          filter: "js"
+          token: ${{ secrets.GITHUB_TOKEN }}
+  preview:
+    permissions:
+      contents: read
+    name: npm-previews
+    runs-on: ubuntu-22.04
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
+        with:
+          skip_build: true
+      - name: build client
+        run: pnpm --filter @gradio/client --filter @gradio/wasm --filter @gradio/preview build
+      - name: publish npm previews
+        run: pnpx pkg-pr-new publish './js/*' './client/js' --comment=off

@@ -7,7 +7,7 @@
 	import { BaseButton } from "@gradio/button";
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
-	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
 	import type {
@@ -65,7 +65,11 @@
 		if (selected !== false) {
 			const [row, col] = selected;
 			if (!isNaN(row) && !isNaN(col)) {
-				dispatch("select", { index: [row, col], value: get_data_at(row, col) });
+				dispatch("select", {
+					index: [row, col],
+					value: get_data_at(row, col),
+					row_value: data[row].map((d) => d.value)
+				});
 			}
 		}
 	}

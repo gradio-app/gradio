@@ -24,6 +24,7 @@ BaseTextbox
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
+	export let max_length: number | undefined = undefined;
 ```
 
 BaseExample

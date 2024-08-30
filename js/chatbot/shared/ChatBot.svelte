@@ -20,7 +20,7 @@
 	import type { MessageRole } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
-	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
 	import MessageBox from "./MessageBox.svelte";
 
@@ -29,7 +29,8 @@
 
 	import Component from "./Component.svelte";
 	import LikeButtons from "./ButtonPanel.svelte";
-	import type { LoadedComponent } from "../../app/src/types";
+	import type { LoadedComponent } from "../../core/src/types";
+
 	import CopyAll from "./CopyAll.svelte";
 
 	export let _fetch: typeof fetch;
@@ -681,6 +682,19 @@
 		max-height: 200px;
 	}
 
+	.message-wrap
+		> div
+		:not(.avatar-container)
+		div
+		:not(.image-button)
+		:global(img) {
+		border-radius: var(--radius-xl);
+		margin: var(--size-2);
+		width: 400px;
+		max-width: 30vw;
+		max-height: 30vw;
+	}
+
 	.message-wrap .message :global(a) {
 		color: var(--color-text-link);
 		text-decoration: underline;
@@ -698,12 +712,6 @@
 	.message-wrap .user :global(td),
 	.message-wrap .user :global(th) {
 		border: 1px solid var(--border-color-accent);
-	}
-
-	/* Lists */
-	.message-wrap :global(ol),
-	.message-wrap :global(ul) {
-		padding-inline-start: 2em;
 	}
 
 	/* KaTeX */

@@ -7,7 +7,7 @@
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
-	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
 	import { SelectSource } from "@gradio/atoms";

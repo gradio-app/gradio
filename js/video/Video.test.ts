@@ -8,9 +8,9 @@ import {
 	beforeEach,
 	expect
 } from "vitest";
-import { spy, spyOn } from "tinyspy";
-import { cleanup, render } from "@gradio/tootils";
-import { setupi18n } from "../app/src/i18n";
+import { spyOn } from "tinyspy";
+import { cleanup, render } from "@self/tootils";
+import { setupi18n } from "../core/src/i18n";
 
 import Video from "./Index.svelte";
 

@@ -46,14 +46,13 @@ jobs:
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          always_install_pnpm: true
           build_lite: true
           skip_build: true
       - run: pnpm exec playwright install chromium firefox
       - name: Run Lite E2E tests
         run: |
           . venv/bin/activate
-          pnpm --filter @gradio/app test:browser:lite
+          pnpm --filter @gradio/lite test:browser
       - name: Get the performance result
         run: |
           export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)

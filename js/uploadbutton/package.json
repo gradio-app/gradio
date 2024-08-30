@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/uploadbutton",
-	"version": "0.6.17",
+	"version": "0.6.18",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -8,7 +8,11 @@
 	"private": false,
 	"main_changeset": true,
 	"exports": {
-		".": "./Index.svelte",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
 	},
 	"main": "./Index.svelte",
@@ -20,5 +24,13 @@
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/uploadbutton"
 	}
 }

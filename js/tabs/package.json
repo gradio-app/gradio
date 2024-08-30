@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/tabs",
-	"version": "0.2.12",
+	"version": "0.2.13",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -9,7 +9,11 @@
 	"main_changeset": true,
 	"main": "Index.svelte",
 	"exports": {
-		".": "./Index.svelte",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
@@ -17,5 +21,13 @@
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/tabs"
 	}
 }

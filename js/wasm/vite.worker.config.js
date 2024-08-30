@@ -3,13 +3,13 @@ import { defineConfig } from "vite";
 
 /**
  * We bundle the worker file before packaging, while other files are only TS-transpiled.
- * The consumer of this package, `@gradio/app`, will be bundled with Vite,
+ * The consumer of this package, `@gradio/lite`, will be bundled with Vite,
  * and Vite only supports module-type WebWorkers (`new Worker("...", { type: "module" })`) to handle `import` in the worker file,
  * because in the dev mode it doesn't bundle the worker file and just relies on the browser's native support for module-type workers to resolve the imports.
  * However, we need to use `importScripts()` in the worker to load Pyodide from the CDN, which is only supported by classic WebWorkers (`new Worker("...")`),
  * while we still want to use `import` in the worker to modularize the code.
  * So, we bundle the worker file to resolve `import`s here before exporting, preserving `importScripts()` in the bundled file,
- * and load the bundled worker file on `@gradio/app` as a classic WebWorker.
+ * and load the bundled worker file on `@gradio/lite` as a classic WebWorker.
  *
  * Note: We tried the following approaches, but they failed:
  * 1. Just TS-transpile the worker file like other files into `worker.js`, and use it like `new Worker("worker.js")`.
@@ -22,7 +22,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
 	build: {
-		outDir: "dist",
+		outDir: "dist/webworker",
 		rollupOptions: {
 			input: path.join(__dirname, "src/webworker/index.ts"),
 			// Ref: https://github.com/rollup/rollup/issues/2616#issuecomment-1431551704

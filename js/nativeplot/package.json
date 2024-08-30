@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/nativeplot",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -8,8 +8,16 @@
 	"private": false,
 	"main_changeset": true,
 	"exports": {
-		".": "./Index.svelte",
-		"./example": "./Example.svelte",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
+		"./example": {
+			"gradio": "./Example.svelte",
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
+		},
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
@@ -24,5 +32,13 @@
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/nativeplot"
 	}
 }
