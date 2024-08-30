@@ -87,7 +87,7 @@
 				<Remove />
 			</ActionButton>
 		{/if}
-		{#if likeable}
+		{#if true}
 			<LikeDislike {handle_action} padded={show_copy || show_download} />
 		{/if}
 	</div>
@@ -109,7 +109,7 @@
 		align-items: center;
 		height: var(--size-6);
 		align-self: self-end;
-		margin: 0px calc(var(--spacing-xl) * 3);
+		margin: 0px calc(var(--spacing-xl) * 2);
 		padding-left: 5px;
 		z-index: 1;
 		padding-bottom: var(--spacing-xl);

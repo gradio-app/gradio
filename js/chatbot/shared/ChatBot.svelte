@@ -373,7 +373,6 @@
 						class:component-wrap={messages[0].type === "component"}
 					>
 						{#each messages as message, thought_index}
-							{@const msg_type = messages[0].type}
 							<div
 								class="message {role} {is_component_message(message)
 									? message?.content.component
@@ -382,7 +381,7 @@
 								class:panel-full-width={true}
 								class:message-markdown-disabled={!render_markdown}
 								style:text-align={rtl && role === "user" ? "left" : "right"}
-								class:component={msg_type === "component"}
+								class:component={message.type === "component"}
 								class:html={is_component_message(message) &&
 									message.content.component === "html"}
 								class:thought={thought_index > 0}
@@ -717,7 +716,7 @@
 		align-items: center;
 		justify-content: space-evenly;
 		gap: var(--spacing-md);
-		z-index: 1;
+		z-index: 2;
 		padding-left: var(--size-2);
 		padding-right: var(--size-2);
 		background: var(--block-label-background-fill);
@@ -874,7 +873,7 @@
 		width: fit-content;
 		max-width: 80%;
 		max-height: 80%;
-		border: 1px solid var(--border-color-primary);
+		border: none;
 		overflow: hidden;
 	}
 
