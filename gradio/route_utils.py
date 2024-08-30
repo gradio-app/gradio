@@ -53,6 +53,7 @@ if TYPE_CHECKING:
 config_lock = threading.Lock()
 API_PREFIX = "/gradio_api"
 
+
 class Obj:
     """
     Using a class to convert dictionaries into objects. Used by the `Request` class.
