@@ -1157,7 +1157,7 @@ class Base(ThemeClass):
         self.block_label_radius = block_label_radius or getattr(
             self,
             "block_label_radius",
-            "calc(*radius_xs - 1px) 0 calc(*radius_xs - 1px) 0",
+            "calc(*radius_sm - 1px) 0 calc(*radius_sm - 1px) 0",
         )
         self.block_label_right_radius = block_label_right_radius or getattr(
             self,
