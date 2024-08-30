@@ -1717,9 +1717,9 @@ class Base(ThemeClass):
         self.button_large_padding = button_large_padding or getattr(
             self, "button_large_padding", "*spacing_lg calc(2 * *spacing_lg)"
         )
-        self.button_large_radius = button_large_radius or getattr(
-            self, "button_large_radius", "*radius_md"
-        ),
+        self.button_large_radius = (
+            button_large_radius or getattr(self, "button_large_radius", "*radius_md"),
+        )
         self.button_large_text_size = button_large_text_size or getattr(
             self, "button_large_text_size", "*text_lg"
         )
@@ -1857,9 +1857,9 @@ class Base(ThemeClass):
         self.button_small_padding = button_small_padding or getattr(
             self, "button_small_padding", "*spacing_sm calc(1.5 * *spacing_sm)"
         )
-        self.button_small_radius = button_small_radius or getattr(
-            self, "button_small_radius", "*radius_sm"
-        ),
+        self.button_small_radius = (
+            button_small_radius or getattr(self, "button_small_radius", "*radius_sm"),
+        )
         self.button_small_text_size = button_small_text_size or getattr(
             self, "button_small_text_size", "*text_sm"
         )

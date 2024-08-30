@@ -67,8 +67,6 @@ class Default(Base):
             # Gradients
             stat_background_fill="linear-gradient(to right, *primary_400, *primary_200)",
             stat_background_fill_dark="linear-gradient(to right, *primary_400, *primary_600)",
-
-
             checkbox_label_background_fill="*background_fill_primary",
             checkbox_label_background_fill_dark="*background_fill_primary",
             checkbox_label_background_fill_hover="*background_fill_secondary",
