@@ -26,7 +26,7 @@
 <style>
 	div {
 		border: var(--block-border-width) solid var(--border-color-primary);
-		background: var(--border-color-primary);
+		background: var(--block-border-color);
 		border-radius: var(--block-radius);
 		display: flex;
 		flex-direction: column;
