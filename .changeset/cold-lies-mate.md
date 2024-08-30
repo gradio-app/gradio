@@ -1,5 +1,6 @@
 ---
 "@gradio/button": minor
+"@gradio/group": minor
 "gradio": minor
 ---
 
