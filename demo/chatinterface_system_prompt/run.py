@@ -9,6 +9,7 @@ def echo(message, history, system_prompt, tokens):
 
 demo = gr.ChatInterface(
     echo,
+    type="messages",
     additional_inputs=[
         gr.Textbox("You are helpful AI.", label="System Prompt"),
         gr.Slider(10, 100),
