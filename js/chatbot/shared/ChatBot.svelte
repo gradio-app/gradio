@@ -522,6 +522,7 @@
 		border-radius: var(--radius-xl);
 		background-color: var(--background-fill-secondary);
 		cursor: pointer;
+		width: var(--size-36);
 	}
 
 	.suggestion:hover {
