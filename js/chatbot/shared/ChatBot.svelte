@@ -721,7 +721,7 @@
 		padding-right: var(--size-2);
 		background: var(--block-label-background-fill);
 		border-radius: var(--radius-md);
-		box-shadow: var(--block-label-shadow);
+		box-shadow: none;
 		padding-top: var(--size-1);
 		padding-bottom: var(--size-1);
 	}
