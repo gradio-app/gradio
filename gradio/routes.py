@@ -162,12 +162,6 @@ client = httpx.AsyncClient()
 file_upload_statuses = FileUploadProgress()
 
 
-import logging
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-
 class App(FastAPI):
     """
     FastAPI App Wrapper
@@ -267,16 +261,6 @@ class App(FastAPI):
         router = APIRouter(prefix="/gradio_api")
 
         app.configure_app(blocks)
-
-        @app.middleware("http")
-        async def log_requests(request: Request, call_next):
-            logger.debug(f"Request: {request.method} {request.url}")
-            logger.debug(f"Headers: {request.headers}")
-
-            response = await call_next(request)
-
-            logger.debug(f"Response status: {response.status_code}")
-            return response
 
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
