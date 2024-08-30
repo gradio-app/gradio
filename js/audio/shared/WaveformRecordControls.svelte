@@ -131,7 +131,7 @@
 		height: var(--size-8);
 		width: var(--size-20);
 		background-color: var(--block-background-fill);
-		border-radius: var(--radius-3xl);
+		border-radius: var(--button-large-radius);
 		align-items: center;
 		border: 1px solid var(--neutral-400);
 		margin: var(--size-1) var(--size-1) 0 0;
@@ -160,7 +160,7 @@
 		height: var(--size-8);
 		width: var(--size-20);
 		background-color: var(--block-background-fill);
-		border-radius: var(--radius-3xl);
+		border-radius: var(--button-large-radius);
 		align-items: center;
 		border: 1px solid var(--primary-600);
 		margin: var(--size-1) var(--size-1) 0 0;
@@ -179,7 +179,7 @@
 		height: var(--size-8);
 		width: var(--size-24);
 		background-color: var(--block-background-fill);
-		border-radius: var(--radius-3xl);
+		border-radius: var(--button-large-radius);
 		display: flex;
 		align-items: center;
 		border: 1px solid var(--neutral-400);
@@ -214,7 +214,7 @@
 		height: var(--size-8);
 		width: var(--size-20);
 		border: 1px solid var(--neutral-400);
-		border-radius: var(--radius-3xl);
+		border-radius: var(--button-large-radius);
 		padding: var(--spacing-md);
 		margin: var(--size-1) var(--size-1) 0 0;
 	}
@@ -224,7 +224,7 @@
 		height: var(--size-8);
 		width: var(--size-20);
 		border: 1px solid var(--neutral-400);
-		border-radius: var(--radius-3xl);
+		border-radius: var(--button-large-radius);
 		padding: var(--spacing-xl);
 		line-height: 1px;
 		font-size: var(--text-md);
@@ -236,7 +236,6 @@
 		height: var(--size-8);
 		width: var(--size-20);
 		border: 1px solid var(--neutral-400);
-		border-radius: var(--radius-3xl);
 		padding: var(--spacing-md);
 		align-items: center;
 		justify-content: center;

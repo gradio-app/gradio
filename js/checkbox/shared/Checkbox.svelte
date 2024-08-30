@@ -41,7 +41,7 @@
 	}
 </script>
 
-<label class:disabled>
+<label class:disabled class:selected={value}>
 	<input
 		bind:checked={value}
 		on:keydown={handle_enter}
@@ -51,15 +51,16 @@
 		name="test"
 		data-testid="checkbox"
 	/>
-	<span class="ml-2">{label}</span>
+	<span>{label}</span>
 </label>
 
 <style>
 	label {
 		display: flex;
 		align-items: center;
+		transition: var(--button-transition);
 		cursor: pointer;
-		color: var(--body-text-color);
+		color: var(--checkbox-label-text-color);
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
@@ -72,8 +73,8 @@
 	input {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: var(--input-shadow);
-		border: 1px solid var(--checkbox-border-color);
+		box-shadow: var(--checkbox-shadow);
+		border: var(--checkbox-border-width) solid var(--checkbox-border-color);
 		border-radius: var(--checkbox-border-radius);
 		background-color: var(--checkbox-background-color);
 		line-height: var(--line-sm);
@@ -87,20 +88,15 @@
 		background-color: var(--color-accent);
 	}
 
-	input:checked:focus {
-		background-image: var(--checkbox-check);
-		background-color: var(--color-accent);
-		border-color: var(--checkbox-border-color-focus);
+	input:focus {
+		border-color: var(--color-accent);
+		outline: none;
+		box-shadow: 0 0 0 2px var(--color-accent-soft);
 	}
 
 	input:hover {
 		border-color: var(--checkbox-border-color-hover);
 		background-color: var(--checkbox-background-color-hover);
-	}
-
-	input:focus {
-		border-color: var(--checkbox-border-color-focus);
-		background-color: var(--checkbox-background-color-focus);
 	}
 
 	input[disabled],
