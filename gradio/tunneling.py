@@ -18,6 +18,8 @@ CURRENT_TUNNELS: list["Tunnel"] = []
 machine = platform.machine()
 if machine == "x86_64":
     machine = "amd64"
+elif machine == "aarch64":
+    machine = "arm64"
 
 BINARY_REMOTE_NAME = f"frpc_{platform.system().lower()}_{machine.lower()}"
 EXTENSION = ".exe" if os.name == "nt" else ""
