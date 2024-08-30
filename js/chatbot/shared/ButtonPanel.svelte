@@ -87,7 +87,7 @@
 				<Remove />
 			</ActionButton>
 		{/if}
-		{#if true}
+		{#if likeable}
 			<LikeDislike {handle_action} padded={show_copy || show_download} />
 		{/if}
 	</div>
