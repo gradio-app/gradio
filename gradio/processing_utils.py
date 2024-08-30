@@ -23,12 +23,12 @@ import httpx
 import numpy as np
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
-from route_utils import API_PREFIX
 
 from gradio import utils, wasm_utils
 from gradio.context import LocalContext
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
 from gradio.exceptions import Error, InvalidPathError
+from gradio.route_utils import API_PREFIX
 from gradio.utils import abspath, get_hash_seed, get_upload_folder, is_in_or_equal
 
 with warnings.catch_warnings():
