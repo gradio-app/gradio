@@ -51,7 +51,18 @@ class Image(StreamingInput, Component):
         height: int | str | None = None,
         width: int | str | None = None,
         image_mode: Literal[
-            "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
+            "1",
+            "L",
+            "P",
+            "RGB",
+            "RGBA",
+            "CMYK",
+            "YCbCr",
+            "LAB",
+            "HSV",
+            "I",
+            "F",
+            "None",
         ] = "RGB",
         sources: list[Literal["upload", "webcam", "clipboard"]]
         | Literal["upload", "webcam", "clipboard"]
@@ -199,7 +210,8 @@ class Image(StreamingInput, Component):
         if suffix.lower() != "gif" and im is not None:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                im = im.convert(self.image_mode)
+                if self.image_mode != "None":
+                    im = im.convert(self.image_mode)
         return image_utils.format_image(
             im,
             cast(Literal["numpy", "pil", "filepath"], self.type),
