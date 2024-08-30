@@ -39,7 +39,6 @@ export async function open_stream(this: Client): Promise<void> {
 	}
 
 	stream.onmessage = async function (event: MessageEvent) {
-		console.log(event);
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
 			close_stream(stream_status, that.abort_controller);
