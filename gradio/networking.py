@@ -5,7 +5,6 @@ creating tunnels.
 
 from __future__ import annotations
 
-import ipaddress
 import os
 import time
 import warnings
@@ -40,12 +39,6 @@ def setup_tunnel(
         except Exception as e:
             raise RuntimeError(
                 "Could not get share link from Gradio API Server."
-            ) from e
-        try:
-            ipaddress.ip_address(remote_host)
-        except ValueError as e:
-            raise ValueError(
-                f"Invalid IP address received from Gradio API Server: {remote_host}"
             ) from e
     else:
         remote_host, remote_port = share_server_address.split(":")
