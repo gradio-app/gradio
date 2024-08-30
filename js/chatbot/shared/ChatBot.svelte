@@ -180,7 +180,7 @@
 	}
 
 	$: groupedMessages = value && group_messages(value);
-	$: if (value !== null && value.length > 0) suggestionsVisible = false;
+	$: suggestionsVisible = !(value !== null && value.length > 0);
 	let suggestionsVisible = true;
 	function handle_suggestion_select(
 		i: number,
