@@ -85,10 +85,14 @@ class Message(GradioModel):
 
 
 class SuggestionMessage(TypedDict):
-    icon: NotRequired[str]
-    display_text: NotRequired[str]
-    text: str
-    files: NotRequired[list[str]]
+    icon: NotRequired[str]  # filepath or url to an image to be shown in suggestion box
+    display_text: NotRequired[
+        str
+    ]  # text to be shown in suggestion box. If not provided, main_text will be shown
+    text: NotRequired[str]  # text to be added to chatbot when suggestion is clicked
+    files: NotRequired[
+        list[str]
+    ]  # list of file paths or URLs to be added to chatbot when suggestion is clicked
 
 
 @dataclass
@@ -206,7 +210,7 @@ class Chatbot(Component):
             likeable: Whether the chat messages display a like or dislike button. Set automatically by the .like method but has to be present in the signature for it to show up in the config.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
-            suggestions: A list of suggestion messages to display in the chatbot. The `main_text` field is required, and the `additional_input` field is optional. The `additional_input` field can be a string or a `FileMessage` object.
+            suggestions: A list of suggestion messages to display in the chatbot before any user/assistant messages are shown. Each suggestion should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the suggestion box, and an optional "display_text" key, whose value should be the text to display in the suggestion box. If "display_text" is not provided, the value of "text" will be displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
         """
         self.likeable = likeable
@@ -271,16 +275,13 @@ class Chatbot(Component):
                     )
                 files = []
                 if file_info is not None:
-                    for x, file in enumerate(file_info):
-                        if file is not None:
-                            orig_name = file
-                            file_data = self.serve_static_file(file)
-                            file_data["orig_name"] = orig_name
-                            file_data["mime_type"] = client_utils.get_mimetype(
-                                orig_name
-                            )
-                            file_info[x] = file_data
-                            files.append(file_data)
+                    for i, file in enumerate(file_info):
+                        orig_name = Path(file).name
+                        file_data = self.serve_static_file(file)
+                        file_data["orig_name"] = orig_name
+                        file_data["mime_type"] = client_utils.get_mimetype(orig_name)
+                        file_info[i] = file_data
+                        files.append(file_data)
                 self.suggestions[i]["files"] = files
 
     @staticmethod
