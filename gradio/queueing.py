@@ -612,7 +612,7 @@ class Queue:
             assert body.request is not None  # noqa: S101
             root_path = route_utils.get_root_url(
                 request=body.request,
-                route_path="/gradio_api/queue/join",
+                route_path=f"{API_PREFIX}/queue/join",
                 root_path=app.root_path,
             )
             first_iteration = 0
