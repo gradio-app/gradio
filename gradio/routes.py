@@ -448,6 +448,8 @@ class App(FastAPI):
 
         @router.get("/config/", dependencies=[Depends(login_check)])
         @router.get("/config", dependencies=[Depends(login_check)])
+        @app.get("/config/", dependencies=[Depends(login_check)])
+        @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
             config = app.get_blocks().config
             root = route_utils.get_root_url(

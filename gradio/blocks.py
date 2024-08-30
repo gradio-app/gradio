@@ -71,7 +71,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
-from gradio.route_utils import MediaStream
+from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -2048,6 +2048,7 @@ Received outputs:
     def get_config_file(self) -> BlocksConfigDict:
         config: BlocksConfigDict = {
             "version": routes.VERSION,
+            "api_prefix": API_PREFIX,
             "mode": self.mode,
             "app_id": self.app_id,
             "dev_mode": self.dev_mode,
