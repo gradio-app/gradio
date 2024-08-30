@@ -55,7 +55,7 @@ class Default(Base):
             button_shadow="none",
             button_shadow_hover="none",
             button_shadow_active="none",
-            input_shadow=None
+            input_shadow=None,
             input_shadow_focus="0 0 0 *shadow_spread *secondary_50, *shadow_inset",
             input_shadow_focus_dark="0 0 0 *shadow_spread *neutral_700, *shadow_inset",
             checkbox_label_shadow=None,
