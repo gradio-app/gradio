@@ -12,6 +12,7 @@
 "@gradio/model3d": patch
 "@gradio/nativeplot": patch
 "@gradio/paramviewer": patch
+"@gradio/utils": patch
 "@gradio/wasm": patch
 "@self/component-test": patch
 "gradio": patch
