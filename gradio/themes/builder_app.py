@@ -12,6 +12,7 @@ themes = [
     gr.themes.Soft,
     gr.themes.Monochrome,
     gr.themes.Glass,
+    gr.themes.Origin,
 ]
 colors = gr.themes.Color.all
 sizes = gr.themes.Size.all
