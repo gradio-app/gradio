@@ -2,6 +2,7 @@ import config from "$lib/component_json";
 
 const comps = {
 	accordion: () => import("@gradio/accordion"),
+	annotatedimage: () => import("@gradio/annotatedimage"),
 	audio: () => import("@gradio/audio"),
 	button: () => import("@gradio/button"),
 	chatbot: () => import("@gradio/chatbot"),
@@ -15,6 +16,7 @@ const comps = {
 	downloadbutton: () => import("@gradio/downloadbutton"),
 	dropdown: () => import("@gradio/dropdown"),
 	file: () => import("@gradio/file"),
+	form: () => import("@gradio/form"),
 	gallery: () => import("@gradio/gallery"),
 	highlightedtext: () => import("@gradio/highlightedtext"),
 	html: () => import("@gradio/html"),
@@ -25,6 +27,7 @@ const comps = {
 	markdown: () => import("@gradio/markdown"),
 	model3d: () => import("@gradio/model3d"),
 	multimodaltextbox: () => import("@gradio/multimodaltextbox"),
+	nativeplot: () => import("@gradio/nativeplot"),
 	number: () => import("@gradio/number"),
 	paramviewer: () => import("@gradio/paramviewer"),
 	plot: () => import("@gradio/plot"),
@@ -51,7 +54,7 @@ export const load: PageLoad = async ({ url }) => {
 
 	const comp =
 		route_name in comps
-			? await comps[route_name]()
+			? await comps[route_name as keyof typeof comps]()
 			: await import("@gradio/label");
 
 	return {

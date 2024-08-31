@@ -229,7 +229,6 @@
 		display: block;
 		width: 100%;
 		height: auto;
-		position: absolute;
 	}
 	.container {
 		display: flex;
