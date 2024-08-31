@@ -2404,7 +2404,7 @@ Received outputs:
                 )
             self.server_name = server_name
             self.local_url = local_url
-            self.local_api_url = f"{self.local_url}gradio_api/"
+            self.local_api_url = f"{self.local_url}{API_PREFIX}/"
             self.server_port = server_port
             self.server = server
             self.is_running = True

@@ -476,14 +476,14 @@ def move_files_to_cache(
                 if keep_in_cache:
                     block.keep_in_cache.add(payload.path)
 
-        url_prefix = "gradio_api/stream/" if payload.is_stream else "gradio_api/file="
+        url_prefix = f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
         if block.proxy_url:
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"gradio_api/proxy={proxy_url}{url_prefix}{payload.path}"
+            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{payload.path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
-            url = payload.path
+            url = f"{payload.path}"
         else:
             url = f"{url_prefix}{payload.path}"
         payload.url = url
