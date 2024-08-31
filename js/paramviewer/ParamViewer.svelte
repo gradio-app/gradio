@@ -21,11 +21,7 @@
 	let _docs: Param[];
 	let all_open = false;
 
-	$: {
-		setTimeout(() => {
-			_docs = highlight_code(docs, lang);
-		}, 0);
-	}
+	$: _docs = highlight_code(docs, lang);
 
 	function highlight(code: string, lang: "python" | "typescript"): string {
 		let highlighted = Prism.highlight(code, Prism.languages[lang], lang);

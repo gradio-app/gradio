@@ -29,7 +29,7 @@
 	export let root: string;
 	export let value_is_output = false;
 
-	export let height: number | undefined;
+	export let height: number | undefined = 400;
 	export let width: number | undefined;
 
 	export let _selectable = false;
@@ -90,10 +90,12 @@
 	let dragging: boolean;
 
 	$: value && handle_change();
+	const is_browser = typeof window !== "undefined";
+	const raf = is_browser ? window.requestAnimationFrame : () => {};
 
 	function wait_for_next_frame(): Promise<void> {
 		return new Promise((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+			raf(() => raf(() => resolve()));
 		});
 	}
 
@@ -192,6 +194,7 @@
 			{sources}
 			{label}
 			{show_label}
+			{height}
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}

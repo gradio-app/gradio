@@ -23,6 +23,7 @@
 	export let select_on_focus = false;
 	export let line_breaks = true;
 	export let editable = true;
+	export let root: string;
 
 	const dispatch = createEventDispatcher();
 
@@ -81,6 +82,7 @@
 			{latex_delimiters}
 			{line_breaks}
 			chatbot={false}
+			{root}
 		/>
 	{:else}
 		{editable ? value : display_value || value}
