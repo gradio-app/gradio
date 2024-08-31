@@ -53,8 +53,11 @@ export function submit(
 			event_callbacks,
 			unclosed_events,
 			post_data,
-			options
+			options,
+			api_prefix
 		} = this;
+
+		console.log(config);
 
 		const that = this;
 
@@ -140,14 +143,14 @@ export function submit(
 				}
 
 				if ("event_id" in cancel_request) {
-					await fetch(`${config.root}/${CANCEL_URL}`, {
+					await fetch(`${config.root}${api_prefix}/${CANCEL_URL}`, {
 						headers: { "Content-Type": "application/json" },
 						method: "POST",
 						body: JSON.stringify(cancel_request)
 					});
 				}
 
-				await fetch(`${config.root}/${RESET_URL}`, {
+				await fetch(`${config.root}${api_prefix}/${RESET_URL}`, {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",
 					body: JSON.stringify(reset_request)
@@ -213,8 +216,10 @@ export function submit(
 						time: new Date()
 					});
 
+					console.log(config.root, api_prefix, _endpoint, url_params);
+
 					post_data(
-						`${config.root}/run${
+						`${config.root}${api_prefix}/run${
 							_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 						}${url_params ? "?" + url_params : ""}`,
 						{
@@ -420,7 +425,7 @@ export function submit(
 						session_hash: session_hash
 					}).toString();
 					let url = new URL(
-						`${config.root}/${SSE_URL}?${
+						`${config.root}${api_prefix}/${SSE_URL}?${
 							url_params ? url_params + "&" : ""
 						}${params}`
 					);
@@ -458,11 +463,14 @@ export function submit(
 								close();
 							}
 						} else if (type === "data") {
-							let [_, status] = await post_data(`${config.root}/queue/data`, {
-								...payload,
-								session_hash,
-								event_id
-							});
+							let [_, status] = await post_data(
+								`${config.root}${api_prefix}/queue/data`,
+								{
+									...payload,
+									session_hash,
+									event_id
+								}
+							);
 							if (status !== 200) {
 								fire_event({
 									type: "status",
@@ -571,7 +579,7 @@ export function submit(
 							: Promise.resolve(null);
 					const post_data_promise = zerogpu_auth_promise.then((headers) => {
 						return post_data(
-							`${config.root}/${SSE_DATA_URL}?${url_params}`,
+							`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`,
 							{
 								...payload,
 								session_hash

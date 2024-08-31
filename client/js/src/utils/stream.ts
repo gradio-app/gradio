@@ -25,7 +25,7 @@ export async function open_stream(this: Client): Promise<void> {
 		session_hash: this.session_hash
 	}).toString();
 
-	let url = new URL(`${config.root}/${SSE_URL}?${params}`);
+	let url = new URL(`${config.root}${this.api_prefix}/${SSE_URL}?${params}`);
 
 	if (jwt) {
 		url.searchParams.set("__sign", jwt);

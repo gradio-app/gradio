@@ -1,24 +1,22 @@
-const api_prefix = "gradio_api";
-
 // endpoints
-export const HOST_URL = `${api_prefix}/host`;
-export const API_URL = `${api_prefix}/predict/`;
+export const HOST_URL = `host`;
+export const API_URL = `predict/`;
 export const SSE_URL_V0 = `queue/join`;
 export const SSE_DATA_URL_V0 = `queue/data`;
-export const SSE_URL = `${api_prefix}/queue/data`;
-export const SSE_DATA_URL = `${api_prefix}/queue/join`;
-export const UPLOAD_URL = `${api_prefix}/upload`;
-export const LOGIN_URL = `${api_prefix}/login`;
-export const CONFIG_URL = `${api_prefix}/config`;
-export const API_INFO_URL = `${api_prefix}/info`;
-export const RUNTIME_URL = `${api_prefix}/runtime`;
-export const SLEEPTIME_URL = `${api_prefix}/sleeptime`;
-export const HEARTBEAT_URL = `${api_prefix}/heartbeat`;
-export const COMPONENT_SERVER_URL = `${api_prefix}/component_server`;
-export const RESET_URL = `${api_prefix}/reset`;
-export const CANCEL_URL = `${api_prefix}/cancel`;
+export const SSE_URL = `queue/data`;
+export const SSE_DATA_URL = `queue/join`;
+export const UPLOAD_URL = `upload`;
+export const LOGIN_URL = `login`;
+export const CONFIG_URL = `config`;
+export const API_INFO_URL = `info`;
+export const RUNTIME_URL = `runtime`;
+export const SLEEPTIME_URL = `sleeptime`;
+export const HEARTBEAT_URL = `heartbeat`;
+export const COMPONENT_SERVER_URL = `component_server`;
+export const RESET_URL = `reset`;
+export const CANCEL_URL = `cancel`;
 
-export const RAW_API_INFO_URL = `${api_prefix}/info?serialize=False`;
+export const RAW_API_INFO_URL = `info?serialize=False`;
 export const SPACE_FETCHER_URL =
 	"https://gradio-space-api-fetcher-v2.hf.space/api";
 export const SPACE_URL = "https://hf.space/{}";

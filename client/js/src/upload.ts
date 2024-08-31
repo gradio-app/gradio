@@ -1,4 +1,3 @@
-import type { UploadResponse } from "./types";
 import type { Client } from "./client";
 
 export async function upload(
