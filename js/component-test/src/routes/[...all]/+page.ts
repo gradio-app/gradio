@@ -57,7 +57,6 @@ export const load: PageLoad = async ({ url }) => {
 			? await comps[route_name as keyof typeof comps]()
 			: await import("@gradio/label");
 
-	console.log(comp);
 	return {
 		component: comp,
 		interactive_component: interactive_component,

@@ -137,16 +137,18 @@
 	let view: View;
 	let mounted = false;
 	let old_width: number;
+	let resizeObserver: ResizeObserver;
 
 	function load_chart(): void {
 		if (view) {
 			view.finalize();
 		}
-		if (!value) return;
+		if (!value || !chart_element) return;
 		old_width = chart_element.offsetWidth;
 		const spec = create_vega_lite_spec();
 		if (!spec) return;
-		let resizeObserver = new ResizeObserver(() => {
+		resizeObserver = new ResizeObserver((el) => {
+			if (!el[0].target || !(el[0].target instanceof HTMLElement)) return;
 			if (
 				old_width === 0 &&
 				chart_element.offsetWidth !== 0 &&
@@ -155,11 +157,12 @@
 				// a bug where when a nominal chart is first loaded, the width is 0, it doesn't resize
 				load_chart();
 			} else {
-				view.signal("width", chart_element.offsetWidth).run();
+				view.signal("width", el[0].target.offsetWidth).run();
 			}
 		});
 		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
+
 			resizeObserver.observe(chart_element);
 			var debounceTimeout: NodeJS.Timeout;
 			view.addEventListener("dblclick", () => {
@@ -208,9 +211,7 @@
 
 	let release_callback: (() => void) | null = null;
 	onMount(() => {
-		requestAnimationFrame(() => {
-			mounted = true;
-		});
+		mounted = true;
 		chart_element.addEventListener("mousedown", () => {
 			mouse_down_on_chart = true;
 		});
@@ -221,6 +222,16 @@
 				release_callback = null;
 			}
 		});
+
+		return () => {
+			mounted = false;
+			if (view) {
+				view.finalize();
+			}
+			if (resizeObserver) {
+				resizeObserver.disconnect();
+			}
+		};
 	});
 
 	$: title,
@@ -239,7 +250,8 @@
 		sort,
 		value,
 		mounted,
-		computed_style && load_chart();
+		chart_element,
+		computed_style && requestAnimationFrame(load_chart);
 
 	function create_vega_lite_spec(): Spec | null {
 		if (!value || !computed_style) return null;

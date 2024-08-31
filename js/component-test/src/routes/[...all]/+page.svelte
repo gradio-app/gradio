@@ -11,13 +11,10 @@
 	import type { PageData } from "./$types";
 	import { onMount } from "svelte";
 	import { page } from "$app/stores";
-	console.log($page);
 	export let data: PageData;
 
 	$: ({ component, interactive_component, non_interactive_component, name } =
 		data);
-
-	$: console.log(component);
 
 	function identity<T>(x: T): T {
 		return x;
