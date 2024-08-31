@@ -57,8 +57,6 @@ export function submit(
 			api_prefix
 		} = this;
 
-		console.log(config);
-
 		const that = this;
 
 		if (!api_info) throw new Error("No API found");
@@ -215,8 +213,6 @@ export function submit(
 						fn_index,
 						time: new Date()
 					});
-
-					console.log(config.root, api_prefix, _endpoint, url_params);
 
 					post_data(
 						`${config.root}${api_prefix}/run${
