@@ -55,6 +55,8 @@
 		dispatch("delete", removed[0]);
 		dispatch("change", normalized_files);
 	}
+
+	const is_browser = typeof window !== "undefined";
 </script>
 
 <div
@@ -80,7 +82,9 @@
 						{#if file.url}
 							<DownloadLink
 								href={file.url}
-								download={window.__is_colab__ ? null : file.orig_name}
+								download={is_browser && window.__is_colab__
+									? null
+									: file.orig_name}
 							>
 								{@html file.size != null
 									? prettyBytes(file.size)

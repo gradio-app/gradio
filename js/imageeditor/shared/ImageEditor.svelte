@@ -28,7 +28,7 @@
 			child_bottom: number;
 		}>;
 		active_tool: Writable<tool>;
-		toolbar_box: Writable<DOMRect>;
+		toolbar_box: Writable<DOMRect | Record<string, never>>;
 		crop: Writable<[number, number, number, number]>;
 		position_spring: Spring<{
 			x: number;
@@ -74,6 +74,7 @@
 	}>();
 	export let crop_constraint = false;
 	export let canvas_size: [number, number] | undefined;
+	export let parent_height: number;
 
 	$: orig_canvas_size = canvas_size;
 
@@ -84,13 +85,13 @@
 
 	let editor_box: EditorContext["editor_box"] = writable({
 		parent_width: 0,
-		parent_height: 0,
+		parent_height: parent_height,
 		parent_top: 0,
 		parent_left: 0,
 		parent_right: 0,
 		parent_bottom: 0,
 		child_width: 0,
-		child_height: 0,
+		child_height: parent_height,
 		child_top: 0,
 		child_left: 0,
 		child_right: 0,
@@ -118,6 +119,7 @@
 	$: {
 		history = !!$current_history.previous || $active_tool !== "bg";
 	}
+	const is_browser = typeof window !== "undefined";
 
 	const active_tool: Writable<tool> = writable("bg");
 	const reset_context: Writable<PartialRecord<context_type, () => void>> =
@@ -126,7 +128,9 @@
 		PartialRecord<context_type, (dimensions?: typeof $dimensions) => void>
 	> = writable({});
 	const contexts: Writable<context_type[]> = writable([]);
-	const toolbar_box: Writable<DOMRect> = writable(new DOMRect());
+	const toolbar_box: Writable<DOMRect | Record<string, never>> = writable(
+		is_browser ? new DOMRect() : {}
+	);
 
 	const sort_order = ["bg", "layers", "crop", "draw", "erase"] as const;
 	const editor_context = setContext<EditorContext>(EDITOR_KEY, {
