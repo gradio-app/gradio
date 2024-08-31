@@ -839,7 +839,7 @@ class Client:
 
     def _login(self, auth: tuple[str, str]):
         resp = httpx.post(
-            urllib.parse.urljoin(self.src_prefixed, utils.LOGIN_URL),
+            urllib.parse.urljoin(self.src, utils.LOGIN_URL),
             data={"username": auth[0], "password": auth[1]},
             verify=self.ssl_verify,
             **self.httpx_kwargs,
