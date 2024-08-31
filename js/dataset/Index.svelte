@@ -173,6 +173,7 @@
 								type="gallery"
 								selected={current_hover === i}
 								index={i}
+								{root}
 							/>
 						{/if}
 					</button>
@@ -219,6 +220,7 @@
 											type="table"
 											selected={current_hover === i}
 											index={i}
+											{root}
 										/>
 									</td>
 								{/if}

@@ -57,6 +57,7 @@
 		"autoprefixer": "^10.4.19",
 		"babylonjs": "^5.57.1",
 		"babylonjs-loaders": "^5.57.1",
+		"esbuild": "^0.21.0",
 		"eslint": "^9.1.1",
 		"eslint-plugin-svelte": "^2.38.0",
 		"globals": "^15.1.0",
@@ -168,7 +169,8 @@
 	},
 	"pnpm": {
 		"patchedDependencies": {
-			"@sveltejs/package@2.3.4": "patches/@sveltejs__package@2.3.4.patch"
+			"@sveltejs/package@2.3.4": "patches/@sveltejs__package@2.3.4.patch",
+			"@ffmpeg/util@0.12.1": "patches/@ffmpeg__util@0.12.1.patch"
 		}
 	}
 }

@@ -95,6 +95,8 @@
 
 	$: choices, set_choice_names_values();
 
+	const is_browser = typeof window !== "undefined";
+
 	$: {
 		if (choices !== old_choices) {
 			if (!allow_custom_value) {
@@ -105,7 +107,7 @@
 			if (!allow_custom_value && filtered_indices.length > 0) {
 				active_index = filtered_indices[0];
 			}
-			if (filter_input == document.activeElement) {
+			if (is_browser && filter_input === document.activeElement) {
 				show_options = true;
 			}
 		}

@@ -1,0 +1,116 @@
+diff --git a/package.json b/package.json
+index 3afedb4c0fd279eef1c4330bff7b9325c7dc94c1..f2d74213655bb50362c7ad493da6d170d93a1ac7 100644
+--- a/package.json
++++ b/package.json
+@@ -1,56 +1,57 @@
+ {
+-  "name": "@ffmpeg/util",
+-  "version": "0.12.1",
+-  "description": "browser utils for @ffmpeg/*",
+-  "main": "./dist/cjs/index.js",
+-  "types": "./dist/cjs/index.d.ts",
+-  "exports": {
+-    ".": {
+-      "types": "./dist/cjs/index.d.ts",
+-      "import": "./dist/esm/index.js",
+-      "require": "./dist/cjs/index.js"
+-    }
+-  },
+-  "scripts": {
+-    "dev": "tsc -p tsconfig-esm.json --watch",
+-    "lint": "eslint src",
+-    "clean": "rimraf dist",
+-    "build:esm": "tsc -p tsconfig.esm.json",
+-    "build:umd": "tsc -p tsconfig.cjs.json && webpack",
+-    "build": "npm run clean && npm run build:esm && npm run build:umd",
+-    "prepublishOnly": "npm run build"
+-  },
+-  "files": [
+-    "dist"
+-  ],
+-  "repository": {
+-    "type": "git",
+-    "url": "git+https://github.com/ffmpegwasm/ffmpeg.wasm.git"
+-  },
+-  "keywords": [
+-    "ffmpeg",
+-    "video",
+-    "audio",
+-    "transcode"
+-  ],
+-  "author": "Jerome Wu <jeromewus@gmail.com>",
+-  "license": "MIT",
+-  "bugs": {
+-    "url": "https://github.com/ffmpegwasm/ffmpeg.wasm/issues"
+-  },
+-  "engines": {
+-    "node": ">=18.x"
+-  },
+-  "homepage": "https://github.com/ffmpegwasm/ffmpeg.wasm#readme",
+-  "publishConfig": {
+-    "access": "public"
+-  },
+-  "devDependencies": {
+-    "@typescript-eslint/eslint-plugin": "^6.1.0",
+-    "@typescript-eslint/parser": "^6.1.0",
+-    "eslint": "^8.45.0",
+-    "rimraf": "^5.0.1",
+-    "typescript": "^5.1.6",
+-    "webpack-cli": "^5.1.4"
+-  }
++	"name": "@ffmpeg/util",
++	"version": "0.12.1",
++	"description": "browser utils for @ffmpeg/*",
++	"main": "./dist/cjs/index.js",
++	"types": "./dist/cjs/index.d.ts",
++	"exports": {
++		".": {
++			"types": "./dist/cjs/index.d.ts",
++			"import": "./dist/esm/index.js",
++			"require": "./dist/cjs/index.js"
++		}
++	},
++	"scripts": {
++		"dev": "tsc -p tsconfig-esm.json --watch",
++		"lint": "eslint src",
++		"clean": "rimraf dist",
++		"build:esm": "tsc -p tsconfig.esm.json",
++		"build:umd": "tsc -p tsconfig.cjs.json && webpack",
++		"build": "npm run clean && npm run build:esm && npm run build:umd",
++		"prepublishOnly": "npm run build"
++	},
++	"files": [
++		"dist"
++	],
++	"repository": {
++		"type": "git",
++		"url": "git+https://github.com/ffmpegwasm/ffmpeg.wasm.git"
++	},
++	"keywords": [
++		"ffmpeg",
++		"video",
++		"audio",
++		"transcode"
++	],
++	"author": "Jerome Wu <jeromewus@gmail.com>",
++	"license": "MIT",
++	"bugs": {
++		"url": "https://github.com/ffmpegwasm/ffmpeg.wasm/issues"
++	},
++	"engines": {
++		"node": ">=18.x"
++	},
++	"homepage": "https://github.com/ffmpegwasm/ffmpeg.wasm#readme",
++	"publishConfig": {
++		"access": "public"
++	},
++	"devDependencies": {
++		"@typescript-eslint/eslint-plugin": "^6.1.0",
++		"@typescript-eslint/parser": "^6.1.0",
++		"eslint": "^8.45.0",
++		"rimraf": "^5.0.1",
++		"typescript": "^5.1.6",
++		"webpack-cli": "^5.1.4"
++	},
++	"type": "module"
+ }
