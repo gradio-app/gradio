@@ -57,17 +57,17 @@ class TestRoutes:
 
     def test_static_files_served_safely(self, test_client):
         # Make sure things outside the static folder are not accessible
-        response = test_client.get(rf"{API_PREFIX}/static/..%2findex.html")
+        response = test_client.get(r"/static/..%2findex.html")
         assert response.status_code == 403
-        response = test_client.get(rf"{API_PREFIX}/static/..%2f..%2fapi_docs.html")
+        response = test_client.get(r"/static/..%2f..%2fapi_docs.html")
         assert response.status_code == 403
 
     def test_get_config_route(self, test_client):
-        response = test_client.get(f"{API_PREFIX}/config/")
+        response = test_client.get("/config/")
         assert response.status_code == 200
 
     def test_favicon_route(self, test_client):
-        response = test_client.get(f"{API_PREFIX}/favicon.ico")
+        response = test_client.get("/favicon.ico")
         assert response.status_code == 200
 
     def test_upload_path(self, test_client):
