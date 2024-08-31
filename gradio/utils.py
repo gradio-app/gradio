@@ -1178,7 +1178,7 @@ class LRUCache(OrderedDict, Generic[K, V]):
 
 
 def get_cache_folder() -> Path:
-    return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"))
+    return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", ".gradio/cached_examples"))
 
 
 def diff(old, new):
