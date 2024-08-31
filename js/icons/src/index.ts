@@ -59,3 +59,4 @@ export { default as VolumeMuted } from "./VolumeMuted.svelte";
 export { default as Warning } from "./Warning.svelte";
 export { default as Webcam } from "./Webcam.svelte";
 export { default as Spinner } from "./Spinner.svelte";
+export { default as Retry } from "./Retry.svelte";
