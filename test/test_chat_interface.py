@@ -46,9 +46,8 @@ class TestInit:
             gr.ChatInterface()  # type: ignore
 
     def test_configuring_buttons(self):
-        chatbot = gr.ChatInterface(double, submit_btn=None, retry_btn=None)
+        chatbot = gr.ChatInterface(double, submit_btn=None)
         assert chatbot.submit_btn is None
-        assert chatbot.retry_btn is None
 
     def test_concurrency_limit(self):
         chat = gr.ChatInterface(double, concurrency_limit=10)
@@ -69,14 +68,12 @@ class TestInit:
             chatbot=gr.Chatbot(height=400),
             textbox=gr.Textbox(placeholder="Type Message", container=False, scale=7),
             title="Test",
-            clear_btn="Clear",
         )
         gr.ChatInterface(
             chat,
             chatbot=gr.Chatbot(height=400),
             textbox=gr.MultimodalTextbox(container=False, scale=7),
             title="Test",
-            clear_btn="Clear",
         )
 
     def test_events_attached(self):
@@ -93,16 +90,6 @@ class TestInit:
             ),
             None,
         )
-        assert chatbot.retry_btn and chatbot.clear_btn and chatbot.undo_btn
-        for btn_id in [
-            chatbot.retry_btn._id,
-            chatbot.clear_btn._id,
-            chatbot.undo_btn._id,
-        ]:
-            assert next(
-                (d for d in dependencies if d.targets[0] == (btn_id, "click")),
-                None,
-            )
 
     def test_example_caching(self):
         with patch(
