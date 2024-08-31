@@ -1340,7 +1340,9 @@ class TestSimpleAPIRoutes:
         demo = self.get_demo()
         demo.launch(prevent_thread_lock=True)
 
-        response = requests.post(f"{demo.local_api_url}call/fn1", json={"data": ["world"]})
+        response = requests.post(
+            f"{demo.local_api_url}call/fn1", json={"data": ["world"]}
+        )
 
         assert response.status_code == 200, "Failed to call fn1"
         response = response.json()
@@ -1362,7 +1364,7 @@ class TestSimpleAPIRoutes:
         event_id = response["event_id"]
 
         output = []
-        response = requests.get(f"{demo.local_api_url'}call/fn3/{event_id}", stream=True)
+        response = requests.get(f"{demo.local_api_url}call/fn3/{event_id}", stream=True)
 
         for line in response.iter_lines():
             if line:
@@ -1374,7 +1376,9 @@ class TestSimpleAPIRoutes:
         demo = self.get_demo()
         demo.launch(prevent_thread_lock=True)
 
-        response = requests.post(f"{demo.local_api_url}call/fn2", json={"data": ["world"]})
+        response = requests.post(
+            f"{demo.local_api_url}call/fn2", json={"data": ["world"]}
+        )
 
         assert response.status_code == 200, "Failed to call fn2"
         response = response.json()
@@ -1448,7 +1452,7 @@ def test_compare_passwords_securely():
         ("/usr/bin//test", False),
         ("/\\10.0.225.200/share", True),
         ("\\/10.0.225.200/share", True),
-        ("/home//user", False),        
+        ("/home//user", False),
         ("C:\\folder\\file", False),
     ],
 )
