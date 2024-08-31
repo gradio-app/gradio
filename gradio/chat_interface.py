@@ -78,9 +78,6 @@ class ChatInterface(Blocks):
         analytics_enabled: bool | None = None,
         submit_btn: str | None | Button = "Submit",
         stop_btn: str | None | Button = "Stop",
-        retry_btn: str | None | Button = "🔄  Retry",
-        undo_btn: str | None | Button = "↩️ Undo",
-        clear_btn: str | None | Button = "🗑️  Clear",
         autofocus: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
         fill_height: bool = True,
@@ -109,9 +106,6 @@ class ChatInterface(Blocks):
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             submit_btn: text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
             stop_btn: text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button.
-            retry_btn: text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
-            undo_btn: text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
-            clear_btn: text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
             autofocus: if True, autofocuses to the textbox when the page loads.
             concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: if True, the chat interface will expand to the height of window.
@@ -190,7 +184,9 @@ class ChatInterface(Blocks):
                         "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
                     )
                     chatbot.type = self.type
-                self.chatbot = get_component_instance(chatbot, render=True)
+                self.chatbot = cast(
+                    Chatbot, get_component_instance(chatbot, render=True)
+                )
             else:
                 self.chatbot = Chatbot(
                     label="Chatbot",
@@ -198,21 +194,6 @@ class ChatInterface(Blocks):
                     height=200 if fill_height else None,
                     type=self.type,
                 )
-
-            with Row():
-                for btn in [retry_btn, undo_btn, clear_btn]:
-                    if btn is not None:
-                        if isinstance(btn, Button):
-                            btn.render()
-                        elif isinstance(btn, str):
-                            btn = Button(
-                                btn, variant="secondary", size="sm", min_width=60
-                            )
-                        else:
-                            raise ValueError(
-                                f"All the _btn parameters must be a gr.Button, string, or None, not {builtins.type(btn)}"
-                            )
-                    self.buttons.append(btn)  # type: ignore
 
             with Group():
                 with Row():
@@ -281,9 +262,6 @@ class ChatInterface(Blocks):
                 self.fake_api_btn = Button("Fake API", visible=False)
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
                 (
-                    self.retry_btn,
-                    self.undo_btn,
-                    self.clear_btn,
                     self.submit_btn,
                     self.stop_btn,
                 ) = self.buttons
@@ -365,36 +343,35 @@ class ChatInterface(Blocks):
         )
         self._setup_stop_events(submit_triggers, submit_event)
 
-        if self.retry_btn:
-            retry_event = (
-                self.retry_btn.click(
-                    self._delete_prev_fn,
-                    [self.saved_input, self.chatbot],
-                    [self.chatbot, self.saved_input],
-                    show_api=False,
-                    queue=False,
-                )
-                .then(
-                    self._display_input,
-                    [self.saved_input, self.chatbot],
-                    [self.chatbot],
-                    show_api=False,
-                    queue=False,
-                )
-                .then(
-                    submit_fn,
-                    [self.saved_input, self.chatbot] + self.additional_inputs,
-                    [self.chatbot],
-                    show_api=False,
-                    concurrency_limit=cast(
-                        Union[int, Literal["default"], None], self.concurrency_limit
-                    ),
-                    show_progress=cast(
-                        Literal["full", "minimal", "hidden"], self.show_progress
-                    ),
-                )
+        retry_event = (
+            self.chatbot.retry(
+                self._delete_prev_fn,
+                [self.saved_input, self.chatbot],
+                [self.chatbot, self.saved_input],
+                show_api=False,
+                queue=False,
             )
-            self._setup_stop_events([self.retry_btn.click], retry_event)
+            .then(
+                self._display_input,
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
+                show_api=False,
+                queue=False,
+            )
+            .then(
+                submit_fn,
+                [self.saved_input, self.chatbot] + self.additional_inputs,
+                [self.chatbot],
+                show_api=False,
+                concurrency_limit=cast(
+                    Union[int, Literal["default"], None], self.concurrency_limit
+                ),
+                show_progress=cast(
+                    Literal["full", "minimal", "hidden"], self.show_progress
+                ),
+            )
+        )
+        self._setup_stop_events([self.chatbot.retry], retry_event)
 
         async def format_textbox(data: str | MultimodalData) -> str | dict:
             if isinstance(data, MultimodalData):
@@ -402,29 +379,19 @@ class ChatInterface(Blocks):
             else:
                 return data
 
-        if self.undo_btn:
-            self.undo_btn.click(
-                self._delete_prev_fn,
-                [self.saved_input, self.chatbot],
-                [self.chatbot, self.saved_input],
-                show_api=False,
-                queue=False,
-            ).then(
-                format_textbox,
-                [self.saved_input],
-                [self.textbox],
-                show_api=False,
-                queue=False,
-            )
-
-        if self.clear_btn:
-            self.clear_btn.click(
-                async_lambda(lambda: ([], [], None)),
-                None,
-                [self.chatbot, self.saved_input],
-                queue=False,
-                show_api=False,
-            )
+        self.chatbot.undo(
+            self._delete_prev_fn,
+            [self.saved_input, self.chatbot],
+            [self.chatbot, self.saved_input],
+            show_api=False,
+            queue=False,
+        ).then(
+            format_textbox,
+            [self.saved_input],
+            [self.textbox],
+            show_api=False,
+            queue=False,
+        )
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], event_to_cancel: Dependency

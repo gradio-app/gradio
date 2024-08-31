@@ -6,13 +6,19 @@
 	import { DownloadLink } from "@gradio/wasm/svelte";
 	import type { NormalisedMessage, TextMessage } from "../types";
 	import { is_component_message } from "./utils";
+	import ActionButton from "./ActionButton.svelte";
+	import { Retry } from "@gradio/icons";
+	import Remove from "./Remove.svelte";
 
 	export let likeable: boolean;
+	export let _retryable: boolean;
+	export let _undoable: boolean;
 	export let show_copy_button: boolean;
 	export let show: boolean;
 	export let message: NormalisedMessage | NormalisedMessage[];
 	export let position: "right" | "left";
 	export let avatar: FileData | null;
+	export let disable: boolean;
 
 	export let handle_action: (selected: string | null) => void;
 	export let layout: "bubble" | "panel";
@@ -61,6 +67,26 @@
 				</span>
 			</DownloadLink>
 		{/if}
+		{#if _retryable}
+			<ActionButton
+				{handle_action}
+				action="retry"
+				disabled={disable}
+				height={"var(--size-3)"}
+			>
+				<Retry />
+			</ActionButton>
+		{/if}
+		{#if _undoable}
+			<ActionButton
+				{handle_action}
+				action="undo"
+				disabled={disable}
+				height="var(--size-3)"
+			>
+				<Remove />
+			</ActionButton>
+		{/if}
 		{#if likeable}
 			<LikeDislike {handle_action} padded={show_copy || show_download} />
 		{/if}
@@ -81,10 +107,9 @@
 		border-radius: var(--radius-md);
 		display: flex;
 		align-items: center;
-
-		height: var(--size-7);
+		height: var(--size-6);
 		align-self: self-end;
-		margin: 0px calc(var(--spacing-xl) * 3);
+		margin: 0px calc(var(--spacing-xl) * 2);
 		padding-left: 5px;
 		z-index: 1;
 		padding-bottom: var(--spacing-xl);
