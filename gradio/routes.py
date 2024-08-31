@@ -80,6 +80,7 @@ from gradio.route_utils import (  # noqa: F401
     compare_passwords_securely,
     create_lifespan_handler,
     move_uploaded_files_to_cache,
+    API_PREFIX
 )
 from gradio.server_messages import (
     CloseStreamMessage,
@@ -258,7 +259,7 @@ class App(FastAPI):
             app_kwargs.get("lifespan", None), *delete_cache
         )
         app = App(auth_dependency=auth_dependency, **app_kwargs, debug=True)
-        router = APIRouter(prefix="/gradio_api")
+        router = APIRouter(prefix=API_PREFIX)
 
         app.configure_app(blocks)
 
@@ -742,7 +743,7 @@ class App(FastAPI):
                         req = Request(request, username, session_hash=session_hash)
                         root_path = route_utils.get_root_url(
                             request=request,
-                            route_path=f"/hearbeat/{session_hash}",
+                            route_path=f"{API_PREFIX}/hearbeat/{session_hash}",
                             root_path=app.root_path,
                         )
                         body = PredictBody(
@@ -809,7 +810,7 @@ class App(FastAPI):
                 request=request,
             )
             root_path = route_utils.get_root_url(
-                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
+                request=request, route_path=f"{API_PREFIX}/api/{api_name}", root_path=app.root_path
             )
             try:
                 output = await route_utils.call_process_api(
@@ -1264,7 +1265,7 @@ class App(FastAPI):
                     status_code=403, detail="Monitoring is not enabled."
                 )
             root_url = route_utils.get_root_url(
-                request=request, route_path="/monitoring", root_path=app.root_path
+                request=request, route_path=f"{API_PREFIX}/monitoring", root_path=app.root_path
             )
             monitoring_url = f"{root_url}/monitoring/{app.analytics_key}"
             print(f"* Monitoring URL: {monitoring_url} *")
