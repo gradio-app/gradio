@@ -41,6 +41,8 @@
 	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let _retryable = false;
+	export let _undoable = false;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -54,6 +56,9 @@
 		like: LikeData;
 		clear_status: LoadingStatus;
 		suggestion_select: SelectData;
+		retry: null;
+		undo: null;
+		clear: null;
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let loading_status: LoadingStatus | undefined = undefined;
@@ -111,6 +116,7 @@
 			{render_markdown}
 			{theme_mode}
 			pending_message={loading_status?.status === "pending"}
+			generating={loading_status?.status === "generating"}
 			{rtl}
 			{show_copy_button}
 			on:change={() => gradio.dispatch("change", value)}
@@ -120,6 +126,12 @@
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:suggestion_select={(e) =>
 				gradio.dispatch("suggestion_select", e.detail)}
+			on:retry={() => gradio.dispatch("retry")}
+			on:undo={() => gradio.dispatch("undo")}
+			on:clear={() => {
+				value = [];
+				gradio.dispatch("clear");
+			}}
 			{avatar_images}
 			{sanitize_html}
 			{bubble_full_width}
@@ -127,10 +139,13 @@
 			{layout}
 			{placeholder}
 			{suggestions}
+			{_retryable}
+			{_undoable}
 			upload={gradio.client.upload}
 			_fetch={gradio.client.fetch}
 			load_component={gradio.load_component}
 			msg_format={type}
+			root={gradio.root}
 		/>
 	</div>
 </Block>

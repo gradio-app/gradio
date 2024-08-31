@@ -19,9 +19,6 @@ for (const test_case of cases) {
 		if (test_case.startsWith("multimodal")) {
 			submit_button = page.locator(".submit-button");
 		}
-		const retry_button = page.getByRole("button", { name: "🔄 Retry" });
-		const undo_button = page.getByRole("button", { name: "↩️ Undo" });
-		const clear_button = page.getByRole("button", { name: "🗑️ Clear" });
 		const textbox = page.getByPlaceholder("Type a message...");
 
 		await textbox.fill("hello");
@@ -45,11 +42,11 @@ for (const test_case of cases) {
 		await expect(expected_text_el_1).toBeVisible();
 		await expect(page.locator(".bot.message")).toHaveCount(2);
 
-		await undo_button.click();
+		await page.getByLabel("undo button").click();
 		await expect(page.locator(".bot.message")).toHaveCount(1);
 		await expect(textbox).toHaveValue("hi");
 
-		await retry_button.click();
+		await page.getByLabel("retry button").click();
 		const expected_text_el_2 = page.locator(".bot p", {
 			hasText: "Run 3 - You typed: hi"
 		});
@@ -65,7 +62,7 @@ for (const test_case of cases) {
 		});
 		await expect(expected_text_el_3).toBeVisible();
 		await expect(page.locator(".bot.message")).toHaveCount(2);
-		await clear_button.click();
+		await page.getByLabel("clear button").click();
 		await expect(page.locator(".bot.message")).toHaveCount(0);
 	});
 

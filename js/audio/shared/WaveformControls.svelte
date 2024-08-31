@@ -10,7 +10,7 @@
 	import VolumeLevels from "./VolumeLevels.svelte";
 	import VolumeControl from "./VolumeControl.svelte";
 
-	export let waveform: WaveSurfer;
+	export let waveform: WaveSurfer | undefined;
 	export let audio_duration: number;
 	export let i18n: I18nFormatter;
 	export let playing: boolean;
@@ -30,7 +30,7 @@
 	let playbackSpeeds = [0.5, 1, 1.5, 2];
 	let playbackSpeed = playbackSpeeds[1];
 
-	let trimRegion: RegionsPlugin;
+	let trimRegion: RegionsPlugin | null = null;
 	let activeRegion: Region | null = null;
 
 	let leftRegionHandle: HTMLDivElement | null;
@@ -39,7 +39,10 @@
 
 	let currentVolume = 1;
 
-	$: trimRegion = waveform.registerPlugin(RegionsPlugin.create());
+	$: trimRegion =
+		container && waveform
+			? waveform.registerPlugin(RegionsPlugin.create())
+			: null;
 
 	$: trimRegion?.on("region-out", (region) => {
 		region.play();
@@ -56,7 +59,8 @@
 	});
 
 	const addTrimRegion = (): void => {
-		activeRegion = trimRegion.addRegion({
+		if (!trimRegion) return;
+		activeRegion = trimRegion?.addRegion({
 			start: audio_duration / 4,
 			end: audio_duration / 2,
 			...trim_region_settings
@@ -190,7 +194,7 @@
 						(playbackSpeeds.indexOf(playbackSpeed) + 1) % playbackSpeeds.length
 					];
 
-				waveform.setPlaybackRate(playbackSpeed);
+				waveform?.setPlaybackRate(playbackSpeed);
 			}}
 		>
 			<span>{playbackSpeed}x</span>
@@ -205,7 +209,7 @@
 				waveform_options.skip_length
 			)} seconds`}
 			on:click={() =>
-				waveform.skip(
+				waveform?.skip(
 					get_skip_rewind_amount(audio_duration, waveform_options.skip_length) *
 						-1
 				)}
@@ -214,7 +218,7 @@
 		</button>
 		<button
 			class="play-pause-button icon"
-			on:click={() => waveform.playPause()}
+			on:click={() => waveform?.playPause()}
 			aria-label={playing ? i18n("audio.pause") : i18n("audio.play")}
 		>
 			{#if playing}
@@ -230,7 +234,7 @@
 				waveform_options.skip_length
 			)} seconds"
 			on:click={() =>
-				waveform.skip(
+				waveform?.skip(
 					get_skip_rewind_amount(audio_duration, waveform_options.skip_length)
 				)}
 		>

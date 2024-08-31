@@ -808,3 +808,15 @@ class Events:
         doc="This listener is triggered at regular intervals defined by the {{ component }}.",
         show_progress="hidden",
     )
+    undo = EventListener(
+        "undo",
+        doc="This listener is triggered when the user clicks the undo button in the chatbot message.",
+        callback=lambda block: setattr(block, "_undoable", True),
+        config_data=lambda: {"_undoable": False},
+    )
+    retry = EventListener(
+        "retry",
+        doc="This listener is triggered when the user clicks the retry button in the chatbot message.",
+        callback=lambda block: setattr(block, "_retryable", True),
+        config_data=lambda: {"_retryable": False},
+    )
