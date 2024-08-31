@@ -29,7 +29,6 @@
 	export let value_is_output = false;
 	export let language = "";
 	export let lines = 5;
-	export let target: HTMLElement;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -40,7 +39,7 @@
 
 	export let interactive: boolean;
 
-	let dark_mode = target.classList.contains("dark");
+	let dark_mode = gradio.theme === "dark";
 
 	function handle_change(): void {
 		gradio.dispatch("change", value);
@@ -52,9 +51,13 @@
 		value_is_output = false;
 	});
 	$: value, handle_change();
+
+	const is_browser = typeof window !== "undefined";
+	const default_lines = interactive ? lines : 10.35;
 </script>
 
 <Block
+	height={is_browser ? undefined : default_lines * 25 + 4}
 	variant={"solid"}
 	padding={false}
 	{elem_id}

@@ -563,7 +563,8 @@
 		}
 	}
 
-	let table_height: number = height;
+	let table_height: number =
+		values.slice(0, (height / values.length) * 37).length * 37 + 37;
 	let scrollbar_width = 0;
 
 	function sort_data(
@@ -687,6 +688,7 @@
 									header
 									edit={false}
 									el={null}
+									{root}
 								/>
 
 								<div
@@ -721,6 +723,7 @@
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									edit={false}
 									el={null}
+									{root}
 								/>
 							</div>
 						</td>
@@ -767,6 +770,7 @@
 									on:dblclick={() => edit_header(i)}
 									{select_on_focus}
 									header
+									{root}
 								/>
 
 								<!-- TODO: fix -->
@@ -816,6 +820,7 @@
 									datatype={Array.isArray(datatype) ? datatype[j] : datatype}
 									on:blur={() => ((clear_on_focus = false), parent.focus())}
 									{clear_on_focus}
+									{root}
 								/>
 							</div>
 						</td>
