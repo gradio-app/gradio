@@ -349,20 +349,21 @@ class ChatInterface(Blocks):
             )
         )
 
-        self.chatbot.suggestion_select(
-            self._examples_fn, [self.chatbot], [self.chatbot]
-        ).then(
-            submit_fn,
-            [self.saved_input, self.chatbot],
-            [self.chatbot],
-            show_api=False,
-            concurrency_limit=cast(
-                Union[int, Literal["default"], None], self.concurrency_limit
-            ),
-            show_progress=cast(
-                Literal["full", "minimal", "hidden"], self.show_progress
-            ),
-        )
+        if isinstance(self.chatbot, Chatbot):
+            self.chatbot.suggestion_select(
+                self._examples_fn, [self.chatbot], [self.chatbot]
+            ).then(
+                submit_fn,
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
+                show_api=False,
+                concurrency_limit=cast(
+                    Union[int, Literal["default"], None], self.concurrency_limit
+                ),
+                show_progress=cast(
+                    Literal["full", "minimal", "hidden"], self.show_progress
+                ),
+            )
         self._setup_stop_events(submit_triggers, submit_event)
 
         if self.retry_btn:
