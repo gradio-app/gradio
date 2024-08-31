@@ -1,9 +1,6 @@
 import gradio as gr
-import plotly.express as px
 import os
-import random
-import time
-# Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support suggestions (example messages shown within the chatbot).
+# Multimodal Chatbot demo that shows support for suggestions (example messages shown within the chatbot).
 
 def print_like_dislike(x: gr.LikeData):
     print(x.index, x.value, x.liked)

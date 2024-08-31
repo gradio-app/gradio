@@ -32,7 +32,7 @@ export interface ComponentMessage extends Message {
 }
 
 export interface SuggestionMessage {
-	icon?: string;
+	icon?: FileData;
 	display_text?: string;
 	text: string;
 	files?: FileData[];

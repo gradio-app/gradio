@@ -181,7 +181,7 @@
 
 	$: groupedMessages = value && group_messages(value);
 	$: suggestionsVisible = !(value !== null && value.length > 0);
-	let suggestionsVisible = true;
+
 	function handle_suggestion_select(
 		i: number,
 		suggestion: SuggestionMessage
@@ -189,7 +189,7 @@
 		suggestionsVisible = false;
 		dispatch("suggestion_select", {
 			index: i,
-			value: suggestion
+			value: { text: suggestion.text, files: suggestion.files }
 		});
 	}
 
@@ -456,7 +456,7 @@
 				{#each suggestions as suggestion, i}
 					<button
 						class="suggestion"
-						on:click={handle_suggestion_select(i, suggestion)}
+						on:click={() => handle_suggestion_select(i, suggestion)}
 					>
 						{#if suggestion.icon !== undefined}
 							<div class="suggestion-icon-container">
@@ -473,17 +473,17 @@
 							>
 						{:else}
 							<span class="suggestion-text">{suggestion.text}</span>
-							{#if suggestion.files.length > 1}
+							{#if suggestion.files !== undefined && suggestion.files.length > 1}
 								<span class="suggestion-file"
 									><em>{suggestion.files.length} Files</em></span
 								>
-							{:else if suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
+							{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
 								<Image
 									class="suggestion-image"
 									src={suggestion.files[0].url}
 									alt="suggestion-image"
 								/>
-							{:else if suggestion.files[0] !== undefined}
+							{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
 								<span class="suggestion-file"
 									><em>{suggestion.files[0].orig_name}</em></span
 								>
@@ -518,7 +518,7 @@
 		align-items: center;
 		margin: var(--spacing-md);
 		padding: var(--spacing-md) var(--spacing-md);
-		border: 0.05px solid var(--border-color-accent-subdued);
+		border: 0.05px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);
 		background-color: var(--background-fill-secondary);
 		cursor: pointer;
