@@ -141,7 +141,14 @@ class Chatbot(Component):
     Guides: creating-a-chatbot-fast, creating-a-custom-chatbot-with-blocks, agents-and-tool-usage
     """
 
-    EVENTS = [Events.change, Events.select, Events.like, Events.retry, Events.undo, Events.suggestion_select]
+    EVENTS = [
+        Events.change,
+        Events.select,
+        Events.like,
+        Events.retry,
+        Events.undo,
+        Events.suggestion_select,
+    ]
 
     def __init__(
         self,
