@@ -15,6 +15,7 @@ from gradio.context import Context
 from gradio.exceptions import GradioVersionIncompatibleError, InvalidApiNameError
 from gradio.external import TooManyRequestsError
 from gradio.external_utils import cols_to_rows, get_tabular_examples
+from gradio.route_utils import API_PREFIX
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -321,7 +322,7 @@ class TestLoadInterface:
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
         r = test_client.get(
-            "/gradio_api/proxy=https://gradio-tests-test-loading-examples-privatev4-sse.hf.space/file=Bunny.obj"
+            f"{API_PREFIX}/proxy=https://gradio-tests-test-loading-examples-privatev4-sse.hf.space/file=Bunny.obj"
         )
         assert r.status_code == 200
 
