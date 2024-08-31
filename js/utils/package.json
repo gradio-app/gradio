@@ -3,7 +3,7 @@
 	"version": "0.6.0",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "src/index.ts",
+	"main": "./src/index.ts",
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
@@ -25,7 +25,6 @@
 		"./package.json": "./package.json"
 	},
 	"scripts": {
-		"package": "svelte-package --input=. --cwd=../../.config/",
-		"build": "esbuild src/index.ts --format=esm --outfile=dist/src/index.js --sourcemap  --platform=node"
+		"package": "svelte-package --input=. --cwd=../../.config/"
 	}
 }

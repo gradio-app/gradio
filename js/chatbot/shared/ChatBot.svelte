@@ -10,7 +10,8 @@
 		createEventDispatcher,
 		type SvelteComponent,
 		type ComponentType,
-		tick
+		tick,
+		onMount
 	} from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import { Image } from "@gradio/image/shared";
@@ -96,13 +97,19 @@
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
 	export let msg_format: "tuples" | "messages" = "tuples";
+	export let root: string;
 
-	let target = document.querySelector("div.gradio-container");
+	let target: HTMLElement | null = null;
+
+	onMount(() => {
+		target = document.querySelector("div.gradio-container");
+		adjust_text_size();
+	});
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
 
-	$: adjust_text_size = () => {
+	function adjust_text_size(): void {
 		let style = getComputedStyle(document.body);
 		let body_text_size = style.getPropertyValue("--body-text-size");
 		let updated_text_size;
@@ -126,9 +133,7 @@
 			"--chatbot-body-text-size",
 			updated_text_size + "px"
 		);
-	};
-
-	$: adjust_text_size();
+	}
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -142,6 +147,7 @@
 	});
 
 	async function scroll(): Promise<void> {
+		if (!div) return;
 		await tick();
 		requestAnimationFrame(() => {
 			if (autoscroll) {
@@ -158,6 +164,7 @@
 		scroll();
 	}
 	afterUpdate(() => {
+		if (!div) return;
 		div.querySelectorAll("img").forEach((n) => {
 			n.addEventListener("click", (e) => {
 				const target = e.target as HTMLImageElement;
@@ -369,6 +376,7 @@
 													{render_markdown}
 													{line_breaks}
 													on:load={scroll}
+													{root}
 												/>
 											</MessageBox>
 										{:else}
@@ -379,6 +387,7 @@
 												{render_markdown}
 												{line_breaks}
 												on:load={scroll}
+												{root}
 											/>
 										{/if}
 									{:else if message.type === "component" && message.content.component in _components}
@@ -432,7 +441,7 @@
 			{/if}
 		{:else if placeholder !== null}
 			<center>
-				<Markdown message={placeholder} {latex_delimiters} />
+				<Markdown message={placeholder} {latex_delimiters} {root} />
 			</center>
 		{/if}
 	</div>

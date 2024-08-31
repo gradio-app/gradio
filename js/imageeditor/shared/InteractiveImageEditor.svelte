@@ -51,6 +51,7 @@
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
 	export let placeholder: string | undefined = undefined;
+	export let height = 400;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -198,7 +199,7 @@
 	}
 
 	let active_mode: "webcam" | "color" | null = null;
-	let editor_height = 0;
+	let editor_height = height - 100;
 
 	$: [heading, paragraph] = placeholder ? inject(placeholder) : [false, false];
 </script>
@@ -213,6 +214,7 @@
 	crop_size={Array.isArray(crop_size) ? crop_size : undefined}
 	bind:this={editor}
 	bind:height={editor_height}
+	parent_height={height}
 	{changeable}
 	on:save
 	on:change={handle_change}
