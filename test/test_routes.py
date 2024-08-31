@@ -1340,14 +1340,14 @@ class TestSimpleAPIRoutes:
         demo = self.get_demo()
         demo.launch(prevent_thread_lock=True)
 
-        response = requests.post(f"{demo.local_url}call/fn1", json={"data": ["world"]})
+        response = requests.post(f"{demo.local_api_url}call/fn1", json={"data": ["world"]})
 
         assert response.status_code == 200, "Failed to call fn1"
         response = response.json()
         event_id = response["event_id"]
 
         output = []
-        response = requests.get(f"{demo.local_url}call/fn1/{event_id}", stream=True)
+        response = requests.get(f"{demo.local_api_url}call/fn1/{event_id}", stream=True)
 
         for line in response.iter_lines():
             if line:
@@ -1355,14 +1355,14 @@ class TestSimpleAPIRoutes:
 
         assert output == ["event: complete", 'data: ["Hello, world!"]']
 
-        response = requests.post(f"{demo.local_url}call/fn3", json={"data": []})
+        response = requests.post(f"{demo.local_api_url}call/fn3", json={"data": []})
 
         assert response.status_code == 200, "Failed to call fn3"
         response = response.json()
         event_id = response["event_id"]
 
         output = []
-        response = requests.get(f"{demo.local_url}call/fn3/{event_id}", stream=True)
+        response = requests.get(f"{demo.local_api_url'}call/fn3/{event_id}", stream=True)
 
         for line in response.iter_lines():
             if line:
@@ -1374,14 +1374,14 @@ class TestSimpleAPIRoutes:
         demo = self.get_demo()
         demo.launch(prevent_thread_lock=True)
 
-        response = requests.post(f"{demo.local_url}call/fn2", json={"data": ["world"]})
+        response = requests.post(f"{demo.local_api_url}call/fn2", json={"data": ["world"]})
 
         assert response.status_code == 200, "Failed to call fn2"
         response = response.json()
         event_id = response["event_id"]
 
         output = []
-        response = requests.get(f"{demo.local_url}call/fn2/{event_id}", stream=True)
+        response = requests.get(f"{demo.local_api_url}call/fn2/{event_id}", stream=True)
 
         for line in response.iter_lines():
             if line:
@@ -1402,14 +1402,14 @@ class TestSimpleAPIRoutes:
             'data: ["Hello, world!"]',
         ]
 
-        response = requests.post(f"{demo.local_url}call/fn2", json={"data": ["w"]})
+        response = requests.post(f"{demo.local_api_url}call/fn2", json={"data": ["w"]})
 
         assert response.status_code == 200, "Failed to call fn2"
         response = response.json()
         event_id = response["event_id"]
 
         output = []
-        response = requests.get(f"{demo.local_url}call/fn2/{event_id}", stream=True)
+        response = requests.get(f"{demo.local_api_url}call/fn2/{event_id}", stream=True)
 
         for line in response.iter_lines():
             if line:
