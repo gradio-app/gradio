@@ -21,6 +21,7 @@
 	export let header_links = false;
 	export let height: number | string | undefined = undefined;
 	export let show_copy_button = false;
+	export let root: string;
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -82,6 +83,7 @@
 		{line_breaks}
 		chatbot={false}
 		{header_links}
+		{root}
 	/>
 </div>
 

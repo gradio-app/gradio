@@ -66,7 +66,10 @@
 		display_value = _data?.metadata?.display_value
 			? [..._data?.metadata?.display_value]
 			: null;
-		styling = _data?.metadata?.styling ? [..._data?.metadata?.styling] : null;
+		styling =
+			!interactive && _data?.metadata?.styling
+				? [..._data?.metadata?.styling]
+				: null;
 		await tick();
 
 		gradio.dispatch("change");

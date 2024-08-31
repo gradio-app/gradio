@@ -187,12 +187,12 @@
 			toggle_listeners("off");
 		}
 	});
+	const toggle_options = debounce_toggle();
 
+	const unregister = register_tool(mode, {
+		cb: toggle_options
+	});
 	onMount(() => {
-		const unregister = register_tool(mode, {
-			cb: toggle_options
-		});
-
 		return () => {
 			unregister();
 			toggle_listeners("off");
@@ -230,8 +230,6 @@
 			timeout = setTimeout(later, 100);
 		};
 	}
-
-	const toggle_options = debounce_toggle();
 </script>
 
 <svelte:window

@@ -130,21 +130,25 @@
 	}
 	$: _data = value ? reformat_data(value) : [];
 
+	const is_browser = typeof window !== "undefined";
 	let chart_element: HTMLDivElement;
-	let computed_style = window.getComputedStyle(target);
+	$: computed_style =
+		target && is_browser ? window.getComputedStyle(target) : null;
 	let view: View;
 	let mounted = false;
 	let old_width: number;
+	let resizeObserver: ResizeObserver;
 
 	function load_chart(): void {
 		if (view) {
 			view.finalize();
 		}
-		if (!value) return;
+		if (!value || !chart_element) return;
 		old_width = chart_element.offsetWidth;
 		const spec = create_vega_lite_spec();
 		if (!spec) return;
-		let resizeObserver = new ResizeObserver(() => {
+		resizeObserver = new ResizeObserver((el) => {
+			if (!el[0].target || !(el[0].target instanceof HTMLElement)) return;
 			if (
 				old_width === 0 &&
 				chart_element.offsetWidth !== 0 &&
@@ -153,11 +157,12 @@
 				// a bug where when a nominal chart is first loaded, the width is 0, it doesn't resize
 				load_chart();
 			} else {
-				view.signal("width", chart_element.offsetWidth).run();
+				view.signal("width", el[0].target.offsetWidth).run();
 			}
 		});
 		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
+
 			resizeObserver.observe(chart_element);
 			var debounceTimeout: NodeJS.Timeout;
 			view.addEventListener("dblclick", () => {
@@ -217,6 +222,16 @@
 				release_callback = null;
 			}
 		});
+
+		return () => {
+			mounted = false;
+			if (view) {
+				view.finalize();
+			}
+			if (resizeObserver) {
+				resizeObserver.disconnect();
+			}
+		};
 	});
 
 	$: title,
@@ -234,10 +249,12 @@
 		caption,
 		sort,
 		value,
-		mounted && load_chart();
+		mounted,
+		chart_element,
+		computed_style && requestAnimationFrame(load_chart);
 
 	function create_vega_lite_spec(): Spec | null {
-		if (!value) return null;
+		if (!value || !computed_style) return null;
 		let accent_color = computed_style.getPropertyValue("--color-accent");
 		let body_text_color = computed_style.getPropertyValue("--body-text-color");
 		let borderColorPrimary = computed_style.getPropertyValue(
@@ -491,8 +508,9 @@
 		/>
 	{/if}
 	<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
-	<div bind:this={chart_element}></div>
-	{#if value}
+	{#if value && is_browser}
+		<div bind:this={chart_element}></div>
+
 		{#if caption}
 			<p class="caption">{caption}</p>
 		{/if}

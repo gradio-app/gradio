@@ -65,6 +65,7 @@
 			{header_links}
 			{height}
 			{show_copy_button}
+			root={gradio.root}
 		/>
 	</div>
 </Block>
