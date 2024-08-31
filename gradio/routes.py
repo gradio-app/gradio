@@ -446,8 +446,6 @@ class App(FastAPI):
                 app.api_info = app.get_blocks().get_api_info()
             return app.api_info
 
-        @router.get("/config/", dependencies=[Depends(login_check)])
-        @router.get("/config", dependencies=[Depends(login_check)])
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
