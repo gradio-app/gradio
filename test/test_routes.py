@@ -32,6 +32,7 @@ from gradio import (
     wasm_utils,
 )
 from gradio.route_utils import (
+    API_PREFIX,
     FnIndexInferError,
     compare_passwords_securely,
     get_root_url,
@@ -1524,9 +1525,9 @@ def test_bash_api_serialization():
     test_client = TestClient(app)
 
     with test_client:
-        submit = test_client.post("/call/predict", json={"data": [{"a": 1}]})
+        submit = test_client.post(f"{API_PREFIX}/call/predict", json={"data": [{"a": 1}]})
         event_id = submit.json()["event_id"]
-        response = test_client.get(f"/call/predict/{event_id}")
+        response = test_client.get(f"{API_PREFIX}/call/predict/{event_id}")
         assert response.status_code == 200
         assert "event: complete\ndata:" in response.text
         assert json.dumps({"a": 1}) in response.text
@@ -1541,9 +1542,9 @@ def test_bash_api_multiple_inputs_outputs():
     test_client = TestClient(app)
 
     with test_client:
-        submit = test_client.post("/call/predict", json={"data": ["abc", 123]})
+        submit = test_client.post(f"{API_PREFIX}/call/predict", json={"data": ["abc", 123]})
         event_id = submit.json()["event_id"]
-        response = test_client.get(f"/call/predict/{event_id}")
+        response = test_client.get(f"{API_PREFIX}/call/predict/{event_id}")
         assert response.status_code == 200
         assert "event: complete\ndata:" in response.text
         assert json.dumps([123, "abc"]) in response.text
