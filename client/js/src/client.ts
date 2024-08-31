@@ -44,6 +44,7 @@ export class Client {
 	options: ClientOptions;
 
 	config: Config | undefined;
+	api_prefix = "";
 	api_info: ApiInfo<JsApiData> | undefined;
 	api_map: Record<string, number> = {};
 	session_hash: string = Math.random().toString(36).substring(2);
@@ -180,6 +181,8 @@ export class Client {
 	async _resolve_hearbeat(_config: Config): Promise<void> {
 		if (_config) {
 			this.config = _config;
+			this.api_prefix = _config.api_prefix || "";
+
 			if (this.config && this.config.connect_heartbeat) {
 				if (this.config.space_id && this.options.hf_token) {
 					this.jwt = await get_jwt(
@@ -198,7 +201,7 @@ export class Client {
 		if (this.config && this.config.connect_heartbeat) {
 			// connect to the heartbeat endpoint via GET request
 			const heartbeat_url = new URL(
-				`${this.config.root}/${HEARTBEAT_URL}/${this.session_hash}`
+				`${this.config.root}${this.api_prefix}/${HEARTBEAT_URL}/${this.session_hash}`
 			);
 
 			// if the jwt is available, add it to the query params
@@ -287,6 +290,7 @@ export class Client {
 		_config: Config
 	): Promise<Config | client_return> {
 		this.config = _config;
+		this.api_prefix = _config.api_prefix || "";
 
 		if (typeof window !== "undefined" && typeof document !== "undefined") {
 			if (window.location.protocol === "https:") {
@@ -316,6 +320,8 @@ export class Client {
 		if (status.status === "running") {
 			try {
 				this.config = await this._resolve_config();
+				this.api_prefix = this?.config?.api_prefix || "";
+
 				if (!this.config) {
 					throw new Error(CONFIG_ERROR_MSG);
 				}
@@ -396,7 +402,7 @@ export class Client {
 
 		try {
 			const response = await this.fetch(
-				`${root_url}/${COMPONENT_SERVER_URL}/`,
+				`${root_url}${this.api_prefix}/${COMPONENT_SERVER_URL}/`,
 				{
 					method: "POST",
 					body: body,
