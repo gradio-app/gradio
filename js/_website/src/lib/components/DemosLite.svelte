@@ -8,36 +8,79 @@
 	import { svgCheck } from "$lib/assets/copy.js";
 	import { browser } from "$app/environment";
 	import { onMount } from "svelte";
-	import { HfInference } from "@huggingface/inference";
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
-
-	const HF_ACCESS_TOKEN="";
-	let hf = new HfInference(HF_ACCESS_TOKEN);
 
 	let generated = true;
 
 	let ai_code : string | undefined = "";
 
+	const workerUrl = 'https://rough-shape-9eb5.ali-abdalla.workers.dev/';
+
+	async function* streamFromWorker(query: string, systemPrompt: string) {
+		const response = await fetch(workerUrl, {
+			method: 'POST',
+			headers: {
+			'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+			query: query,
+			SYSTEM_PROMPT: systemPrompt
+			})
+		});
+
+		const reader = response.body?.getReader();
+		const decoder = new TextDecoder();
+		let buffer = '';
+
+		while (true) {
+			const { done, value } = reader ? await reader.read() : { done: true, value: null };
+			if (done) break;
+
+			buffer += decoder.decode(value, { stream: true });
+			const lines = buffer.split('\n');
+			buffer = lines.pop() || '';
+
+			for (const line of lines) {
+			if (line.startsWith('data: ')) {
+				const data = line.slice(6).trim(); 
+				if (data === '[DONE]') {
+				return; 
+				}
+				if (data) {
+				try {
+					const parsed = JSON.parse(data);
+					if (parsed.choices && parsed.choices.length > 0) {
+					yield parsed;
+					}
+				} catch (e) {
+					console.error('Error parsing JSON:', e);
+				}
+				}
+			}
+			}
+		}
+	}
+
 	async function generate_code(query: string) {
 		generated = false;
 		let out = "";
-		for await (const chunk of hf.chatCompletionStream({
-		model: "meta-llama/Meta-Llama-3-70B-Instruct",
-		messages: [
-			{role: "system", content: SYSTEM_PROMPT.SYSTEM},
-			{ role: "user", content: query }
-		],
-		max_tokens: 1000,
-		temperature: 0.1,
-		seed: 0,
-		})) {
-		if (chunk.choices && chunk.choices.length > 0) {
-			out += chunk.choices[0].delta.content;
-			out = out.replaceAll("```\n", "");
-			out = out.replaceAll("```", "");
-			ai_code = out;
-			demos[demos.length - 1].code = out ||  "# Describe your app above, and the LLM will generate the code here.";
+		if (demos[demos.length - 1].code && demos[demos.length - 1].code  !==  "# Describe your app above, and the LLM will generate the code here.") {
+			query = "PROMPT: " + query;
+			query += "\n\nHere is the existing code that either you or the user has written. If it's relevant to the prompt, use it for context. If it's not relevant, ignore it.\n Existing Code: \n\n" + demos[demos.length - 1].code;
+			query += "\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, and matplotlib ";
 		}
+		
+		for await (const chunk of streamFromWorker(query, SYSTEM_PROMPT.SYSTEM)) {
+			if (chunk.choices && chunk.choices.length > 0) {
+			const content = chunk.choices[0].delta.content;
+				if (content) {
+					out += content;
+					out = out.replaceAll("```\n", "");
+					out = out.replaceAll("```", "");
+					ai_code = out;
+					demos[demos.length - 1].code = out ||  "# Describe your app above, and the LLM will generate the code here.";
+				}
+			}
 		}
 		generated = true;
 	}

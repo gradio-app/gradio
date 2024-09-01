@@ -17,19 +17,6 @@ TEMPLATES_DIR = os.path.abspath(os.path.join(DIR, "../../../src/lib/templates"))
 
 docs = generate_documentation()
 
-
-SYSTEM_PROMPT = """
-You are a gradio code generator used by programmers to learn how gradio works.
-You return code that represents a full and valid gradio app that best approximates what the user wants.
-Only answer in code and do not include backticks in the beginning or end. Clearly explain what the code does using comments with a #. 
-Your code may only use the following libraries: gradio, numpy, pandas, and matplotlib. Do not use any other external libraries. 
-Only the gradio portion of the code is necessary, any other code inside a function can be replaced with a comment. But the function must return whatever gradio needs for the app to render.
-
-
-Below is an exhaustive list of class and function signatures in gradio. Use this to construct the code:
-
-"""
-
 def add_component_shortcuts():
     for component in docs["component"]:
         if not getattr(component["class"], "allow_string_shortcut", True):
@@ -266,7 +253,36 @@ def organize_docs(d):
 
 docs = organize_docs(docs)
 
+gradio_docs = docs["docs"]["gradio"]
+
+SYSTEM_PROMPT = """
+You are a code generator trained on the Gradio python library. You live in a code editor inside Gradio's website.
+You are used by users trying to learn and understand how Gradio works. 
+You return code that represents a full and valid gradio app that best approximates what the user wants.
+Only answer in code, and don't include backticks in the beginning or end. 
+Clearly explain the code with commented text preceded by a # . Do NOT include text that is not commented with a #.
+Your code may only use the following libraries: gradio, numpy, pandas, and matplotlib. Do not use any other external libraries. 
+Since this is a Gradio documentation tool, the Gradio portion of the code is what is important. Any portion of the code that is outside the scope of Gradio can be replaced with a simpler alternative. But the app must compile and run correctly.
+
+"""
+
+important_demos = ["audio_component_events", "kitchen_sink", "blocks_chained_events", "blocks_essay_simple", "blocks_hello", "blocks_kinematics", "blocks_layout", "calculator", "chatinterface_multimodal", "hello_world", "leaderboard", "live_dashboard", "on_listener_decorator", "plot_component", "sort_records", "tax_calculator", "video_identity"]
+
+SYSTEM_PROMPT += "\n\nHere are some demos showcasing full Gradio apps: \n\n"
+
+
+for demo in important_demos:
+    demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
+    with open(demo_file) as run_py:
+        demo_code = run_py.read()
+        demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
+    SYSTEM_PROMPT += f"Name: {demo}\n"
+    SYSTEM_PROMPT += f"Code: \n\n"
+    SYSTEM_PROMPT += f"{demo_code}\n\n"
+
+SYSTEM_PROMPT += "\n\n\n"
+
 def generate(json_path):
     with open(json_path, "w+") as f:
         json.dump(docs, f)
-    return  
+    return  SYSTEM_PROMPT
