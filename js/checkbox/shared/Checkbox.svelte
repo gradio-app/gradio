@@ -41,7 +41,7 @@
 	}
 </script>
 
-<label class:disabled class:selected={value}>
+<label class:disabled>
 	<input
 		bind:checked={value}
 		on:keydown={handle_enter}
@@ -95,7 +95,6 @@
 	}
 
 	input:focus {
-		/* border-color: var(--checkbox-border-color-focus); */
 		background-color: var(--checkbox-background-color-focus);
 	}
 
