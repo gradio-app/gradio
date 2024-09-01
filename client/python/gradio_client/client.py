@@ -156,7 +156,7 @@ class Client:
         )
         api_prefix: str = self.config.get("api_prefix", "")
         self.api_prefix = api_prefix.lstrip("/") + "/"
-        self.src_prefixed = urllib.parse.urljoin(self.src, api_prefix)
+        self.src_prefixed = urllib.parse.urljoin(self.src, api_prefix) + "/"
 
         self.api_url = urllib.parse.urljoin(self.src_prefixed, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
@@ -559,7 +559,9 @@ class Client:
         return job
 
     def _get_api_info(self):
+        print("SRC PREFIXED", self.src_prefixed, utils.RAW_API_INFO_URL)
         api_info_url = urllib.parse.urljoin(self.src_prefixed, utils.RAW_API_INFO_URL)
+        print("API INFO URL", api_info_url)
         if self.app_version > version.Version("3.36.1"):
             r = httpx.get(
                 api_info_url,
