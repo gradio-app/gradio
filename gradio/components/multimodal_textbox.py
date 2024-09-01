@@ -81,7 +81,7 @@ class MultimodalTextbox(FormComponent):
         key: int | str | None = None,
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
-        submit_btn: str | bool | None = True,
+        submit_btn: str | bool | None = False,
     ):
         """
         Parameters:

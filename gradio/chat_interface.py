@@ -204,13 +204,13 @@ class ChatInterface(Blocks):
                             )
                         self.textbox = textbox_
                     elif self.multimodal:
-                        submit_btn = None
                         self.textbox = MultimodalTextbox(
                             show_label=False,
                             label="Message",
                             placeholder="Type a message...",
                             scale=7,
                             autofocus=autofocus,
+                            submit_btn=True,
                         )
                     else:
                         self.textbox = Textbox(
