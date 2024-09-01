@@ -35,6 +35,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let submit_btn: string | boolean | null = null;
 	export let show_copy_button = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
@@ -76,6 +77,7 @@
 		{text_align}
 		max_lines={!max_lines ? lines + 1 : max_lines}
 		{placeholder}
+		{submit_btn}
 		{show_copy_button}
 		{autofocus}
 		{container}

@@ -60,6 +60,7 @@ class Textbox(FormComponent):
         rtl: bool = False,
         show_copy_button: bool = False,
         max_length: int | None = None,
+        submit_btn: str | bool | None = True,
     ):
         """
         Parameters:
@@ -88,6 +89,7 @@ class Textbox(FormComponent):
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             max_length: maximum number of characters (including newlines) allowed in the textbox. If None, there is no maximum length.
+            submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
         """
         if type not in ["text", "password", "email"]:
             raise ValueError('`type` must be one of "text", "password", or "email".')
@@ -99,8 +101,10 @@ class Textbox(FormComponent):
             self.max_lines = 1
         self.placeholder = placeholder
         self.show_copy_button = show_copy_button
+        self.submit_btn = submit_btn
         self.autofocus = autofocus
         self.autoscroll = autoscroll
+
         super().__init__(
             label=label,
             info=info,
