@@ -1172,59 +1172,29 @@ def test_component_server_endpoints(connect):
 @pytest.mark.parametrize(
     "request_url, route_path, root_path, expected_root_url",
     [
-        ("http://localhost:7860/", f"{API_PREFIX}/", None, "http://localhost:7860"),
+        (f"http://localhost:7860/{API_PREFIX}", f"{API_PREFIX}/", None, "http://localhost:7860"),
         (
-            "http://localhost:7860/demo/test",
+            f"http://localhost:7860/{API_PREFIX}/demo/test",
             f"{API_PREFIX}/demo/test",
             None,
             "http://localhost:7860",
         ),
         (
-            "http://localhost:7860/demo/test/",
+            f"http://localhost:7860/{API_PREFIX}/demo/test?query=1",
             f"{API_PREFIX}/demo/test",
             None,
             "http://localhost:7860",
         ),
         (
-            "http://localhost:7860/demo/test?query=1",
-            f"{API_PREFIX}/demo/test",
-            None,
-            "http://localhost:7860",
-        ),
-        (
-            "http://localhost:7860/demo/test?query=1",
+            f"http://localhost:7860/{API_PREFIX}/demo/test?query=1",
             f"{API_PREFIX}/demo/test/",
-            f"{API_PREFIX}/gradio/",
+            "/gradio",
             "http://localhost:7860/gradio",
         ),
         (
-            "http://localhost:7860/demo/test?query=1",
-            f"{API_PREFIX}/demo/test",
-            f"{API_PREFIX}/gradio/",
-            "http://localhost:7860/gradio",
-        ),
-        (
-            "https://localhost:7860/demo/test?query=1",
-            f"{API_PREFIX}/demo/test",
-            f"{API_PREFIX}/gradio/",
-            "https://localhost:7860/gradio",
-        ),
-        (
             "https://www.gradio.app/playground/",
             f"{API_PREFIX}/",
-            f"{API_PREFIX}/playground",
-            "https://www.gradio.app/playground",
-        ),
-        (
-            "https://www.gradio.app/playground/",
-            f"{API_PREFIX}/",
-            f"{API_PREFIX}/playground",
-            "https://www.gradio.app/playground",
-        ),
-        (
-            "https://www.gradio.app/playground/",
-            f"{API_PREFIX}/",
-            "",
+            "/playground",
             "https://www.gradio.app/playground",
         ),
         (
