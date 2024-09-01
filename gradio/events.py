@@ -4,16 +4,12 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import dataclasses
+from collections.abc import Callable, Sequence, Set
 from functools import partial, wraps
 from typing import (
     TYPE_CHECKING,
-    AbstractSet,
     Any,
-    Callable,
-    Dict,
-    List,
     Literal,
-    Sequence,
     Union,
     cast,
 )
@@ -330,7 +326,7 @@ if TYPE_CHECKING:
             int,
             bool,
             bool,
-            Union[Dict[str, Any], List[Dict[str, Any]], None],
+            Union[dict[str, Any], list[dict[str, Any]], None],
             Union[float, None],
             Union[Literal["once", "multiple", "always_last"], None],
             Union[str, None],
@@ -356,6 +352,7 @@ class EventListener(str):
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         doc: str = "",
+        connection: Literal["sse", "stream"] = "sse",
     ):
         super().__init__()
         self.has_trigger = has_trigger
@@ -366,6 +363,7 @@ class EventListener(str):
         self.trigger_only_on_success = trigger_only_on_success
         self.callback = callback
         self.doc = doc
+        self.connection = connection
         self.listener = self._setup(
             event_name,
             has_trigger,
@@ -373,6 +371,7 @@ class EventListener(str):
             callback,
             trigger_after,
             trigger_only_on_success,
+            connection,
         )
         if doc and self.listener.__doc__:
             self.listener.__doc__ = doc + self.listener.__doc__
@@ -392,6 +391,7 @@ class EventListener(str):
             self.trigger_after,
             self.trigger_only_on_success,
             self.doc,
+            self.connection,  # type: ignore
         )
 
     @staticmethod
@@ -402,6 +402,7 @@ class EventListener(str):
         _callback: Callable | None,
         _trigger_after: int | None,
         _trigger_only_on_success: bool,
+        _connection: Literal["sse", "stream"] = "sse",
     ):
         def event_trigger(
             block: Block | None,
@@ -409,12 +410,12 @@ class EventListener(str):
             inputs: Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext]
+            | Set[Component | BlockContext]
             | None = None,
             outputs: Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext]
+            | Set[Component | BlockContext]
             | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
@@ -425,12 +426,13 @@ class EventListener(str):
             preprocess: bool = True,
             postprocess: bool = True,
             cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
-            every: float | None = None,
             trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
             js: str | None = None,
             concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
             show_api: bool = True,
+            time_limit: int | None = None,
+            stream_every: float = 0.5,
         ) -> Dependency:
             """
             Parameters:
@@ -446,7 +448,6 @@ class EventListener(str):
                 preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
                 postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
                 cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
-                every: Will be deprecated in favor of gr.Timer. Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
                 trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
                 js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
                 concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
@@ -503,32 +504,15 @@ class EventListener(str):
                 block if _has_trigger else None, _event_name
             )
 
-            # Handle every as a float (to be deprecated in favor of gr.Timer)
-            timer = None
-            if every is not None:
-                from gradio.components import Timer
-
-                timer = Timer(every, active=False)
-                root_block.set_event_trigger(
-                    [event_target],
-                    lambda: Timer(active=True),
-                    None,
-                    timer,
-                    show_api=False,
-                )
-                target = EventListenerMethod(timer, "tick")
-            else:
-                target = event_target
-
             dep, dep_index = root_block.set_event_trigger(
-                [target],
+                [event_target],
                 fn,
                 inputs,
                 outputs,
                 preprocess=preprocess,
                 postprocess=postprocess,
                 scroll_to_output=scroll_to_output,
-                show_progress=show_progress if every is None else "hidden",
+                show_progress=show_progress,
                 api_name=api_name,
                 js=js,
                 concurrency_limit=concurrency_limit,
@@ -540,6 +524,9 @@ class EventListener(str):
                 trigger_only_on_success=_trigger_only_on_success,
                 trigger_mode=trigger_mode,
                 show_api=show_api,
+                connection=_connection,
+                time_limit=time_limit,
+                stream_every=stream_every,
             )
             set_cancel_events(
                 [event_target],
@@ -547,7 +534,7 @@ class EventListener(str):
             )
             if _callback:
                 _callback(block)
-            return Dependency(block, dep.get_config(), dep_index, fn, timer)
+            return Dependency(block, dep.get_config(), dep_index, fn)
 
         event_trigger.event_name = _event_name  # type: ignore
         event_trigger.has_trigger = _has_trigger  # type: ignore
@@ -562,12 +549,12 @@ def on(
     inputs: Component
     | BlockContext
     | Sequence[Component | BlockContext]
-    | AbstractSet[Component | BlockContext]
+    | Set[Component | BlockContext]
     | None = None,
     outputs: Component
     | BlockContext
     | Sequence[Component | BlockContext]
-    | AbstractSet[Component | BlockContext]
+    | Set[Component | BlockContext]
     | None = None,
     *,
     api_name: str | None | Literal[False] = None,
@@ -580,7 +567,6 @@ def on(
     postprocess: bool = True,
     cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-    every: float | None = None,
     js: str | None = None,
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
@@ -592,7 +578,7 @@ def on(
     for all events in the triggers list.
 
     Parameters:
-        triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will listen to changes to any inputs.
+        triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will run on app load and changes to any inputs.
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
         inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
         outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
@@ -606,7 +592,6 @@ def on(
         postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
         trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
-        every: Will be deprecated in favor of gr.Timer. Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
         js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs', return should be a list of values for output components.
         concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
@@ -657,7 +642,6 @@ def on(
                 concurrency_id=concurrency_id,
                 show_api=show_api,
                 trigger_mode=trigger_mode,
-                every=every,
             )
 
             @wraps(func)
@@ -676,7 +660,7 @@ def on(
             [EventListenerMethod(input, "change") for input in inputs]
             if inputs is not None
             else []
-        )  # type: ignore
+        ) + [EventListenerMethod(root_block, "load")]  # type: ignore
     else:
         methods = [
             EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore
@@ -686,19 +670,6 @@ def on(
         for trigger in triggers:
             if trigger.callback:  # type: ignore
                 trigger.callback(trigger.__self__)  # type: ignore
-
-    if every is not None:
-        from gradio.components import Timer
-
-        timer = Timer(every, active=False)
-        root_block.set_event_trigger(
-            methods,
-            lambda: Timer(active=True),
-            None,
-            timer,
-            show_api=False,
-        )
-        methods = [EventListenerMethod(timer, "tick")]
 
     dep, dep_index = root_block.set_event_trigger(
         methods,
@@ -798,10 +769,11 @@ class Events:
     )
     stream = EventListener(
         "stream",
-        show_progress="hidden",
         config_data=lambda: {"streamable": False},
         callback=lambda block: setattr(block, "streaming", True),
         doc="This listener is triggered when the user streams the {{ component }}.",
+        connection="stream",
+        show_progress="minimal",
     )
     like = EventListener(
         "like",
@@ -829,4 +801,16 @@ class Events:
         "tick",
         doc="This listener is triggered at regular intervals defined by the {{ component }}.",
         show_progress="hidden",
+    )
+    undo = EventListener(
+        "undo",
+        doc="This listener is triggered when the user clicks the undo button in the chatbot message.",
+        callback=lambda block: setattr(block, "_undoable", True),
+        config_data=lambda: {"_undoable": False},
+    )
+    retry = EventListener(
+        "retry",
+        doc="This listener is triggered when the user clicks the retry button in the chatbot message.",
+        callback=lambda block: setattr(block, "_retryable", True),
+        config_data=lambda: {"_retryable": False},
     )

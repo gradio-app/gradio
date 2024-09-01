@@ -5,7 +5,7 @@
 
 	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { afterUpdate } from "svelte";
+	import { afterUpdate, onMount } from "svelte";
 
 	import StaticAudio from "./static/StaticAudio.svelte";
 	import InteractiveAudio from "./interactive/InteractiveAudio.svelte";
@@ -39,6 +39,18 @@
 	export let waveform_options: WaveformOptions = {};
 	export let pending: boolean;
 	export let streaming: boolean;
+	export let stream_every: number;
+
+	let stream_state = "closed";
+	let _modify_stream: (state: "open" | "closed" | "waiting") => void;
+	export function modify_stream_state(
+		state: "open" | "closed" | "waiting"
+	): void {
+		stream_state = state;
+		_modify_stream(state);
+	}
+	export const get_stream_state: () => void = () => stream_state;
+	export let set_time_limit: (time: number) => void;
 	export let gradio: Gradio<{
 		input: never;
 		change: typeof value;
@@ -57,6 +69,7 @@
 		clear: never;
 		share: ShareData;
 		clear_status: LoadingStatus;
+		close_stream: string;
 	}>;
 
 	let old_value: null | FileData = null;
@@ -95,14 +108,23 @@
 
 	let waveform_settings: Record<string, any>;
 
-	let color_accent = getComputedStyle(
-		document.documentElement
-	).getPropertyValue("--color-accent");
+	let color_accent = "darkorange";
+
+	onMount(() => {
+		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
+			"--color-accent"
+		);
+		set_trim_region_colour();
+		waveform_settings.waveColor = waveform_options.waveform_color || "#9ca3af";
+		waveform_settings.progressColor =
+			waveform_options.waveform_progress_color || color_accent;
+		waveform_settings.mediaControls = waveform_options.show_controls;
+		waveform_settings.sampleRate = waveform_options.sample_rate || 44100;
+	});
 
 	$: waveform_settings = {
 		height: 50,
-		waveColor: waveform_options.waveform_color || "#9ca3af",
-		progressColor: waveform_options.waveform_progress_color || color_accent,
+
 		barWidth: 2,
 		barGap: 3,
 		cursorWidth: 2,
@@ -111,9 +133,7 @@
 		barRadius: 10,
 		dragToSeek: true,
 		normalize: true,
-		minPxPerSec: 20,
-		mediaControls: waveform_options.show_controls,
-		sampleRate: waveform_options.sample_rate || 44100
+		minPxPerSec: 20
 	};
 
 	const trim_region_settings = {
@@ -128,8 +148,6 @@
 			trim_region_settings.color || color_accent
 		);
 	}
-
-	set_trim_region_colour();
 
 	function handle_error({ detail }: CustomEvent<string>): void {
 		const [level, status] = detail.includes("Invalid file type")
@@ -234,10 +252,14 @@
 			on:upload={() => gradio.dispatch("upload")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:error={handle_error}
+			on:close_stream={() => gradio.dispatch("close_stream", "stream")}
 			i18n={gradio.i18n}
 			{waveform_settings}
 			{waveform_options}
 			{trim_region_settings}
+			{stream_every}
+			bind:modify_stream={_modify_stream}
+			bind:set_time_limit
 			upload={gradio.client.upload}
 			stream_handler={gradio.client.stream}
 		>

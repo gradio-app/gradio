@@ -41,6 +41,7 @@
 	export let interactive: boolean;
 
 	let dragging = false;
+	const is_browser = typeof window !== "undefined";
 </script>
 
 {#if !interactive}
@@ -63,7 +64,7 @@
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
-		{#if value}
+		{#if value && is_browser}
 			<Model3D
 				{value}
 				i18n={gradio.i18n}
