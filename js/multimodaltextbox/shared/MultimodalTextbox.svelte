@@ -10,7 +10,15 @@
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData, Client } from "@gradio/client";
-	import { Clear, File, Music, Paperclip, Video, Send } from "@gradio/icons";
+	import {
+		Clear,
+		File,
+		Music,
+		Paperclip,
+		Video,
+		Send,
+		Pause
+	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -28,6 +36,7 @@
 	export let container = true;
 	export let max_lines: number;
 	export let submit_btn: string | boolean | null = null;
+	export let stop_btn: string | boolean | null = null;
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
@@ -75,6 +84,7 @@
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
 		submit: undefined;
+		stop: undefined;
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
@@ -188,7 +198,11 @@
 		}
 	}
 
-	async function handle_submit(): Promise<void> {
+	function handle_stop(): void {
+		dispatch("stop");
+	}
+
+	function handle_submit(): void {
 		dispatch("submit");
 	}
 
@@ -332,7 +346,19 @@
 				on:paste={handle_paste}
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
-			{#if submit_btn}
+			{#if stop_btn}
+				<button
+					class="stop-button"
+					class:padded-button={stop_btn !== true}
+					on:click={handle_stop}
+				>
+					{#if stop_btn === true}
+						<Pause />
+					{:else}
+						{stop_btn}
+					{/if}
+				</button>
+			{:else if submit_btn}
 				<button
 					class="submit-button"
 					class:padded-button={submit_btn !== true}
@@ -341,7 +367,7 @@
 					{#if submit_btn === true}
 						<Send />
 					{:else}
-						Hello World
+						{submit_btn}
 					{/if}
 				</button>
 			{/if}
@@ -398,9 +424,8 @@
 	}
 
 	.upload-button,
-	.submit-button {
-		background: var(--button-secondary-background-fill);
-		color: var(--button-secondary-text-color);
+	.submit-button,
+	.stop-button {
 		border: none;
 		text-align: center;
 		text-decoration: none;
@@ -420,6 +445,12 @@
 		padding: 0 10px;
 	}
 
+	.upload-button,
+	.submit-button {
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
+	}
+
 	.upload-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
@@ -437,6 +468,19 @@
 	.upload-button :global(svg) {
 		height: 17px;
 		width: 17px;
+	}
+
+	.stop-button {
+		background: var(--button-cancel-background-fill);
+		color: var(--button-cancel-text-color);
+	}
+	.stop-button:hover {
+		background: var(--button-cancel-background-fill-hover);
+		color: var(--button-cancel-text-color-hover);
+	}
+	.stop-button :global(svg) {
+		height: 18px;
+		width: 18px;
 	}
 
 	.loader {

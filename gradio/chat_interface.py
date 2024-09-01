@@ -76,7 +76,6 @@ class ChatInterface(Blocks):
         js: str | None = None,
         head: str | None = None,
         analytics_enabled: bool | None = None,
-        stop_btn: str | None | Button = "Stop",
         autofocus: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
         fill_height: bool = True,
@@ -103,7 +102,6 @@ class ChatInterface(Blocks):
             js: custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
             head: custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
-            stop_btn: text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button.
             autofocus: if True, autofocuses to the textbox when the page loads.
             concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: if True, the chat interface will expand to the height of window.
@@ -133,7 +131,6 @@ class ChatInterface(Blocks):
         self.is_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
-        self.buttons: list[Button | None] = []
 
         self.examples = examples
         self.cache_examples = cache_examples
@@ -203,17 +200,11 @@ class ChatInterface(Blocks):
                                 f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
                             )
                         self.textbox = textbox_
-                    elif self.multimodal:
-                        self.textbox = MultimodalTextbox(
-                            show_label=False,
-                            label="Message",
-                            placeholder="Type a message...",
-                            scale=7,
-                            autofocus=autofocus,
-                            submit_btn=True,
-                        )
                     else:
-                        self.textbox = Textbox(
+                        textbox_component = (
+                            MultimodalTextbox if self.multimodal else Textbox
+                        )
+                        self.textbox = textbox_component(
                             show_label=False,
                             label="Message",
                             placeholder="Type a message...",
@@ -221,29 +212,9 @@ class ChatInterface(Blocks):
                             autofocus=autofocus,
                             submit_btn=True,
                         )
-                    if stop_btn is not None:
-                        if isinstance(stop_btn, Button):
-                            stop_btn.visible = False
-                            stop_btn.render()
-                        elif isinstance(stop_btn, str):
-                            stop_btn = Button(
-                                stop_btn,
-                                variant="stop",
-                                visible=False,
-                                scale=1,
-                                min_width=150,
-                            )
-                        else:
-                            raise ValueError(
-                                f"The stop_btn parameter must be a gr.Button, string, or None, not {builtins.type(stop_btn)}"
-                            )
-                    self.buttons.extend([stop_btn])  # type: ignore
 
                 self.fake_api_btn = Button("Fake API", visible=False)
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
-                (
-                    self.stop_btn,
-                ) = self.buttons
 
             if examples:
                 if self.is_generator:
@@ -371,23 +342,24 @@ class ChatInterface(Blocks):
     def _setup_stop_events(
         self, event_triggers: list[Callable], event_to_cancel: Dependency
     ) -> None:
-        if self.stop_btn and self.is_generator:
+        textbox_component = MultimodalTextbox if self.multimodal else Textbox
+        if self.is_generator:
             for event_trigger in event_triggers:
                 event_trigger(
-                    async_lambda(lambda: Button(visible=True)),
+                    async_lambda(lambda: textbox_component(stop_btn=True)),
                     None,
-                    [self.stop_btn],
+                    [self.textbox],
                     show_api=False,
                     queue=False,
                 )
             event_to_cancel.then(
-                async_lambda(lambda: Button(visible=False)),
+                async_lambda(lambda: textbox_component(stop_btn=False)),
                 None,
-                [self.stop_btn],
+                [self.textbox],
                 show_api=False,
                 queue=False,
             )
-            self.stop_btn.click(
+            self.textbox.stop(
                 None,
                 None,
                 None,

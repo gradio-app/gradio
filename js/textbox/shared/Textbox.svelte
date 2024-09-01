@@ -6,7 +6,7 @@
 		tick
 	} from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { Copy, Check, Send } from "@gradio/icons";
+	import { Copy, Check, Send, Pause } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
@@ -23,6 +23,7 @@
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button = false;
 	export let submit_btn: string | boolean | null = null;
+	export let stop_btn: string | boolean | null = null;
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
@@ -45,6 +46,7 @@
 	const dispatch = createEventDispatcher<{
 		change: string;
 		submit: undefined;
+		stop: undefined;
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
@@ -134,6 +136,10 @@
 		if (user_has_scrolled_to_bottom) {
 			user_has_scrolled_up = false;
 		}
+	}
+
+	function handle_stop(): void {
+		dispatch("stop");
 	}
 
 	function handle_submit(): void {
@@ -283,7 +289,19 @@
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
 		{/if}
-		{#if submit_btn}
+		{#if stop_btn}
+			<button
+				class="stop-button"
+				class:padded-button={stop_btn !== true}
+				on:click={handle_stop}
+			>
+				{#if stop_btn === true}
+					<Pause />
+				{:else}
+					{stop_btn}
+				{/if}
+			</button>
+		{:else if submit_btn}
 			<button
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
@@ -384,9 +402,8 @@
 		position: relative;
 		align-items: flex-end;
 	}
-	.submit-button {
-		background: var(--button-secondary-background-fill);
-		color: var(--button-secondary-text-color);
+	.submit-button,
+	.stop-button {
 		border: none;
 		text-align: center;
 		text-decoration: none;
@@ -402,6 +419,10 @@
 		margin-bottom: 5px;
 		z-index: var(--layer-1);
 	}
+	.submit-button {
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
+	}
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
@@ -411,5 +432,17 @@
 	.submit-button :global(svg) {
 		height: 22px;
 		width: 22px;
+	}
+	.stop-button {
+		background: var(--button-cancel-background-fill);
+		color: var(--button-cancel-text-color);
+	}
+	.stop-button:hover {
+		background: var(--button-cancel-background-fill-hover);
+		color: var(--button-cancel-text-color-hover);
+	}
+	.stop-button :global(svg) {
+		height: 18px;
+		width: 18px;
 	}
 </style>

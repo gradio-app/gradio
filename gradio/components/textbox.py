@@ -30,6 +30,7 @@ class Textbox(FormComponent):
         Events.submit,
         Events.focus,
         Events.blur,
+        Events.stop,
     ]
 
     def __init__(
@@ -61,6 +62,7 @@ class Textbox(FormComponent):
         show_copy_button: bool = False,
         max_length: int | None = None,
         submit_btn: str | bool | None = False,
+        stop_btn: str | bool | None = False,
     ):
         """
         Parameters:
@@ -102,6 +104,7 @@ class Textbox(FormComponent):
         self.placeholder = placeholder
         self.show_copy_button = show_copy_button
         self.submit_btn = submit_btn
+        self.stop_btn = stop_btn
         self.autofocus = autofocus
         self.autoscroll = autoscroll
 
