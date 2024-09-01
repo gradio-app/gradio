@@ -43,9 +43,7 @@
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
 	export let mode: "erase" | "draw";
 
-	$: processed_colors = colors
-		? colors.map(process_color).filter((_, i) => i < 4)
-		: [];
+	$: processed_colors = colors ? colors.map(process_color) : [];
 
 	$: selected_color =
 		default_color === "auto"

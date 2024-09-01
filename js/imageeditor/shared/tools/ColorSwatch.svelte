@@ -115,6 +115,7 @@
 	}
 	.swatch {
 		display: flex;
+		flex-wrap: wrap;
 		gap: var(--size-2-5);
 		justify-content: space-around;
 		margin-bottom: var(--size-2);
