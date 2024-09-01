@@ -1302,9 +1302,7 @@ class Base(ThemeClass):
         )
         self.checkbox_background_color_selected_dark = (
             checkbox_background_color_selected_dark
-            or getattr(
-                self, "checkbox_background_color_selected_dark", "*color_accent"
-            )
+            or getattr(self, "checkbox_background_color_selected_dark", "*color_accent")
         )
         self.checkbox_border_color = checkbox_border_color or getattr(
             self, "checkbox_border_color", "*neutral_300"
