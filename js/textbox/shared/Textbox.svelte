@@ -6,7 +6,7 @@
 		tick
 	} from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { Copy, Check, Send, Pause } from "@gradio/icons";
+	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
@@ -309,7 +309,7 @@
 				on:click={handle_stop}
 			>
 				{#if stop_btn === true}
-					<Pause />
+					<Square />
 				{:else}
 					{stop_btn}
 				{/if}

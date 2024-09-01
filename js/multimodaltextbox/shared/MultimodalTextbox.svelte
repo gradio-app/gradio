@@ -17,7 +17,7 @@
 		Paperclip,
 		Video,
 		Send,
-		Pause
+		Square
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 
@@ -366,7 +366,7 @@
 					on:click={handle_stop}
 				>
 					{#if stop_btn === true}
-						<Pause />
+						<Square />
 					{:else}
 						{stop_btn}
 					{/if}
