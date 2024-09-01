@@ -87,8 +87,8 @@
 
 	input:checked,
 	input:checked:hover {
-		border-color: var(--color-accent);
-		background-color: var(--color-accent);
+		border-color: var(--checkbox-border-color-selected);
+		background-color: var(--checkbox-background-color-selected);
 	}
 
 	input:checked::after {
@@ -107,15 +107,15 @@
 	}
 
 	input:focus {
-		border-color: var(--color-accent);
-		box-shadow: 0 0 0 2px var(--color-accent-light);
+		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-color-focus);
+		box-shadow: 0 0 0 2px var(--checkbox-background-color-selected);
 	}
 
 	input:checked:focus {
-		border-color: var(--color-accent);
-		box-shadow: 0 0 0 2px var(--color-accent-light);
-		background-color: var(--color-accent);
+		border-color: var(--checkbox-border-color-focus);
+		box-shadow: 0 0 0 2px var(--checkbox-background-color-selected);
+		background-color: var(--checkbox-background-color-selected);
 	}
 
 	input[disabled],
