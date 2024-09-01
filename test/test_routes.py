@@ -1172,7 +1172,12 @@ def test_component_server_endpoints(connect):
 @pytest.mark.parametrize(
     "request_url, route_path, root_path, expected_root_url",
     [
-        (f"http://localhost:7860/{API_PREFIX}", f"{API_PREFIX}/", None, "http://localhost:7860"),
+        (
+            f"http://localhost:7860/{API_PREFIX}",
+            f"{API_PREFIX}/",
+            None,
+            "http://localhost:7860",
+        ),
         (
             f"http://localhost:7860/{API_PREFIX}/demo/test",
             f"{API_PREFIX}/demo/test",
