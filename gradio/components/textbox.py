@@ -60,7 +60,7 @@ class Textbox(FormComponent):
         rtl: bool = False,
         show_copy_button: bool = False,
         max_length: int | None = None,
-        submit_btn: str | bool | None = True,
+        submit_btn: str | bool | None = False,
     ):
         """
         Parameters:
