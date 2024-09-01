@@ -94,7 +94,13 @@
 		border-color: var(--checkbox-border-color-focus);
 	}
 
+	input:hover {
+		border-color: var(--checkbox-border-color-hover);
+		background-color: var(--checkbox-background-color-hover);
+	}
+
 	input:focus {
+		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-color-focus);
 	}
 

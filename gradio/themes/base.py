@@ -1317,7 +1317,7 @@ class Base(ThemeClass):
         )
         self.checkbox_border_color_focus_dark = (
             checkbox_border_color_focus_dark
-            or getattr(self, "checkbox_border_color_focus_dark", "*secondary_500")
+            or getattr(self, "checkbox_border_color_focus_dark", "*color_accent")
         )
         self.checkbox_border_color_hover = checkbox_border_color_hover or getattr(
             self, "checkbox_border_color_hover", "*neutral_300"
