@@ -1313,7 +1313,7 @@ class Base(ThemeClass):
             self, "checkbox_border_color_dark", "*neutral_700"
         )
         self.checkbox_border_color_focus = checkbox_border_color_focus or getattr(
-            self, "checkbox_border_color_focus", "*color_accent_soft"
+            self, "checkbox_border_color_focus", "*color_accent"
         )
         self.checkbox_border_color_focus_dark = (
             checkbox_border_color_focus_dark
@@ -1435,12 +1435,12 @@ class Base(ThemeClass):
         self.checkbox_check = checkbox_check or getattr(
             self,
             "checkbox_check",
-            None
+            """url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e")""",
         )
         self.radio_circle = radio_circle or getattr(
             self,
             "radio_circle",
-            None,
+            """url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e")""",
         )
         self.checkbox_shadow = checkbox_shadow or getattr(
             self, "checkbox_shadow", "*input_shadow"
