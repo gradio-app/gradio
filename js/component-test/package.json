@@ -13,6 +13,9 @@
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0"
 	},
+	"dependencies": {
+		"@gradio/video": "workspace:^"
+	},
 	"type": "module",
 	"private": "true"
 }

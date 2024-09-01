@@ -61,21 +61,10 @@
 <style>
 	button {
 		display: flex;
-		position: absolute;
-		top: var(--block-label-margin);
-		right: var(--block-label-margin);
 		align-items: center;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--border-color-primary);
-		border-top: none;
-		border-right: none;
-		border-radius: var(--block-label-right-radius);
-		background: var(--block-label-background-fill);
-		padding: var(--spacing-sm);
-		width: var(--size-6);
-		height: var(--size-6);
-		overflow: hidden;
-		color: var(--block-label-text-color);
+		width: var(--size-4);
+		height: var(--size-4);
+		color: var(--body-text-color-subdued);
 	}
 
 	button:hover {
