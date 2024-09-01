@@ -121,9 +121,9 @@
 		height: var(--size-8);
 		width: var(--size-20);
 		background-color: var(--block-background-fill);
-		border-radius: var(--radius-3xl);
+		border-radius: var(--button-large-radius);
 		align-items: center;
-		border: 1px solid var(--neutral-400);
+		border: 1px solid var(--block-border-color);
 		margin-right: 5px;
 	}
 
@@ -150,7 +150,7 @@
 		height: var(--size-8);
 		width: var(--size-20);
 		background-color: var(--block-background-fill);
-		border-radius: var(--radius-3xl);
+		border-radius: var(--button-large-radius);
 		align-items: center;
 		border: 1px solid var(--primary-600);
 		margin-right: 5px;
@@ -182,10 +182,10 @@
 		height: var(--size-8);
 		width: var(--size-24);
 		background-color: var(--block-background-fill);
-		border-radius: var(--radius-3xl);
+		border-radius: var(--button-large-radius);
 		display: flex;
 		align-items: center;
-		border: 1px solid var(--neutral-400);
+		border: 1px solid var(--block-border-color);
 	}
 
 	@keyframes scaling {
