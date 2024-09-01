@@ -289,6 +289,19 @@
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
 		{/if}
+		{#if submit_btn}
+			<button
+				class="submit-button"
+				class:padded-button={submit_btn !== true}
+				on:click={handle_submit}
+			>
+				{#if submit_btn === true}
+					<Send />
+				{:else}
+					{submit_btn}
+				{/if}
+			</button>
+		{/if}
 		{#if stop_btn}
 			<button
 				class="stop-button"
@@ -299,18 +312,6 @@
 					<Pause />
 				{:else}
 					{stop_btn}
-				{/if}
-			</button>
-		{:else if submit_btn}
-			<button
-				class="submit-button"
-				class:padded-button={submit_btn !== true}
-				on:click={handle_submit}
-			>
-				{#if submit_btn === true}
-					<Send />
-				{:else}
-					{submit_btn}
 				{/if}
 			</button>
 		{/if}

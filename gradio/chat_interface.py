@@ -346,14 +346,18 @@ class ChatInterface(Blocks):
         if self.is_generator:
             for event_trigger in event_triggers:
                 event_trigger(
-                    async_lambda(lambda: textbox_component(stop_btn=True)),
+                    async_lambda(
+                        lambda: textbox_component(submit_btn=False, stop_btn=True)
+                    ),
                     None,
                     [self.textbox],
                     show_api=False,
                     queue=False,
                 )
             event_to_cancel.then(
-                async_lambda(lambda: textbox_component(stop_btn=False)),
+                async_lambda(
+                    lambda: textbox_component(submit_btn=True, stop_btn=False)
+                ),
                 None,
                 [self.textbox],
                 show_api=False,
