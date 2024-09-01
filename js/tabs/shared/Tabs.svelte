@@ -43,6 +43,7 @@
 	}>();
 
 	let is_overflowing = false;
+	let overflow_has_selected_tab = false;
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
@@ -146,6 +147,12 @@
 
 		nav_items.forEach((item) => tab_nav_el.appendChild(item));
 		overflow_items.forEach((item) => overflow_nav.appendChild(item));
+
+		overflow_has_selected_tab = tabs.some(
+			(t) =>
+				t.id === $selected_tab &&
+				overflow_nav.contains(document.querySelector(`[data-tab-id="${t.id}"]`))
+		);
 	}
 </script>
 
@@ -182,6 +189,7 @@
 				<button
 					on:click|stopPropagation={() =>
 						(overflow_menu_open = !overflow_menu_open)}
+					class:overflow-item-selected={overflow_has_selected_tab}
 				>
 					<OverflowIcon />
 				</button>
@@ -339,5 +347,9 @@
 	.overflow-menu :global(svg) {
 		width: 16px;
 		height: 16px;
+	}
+
+	.overflow-item-selected :global(svg) {
+		color: var(--color-accent);
 	}
 </style>
