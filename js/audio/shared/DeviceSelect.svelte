@@ -50,9 +50,9 @@
 		height: var(--size-8);
 		background: var(--block-background-fill);
 		padding: 0px var(--spacing-xxl);
-		border-radius: var(--radius-full);
+		border-radius: var(--button-large-radius);
 		font-size: var(--text-md);
-		border: 1px solid var(--neutral-400);
+		border: 1px solid var(--block-border-color);
 		gap: var(--size-1);
 	}
 
