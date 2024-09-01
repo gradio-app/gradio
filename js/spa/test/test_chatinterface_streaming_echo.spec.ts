@@ -15,10 +15,7 @@ for (const test_case of cases) {
 		if (cases.slice(1).includes(test_case)) {
 			await go_to_testcase(page, test_case);
 		}
-		let submit_button = page.getByRole("button", { name: "Submit" });
-		if (test_case.startsWith("multimodal")) {
-			submit_button = page.locator(".submit-button");
-		}
+		const submit_button = page.locator(".submit-button");
 		const textbox = page.getByPlaceholder("Type a message...");
 
 		await textbox.fill("hello");
@@ -73,10 +70,7 @@ for (const test_case of cases) {
 			await go_to_testcase(page, test_case);
 		}
 		const textbox = page.getByPlaceholder("Type a message...");
-		let submit_button = page.getByRole("button", { name: "Submit" });
-		if (test_case.startsWith("multimodal")) {
-			submit_button = page.locator(".submit-button");
-		}
+		const submit_button = page.locator(".submit-button");
 		await textbox.fill("hi");
 
 		await page.getByRole("button", { name: "Use via API logo" }).click();
