@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Textbox submit button
+feat:Better integrated submit button for `gr.ChatInterface(multimodal=False)`, adding `submit_btn` prop to `gr.Textbox()`
