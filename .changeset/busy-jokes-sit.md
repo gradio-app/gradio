@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Better integrated submit button for `gr.ChatInterface(multimodal=False)`, adding `submit_btn` prop to `gr.Textbox()`
+feat:Built-in submit and stop buttons in `gr.ChatInterface(multimodal=False)`, adding `submit_btn` and `stop_btn` props to `gr.Textbox()` and `gr.MultimodalText()`
