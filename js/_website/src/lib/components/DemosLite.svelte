@@ -12,51 +12,53 @@
 
 	let generated = true;
 
-	let ai_code : string | undefined = "";
+	let ai_code: string | undefined = "";
 
-	const workerUrl = 'https://rough-shape-9eb5.ali-abdalla.workers.dev/';
+	const workerUrl = "https://rough-shape-9eb5.ali-abdalla.workers.dev/";
 
 	async function* streamFromWorker(query: string, systemPrompt: string) {
 		const response = await fetch(workerUrl, {
-			method: 'POST',
+			method: "POST",
 			headers: {
-			'Content-Type': 'application/json',
+				"Content-Type": "application/json"
 			},
 			body: JSON.stringify({
-			query: query,
-			SYSTEM_PROMPT: systemPrompt
+				query: query,
+				SYSTEM_PROMPT: systemPrompt
 			})
 		});
 
 		const reader = response.body?.getReader();
 		const decoder = new TextDecoder();
-		let buffer = '';
+		let buffer = "";
 
 		while (true) {
-			const { done, value } = reader ? await reader.read() : { done: true, value: null };
+			const { done, value } = reader
+				? await reader.read()
+				: { done: true, value: null };
 			if (done) break;
 
 			buffer += decoder.decode(value, { stream: true });
-			const lines = buffer.split('\n');
-			buffer = lines.pop() || '';
+			const lines = buffer.split("\n");
+			buffer = lines.pop() || "";
 
 			for (const line of lines) {
-			if (line.startsWith('data: ')) {
-				const data = line.slice(6).trim(); 
-				if (data === '[DONE]') {
-				return; 
-				}
-				if (data) {
-				try {
-					const parsed = JSON.parse(data);
-					if (parsed.choices && parsed.choices.length > 0) {
-					yield parsed;
+				if (line.startsWith("data: ")) {
+					const data = line.slice(6).trim();
+					if (data === "[DONE]") {
+						return;
 					}
-				} catch (e) {
-					console.error('Error parsing JSON:', e);
+					if (data) {
+						try {
+							const parsed = JSON.parse(data);
+							if (parsed.choices && parsed.choices.length > 0) {
+								yield parsed;
+							}
+						} catch (e) {
+							console.error("Error parsing JSON:", e);
+						}
+					}
 				}
-				}
-			}
 			}
 		}
 	}
@@ -64,27 +66,35 @@
 	async function generate_code(query: string) {
 		generated = false;
 		let out = "";
-		if (demos[demos.length - 1].code && demos[demos.length - 1].code  !==  "# Describe your app above, and the LLM will generate the code here.") {
+		if (
+			demos[demos.length - 1].code &&
+			demos[demos.length - 1].code !==
+				"# Describe your app above, and the LLM will generate the code here."
+		) {
 			query = "PROMPT: " + query;
-			query += "\n\nHere is the existing code that either you or the user has written. If it's relevant to the prompt, use it for context. If it's not relevant, ignore it.\n Existing Code: \n\n" + demos[demos.length - 1].code;
-			query += "\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, and matplotlib ";
+			query +=
+				"\n\nHere is the existing code that either you or the user has written. If it's relevant to the prompt, use it for context. If it's not relevant, ignore it.\n Existing Code: \n\n" +
+				demos[demos.length - 1].code;
+			query +=
+				"\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, and matplotlib ";
 		}
-		
+
 		for await (const chunk of streamFromWorker(query, SYSTEM_PROMPT.SYSTEM)) {
 			if (chunk.choices && chunk.choices.length > 0) {
-			const content = chunk.choices[0].delta.content;
+				const content = chunk.choices[0].delta.content;
 				if (content) {
 					out += content;
 					out = out.replaceAll("```\n", "");
 					out = out.replaceAll("```", "");
 					ai_code = out;
-					demos[demos.length - 1].code = out ||  "# Describe your app above, and the LLM will generate the code here.";
+					demos[demos.length - 1].code =
+						out ||
+						"# Describe your app above, and the LLM will generate the code here.";
 				}
 			}
 		}
 		generated = true;
 	}
-
 
 	let user_query: string;
 
@@ -93,7 +103,7 @@
 	$: user_query;
 
 	function handle_key_down(e: KeyboardEvent): void {
-		if (e.key === "Enter" && document.activeElement === user_query_elem)  {
+		if (e.key === "Enter" && document.activeElement === user_query_elem) {
 			generate_code(user_query);
 		}
 	}
@@ -232,8 +242,6 @@
 	$: if (code) {
 		shared = false;
 	}
-
-
 </script>
 
 <svelte:head>
@@ -272,7 +280,6 @@
 	<Slider bind:position bind:show_nav>
 		<div class="flex-row min-w-0 h-full" class:flex={!fullscreen}>
 			{#each demos as demo, i}
-
 				<div
 					hidden={current_selection !== demo.name}
 					class="code-editor w-full border-r"
@@ -283,37 +290,35 @@
 						<div class="flex float-right"></div>
 					</div>
 
-					{#if demo.name === "Ask AI" }
-					<div class="search-bar">
-
-						{#if !generated}
-							<div class="loader"></div>
-						{:else}
-							✨
-						{/if}
-						<input
-							bind:this={user_query_elem}
-							bind:value={user_query}
-							placeholder="What do you want to build?"
-							autocomplete="off"
-							autocorrect="off"
-							autocapitalize="off"
-							enterkeyhint="go"
-							spellcheck="false"
-							type="search"
-							id="user-query"
-							class:grayed={!generated}
-						/>
-						<button
-							on:click={() => {
-								generate_code(user_query);
-							}}
-							class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
-						>
-						<div class="enter">↵</div>
-						</button>
-					</div>
-					
+					{#if demo.name === "Ask AI"}
+						<div class="search-bar">
+							{#if !generated}
+								<div class="loader"></div>
+							{:else}
+								✨
+							{/if}
+							<input
+								bind:this={user_query_elem}
+								bind:value={user_query}
+								placeholder="What do you want to build?"
+								autocomplete="off"
+								autocorrect="off"
+								autocapitalize="off"
+								enterkeyhint="go"
+								spellcheck="false"
+								type="search"
+								id="user-query"
+								class:grayed={!generated}
+							/>
+							<button
+								on:click={() => {
+									generate_code(user_query);
+								}}
+								class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
+							>
+								<div class="enter">↵</div>
+							</button>
+						</div>
 					{/if}
 
 					<Code
@@ -486,5 +491,4 @@
 	.grayed {
 		color: #6b7280 !important;
 	}
-
 </style>
