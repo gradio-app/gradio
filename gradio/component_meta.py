@@ -93,7 +93,7 @@ def create_or_modify_pyi(
 ):
     source_file = Path(inspect.getfile(component_class))
 
-    source_code = source_file.read_text()
+    source_code = source_file.read_text(encoding="utf-8")
 
     current_impl, lineno = extract_class_source_code(source_code, class_name)
 
