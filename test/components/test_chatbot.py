@@ -46,6 +46,8 @@ class TestChatbot:
             "height": None,
             "proxy_url": None,
             "_selectable": False,
+            "_retryable": False,
+            "_undoable": False,
             "key": None,
             "type": "tuples",
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
