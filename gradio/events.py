@@ -713,7 +713,7 @@ class Events:
     )
     stop = EventListener(
         "stop",
-        doc="This listener is triggered when the user requests stopping the running task.",
+        doc="This listener is triggered when the user clicks on the stop button or icon.",
     )
     edit = EventListener(
         "edit",
