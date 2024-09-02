@@ -211,7 +211,12 @@ class ChatInterface(Blocks):
                             scale=7,
                             autofocus=autofocus,
                             submit_btn=True,
+                            stop_btn=True,
                         )
+
+                    # Hide the stop button at the beginning, and show it with the given value during the generator execution.
+                    self.original_stop_btn = self.textbox.stop_btn
+                    self.textbox.stop_btn = False
 
                 self.fake_api_btn = Button("Fake API", visible=False)
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
@@ -345,15 +350,12 @@ class ChatInterface(Blocks):
         textbox_component = MultimodalTextbox if self.multimodal else Textbox
         if self.is_generator:
             original_submit_btn = self.textbox.submit_btn
-            original_stop_btn = self.textbox.stop_btn
             for event_trigger in event_triggers:
                 event_trigger(
                     async_lambda(
                         lambda: textbox_component(
                             submit_btn=False,
-                            stop_btn=bool(
-                                original_submit_btn
-                            ),  # Show the stop button only when the submit_btn is enabled from the beginning.
+                            stop_btn=self.original_stop_btn,
                         )
                     ),
                     None,
@@ -364,7 +366,7 @@ class ChatInterface(Blocks):
             event_to_cancel.then(
                 async_lambda(
                     lambda: textbox_component(
-                        submit_btn=original_submit_btn, stop_btn=original_stop_btn
+                        submit_btn=original_submit_btn, stop_btn=False
                     )
                 ),
                 None,
