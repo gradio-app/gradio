@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Use `ClassicCSVLogger` on Lite v5
+feat:Stop using `multiprocessing` in `flagging.CSVLogger` on Lite v5
