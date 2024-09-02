@@ -1789,7 +1789,7 @@ class Base(ThemeClass):
         )
         self.button_secondary_background_fill = (
             button_secondary_background_fill
-            or getattr(self, "button_secondary_background_fill", "*neutral_300")
+            or getattr(self, "button_secondary_background_fill", "*neutral_200")
         )
         self.button_secondary_background_fill_dark = (
             button_secondary_background_fill_dark
@@ -1797,7 +1797,7 @@ class Base(ThemeClass):
         )
         self.button_secondary_background_fill_hover = (
             button_secondary_background_fill_hover
-            or getattr(self, "button_secondary_background_fill_hover", "*neutral_400")
+            or getattr(self, "button_secondary_background_fill_hover", "*neutral_300")
         )
         self.button_secondary_background_fill_hover_dark = (
             button_secondary_background_fill_hover_dark
@@ -1806,7 +1806,7 @@ class Base(ThemeClass):
             )
         )
         self.button_secondary_border_color = button_secondary_border_color or getattr(
-            self, "button_secondary_border_color", "*neutral_300"
+            self, "button_secondary_border_color", "*neutral_200"
         )
         self.button_secondary_border_color_dark = (
             button_secondary_border_color_dark
@@ -1817,7 +1817,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_secondary_border_color_hover",
-                "*neutral_300",
+                "*neutral_200",
             )
         )
         self.button_secondary_border_color_hover_dark = (
