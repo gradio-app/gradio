@@ -1,6 +1,6 @@
 ---
-"@gradio/lite": minor
-"gradio": minor
+"@gradio/lite": patch
+"gradio": patch
 ---
 
-feat:Fix Lite 5.0
+feat:Use `ClassicCSVLogger` on Lite v5
