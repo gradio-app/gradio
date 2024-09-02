@@ -28,7 +28,7 @@ from gradio.components import (
 from gradio.data_classes import InterfaceTypes
 from gradio.events import Dependency, Events, on
 from gradio.exceptions import RenderError
-from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
+from gradio.flagging import ClassicCSVLogger, CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Accordion, Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_js_pipeline, load_from_pipeline
 from gradio.themes import ThemeClass as Theme
@@ -411,7 +411,9 @@ class Interface(Blocks):
             )
 
         if flagging_callback is None:
-            flagging_callback = CSVLogger()
+            flagging_callback = (
+                CSVLogger() if not wasm_utils.IS_WASM else ClassicCSVLogger()
+            )
 
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir

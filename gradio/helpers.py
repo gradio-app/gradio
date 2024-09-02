@@ -29,7 +29,7 @@ from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
-from gradio.flagging import CSVLogger
+from gradio.flagging import ClassicCSVLogger, CSVLogger
 from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -272,8 +272,12 @@ class Examples:
                 sample_labels=example_labels,
             )
 
-        self.cache_logger = CSVLogger(
-            simplify_file_data=False, verbose=False, dataset_file_name="log.csv"
+        self.cache_logger = (
+            CSVLogger(
+                simplify_file_data=False, verbose=False, dataset_file_name="log.csv"
+            )
+            if not wasm_utils.IS_WASM
+            else ClassicCSVLogger(simplify_file_data=False)
         )
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
         self.cached_file = Path(self.cached_folder) / "log.csv"
