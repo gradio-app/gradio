@@ -1208,7 +1208,7 @@ async def test_root_path():
         block_fn=0, inputs=[""], request=None, state=None, root_path="abidlabs.hf.space"
     )
     result_url = result["data"][0]["url"]
-    assert result_url.startswith("abidlabs.hf.space/file=")
+    assert result_url.startswith(f"abidlabs.hf.space{API_PREFIX}/file=")
     assert result_url.endswith("bus.png")
 
 
