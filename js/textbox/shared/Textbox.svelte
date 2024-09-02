@@ -446,4 +446,7 @@
 		height: 18px;
 		width: 18px;
 	}
+	.padded-button {
+		padding: 0 10px;
+	}
 </style>
