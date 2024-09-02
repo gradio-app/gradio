@@ -154,9 +154,8 @@ class Client:
         self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = (
             self.config.get("protocol", "ws")
         )
-        api_prefix: str = self.config.get("api_prefix", "")
-        self.api_prefix = api_prefix.lstrip("/") + "/"
-        self.src_prefixed = urllib.parse.urljoin(self.src, api_prefix) + "/"
+        self.api_prefix: str = self.config.get("api_prefix", "").lstrip("/") + "/"
+        self.src_prefixed = urllib.parse.urljoin(self.src, self.api_prefix) + "/"
 
         self.api_url = urllib.parse.urljoin(self.src_prefixed, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
@@ -1148,7 +1147,7 @@ class Endpoint:
         if helper is None:
             return
         if self.client.app_version > version.Version("4.29.0"):
-            url = urllib.parse.urljoin(self.client.src, utils.CANCEL_URL)
+            url = urllib.parse.urljoin(self.client.src_prefixed, utils.CANCEL_URL)
 
             # The event_id won't be set on the helper until later
             # so need to create the data in a function that's run at cancel time
