@@ -549,6 +549,8 @@ class TestProcessExamples:
                 "visible": True,
                 "value": "Hello,",
                 "type": "text",
+                "stop_btn": False,
+                "submit_btn": False,
             }
         ]
 
@@ -569,6 +571,8 @@ class TestProcessExamples:
                 "visible": True,
                 "value": "Michael",
                 "type": "text",
+                "stop_btn": False,
+                "submit_btn": False,
             }
         ]
 
