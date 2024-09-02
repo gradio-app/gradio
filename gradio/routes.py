@@ -32,7 +32,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -69,6 +69,7 @@ from gradio.data_classes import (
 from gradio.exceptions import InvalidPathError
 from gradio.oauth import attach_oauth
 from gradio.route_utils import (  # noqa: F401
+    API_PREFIX,
     CustomCORSMiddleware,
     FileUploadProgress,
     FileUploadProgressNotQueuedError,
@@ -257,14 +258,16 @@ class App(FastAPI):
         app_kwargs["lifespan"] = create_lifespan_handler(
             app_kwargs.get("lifespan", None), *delete_cache
         )
-        app = App(auth_dependency=auth_dependency, **app_kwargs)
+        app = App(auth_dependency=auth_dependency, **app_kwargs, debug=True)
+        router = APIRouter(prefix=API_PREFIX)
+
         app.configure_app(blocks)
 
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
 
-        @app.get("/user")
-        @app.get("/user/")
+        @router.get("/user")
+        @router.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
             if app.auth_dependency is not None:
                 return app.auth_dependency(request)
@@ -273,8 +276,8 @@ class App(FastAPI):
             ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
             return app.tokens.get(token)
 
-        @app.get("/login_check")
-        @app.get("/login_check/")
+        @router.get("/login_check")
+        @router.get("/login_check/")
         def login_check(user: str = Depends(get_current_user)):
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 return
@@ -282,18 +285,18 @@ class App(FastAPI):
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
 
-        @app.get("/token")
-        @app.get("/token/")
+        @router.get("/token")
+        @router.get("/token/")
         def get_token(request: fastapi.Request) -> dict:
             token = request.cookies.get(f"access-token-{app.cookie_id}")
             return {"token": token, "user": app.tokens.get(token)}
 
-        @app.get("/app_id")
-        @app.get("/app_id/")
+        @router.get("/app_id")
+        @router.get("/app_id/")
         def app_id(request: fastapi.Request) -> dict:  # noqa: ARG001
             return {"app_id": app.get_blocks().app_id}
 
-        @app.get("/dev/reload", dependencies=[Depends(login_check)])
+        @router.get("/dev/reload", dependencies=[Depends(login_check)])
         async def notify_changes(
             request: fastapi.Request,
         ):
@@ -367,7 +370,7 @@ class App(FastAPI):
             attach_oauth(app)
         else:
 
-            @app.get("/logout")
+            @router.get("/logout")
             def logout(user: str = Depends(get_current_user)):
                 response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
@@ -433,8 +436,8 @@ class App(FastAPI):
                         "the frontend by running /scripts/build_frontend.sh"
                     ) from err
 
-        @app.get("/info/", dependencies=[Depends(login_check)])
-        @app.get("/info", dependencies=[Depends(login_check)])
+        @router.get("/info/", dependencies=[Depends(login_check)])
+        @router.get("/info", dependencies=[Depends(login_check)])
         def api_info(all_endpoints: bool = False):
             if all_endpoints:
                 if not app.all_app_info:
@@ -460,7 +463,7 @@ class App(FastAPI):
             static_file = routes_safe_join(STATIC_PATH_LIB, UserProvidedPath(path))
             return FileResponse(static_file)
 
-        @app.get("/custom_component/{id}/{type}/{file_name}")
+        @router.get("/custom_component/{id}/{type}/{file_name}")
         def custom_component_path(
             id: str, type: str, file_name: str, req: fastapi.Request
         ):
@@ -520,8 +523,8 @@ class App(FastAPI):
             else:
                 return FileResponse(blocks.favicon_path)
 
-        @app.head("/proxy={url_path:path}", dependencies=[Depends(login_check)])
-        @app.get("/proxy={url_path:path}", dependencies=[Depends(login_check)])
+        @router.head("/proxy={url_path:path}", dependencies=[Depends(login_check)])
+        @router.get("/proxy={url_path:path}", dependencies=[Depends(login_check)])
         async def reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             try:
@@ -540,8 +543,8 @@ class App(FastAPI):
                 background=BackgroundTask(rp_resp.aclose),
             )
 
-        @app.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
-        @app.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
+        @router.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
+        @router.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         async def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
             if client_utils.is_http_url_like(path_or_url):
@@ -604,21 +607,21 @@ class App(FastAPI):
                 filename=abs_path.name,
             )
 
-        @app.post("/stream/{event_id}")
+        @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody):
             event = app.get_blocks()._queue.event_ids_to_events[event_id]
             event.data = body
             event.signal.set()
             return {"msg": "success"}
 
-        @app.post("/stream/{event_id}/close")
+        @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
             event = app.get_blocks()._queue.event_ids_to_events[event_id]
             event.run_time = math.inf
             event.signal.set()
             return {"msg": "success"}
 
-        @app.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
+        @router.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
         async def _(session_hash: str, run: int, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
@@ -643,7 +646,7 @@ class App(FastAPI):
                 content=playlist, media_type="application/vnd.apple.mpegurl"
             )
 
-        @app.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
+        @router.get("/stream/{session_hash}/{run}/{component_id}/{segment_id}.{ext}")
         async def _(
             session_hash: str, run: int, component_id: int, segment_id: str, ext: str
         ):
@@ -669,7 +672,7 @@ class App(FastAPI):
             else:
                 return Response(content=segment["data"], media_type="video/MP2T")
 
-        @app.get("/stream/{session_hash}/{run}/{component_id}/playlist-file")
+        @router.get("/stream/{session_hash}/{run}/{component_id}/playlist-file")
         async def _(session_hash: str, run: int, component_id: int):
             stream: route_utils.MediaStream | None = (
                 app.get_blocks()
@@ -691,17 +694,17 @@ class App(FastAPI):
 
             return Response(content=byte_stream, media_type=media_type)
 
-        @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
+        @router.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):
             return await file(path, request)
 
-        @app.post("/reset/")
-        @app.post("/reset")
+        @router.post("/reset/")
+        @router.post("/reset")
         async def reset_iterator(body: ResetBody):  # noqa: ARG001
             # No-op, all the cancelling/reset logic handled by /cancel
             return {"success": True}
 
-        @app.get("/heartbeat/{session_hash}")
+        @router.get("/heartbeat/{session_hash}")
         def heartbeat(
             session_hash: str,
             request: fastapi.Request,
@@ -740,7 +743,7 @@ class App(FastAPI):
                         req = Request(request, username, session_hash=session_hash)
                         root_path = route_utils.get_root_url(
                             request=request,
-                            route_path=f"/hearbeat/{session_hash}",
+                            route_path=f"{API_PREFIX}/hearbeat/{session_hash}",
                             root_path=app.root_path,
                         )
                         body = PredictBody(
@@ -780,10 +783,10 @@ class App(FastAPI):
             return StreamingResponse(iterator(), media_type="text/event-stream")
 
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
-        @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
-        @app.post("/run/{api_name}/", dependencies=[Depends(login_check)])
-        @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
-        @app.post("/api/{api_name}/", dependencies=[Depends(login_check)])
+        @router.post("/run/{api_name}", dependencies=[Depends(login_check)])
+        @router.post("/run/{api_name}/", dependencies=[Depends(login_check)])
+        @router.post("/api/{api_name}", dependencies=[Depends(login_check)])
+        @router.post("/api/{api_name}/", dependencies=[Depends(login_check)])
         async def predict(
             api_name: str,
             body: PredictBody,
@@ -807,7 +810,9 @@ class App(FastAPI):
                 request=request,
             )
             root_path = route_utils.get_root_url(
-                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
+                request=request,
+                route_path=f"{API_PREFIX}/api/{api_name}",
+                root_path=app.root_path,
             )
             try:
                 output = await route_utils.call_process_api(
@@ -826,8 +831,8 @@ class App(FastAPI):
                 )
             return output
 
-        @app.post("/call/{api_name}", dependencies=[Depends(login_check)])
-        @app.post("/call/{api_name}/", dependencies=[Depends(login_check)])
+        @router.post("/call/{api_name}", dependencies=[Depends(login_check)])
+        @router.post("/call/{api_name}/", dependencies=[Depends(login_check)])
         async def simple_predict_post(
             api_name: str,
             body: SimplePredictBody,
@@ -843,7 +848,7 @@ class App(FastAPI):
             full_body.fn_index = fn._id
             return await queue_join_helper(full_body, request, username)
 
-        @app.post("/queue/join", dependencies=[Depends(login_check)])
+        @router.post("/queue/join", dependencies=[Depends(login_check)])
         async def queue_join(
             body: PredictBody,
             request: fastapi.Request,
@@ -884,7 +889,7 @@ class App(FastAPI):
                 raise HTTPException(status_code=status_code, detail=event_id)
             return {"event_id": event_id}
 
-        @app.post("/cancel")
+        @router.post("/cancel")
         async def cancel_event(body: CancelBody):
             await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
             blocks = app.get_blocks()
@@ -909,7 +914,7 @@ class App(FastAPI):
                     app.iterators_to_reset.add(body.event_id)
             return {"success": True}
 
-        @app.get("/call/{api_name}/{event_id}", dependencies=[Depends(login_check)])
+        @router.get("/call/{api_name}/{event_id}", dependencies=[Depends(login_check)])
         async def simple_predict_get(
             request: fastapi.Request,
             event_id: str,
@@ -934,7 +939,7 @@ class App(FastAPI):
 
             return await queue_data_helper(request, event_id, process_msg)
 
-        @app.get("/queue/data", dependencies=[Depends(login_check)])
+        @router.get("/queue/data", dependencies=[Depends(login_check)])
         async def queue_data(
             request: fastapi.Request,
             session_hash: str,
@@ -1088,11 +1093,11 @@ class App(FastAPI):
                         detail="Invalid JSON body.",
                     ) from None
 
-        @app.post(
+        @router.post(
             "/component_server",
             dependencies=[Depends(login_check)],
         )
-        @app.post(
+        @router.post(
             "/component_server/",
             dependencies=[Depends(login_check)],
         )
@@ -1115,7 +1120,7 @@ class App(FastAPI):
                 )
             return fn(body.data)
 
-        @app.get(
+        @router.get(
             "/queue/status",
             dependencies=[Depends(login_check)],
             response_model=EstimationMessage,
@@ -1123,7 +1128,7 @@ class App(FastAPI):
         async def get_queue_status():
             return app.get_blocks()._queue.get_status()
 
-        @app.get("/upload_progress")
+        @router.get("/upload_progress")
         def get_upload_progress(upload_id: str, request: fastapi.Request):
             async def sse_stream(request: fastapi.Request):
                 last_heartbeat = time.perf_counter()
@@ -1164,7 +1169,7 @@ class App(FastAPI):
                 media_type="text/event-stream",
             )
 
-        @app.post("/upload", dependencies=[Depends(login_check)])
+        @router.post("/upload", dependencies=[Depends(login_check)])
         async def upload_file(
             request: fastapi.Request,
             bg_tasks: BackgroundTasks,
@@ -1236,8 +1241,7 @@ class App(FastAPI):
                 )
             return output_files
 
-        @app.on_event("startup")
-        @app.get("/startup-events")
+        @router.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:
                 app.get_blocks().startup_events()
@@ -1256,20 +1260,22 @@ class App(FastAPI):
             else:
                 return "User-agent: *\nDisallow: "
 
-        @app.get("/monitoring", dependencies=[Depends(login_check)])
+        @router.get("/monitoring", dependencies=[Depends(login_check)])
         async def analytics_login(request: fastapi.Request):
             if not blocks.enable_monitoring:
                 raise HTTPException(
                     status_code=403, detail="Monitoring is not enabled."
                 )
             root_url = route_utils.get_root_url(
-                request=request, route_path="/monitoring", root_path=app.root_path
+                request=request,
+                route_path=f"{API_PREFIX}/monitoring",
+                root_path=app.root_path,
             )
             monitoring_url = f"{root_url}/monitoring/{app.analytics_key}"
             print(f"* Monitoring URL: {monitoring_url} *")
             return HTMLResponse("See console for monitoring URL.")
 
-        @app.get("/monitoring/{key}")
+        @router.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if not blocks.enable_monitoring:
                 raise HTTPException(
@@ -1291,6 +1297,8 @@ class App(FastAPI):
                 )
             else:
                 raise HTTPException(status_code=403, detail="Invalid key.")
+
+        app.include_router(router)
 
         return app
 
