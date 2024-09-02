@@ -82,6 +82,8 @@ class ChatInterface(Blocks):
         delete_cache: tuple[int, int] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "minimal",
         fill_width: bool = False,
+        submit_btn: str | bool | None = True,
+        stop_btn: str | bool | None = True,
     ):
         """
         Parameters:
@@ -108,6 +110,8 @@ class ChatInterface(Blocks):
             delete_cache: a tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
+            submit_btn: If True, will show a submit button with an icon. If a string, will use that string as the submit button text. If False, will not show a submit button.
+            stop_btn: If True, will show a stop button with an icon during generator executions. If a string, will use that string as the stop button text. If False, will not show a stop button.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -210,8 +214,8 @@ class ChatInterface(Blocks):
                             placeholder="Type a message...",
                             scale=7,
                             autofocus=autofocus,
-                            submit_btn=True,
-                            stop_btn=True,
+                            submit_btn=submit_btn,
+                            stop_btn=stop_btn,
                         )
 
                     # Hide the stop button at the beginning, and show it with the given value during the generator execution.
