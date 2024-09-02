@@ -18,6 +18,7 @@ from gradio.data_classes import (
     PredictBody,
 )
 from gradio.helpers import TrackedIterable
+from gradio.route_utils import API_PREFIX
 from gradio.server_messages import (
     EstimationMessage,
     EventMessage,
@@ -611,7 +612,9 @@ class Queue:
             )
             assert body.request is not None  # noqa: S101
             root_path = route_utils.get_root_url(
-                request=body.request, route_path="/queue/join", root_path=app.root_path
+                request=body.request,
+                route_path=f"{API_PREFIX}/queue/join",
+                root_path=app.root_path,
             )
             first_iteration = 0
             try:

@@ -1,4 +1,3 @@
-import type { UploadResponse } from "./types";
 import type { Client } from "./client";
 
 export async function upload(
@@ -34,7 +33,7 @@ export async function upload(
 							const file = new FileData({
 								...file_data[i],
 								path: f,
-								url: root_url + "/file=" + f
+								url: `${root_url}${this.api_prefix}/file=${f}`
 							});
 							return file;
 						});

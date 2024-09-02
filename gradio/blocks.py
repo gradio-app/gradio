@@ -71,7 +71,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
-from gradio.route_utils import MediaStream
+from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -2049,6 +2049,7 @@ Received outputs:
     def get_config_file(self) -> BlocksConfigDict:
         config: BlocksConfigDict = {
             "version": routes.VERSION,
+            "api_prefix": API_PREFIX,
             "mode": self.mode,
             "app_id": self.app_id,
             "dev_mode": self.dev_mode,
@@ -2403,6 +2404,7 @@ Received outputs:
                 )
             self.server_name = server_name
             self.local_url = local_url
+            self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
             self.server_port = server_port
             self.server = server
             self.is_running = True
@@ -2431,7 +2433,9 @@ Received outputs:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
                 httpx.get(
-                    f"{self.local_url}startup-events", verify=ssl_verify, timeout=None
+                    f"{self.local_api_url}startup-events",
+                    verify=ssl_verify,
+                    timeout=None,
                 )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
@@ -2486,6 +2490,9 @@ Received outputs:
             and not networking.url_ok(self.local_url)
             and not self.share
         ):
+            print(self.local_url)
+            print(networking.url_ok(self.local_url))
+
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )
