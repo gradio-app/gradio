@@ -351,7 +351,9 @@ class ChatInterface(Blocks):
                     async_lambda(
                         lambda: textbox_component(
                             submit_btn=False,
-                            stop_btn=original_stop_btn if original_stop_btn else True,
+                            stop_btn=bool(
+                                original_submit_btn
+                            ),  # Show the stop button only when the submit_btn is enabled from the beginning.
                         )
                     ),
                     None,
