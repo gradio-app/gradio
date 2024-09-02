@@ -344,10 +344,15 @@ class ChatInterface(Blocks):
     ) -> None:
         textbox_component = MultimodalTextbox if self.multimodal else Textbox
         if self.is_generator:
+            original_submit_btn = self.textbox.submit_btn
+            original_stop_btn = self.textbox.stop_btn
             for event_trigger in event_triggers:
                 event_trigger(
                     async_lambda(
-                        lambda: textbox_component(submit_btn=False, stop_btn=True)
+                        lambda: textbox_component(
+                            submit_btn=False,
+                            stop_btn=original_stop_btn if original_stop_btn else True,
+                        )
                     ),
                     None,
                     [self.textbox],
@@ -356,7 +361,9 @@ class ChatInterface(Blocks):
                 )
             event_to_cancel.then(
                 async_lambda(
-                    lambda: textbox_component(submit_btn=True, stop_btn=False)
+                    lambda: textbox_component(
+                        submit_btn=original_submit_btn, stop_btn=original_stop_btn
+                    )
                 ),
                 None,
                 [self.textbox],
