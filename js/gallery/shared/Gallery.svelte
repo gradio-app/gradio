@@ -19,7 +19,7 @@
 	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
-	import { IconButton } from "@gradio/atoms";
+	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 
 	type GalleryData = GalleryImage | GalleryVideo;
@@ -246,7 +246,7 @@
 				class="preview"
 				class:minimal={mode === "minimal"}
 			>
-				<div class="icon-buttons">
+				<IconButtonWrapper>
 					{#if show_download_button}
 						<IconButton
 							Icon={Download}
@@ -292,7 +292,7 @@
 							on:click={() => (selected_index = null)}
 						/>
 					{/if}
-				</div>
+				</IconButtonWrapper>
 				<button
 					class="media-button"
 					on:click={"image" in selected_media
@@ -385,6 +385,7 @@
 			>
 				{#if interactive}
 					<div class="icon-button">
+						<!-- todo: address absolute = {false} change here -->
 						<ModifyUpload
 							{i18n}
 							absolute={false}
@@ -666,15 +667,6 @@
 		top: 0px;
 		right: 0px;
 		z-index: var(--layer-1);
-	}
-
-	.icon-buttons {
-		display: flex;
-		position: absolute;
-		right: 0;
-		gap: var(--size-1);
-		z-index: 1;
-		margin: var(--size-1);
 	}
 
 	.grid-wrap.minimal {

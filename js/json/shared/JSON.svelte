@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { JSON as JSONIcon } from "@gradio/icons";
-	import { Empty } from "@gradio/atoms";
+	import { Empty, IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
 	import { Copy, Check } from "@gradio/icons";
 
@@ -43,19 +43,15 @@
 </script>
 
 {#if value && value !== '""' && !is_empty(value)}
-	<button
-		on:click={handle_copy}
-		title="copy"
-		class={copied ? "copied" : "copy-text"}
-		aria-roledescription={copied ? "Copied value" : "Copy value"}
-		aria-label={copied ? "Copied" : "Copy"}
-	>
-		{#if copied}
-			<Check />
-		{:else}
-			<Copy />
-		{/if}
-	</button>
+	<IconButtonWrapper>
+		<IconButton
+			show_label={false}
+			label={copied ? "Copied" : "Copy"}
+			Icon={copied ? Check : Copy}
+			aria-roledescription={copied ? "Copied value" : "Copy value"}
+			on:click={() => handle_copy()}
+		/>
+	</IconButtonWrapper>
 	<div class="json-holder">
 		<JSONNode
 			{value}
@@ -97,25 +93,5 @@
 	.empty-wrapper {
 		min-height: calc(var(--size-32) - 20px);
 		height: 100%;
-	}
-	button {
-		display: flex;
-		position: absolute;
-		top: var(--block-label-margin);
-		right: var(--block-label-margin);
-		align-items: center;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--border-color-primary);
-		border-top: none;
-		border-right: none;
-		border-radius: var(--block-label-right-radius);
-		background: var(--block-label-background-fill);
-		padding: 5px;
-		width: 22px;
-		height: 22px;
-		overflow: hidden;
-		color: var(--block-label-text-color);
-		font: var(--font);
-		font-size: var(--button-small-text-size);
 	}
 </style>

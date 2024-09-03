@@ -36,8 +36,7 @@
 		class:large={size === "large"}
 		class:medium={size === "medium"}
 	>
-		<!-- handles icon reactivity -->
-		<svelte:component this={Icon} />
+		<Icon />
 	</div>
 </button>
 
@@ -48,6 +47,7 @@
 		align-items: center;
 		gap: 1px;
 		z-index: var(--layer-2);
+		/* background: var(--background-fill-primary); */
 		border-radius: var(--radius-sm);
 		color: var(--block-label-text-color);
 		border: 1px solid transparent;
@@ -60,10 +60,15 @@
 
 	button[disabled]:hover {
 		cursor: not-allowed;
+		/* border: 1px solid var(--button-secondary-border-color); */
+		/* padding: 2px; */
 	}
 
 	.padded {
+		padding: 2px;
 		background: var(--bg-color);
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--button-secondary-border-color);
 	}
 
 	button:hover,
@@ -73,6 +78,8 @@
 	}
 
 	.padded:hover {
+		border: 2px solid var(--button-secondary-border-color-hover);
+		padding: 1px;
 		color: var(--block-label-text-color);
 	}
 
@@ -85,11 +92,6 @@
 		padding: 2px;
 		display: flex;
 		align-items: flex-end;
-		transition: filter 0.2s ease-in-out;
-	}
-
-	button:hover :global(svg) {
-		filter: brightness(0.1);
 	}
 
 	.small {

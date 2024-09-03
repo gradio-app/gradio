@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { IconButton } from "@gradio/atoms";
+	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import { Clear, Undo, Redo, Check, Trash } from "@gradio/icons";
 
 	/**
@@ -36,7 +36,7 @@
 </script>
 
 <div class="controls-wrap">
-	<div class="row-wrap">
+	<IconButtonWrapper>
 		<IconButton
 			disabled={!can_undo}
 			Icon={Undo}
@@ -63,7 +63,7 @@
 				event.stopPropagation();
 			}}
 		/>
-	</div>
+	</IconButtonWrapper>
 	{#if changeable}
 		<div class="row-wrap save">
 			<IconButton
