@@ -11,7 +11,7 @@
 	export let hasPopup = false;
 	export let color = "var(--block-label-text-color)";
 	export let transparent = false;
-	export let background = "var(--background-fill-primary)";
+	export let background = "var(--block-background-fill)";
 	export let offset = 0;
 	$: _color = highlight ? "var(--color-accent)" : color;
 </script>
@@ -48,9 +48,13 @@
 		align-items: center;
 		gap: 1px;
 		z-index: var(--layer-2);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-xs);
 		color: var(--block-label-text-color);
 		border: 1px solid transparent;
+	}
+
+	button:hover {
+		background-color: var(--background-fill-secondary);
 	}
 
 	button[disabled] {
@@ -86,10 +90,6 @@
 		display: flex;
 		align-items: flex-end;
 		transition: filter 0.2s ease-in-out;
-	}
-
-	button:hover :global(svg) {
-		filter: brightness(0.1);
 	}
 
 	.small {

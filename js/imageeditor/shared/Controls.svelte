@@ -35,61 +35,51 @@
 	}>();
 </script>
 
-<div class="controls-wrap">
-	<IconButtonWrapper>
+<IconButtonWrapper>
+	<IconButton
+		disabled={!can_undo}
+		Icon={Undo}
+		label="Undo"
+		on:click={(event) => {
+			dispatch("undo");
+			event.stopPropagation();
+		}}
+	/>
+	<IconButton
+		disabled={!can_redo}
+		Icon={Redo}
+		label="Redo"
+		on:click={(event) => {
+			dispatch("redo");
+			event.stopPropagation();
+		}}
+	/>
+	<IconButton
+		Icon={Trash}
+		label="Clear canvas"
+		on:click={(event) => {
+			dispatch("remove_image");
+			event.stopPropagation();
+		}}
+	/>
+</IconButtonWrapper>
+{#if changeable}
+	<div class="row-wrap save">
 		<IconButton
-			disabled={!can_undo}
-			Icon={Undo}
-			label="Undo"
+			disabled={!can_save}
+			Icon={Check}
+			label="Save changes"
 			on:click={(event) => {
-				dispatch("undo");
+				dispatch("save");
 				event.stopPropagation();
 			}}
+			background={"var(--color-green-500)"}
+			color={"#fff"}
 		/>
-		<IconButton
-			disabled={!can_redo}
-			Icon={Redo}
-			label="Redo"
-			on:click={(event) => {
-				dispatch("redo");
-				event.stopPropagation();
-			}}
-		/>
-		<IconButton
-			Icon={Trash}
-			label="Clear canvas"
-			on:click={(event) => {
-				dispatch("remove_image");
-				event.stopPropagation();
-			}}
-		/>
-	</IconButtonWrapper>
-	{#if changeable}
-		<div class="row-wrap save">
-			<IconButton
-				disabled={!can_save}
-				Icon={Check}
-				label="Save changes"
-				on:click={(event) => {
-					dispatch("save");
-					event.stopPropagation();
-				}}
-				background={"var(--color-green-500)"}
-				color={"#fff"}
-			/>
-		</div>
-	{/if}
-</div>
+	</div>
+{/if}
 
 <style>
-	.controls-wrap {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-lg);
-		position: absolute;
-		top: var(--size-2);
-		right: var(--size-2);
-	}
 	.row-wrap {
 		display: flex;
 
