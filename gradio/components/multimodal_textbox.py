@@ -52,6 +52,7 @@ class MultimodalTextbox(FormComponent):
         Events.submit,
         Events.focus,
         Events.blur,
+        Events.stop,
     ]
 
     def __init__(
@@ -81,7 +82,8 @@ class MultimodalTextbox(FormComponent):
         key: int | str | None = None,
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
-        submit_btn: str | bool | None = True,
+        submit_btn: str | bool | None = False,
+        stop_btn: str | bool | None = False,
     ):
         """
         Parameters:
@@ -123,6 +125,7 @@ class MultimodalTextbox(FormComponent):
         self.max_lines = max(lines, max_lines)
         self.placeholder = placeholder
         self.submit_btn = submit_btn
+        self.stop_btn = stop_btn
         self.autofocus = autofocus
         self.autoscroll = autoscroll
 
