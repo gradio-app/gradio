@@ -123,6 +123,8 @@
 	.clear {
 		border: var(--button-border-width) solid
 			var(--button-secondary-border-color);
+		background: var(--background-fill-primary);
+
 	}
 
 	.secondary:hover,
