@@ -227,13 +227,45 @@
 		return get_data(component_id);
 	}
 
+	function waitForInputReady(dependency: Dependency): Promise<void> {
+		return new Promise((resolve) => {
+			const checkInputsReady = (): boolean => {
+				return dependency.inputs.every((inputId) => {
+					const component = components.find(
+						(comp) => comp.id === Number(inputId)
+					);
+					return component?.props["input_ready"] === true;
+				});
+			};
+
+			if (checkInputsReady()) {
+				resolve();
+				return;
+			}
+
+			const onPropChange = (e: Event): void => {
+				if (!isCustomEvent(e)) throw new Error("not a custom event");
+				const { id, prop, value } = e.detail;
+
+				if (prop === "input_ready" && value === true) {
+					if (checkInputsReady()) {
+						target.removeEventListener("prop_change", onPropChange);
+						resolve();
+					}
+				}
+			};
+
+			target.addEventListener("prop_change", onPropChange);
+		});
+	}
+
 	async function trigger_api_call(
 		dep_index: number,
 		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
 		let dep = dependencies.find((dep) => dep.id === dep_index)!;
-
+		await waitForInputReady(dep);
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
 		if (current_status === "pending" || current_status === "generating") {

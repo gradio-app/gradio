@@ -31,6 +31,9 @@
 	export let gradio: Gradio;
 	export let height: number | undefined = undefined;
 	export let zoom_speed = 1;
+	export let input_ready: boolean;
+	let uploading = false;
+	$: input_ready = !uploading;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -113,6 +116,7 @@
 			{value}
 			{camera_position}
 			{zoom_speed}
+			bind:uploading
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:change={({ detail }) => gradio.dispatch("change", detail)}

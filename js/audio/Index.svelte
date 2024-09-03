@@ -40,6 +40,9 @@
 	export let pending: boolean;
 	export let streaming: boolean;
 	export let stream_every: number;
+	export let input_ready: boolean;
+	let uploading = false;
+	$: input_ready = !uploading;
 
 	let stream_state = "closed";
 	let _modify_stream: (state: "open" | "closed" | "waiting") => void;
@@ -242,6 +245,7 @@
 			{handle_reset_value}
 			{editable}
 			bind:dragging
+			bind:uploading
 			on:edit={() => gradio.dispatch("edit")}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
