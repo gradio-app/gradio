@@ -27,7 +27,7 @@
 
 	.icon-button-wrapper :global(button:not(:last-child)) {
 		position: relative;
-		margin-right: var(--spacing-xs);
+		margin-right: 0;
 	}
 
 	.icon-button-wrapper :global(button:not(:last-child)::after) {
