@@ -25,6 +25,7 @@ from gradio import blocks, helpers
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
+from gradio.route_utils import API_PREFIX
 from gradio.utils import assert_configs_are_equivalent_besides_ids, cancel_tasks
 
 pytest_plugins = ("pytest_asyncio",)
@@ -750,12 +751,12 @@ class TestBlocksPostprocessing:
         client = TestClient(app)
 
         session_1 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [0], "session_hash": "1", "fn_index": 0},
         )
         assert "Original" in session_1.json()["data"][0]
         session_2 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [0], "session_hash": "1", "fn_index": 0},
         )
         assert "New" in session_2.json()["data"][0]
@@ -780,37 +781,37 @@ class TestStateHolder:
         client = TestClient(app)
 
         session_1 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "1", "fn_index": 0},
         )
         assert session_1.json()["data"][0] == 0
         session_2 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "2", "fn_index": 0},
         )
         assert session_2.json()["data"][0] == 0
         session_1 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "1", "fn_index": 0},
         )
         assert session_1.json()["data"][0] == 1
         session_2 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "2", "fn_index": 0},
         )
         assert session_2.json()["data"][0] == 1
         session_3 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "3", "fn_index": 0},
         )
         assert session_3.json()["data"][0] == 0
         session_2 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "2", "fn_index": 0},
         )
         assert session_2.json()["data"][0] == 2
         session_1 = client.post(
-            "/api/predict/",
+            f"{API_PREFIX}/api/predict/",
             json={"data": [1, None], "session_hash": "1", "fn_index": 0},
         )
         assert (
@@ -835,23 +836,28 @@ class TestStateHolder:
         client = TestClient(app)
 
         session_1 = client.post(
-            "/api/predict/", json={"data": [5, 5], "session_hash": "1", "fn_index": 0}
+            f"{API_PREFIX}/api/predict/",
+            json={"data": [5, 5], "session_hash": "1", "fn_index": 0},
         )
         assert session_1.json()["data"][0] == 5
         session_1 = client.post(
-            "/api/predict/", json={"data": [2, 2], "session_hash": "1", "fn_index": 0}
+            f"{API_PREFIX}/api/predict/",
+            json={"data": [2, 2], "session_hash": "1", "fn_index": 0},
         )
         assert "error" in session_1.json()  # error because min is 5 and num is 2
         session_2 = client.post(
-            "/api/predict/", json={"data": [5, 5], "session_hash": "2", "fn_index": 0}
+            f"{API_PREFIX}/api/predict/",
+            json={"data": [5, 5], "session_hash": "2", "fn_index": 0},
         )
         assert session_2.json()["data"][0] == 5
         session_3 = client.post(
-            "/api/predict/", json={"data": [5, 5], "session_hash": "3", "fn_index": 0}
+            f"{API_PREFIX}/api/predict/",
+            json={"data": [5, 5], "session_hash": "3", "fn_index": 0},
         )
         assert session_3.json()["data"][0] == 5
         session_1 = client.post(
-            "/api/predict/", json={"data": [2, 2], "session_hash": "1", "fn_index": 0}
+            f"{API_PREFIX}/api/predict/",
+            json={"data": [2, 2], "session_hash": "1", "fn_index": 0},
         )
         assert (
             "error" not in session_1.json()
@@ -1195,14 +1201,14 @@ async def test_root_path():
     demo = gr.Interface(lambda x: image_file, "textbox", "image")
     result = await demo.process_api(block_fn=0, inputs=[""], request=None, state=None)
     result_url = result["data"][0]["url"]
-    assert result_url.startswith("/file=")
+    assert result_url.startswith(f"{API_PREFIX}/file=")
     assert result_url.endswith("bus.png")
 
     result = await demo.process_api(
         block_fn=0, inputs=[""], request=None, state=None, root_path="abidlabs.hf.space"
     )
     result_url = result["data"][0]["url"]
-    assert result_url.startswith("abidlabs.hf.space/file=")
+    assert result_url.startswith(f"abidlabs.hf.space{API_PREFIX}/file=")
     assert result_url.endswith("bus.png")
 
 
