@@ -244,7 +244,7 @@
 	<StreamingBar {time_limit} />
 	{#if value === null || streaming}
 		{#if active_source === "microphone"}
-			<ModifyUpload {i18n} on:clear={clear} absolute={true} />
+			<ModifyUpload {i18n} on:clear={clear} />
 			{#if streaming}
 				<StreamAudio
 					{record}

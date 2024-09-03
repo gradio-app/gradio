@@ -41,6 +41,7 @@
 		if (type === "user" && !color) {
 			editing_index = index;
 			color_picker = true;
+			return;
 		}
 
 		if (!color) return;
@@ -49,14 +50,26 @@
 		if (type === "core") {
 			color_picker = false;
 		}
+
+		// Trigger color change to update recent colors
+		handle_color_change(color);
 	}
 
 	function handle_color_change(color: string): void {
+		console.log("handling");
+		selected_color = color; // Ensure selected_color is updated
+
+		console.log(color);
 		if (editing_index === null) return;
+
+		selected_color = color; // Ensure selected_color is updated
+
 		recent_colors[editing_index] = color;
+		editing_index = null; // Reset editing_index after updating the color
+		selected_color = color; // Ensure selected_color is updated
 	}
 
-	$: handle_color_change(selected_color);
+	// $: handle_color_change(selected_color);
 	let width = 0;
 	let height = 0;
 	let c_width = 0;
@@ -119,7 +132,6 @@
 			bind:color_picker
 			{colors}
 			on:select={({ detail }) => handle_color_selection(detail, "core")}
-			on:edit={({ detail }) => handle_color_selection(detail, "user")}
 			user_colors={color_mode === "defaults" ? recent_colors : null}
 			{selected_color}
 			{current_mode}

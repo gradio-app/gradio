@@ -76,6 +76,7 @@
 			{loop}
 			interactive={false}
 			{upload}
+			{i18n}
 		/>
 	{/key}
 	<div data-testid="download-div">

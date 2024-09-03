@@ -48,7 +48,6 @@
 			show_label={false}
 			label={copied ? "Copied" : "Copy"}
 			Icon={copied ? Check : Copy}
-			aria-roledescription={copied ? "Copied value" : "Copy value"}
 			on:click={() => handle_copy()}
 		/>
 	</IconButtonWrapper>
