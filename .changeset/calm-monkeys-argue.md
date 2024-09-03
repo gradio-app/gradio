@@ -2,6 +2,7 @@
 "@gradio/annotatedimage": minor
 "@gradio/atoms": minor
 "@gradio/audio": minor
+"@gradio/file": minor
 "@gradio/gallery": minor
 "@gradio/image": minor
 "@gradio/imageeditor": minor
