@@ -21,7 +21,7 @@
 	}
 
 	.icon-button-wrapper :global(button) {
-		padding: var(--spacing-xxs);
+		margin: var(--spacing-xxs);
 		border-radius: var(--radius-sm);
 	}
 

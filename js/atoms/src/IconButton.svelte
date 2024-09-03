@@ -12,7 +12,6 @@
 	export let color = "var(--block-label-text-color)";
 	export let transparent = false;
 	export let background = "var(--block-background-fill)";
-	export let offset = 0;
 	$: _color = highlight ? "var(--color-accent)" : color;
 </script>
 
@@ -28,7 +27,6 @@
 	class:transparent
 	style:color={!disabled && _color ? _color : "var(--block-label-text-color)"}
 	style:--bg-color={!disabled ? background : "auto"}
-	style:margin-left={offset + "px"}
 >
 	{#if show_label}<span>{label}</span>{/if}
 	<div
