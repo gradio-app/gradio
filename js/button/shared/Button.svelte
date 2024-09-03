@@ -4,7 +4,8 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let variant: "primary" | "secondary" | "stop" | "clear" = "secondary";
+	export let variant: "primary" | "secondary" | "stop" | "huggingface" =
+		"secondary";
 	export let size: "sm" | "lg" = "lg";
 	export let value: string | null = null;
 	export let link: string | null = null;
@@ -120,7 +121,7 @@
 		color: var(--button-secondary-text-color);
 	}
 
-	.clear {
+	.huggingface {
 		border: var(--button-border-width) solid
 			var(--button-secondary-border-color);
 		background: var(--background-fill-primary);
