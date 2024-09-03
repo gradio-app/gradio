@@ -385,7 +385,6 @@
 			>
 				{#if interactive}
 					<div class="icon-button">
-						<!-- todo: address absolute = {false} change here -->
 						<ModifyUpload {i18n} on:clear={() => (value = [])} />
 					</div>
 				{/if}

@@ -290,7 +290,6 @@
 			on:clear={clear}
 			on:edit={() => (mode = "edit")}
 			download={show_download_button ? value.url : null}
-			absolute={true}
 		/>
 
 		<AudioPlayer
