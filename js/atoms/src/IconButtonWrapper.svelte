@@ -22,7 +22,7 @@
 
 	.icon-button-wrapper :global(button) {
 		margin: var(--spacing-xxs);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-xs);
 	}
 
 	.icon-button-wrapper :global(button:not(:last-child)) {
