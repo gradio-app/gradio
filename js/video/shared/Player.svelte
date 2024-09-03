@@ -24,6 +24,7 @@
 	export let show_download_button = false;
 	export let value: FileData | null = null;
 	export let handle_clear: () => void = () => {};
+	export let has_change_history = false;
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
@@ -177,6 +178,7 @@
 		{i18n}
 		{show_download_button}
 		{handle_clear}
+		{has_change_history}
 	/>
 {/if}
 

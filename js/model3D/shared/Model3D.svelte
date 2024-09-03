@@ -21,6 +21,7 @@
 		null,
 		null
 	];
+	export let has_change_history = false;
 
 	let current_settings = { camera_position, zoom_speed, pan_speed };
 
@@ -77,7 +78,12 @@
 		<IconButtonWrapper>
 			{#if !use_3dgs}
 				<!-- Canvas3DGS doesn't implement the undo method (reset_camera_position) -->
-				<IconButton Icon={Undo} label="Undo" on:click={() => handle_undo()} />
+				<IconButton
+					Icon={Undo}
+					label="Undo"
+					on:click={() => handle_undo()}
+					disabled={!has_change_history}
+				/>
 			{/if}
 			<a
 				href={resolved_url}

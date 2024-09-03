@@ -31,6 +31,7 @@
 	export let gradio: Gradio;
 	export let height: number | undefined = undefined;
 	export let zoom_speed = 1;
+	export let has_change_history = false;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -74,6 +75,7 @@
 				{show_label}
 				{camera_position}
 				{zoom_speed}
+				{has_change_history}
 			/>
 		{:else}
 			<!-- Not ideal but some bugs to work out before we can 
@@ -115,7 +117,10 @@
 			{zoom_speed}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
-			on:change={({ detail }) => gradio.dispatch("change", detail)}
+			on:change={({ detail }) => {
+				gradio.dispatch("change", detail);
+				has_change_history = true;
+			}}
 			on:clear={() => {
 				value = null;
 				gradio.dispatch("clear");

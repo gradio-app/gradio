@@ -22,6 +22,7 @@
 	export let value: FileData | null = null;
 	export let show_download_button = false;
 	export let handle_clear: () => void = () => {};
+	export let has_change_history = false;
 
 	let ffmpeg: FFmpeg;
 
@@ -104,7 +105,7 @@
 		<IconButton
 			Icon={Undo}
 			label="Reset video to initial value"
-			disabled={processingVideo}
+			disabled={processingVideo || !has_change_history}
 			on:click={() => {
 				handle_reset_value();
 				mode = "";

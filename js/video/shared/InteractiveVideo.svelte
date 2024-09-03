@@ -33,6 +33,8 @@
 	export let stream_handler: Client["stream"];
 	export let loop: boolean;
 
+	let has_change_history = false;
+
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
 		clear?: never;
@@ -59,6 +61,7 @@
 	}
 
 	function handle_change(video: FileData): void {
+		has_change_history = true;
 		dispatch("change", video);
 	}
 
@@ -128,6 +131,7 @@
 				{i18n}
 				{show_download_button}
 				{handle_clear}
+				{has_change_history}
 			/>
 		{/key}
 	{:else if value.size}
