@@ -23,20 +23,26 @@
 	.icon-button-wrapper :global(button) {
 		margin: var(--spacing-xxs);
 		border-radius: var(--radius-xs);
-	}
-
-	.icon-button-wrapper :global(button:not(:last-child)) {
 		position: relative;
-		margin-right: 0;
 	}
 
+	.icon-button-wrapper :global(a.download-link:not(:last-child)),
+	.icon-button-wrapper :global(button:not(:last-child)) {
+		margin-right: var(--spacing-xxs);
+	}
+
+	.icon-button-wrapper :global(a.download-link:not(:last-child)::after),
 	.icon-button-wrapper :global(button:not(:last-child)::after) {
 		content: "";
 		position: absolute;
-		right: calc(var(--spacing-sm) * -1);
+		right: -5px;
 		top: 15%;
 		height: 70%;
 		width: 1px;
 		background-color: var(--border-color-primary);
+	}
+
+	.icon-button-wrapper :global(a.download-link:not(:last-child)::after) {
+		right: -3px;
 	}
 </style>
