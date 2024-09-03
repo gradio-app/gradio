@@ -72,7 +72,7 @@
 <svelte:head>
 	<script
 		type="module"
-		src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"
+		src="https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.js"
 	></script>
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 	<script
