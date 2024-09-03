@@ -12,6 +12,7 @@ from gradio_client import media_data
 from PIL import Image, ImageCms
 
 from gradio import components, data_classes, processing_utils, utils
+from gradio.route_utils import API_PREFIX
 
 
 class TestTempFileManagement:
@@ -332,7 +333,7 @@ def test_add_root_url():
     data = {
         "file": {
             "path": "path",
-            "url": "/file=path",
+            "url": f"{API_PREFIX}/file=path",
             "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
@@ -345,7 +346,7 @@ def test_add_root_url():
     expected = {
         "file": {
             "path": "path",
-            "url": f"{root_url}/file=path",
+            "url": f"{root_url}{API_PREFIX}/file=path",
             "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
@@ -359,7 +360,7 @@ def test_add_root_url():
     new_expected = {
         "file": {
             "path": "path",
-            "url": f"{new_root_url}/file=path",
+            "url": f"{new_root_url}{API_PREFIX}/file=path",
             "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
@@ -385,7 +386,7 @@ async def test_json_data_not_moved_to_cache():
         root={
             "file": {
                 "path": "path",
-                "url": "/file=path",
+                "url": f"{API_PREFIX}/file=path",
                 "meta": {"_type": "gradio.FileData"},
             }
         }

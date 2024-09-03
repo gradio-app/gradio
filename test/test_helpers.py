@@ -18,6 +18,7 @@ from tqdm import tqdm
 
 import gradio as gr
 from gradio import helpers, utils
+from gradio.route_utils import API_PREFIX
 
 
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
@@ -532,7 +533,7 @@ class TestProcessExamples:
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/load_example/", json={"data": [0]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
         assert response.json()["data"] == [
             {
                 "lines": 1,
@@ -554,7 +555,7 @@ class TestProcessExamples:
             }
         ]
 
-        response = client.post("/api/load_example/", json={"data": [1]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         assert response.json()["data"] == [
             {
                 "lines": 1,
@@ -597,10 +598,10 @@ class TestProcessExamples:
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/load_example/", json={"data": [0]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
         assert response.json()["data"] == ["Hello,", "World", "Hello, World"]
 
-        response = client.post("/api/load_example/", json={"data": [1]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]
 
     def test_end_to_end_lazy_cache_examples(self, patched_cache_folder):
@@ -627,12 +628,12 @@ class TestProcessExamples:
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/load_example/", json={"data": [0]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
         data = response.json()["data"]
         assert data[0]["value"]["path"].endswith("cheetah1.jpg")
         assert data[1]["value"] == "cheetah"
 
-        response = client.post("/api/load_example/", json={"data": [1]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         data = response.json()["data"]
         assert data[0]["value"]["path"].endswith("bus.png")
         assert data[1]["value"] == "bus"

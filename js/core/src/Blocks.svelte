@@ -64,7 +64,7 @@
 		components,
 		layout,
 		dependencies,
-		root,
+		root: root + app.api_prefix,
 		app,
 		options: {
 			fill_height
