@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
-	import { Clear, Undo, Redo, Check, Trash } from "@gradio/icons";
+	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
+	import { Undo, Redo, Check, Trash } from "@gradio/icons";
 
 	/**
 	 * Can the current image be undone?
@@ -36,6 +36,19 @@
 </script>
 
 <IconButtonWrapper>
+	{#if changeable}
+		<IconButton
+			disabled={!can_save}
+			Icon={Check}
+			label="Save changes"
+			on:click={(event) => {
+				dispatch("save");
+				event.stopPropagation();
+			}}
+			background={"var(--color-green-500)"}
+			color={"#fff"}
+		/>
+	{/if}
 	<IconButton
 		disabled={!can_undo}
 		Icon={Undo}
@@ -63,28 +76,3 @@
 		}}
 	/>
 </IconButtonWrapper>
-{#if changeable}
-	<div class="row-wrap save">
-		<IconButton
-			disabled={!can_save}
-			Icon={Check}
-			label="Save changes"
-			on:click={(event) => {
-				dispatch("save");
-				event.stopPropagation();
-			}}
-			background={"var(--color-green-500)"}
-			color={"#fff"}
-		/>
-	</div>
-{/if}
-
-<style>
-	.row-wrap {
-		display: flex;
-
-		justify-content: flex-end;
-		gap: var(--spacing-sm);
-		z-index: var(--layer-5);
-	}
-</style>
