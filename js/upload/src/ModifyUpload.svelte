@@ -41,6 +41,8 @@
 		</DownloadLink>
 	{/if}
 
+	<slot />
+
 	<IconButton
 		Icon={Clear}
 		label={i18n("common.clear")}
