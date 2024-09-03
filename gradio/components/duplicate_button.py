@@ -29,7 +29,7 @@ class DuplicateButton(Button):
         *,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
-        variant: Literal["primary", "secondary", "stop"] = "secondary",
+        variant: Literal["primary", "secondary", "stop", "clear"] = "clear",
         size: Literal["sm", "lg"] | None = "sm",
         icon: str | None = None,
         link: str | None = None,

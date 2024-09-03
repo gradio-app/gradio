@@ -120,7 +120,7 @@
 		color: var(--button-secondary-text-color);
 	}
 
-	.clear{
+	.clear {
 		border: var(--button-border-width) solid
 			var(--button-secondary-border-color);
 	}
