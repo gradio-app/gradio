@@ -1,5 +1,23 @@
 # @gradio/audio
 
+## 0.14.0-beta.1
+
+### Features
+
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9216](https://github.com/gradio-app/gradio/pull/9216) [`e137b30`](https://github.com/gradio-app/gradio/commit/e137b30b1a53ca32d3cd809d31e97d5d54a4e479) - Decrease component radii and remove input shadows.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/wasm@0.13.1-beta.1
+- @gradio/button@0.3.0-beta.1
+
 ## 0.14.0-beta.0
 
 ### Features

@@ -1,5 +1,11 @@
 # @gradio/box
 
+## 0.1.25-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+
 ## 0.1.25-beta.0
 
 ### Fixes

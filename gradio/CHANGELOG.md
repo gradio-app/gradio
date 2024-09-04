@@ -1,5 +1,25 @@
 # gradio
 
+## 5.0.0-beta.1
+
+### Features
+
+- [#9235](https://github.com/gradio-app/gradio/pull/9235) [`f8b411f`](https://github.com/gradio-app/gradio/commit/f8b411fe282ff0316ed4abebc0a043b044bf4dd9) - Built-in submit and stop buttons in `gr.ChatInterface(multimodal=False)`, adding `submit_btn` and `stop_btn` props to `gr.Textbox()` and `gr.MultimodalText()`.  Thanks @whitphx!
+- [#9201](https://github.com/gradio-app/gradio/pull/9201) [`5492e74`](https://github.com/gradio-app/gradio/commit/5492e742b1f1fa618208cce523f50ad22a6e86f1) - Move buttons from chat_interface into Chatbot.  Thanks @freddyaboulton!
+- [#9199](https://github.com/gradio-app/gradio/pull/9199) [`3175c7a`](https://github.com/gradio-app/gradio/commit/3175c7aebc6ad2466d31d6949580f5a3cb4cd698) - Redesign `gr.Tabs()`.  Thanks @hannahblair!
+- [#9167](https://github.com/gradio-app/gradio/pull/9167) [`e9e737e`](https://github.com/gradio-app/gradio/commit/e9e737eeeb61d0bbf43277c75b6ffed8b34aa445) - Redesign `gr.Button()`.  Thanks @hannahblair!
+- [#9218](https://github.com/gradio-app/gradio/pull/9218) [`4a832f4`](https://github.com/gradio-app/gradio/commit/4a832f4b0a8f35a10bc2301a56b711519e85034b) - Adds TLS to FRP tunnel.  Thanks @abidlabs!
+- [#9166](https://github.com/gradio-app/gradio/pull/9166) [`8a75559`](https://github.com/gradio-app/gradio/commit/8a755596317c59bfb10803edc0f8642e62d7cecd) - Minor changes to flagging for 5.0.  Thanks @abidlabs!
+- [#9254](https://github.com/gradio-app/gradio/pull/9254) [`03f3735`](https://github.com/gradio-app/gradio/commit/03f3735fba1fd4f1978b5431af9e67de3b6e7945) - Adds a "huggingface" button variant, and makes it the default for `gr.LoginButton` and `gr.DuplicateButton`.  Thanks @abidlabs!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9236](https://github.com/gradio-app/gradio/pull/9236) [`dd8e2e3`](https://github.com/gradio-app/gradio/commit/dd8e2e32c6c1ec42e13c55af870d0da291117dd3) - Improve button consistency across light/dark mode.  Thanks @hannahblair!
+- [#9225](https://github.com/gradio-app/gradio/pull/9225) [`5f2e047`](https://github.com/gradio-app/gradio/commit/5f2e047c2ce114cebc95d5dba16c4df10fa73eb1) - Add a 'None' option to the gradio.Image component to disable image_m….  Thanks @GeeMoose!
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
+- [#9245](https://github.com/gradio-app/gradio/pull/9245) [`c8cfe93`](https://github.com/gradio-app/gradio/commit/c8cfe93c0971d904c29da60410952fd20c9439c0) - Lighten secondary button grey fill.  Thanks @hannahblair!
+- [#9246](https://github.com/gradio-app/gradio/pull/9246) [`38cf712`](https://github.com/gradio-app/gradio/commit/38cf71234bf57fe9da6eea2d32b1d6e7ef35c700) - Stop using `multiprocessing` in `flagging.CSVLogger` on Lite v5.  Thanks @whitphx!
+- [#9216](https://github.com/gradio-app/gradio/pull/9216) [`e137b30`](https://github.com/gradio-app/gradio/commit/e137b30b1a53ca32d3cd809d31e97d5d54a4e479) - Decrease component radii and remove input shadows.  Thanks @hannahblair!
+- [#9200](https://github.com/gradio-app/gradio/pull/9200) [`2e179d3`](https://github.com/gradio-app/gradio/commit/2e179d35be6ed60a5a6bfc7303178d63e41781ad) - prefix api routes.  Thanks @pngwn!
+
 ## 5.0.0-beta.0
 
 ### Features

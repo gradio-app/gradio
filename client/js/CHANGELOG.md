@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.6.0-beta.1
+
+### Features
+
+- [#9200](https://github.com/gradio-app/gradio/pull/9200) [`2e179d3`](https://github.com/gradio-app/gradio/commit/2e179d35be6ed60a5a6bfc7303178d63e41781ad) - prefix api routes.  Thanks @pngwn!
+
 ## 1.6.0-beta.0
 
 ### Features

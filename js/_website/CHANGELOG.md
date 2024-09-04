@@ -1,5 +1,16 @@
 # website
 
+## 0.39.0-beta.1
+
+### Features
+
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/code@0.9.1-beta.1
+- @gradio/paramviewer@0.4.22-beta.1
+
 ## 0.39.0-beta.0
 
 ### Features

@@ -1,5 +1,18 @@
 # @gradio/textbox
 
+## 0.7.0-beta.1
+
+### Features
+
+- [#9235](https://github.com/gradio-app/gradio/pull/9235) [`f8b411f`](https://github.com/gradio-app/gradio/commit/f8b411fe282ff0316ed4abebc0a043b044bf4dd9) - Built-in submit and stop buttons in `gr.ChatInterface(multimodal=False)`, adding `submit_btn` and `stop_btn` props to `gr.Textbox()` and `gr.MultimodalText()`.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
 ## 0.7.0-beta.0
 
 ### Features
