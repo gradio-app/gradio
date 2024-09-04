@@ -1,5 +1,14 @@
 # @gradio/html
 
+## 0.3.6-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
 ## 0.3.6-beta.0
 
 ### Fixes

@@ -1,5 +1,35 @@
 # @gradio/core
 
+## 0.1.0-beta.1
+
+### Features
+
+- [#9200](https://github.com/gradio-app/gradio/pull/9200) [`2e179d3`](https://github.com/gradio-app/gradio/commit/2e179d35be6ed60a5a6bfc7303178d63e41781ad) - prefix api routes.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.1
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/image@0.16.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/markdown@0.9.4-beta.1
+- @gradio/wasm@0.13.1-beta.1
+- @gradio/theme@0.3.0-beta.1
+- @gradio/gallery@0.13.0-beta.1
+- @gradio/plot@0.6.5-beta.1
+- @gradio/tabs@0.3.0-beta.1
+- @gradio/column@0.2.0-beta.0
+- @gradio/button@0.3.0-beta.1
+- @gradio/textbox@0.7.0-beta.1
+- @gradio/code@0.9.1-beta.1
+- @gradio/paramviewer@0.4.22-beta.1
+- @gradio/file@0.9.4-beta.1
+- @gradio/checkbox@0.4.0-beta.1
+
 ## 0.1.0-beta.0
 
 ### Features

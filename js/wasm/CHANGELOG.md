@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.13.1-beta.1
+
+### Features
+
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
 ## 0.13.1-beta.0
 
 ### Fixes

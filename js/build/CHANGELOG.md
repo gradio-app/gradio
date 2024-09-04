@@ -1,5 +1,11 @@
 # @self/build
 
+## 0.0.3-beta.1
+
+### Dependency updates
+
+- @gradio/theme@0.3.0-beta.1
+
 ## 0.0.3-beta.0
 
 ### Fixes
