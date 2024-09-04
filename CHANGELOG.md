@@ -1,5 +1,36 @@
 # gradio
 
+## 5.0.0-beta.0
+
+### Features
+
+- [#9069](https://github.com/gradio-app/gradio/pull/9069) [`f9f84bf`](https://github.com/gradio-app/gradio/commit/f9f84bfe7064634164501d1023591b415ad2a03b) - No token passed by default in `gr.load()`.  Thanks @abidlabs!
+- [#9160](https://github.com/gradio-app/gradio/pull/9160) [`8f5a895`](https://github.com/gradio-app/gradio/commit/8f5a8950c949996f7c439b11a7aa40edda3e8562) - Fix native plot lite demos.  Thanks @aliabd!
+- [#9197](https://github.com/gradio-app/gradio/pull/9197) [`6773c4d`](https://github.com/gradio-app/gradio/commit/6773c4da22f957a11b2a07f032ce13c7b4c94f8c) - Redesign `gr.Slider()`.  Thanks @hannahblair!
+- [#9140](https://github.com/gradio-app/gradio/pull/9140) [`c054ec8`](https://github.com/gradio-app/gradio/commit/c054ec85e49ab102b15afd305583ee394151d16c) - Drop python 3.8 and 3.9.  Thanks @abidlabs!
+- [#8978](https://github.com/gradio-app/gradio/pull/8978) [`fe9d1cb`](https://github.com/gradio-app/gradio/commit/fe9d1cb0870a5b07d51e8cb05401af47efbacd13) - Improve url downloads for file objects.  Thanks @aliabid94!
+- [#8810](https://github.com/gradio-app/gradio/pull/8810) [`4cf8af9`](https://github.com/gradio-app/gradio/commit/4cf8af9407a44ee914e0be567da38b29f00eff8e) - Prevent invalid values from being submitted to dropdown, etc.  Thanks @abidlabs!
+- [#9194](https://github.com/gradio-app/gradio/pull/9194) [`20c0836`](https://github.com/gradio-app/gradio/commit/20c0836ed0e0698dbc81d2a4bda04363fd857334) - Deprecate type='tuples for chatbot and focus chatbot docs on 'messages' type.  Thanks @freddyaboulton!
+- [#9122](https://github.com/gradio-app/gradio/pull/9122) [`2672ea2`](https://github.com/gradio-app/gradio/commit/2672ea297ef28414ecf2eeab7984b1e4b4ee40b8) - Postprocess hardening.  Thanks @freddyaboulton!
+- [#9149](https://github.com/gradio-app/gradio/pull/9149) [`3d7a9b8`](https://github.com/gradio-app/gradio/commit/3d7a9b81f6fef06187eca832471dc1692eb493a0) - Open audio/image input stream only when queue is ready.  Thanks @freddyaboulton!
+- [#9173](https://github.com/gradio-app/gradio/pull/9173) [`66349fe`](https://github.com/gradio-app/gradio/commit/66349fe26827e3a3c15b738a1177e95fec7f5554) - Streaming Guides.  Thanks @freddyaboulton!
+- [#9185](https://github.com/gradio-app/gradio/pull/9185) [`2daf3d1`](https://github.com/gradio-app/gradio/commit/2daf3d10f5986675f6ceb75ebb50c9d991c282bf) - Adding `maxlength` attribute handling of `textarea` and `input` HTML element for the `gr.TextBox()` component via a `max_length` parameter.  Thanks @WH-Yoshi!
+- [#8959](https://github.com/gradio-app/gradio/pull/8959) [`a0aac66`](https://github.com/gradio-app/gradio/commit/a0aac6694076529ff925ccd34b3503d35e86cb49) - Adds `strict_cors` parameter to `launch()`.  Thanks @abidlabs!
+- [#9052](https://github.com/gradio-app/gradio/pull/9052) [`f3652eb`](https://github.com/gradio-app/gradio/commit/f3652ebe08211e12739df73c15fd97e5ff81276a) - Video gallery.  Thanks @dawoodkhan82!
+- [#9213](https://github.com/gradio-app/gradio/pull/9213) [`ab4580b`](https://github.com/gradio-app/gradio/commit/ab4580bd5f755a07c9a9bd2a775220a9a2085f8c) - Remove grey background behind all components.  Thanks @hannahblair!
+- [#9073](https://github.com/gradio-app/gradio/pull/9073) [`0d8a358`](https://github.com/gradio-app/gradio/commit/0d8a358cc86331aa0c83380326b30d04597f9ef9) - Set default `format` in `gr.Audio` to be `None` to avoid unnecessary preprocessing.  Thanks @abidlabs!
+- [#9130](https://github.com/gradio-app/gradio/pull/9130) [`864cd0f`](https://github.com/gradio-app/gradio/commit/864cd0fd6aa85691b53bd0bf3a50af05b778813c) - Raise WasmUnsupportedError for ffmpeg usage on Lite.  Thanks @whitphx!
+- [#8797](https://github.com/gradio-app/gradio/pull/8797) [`6e6818c`](https://github.com/gradio-app/gradio/commit/6e6818c3af836051fffdd070a9e33889b246186e) - Deprecate for 5.0.  Thanks @abidlabs!
+- [#9132](https://github.com/gradio-app/gradio/pull/9132) [`5cedf16`](https://github.com/gradio-app/gradio/commit/5cedf162f2120e30dd58bf3a8eab27115030b4f5) - Deprecate passing a tuple for gr.Code value.  Thanks @freddyaboulton!
+- [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
+- [#9150](https://github.com/gradio-app/gradio/pull/9150) [`80c966a`](https://github.com/gradio-app/gradio/commit/80c966af6e3d947abe96058de9b683ecf05d9803) - DNS resolver on ip check.  Thanks @aliabid94!
+- [#9175](https://github.com/gradio-app/gradio/pull/9175) [`e6d456a`](https://github.com/gradio-app/gradio/commit/e6d456a9c3b7e80e0c9a16cd365288deff706635) - Change dark mode color theme from `gray` to `zinc`.  Thanks @hannahblair!
+- [#8884](https://github.com/gradio-app/gradio/pull/8884) [`3408dba`](https://github.com/gradio-app/gradio/commit/3408dba7560a17371be679d0f01564a5606dc90b) - replace ip addresses with machine-specific hashes.  Thanks @abidlabs!
+
+### Fixes
+
+- [#9189](https://github.com/gradio-app/gradio/pull/9189) [`ab142ee`](https://github.com/gradio-app/gradio/commit/ab142ee13d19070b75b5eb03efcda7193b8993c2) - Fix serialization error in curl api.  Thanks @freddyaboulton!
+
 ## 4.42.0
 
 ### Features
