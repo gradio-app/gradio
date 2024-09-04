@@ -296,7 +296,7 @@ class App(FastAPI):
         def app_id(request: fastapi.Request) -> dict:  # noqa: ARG001
             return {"app_id": app.get_blocks().app_id}
 
-        @app.get("/dev/reload", dependencies=[Depends(login_check)])
+        @router.get("/dev/reload", dependencies=[Depends(login_check)])
         async def notify_changes(
             request: fastapi.Request,
         ):
