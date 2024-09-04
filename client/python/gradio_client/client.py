@@ -154,20 +154,26 @@ class Client:
         self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = (
             self.config.get("protocol", "ws")
         )
-        self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
+        self.api_prefix: str = self.config.get("api_prefix", "").lstrip("/") + "/"
+        self.src_prefixed = urllib.parse.urljoin(self.src, self.api_prefix) + "/"
+
+        self.api_url = urllib.parse.urljoin(self.src_prefixed, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
-            self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
+            self.src_prefixed,
+            utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL,
         )
-        self.heartbeat_url = urllib.parse.urljoin(self.src, utils.HEARTBEAT_URL)
+        self.heartbeat_url = urllib.parse.urljoin(
+            self.src_prefixed, utils.HEARTBEAT_URL
+        )
         self.sse_data_url = urllib.parse.urljoin(
-            self.src,
+            self.src_prefixed,
             utils.SSE_DATA_URL_V0 if self.protocol == "sse" else utils.SSE_DATA_URL,
         )
         self.ws_url = urllib.parse.urljoin(
-            self.src.replace("http", "ws", 1), utils.WS_URL
+            self.src_prefixed.replace("http", "ws", 1), utils.WS_URL
         )
-        self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
-        self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
+        self.upload_url = urllib.parse.urljoin(self.src_prefixed, utils.UPLOAD_URL)
+        self.reset_url = urllib.parse.urljoin(self.src_prefixed, utils.RESET_URL)
         self.app_version = version.parse(self.config.get("version", "2.0"))
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
@@ -552,7 +558,9 @@ class Client:
         return job
 
     def _get_api_info(self):
-        api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
+        print("SRC PREFIXED", self.src_prefixed, utils.RAW_API_INFO_URL)
+        api_info_url = urllib.parse.urljoin(self.src_prefixed, utils.RAW_API_INFO_URL)
+        print("API INFO URL", api_info_url)
         if self.app_version > version.Version("3.36.1"):
             r = httpx.get(
                 api_info_url,
@@ -864,7 +872,7 @@ class Client:
             )
         else:  # to support older versions of Gradio
             r = httpx.get(
-                self.src,
+                self.src_prefixed,
                 headers=self.headers,
                 cookies=self.cookies,
                 verify=self.ssl_verify,
@@ -1071,7 +1079,7 @@ class Endpoint:
         ]
         self.parameters_info = self._get_parameters_info()
 
-        self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
+        self.root_url = client.src.rstrip("/") + "/" + client.api_prefix
 
         # Disallow hitting endpoints that the Gradio app has disabled
         self.is_valid = self.api_name is not False
@@ -1139,7 +1147,7 @@ class Endpoint:
         if helper is None:
             return
         if self.client.app_version > version.Version("4.29.0"):
-            url = urllib.parse.urljoin(self.client.src, utils.CANCEL_URL)
+            url = urllib.parse.urljoin(self.client.src_prefixed, utils.CANCEL_URL)
 
             # The event_id won't be set on the helper until later
             # so need to create the data in a function that's run at cancel time

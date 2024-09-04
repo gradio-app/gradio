@@ -27,8 +27,8 @@ export async function upload_files(
 		});
 		try {
 			const upload_url = upload_id
-				? `${root_url}/${UPLOAD_URL}?upload_id=${upload_id}`
-				: `${root_url}/${UPLOAD_URL}`;
+				? `${root_url}${this.api_prefix}/${UPLOAD_URL}?upload_id=${upload_id}`
+				: `${root_url}${this.api_prefix}/${UPLOAD_URL}`;
 
 			response = await this.fetch(upload_url, {
 				method: "POST",
