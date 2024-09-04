@@ -1,5 +1,12 @@
 # @self/tootils
 
+## 0.6.5-beta.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
 ## 0.6.5-beta.0
 
 ### Fixes
