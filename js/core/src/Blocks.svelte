@@ -74,7 +74,6 @@
 	$: {
 		ready = !!$_layout;
 	}
-
 	let params = new URLSearchParams(window.location.search);
 	let api_docs_visible = params.get("view") === "api" && show_api;
 	let api_recorder_visible = params.get("view") === "api-recorder" && show_api;
@@ -246,7 +245,7 @@
 			const onPropChange = (e: Event): void => {
 				if (!isCustomEvent(e)) throw new Error("not a custom event");
 				const { id, prop, value } = e.detail;
-
+				update_value([{ id, prop, value }]);
 				if (prop === "input_ready" && value === true) {
 					if (checkInputsReady()) {
 						target.removeEventListener("prop_change", onPropChange);
