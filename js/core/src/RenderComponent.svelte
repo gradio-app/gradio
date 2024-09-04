@@ -22,7 +22,7 @@
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });
 
 	function wrap(
-		component: ComponentType<SvelteComponent>
+		component: ComponentType<SvelteComponent>,
 	): ComponentType<SvelteComponent> {
 		const ProxiedMyClass = new Proxy(component, {
 			construct(_target, args: Record<string, any>[]) {
@@ -32,6 +32,7 @@
 
 				function report(props: string) {
 					return function (propargs: any) {
+						if (!target) return;
 						const ev = s(_id, props, propargs);
 						target.dispatchEvent(ev);
 					};
@@ -41,7 +42,7 @@
 				});
 
 				return instance;
-			}
+			},
 		});
 
 		return ProxiedMyClass;

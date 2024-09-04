@@ -2,8 +2,11 @@
 
 const request_map = {};
 
+const is_browser= typeof window !== "undefined";
+
 export function load_component({ api_url, name, id, variant }) {
-	const comps = window.__GRADIO__CC__;
+
+	const comps = is_browser ? window.__GRADIO__CC__ : {};
 
 	const _component_map = {
 		// eslint-disable-next-line no-undef

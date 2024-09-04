@@ -563,6 +563,25 @@ importers:
         version: link:../preview
 
   js/app:
+    dependencies:
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/core':
+        specifier: workspace:^
+        version: link:../core
+      '@gradio/theme':
+        specifier: workspace:^
+        version: link:../theme
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
+      '@huggingface/space-header':
+        specifier: ^1.0.3
+        version: 1.0.3
+      '@self/build':
+        specifier: workspace:^
+        version: link:../build
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^3.0.0

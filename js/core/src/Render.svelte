@@ -36,20 +36,24 @@
 		};
 	});
 
-	$: node.children =
-		node.children &&
-		node.children.filter((v) => {
-			const valid_node = node.type !== "statustracker";
-			if (!valid_node) {
-				filtered_children.push(v);
-			}
-			return valid_node;
-		});
+	$: {
+		if (node) {
+			node.children =
+				node.children &&
+				node.children.filter((v) => {
+					const valid_node = node.type !== "statustracker";
+					if (!valid_node) {
+						filtered_children.push(v);
+					}
+					return valid_node;
+				});
+		}
+	}
 
 	setContext("BLOCK_KEY", parent);
 
 	$: {
-		if (node.type === "form") {
+		if (node && node.type === "form") {
 			if (node.children?.every((c) => !c.props.visible)) {
 				node.props.visible = false;
 			} else {
@@ -57,6 +61,8 @@
 			}
 		}
 	}
+
+	$: console.log({ target });
 
 	$: gradio_class = new Gradio<Record<string, any>>(
 		node.id,
@@ -68,12 +74,14 @@
 		max_file_size,
 		formatter,
 		client,
-		load_component
+		load_component,
 	);
+
+	console.log({ node });
 </script>
 
 <RenderComponent
-	_id={node.id}
+	_id={node?.id}
 	component={node.component}
 	bind:instance={node.instance}
 	bind:value={node.props.value}
