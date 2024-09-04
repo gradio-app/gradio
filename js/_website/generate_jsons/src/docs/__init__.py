@@ -266,7 +266,7 @@ Since this is a Gradio documentation tool, the Gradio portion of the code is wha
 
 """
 
-important_demos = ["audio_component_events", "kitchen_sink", "blocks_chained_events", "blocks_essay_simple", "blocks_hello", "blocks_kinematics", "blocks_layout", "calculator", "chatinterface_multimodal", "hello_world", "leaderboard", "live_dashboard", "on_listener_decorator", "plot_component", "sort_records", "tax_calculator", "video_identity"]
+important_demos = ["audio_component_events", "kitchen_sink", "blocks_chained_events", "blocks_essay_simple", "blocks_hello", "blocks_kinematics", "blocks_layout", "calculator", "chatinterface_multimodal", "hello_world", "leaderboard", "on_listener_decorator", "plot_component", "sort_records", "streaming_simple", "tax_calculator", "timer", "video_identity"]
 
 SYSTEM_PROMPT += "\n\nHere are some demos showcasing full Gradio apps: \n\n"
 

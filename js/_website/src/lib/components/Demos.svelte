@@ -10,7 +10,7 @@
 <svelte:head>
 	<link
 		rel="stylesheet"
-		href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css"
+		href="https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.css"
 	/>
 </svelte:head>
 

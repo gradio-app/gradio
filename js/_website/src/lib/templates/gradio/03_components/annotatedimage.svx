@@ -22,7 +22,7 @@ gradio.AnnotatedImage(···)
 
 <!-- Embedded Component -->
 <div class="embedded-component">
-<gradio-lite shared-worker>
+<gradio-lite>
 import gradio as gr
 import numpy as np 
 import requests 
