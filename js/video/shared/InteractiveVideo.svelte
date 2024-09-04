@@ -33,6 +33,8 @@
 	export let stream_handler: Client["stream"];
 	export let loop: boolean;
 
+	let has_change_history = false;
+
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
 		clear?: never;
@@ -59,6 +61,7 @@
 	}
 
 	function handle_change(video: FileData): void {
+		has_change_history = true;
 		dispatch("change", video);
 	}
 
@@ -105,39 +108,37 @@
 				/>
 			{/if}
 		</div>
-	{:else}
-		<ModifyUpload
-			{i18n}
-			on:clear={handle_clear}
-			download={show_download_button ? value.url : null}
-		/>
-		{#if playable()}
-			{#key value?.url}
-				<Player
-					{upload}
-					{root}
-					interactive
-					{autoplay}
-					src={value.url}
-					subtitle={subtitle?.url}
-					is_stream={false}
-					on:play
-					on:pause
-					on:stop
-					on:end
-					mirror={mirror_webcam && active_source === "webcam"}
-					{label}
-					{handle_change}
-					{handle_reset_value}
-					{loop}
-				/>
-			{/key}
-		{:else if value.size}
-			<div class="file-name">{value.orig_name || value.url}</div>
-			<div class="file-size">
-				{prettyBytes(value.size)}
-			</div>
-		{/if}
+	{:else if playable()}
+		{#key value?.url}
+			<Player
+				{upload}
+				{root}
+				interactive
+				{autoplay}
+				src={value.url}
+				subtitle={subtitle?.url}
+				is_stream={false}
+				on:play
+				on:pause
+				on:stop
+				on:end
+				mirror={mirror_webcam && active_source === "webcam"}
+				{label}
+				{handle_change}
+				{handle_reset_value}
+				{loop}
+				{value}
+				{i18n}
+				{show_download_button}
+				{handle_clear}
+				{has_change_history}
+			/>
+		{/key}
+	{:else if value.size}
+		<div class="file-name">{value.orig_name || value.url}</div>
+		<div class="file-size">
+			{prettyBytes(value.size)}
+		</div>
 	{/if}
 
 	<SelectSource {sources} bind:active_source {handle_clear} />

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/client";
-	import { BlockLabel, IconButton } from "@gradio/atoms";
+	import { BlockLabel, IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import { File, Download, Undo } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { dequal } from "dequal";
@@ -21,6 +21,7 @@
 		null,
 		null
 	];
+	export let has_change_history = false;
 
 	let current_settings = { camera_position, zoom_speed, pan_speed };
 
@@ -74,10 +75,15 @@
 />
 {#if value}
 	<div class="model3D">
-		<div class="buttons">
+		<IconButtonWrapper>
 			{#if !use_3dgs}
 				<!-- Canvas3DGS doesn't implement the undo method (reset_camera_position) -->
-				<IconButton Icon={Undo} label="Undo" on:click={() => handle_undo()} />
+				<IconButton
+					Icon={Undo}
+					label="Undo"
+					on:click={() => handle_undo()}
+					disabled={!has_change_history}
+				/>
 			{/if}
 			<a
 				href={resolved_url}
@@ -86,7 +92,7 @@
 			>
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>
-		</div>
+		</IconButtonWrapper>
 
 		{#if use_3dgs}
 			<svelte:component
@@ -126,14 +132,5 @@
 		height: var(--size-full);
 		object-fit: contain;
 		overflow: hidden;
-	}
-	.buttons {
-		display: flex;
-		position: absolute;
-		top: var(--size-2);
-		right: var(--size-2);
-		justify-content: flex-end;
-		gap: var(--spacing-sm);
-		z-index: var(--layer-5);
 	}
 </style>

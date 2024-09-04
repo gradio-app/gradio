@@ -244,7 +244,7 @@
 	<StreamingBar {time_limit} />
 	{#if value === null || streaming}
 		{#if active_source === "microphone"}
-			<ModifyUpload {i18n} on:clear={clear} absolute={true} />
+			<ModifyUpload {i18n} on:clear={clear} />
 			{#if streaming}
 				<StreamAudio
 					{record}
@@ -290,7 +290,6 @@
 			on:clear={clear}
 			on:edit={() => (mode = "edit")}
 			download={show_download_button ? value.url : null}
-			absolute={true}
 		/>
 
 		<AudioPlayer
