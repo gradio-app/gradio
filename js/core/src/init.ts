@@ -18,6 +18,10 @@ export interface UpdateTransaction {
 }
 
 let pending_updates: UpdateTransaction[][] = [];
+const is_browser = typeof window !== "undefined";
+const raf = is_browser
+	? requestAnimationFrame
+	: async (fn: () => Promise<void>) => await fn();
 
 /**
  * Create a store with the layout and a map of targets
@@ -42,7 +46,7 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-	}) => void;
+	}) => Promise<void>;
 	rerender_layout: (args: {
 		render_id: number;
 		components: ComponentMeta[];
@@ -51,6 +55,8 @@ export function create_components(): {
 		dependencies: Dependency[];
 	}) => void;
 } {
+	console.log("create_components start");
+
 	let _component_map: Map<number, ComponentMeta>;
 
 	let target_map: Writable<TargetMap> = writable({});
@@ -78,7 +84,7 @@ export function create_components(): {
 		});
 	}
 
-	function create_layout({
+	async function create_layout({
 		app: _app,
 		components,
 		layout,
@@ -94,11 +100,14 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-	}): void {
+	}): Promise<void> {
+		console.log("create_layout start");
 		// make sure the state is settled before proceeding
 		flush();
 		app = _app;
 		store_keyed_values(_components);
+
+		console.log({ components, layout, dependencies, root, options });
 
 		_components = components;
 		inputs = new Set();
@@ -146,10 +155,10 @@ export function create_components(): {
 			{} as { [id: number]: ComponentMeta }
 		);
 
-		walk_layout(layout, root).then(() => {
-			layout_store.set(_rootNode);
-		});
+		await walk_layout(layout, root);
 
+		layout_store.set(_rootNode);
+		console.log("layout created", _rootNode, get(layout_store), instance_map);
 		set_stream_every(dependencies);
 	}
 
@@ -301,6 +310,7 @@ export function create_components(): {
 
 	function flush(): void {
 		layout_store.update((layout) => {
+			console.log({ instance_map });
 			for (let i = 0; i < pending_updates.length; i++) {
 				for (let j = 0; j < pending_updates[i].length; j++) {
 					const update = pending_updates[i][j];
@@ -333,7 +343,7 @@ export function create_components(): {
 		if (!update_scheduled) {
 			update_scheduled = true;
 			update_scheduled_store.set(true);
-			requestAnimationFrame(flush);
+			raf(flush);
 		}
 	}
 
@@ -374,6 +384,7 @@ export function create_components(): {
 		}
 	}
 
+	console.log("created components");
 	return {
 		layout: layout_store,
 		targets: target_map,
@@ -384,8 +395,7 @@ export function create_components(): {
 		set_time_limit,
 		loading_status,
 		scheduled_updates: update_scheduled_store,
-		create_layout: (...args) =>
-			requestAnimationFrame(() => create_layout(...args)),
+		create_layout: create_layout,
 		rerender_layout
 	};
 }
