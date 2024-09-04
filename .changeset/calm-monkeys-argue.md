@@ -11,6 +11,7 @@
 "@gradio/simpleimage": minor
 "@gradio/upload": minor
 "@gradio/video": minor
+"@gradio/wasm": minor
 "gradio": minor
 ---
 
