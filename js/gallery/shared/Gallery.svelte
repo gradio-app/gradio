@@ -388,19 +388,17 @@
 						<ModifyUpload {i18n} on:clear={() => (value = [])} />
 					</div>
 				{/if}
-				<IconButtonWrapper>
-					{#if show_share_button}
-						<div class="icon-button">
-							<ShareButton
-								{i18n}
-								on:share
-								on:error
-								value={resolved_value}
-								formatter={format_gallery_for_sharing}
-							/>
-						</div>
-					{/if}
-				</IconButtonWrapper>
+				{#if show_share_button}
+					<div class="icon-button">
+						<ShareButton
+							{i18n}
+							on:share
+							on:error
+							value={resolved_value}
+							formatter={format_gallery_for_sharing}
+						/>
+					</div>
+				{/if}
 				{#each resolved_value as entry, i}
 					<button
 						class="thumbnail-item thumbnail-lg"
@@ -660,8 +658,10 @@
 	}
 
 	.icon-button {
-		top: 1px;
-		right: 1px;
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		z-index: var(--layer-1);
 	}
 
 	.grid-wrap.minimal {
