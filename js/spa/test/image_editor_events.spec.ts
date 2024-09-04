@@ -19,14 +19,17 @@ test("change events work as expected", async ({ page }) => {
 	await page.getByLabel("Draw button").first().click();
 	const canvas = page.locator("#image_editor canvas").first();
 	await canvas.click({ position: { x: 100, y: 100 } });
-	await expect(change_text).toContainText("2");
+	await page.waitForTimeout(1000);
+	await expect(page.locator("#change h2")).toContainText("2");
 
 	await page.getByLabel("Erase button").first().click();
 	await canvas.click({ position: { x: 100, y: 100 } });
-	await expect(change_text).toContainText("3");
+	await page.waitForTimeout(1000);
+	await expect(page.locator("#change h2")).toContainText("3");
 
 	await page.getByLabel("Clear canvas").first().click();
-	await expect(change_text).toContainText("4");
+	await page.waitForTimeout(1000);
+	await expect(page.locator("#change h2")).toContainText("4");
 });
 
 test("input events work as expected", async ({ page }) => {
@@ -40,13 +43,16 @@ test("input events work as expected", async ({ page }) => {
 	await page.getByLabel("Draw button").first().click();
 	const canvas = page.locator("#image_editor canvas").first();
 	await canvas.click({ position: { x: 100, y: 100 } });
+	await page.waitForTimeout(1000);
 	await expect(input_text).toContainText("2");
 
 	await page.getByLabel("Erase button").first().click();
 	await canvas.click({ position: { x: 100, y: 100 } });
+	await page.waitForTimeout(1000);
 	await expect(input_text).toContainText("3");
 
 	await page.getByLabel("Clear canvas").first().click();
+	await page.waitForTimeout(1000);
 	await expect(input_text).toContainText("4");
 });
 
@@ -57,13 +63,16 @@ test("apply events work as expected", async ({ page }) => {
 	await page.getByLabel("Draw button").first().click();
 	const canvas = page.locator("#image_editor canvas").first();
 	await canvas.click({ position: { x: 100, y: 100 } });
+	await page.waitForTimeout(1000);
 	await apply_button.click();
 	await expect(apply_text).toContainText("1");
 
 	await page.getByLabel("Erase button").first().click();
+	await page.waitForTimeout(1000);
 	await canvas.click({ position: { x: 100, y: 100 } });
 
 	await page.getByLabel("Clear canvas").first().click();
+	await page.waitForTimeout(1000);
 	await apply_button.click();
 	await expect(apply_text).toContainText("2");
 });
