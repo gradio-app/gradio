@@ -8,4 +8,4 @@
 "gradio": minor
 ---
 
-feat:Adds ability to wait for file uploads before triggering event
+feat:Adds ability to block event trigger when file is uploading
