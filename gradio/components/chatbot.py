@@ -288,19 +288,14 @@ class Chatbot(Component):
                     raise Error(
                         "Data incompatible with files format. The 'files' passed should be a list of file paths or URLs."
                     )
-                files = []
                 if file_info is not None:
                     for i, file in enumerate(file_info):
                         orig_name = Path(file).name
                         file_data = self.serve_static_file(file)
                         if file_data is not None:
                             file_data["orig_name"] = orig_name
-                            file_data["mime_type"] = client_utils.get_mimetype(
-                                orig_name
-                            )
-                            file_info[i] = FileData(**file_data)
-                            files.append(file_data)
-                self.suggestions[i]["files"] = files
+                            file_data["mime_type"] = client_utils.get_mimetype(orig_name)
+                            file_info[i] = file_data
 
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):

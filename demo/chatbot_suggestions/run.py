@@ -33,8 +33,12 @@ with gr.Blocks(fill_height=True) as demo:
         elem_id="chatbot",
         bubble_full_width=False,
         scale=1,
-        placeholder='<h1 style="font-weight: bold; color: #FF6B6B; text-align: center; font-size: 48px; font-family: Arial, sans-serif;">Welcome to Gradio!</h1>',
-        suggestions=[{"icon": os.path.join(os.path.dirname(__file__), "files/avatar.png"), "display_text": "Display Text Here!", "text": "Try this example with this audio.", "files": [os.path.join(os.path.dirname(__file__), "files/cantina.wav")]}, {"text": "Try this example with this image.", "files": [os.path.join(os.path.dirname(__file__), "files/avatar.png")]}, {"text": "This is just text, no files!"}, {"text": "Try this example with this image.", "files": [os.path.join(os.path.dirname(__file__), "files/avatar.png"), os.path.join(os.path.dirname(__file__), "files/avatar.png")]}, {"text": "Try this example with this Audio.", "files": [os.path.join(os.path.dirname(__file__), "files/cantina.wav")]}]
+        placeholder='<h1 style="font-weight: bold; color: #FFFFFF; text-align: center; font-size: 48px; font-family: Arial, sans-serif;">Welcome to Gradio!</h1>',
+        suggestions=[{"icon": os.path.join(os.path.dirname(__file__), "files/avatar.png"), "display_text": "Display Text Here!", "text": "Try this example with this audio.", "files": [os.path.join(os.path.dirname(__file__), "files/cantina.wav")]},
+                     {"text": "Try this example with this image.", "files": [os.path.join(os.path.dirname(__file__), "files/avatar.png")]},
+                     {"text": "This is just text, no files!"},
+                     {"text": "Try this example with this image.", "files": [os.path.join(os.path.dirname(__file__), "files/avatar.png"), os.path.join(os.path.dirname(__file__), "files/avatar.png")]},
+                     {"text": "Try this example with this Audio.", "files": [os.path.join(os.path.dirname(__file__), "files/cantina.wav")]}]
     )
 
     chat_input = gr.MultimodalTextbox(interactive=True,
