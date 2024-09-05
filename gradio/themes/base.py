@@ -997,7 +997,7 @@ class Base(ThemeClass):
         self.body_text_weight = body_text_weight or getattr(
             self, "body_text_weight", "400"
         )
-        self.embed_radius = embed_radius or getattr(self, "embed_radius", "*radius_lg")
+        self.embed_radius = embed_radius or getattr(self, "embed_radius", "*radius_sm")
         # Core Colors
         self.color_accent = color_accent or getattr(
             self, "color_accent", "*primary_500"
@@ -1161,12 +1161,12 @@ class Base(ThemeClass):
         self.block_label_radius = block_label_radius or getattr(
             self,
             "block_label_radius",
-            "calc(*radius_lg - 1px) 0 calc(*radius_lg - 1px) 0",
+            "calc(*radius_sm - 1px) 0 calc(*radius_sm - 1px) 0",
         )
         self.block_label_right_radius = block_label_right_radius or getattr(
             self,
             "block_label_right_radius",
-            "0 calc(*radius_lg - 1px) 0 calc(*radius_lg - 1px)",
+            "0 calc(*radius_sm - 1px) 0 calc(*radius_sm - 1px)",
         )
         self.block_label_text_size = block_label_text_size or getattr(
             self, "block_label_text_size", "*text_sm"
@@ -1177,7 +1177,7 @@ class Base(ThemeClass):
         self.block_padding = block_padding or getattr(
             self, "block_padding", "*spacing_xl calc(*spacing_xl + 2px)"
         )
-        self.block_radius = block_radius or getattr(self, "block_radius", "*radius_lg")
+        self.block_radius = block_radius or getattr(self, "block_radius", "*radius_sm")
         self.block_shadow = block_shadow or getattr(self, "block_shadow", "none")
         self.block_shadow_dark = block_shadow_dark or getattr(
             self, "block_shadow_dark", None
@@ -1220,7 +1220,7 @@ class Base(ThemeClass):
             self, "block_title_text_weight", "400"
         )
         self.container_radius = container_radius or getattr(
-            self, "container_radius", "*radius_lg"
+            self, "container_radius", "*radius_sm"
         )
         self.form_gap_width = form_gap_width or getattr(self, "form_gap_width", "0px")
         self.layout_gap = layout_gap or getattr(self, "layout_gap", "*spacing_xxl")
@@ -1298,13 +1298,11 @@ class Base(ThemeClass):
         )
         self.checkbox_background_color_selected = (
             checkbox_background_color_selected
-            or getattr(self, "checkbox_background_color_selected", "*secondary_600")
+            or getattr(self, "checkbox_background_color_selected", "*color_accent")
         )
         self.checkbox_background_color_selected_dark = (
             checkbox_background_color_selected_dark
-            or getattr(
-                self, "checkbox_background_color_selected_dark", "*secondary_600"
-            )
+            or getattr(self, "checkbox_background_color_selected_dark", "*color_accent")
         )
         self.checkbox_border_color = checkbox_border_color or getattr(
             self, "checkbox_border_color", "*neutral_300"
@@ -1313,11 +1311,11 @@ class Base(ThemeClass):
             self, "checkbox_border_color_dark", "*neutral_700"
         )
         self.checkbox_border_color_focus = checkbox_border_color_focus or getattr(
-            self, "checkbox_border_color_focus", "*secondary_500"
+            self, "checkbox_border_color_focus", "*color_accent"
         )
         self.checkbox_border_color_focus_dark = (
             checkbox_border_color_focus_dark
-            or getattr(self, "checkbox_border_color_focus_dark", "*secondary_500")
+            or getattr(self, "checkbox_border_color_focus_dark", "*color_accent")
         )
         self.checkbox_border_color_hover = checkbox_border_color_hover or getattr(
             self, "checkbox_border_color_hover", "*neutral_300"
@@ -1327,11 +1325,11 @@ class Base(ThemeClass):
             or getattr(self, "checkbox_border_color_hover_dark", "*neutral_600")
         )
         self.checkbox_border_color_selected = checkbox_border_color_selected or getattr(
-            self, "checkbox_border_color_selected", "*secondary_600"
+            self, "checkbox_border_color_selected", "*color_accent"
         )
         self.checkbox_border_color_selected_dark = (
             checkbox_border_color_selected_dark
-            or getattr(self, "checkbox_border_color_selected_dark", "*secondary_600")
+            or getattr(self, "checkbox_border_color_selected_dark", "*color_accent")
         )
         self.checkbox_border_radius = checkbox_border_radius or getattr(
             self, "checkbox_border_radius", "*radius_sm"
@@ -1550,7 +1548,7 @@ class Base(ThemeClass):
         self.input_placeholder_color_dark = input_placeholder_color_dark or getattr(
             self, "input_placeholder_color_dark", "*neutral_500"
         )
-        self.input_radius = input_radius or getattr(self, "input_radius", "*radius_lg")
+        self.input_radius = input_radius or getattr(self, "input_radius", "*radius_sm")
         self.input_shadow = input_shadow or getattr(self, "input_shadow", "none")
         self.input_shadow_dark = input_shadow_dark or getattr(
             self, "input_shadow_dark", None
@@ -1613,7 +1611,7 @@ class Base(ThemeClass):
         self.table_odd_background_fill_dark = table_odd_background_fill_dark or getattr(
             self, "table_odd_background_fill_dark", "*neutral_900"
         )
-        self.table_radius = table_radius or getattr(self, "table_radius", "*radius_lg")
+        self.table_radius = table_radius or getattr(self, "table_radius", "*radius_sm")
         self.table_row_focus = table_row_focus or getattr(
             self, "table_row_focus", "*color_accent_soft"
         )
@@ -1791,7 +1789,7 @@ class Base(ThemeClass):
         )
         self.button_secondary_background_fill = (
             button_secondary_background_fill
-            or getattr(self, "button_secondary_background_fill", "*neutral_300")
+            or getattr(self, "button_secondary_background_fill", "*neutral_200")
         )
         self.button_secondary_background_fill_dark = (
             button_secondary_background_fill_dark
@@ -1799,7 +1797,7 @@ class Base(ThemeClass):
         )
         self.button_secondary_background_fill_hover = (
             button_secondary_background_fill_hover
-            or getattr(self, "button_secondary_background_fill_hover", "*neutral_400")
+            or getattr(self, "button_secondary_background_fill_hover", "*neutral_300")
         )
         self.button_secondary_background_fill_hover_dark = (
             button_secondary_background_fill_hover_dark
@@ -1808,7 +1806,7 @@ class Base(ThemeClass):
             )
         )
         self.button_secondary_border_color = button_secondary_border_color or getattr(
-            self, "button_secondary_border_color", "*neutral_300"
+            self, "button_secondary_border_color", "*neutral_200"
         )
         self.button_secondary_border_color_dark = (
             button_secondary_border_color_dark
@@ -1819,7 +1817,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_secondary_border_color_hover",
-                "*neutral_300",
+                "*neutral_200",
             )
         )
         self.button_secondary_border_color_hover_dark = (

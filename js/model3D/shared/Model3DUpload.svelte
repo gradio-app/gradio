@@ -109,7 +109,6 @@
 			on:clear={handle_clear}
 			{i18n}
 			on:undo={handle_undo}
-			absolute
 		/>
 
 		{#if use_3dgs}

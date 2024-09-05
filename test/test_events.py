@@ -37,7 +37,7 @@ class TestEvent:
         client = TestClient(app)
 
         resp = client.post(
-            f"{demo.local_url}run/predict",
+            f"{demo.local_api_url}run/predict",
             json={"fn_index": 0, "data": [], "event_data": {"index": 1, "value": None}},
         )
         assert resp.status_code == 200
