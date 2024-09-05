@@ -80,14 +80,14 @@ class ChatInterface(Blocks):
         js: str | None = None,
         head: str | None = None,
         analytics_enabled: bool | None = None,
-        submit_btn: str | None | Button = "Submit",
-        stop_btn: str | None | Button = "Stop",
         autofocus: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
         fill_height: bool = True,
         delete_cache: tuple[int, int] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "minimal",
         fill_width: bool = False,
+        submit_btn: str | bool | None = True,
+        stop_btn: str | bool | None = True,
     ):
         """
         Parameters:
@@ -107,14 +107,14 @@ class ChatInterface(Blocks):
             js: custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
             head: custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
-            submit_btn: text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
-            stop_btn: text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button.
             autofocus: if True, autofocuses to the textbox when the page loads.
             concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: if True, the chat interface will expand to the height of window.
             delete_cache: a tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
+            submit_btn: If True, will show a submit button with a submit icon within the textbox. If a string, will use that string as the submit button text in place of the icon. If False, will not show a submit button.
+            stop_btn: If True, will show a button with a stop icon during generator executions, to stop generating. If a string, will use that string as the submit button text in place of the stop icon. If False, will not show a stop button.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -138,7 +138,6 @@ class ChatInterface(Blocks):
         self.is_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
-        self.buttons: list[Button | None] = []
 
         self.examples = examples
 
@@ -203,10 +202,6 @@ class ChatInterface(Blocks):
             with Group():
                 with Row():
                     if textbox:
-                        if self.multimodal:
-                            submit_btn = None
-                        else:
-                            textbox.container = False
                         textbox.show_label = False
                         textbox_ = get_component_instance(textbox, render=True)
                         if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
@@ -214,62 +209,26 @@ class ChatInterface(Blocks):
                                 f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
                             )
                         self.textbox = textbox_
-                    elif self.multimodal:
-                        submit_btn = None
-                        self.textbox = MultimodalTextbox(
-                            show_label=False,
-                            label="Message",
-                            placeholder="Type a message...",
-                            scale=7,
-                            autofocus=autofocus,
-                        )
                     else:
-                        self.textbox = Textbox(
-                            container=False,
+                        textbox_component = (
+                            MultimodalTextbox if self.multimodal else Textbox
+                        )
+                        self.textbox = textbox_component(
                             show_label=False,
                             label="Message",
                             placeholder="Type a message...",
                             scale=7,
                             autofocus=autofocus,
+                            submit_btn=submit_btn,
+                            stop_btn=stop_btn,
                         )
-                    if submit_btn is not None and not multimodal:
-                        if isinstance(submit_btn, Button):
-                            submit_btn.render()
-                        elif isinstance(submit_btn, str):
-                            submit_btn = Button(
-                                submit_btn,
-                                variant="primary",
-                                scale=1,
-                                min_width=150,
-                            )
-                        else:
-                            raise ValueError(
-                                f"The submit_btn parameter must be a gr.Button, string, or None, not {builtins.type(submit_btn)}"
-                            )
-                    if stop_btn is not None:
-                        if isinstance(stop_btn, Button):
-                            stop_btn.visible = False
-                            stop_btn.render()
-                        elif isinstance(stop_btn, str):
-                            stop_btn = Button(
-                                stop_btn,
-                                variant="stop",
-                                visible=False,
-                                scale=1,
-                                min_width=150,
-                            )
-                        else:
-                            raise ValueError(
-                                f"The stop_btn parameter must be a gr.Button, string, or None, not {builtins.type(stop_btn)}"
-                            )
-                    self.buttons.extend([submit_btn, stop_btn])  # type: ignore
+
+                    # Hide the stop button at the beginning, and show it with the given value during the generator execution.
+                    self.original_stop_btn = self.textbox.stop_btn
+                    self.textbox.stop_btn = False
 
                 self.fake_api_btn = Button("Fake API", visible=False)
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
-                (
-                    self.submit_btn,
-                    self.stop_btn,
-                ) = self.buttons
 
             any_unrendered_inputs = any(
                 not inp.is_rendered for inp in self.additional_inputs
@@ -290,11 +249,7 @@ class ChatInterface(Blocks):
 
     def _setup_events(self) -> None:
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
-        submit_triggers = (
-            [self.textbox.submit, self.submit_btn.click]
-            if self.submit_btn
-            else [self.textbox.submit]
-        )
+        submit_triggers = [self.textbox.submit]
 
         submit_event = (
             on(
@@ -397,45 +352,34 @@ class ChatInterface(Blocks):
     def _setup_stop_events(
         self, event_triggers: list[Callable], event_to_cancel: Dependency
     ) -> None:
-        if self.stop_btn and self.is_generator:
-            if self.submit_btn:
-                for event_trigger in event_triggers:
-                    event_trigger(
-                        async_lambda(
-                            lambda: (
-                                Button(visible=False),
-                                Button(visible=True),
-                            )
-                        ),
-                        None,
-                        [self.submit_btn, self.stop_btn],
-                        show_api=False,
-                        queue=False,
-                    )
-                event_to_cancel.then(
-                    async_lambda(lambda: (Button(visible=True), Button(visible=False))),
+        textbox_component = MultimodalTextbox if self.multimodal else Textbox
+        if self.is_generator:
+            original_submit_btn = self.textbox.submit_btn
+            for event_trigger in event_triggers:
+                event_trigger(
+                    async_lambda(
+                        lambda: textbox_component(
+                            submit_btn=False,
+                            stop_btn=self.original_stop_btn,
+                        )
+                    ),
                     None,
-                    [self.submit_btn, self.stop_btn],
+                    [self.textbox],
                     show_api=False,
                     queue=False,
                 )
-            else:
-                for event_trigger in event_triggers:
-                    event_trigger(
-                        async_lambda(lambda: Button(visible=True)),
-                        None,
-                        [self.stop_btn],
-                        show_api=False,
-                        queue=False,
+            event_to_cancel.then(
+                async_lambda(
+                    lambda: textbox_component(
+                        submit_btn=original_submit_btn, stop_btn=False
                     )
-                event_to_cancel.then(
-                    async_lambda(lambda: Button(visible=False)),
-                    None,
-                    [self.stop_btn],
-                    show_api=False,
-                    queue=False,
-                )
-            self.stop_btn.click(
+                ),
+                None,
+                [self.textbox],
+                show_api=False,
+                queue=False,
+            )
+            self.textbox.stop(
                 None,
                 None,
                 None,

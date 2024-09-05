@@ -42,15 +42,16 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from gradio import processing_utils, utils
 from gradio.data_classes import BlocksConfigDict, MediaStreamChunk, PredictBody
 from gradio.exceptions import Error
-from gradio.helpers import EventData
 from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
+    from gradio.helpers import EventData
     from gradio.routes import App
 
 
 config_lock = threading.Lock()
+API_PREFIX = "/gradio_api"
 
 
 class Obj:
@@ -282,6 +283,8 @@ def prepare_event_data(
     blocks: Blocks,
     body: PredictBody,
 ) -> EventData:
+    from gradio.helpers import EventData
+
     target = body.trigger_id
     event_data = EventData(
         blocks.blocks.get(target) if target else None,

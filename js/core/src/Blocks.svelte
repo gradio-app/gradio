@@ -64,7 +64,7 @@
 		components,
 		layout,
 		dependencies,
-		root,
+		root: root + app.api_prefix,
 		app,
 		options: {
 			fill_height
@@ -315,7 +315,7 @@
 				) {
 					await app.post_data(
 						// @ts-ignore
-						`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
+						`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_index).event_id()}`,
 						{ ...payload, session_hash: app.session_hash }
 					);
 					return;
@@ -596,7 +596,7 @@
 					if (submit_map.has(dep_id)) {
 						app.post_data(
 							// @ts-ignore
-							`${app.config.root}/stream/${submit_map.get(dep_id).event_id()}/close`,
+							`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}/close`,
 							{}
 						);
 					}
