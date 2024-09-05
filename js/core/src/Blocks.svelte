@@ -190,7 +190,6 @@
 	let showed_mobile_warning = false;
 	let inputs_waiting: number[] = [];
 
-
 	// as state updates are not synchronous, we need to ensure updates are flushed before triggering any requests
 	function wait_then_trigger_api_call(
 		dep_index: number,
@@ -232,7 +231,7 @@
 	function check_inputs_ready(): boolean {
 		if (inputs_waiting.length > 0) {
 			return false;
-		} 
+		}
 		return true;
 	}
 
@@ -590,10 +589,10 @@
 			const { id, prop, value } = e.detail;
 			update_value([{ id, prop, value }]);
 			if (prop === "input_ready" && value === false) {
-				inputs_waiting.push(id)
+				inputs_waiting.push(id);
 			}
 			if (prop === "input_ready" && value === true) {
-				inputs_waiting = inputs_waiting.filter(item => item !== id);
+				inputs_waiting = inputs_waiting.filter((item) => item !== id);
 			}
 		});
 		target.addEventListener("gradio", (e: Event) => {
