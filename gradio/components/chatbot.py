@@ -294,7 +294,9 @@ class Chatbot(Component):
                         file_data = self.serve_static_file(file)
                         if file_data is not None:
                             file_data["orig_name"] = orig_name
-                            file_data["mime_type"] = client_utils.get_mimetype(orig_name)
+                            file_data["mime_type"] = client_utils.get_mimetype(
+                                orig_name
+                            )
                             file_info[i] = file_data
 
     @staticmethod
