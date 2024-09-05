@@ -53,7 +53,7 @@
 <BlockLabel {show_label} Icon={File} float={!value} label={label || "File"} />
 
 {#if value && (Array.isArray(value) ? value.length > 0 : true)}
-	<ModifyUpload {i18n} on:clear={handle_clear} absolute />
+	<ModifyUpload {i18n} on:clear={handle_clear} />
 	<FilePreview
 		{i18n}
 		on:select

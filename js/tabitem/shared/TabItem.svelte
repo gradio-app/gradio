@@ -43,10 +43,10 @@
 	div {
 		display: flex;
 		position: relative;
-		border: 1px solid var(--border-color-primary);
-		border-top: none;
-		border-bottom-right-radius: var(--container-radius);
-		border-bottom-left-radius: var(--container-radius);
+		border: none;
+		border-radius: var(--radius-sm);
 		padding: var(--block-padding);
+		width: 100%;
+		box-sizing: border-box;
 	}
 </style>

@@ -28,6 +28,7 @@ from gradio import utils, wasm_utils
 from gradio.context import LocalContext
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
 from gradio.exceptions import Error, InvalidPathError
+from gradio.route_utils import API_PREFIX
 from gradio.utils import abspath, get_hash_seed, get_upload_folder, is_in_or_equal
 
 with warnings.catch_warnings():
@@ -475,14 +476,16 @@ def move_files_to_cache(
                 if keep_in_cache:
                     block.keep_in_cache.add(payload.path)
 
-        url_prefix = "/stream/" if payload.is_stream else "/file="
+        url_prefix = (
+            f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
+        )
         if block.proxy_url:
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
+            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{payload.path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):
-            url = payload.path
+            url = f"{payload.path}"
         else:
             url = f"{url_prefix}{payload.path}"
         payload.url = url
@@ -585,10 +588,12 @@ async def async_move_files_to_cache(
                 if keep_in_cache:
                     block.keep_in_cache.add(payload.path)
 
-        url_prefix = "/stream/" if payload.is_stream else "/file="
+        url_prefix = (
+            f"{API_PREFIX}/stream/" if payload.is_stream else f"{API_PREFIX}/file="
+        )
         if block.proxy_url:
             proxy_url = block.proxy_url.rstrip("/")
-            url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
+            url = f"{API_PREFIX}/proxy={proxy_url}{url_prefix}{payload.path}"
         elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
             f"{url_prefix}"
         ):

@@ -711,6 +711,10 @@ class Events:
         "submit",
         doc="This listener is triggered when the user presses the Enter key while the {{ component }} is focused.",
     )
+    stop = EventListener(
+        "stop",
+        doc="This listener is triggered when the user clicks on the stop button or icon.",
+    )
     edit = EventListener(
         "edit",
         doc="This listener is triggered when the user edits the {{ component }} (e.g. image) using the built-in editor.",

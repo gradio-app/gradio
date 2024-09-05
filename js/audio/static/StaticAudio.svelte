@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { uploadToHuggingFace } from "@gradio/utils";
 	import { Empty } from "@gradio/atoms";
-	import { ShareButton, IconButton, BlockLabel } from "@gradio/atoms";
+	import {
+		ShareButton,
+		IconButton,
+		BlockLabel,
+		IconButtonWrapper
+	} from "@gradio/atoms";
 	import { Download, Music } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
@@ -40,7 +45,7 @@
 />
 
 {#if value !== null}
-	<div class="icon-buttons">
+	<IconButtonWrapper>
 		{#if show_download_button}
 			<DownloadLink
 				href={value.is_stream
@@ -64,7 +69,7 @@
 				{value}
 			/>
 		{/if}
-	</div>
+	</IconButtonWrapper>
 
 	<AudioPlayer
 		{value}
@@ -84,13 +89,3 @@
 		<Music />
 	</Empty>
 {/if}
-
-<style>
-	.icon-buttons {
-		display: flex;
-		position: absolute;
-		top: 6px;
-		right: 6px;
-		gap: var(--size-1);
-	}
-</style>

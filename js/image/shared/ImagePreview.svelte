@@ -2,7 +2,13 @@
 	import { createEventDispatcher, onMount } from "svelte";
 	import type { SelectData } from "@gradio/utils";
 	import { uploadToHuggingFace } from "@gradio/utils";
-	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
+	import {
+		BlockLabel,
+		Empty,
+		IconButton,
+		ShareButton,
+		IconButtonWrapper
+	} from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Image from "./Image.svelte";
@@ -62,7 +68,7 @@
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
-		<div class="icon-buttons">
+		<IconButtonWrapper>
 			{#if !is_full_screen && show_fullscreen_button}
 				<IconButton
 					Icon={Maximize}
@@ -97,7 +103,7 @@
 					{value}
 				/>
 			{/if}
-		</div>
+		</IconButtonWrapper>
 		<button on:click={handle_click}>
 			<div class:selectable class="image-frame">
 				<Image src={value.url} alt="" loading="lazy" on:load />
@@ -137,15 +143,6 @@
 
 	.selectable {
 		cursor: crosshair;
-	}
-
-	.icon-buttons {
-		display: flex;
-		position: absolute;
-		top: 6px;
-		right: 6px;
-		gap: var(--size-1);
-		z-index: 1;
 	}
 
 	:global(.fullscreen-controls svg) {
