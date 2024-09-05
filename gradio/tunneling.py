@@ -7,7 +7,6 @@ import stat
 import subprocess
 import sys
 import time
-import warnings
 from pathlib import Path
 
 import httpx
@@ -95,8 +94,10 @@ class Tunnel:
                 calculated_hash = sha.hexdigest()
 
                 if calculated_hash != CHECKSUMS[BINARY_URL]:
-                    warnings.warn(
-                        f"Checksum of downloaded binary for creating share links does not match expected value. Please verify the integrity of the downloaded binary located at {BINARY_PATH}."
+                    raise ValueError(
+                        "Checksum of downloaded binary for creating share links does not match expected value."
+                        f"Please verify the integrity of the downloaded binary located at {BINARY_PATH}."
+                        "If you believe this is an error, please create a GitHub issue: https://github.com/gradio-app/gradio/issues"
                     )
 
     def start_tunnel(self) -> str:
