@@ -309,7 +309,7 @@
 				on:click={handle_stop}
 			>
 				{#if stop_btn === true}
-					<Square />
+					<Square fill="none" stroke_width={2.5} />
 				{:else}
 					{stop_btn}
 				{/if}
@@ -420,13 +420,16 @@
 		margin-bottom: 5px;
 		z-index: var(--layer-1);
 	}
+	.stop-button,
 	.submit-button {
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
 	}
+	.stop-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
+	.stop-button:active,
 	.submit-button:active {
 		box-shadow: var(--button-shadow-active);
 	}
@@ -434,17 +437,10 @@
 		height: 22px;
 		width: 22px;
 	}
-	.stop-button {
-		background: var(--button-cancel-background-fill);
-		color: var(--button-cancel-text-color);
-	}
-	.stop-button:hover {
-		background: var(--button-cancel-background-fill-hover);
-		color: var(--button-cancel-text-color-hover);
-	}
+
 	.stop-button :global(svg) {
-		height: 18px;
-		width: 18px;
+		height: 16px;
+		width: 16px;
 	}
 	.padded-button {
 		padding: 0 10px;
