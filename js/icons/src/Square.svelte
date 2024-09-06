@@ -1,6 +1,6 @@
 <script>
 	export let fill = "currentColor";
-	export let stroke_width = 1;
+	export let stroke_width = 1.5;
 </script>
 
 <svg
