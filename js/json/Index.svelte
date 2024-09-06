@@ -29,7 +29,7 @@
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark";
 	export let show_indices: boolean;
-	export let height: string | number | undefined;
+	export let height: string | number | undefined = undefined;
 
 	$: {
 		if (value !== old_value) {
@@ -70,3 +70,10 @@
 
 	<JSON {value} {open} {theme_mode} {show_indices} />
 </Block>
+
+<style>
+	:global(.json) {
+		display: flex;
+		flex-direction: column;
+	}
+</style>

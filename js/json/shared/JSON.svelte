@@ -91,7 +91,8 @@
 
 	.json-holder {
 		padding: var(--size-2);
-		overflow-y: scroll;
+		overflow-y: auto;
+		max-height: 100%;
 	}
 
 	.empty-wrapper {
