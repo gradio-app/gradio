@@ -1277,7 +1277,7 @@ class App(FastAPI):
 
 def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     """Safely join the user path to the directory while performing some additional http-related checks,
-    e.g. ensuring that the full path exists on the local file system and directory"""
+    e.g. ensuring that the full path exists on the local file system and is not a directory"""
     if path == "":
         raise fastapi.HTTPException(400)
     if route_utils.starts_with_protocol(path):
