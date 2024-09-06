@@ -1,14 +1,17 @@
-<div class="icon-button-wrapper">
+<script>
+	export let top_panel = true;
+</script>
+
+<div class={`icon-button-wrapper ${top_panel ? "top-panel" : ""}`}>
 	<slot></slot>
 </div>
 
 <style>
 	.icon-button-wrapper {
-		position: absolute;
 		display: flex;
 		flex-direction: row;
-		top: var(--block-label-margin);
-		right: var(--block-label-margin);
+		align-items: center;
+		justify-content: center;
 		z-index: var(--layer-2);
 		gap: var(--spacing-sm);
 		box-shadow: var(--shadow-drop);
@@ -18,6 +21,18 @@
 		border-radius: var(--block-label-right-radius);
 		background: var(--block-background-fill);
 		padding: var(--spacing-xxs);
+	}
+
+	.icon-button-wrapper:not(.top-panel) {
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+	}
+
+	.top-panel {
+		position: absolute;
+		top: var(--block-label-margin);
+		right: var(--block-label-margin);
+		margin: 0;
 	}
 
 	.icon-button-wrapper :global(button) {
