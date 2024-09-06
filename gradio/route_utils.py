@@ -46,6 +46,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from gradio import processing_utils, utils
 from gradio.data_classes import (
     BlocksConfigDict,
+    PredictBody,
     PredictBodyInternal,
 )
 from gradio.exceptions import Error
@@ -215,9 +216,7 @@ class FnIndexInferError(Exception):
     pass
 
 
-def get_fn(
-    blocks: Blocks, api_name: str | None, body: PredictBodyInternal
-) -> BlockFunction:
+def get_fn(blocks: Blocks, api_name: str | None, body: PredictBody) -> BlockFunction:
     if body.session_hash:
         session_state = blocks.state_holder[body.session_hash]
         fns = session_state.blocks_config.fns
