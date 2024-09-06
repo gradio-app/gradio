@@ -23,8 +23,16 @@ from typing import (
 from fastapi import Request
 from gradio_client.documentation import document
 from gradio_client.utils import traverse
-from pydantic import BaseModel, RootModel, ValidationError
-from typing_extensions import NotRequired
+from pydantic import (
+    BaseModel,
+    GetCoreSchemaHandler,
+    GetJsonSchemaHandler,
+    RootModel,
+    ValidationError,
+)
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import core_schema
+from typing_extensions import Annotated, NotRequired
 
 try:
     from pydantic import JsonValue
@@ -46,6 +54,30 @@ class SimplePredictBody(BaseModel):
     session_hash: Optional[str] = None
 
 
+class _StarletteRequestPydanticAnnotation:
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls,
+        _source_type: Any,
+        _handler: GetCoreSchemaHandler,
+    ) -> core_schema.CoreSchema:
+        def validate_request(value: Any) -> Request:
+            if isinstance(value, Request):
+                return value
+            raise ValueError("Input must be a Starlette Request object")
+
+        return core_schema.no_info_plain_validator_function(validate_request)
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, _core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        return {"type": "object", "title": "StarletteRequest"}
+
+
+PydanticStarletteRequest = Annotated[Request, _StarletteRequestPydanticAnnotation]
+
+
 class PredictBody(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
@@ -59,7 +91,7 @@ class PredictBody(BaseModel):
     batched: Optional[bool] = (
         False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
     )
-    request: Optional[Request] = (
+    request: Optional[PydanticStarletteRequest] = (
         None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
     )
 
