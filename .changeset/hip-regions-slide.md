@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Use Pydantic-compatible type for starlette.Request
+fix:Use Pydantic-compatible type for starlette.Request
