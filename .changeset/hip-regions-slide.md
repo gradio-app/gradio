@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Use Pydantic-compatible type for starlette.Request
+fix:Separate starlette.Request from PredictBody. Only set in new PredictBodyInternal object
