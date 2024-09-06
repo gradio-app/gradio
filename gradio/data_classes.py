@@ -79,8 +79,6 @@ PydanticStarletteRequest = Annotated[Request, _StarletteRequestPydanticAnnotatio
 
 
 class PredictBody(BaseModel):
-    model_config = {"arbitrary_types_allowed": True}
-
     session_hash: Optional[str] = None
     event_id: Optional[str] = None
     data: List[Any]
