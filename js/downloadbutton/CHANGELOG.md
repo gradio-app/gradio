@@ -1,5 +1,17 @@
 # @gradio/downloadbutton
 
+## 0.1.28
+
+### Fixes
+
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.6.1
+- @gradio/client@1.5.2
+- @gradio/button@0.2.51
+
 ## 0.1.27
 
 ### Features

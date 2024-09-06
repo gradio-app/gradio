@@ -1,5 +1,23 @@
 # @gradio/dataset
 
+## 0.2.5
+
+### Features
+
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Fixes
+
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.6.1
+- @gradio/atoms@0.8.1
+- @gradio/client@1.5.2
+- @gradio/upload@0.12.4
+- @gradio/textbox@0.7.0
+
 ## 0.2.4
 
 ### Features
