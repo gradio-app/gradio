@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/accordion",
-	"version": "0.3.22",
+	"version": "0.3.23",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -10,7 +10,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/column": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
-		"@gradio/utils": "workspace:0.6.0"
+		"@gradio/utils": "workspace:0.6.1"
 	},
 	"peerDependencies": {
 		"svelte": "^4.0.0"
