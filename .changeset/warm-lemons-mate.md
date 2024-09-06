@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:Change textbox stop button styling
+feat:Match style of textbox stop button to submit button
