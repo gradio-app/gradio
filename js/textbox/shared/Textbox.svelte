@@ -309,7 +309,7 @@
 				on:click={handle_stop}
 			>
 				{#if stop_btn === true}
-					<Square fill="none" stroke_width={2.5}/>
+					<Square fill="none" stroke_width={2.5} />
 				{:else}
 					{stop_btn}
 				{/if}
