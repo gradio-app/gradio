@@ -46,7 +46,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from gradio import processing_utils, utils
 from gradio.data_classes import (
     BlocksConfigDict,
-    PredictBody,
+    PredictBodyInternal,
 )
 from gradio.exceptions import Error
 from gradio.helpers import EventData
@@ -215,7 +215,9 @@ class FnIndexInferError(Exception):
     pass
 
 
-def get_fn(blocks: Blocks, api_name: str | None, body: PredictBody) -> BlockFunction:
+def get_fn(
+    blocks: Blocks, api_name: str | None, body: PredictBodyInternal
+) -> BlockFunction:
     if body.session_hash:
         session_state = blocks.state_holder[body.session_hash]
         fns = session_state.blocks_config.fns
@@ -235,7 +237,7 @@ def get_fn(blocks: Blocks, api_name: str | None, body: PredictBody) -> BlockFunc
 
 
 def compile_gr_request(
-    body: PredictBody,
+    body: PredictBodyInternal,
     fn: BlockFunction,
     username: Optional[str],
     request: Optional[fastapi.Request],
@@ -261,7 +263,7 @@ def compile_gr_request(
     return gr_request
 
 
-def restore_session_state(app: App, body: PredictBody):
+def restore_session_state(app: App, body: PredictBodyInternal):
     event_id = body.event_id
     session_hash = getattr(body, "session_hash", None)
     if session_hash is not None:
@@ -287,7 +289,7 @@ def restore_session_state(app: App, body: PredictBody):
 
 def prepare_event_data(
     blocks: Blocks,
-    body: PredictBody,
+    body: PredictBodyInternal,
 ) -> EventData:
     target = body.trigger_id
     event_data = EventData(
@@ -299,7 +301,7 @@ def prepare_event_data(
 
 async def call_process_api(
     app: App,
-    body: PredictBody,
+    body: PredictBodyInternal,
     gr_request: Union[Request, list[Request]],
     fn: BlockFunction,
     root_path: str,

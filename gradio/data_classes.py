@@ -91,9 +91,6 @@ class PredictBody(BaseModel):
     batched: Optional[bool] = (
         False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
     )
-    request: Optional[PydanticStarletteRequest] = (
-        None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
-    )
 
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema, handler):
@@ -109,10 +106,17 @@ class PredictBody(BaseModel):
                 "trigger_id": {"type": "integer"},
                 "simple_format": {"type": "boolean"},
                 "batched": {"type": "boolean"},
-                "request": {"type": "object"},
             },
             "required": ["data"],
         }
+
+
+class PredictBodyInternal(PredictBody):
+    "Separate class to avoid exposing PydanticStarletteRequest in the API validation"
+
+    request: Optional[PydanticStarletteRequest] = (
+        None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
+    )
 
 
 class ResetBody(BaseModel):
