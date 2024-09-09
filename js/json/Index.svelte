@@ -37,6 +37,8 @@
 			gradio.dispatch("change");
 		}
 	}
+
+	let label_height = 0;
 </script>
 
 <Block
@@ -51,15 +53,17 @@
 	allow_overflow={false}
 	{height}
 >
-	{#if label}
-		<BlockLabel
-			Icon={JSONIcon}
-			{show_label}
-			{label}
-			float={false}
-			disable={container === false}
-		/>
-	{/if}
+	<div bind:clientHeight={label_height}>
+		{#if label}
+			<BlockLabel
+				Icon={JSONIcon}
+				{show_label}
+				{label}
+				float={false}
+				disable={container === false}
+			/>
+		{/if}
+	</div>
 
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
@@ -68,12 +72,5 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	<JSON {value} {open} {theme_mode} {show_indices} />
+	<JSON {value} {open} {theme_mode} {show_indices} {label_height} />
 </Block>
-
-<style>
-	:global(.json) {
-		display: flex;
-		flex-direction: column;
-	}
-</style>
