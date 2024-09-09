@@ -465,13 +465,14 @@ def get_default_args(func: Callable) -> list[Any]:
     ]
 
 
-
 def safe_deepcopy(obj: Any) -> Any:
     try:
         return copy.deepcopy(obj)
     except Exception:
         if isinstance(obj, dict):
-            return {safe_deepcopy(key): safe_deepcopy(value) for key, value in obj.items()}
+            return {
+                safe_deepcopy(key): safe_deepcopy(value) for key, value in obj.items()
+            }
         elif isinstance(obj, list):
             return [safe_deepcopy(item) for item in obj]
         elif isinstance(obj, tuple):
