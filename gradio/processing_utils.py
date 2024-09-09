@@ -500,7 +500,7 @@ def move_files_to_cache(
 
 def _check_allowed(path: str | Path, check_in_upload_folder: bool):
     blocks = LocalContext.blocks.get()
-    if blocks is None or blocks.is_launching:
+    if blocks is None or not blocks.has_launched:
         return
 
     abs_path = utils.abspath(path)
