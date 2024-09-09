@@ -1,5 +1,20 @@
 # gradio
 
+## 4.43.0
+
+### Features
+
+- [#9160](https://github.com/gradio-app/gradio/pull/9160) [`8f5a895`](https://github.com/gradio-app/gradio/commit/8f5a8950c949996f7c439b11a7aa40edda3e8562) - Fix native plot lite demos.  Thanks @aliabd!
+- [#9185](https://github.com/gradio-app/gradio/pull/9185) [`2daf3d1`](https://github.com/gradio-app/gradio/commit/2daf3d10f5986675f6ceb75ebb50c9d991c282bf) - Adding `maxlength` attribute handling of `textarea` and `input` HTML element for the `gr.TextBox()` component via a `max_length` parameter.  Thanks @WH-Yoshi!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9225](https://github.com/gradio-app/gradio/pull/9225) [`5f2e047`](https://github.com/gradio-app/gradio/commit/5f2e047c2ce114cebc95d5dba16c4df10fa73eb1) - Add a 'None' option to the gradio.Image component to disable image_m….  Thanks @GeeMoose!
+
+### Fixes
+
+- [#9242](https://github.com/gradio-app/gradio/pull/9242) [`d0e93d7`](https://github.com/gradio-app/gradio/commit/d0e93d70e87ea64f144e8eda7d5d49c27b6158e5) - Fix for create_or_modify_pyi read_text Windows Issue in component_meta.py.  Thanks @SmirkingKitsune!
+- [#9189](https://github.com/gradio-app/gradio/pull/9189) [`ab142ee`](https://github.com/gradio-app/gradio/commit/ab142ee13d19070b75b5eb03efcda7193b8993c2) - Fix serialization error in curl api.  Thanks @freddyaboulton!
+- [#9277](https://github.com/gradio-app/gradio/pull/9277) [`d9c4c86`](https://github.com/gradio-app/gradio/commit/d9c4c8606acf9ab36390e35ab10e43bb3191ced5) - Pin `fastapi<0.113.0` in `requirements.txt`.  Thanks @abidlabs!
+
 ## 4.42.0
 
 ### Features
