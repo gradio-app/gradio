@@ -24,6 +24,7 @@ en = {
     "COLAB_WARNING": "Note: opening Chrome Inspector may crash demo inside Colab notebooks.",
     "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)",
     "INLINE_DISPLAY_BELOW": "Interface loading below...",
+    "COULD_NOT_GET_SHARE_LINK_CHECKSUM": "\nCould not create share link. Checksum mismatch for file: {}.",
 }
 
 
