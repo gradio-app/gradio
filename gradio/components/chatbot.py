@@ -31,7 +31,6 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 from gradio.exceptions import Error
-from gradio.processing_utils import move_resource_to_block_cache
 
 
 class MetadataDict(TypedDict):
