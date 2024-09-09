@@ -69,7 +69,7 @@ class Tunnel:
 
     @staticmethod
     def download_binary():
-        if not Path(BINARY_PATH).exists():
+        if Path(BINARY_PATH).exists():
             resp = httpx.get(BINARY_URL, timeout=30)
 
             if resp.status_code == 403:
@@ -93,7 +93,7 @@ class Tunnel:
                         sha.update(chunk)
                 calculated_hash = sha.hexdigest()
 
-                if calculated_hash != CHECKSUMS[BINARY_URL]:
+                if calculated_hash != (CHECKSUMS[BINARY_URL] + "a"):
                     raise ValueError(
                         "Checksum of downloaded binary for creating share links does not match expected value."
                         f"Please verify the integrity of the downloaded binary located at {BINARY_PATH}."
