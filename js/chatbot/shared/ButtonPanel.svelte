@@ -62,14 +62,22 @@
 					href={message?.content?.value.url}
 					download={message.content.value.orig_name || "image"}
 				>
-					<IconButton icon={DownloadIcon} />
+					<IconButton Icon={DownloadIcon} />
 				</DownloadLink>
 			{/if}
 			{#if _retryable}
-				<IconButton Icon={Retry} on:click={handle_action} disabled={disable} />
+				<IconButton
+					Icon={Retry}
+					on:click={() => handle_action("retry")}
+					disabled={disable}
+				/>
 			{/if}
 			{#if _undoable}
-				<IconButton Icon={Undo} on:click={handle_action} disabled={disable} />
+				<IconButton
+					Icon={Undo}
+					on:click={() => handle_action("undo")}
+					disabled={disable}
+				/>
 			{/if}
 			{#if likeable}
 				<LikeDislike {handle_action} />
