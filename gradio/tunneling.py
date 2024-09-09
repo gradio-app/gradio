@@ -95,7 +95,7 @@ class Tunnel:
                         sha.update(chunk)
                 calculated_hash = sha.hexdigest()
 
-                if calculated_hash != (CHECKSUMS[BINARY_URL] + "a"):
+                if calculated_hash != CHECKSUMS[BINARY_URL]:
                     raise ChecksumMismatchError()
 
     def start_tunnel(self) -> str:
