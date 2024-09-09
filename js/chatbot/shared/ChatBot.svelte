@@ -312,6 +312,7 @@
 				Icon={Community}
 				on:click={async () => {
 					try {
+						// @ts-ignore
 						const formatted = await format_chat_for_sharing(value);
 						dispatch("share", {
 							description: formatted
