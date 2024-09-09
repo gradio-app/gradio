@@ -427,8 +427,8 @@
 					modify_stream(id, "open");
 				}
 			}
-
-			function handle_status_update(message: StatusMessage): void {
+			
+			function handle_status_update(message: StatusMessage): void { // eslint-disable-line complexity
 				const { fn_index, ...status } = message;
 				if (status.stage === "streaming" && status.time_limit) {
 					dep.inputs.forEach((id) => {
@@ -479,9 +479,12 @@
 						dependencies
 							.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
 							.forEach((dep) => {
+								console.log("triggering", dep.id);
 								wait_then_trigger_api_call(dep.id, payload.trigger_id);
 							});
 					});
+				}
+				if (status.stage === "complete") {
 					dependencies.forEach(async (dep) => {
 						if (dep.trigger_after === fn_index) {
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
