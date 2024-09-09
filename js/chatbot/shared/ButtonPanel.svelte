@@ -72,7 +72,7 @@
 				<IconButton Icon={Undo} on:click={handle_action} disabled={disable} />
 			{/if}
 			{#if likeable}
-				<LikeDislike {handle_action} padded={show_copy || show_download} />
+				<LikeDislike {handle_action} />
 			{/if}
 		</IconButtonWrapper>
 	</div>
