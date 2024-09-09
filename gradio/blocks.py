@@ -66,6 +66,7 @@ from gradio.events import (
     EventListenerMethod,
 )
 from gradio.exceptions import (
+    ChecksumMismatchError,
     DuplicateBlockError,
     InvalidApiNameError,
     InvalidComponentError,
@@ -2533,12 +2534,18 @@ Received outputs:
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
-            except (RuntimeError, httpx.ConnectError):
+            except Exception as e:
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
-                if Path(BINARY_PATH).exists():
+                if isinstance(e, ChecksumMismatchError):
+                    print(
+                        strings.en["COULD_NOT_GET_SHARE_LINK_CHECKSUM"].format(
+                            BINARY_PATH
+                        )
+                    )
+                elif Path(BINARY_PATH).exists():
                     print(strings.en["COULD_NOT_GET_SHARE_LINK"])
                 else:
                     print(
