@@ -465,6 +465,23 @@ def get_default_args(func: Callable) -> list[Any]:
     ]
 
 
+
+def safe_deepcopy(obj: Any) -> Any:
+    try:
+        return copy.deepcopy(obj)
+    except Exception:
+        if isinstance(obj, dict):
+            return {safe_deepcopy(key): safe_deepcopy(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [safe_deepcopy(item) for item in obj]
+        elif isinstance(obj, tuple):
+            return tuple(safe_deepcopy(item) for item in obj)
+        elif isinstance(obj, set):
+            return {safe_deepcopy(item) for item in obj}
+        else:
+            return copy.copy(obj)
+
+
 def assert_configs_are_equivalent_besides_ids(
     config1: dict, config2: dict, root_keys: tuple = ("mode",)
 ):

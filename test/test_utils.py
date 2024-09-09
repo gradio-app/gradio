@@ -41,6 +41,7 @@ from gradio.utils import (
     sanitize_value_for_csv,
     tex2svg,
     validate_url,
+    safe_deepcopy
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -660,3 +661,35 @@ class TestUnhashableKeyDict:
         d = UnhashableKeyDict()
         with pytest.raises(KeyError):
             d["nonexistent"]
+
+
+class TestSafeDeepCopy():
+    def test_safe_deepcopy_dict(self):
+        original = {"key1": [1, 2, {"nested_key": "value"}], "key2": "simple_string"}
+        copied = safe_deepcopy(original)
+        
+        assert copied == original
+        assert copied is not original
+        assert copied["key1"] is not original["key1"]
+        assert copied["key1"][2] is not original["key1"][2]
+
+    def test_safe_deepcopy_list(self):
+        original = [1, 2, [3, 4, {"key": "value"}]]
+        copied = safe_deepcopy(original)
+        
+        assert copied == original
+        assert copied is not original
+        assert copied[2] is not original[2]
+        assert copied[2][2] is not original[2][2]
+
+    def test_safe_deepcopy_custom_object(self):
+        class CustomClass:
+            def __init__(self, value):
+                self.value = value
+        
+        original = CustomClass(10)
+        copied = safe_deepcopy(original)
+        
+        assert copied.value == original.value
+        assert copied is not original
+
