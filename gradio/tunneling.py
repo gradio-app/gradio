@@ -11,6 +11,8 @@ from pathlib import Path
 
 import httpx
 
+from gradio.exceptions import ChecksumMismatchError
+
 VERSION = "0.3"
 CURRENT_TUNNELS: list["Tunnel"] = []
 
@@ -94,11 +96,7 @@ class Tunnel:
                 calculated_hash = sha.hexdigest()
 
                 if calculated_hash != (CHECKSUMS[BINARY_URL] + "a"):
-                    raise ValueError(
-                        "Checksum of downloaded binary for creating share links does not match expected value."
-                        f"Please verify the integrity of the downloaded binary located at {BINARY_PATH}."
-                        "If you believe this is an error, please create a GitHub issue: https://github.com/gradio-app/gradio/issues"
-                    )
+                    raise ChecksumMismatchError()
 
     def start_tunnel(self) -> str:
         self.download_binary()
