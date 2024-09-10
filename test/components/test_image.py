@@ -17,7 +17,14 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
+        image_input = gr.Image()
         img = FileData(path="test/test_files/bus.png", orig_name="bus.png")
+
+        image_input = gr.Image(type="filepath")
+        image_temp_filepath = image_input.preprocess(img)
+        assert image_temp_filepath in [
+            str(f) for f in gradio_temp_dir.glob("**/*") if f.is_file()
+        ]
         image_input = gr.Image(type="pil", label="Upload Your Image")
         assert image_input.get_config() == {
             "image_mode": "RGB",
@@ -112,7 +119,11 @@ class TestImage:
         )
         assert image.path.endswith("jpeg")
 
-        assert (image_pre := component.preprocess(FileData(path=file_path)))
+        assert (
+            image_pre := component.preprocess(
+                FileData(path=file_path, orig_name="bus.png")
+            )
+        )
         assert isinstance(image_pre, str)
         assert image_pre.endswith("png")
 
