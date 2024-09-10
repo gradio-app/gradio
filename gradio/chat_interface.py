@@ -297,25 +297,6 @@ class ChatInterface(Blocks):
         )
         self._setup_stop_events(submit_triggers, submit_event)
 
-        # retry_event = self.chatbot.retry(
-        #     self._modify_history_retry,
-        #     [self.chatbot],
-        #     [self.chatbot, self.saved_input],
-        #     show_api=False,
-        #     queue=False,
-        # ).then(
-        #     submit_fn,
-        #     [self.saved_input, self.chatbot] + self.additional_inputs,
-        #     [self.chatbot],
-        #     show_api=False,
-        #     concurrency_limit=cast(
-        #         Union[int, Literal["default"], None], self.concurrency_limit
-        #     ),
-        #     show_progress=cast(
-        #         Literal["full", "minimal", "hidden"], self.show_progress
-        #     ),
-        # )
-
         retry_event = (
             self.chatbot.retry(
                 self._delete_prev_fn,
