@@ -9,6 +9,9 @@
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark" = "system";
 	export let show_indices = false;
+	export let label_height: number;
+
+	$: json_max_height = `calc(100% - ${label_height}px)`;
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -56,7 +59,7 @@
 			<Copy />
 		{/if}
 	</button>
-	<div class="json-holder">
+	<div class="json-holder" style:max-height={json_max_height}>
 		<JSONNode
 			{value}
 			depth={0}
@@ -91,7 +94,7 @@
 
 	.json-holder {
 		padding: var(--size-2);
-		overflow-y: scroll;
+		overflow-y: auto;
 	}
 
 	.empty-wrapper {
