@@ -396,7 +396,7 @@ class App(FastAPI):
                 request=request, route_path="/", root_path=app.root_path
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
-                config = blocks.config
+                config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
                 config["username"] = user
             elif app.auth_dependency:
@@ -450,7 +450,7 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            config = app.get_blocks().config
+            config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
             )
@@ -483,10 +483,15 @@ class App(FastAPI):
             if module_path is None or component_instance is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
-            requested_path = utils.safe_join(
-                component_instance.__class__.TEMPLATE_DIR,
-                UserProvidedPath(f"{type}/{file_name}"),
-            )
+            try:
+                requested_path = utils.safe_join(
+                    component_instance.__class__.TEMPLATE_DIR,
+                    UserProvidedPath(f"{type}/{file_name}"),
+                )
+            except InvalidPathError:
+                raise HTTPException(
+                    status_code=404, detail="Component not found."
+                ) from None
 
             path = routes_safe_join(
                 DeveloperPath(str(Path(module_path).parent)),
