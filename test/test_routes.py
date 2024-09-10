@@ -1589,7 +1589,13 @@ def test_attacker_cannot_change_root_in_config(
         threads.append(t_attacker)
 
     for _ in range(victim_threads):
-        t_victim = Thread(target=victim, args=(url, results,))
+        t_victim = Thread(
+            target=victim,
+            args=(
+                url,
+                results,
+            ),
+        )
         threads.append(t_victim)
 
     for t in threads:
