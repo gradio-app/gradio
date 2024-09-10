@@ -974,15 +974,21 @@ class TupleNoPrint(tuple):
 
 class MatplotlibBackendMananger:
     def __enter__(self):
-        import matplotlib
+        try:
+            import matplotlib
 
-        self._original_backend = matplotlib.get_backend()
-        matplotlib.use("agg")
+            self._original_backend = matplotlib.get_backend()
+            matplotlib.use("agg")
+        except ImportError:
+            pass
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        import matplotlib
+        try:
+            import matplotlib
 
-        matplotlib.use(self._original_backend)
+            matplotlib.use(self._original_backend)
+        except ImportError:
+            pass
 
 
 def tex2svg(formula, *_args):
