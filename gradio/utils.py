@@ -113,6 +113,7 @@ class BaseReloader(ABC):
         # Copy over the blocks to get new components and events but
         # not a new queue
         demo._queue = self.running_app.blocks._queue
+        demo.has_launched = True
         demo.max_file_size = self.running_app.blocks.max_file_size
         demo.is_running = True
         self.running_app.state_holder.reset(demo)
@@ -1032,13 +1033,13 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
         path_1: str or Path (to file or directory)
         path_2: str or Path (to file or directory)
     """
-    path_1, path_2 = abspath(path_1), abspath(path_2)
+    path_1, path_2 = (
+        os.path.normpath(os.path.abspath(path_1)),
+        os.path.normpath(os.path.abspath(path_2)),
+    )
     try:
-        relative_path = path_1.relative_to(path_2)
-        if str(relative_path) == ".":
-            return True
-        relative_path = path_1.parent.relative_to(path_2)
-        return ".." not in str(relative_path)
+        relative_path = os.path.relpath(path_1, path_2)
+        return not relative_path.startswith("..")
     except ValueError:
         return False
 
