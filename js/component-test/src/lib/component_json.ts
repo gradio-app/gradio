@@ -480,8 +480,8 @@ export default [
 	{
 		name: "code",
 		props: {
-			lines: 1,
-			max_lines: 10,
+			lines: 5,
+			max_lines: 20,
 			interactive: false,
 			show_label: true,
 			container: true,
@@ -498,8 +498,8 @@ export default [
 	{
 		name: "code",
 		props: {
-			lines: 1,
-			max_lines: 10,
+			lines: 5,
+			max_lines: 20,
 			interactive: true,
 			show_label: true,
 			container: true,
