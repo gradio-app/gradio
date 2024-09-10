@@ -407,8 +407,8 @@ class TestTempFile:
             _ = client.predict(image, api_name="/predict")
             _ = client.predict(image, api_name="/predict")
             _ = client.predict(image, api_name="/predict")
-        # Upload creates a file. image preprocessing creates another one.
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
+        # Upload creates a file. image preprocessing should not create another one.
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads(self, component, connect, gradio_temp_dir):
