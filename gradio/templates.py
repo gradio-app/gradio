@@ -98,7 +98,7 @@ class Sketchpad(components.ImageEditor):
         self,
         value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
-        height: int | str | None = None,
+        max_height: int | str | None = None,
         width: int | str | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"

@@ -65,6 +65,8 @@
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
+	export let min_height: number | string | null = null;
+	export let max_height: number | string | null = null;
 	export let placeholder: string | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 </script>
@@ -77,6 +79,8 @@
 	{scale}
 	{min_width}
 	{height}
+	{min_height}
+	{max_height}
 	allow_overflow={false}
 >
 	{#if loading_status}

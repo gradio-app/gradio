@@ -36,7 +36,7 @@
 	export let root: string;
 	export let i18n: I18nFormatter;
 
-	export let height = 500;
+	export let max_height = 500;
 	export let line_breaks = true;
 	export let column_widths: string[] = [];
 	export let upload: Client["upload"];
@@ -744,7 +744,7 @@
 		>
 			<VirtualTable
 				bind:items={data}
-				max_height={height}
+				{max_height}
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}
