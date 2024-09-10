@@ -1,5 +1,11 @@
 # @gradio/json
 
+## 0.5.0
+
+### Features
+
+- [#9276](https://github.com/gradio-app/gradio/pull/9276) [`8362a10`](https://github.com/gradio-app/gradio/commit/8362a10a7e8a3c291fa0300a6f4a23a1ca997b8a) - Fix scrollbars everywhere.  Thanks @aliabid94!
+
 ## 0.4.1
 
 ### Fixes
