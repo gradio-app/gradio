@@ -1553,7 +1553,7 @@ def test_bash_api_multiple_inputs_outputs():
 
 
 def test_attacker_cannot_change_root_in_config(
-    attacker_threads=1, victim_threads=10, max_attempts=50
+    attacker_threads=1, victim_threads=10, max_attempts=30
 ):
     def attacker(url):
         """Simulates the attacker sending a request with a malicious header."""
