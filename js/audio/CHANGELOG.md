@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.13.5
+
+### Fixes
+
+- [#9188](https://github.com/gradio-app/gradio/pull/9188) [`8f8e1c6`](https://github.com/gradio-app/gradio/commit/8f8e1c6a0b09b0d1985b8377d94d693cb00f8a18) - Fix multiple trigger bug when function has js.  Thanks @freddyaboulton!
+
 ## 0.13.4
 
 ### Features
