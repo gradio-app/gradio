@@ -64,6 +64,11 @@ export const format_chat_for_sharing = async (
 		.join("\n");
 };
 
+
+export interface RetryData {
+	index: number | [number, number];
+}
+
 const redirect_src_url = (src: string, root: string): string =>
 	src.replace('src="/file', `src="${root}file`);
 

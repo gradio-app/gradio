@@ -6,6 +6,7 @@
 	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
 
 	import ChatBot from "./shared/ChatBot.svelte";
+	import type { RetryData } from "./shared/utils";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Chat } from "@gradio/icons";
@@ -50,7 +51,7 @@
 		error: string;
 		like: LikeData;
 		clear_status: LoadingStatus;
-		retry: null;
+		retry: RetryData;
 		undo: null;
 		clear: null;
 	}>;
@@ -118,7 +119,7 @@
 			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
-			on:retry={() => gradio.dispatch("retry")}
+			on:retry={(e) => gradio.dispatch("retry", e.detail)}
 			on:undo={() => gradio.dispatch("undo")}
 			on:clear={() => {
 				value = [];

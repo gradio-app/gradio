@@ -27,7 +27,7 @@ from gradio.components import (
 )
 from gradio.components.chatbot import FileDataDict, Message, MessageDict, TupleFormat
 from gradio.components.multimodal_textbox import MultimodalData
-from gradio.events import Dependency, on
+from gradio.events import Dependency, on, RetryData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args
 from gradio.layouts import Accordion, Group, Row
@@ -300,16 +300,9 @@ class ChatInterface(Blocks):
 
         retry_event = (
             self.chatbot.retry(
-                self._delete_prev_fn,
-                [self.saved_input, self.chatbot],
-                [self.chatbot, self.saved_input],
-                show_api=False,
-                queue=False,
-            )
-            .then(
-                self._display_input,
-                [self.saved_input, self.chatbot],
+                self._modify_history_retry,
                 [self.chatbot],
+                [self.chatbot, self.saved_input],
                 show_api=False,
                 queue=False,
             )
@@ -620,3 +613,13 @@ class ChatInterface(Blocks):
         else:
             history = history[: -(1 + extra)]
         return history, message or ""  # type: ignore
+
+    async def _modify_history_retry(
+        self, history: list[MessageDict] | TupleFormat, retry_data: RetryData) -> tuple[str | MultimodalData, list[MessageDict] | TupleFormat]:
+        if self.type == "messages":
+            history_without_last_generation = history[:retry_data.index]
+            last_user_message = history[retry_data.index]
+        else:
+            history_without_last_generation = history[:retry_data.index[0]]
+            last_user_message = history[retry_data.index[0]][0]
+        return history_without_last_generation, last_user_message

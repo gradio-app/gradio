@@ -306,6 +306,36 @@ class LikeData(EventData):
         """
 
 
+@document()
+class RetryData(EventData):
+    """
+    The gr.RetryData class is a subclass of gr.Event data that specifically carries information about the `.retry()` event. When gr.RetryData
+    is added as a type hint to an argument of an event listener method, a gr.RetryData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+
+        def retry(retry_data: gr.RetryData, history: list[gr.MessageDict]):
+            history_up_to_retry = history[:retry_data.index]
+            new_response = ""
+            for token in api.chat_completion(history):
+                new_response += token
+                yield history + [new_response]
+
+        with gr.Blocks() as demo:
+            chatbot = gr.Chatbot()
+            chatbot.retry(retry, chatbot, chatbot)
+        demo.launch()
+    """
+
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the message that should be retried.
+        """
+
+
 @dataclasses.dataclass
 class EventListenerMethod:
     block: Block | None

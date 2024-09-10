@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { format_chat_for_sharing, is_component_message } from "./utils";
+	import { format_chat_for_sharing, is_component_message, type RetryData } from "./utils";
 	import type { NormalisedMessage } from "../types";
 	import { Gradio, copy } from "@gradio/utils";
 
@@ -144,7 +144,7 @@
 		select: SelectData;
 		like: LikeData;
 		undo: undefined;
-		retry: undefined;
+		retry: RetryData;
 		clear: undefined;
 		share: any;
 		error: string;
@@ -226,7 +226,14 @@
 			dispatch("undo");
 			return;
 		} else if (selected === "retry") {
-			dispatch("retry");
+
+			let last_index = (value as NormalisedMessage[]).length - 1;
+			while(value[last_index].role === "assistant") {
+				last_index--;
+			}
+			dispatch("retry", {
+				index: value[last_index].index,
+			});
 			return;
 		}
 
