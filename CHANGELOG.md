@@ -1,5 +1,18 @@
 # gradio
 
+## 4.44.0
+
+### Features
+
+- [#9302](https://github.com/gradio-app/gradio/pull/9302) [`ac2c015`](https://github.com/gradio-app/gradio/commit/ac2c015bd8385c3f5e346b9cfce415f1e5f54c69) - Fileformat whitelist.  Thanks @aliabid94!
+- [#9276](https://github.com/gradio-app/gradio/pull/9276) [`8362a10`](https://github.com/gradio-app/gradio/commit/8362a10a7e8a3c291fa0300a6f4a23a1ca997b8a) - Fix scrollbars everywhere.  Thanks @aliabid94!
+
+### Fixes
+
+- [#9188](https://github.com/gradio-app/gradio/pull/9188) [`8f8e1c6`](https://github.com/gradio-app/gradio/commit/8f8e1c6a0b09b0d1985b8377d94d693cb00f8a18) - Fix multiple trigger bug when function has js.  Thanks @freddyaboulton!
+- [#9279](https://github.com/gradio-app/gradio/pull/9279) [`fb5845c`](https://github.com/gradio-app/gradio/commit/fb5845c3539e006235a2a52811a863ef2fefd66f) - Separate starlette.Request from PredictBody. Only set in new PredictBodyInternal object.  Thanks @freddyaboulton!
+- [#9267](https://github.com/gradio-app/gradio/pull/9267) [`ecf9137`](https://github.com/gradio-app/gradio/commit/ecf9137762130ab2e9f8e747feda091392b25e7a) - Add root_url to components created by gr.render.  Thanks @freddyaboulton!
+
 ## 4.43.0
 
 ### Features

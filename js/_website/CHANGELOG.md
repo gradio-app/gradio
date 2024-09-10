@@ -1,5 +1,11 @@
 # website
 
+## 0.39.0
+
+### Features
+
+- [#9291](https://github.com/gradio-app/gradio/pull/9291) [`bcb3a2b`](https://github.com/gradio-app/gradio/commit/bcb3a2b9a0e4f1a0195aed92f3ecfd1eda324464) - chore: update error.svx.  Thanks @eltociear!
+
 ## 0.38.1
 
 ### Features
