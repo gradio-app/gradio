@@ -185,7 +185,9 @@ class Image(StreamingInput, Component):
             name = "image"
             suffix = "webp"
 
-        return_as_is = suffix.lower() == "svg" or (self.type=="filepath" and self.image_mode is None)
+        return_as_is = suffix.lower() == "svg" or (
+            self.type == "filepath" and self.image_mode is None
+        )
         if return_as_is:
             return str(file_path)
 
