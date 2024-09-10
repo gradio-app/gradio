@@ -137,7 +137,6 @@ XSS_SAFE_MIMETYPES = {
     "video/webm",
     "video/ogg",
     "text/plain",
-    "application/pdf",
     "application/json",
 }
 
