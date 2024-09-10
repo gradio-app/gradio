@@ -687,11 +687,10 @@ def update_root_in_config(config: BlocksConfigDict, root: str) -> BlocksConfigDi
     root url has changed, all of the urls in the config that correspond to component
     file urls are updated to use the new root url.
     """
-    with config_lock:
-        previous_root = config.get("root")
-        if previous_root is None or previous_root != root:
-            config["root"] = root
-            config = processing_utils.add_root_url(config, root, previous_root)  # type: ignore
+    previous_root = config.get("root")
+    if previous_root is None or previous_root != root:
+        config["root"] = root
+        config = processing_utils.add_root_url(config, root, previous_root)  # type: ignore
     return config
 
 
