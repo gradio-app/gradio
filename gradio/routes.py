@@ -75,6 +75,7 @@ from gradio.data_classes import (
     DataWithFiles,
     DeveloperPath,
     PredictBody,
+    PredictBodyInternal,
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
@@ -729,7 +730,7 @@ class App(FastAPI):
                             route_path=f"/hearbeat/{session_hash}",
                             root_path=app.root_path,
                         )
-                        body = PredictBody(
+                        body = PredictBodyInternal(
                             session_hash=session_hash, data=[], request=request
                         )
                         unload_fn_indices = [
@@ -766,6 +767,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
+            body = PredictBodyInternal(**body.model_dump(), request=request)
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=body
             )
@@ -775,7 +777,6 @@ class App(FastAPI):
                     detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
-
             gr_request = route_utils.compile_gr_request(
                 body,
                 fn=fn,
@@ -810,9 +811,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            full_body = PredictBody(
-                **body.model_dump(), request=request, simple_format=True
-            )
+            full_body = PredictBody(**body.model_dump(), simple_format=True)
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
             )
@@ -847,7 +846,7 @@ class App(FastAPI):
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail="Queue is stopped.",
                 )
-
+            body = PredictBodyInternal(**body.model_dump(), request=request)
             success, event_id = await blocks._queue.push(
                 body=body, request=request, username=username
             )
