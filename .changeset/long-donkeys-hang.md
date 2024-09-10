@@ -1,4 +1,5 @@
 ---
+"@gradio/icons": minor
 "@gradio/markdown": minor
 "gradio": minor
 ---
