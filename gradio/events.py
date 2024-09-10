@@ -332,7 +332,34 @@ class RetryData(EventData):
         super().__init__(target, data)
         self.index: int | tuple[int, int] = data["index"]
         """
-        The index of the message that should be retried.
+        The index of the user message that should be retried.
+        """
+
+
+@document()
+class UndoData(EventData):
+    """
+    The gr.UndoData class is a subclass of gr.Event data that specifically carries information about the `.undo()` event. When gr.UndoData
+    is added as a type hint to an argument of an event listener method, a gr.UndoData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+
+        def undo(retry_data: gr.UndoData, history: list[gr.MessageDict]):
+            history_up_to_retry = history[:retry_data.index]
+            return history_up_to_retry
+
+        with gr.Blocks() as demo:
+            chatbot = gr.Chatbot()
+            chatbot.undo(undo, chatbot, chatbot)
+        demo.launch()
+    """
+
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the user message that should be undone.
         """
 
 

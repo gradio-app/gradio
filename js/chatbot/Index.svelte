@@ -52,7 +52,7 @@
 		like: LikeData;
 		clear_status: LoadingStatus;
 		retry: RetryData;
-		undo: null;
+		undo: RetryData;
 		clear: null;
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
@@ -120,7 +120,7 @@
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:retry={(e) => gradio.dispatch("retry", e.detail)}
-			on:undo={() => gradio.dispatch("undo")}
+			on:undo={(e) => gradio.dispatch("undo", e.detail)}
 			on:clear={() => {
 				value = [];
 				gradio.dispatch("clear");

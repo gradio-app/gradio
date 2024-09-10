@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { format_chat_for_sharing, is_component_message, type RetryData } from "./utils";
+	import {
+		format_chat_for_sharing,
+		is_component_message,
+		type RetryData
+	} from "./utils";
 	import type { NormalisedMessage } from "../types";
 	import { Gradio, copy } from "@gradio/utils";
 
@@ -143,7 +147,7 @@
 		change: undefined;
 		select: SelectData;
 		like: LikeData;
-		undo: undefined;
+		undo: RetryData;
 		retry: RetryData;
 		clear: undefined;
 		share: any;
@@ -197,16 +201,13 @@
 
 	function is_last_bot_message(
 		messages: NormalisedMessage[],
-		total_length: number
+		all_messages: NormalisedMessage[]
 	): boolean {
 		const is_bot = messages[messages.length - 1].role === "assistant";
 		const last_index = messages[messages.length - 1].index;
-		let is_last;
-		if (Array.isArray(last_index)) {
-			is_last = 2 * last_index[0] + last_index[1] === total_length - 1;
-		} else {
-			is_last = last_index === total_length - 1;
-		}
+		const is_last =
+			JSON.stringify(last_index) ===
+			JSON.stringify(all_messages[all_messages.length - 1].index);
 		return is_last && is_bot;
 	}
 
@@ -222,17 +223,23 @@
 		message: NormalisedMessage,
 		selected: string | null
 	): void {
+		const val_ = value as NormalisedMessage[];
 		if (selected === "undo") {
-			dispatch("undo");
+			let last_index = val_.length - 1;
+			while (val_[last_index].role === "assistant") {
+				last_index--;
+			}
+			dispatch("undo", {
+				index: val_[last_index].index
+			});
 			return;
 		} else if (selected === "retry") {
-
-			let last_index = (value as NormalisedMessage[]).length - 1;
-			while(value[last_index].role === "assistant") {
+			let last_index = val_.length - 1;
+			while (val_[last_index].role === "assistant") {
 				last_index--;
 			}
 			dispatch("retry", {
-				index: value[last_index].index,
+				index: val_[last_index].index
 			});
 			return;
 		}
@@ -480,13 +487,13 @@
 				</div>
 				<LikeButtons
 					show={likeable ||
-						(_retryable && is_last_bot_message(messages, value.length)) ||
-						(_undoable && is_last_bot_message(messages, value.length)) ||
+						(_retryable && is_last_bot_message(messages, value)) ||
+						(_undoable && is_last_bot_message(messages, value)) ||
 						show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					{likeable}
-					_retryable={_retryable && is_last_bot_message(messages, value.length)}
-					_undoable={_undoable && is_last_bot_message(messages, value.length)}
+					_retryable={_retryable && is_last_bot_message(messages, value)}
+					_undoable={_undoable && is_last_bot_message(messages, value)}
 					disable={generating}
 					{show_copy_button}
 					message={msg_format === "tuples" ? messages[0] : messages}
