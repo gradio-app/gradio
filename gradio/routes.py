@@ -483,10 +483,15 @@ class App(FastAPI):
             if module_path is None or component_instance is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
-            requested_path = utils.safe_join(
-                component_instance.__class__.TEMPLATE_DIR,
-                UserProvidedPath(f"{type}/{file_name}"),
-            )
+            try:
+                requested_path = utils.safe_join(
+                    component_instance.__class__.TEMPLATE_DIR,
+                    UserProvidedPath(f"{type}/{file_name}"),
+                )
+            except InvalidPathError:
+                raise HTTPException(
+                    status_code=404, detail="Component not found."
+                ) from None
 
             path = routes_safe_join(
                 DeveloperPath(str(Path(module_path).parent)),

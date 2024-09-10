@@ -148,6 +148,7 @@ class Block:
         # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
+        self.has_launched = False
 
         if render:
             self.render()
@@ -2415,6 +2416,7 @@ Received outputs:
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
             )
+            self.has_launched = True
 
             self.protocol = (
                 "https"
