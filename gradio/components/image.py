@@ -187,9 +187,7 @@ class Image(StreamingInput, Component):
 
         im = PIL.Image.open(file_path)
         if suffix.lower() == "svg" or (
-            self.type == "filepath"
-            and self.image_mode is None
-            or self.image_mode == im.mode
+            self.type == "filepath" and self.image_mode in [None, im.mode]
         ):
             return str(file_path)
 
