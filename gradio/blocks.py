@@ -1987,6 +1987,10 @@ Received outputs:
                 block_fn.renderable
             )
             output["render_config"]["render_id"] = block_fn.renderable._id
+            if root_path is not None:
+                output["render_config"] = processing_utils.add_root_url(
+                    output["render_config"], root_path, None
+                )
 
         return output
 

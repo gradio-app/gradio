@@ -1,6 +1,7 @@
 import asyncio
 import copy
 import io
+import json
 import os
 import pathlib
 import random
@@ -16,6 +17,7 @@ from unittest.mock import patch
 import gradio_client as grc
 import numpy as np
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from gradio_client import Client, media_data
 from PIL import Image
@@ -1813,3 +1815,45 @@ def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
             )
     finally:
         demo.close()
+
+
+def test_render_when_mounted_sets_root_path_for_files():
+    app = FastAPI()
+    test_video_path = "test/test_files/video_sample.mp4"
+
+    with gr.Blocks() as demo:
+        text = gr.Text()
+        gr.Video(test_video_path)
+
+        @gr.render(inputs=text)
+        def show_video(data):
+            gr.Video(test_video_path)
+
+    app = gr.mount_gradio_app(app, demo, path="/test")
+
+    with TestClient(app) as client:
+        r = client.post(
+            "/test/queue/join",
+            json={
+                "data": [""],
+                "fn_index": 0,
+                "event_data": None,
+                "session_hash": "foo",
+                "trigger_id": None,
+            },
+        )
+        assert r.status_code == 200
+        r = client.get("/test/queue/data?session_hash=foo")
+        checked_component = False
+        for msg in r.iter_lines():
+            if "data" in msg:
+                data = json.loads(msg[5:])
+                if data["msg"] == "process_completed":
+                    render_config = data["output"]["render_config"]
+                    for component in render_config["components"]:
+                        if "value" in component.get("props", {}):
+                            assert component["props"]["value"]["video"][
+                                "url"
+                            ].startswith("http://testserver/test/file=")
+                            checked_component = True
+        assert checked_component
