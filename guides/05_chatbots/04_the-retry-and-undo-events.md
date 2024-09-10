@@ -110,5 +110,6 @@ You'll see that the bot messages have a "retry" icon now -
 
 ![retry_event](https://github.com/user-attachments/assets/cec386a7-c4cd-4fb3-a2d7-78fd806ceac6)
 
+Tip: The Hugging Face inference API caches responses, so in this demo, the retry button will not generate a new response.
 
 That's it! You now know how you can implement the retry and undo events for the Chatbot.
