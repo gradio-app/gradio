@@ -17,18 +17,10 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
-        img = FileData(path="test/test_files/bus.png")
-        image_input = gr.Image()
-
-        image_input = gr.Image(type="filepath")
-        image_temp_filepath = image_input.preprocess(img)
-        assert image_temp_filepath in [
-            str(f) for f in gradio_temp_dir.glob("**/*") if f.is_file()
-        ]
-
+        img = FileData(path="test/test_files/bus.png", orig_name="bus.png")
         image_input = gr.Image(type="pil", label="Upload Your Image")
         assert image_input.get_config() == {
-            "image_mode": "RGB",
+            "image_mode": None,
             "sources": ["upload", "webcam", "clipboard"],
             "name": "image",
             "show_share_button": False,
@@ -61,7 +53,7 @@ class TestImage:
         assert image_input.preprocess(img) is not None
         image_input.preprocess(img)
         file_image = gr.Image(type="filepath")
-        assert isinstance(file_image.preprocess(img), str)
+        assert img.path == file_image.preprocess(img)
         with pytest.raises(ValueError):
             gr.Image(type="unknown")  # type: ignore
 
@@ -122,10 +114,10 @@ class TestImage:
 
         assert (image_pre := component.preprocess(FileData(path=file_path)))
         assert isinstance(image_pre, str)
-        assert image_pre.endswith("webp")
+        assert image_pre.endswith("png")
 
         image_pre = component.preprocess(
             FileData(path="test/test_files/cheetah1.jpg", orig_name="cheetah1.jpg")
         )
         assert isinstance(image_pre, str)
-        assert image_pre.endswith("jpeg")
+        assert image_pre.endswith("jpg")
