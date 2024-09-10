@@ -17,14 +17,15 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
-        image_input = gr.Image()
         img = FileData(path="test/test_files/bus.png", orig_name="bus.png")
+        image_input = gr.Image()
 
         image_input = gr.Image(type="filepath")
         image_temp_filepath = image_input.preprocess(img)
         assert image_temp_filepath in [
             str(f) for f in gradio_temp_dir.glob("**/*") if f.is_file()
         ]
+
         image_input = gr.Image(type="pil", label="Upload Your Image")
         assert image_input.get_config() == {
             "image_mode": "RGB",
