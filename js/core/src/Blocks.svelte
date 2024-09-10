@@ -228,22 +228,19 @@
 		return get_data(component_id);
 	}
 
-	function check_inputs_ready(): boolean {
-		if (inputs_waiting.length > 0) {
-			return false;
-		}
-		return true;
-	}
-
 	async function trigger_api_call(
 		dep_index: number,
 		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
 		let dep = dependencies.find((dep) => dep.id === dep_index)!;
-		if (check_inputs_ready() === false) {
-			add_new_message(WAITING_FOR_INPUTS_MESSAGE, "warning");
-			return;
+		if (inputs_waiting.length > 0) {
+			for (const input of inputs_waiting) {
+				if (dep.inputs.includes(input)) {
+					add_new_message(WAITING_FOR_INPUTS_MESSAGE, "warning");
+					return;
+				}
+			}
 		}
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
