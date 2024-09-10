@@ -49,6 +49,5 @@
 <IconButton
 	Icon={copied ? Check : Copy}
 	on:click={handle_copy}
-	label={copied ? "copied" : "copy-text"}
-	aria-label={copied ? "Copied conversation" : "Copy conversation"}
+	label={copied ? "Copied conversation" : "Copy conversation"}
 ></IconButton>
