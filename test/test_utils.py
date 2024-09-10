@@ -692,3 +692,13 @@ class TestSafeDeepCopy:
 
         assert copied.value == original.value
         assert copied is not original
+
+    def test_safe_deepcopy_handles_undeepcopyable(self):
+        class Uncopyable:
+            def __deepcopy__(self, memo):
+                raise TypeError("Can't deepcopy")
+
+        original = Uncopyable()
+        result = safe_deepcopy(original)
+        assert result is not original
+        assert type(result) is type(original)
