@@ -54,7 +54,7 @@
 			on:click={() => handle_copy()}
 		/>
 	</IconButtonWrapper>
-	<div class="json-holder">
+	<div class="json-holder" style:max-height={json_max_height}>
 		<JSONNode
 			{value}
 			depth={0}
