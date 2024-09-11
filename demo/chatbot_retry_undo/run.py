@@ -14,7 +14,7 @@ def respond(
     yield history
 
     response = {"role": "assistant", "content": ""}
-    for message in client.chat_completion(
+    for message in client.chat_completion( # type: ignore
         history,
         temperature=0.95,
         top_p=0.9,
