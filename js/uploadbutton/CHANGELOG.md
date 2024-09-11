@@ -9,7 +9,7 @@
 - @gradio/upload@0.12.4-beta.1
 - @gradio/button@0.3.0-beta.1
 
-## 0.6.19-beta.0
+## 0.6.19
 
 ### Fixes
 
@@ -17,10 +17,10 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/client@1.6.0-beta.0
-- @gradio/button@0.2.51-beta.0
-- @gradio/upload@0.12.4-beta.0
+- @gradio/utils@0.6.1
+- @gradio/client@1.5.2
+- @gradio/upload@0.12.4
+- @gradio/button@0.2.51
 
 ## 0.6.18
 

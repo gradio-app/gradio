@@ -24,13 +24,13 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/statustracker@0.8.0-beta.0
-- @gradio/atoms@0.8.1-beta.0
-- @gradio/client@1.6.0-beta.0
-- @gradio/button@0.2.51-beta.0
-- @gradio/upload@0.12.4-beta.0
-- @gradio/markdown@0.9.4-beta.0
+- @gradio/utils@0.6.1
+- @gradio/statustracker@0.7.6
+- @gradio/atoms@0.8.1
+- @gradio/client@1.5.2
+- @gradio/upload@0.12.4
+- @gradio/button@0.2.51
+- @gradio/markdown@0.9.4
 
 ## 0.10.0
 

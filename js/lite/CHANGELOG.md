@@ -13,7 +13,7 @@
 - @gradio/wasm@0.13.1-beta.1
 - @gradio/theme@0.3.0-beta.1
 
-## 4.42.1-beta.0
+## 4.43.0
 
 ### Fixes
 
@@ -21,9 +21,9 @@
 
 ### Dependency updates
 
-- @gradio/atoms@0.8.1-beta.0
-- @gradio/wasm@0.13.1-beta.0
-- @gradio/theme@0.2.5-beta.0
+- @gradio/atoms@0.8.1
+- @gradio/wasm@0.13.1
+- @gradio/theme@0.2.5
 
 ## 4.42.0
 

@@ -7,7 +7,7 @@
 - @gradio/statustracker@0.8.0-beta.1
 - @gradio/utils@0.7.0-beta.1
 
-## 0.1.5-beta.0
+## 0.1.5
 
 ### Fixes
 
@@ -15,8 +15,8 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/statustracker@0.8.0-beta.0
+- @gradio/utils@0.6.1
+- @gradio/statustracker@0.7.6
 
 ## 0.1.4
 

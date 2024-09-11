@@ -39,33 +39,41 @@
 - [#9052](https://github.com/gradio-app/gradio/pull/9052) [`f3652eb`](https://github.com/gradio-app/gradio/commit/f3652ebe08211e12739df73c15fd97e5ff81276a) - Video gallery.  Thanks @dawoodkhan82!
 - [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
 
+## 0.0.4
+
+### Fixes
+
+- [#9188](https://github.com/gradio-app/gradio/pull/9188) [`8f8e1c6`](https://github.com/gradio-app/gradio/commit/8f8e1c6a0b09b0d1985b8377d94d693cb00f8a18) - Fix multiple trigger bug when function has js.  Thanks @freddyaboulton!
+
+## 0.0.3
+
 ### Fixes
 
 - [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/statustracker@0.8.0-beta.0
-- @gradio/atoms@0.8.1-beta.0
-- @gradio/paramviewer@0.4.22-beta.0
-- @gradio/code@0.9.1-beta.0
-- @gradio/client@1.6.0-beta.0
-- @gradio/icons@0.8.0-beta.0
-- @gradio/button@0.2.51-beta.0
-- @gradio/upload@0.12.4-beta.0
-- @gradio/wasm@0.13.1-beta.0
-- @gradio/theme@0.2.5-beta.0
-- @gradio/image@0.16.0-beta.0
-- @gradio/video@0.11.0-beta.0
-- @gradio/file@0.9.4-beta.0
-- @gradio/checkbox@0.3.13-beta.0
-- @gradio/column@0.2.0-beta.0
-- @gradio/markdown@0.9.4-beta.0
-- @gradio/gallery@0.13.0-beta.0
-- @gradio/plot@0.6.5-beta.0
-- @gradio/textbox@0.7.0-beta.0
-- @gradio/tabs@0.2.14-beta.0
+- @gradio/code@0.9.1
+- @gradio/paramviewer@0.4.22
+- @gradio/utils@0.6.1
+- @gradio/statustracker@0.7.6
+- @gradio/atoms@0.8.1
+- @gradio/icons@0.7.2
+- @gradio/wasm@0.13.1
+- @gradio/client@1.5.2
+- @gradio/upload@0.12.4
+- @gradio/button@0.2.51
+- @gradio/markdown@0.9.4
+- @gradio/gallery@0.12.2
+- @gradio/theme@0.2.5
+- @gradio/plot@0.6.5
+- @gradio/textbox@0.7.0
+- @gradio/image@0.15.1
+- @gradio/video@0.10.4
+- @gradio/file@0.9.4
+- @gradio/checkbox@0.3.13
+- @gradio/column@0.1.4
+- @gradio/tabs@0.2.14
 
 ## 0.0.2
 

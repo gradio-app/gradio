@@ -13,7 +13,7 @@
 - @gradio/file@0.9.4-beta.1
 - @gradio/checkbox@0.4.0-beta.1
 
-## 0.4.19-beta.0
+## 0.4.19
 
 ### Fixes
 
@@ -21,14 +21,14 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/statustracker@0.8.0-beta.0
-- @gradio/atoms@0.8.1-beta.0
-- @gradio/client@1.6.0-beta.0
-- @gradio/icons@0.8.0-beta.0
-- @gradio/upload@0.12.4-beta.0
-- @gradio/file@0.9.4-beta.0
-- @gradio/checkbox@0.3.13-beta.0
+- @gradio/utils@0.6.1
+- @gradio/statustracker@0.7.6
+- @gradio/atoms@0.8.1
+- @gradio/icons@0.7.2
+- @gradio/client@1.5.2
+- @gradio/upload@0.12.4
+- @gradio/file@0.9.4
+- @gradio/checkbox@0.3.13
 
 ## 0.4.18
 

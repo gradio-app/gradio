@@ -10,7 +10,7 @@
 
 - @gradio/utils@0.7.0-beta.1
 
-## 0.2.14-beta.0
+## 0.2.14
 
 ### Fixes
 
@@ -18,7 +18,7 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
+- @gradio/utils@0.6.1
 
 ## 0.2.13
 
