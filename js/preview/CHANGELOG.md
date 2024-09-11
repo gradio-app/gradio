@@ -1,6 +1,6 @@
 # @gradio/preview
 
-## 0.11.1-beta.0
+## 0.11.1
 
 ### Fixes
 

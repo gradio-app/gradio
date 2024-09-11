@@ -9,7 +9,13 @@
 - @gradio/statustracker@0.8.0-beta.1
 - @gradio/utils@0.7.0-beta.1
 
-## 0.4.1-beta.0
+## 0.5.0
+
+### Features
+
+- [#9276](https://github.com/gradio-app/gradio/pull/9276) [`8362a10`](https://github.com/gradio-app/gradio/commit/8362a10a7e8a3c291fa0300a6f4a23a1ca997b8a) - Fix scrollbars everywhere.  Thanks @aliabid94!
+
+## 0.4.1
 
 ### Fixes
 
@@ -17,10 +23,10 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/statustracker@0.8.0-beta.0
-- @gradio/atoms@0.8.1-beta.0
-- @gradio/icons@0.8.0-beta.0
+- @gradio/utils@0.6.1
+- @gradio/statustracker@0.7.6
+- @gradio/atoms@0.8.1
+- @gradio/icons@0.7.2
 
 ## 0.4.0
 

@@ -32,6 +32,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let loop: boolean;
+	export let uploading = false;
 
 	let has_change_history = false;
 
@@ -82,6 +83,7 @@
 			{#if active_source === "upload"}
 				<Upload
 					bind:dragging
+					bind:uploading
 					filetype="video/x-m4v,video/*"
 					on:load={handle_load}
 					{max_file_size}

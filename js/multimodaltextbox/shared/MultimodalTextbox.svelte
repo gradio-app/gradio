@@ -366,7 +366,7 @@
 					on:click={handle_stop}
 				>
 					{#if stop_btn === true}
-						<Square />
+						<Square fill={"none"} stroke_width={2.5} />
 					{:else}
 						{stop_btn}
 					{/if}
@@ -446,17 +446,19 @@
 		padding: 0 10px;
 	}
 
+	.stop-button,
 	.upload-button,
 	.submit-button {
 		background: var(--button-secondary-background-fill);
-		color: var(--button-secondary-text-color);
 	}
 
+	.stop-button:hover,
 	.upload-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
+	.stop-button:active,
 	.upload-button:active,
 	.submit-button:active {
 		box-shadow: var(--button-shadow-active);
@@ -471,17 +473,9 @@
 		width: 17px;
 	}
 
-	.stop-button {
-		background: var(--button-cancel-background-fill);
-		color: var(--button-cancel-text-color);
-	}
-	.stop-button:hover {
-		background: var(--button-cancel-background-fill-hover);
-		color: var(--button-cancel-text-color-hover);
-	}
 	.stop-button :global(svg) {
-		height: 18px;
-		width: 18px;
+		height: 16px;
+		width: 16px;
 	}
 
 	.loader {

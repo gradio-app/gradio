@@ -17,7 +17,7 @@
 
 <!--- Usage -->
 ```python
-raise gradio.Error("An error occured 💥!", duration=5)
+raise gradio.Error("An error occurred 💥!", duration=5)
 ```
 
 <!--- Description -->
