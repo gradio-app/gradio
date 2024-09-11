@@ -223,7 +223,7 @@ async function initializeApp(
 	if (options.requirements.includes("matplotlib")) {
 		console.debug("Setting matplotlib backend.");
 		updateProgress("Setting matplotlib backend");
-		// Ref: hhttps://github.com/pyodide/pyodide/issues/561#issuecomment-1992613717
+		// Ref: https://github.com/pyodide/pyodide/issues/561#issuecomment-1992613717
 		// This backend setting is required to use matplotlib in Wasm environment.
 		await pyodide.runPythonAsync(`
 try:
