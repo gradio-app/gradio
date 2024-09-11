@@ -1,6 +1,6 @@
 # @gradio/tooltip
 
-## 0.1.2-beta.0
+## 0.1.2
 
 ### Fixes
 

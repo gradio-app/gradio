@@ -22,11 +22,11 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/atoms@0.8.1-beta.0
-- @gradio/client@1.6.0-beta.0
-- @gradio/upload@0.12.4-beta.0
-- @gradio/textbox@0.7.0-beta.0
+- @gradio/utils@0.6.1
+- @gradio/atoms@0.8.1
+- @gradio/client@1.5.2
+- @gradio/upload@0.12.4
+- @gradio/textbox@0.7.0
 
 ## 0.2.4
 

@@ -18,15 +18,17 @@
 
 - [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
 
+## 0.7.6
+
 ### Fixes
 
 - [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/atoms@0.8.1-beta.0
-- @gradio/icons@0.8.0-beta.0
+- @gradio/utils@0.6.1
+- @gradio/atoms@0.8.1
+- @gradio/icons@0.7.2
 
 ## 0.7.5
 

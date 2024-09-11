@@ -8,7 +8,7 @@
 - @gradio/client@1.6.0-beta.1
 - @gradio/button@0.3.0-beta.1
 
-## 0.1.28-beta.0
+## 0.1.28
 
 ### Fixes
 
@@ -16,9 +16,9 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/client@1.6.0-beta.0
-- @gradio/button@0.2.51-beta.0
+- @gradio/utils@0.6.1
+- @gradio/client@1.5.2
+- @gradio/button@0.2.51
 
 ## 0.1.27
 

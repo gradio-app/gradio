@@ -43,12 +43,9 @@ def setup_tunnel(
     else:
         remote_host, remote_port = share_server_address.split(":")
         remote_port = int(remote_port)
-    try:
-        tunnel = Tunnel(remote_host, remote_port, local_host, local_port, share_token)
-        address = tunnel.start_tunnel()
-        return address
-    except Exception as e:
-        raise RuntimeError(str(e)) from e
+    tunnel = Tunnel(remote_host, remote_port, local_host, local_port, share_token)
+    address = tunnel.start_tunnel()
+    return address
 
 
 def url_ok(url: str) -> bool:

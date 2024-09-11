@@ -49,7 +49,7 @@ When using the `Image` component as input, your function will receive a NumPy ar
 Gradio handles the preprocessing and postprocessing to convert images to NumPy arrays and vice versa. You can also control the preprocessing performed with the `type=` keyword argument. For example, if you wanted your function to take a file path to an image instead of a NumPy array, the input `Image` component could be written as:
 
 ```python
-gr.Image(type="filepath", shape=...)
+gr.Image(type="filepath")
 ```
 
 You can read more about the built-in Gradio components and how to customize them in the [Gradio docs](https://gradio.app/docs).

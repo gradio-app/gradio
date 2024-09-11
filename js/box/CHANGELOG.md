@@ -6,7 +6,7 @@
 
 - @gradio/atoms@0.8.1-beta.1
 
-## 0.1.25-beta.0
+## 0.1.25
 
 ### Fixes
 
@@ -14,7 +14,11 @@
 
 ### Dependency updates
 
+<<<<<<< HEAD
 - @gradio/atoms@0.8.1-beta.0
+=======
+- @gradio/atoms@0.8.1
+>>>>>>> main
 
 ## 0.1.24
 

@@ -17,7 +17,7 @@
 - @gradio/image@0.16.0-beta.1
 - @gradio/upload@0.12.4-beta.1
 
-## 0.5.7-beta.0
+## 0.5.7
 
 ### Fixes
 
@@ -25,14 +25,14 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/statustracker@0.8.0-beta.0
-- @gradio/atoms@0.8.1-beta.0
-- @gradio/client@1.6.0-beta.0
-- @gradio/icons@0.8.0-beta.0
-- @gradio/upload@0.12.4-beta.0
-- @gradio/image@0.16.0-beta.0
-- @gradio/video@0.11.0-beta.0
+- @gradio/utils@0.6.1
+- @gradio/statustracker@0.7.6
+- @gradio/atoms@0.8.1
+- @gradio/icons@0.7.2
+- @gradio/client@1.5.2
+- @gradio/upload@0.12.4
+- @gradio/image@0.15.1
+- @gradio/video@0.10.4
 
 ## 0.5.6
 

@@ -8,7 +8,7 @@
 - @gradio/icons@0.8.0-beta.1
 - @gradio/utils@0.7.0-beta.1
 
-## 0.1.25-beta.0
+## 0.1.25
 
 ### Fixes
 
@@ -16,9 +16,9 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/atoms@0.8.1-beta.0
-- @gradio/icons@0.8.0-beta.0
+- @gradio/utils@0.6.1
+- @gradio/atoms@0.8.1
+- @gradio/icons@0.7.2
 
 ## 0.1.24
 
