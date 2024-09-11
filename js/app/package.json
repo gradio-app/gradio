@@ -24,11 +24,12 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@self/build": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/core": "workspace:^",
 		"@gradio/theme": "workspace:^",
 		"@gradio/wasm": "workspace:^",
-		"@huggingface/space-header": "^1.0.3"
+		"@huggingface/space-header": "^1.0.3",
+		"@self/build": "workspace:^",
+		"@sveltejs/adapter-node": "^5.2.2"
 	}
 }

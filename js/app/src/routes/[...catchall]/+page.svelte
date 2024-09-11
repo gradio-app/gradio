@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css, prefix_css } from "@gradio/core";
+	// import { mount_css, prefix_css } from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
@@ -123,76 +123,71 @@
 
 	let css_text_stylesheet: HTMLStyleElement | null = null;
 	async function mount_custom_css(css_string: string | null): Promise<void> {
-		if (css_string) {
-			css_text_stylesheet = prefix_css(
-				css_string,
-				version,
-				css_text_stylesheet || undefined,
-			);
-		}
-		// await mount_css(
-		// 	config.root + "/theme.css?v=" + config.theme_hash,
-		// 	document.head,
+		// if (css_string) {
+		// 	css_text_stylesheet = prefix_css(
+		// 		css_string,
+		// 		version,
+		// 		css_text_stylesheet || undefined,
+		// 	);
+		// }
+		// // await mount_css(
+		// // 	config.root + "/theme.css?v=" + config.theme_hash,
+		// // 	document.head,
+		// // );
+		// if (!config.stylesheets) return;
+		// await Promise.all(
+		// 	config.stylesheets.map((stylesheet) => {
+		// 		let absolute_link =
+		// 			stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
+		// 		if (absolute_link) {
+		// 			return mount_css(stylesheet, document.head);
+		// 		}
+		// 		return fetch(config.root + "/" + stylesheet)
+		// 			.then((response) => response.text())
+		// 			.then((css_string) => {
+		// 				prefix_css(css_string, version);
+		// 			});
+		// 	}),
 		// );
-		if (!config.stylesheets) return;
-
-		await Promise.all(
-			config.stylesheets.map((stylesheet) => {
-				let absolute_link =
-					stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
-				if (absolute_link) {
-					return mount_css(stylesheet, document.head);
-				}
-
-				return fetch(config.root + "/" + stylesheet)
-					.then((response) => response.text())
-					.then((css_string) => {
-						prefix_css(css_string, version);
-					});
-			}),
-		);
 	}
 	async function add_custom_html_head(
 		head_string: string | null,
 	): Promise<void> {
-		if (head_string) {
-			const parser = new DOMParser();
-			const parsed_head_html = Array.from(
-				parser.parseFromString(head_string, "text/html").head.children,
-			);
-
-			if (parsed_head_html) {
-				for (let head_element of parsed_head_html) {
-					let newElement = document.createElement(head_element.tagName);
-					Array.from(head_element.attributes).forEach((attr) => {
-						newElement.setAttribute(attr.name, attr.value);
-					});
-					newElement.textContent = head_element.textContent;
-
-					if (
-						newElement.tagName == "META" &&
-						newElement.getAttribute("property")
-					) {
-						const domMetaList = Array.from(
-							document.head.getElementsByTagName("meta") ?? [],
-						);
-						const matched = domMetaList.find((el) => {
-							return (
-								el.getAttribute("property") ==
-									newElement.getAttribute("property") &&
-								!el.isEqualNode(newElement)
-							);
-						});
-						if (matched) {
-							document.head.replaceChild(newElement, matched);
-							continue;
-						}
-					}
-
-					document.head.appendChild(newElement);
-				}
-			}
-		}
+		// if (head_string) {
+		// 	const parser = new DOMParser();
+		// 	const parsed_head_html = Array.from(
+		// 		parser.parseFromString(head_string, "text/html").head.children,
+		// 	);
+		// 	if (parsed_head_html) {
+		// 		for (let head_element of parsed_head_html) {
+		// 			let newElement = document.createElement(head_element.tagName);
+		// 			Array.from(head_element.attributes).forEach((attr) => {
+		// 				newElement.setAttribute(attr.name, attr.value);
+		// 			});
+		// 			newElement.textContent = head_element.textContent;
+		// 			if (
+		// 				newElement.tagName == "META" &&
+		// 				newElement.getAttribute("property")
+		// 			) {
+		// 				const domMetaList = Array.from(
+		// 					document.head.getElementsByTagName("meta") ?? [],
+		// 				);
+		// 				const matched = domMetaList.find((el) => {
+		// 					return (
+		// 						el.getAttribute("property") ==
+		// 							newElement.getAttribute("property") &&
+		// 						!el.isEqualNode(newElement)
+		// 					);
+		// 				});
+		// 				if (matched) {
+		// 					document.head.replaceChild(newElement, matched);
+		// 					continue;
+		// 				}
+		// 			}
+		// 			document.head.appendChild(newElement);
+		// 		}
+		// 	}
+		// }
 	}
 
 	function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
@@ -264,7 +259,7 @@
 	let gradio_dev_mode = "";
 
 	onMount(async () => {
-		active_theme_mode = handle_theme_mode(wrapper);
+		// active_theme_mode = handle_theme_mode(wrapper);
 
 		//@ts-ignore
 		const server_port = window?.__GRADIO__SERVER_PORT__;
@@ -298,8 +293,8 @@
 			detail: "RUNNING",
 		};
 
-		await mount_custom_css(config.css);
-		await add_custom_html_head(config.head);
+		// await mount_custom_css(config.css);
+		// await add_custom_html_head(config.head);
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 

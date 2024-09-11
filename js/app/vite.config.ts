@@ -74,16 +74,19 @@ export default defineConfig(({ mode }) => {
 				]
 			}
 		},
+		optimizeDeps: {
+			exclude: ["@gradio/*"]
+		},
 		plugins: [
 			sveltekit(),
-			resolve_svelte(development),
+			// resolve_svelte(development),
 
-			generate_dev_entry({
-				enable: !development && mode !== "test"
-			}),
+			// generate_dev_entry({
+			// 	enable: !development && mode !== "test"
+			// }),
 			// inject_ejs(),
-			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
-			handle_ce_css(),
+			// generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
+			// handle_ce_css(),
 			inject_component_loader({ mode })
 		]
 	};
