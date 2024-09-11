@@ -50,14 +50,10 @@
 	.icon-button-wrapper :global(button:not(:last-child)::after) {
 		content: "";
 		position: absolute;
-		right: -5px;
+		right: -4.5px;
 		top: 15%;
 		height: 70%;
 		width: 1px;
 		background-color: var(--border-color-primary);
-	}
-
-	.icon-button-wrapper :global(a.download-link:not(:last-child)::after) {
-		right: -3px;
 	}
 </style>
