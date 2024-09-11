@@ -360,8 +360,6 @@ export interface Status {
 	time?: Date;
 	changed_state_ids?: number[];
 	time_limit?: number;
-	like_user_message: boolean;
-	event_specific_args: string[];
 }
 
 export interface StatusMessage extends Status {
