@@ -31,7 +31,6 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 from gradio.exceptions import Error
-from gradio.processing_utils import move_resource_to_block_cache
 
 
 class MetadataDict(TypedDict):
@@ -479,7 +478,7 @@ class Chatbot(Component):
 
     def _postprocess_message_messages(
         self, message: MessageDict | ChatMessage
-    ) -> list[Message]:
+    ) -> Message:
         if isinstance(message, dict):
             message["content"] = self._postprocess_content(message["content"])
             msg = Message(**message)  # type: ignore
@@ -495,30 +494,7 @@ class Chatbot(Component):
                 f"Invalid message for Chatbot component: {message}", visible=False
             )
 
-        # extract file path from message
-        new_messages = []
-        if isinstance(msg.content, str):
-            for word in msg.content.split(" "):
-                filepath = Path(word)
-                try:
-                    is_file = filepath.is_file() and filepath.exists()
-                except OSError:
-                    is_file = False
-                if is_file:
-                    filepath = cast(
-                        str, move_resource_to_block_cache(filepath, block=self)
-                    )
-                    mime_type = client_utils.get_mimetype(filepath)
-                    new_messages.append(
-                        Message(
-                            role=msg.role,
-                            metadata=msg.metadata,
-                            content=FileMessage(
-                                file=FileData(path=filepath, mime_type=mime_type)
-                            ),
-                        ),
-                    )
-        return [msg, *new_messages]
+        return msg
 
     def postprocess(
         self,
@@ -540,9 +516,8 @@ class Chatbot(Component):
             return self._postprocess_messages_tuples(cast(TupleFormat, value))
         self._check_format(value, "messages")
         processed_messages = [
-            msg
+            self._postprocess_message_messages(cast(MessageDict, message))
             for message in value
-            for msg in self._postprocess_message_messages(cast(MessageDict, message))
         ]
         return ChatbotDataMessages(root=processed_messages)
 
