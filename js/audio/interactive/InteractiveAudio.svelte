@@ -121,7 +121,6 @@
 				Boolean
 			) as FileData[]
 		)[0];
-
 		dispatch(event, value);
 	};
 
