@@ -564,7 +564,7 @@
 	}
 
 	let table_height: number =
-		values.slice(0, (height / values.length) * 37).length * 37 + 37;
+		values.slice(0, (max_height / values.length) * 37).length * 37 + 37;
 	let scrollbar_width = 0;
 
 	function sort_data(
