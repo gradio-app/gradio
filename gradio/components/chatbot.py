@@ -87,14 +87,14 @@ class Message(GradioModel):
 
 class SuggestionMessage(TypedDict):
     icon: NotRequired[
-        str | FileData
+        str | FileDataDict
     ]  # filepath or url to an image to be shown in suggestion box
     display_text: NotRequired[
         str
     ]  # text to be shown in suggestion box. If not provided, main_text will be shown
     text: NotRequired[str]  # text to be added to chatbot when suggestion is clicked
     files: NotRequired[
-        list[str | FileData]
+        list[str | FileDataDict]
     ]  # list of file paths or URLs to be added to chatbot when suggestion is clicked
 
 
@@ -281,7 +281,7 @@ class Chatbot(Component):
         self.suggestions = suggestions
         if self.suggestions is not None:
             for i, suggestion in enumerate(self.suggestions):
-                if "icon" in suggestion:
+                if "icon" in suggestion and isinstance(suggestion["icon"], str):
                     suggestion["icon"] = self.serve_static_file(suggestion["icon"])
                 file_info = suggestion.get("files")
                 if file_info is not None and not isinstance(file_info, list):
@@ -290,14 +290,16 @@ class Chatbot(Component):
                     )
                 if file_info is not None:
                     for i, file in enumerate(file_info):
-                        orig_name = Path(file).name
-                        file_data = self.serve_static_file(file)
-                        if file_data is not None:
-                            file_data["orig_name"] = orig_name
-                            file_data["mime_type"] = client_utils.get_mimetype(
-                                orig_name
-                            )
-                            file_info[i] = file_data
+                        if isinstance(file, str):
+                            orig_name = Path(file).name
+                            file_data = self.serve_static_file(file)
+                            if file_data is not None:
+                                file_data["orig_name"] = orig_name
+                                file_data["mime_type"] = client_utils.get_mimetype(
+                                    orig_name
+                                )
+                                file_data = FileDataDict(**file_data)
+                                file_info[i] = file_data
 
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
