@@ -2896,14 +2896,8 @@ No changes to highlight.
 ### Bug Fixes:
 
 - Fixes issue with `matplotlib` not rendering correctly if the backend was not set to `Agg` by [@abidlabs](https://github.com/abidlabs) in [PR 4029](https://github.com/gradio-app/gradio/pull/4029)
-<<<<<<< HEAD
 - Fixes bug where rendering the same `gr.State` across different Interfaces/Blocks within larger Blocks would not work by [@abidlabs](https://github.com/abidlabs) in [PR 4030](https://github.com/gradio-app/gradio/pull/4030)
 - Code component visual updates by [@pngwn](https://github.com/pngwn) in [PR 4051](https://github.com/gradio-app/gradio/pull/4051)
-=======
-- Fixes bug where rendering the same `gr.State` across different Interfaces/Blocks within
-a larger Blocks would not work by [@abidlabs](https://github.com/abidlabs) in [PR 4030](https://github.com/gradio-app/gradio/pull/4030)
-- Fixes issue of max height in `gr.Chatbot()` component by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 4041](https://github.com/gradio-app/gradio/pull/4041)
->>>>>>> a78dd96691a47bea69c598306adba4cce74227b6
 
 ### Documentation Changes:
 
