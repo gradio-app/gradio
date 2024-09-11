@@ -14,7 +14,7 @@
 	export let height: number | string | undefined;
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
-	
+
 	const get_dimension = (
 		dimension_value: string | number | undefined
 	): string | undefined => {
@@ -38,7 +38,6 @@
 	style:height={get_dimension(height)}
 	style:max-height={get_dimension(max_height)}
 	style:min-height={get_dimension(min_height)}
-
 	id={elem_id}
 	class={elem_classes.join(" ")}
 >

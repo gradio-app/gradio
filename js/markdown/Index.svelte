@@ -49,7 +49,6 @@
 	{height}
 	{min_height}
 	{max_height}
-
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}

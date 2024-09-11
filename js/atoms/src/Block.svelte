@@ -1,7 +1,7 @@
 <script lang="ts">
 	export let height: number | string | undefined = undefined;
 	export let min_height: number | string | undefined = undefined;
-	export let max_height: number | string | undefined = undefined;	
+	export let max_height: number | string | undefined = undefined;
 	export let width: number | string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
