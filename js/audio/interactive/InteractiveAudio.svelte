@@ -39,6 +39,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let stream_every: number;
+	export let uploading = false;
 
 	let time_limit: number | null = null;
 	let stream_state: "open" | "waiting" | "closed" = "closed";
@@ -275,6 +276,7 @@
 				filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
 				on:load={handle_load}
 				bind:dragging
+				bind:uploading
 				on:error={({ detail }) => dispatch("error", detail)}
 				{root}
 				{max_file_size}

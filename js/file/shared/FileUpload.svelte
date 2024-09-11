@@ -21,6 +21,7 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let uploading = false;
 
 	async function handle_upload({
 		detail
@@ -71,6 +72,7 @@
 		{max_file_size}
 		{root}
 		bind:dragging
+		bind:uploading
 		on:error
 		{stream_handler}
 		{upload}
