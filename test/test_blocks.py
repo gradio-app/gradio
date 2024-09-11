@@ -1847,6 +1847,7 @@ def test_post_process_file_blocked(connect):
         except FileNotFoundError:
             pass
 
+
 def test_render_when_mounted_sets_root_path_for_files():
     app = FastAPI()
     test_video_path = "test/test_files/video_sample.mp4"

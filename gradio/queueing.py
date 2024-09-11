@@ -688,7 +688,7 @@ class Queue:
                                 )
                         if not awake_events:
                             break
-                        body = cast(PredictBody, awake_events[0].data)
+                        body = cast(PredictBodyInternal, awake_events[0].data)
                         if batch:
                             body.data = list(
                                 zip(
