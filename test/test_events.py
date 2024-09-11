@@ -185,6 +185,21 @@ def test_event_pyi_file_matches_source_code():
     assert segment
     sig = inspect.signature(gr.Button.click)
     for param in sig.parameters.values():
-        if param.name == "block":
+        if param.name in ["block", "time_limit", "stream_every", "like_user_message"]:
             continue
         assert param.name in segment
+
+    code = (
+        Path(__file__).parent / ".." / "gradio" / "components" / "image.pyi"
+    ).read_text()
+    mod = ast.parse(code)
+    segment = None
+    for node in ast.walk(mod):
+        if isinstance(node, ast.FunctionDef) and node.name == "stream":
+            segment = ast.get_source_segment(code, node)
+
+    # This would fail if Image no longer has a strean method
+    assert segment
+    sig = inspect.signature(gr.Image.stream)
+    for param in ["time_limit", "stream_every"]:
+        assert param in segment
