@@ -64,9 +64,9 @@
 			: normalise_messages(value as Message[], root);
 
 	export let loading_status: LoadingStatus | undefined = undefined;
-	export let height = 400;
-	export let min_height: number | string | null = null;
-	export let max_height: number | string | null = null;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
 	export let placeholder: string | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 </script>

@@ -1,5 +1,7 @@
 <script lang="ts">
 	export let height: number | string | undefined = undefined;
+	export let min_height: number | string | undefined = undefined;
+	export let max_height: number | string | undefined = undefined;
 	export let width: number | string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -42,6 +44,8 @@
 	class:border_contrast={border_mode === "contrast"}
 	class:hide-container={!explicit_call && !container}
 	style:height={get_dimension(height)}
+	style:min-height={get_dimension(min_height)}
+	style:max-height={get_dimension(max_height)}
 	style:width={typeof width === "number"
 		? `calc(min(${width}px, 100%))`
 		: get_dimension(width)}

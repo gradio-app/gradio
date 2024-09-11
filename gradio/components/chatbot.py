@@ -155,7 +155,7 @@ class Chatbot(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        height: int | str = 400,
+        height: int | str | None = 400,
         max_height: int | str | None = None,
         min_height: int | str | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
