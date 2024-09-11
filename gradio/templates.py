@@ -98,7 +98,7 @@ class Sketchpad(components.ImageEditor):
         self,
         value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
-        max_height: int | str | None = None,
+        height: int | str | None = None,
         width: int | str | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
@@ -577,7 +577,7 @@ class Numpy(components.Dataframe):
         | Sequence[components.Component]
         | set[components.Component]
         | None = None,
-        height: int = 500,
+        max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -610,7 +610,7 @@ class Numpy(components.Dataframe):
             column_widths=column_widths,
             every=every,
             inputs=inputs,
-            height=height,
+            max_height=max_height,
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
@@ -641,7 +641,7 @@ class Matrix(components.Dataframe):
         | Sequence[components.Component]
         | set[components.Component]
         | None = None,
-        height: int = 500,
+        max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -674,7 +674,7 @@ class Matrix(components.Dataframe):
             column_widths=column_widths,
             every=every,
             inputs=inputs,
-            height=height,
+            max_height=max_height,
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
@@ -705,7 +705,7 @@ class List(components.Dataframe):
         | Sequence[components.Component]
         | set[components.Component]
         | None = None,
-        height: int = 500,
+        max_height: int = 500,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
@@ -738,7 +738,7 @@ class List(components.Dataframe):
             column_widths=column_widths,
             every=every,
             inputs=inputs,
-            height=height,
+            max_height=max_height,
             scale=scale,
             latex_delimiters=latex_delimiters,
             min_width=min_width,
