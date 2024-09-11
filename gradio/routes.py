@@ -6,7 +6,6 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
-import importlib
 import importlib.resources
 import inspect
 import json
@@ -109,13 +108,13 @@ STATIC_TEMPLATE_LIB = cast(
 STATIC_PATH_LIB = cast(
     DeveloperPath,
     importlib.resources.files("gradio")
-    .joinpath("templates", "frontend", "static")
+    .joinpath("templates/frontend/static")
     .as_posix(),  # type: ignore
 )
 BUILD_PATH_LIB = cast(
     DeveloperPath,
     importlib.resources.files("gradio")
-    .joinpath("templates", "frontend", "assets")
+    .joinpath("templates/frontend/assets")
     .as_posix(),  # type: ignore
 )
 VERSION = get_package_version()
