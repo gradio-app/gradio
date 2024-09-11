@@ -1,6 +1,10 @@
 {
 	"name": "@self/build",
+<<<<<<< HEAD
 	"version": "0.0.3-beta.1",
+=======
+	"version": "0.0.3",
+>>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "out/index.js",
