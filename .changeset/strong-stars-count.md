@@ -5,6 +5,7 @@
 "@gradio/fileexplorer": minor
 "@gradio/json": minor
 "@gradio/markdown": minor
+"@gradio/row": minor
 "gradio": minor
 ---
 
