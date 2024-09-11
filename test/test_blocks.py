@@ -1864,7 +1864,7 @@ def test_render_when_mounted_sets_root_path_for_files():
 
     with TestClient(app) as client:
         r = client.post(
-            "/test/queue/join",
+            f"/test{API_PREFIX}/queue/join",
             json={
                 "data": [""],
                 "fn_index": 0,
@@ -1874,7 +1874,7 @@ def test_render_when_mounted_sets_root_path_for_files():
             },
         )
         assert r.status_code == 200
-        r = client.get("/test/queue/data?session_hash=foo")
+        r = client.get(f"/test{API_PREFIX}/queue/data?session_hash=foo")
         checked_component = False
         for msg in r.iter_lines():
             if "data" in msg:
@@ -1885,6 +1885,6 @@ def test_render_when_mounted_sets_root_path_for_files():
                         if "value" in component.get("props", {}):
                             assert component["props"]["value"]["video"][
                                 "url"
-                            ].startswith("http://testserver/test/file=")
+                            ].startswith(f"http://testserver/test{API_PREFIX}/file=")
                             checked_component = True
         assert checked_component
