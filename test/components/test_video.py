@@ -163,14 +163,6 @@ class TestVideo:
         iface = gr.Interface(lambda x: x, "video", "playable_video")
         assert iface({"video": x_video})["video"].endswith(".mp4")
 
-    def test_with_waveform(self):
-        """
-        Interface, process
-        """
-        x_audio = media_data.BASE64_AUDIO["path"]
-        iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
-        assert iface(x_audio)["video"].endswith(".mp4")
-
     def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = Path(__file__).parent.parent / "test_files"
         # This file has a playable container but not playable codec
