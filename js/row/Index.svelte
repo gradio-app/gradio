@@ -11,6 +11,22 @@
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let gradio: Gradio | undefined = undefined;
 	export let show_progress = false;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
+	
+	const get_dimension = (
+		dimension_value: string | number | undefined
+	): string | undefined => {
+		if (dimension_value === undefined) {
+			return undefined;
+		}
+		if (typeof dimension_value === "number") {
+			return dimension_value + "px";
+		} else if (typeof dimension_value === "string") {
+			return dimension_value;
+		}
+	};
 </script>
 
 <div
@@ -19,6 +35,10 @@
 	class:unequal-height={equal_height === false}
 	class:stretch={equal_height}
 	class:hide={!visible}
+	style:height={get_dimension(height)}
+	style:max-height={get_dimension(max_height)}
+	style:min-height={get_dimension(min_height)}
+
 	id={elem_id}
 	class={elem_classes.join(" ")}
 >
@@ -44,6 +64,7 @@
 		gap: var(--layout-gap);
 		width: var(--size-full);
 		position: relative;
+		overflow: auto;
 	}
 
 	.hide {

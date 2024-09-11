@@ -33,6 +33,9 @@ class Row(BlockContext, metaclass=ComponentMeta):
         render: bool = True,
         equal_height: bool = True,
         show_progress: bool = False,
+        height: int | str | None = None,
+        max_height: int | str | None = None,
+        min_height: int | str | None = None,
     ):
         """
         Parameters:
@@ -49,6 +52,10 @@ class Row(BlockContext, metaclass=ComponentMeta):
         if variant == "compact":
             self.allow_expected_parents = False
         self.show_progress = show_progress
+        self.height = height
+        self.max_height = max_height
+        self.min_height = min_height
+
         BlockContext.__init__(
             self,
             visible=visible,
