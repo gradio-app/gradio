@@ -262,7 +262,7 @@ class Block:
         config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
         if self.rendered_in is not None:
             config["rendered_in"] = self.rendered_in._id
-        for event_attribute in ["_selectable", "_undoable", "_retryable"]:
+        for event_attribute in ["_selectable", "_undoable", "_retryable", "likeable"]:
             if (attributable := getattr(self, event_attribute, None)) is not None:
                 config[event_attribute] = attributable
         return config
@@ -519,6 +519,8 @@ class BlockFunction:
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
         stream_every: float = 0.5,
+        like_user_message: bool = False,
+        event_specific_args: list[str] | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -560,6 +562,8 @@ class BlockFunction:
         self.time_limit = time_limit
         self.stream_every = stream_every
         self.connection = connection
+        self.like_user_message = like_user_message
+        self.event_specific_args = event_specific_args
 
         self.spaces_auto_wrap()
 
@@ -611,6 +615,8 @@ class BlockFunction:
             "connection": self.connection,
             "time_limit": self.time_limit,
             "stream_every": self.stream_every,
+            "like_user_message": self.like_user_message,
+            "event_specific_args": self.event_specific_args,
         }
 
 
@@ -715,6 +721,8 @@ class BlocksConfig:
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
         stream_every: float = 0.5,
+        like_user_message: bool = False,
+        event_specific_args: list[str] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -861,6 +869,8 @@ class BlocksConfig:
             connection=connection,
             time_limit=time_limit,
             stream_every=stream_every,
+            like_user_message=like_user_message,
+            event_specific_args=event_specific_args,
         )
 
         self.fns[self.fn_id] = block_fn

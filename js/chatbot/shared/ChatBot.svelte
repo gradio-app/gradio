@@ -101,6 +101,7 @@
 	export let msg_format: "tuples" | "messages" = "tuples";
 	export let _retryable = false;
 	export let _undoable = false;
+	export let like_user_message = false;
 	export let root: string;
 
 	let target: HTMLElement | null = null;
@@ -471,13 +472,14 @@
 						{/each}
 					</div>
 				</div>
+				{@const show_like = role === "user" ? like_user_message : likeable}
 				<LikeButtons
-					show={likeable ||
+					show={show_like ||
 						(_retryable && is_last_bot_message(messages, value.length)) ||
 						(_undoable && is_last_bot_message(messages, value.length)) ||
 						show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					{likeable}
+					likeable={show_like}
 					_retryable={_retryable && is_last_bot_message(messages, value.length)}
 					_undoable={_undoable && is_last_bot_message(messages, value.length)}
 					disable={generating}
