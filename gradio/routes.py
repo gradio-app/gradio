@@ -108,11 +108,15 @@ STATIC_TEMPLATE_LIB = cast(
 )
 STATIC_PATH_LIB = cast(
     DeveloperPath,
-    importlib.resources.files("gradio").joinpath("templates", "frontend", "static").as_posix(),  # type: ignore
+    importlib.resources.files("gradio")
+    .joinpath("templates", "frontend", "static")
+    .as_posix(),  # type: ignore
 )
 BUILD_PATH_LIB = cast(
     DeveloperPath,
-    importlib.resources.files("gradio").joinpath("templates", "frontend", "assets").as_posix(),  # type: ignore
+    importlib.resources.files("gradio")
+    .joinpath("templates", "frontend", "assets")
+    .as_posix(),  # type: ignore
 )
 VERSION = get_package_version()
 XSS_SAFE_MIMETYPES = {
