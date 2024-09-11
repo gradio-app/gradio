@@ -46,6 +46,8 @@ class Markdown(Component):
         line_breaks: bool = False,
         header_links: bool = False,
         height: int | str | None = None,
+        max_height: int | str | None = None,
+        min_height: int | str | None = None,
         show_copy_button: bool = False,
     ):
         """
@@ -65,7 +67,9 @@ class Markdown(Component):
             sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
             line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
             header_links: If True, will automatically create anchors for headings, displaying a link icon on hover.
-            height: An optional maximum height of this component, specified in pixels if a number is passed, or in CSS units (e.g., '200px') if a stirng is passed in. If context exceeds this height, a scrollbar is added.
+            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll.
+            max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll. If messages are shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
+            min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             show_copy_button: If True, includes a copy button to copy the text in the Markdown component. Default is False.
         """
         self.rtl = rtl
@@ -76,6 +80,8 @@ class Markdown(Component):
         self.line_breaks = line_breaks
         self.header_links = header_links
         self.height = height
+        self.max_height = max_height
+        self.min_height = min_height
         self.show_copy_button = show_copy_button
 
         super().__init__(
