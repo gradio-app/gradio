@@ -1,7 +1,7 @@
 <script lang="ts">
 	export let height: number | string | undefined = undefined;
 	export let min_height: number | string | undefined = undefined;
-	export let max_height: number | string | undefined = undefined;
+	export let max_height: number | string | undefined = undefined;	
 	export let width: number | string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -14,6 +14,7 @@
 	export let container = true;
 	export let visible = true;
 	export let allow_overflow = true;
+	export let overflow_behavior: "visible" | "auto" = "auto";
 	export let scale: number | null = null;
 	export let min_width = 0;
 
@@ -50,7 +51,7 @@
 		? `calc(min(${width}px, 100%))`
 		: get_dimension(width)}
 	style:border-style={variant}
-	style:overflow={allow_overflow ? "visible" : "hidden"}
+	style:overflow={allow_overflow ? overflow_behavior : "hidden"}
 	style:flex-grow={scale}
 	style:min-width={`calc(min(${min_width}px, 100%))`}
 	style:border-width="var(--block-border-width)"

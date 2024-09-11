@@ -81,7 +81,8 @@
 	{height}
 	{min_height}
 	{max_height}
-	allow_overflow={false}
+	allow_overflow={true}
+	overflow_behavior="auto"
 >
 	{#if loading_status}
 		<StatusTracker
