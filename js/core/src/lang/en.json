@@ -22,7 +22,8 @@
 	"blocks": {
 		"connection_can_break": "On mobile, the connection can break if this tab is unfocused or the device sleeps, losing your position in queue.",
 		"long_requests_queue": "There is a long queue of requests pending. Duplicate this Space to skip.",
-		"lost_connection": "Lost connection due to leaving page. Rejoining queue..."
+		"lost_connection": "Lost connection due to leaving page. Rejoining queue...",
+		"waiting_for_inputs": "Waiting for file(s) to finish uploading, please retry."
 	},
 	"checkbox": {
 		"checkbox": "Checkbox",
