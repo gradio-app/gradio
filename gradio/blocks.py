@@ -2203,7 +2203,6 @@ Received outputs:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
         public link used by anyone to access the demo from their browser by setting share=True.
-
         Parameters:
             inline: whether to display in the gradio app inline in an iframe. Defaults to True in python notebooks; False otherwise.
             inbrowser: whether to automatically launch the gradio app in a new tab on the default browser.
