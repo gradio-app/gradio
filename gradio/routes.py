@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
+import importlib.resources
 import inspect
 import json
 import math
@@ -45,7 +46,6 @@ from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
-from importlib_resources import files
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -103,15 +103,19 @@ mimetypes.init()
 
 STATIC_TEMPLATE_LIB = cast(
     DeveloperPath,
-    files("gradio").joinpath("templates").as_posix(),  # type: ignore
+    importlib.resources.files("gradio").joinpath("templates").as_posix(),  # type: ignore
 )
 STATIC_PATH_LIB = cast(
     DeveloperPath,
-    files("gradio").joinpath("templates", "frontend", "static").as_posix(),  # type: ignore
+    importlib.resources.files("gradio")
+    .joinpath("templates/frontend/static")
+    .as_posix(),  # type: ignore
 )
 BUILD_PATH_LIB = cast(
     DeveloperPath,
-    files("gradio").joinpath("templates", "frontend", "assets").as_posix(),  # type: ignore
+    importlib.resources.files("gradio")
+    .joinpath("templates/frontend/assets")
+    .as_posix(),  # type: ignore
 )
 VERSION = get_package_version()
 XSS_SAFE_MIMETYPES = {
