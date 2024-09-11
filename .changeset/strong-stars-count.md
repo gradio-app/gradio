@@ -3,6 +3,7 @@
 "@gradio/chatbot": minor
 "@gradio/dataframe": minor
 "@gradio/fileexplorer": minor
+"@gradio/json": minor
 "gradio": minor
 ---
 
