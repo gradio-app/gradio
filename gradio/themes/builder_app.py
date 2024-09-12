@@ -1,6 +1,6 @@
 import inspect
 import time
-from typing import Iterable
+from collections.abc import Iterable
 
 from gradio_client.documentation import document_fn
 
@@ -12,6 +12,7 @@ themes = [
     gr.themes.Soft,
     gr.themes.Monochrome,
     gr.themes.Glass,
+    gr.themes.Origin,
 ]
 colors = gr.themes.Color.all
 sizes = gr.themes.Size.all
@@ -598,6 +599,7 @@ with gr.Blocks(  # noqa: SIM117
                     gr.themes.Size,
                 ],
                 core_variables,
+                strict=False,
             ):
                 if base_value.name != final_value:
                     core_diffs[value_name] = final_value
@@ -649,7 +651,9 @@ with gr.Blocks(  # noqa: SIM117
                 if len(base_font_set) != len(theme_font_set) or any(
                     base_font.name != theme_font[0]
                     or isinstance(base_font, gr.themes.GoogleFont) != theme_font[1]
-                    for base_font, theme_font in zip(base_font_set, theme_font_set)
+                    for base_font, theme_font in zip(
+                        base_font_set, theme_font_set, strict=False
+                    )
                 ):
                     font_diffs[font_set_name] = [
                         f"gr.themes.GoogleFont('{font_name}')"
@@ -770,19 +774,19 @@ with gr.Blocks(theme=theme) as demo:
 
             final_main_fonts = []
             font_weights = set()
-            for attr, val in zip(flat_variables, remaining_args):
+            for attr, val in zip(flat_variables, remaining_args, strict=False):
                 if "weight" in attr:
                     font_weights.add(val)
             font_weights = sorted(font_weights)
 
-            for main_font, is_google in zip(main_fonts, main_is_google):
+            for main_font, is_google in zip(main_fonts, main_is_google, strict=False):
                 if not main_font:
                     continue
                 if is_google:
                     main_font = gr.themes.GoogleFont(main_font, weights=font_weights)
                 final_main_fonts.append(main_font)
             final_mono_fonts = []
-            for mono_font, is_google in zip(mono_fonts, mono_is_google):
+            for mono_font, is_google in zip(mono_fonts, mono_is_google, strict=False):
                 if not mono_font:
                     continue
                 if is_google:
@@ -800,7 +804,7 @@ with gr.Blocks(theme=theme) as demo:
                 font_mono=final_mono_fonts,
             )
 
-            theme.set(**dict(zip(flat_variables, remaining_args)))
+            theme.set(**dict(zip(flat_variables, remaining_args, strict=False)))
             new_step = (base_theme, args)
             if len(history) == 0 or str(history[-1]) != str(new_step):
                 history.append(new_step)
@@ -820,8 +824,8 @@ with gr.Blocks(theme=theme) as demo:
                         spacing_size,
                         radius_size,
                     ),
-                    list(zip(main_fonts, main_is_google)),
-                    list(zip(mono_fonts, mono_is_google)),
+                    list(zip(main_fonts, main_is_google, strict=False)),
+                    list(zip(mono_fonts, mono_is_google, strict=False)),
                 ),
                 theme,
             )

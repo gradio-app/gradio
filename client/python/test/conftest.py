@@ -255,12 +255,10 @@ def count_generator_demo_exception():
             num = gr.Number(value=10)
             with gr.Row():
                 count_btn = gr.Button("Count")
-                count_forever = gr.Button("Count forever")
         with gr.Column():
             out = gr.Textbox()
 
         count_btn.click(count, num, out, api_name="count")
-        count_forever.click(show, num, out, api_name="count_forever", every=3)
     return demo
 
 

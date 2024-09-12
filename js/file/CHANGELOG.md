@@ -1,10 +1,22 @@
 # @gradio/file
 
-## 0.9.4
+## 0.9.4-beta.1
 
 ### Features
 
 - [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/wasm@0.13.1-beta.1
+
+## 0.9.4-beta.0
 
 ### Fixes
 
@@ -12,13 +24,13 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.6.1
-- @gradio/statustracker@0.7.6
-- @gradio/atoms@0.8.1
-- @gradio/icons@0.7.2
-- @gradio/wasm@0.13.1
-- @gradio/client@1.5.2
-- @gradio/upload@0.12.4
+- @gradio/utils@0.7.0-beta.0
+- @gradio/statustracker@0.8.0-beta.0
+- @gradio/atoms@0.8.1-beta.0
+- @gradio/client@1.6.0-beta.0
+- @gradio/icons@0.8.0-beta.0
+- @gradio/upload@0.12.4-beta.0
+- @gradio/wasm@0.13.1-beta.0
 
 ## 0.9.3
 

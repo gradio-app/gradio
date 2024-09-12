@@ -42,17 +42,16 @@ export function text_area_resize(
 ): any | undefined {
 	if (_value.lines === _value.max_lines) return;
 	_el.style.overflowY = "scroll";
-	_el.addEventListener("input", (event: Event) =>
-		resize(event.target as HTMLTextAreaElement, _value.lines, _value.max_lines)
-	);
+
+	function handle_input(event: Event): void {
+		resize(event.target as HTMLTextAreaElement, _value.lines, _value.max_lines);
+	}
+	_el.addEventListener("input", handle_input);
 
 	if (!_value.text.trim()) return;
 	resize(_el, _value.lines, _value.max_lines);
 
 	return {
-		destroy: () =>
-			_el.removeEventListener("input", (e: Event) =>
-				resize(e.target as HTMLTextAreaElement, _value.lines, _value.max_lines)
-			)
+		destroy: () => _el.removeEventListener("input", handle_input)
 	};
 }

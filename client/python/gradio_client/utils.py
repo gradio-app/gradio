@@ -13,12 +13,13 @@ import shutil
 import tempfile
 import time
 import warnings
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, Literal, Optional, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
@@ -122,6 +123,7 @@ class ServerMessage(str, Enum):
     server_stopped = "Server stopped unexpectedly."
     unexpected_error = "unexpected_error"
     close_stream = "close_stream"
+    process_streaming = "process_streaming"
 
 
 class Status(Enum):

@@ -1,10 +1,20 @@
 # @gradio/utils
 
-## 0.6.1
+## 0.7.0-beta.1
 
 ### Features
 
 - [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/theme@0.3.0-beta.1
+
+## 0.7.0
+
+### Features
+
+- [#9173](https://github.com/gradio-app/gradio/pull/9173) [`66349fe`](https://github.com/gradio-app/gradio/commit/66349fe26827e3a3c15b738a1177e95fec7f5554) - Streaming Guides.  Thanks @freddyaboulton!
 
 ### Fixes
 

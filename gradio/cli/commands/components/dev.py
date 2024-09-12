@@ -3,11 +3,10 @@ from __future__ import annotations
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional
+from typing import Annotated, Optional
 
 import typer
 from rich import print
-from typing_extensions import Annotated
 
 import gradio
 from gradio.analytics import custom_component_analytics

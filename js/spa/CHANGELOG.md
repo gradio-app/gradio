@@ -1,5 +1,13 @@
 # @self/spa
 
+## 0.0.3-beta.0
+
+### Dependency updates
+
+- @gradio/client@1.6.0-beta.1
+- @gradio/wasm@0.13.1-beta.1
+- @gradio/theme@0.3.0-beta.1
+
 ## 0.0.3
 
 ### Fixes

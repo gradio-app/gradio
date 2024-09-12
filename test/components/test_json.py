@@ -30,6 +30,8 @@ class TestJSON:
             "open": False,
             "key": None,
             "show_indices": False,
+            "max_height": 500,
+            "min_height": None,
         }
         js_component = gr.Json(value={"a": 1, "b": 2})
         assert js_component.get_config()["value"] == {"a": 1, "b": 2}
