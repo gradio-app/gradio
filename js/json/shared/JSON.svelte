@@ -46,19 +46,14 @@
 </script>
 
 {#if value && value !== '""' && !is_empty(value)}
-	<button
-		on:click={handle_copy}
-		title="copy"
-		class={copied ? "copied" : "copy-text"}
-		aria-roledescription={copied ? "Copied value" : "Copy value"}
-		aria-label={copied ? "Copied" : "Copy"}
-	>
-		{#if copied}
-			<Check />
-		{:else}
-			<Copy />
-		{/if}
-	</button>
+	<IconButtonWrapper>
+		<IconButton
+			show_label={false}
+			label={copied ? "Copied" : "Copy"}
+			Icon={copied ? Check : Copy}
+			on:click={() => handle_copy()}
+		/>
+	</IconButtonWrapper>
 	<div class="json-holder" style:max-height={json_max_height}>
 		<JSONNode
 			{value}
