@@ -1,6 +1,10 @@
 {
 	"name": "@gradio/html",
+<<<<<<< HEAD
 	"version": "0.3.6-beta.1",
+=======
+	"version": "0.3.6",
+>>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

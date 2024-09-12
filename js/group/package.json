@@ -1,6 +1,10 @@
 {
 	"name": "@gradio/group",
+<<<<<<< HEAD
 	"version": "0.2.0-beta.1",
+=======
+	"version": "0.1.3",
+>>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

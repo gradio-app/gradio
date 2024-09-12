@@ -1,5 +1,6 @@
 # @gradio/imageeditor
 
+<<<<<<< HEAD
 ## 0.11.0-beta.1
 
 ### Features
@@ -18,6 +19,8 @@
 - @gradio/upload@0.12.4-beta.1
 - @gradio/wasm@0.13.1-beta.1
 
+=======
+>>>>>>> main
 ## 0.10.1
 
 ### Features

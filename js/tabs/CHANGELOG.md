@@ -1,5 +1,6 @@
 # @gradio/tabs
 
+<<<<<<< HEAD
 ## 0.3.0-beta.1
 
 ### Features
@@ -10,6 +11,8 @@
 
 - @gradio/utils@0.7.0-beta.1
 
+=======
+>>>>>>> main
 ## 0.2.14
 
 ### Fixes

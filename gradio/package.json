@@ -1,6 +1,10 @@
 {
 	"name": "gradio",
+<<<<<<< HEAD
 	"version": "5.0.0-beta.1",
+=======
+	"version": "4.44.0",
+>>>>>>> main
 	"description": "",
 	"python": "true"
 }

@@ -1,5 +1,6 @@
 # @gradio/chatbot
 
+<<<<<<< HEAD
 ## 0.14.0-beta.1
 
 ### Features
@@ -23,6 +24,8 @@
 - @gradio/gallery@0.13.0-beta.1
 - @gradio/plot@0.6.5-beta.1
 
+=======
+>>>>>>> main
 ## 0.13.1
 
 ### Features

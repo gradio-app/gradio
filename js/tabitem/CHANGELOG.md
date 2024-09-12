@@ -1,5 +1,6 @@
 # @gradio/tabitem
 
+<<<<<<< HEAD
 ## 0.3.0-beta.1
 
 ### Features
@@ -12,6 +13,8 @@
 - @gradio/tabs@0.3.0-beta.1
 - @gradio/column@0.2.0-beta.0
 
+=======
+>>>>>>> main
 ## 0.2.15
 
 ### Fixes

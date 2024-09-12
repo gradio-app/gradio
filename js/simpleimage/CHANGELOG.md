@@ -1,5 +1,6 @@
 # @gradio/simpleimage
 
+<<<<<<< HEAD
 ## 0.7.1-beta.1
 
 ### Dependency updates
@@ -12,6 +13,8 @@
 - @gradio/upload@0.12.4-beta.1
 - @gradio/wasm@0.13.1-beta.1
 
+=======
+>>>>>>> main
 ## 0.7.1
 
 ### Fixes
