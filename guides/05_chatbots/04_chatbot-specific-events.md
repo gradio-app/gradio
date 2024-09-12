@@ -2,9 +2,9 @@
 
 Tags: LLM, CHAT
 
-Users expect modern chatbot UIs to let them easily retry message generations or undo them all together.
-As an application developer, you may want to let your users give feedback on individual chatbot generations.
-Thankfully, the Gradio Chatbot exposes three events, `.retry`, `.undo`, and `like`, to let you build this functionality into your application.
+Users expect modern chatbot UIs to let them easily interact with individual chat messages: for example, users might want to retry message generations, undo messages, or click on a like/dislike button to upvote or downvote a generated message.
+
+Thankfully, the Gradio Chatbot exposes three events, `.retry`, `.undo`, and `like`, to let you build this functionality into your application. As an application developer, you can attach functions to any of these event, allowing you to run arbitrary Python functions e.g. when a user interacts with a message.
 
 In this demo, we'll build a UI that implements these events. You can see our finished demo deployed on Hugging Face spaces here:
 
