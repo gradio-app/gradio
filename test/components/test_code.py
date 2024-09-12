@@ -34,6 +34,7 @@ class TestCode:
             "value": None,
             "language": None,
             "lines": 5,
+            "max_lines": 20,
             "name": "code",
             "show_label": True,
             "label": None,

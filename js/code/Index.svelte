@@ -28,8 +28,8 @@
 	export let value = "";
 	export let value_is_output = false;
 	export let language = "";
-	export let lines: number;
-	export let max_lines: number;
+	export let lines: number = 5;
+	export let max_lines: number = 20;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;

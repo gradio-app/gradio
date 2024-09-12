@@ -19,8 +19,8 @@
 	export let dark_mode: boolean;
 	export let basic = true;
 	export let language: string;
-	export let lines: number;
-	export let max_lines: number;
+	export let lines: number = 5;
+	export let max_lines: number = 20;
 	export let extensions: Extension[] = [];
 	export let use_tab = true;
 	export let readonly = false;
