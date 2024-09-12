@@ -65,7 +65,9 @@
 			: normalise_messages(value as Message[], root);
 
 	export let loading_status: LoadingStatus | undefined = undefined;
-	export let height = 400;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
 	export let placeholder: string | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 </script>
@@ -78,7 +80,10 @@
 	{scale}
 	{min_width}
 	{height}
-	allow_overflow={false}
+	{min_height}
+	{max_height}
+	allow_overflow={true}
+	overflow_behavior="auto"
 >
 	{#if loading_status}
 		<StatusTracker

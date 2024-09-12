@@ -12,7 +12,7 @@
 - @gradio/tabs@0.3.0-beta.1
 - @gradio/column@0.2.0-beta.0
 
-## 0.2.15-beta.0
+## 0.2.15
 
 ### Fixes
 
@@ -20,9 +20,9 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.7.0-beta.0
-- @gradio/column@0.2.0-beta.0
-- @gradio/tabs@0.2.14-beta.0
+- @gradio/utils@0.6.1
+- @gradio/column@0.1.4
+- @gradio/tabs@0.2.14
 
 ## 0.2.14
 

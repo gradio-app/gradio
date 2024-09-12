@@ -68,8 +68,9 @@ if __name__ == "__main__":
         pathlib.Path(__file__).parent, "..", "demo", "all_demos", "requirements.txt"
     )
     requirements = f"""
-    {args.gradio_client_version}
-    {args.gradio_version}
+    gradio_client=={args.gradio_client_version}
+    gradio=={args.gradio_version}
+    matplotlib
     pypistats==1.1.0
     plotly
     altair

@@ -10,7 +10,7 @@
 
 - @gradio/theme@0.3.0-beta.1
 
-## 0.7.0-beta.0
+## 0.7.0
 
 ### Features
 
@@ -22,7 +22,7 @@
 
 ### Dependency updates
 
-- @gradio/theme@0.2.5-beta.0
+- @gradio/theme@0.2.5
 
 ## 0.6.0
 

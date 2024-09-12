@@ -29,7 +29,7 @@ from gradio.components.chatbot import FileDataDict, Message, MessageDict, TupleF
 from gradio.components.multimodal_textbox import MultimodalPostprocess
 from gradio.events import Dependency
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.helpers import special_args
+from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
@@ -294,6 +294,12 @@ class ChatInterface(Blocks):
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
             )
+            .then(
+                lambda: update(value=None, interactive=True),
+                None,
+                self.textbox,
+                show_api=False,
+            )
         )
         self._setup_stop_events(submit_triggers, submit_event)
 
@@ -304,6 +310,11 @@ class ChatInterface(Blocks):
                 [self.chatbot, self.saved_input],
                 show_api=False,
                 queue=False,
+            )
+            .then(
+                lambda: update(interactive=False, placeholder=""),
+                outputs=[self.textbox],
+                show_api=False,
             )
             .then(
                 self._display_input,
@@ -323,6 +334,11 @@ class ChatInterface(Blocks):
                 show_progress=cast(
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
+            )
+            .then(
+                lambda: update(interactive=True),
+                outputs=[self.textbox],
+                show_api=False,
             )
         )
         self._setup_stop_events([self.chatbot.retry], retry_event)
@@ -420,16 +436,18 @@ class ChatInterface(Blocks):
         message: str | MultimodalPostprocess,
         previous_input: list[str | MultimodalPostprocess],
     ) -> tuple[
-        str | MultimodalPostprocess,
+        Textbox | MultimodalTextbox,
         str | MultimodalPostprocess,
         list[str | MultimodalPostprocess],
     ]:
         if self.multimodal:
             previous_input += [message]
-            return {"text": "", "files": []}, message, previous_input
+            return MultimodalTextbox(
+                "", interactive=False, placeholder=""
+            ), message, previous_input
         else:
             previous_input += [message]
-            return "", message, previous_input
+            return Textbox("", interactive=False, placeholder=""), message, previous_input
 
     def _append_multimodal_history(
         self,

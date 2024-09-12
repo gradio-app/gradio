@@ -84,7 +84,6 @@ from gradio.helpers import (
     Info,
     Progress,
     Warning,
-    make_waveform,
     skip,
     update,
 )
