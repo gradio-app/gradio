@@ -6,7 +6,7 @@
 	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
 
 	import ChatBot from "./shared/ChatBot.svelte";
-	import type { RetryData } from "./shared/utils";
+	import type { UndoRetryData } from "./shared/utils";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Chat } from "@gradio/icons";
@@ -51,8 +51,8 @@
 		error: string;
 		like: LikeData;
 		clear_status: LoadingStatus;
-		retry: RetryData;
-		undo: RetryData;
+		retry: UndoRetryData;
+		undo: UndoRetryData;
 		clear: null;
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];

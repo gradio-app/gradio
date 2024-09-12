@@ -64,7 +64,7 @@ export const format_chat_for_sharing = async (
 		.join("\n");
 };
 
-export interface RetryData {
+export interface UndoRetryData {
 	index: number | [number, number];
 }
 

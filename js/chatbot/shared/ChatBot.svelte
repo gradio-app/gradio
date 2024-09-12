@@ -2,7 +2,7 @@
 	import {
 		format_chat_for_sharing,
 		is_component_message,
-		type RetryData
+		type UndoRetryData
 	} from "./utils";
 	import type { NormalisedMessage } from "../types";
 	import { Gradio, copy } from "@gradio/utils";
@@ -147,8 +147,8 @@
 		change: undefined;
 		select: SelectData;
 		like: LikeData;
-		undo: RetryData;
-		retry: RetryData;
+		undo: UndoRetryData;
+		retry: UndoRetryData;
 		clear: undefined;
 		share: any;
 		error: string;
@@ -205,6 +205,8 @@
 	): boolean {
 		const is_bot = messages[messages.length - 1].role === "assistant";
 		const last_index = messages[messages.length - 1].index;
+		// use JSON.stringify to handle both the number and tuple cases
+		// when msg_format is tuples, last_index is an array and when it is messages, it is a number
 		const is_last =
 			JSON.stringify(last_index) ===
 			JSON.stringify(all_messages[all_messages.length - 1].index);
@@ -223,22 +225,15 @@
 		message: NormalisedMessage,
 		selected: string | null
 	): void {
-		const val_ = value as NormalisedMessage[];
-		if (selected === "undo") {
+		if (selected === "undo" || selected === "retry") {
+			const val_ = value as NormalisedMessage[];
+			// iterate through messages until we find the last user message
+			// the index of this message is where the user needs to edit the chat history
 			let last_index = val_.length - 1;
 			while (val_[last_index].role === "assistant") {
 				last_index--;
 			}
-			dispatch("undo", {
-				index: val_[last_index].index
-			});
-			return;
-		} else if (selected === "retry") {
-			let last_index = val_.length - 1;
-			while (val_[last_index].role === "assistant") {
-				last_index--;
-			}
-			dispatch("retry", {
+			dispatch(selected, {
 				index: val_[last_index].index
 			});
 			return;
