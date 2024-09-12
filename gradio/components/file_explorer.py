@@ -51,7 +51,9 @@ class FileExplorer(Component):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        height: int | float | str | None = None,
+        height: int | str | None = None,
+        max_height: int | str | None = 500,
+        min_height: int | str | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
@@ -91,6 +93,8 @@ class FileExplorer(Component):
             )
         self.file_count = file_count
         self.height = height
+        self.max_height = max_height
+        self.min_height = min_height
 
         super().__init__(
             label=label,

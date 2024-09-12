@@ -61,6 +61,11 @@
 />
 
 <Story
+	name="Chatbot with math disabled, small max_height"
+	args={{ latex_delimiters: [], max_height: 200 }}
+/>
+
+<Story
 	name="Chatbot with text rendered right-to-left"
 	args={{
 		rtl: true,
@@ -139,29 +144,6 @@
 		value: [],
 		placeholder:
 			"**Gradio Helper**\n\nThis Chatbot can help you on *any topic related to Gradio*."
-	}}
-/>
-
-<Story
-	name="Chatbot with headers and lists"
-	args={{
-		value: [
-			[
-				`# Markdown Example
-
-This document is a showcase of various Markdown capabilities.`
-			],
-			[
-				`## Table of Contents
-
-1. [Text Formatting](#text-formating)
-2. [Code Blocks](#code-blocks)
-3. [Tables](#tables)
-4. [Lists](#lists)
-5. [Links and Images](#links-and-images)
-6. [Quotes](#quotes)`
-			]
-		]
 	}}
 />
 
