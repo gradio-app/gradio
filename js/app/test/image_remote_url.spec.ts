@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect } from "@self/tootils";
 
 test("Image displays remote image correctly", async ({ page }) => {
 	const example_image = page.locator(
