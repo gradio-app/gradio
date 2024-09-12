@@ -382,7 +382,7 @@ def create_path_string():
     return st.lists(
         st.one_of(
             st.text(
-                alphabet="ab@1\(",
+                alphabet="ab@1/(",
                 min_size=1,
             ),
             st.just(".."),
