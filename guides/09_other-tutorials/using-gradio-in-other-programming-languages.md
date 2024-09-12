@@ -2,9 +2,7 @@
 
 The core `gradio` library is a Python library. But you can also use `gradio` to create UIs around programs written in other languages, thanks to Python's ability to interface with external processes. Using Python's `subprocess` module, you can call programs written in C++, Rust, or virtually any other language, allowing `gradio` to become a flexible UI layer for non-Python applications.
 
-In this post, we'll walk through how to integrate `gradio` with C++ and Rust, using Python's `subprocess` module to invoke code written in these languages. This setup enables you to benefit from `gradio`'s simplicity while leveraging the performance or system capabilities of other languages.
-
-We'll end with how to use Gradio with R, which is even easier, thanks to the [reticulate](https://rstudio.github.io/reticulate/) R package, which makes it possible to install and import Python modules in R.
+In this post, we'll walk through how to integrate `gradio` with C++ and Rust, using Python's `subprocess` module to invoke code written in these languages. We'll also discuss how to use Gradio with R, which is even easier, thanks to the [reticulate](https://rstudio.github.io/reticulate/) R package, which makes it possible to install and import Python modules in R.
 
 ## Using Gradio with C++
 
@@ -173,6 +171,5 @@ app <- gr$Interface(
 app$launch(server_name = "localhost", 
            server_port = as.integer(3000))
 ```
-You can see more examples [here](https://github.com/Ifeanyi55/Gradio-in-R/tree/main/Code), including using blocks to build a machine learning application.
 
-You can learn more at this [repo](https://github.com/Ifeanyi55/Gradio-in-R)
+Credit to [@IfeanyiIdiaye](https://github.com/Ifeanyi55) for contributing this section. You can see more examples [here](https://github.com/Ifeanyi55/Gradio-in-R/tree/main/Code), including using a full example of using Gradio Blocks to build a machine learning application in R.
