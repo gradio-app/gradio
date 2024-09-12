@@ -31,7 +31,7 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
-from typing_extensions import Annotated, NotRequired
+from typing_extensions import NotRequired
 
 try:
     from pydantic import JsonValue
