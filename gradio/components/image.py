@@ -17,6 +17,7 @@ from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -85,7 +86,7 @@ class Image(StreamingInput, Component):
             format: File format (e.g. "png" or "gif") to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image). The format should be supported by the PIL library. Applies both when this component is used as an input or output. This parameter has no effect on SVG files.
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
             width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
-            image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning. This parameter has no effect on SVG or GIF files. If set to None, the image_mode will be inferred from the image file.
+            image_mode: The pixel format and color depth that the image should be loaded and preprocessed as. "RGB" will load the image as a color image, or "L" as black-and-white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning. This parameter has no effect on SVG or GIF files. If set to None, the image_mode will be inferred from the image file type (e.g. "RGBA" for a .png image, "RGB" in most other cases).
             sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard. If None, defaults to ["upload", "webcam", "clipboard"] if streaming is False, otherwise defaults to ["webcam"].
             type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned. To support animated GIFs in input, the `type` should be set to "filepath" or "pil".
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -186,9 +187,14 @@ class Image(StreamingInput, Component):
             suffix = "webp"
 
         if suffix.lower() == "svg":
-            return str(file_path)
+            if self.type == "filepath":
+                return str(file_path)
+            raise Error("SVG files are not supported as input images.")
 
         im = PIL.Image.open(file_path)
+        if self.type == "filepath" and (self.image_mode in [None, im.mode]):
+            return str(file_path)
+
         exif = im.getexif()
         # 274 is the code for image rotation and 1 means "correct orientation"
         if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
