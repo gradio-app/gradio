@@ -66,6 +66,7 @@ export const format_chat_for_sharing = async (
 
 export interface UndoRetryData {
 	index: number | [number, number];
+	value : string | FileData | ComponentData;
 }
 
 const redirect_src_url = (src: string, root: string): string =>

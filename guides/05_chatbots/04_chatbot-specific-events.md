@@ -91,10 +91,11 @@ You'll notice that every bot response will now have an "undo icon" you can use t
 
 ![undo_event](https://github.com/user-attachments/assets/180b5302-bc4a-4c3e-903c-f14ec2adcaa6)
 
+Tip: You can also access the content of the user message with `undo_data.value`
 
 ## The Retry Event
 
-The retry event will work similarly. We'll use `gr.RetryData` to get the index of the previous user message and remove all the subsequent messages from the history. Then we'll use the `respond` function to generate a new response.
+The retry event will work similarly. We'll use `gr.RetryData` to get the index of the previous user message and remove all the subsequent messages from the history. Then we'll use the `respond` function to generate a new response. We could also get the previous prompt via the `value` property of `gr.RetryData`.
 
 ```python
 def handle_retry(history, retry_data: gr.RetryData):

@@ -234,7 +234,8 @@
 				last_index--;
 			}
 			dispatch(selected, {
-				index: val_[last_index].index
+				index: val_[last_index].index,
+				value: val_[last_index].content
 			});
 			return;
 		}

@@ -334,6 +334,10 @@ class RetryData(EventData):
         """
         The index of the user message that should be retried.
         """
+        self.value: Any = data["value"]
+        """
+        The value of the user message that should be retried.
+        """
 
 
 @document()
@@ -360,6 +364,10 @@ class UndoData(EventData):
         self.index: int | tuple[int, int] = data["index"]
         """
         The index of the user message that should be undone.
+        """
+        self.value: Any = data["value"]
+        """
+        The value of the user message that should be undone.
         """
 
 
