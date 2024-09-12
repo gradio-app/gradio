@@ -140,6 +140,7 @@ class ChatInterface(Blocks):
         ) or inspect.isasyncgenfunction(self.fn)
 
         self.examples = examples
+        self.cache_examples = cache_examples
 
         if cache_examples is not None:
             raise NotImplementedError()  # TODO: needs to be implemented
