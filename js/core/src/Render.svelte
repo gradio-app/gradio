@@ -107,6 +107,7 @@
 				on:mount
 				{max_file_size}
 				{client}
+				gradio={gradio_class}
 			/>
 		{/each}
 	{/if}

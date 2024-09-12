@@ -23,9 +23,9 @@
 	type sources = "upload" | "webcam" | "clipboard" | null;
 
 	let stream_state = "closed";
-	let _modify_stream: (state: "open" | "closed" | "waiting") => void;
+	let _modify_stream: (state: "open" | "closed" | "waiting") => void = () => {};
 	export function modify_stream_state(
-		state: "open" | "closed" | "waiting"
+		state: "open" | "closed" | "waiting",
 	): void {
 		stream_state = state;
 		_modify_stream(state);
@@ -56,7 +56,7 @@
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
-		"webcam"
+		"webcam",
 	];
 	export let interactive: boolean;
 	export let streaming: boolean;

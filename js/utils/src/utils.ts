@@ -257,12 +257,12 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
-		if (!is_browser) return;
+		if (!is_browser || !this.#el) return;
 		const e = new CustomEvent("gradio", {
 			bubbles: true,
 			detail: { data, id: this.#id, event: event_name }
 		});
-		// this.#el.dispatchEvent(e);
+		this.#el.dispatchEvent(e);
 	}
 }
 
