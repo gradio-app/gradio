@@ -39,6 +39,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let stream_every: number;
+	export let uploading = false;
 
 	let time_limit: number | null = null;
 	let stream_state: "open" | "waiting" | "closed" = "closed";
@@ -120,7 +121,6 @@
 				Boolean
 			) as FileData[]
 		)[0];
-
 		dispatch(event, value);
 	};
 
@@ -244,7 +244,7 @@
 	<StreamingBar {time_limit} />
 	{#if value === null || streaming}
 		{#if active_source === "microphone"}
-			<ModifyUpload {i18n} on:clear={clear} absolute={true} />
+			<ModifyUpload {i18n} on:clear={clear} />
 			{#if streaming}
 				<StreamAudio
 					{record}
@@ -275,6 +275,7 @@
 				filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
 				on:load={handle_load}
 				bind:dragging
+				bind:uploading
 				on:error={({ detail }) => dispatch("error", detail)}
 				{root}
 				{max_file_size}
@@ -290,7 +291,6 @@
 			on:clear={clear}
 			on:edit={() => (mode = "edit")}
 			download={show_download_button ? value.url : null}
-			absolute={true}
 		/>
 
 		<AudioPlayer

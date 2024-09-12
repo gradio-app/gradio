@@ -74,7 +74,6 @@
 	$: {
 		ready = !!$_layout;
 	}
-
 	let params = new URLSearchParams(window.location.search);
 	let api_docs_visible = params.get("view") === "api" && show_api;
 	let api_recorder_visible = params.get("view") === "api-recorder" && show_api;
@@ -180,6 +179,7 @@
 	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
 	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
 	const MOBILE_RECONNECT_MESSAGE = $_("blocks.lost_connection");
+	const WAITING_FOR_INPUTS_MESSAGE = $_("blocks.waiting_for_inputs");
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
 	const is_mobile_device =
@@ -188,6 +188,7 @@
 		);
 	let showed_duplicate_message = false;
 	let showed_mobile_warning = false;
+	let inputs_waiting: number[] = [];
 
 	// as state updates are not synchronous, we need to ensure updates are flushed before triggering any requests
 	function wait_then_trigger_api_call(
@@ -233,7 +234,14 @@
 		event_data: unknown = null
 	): Promise<void> {
 		let dep = dependencies.find((dep) => dep.id === dep_index)!;
-
+		if (inputs_waiting.length > 0) {
+			for (const input of inputs_waiting) {
+				if (dep.inputs.includes(input)) {
+					add_new_message(WAITING_FOR_INPUTS_MESSAGE, "warning");
+					return;
+				}
+			}
+		}
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
 		if (current_status === "pending" || current_status === "generating") {
@@ -261,7 +269,7 @@
 				.then((v: unknown[]) => {
 					if (dep.backend_fn) {
 						payload.data = v;
-						make_prediction(payload);
+						trigger_prediction(dep, payload);
 					} else {
 						handle_update(v, dep_index);
 					}
@@ -276,17 +284,20 @@
 			);
 		} else {
 			if (dep.backend_fn) {
-				if (dep.trigger_mode === "once") {
-					if (!dep.pending_request)
-						make_prediction(payload, dep.connection == "stream");
-				} else if (dep.trigger_mode === "multiple") {
-					make_prediction(payload, dep.connection == "stream");
-				} else if (dep.trigger_mode === "always_last") {
-					if (!dep.pending_request) {
-						make_prediction(payload, dep.connection == "stream");
-					} else {
-						dep.final_event = payload;
-					}
+				trigger_prediction(dep, payload);
+			}
+		}
+
+		function trigger_prediction(dep: Dependency, payload: Payload): void {
+			if (dep.trigger_mode === "once") {
+				if (!dep.pending_request) make_prediction(payload);
+			} else if (dep.trigger_mode === "multiple") {
+				make_prediction(payload);
+			} else if (dep.trigger_mode === "always_last") {
+				if (!dep.pending_request) {
+					make_prediction(payload);
+				} else {
+					dep.final_event = payload;
 				}
 			}
 		}
@@ -315,7 +326,7 @@
 				) {
 					await app.post_data(
 						// @ts-ignore
-						`${app.config.root}/stream/${submit_map.get(dep_index).event_id()}`,
+						`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_index).event_id()}`,
 						{ ...payload, session_hash: app.session_hash }
 					);
 					return;
@@ -577,6 +588,12 @@
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 			const { id, prop, value } = e.detail;
 			update_value([{ id, prop, value }]);
+			if (prop === "input_ready" && value === false) {
+				inputs_waiting.push(id);
+			}
+			if (prop === "input_ready" && value === true) {
+				inputs_waiting = inputs_waiting.filter((item) => item !== id);
+			}
 		});
 		target.addEventListener("gradio", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
@@ -596,7 +613,7 @@
 					if (submit_map.has(dep_id)) {
 						app.post_data(
 							// @ts-ignore
-							`${app.config.root}/stream/${submit_map.get(dep_id).event_id()}/close`,
+							`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}/close`,
 							{}
 						);
 					}

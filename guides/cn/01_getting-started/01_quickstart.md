@@ -78,7 +78,7 @@ $demo_sepia_filter
 您还可以使用 `type=` 关键字参数设置组件使用的数据类型。例如，如果您希望函数接受图像文件路径而不是 NumPy 数组，输入 `Image` 组件可以写成：
 
 ```python
-gr.Image(type="filepath", shape=...)
+gr.Image(type="filepath")
 ```
 
 还要注意，我们的输入 `Image` 组件附带有一个编辑按钮🖉，允许裁剪和缩放图像。通过这种方式操作图像可以帮助揭示机器学习模型中的偏见或隐藏的缺陷！

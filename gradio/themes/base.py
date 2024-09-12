@@ -1166,7 +1166,7 @@ class Base(ThemeClass):
         self.block_label_right_radius = block_label_right_radius or getattr(
             self,
             "block_label_right_radius",
-            "0 calc(*radius_lg - 1px) 0 calc(*radius_lg - 1px)",
+            "0 calc(*radius_sm - 1px) 0 calc(*radius_sm - 1px)",
         )
         self.block_label_text_size = block_label_text_size or getattr(
             self, "block_label_text_size", "*text_sm"
