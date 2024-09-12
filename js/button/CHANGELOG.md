@@ -1,6 +1,5 @@
 # @gradio/button
 
-<<<<<<< HEAD
 ## 0.3.0-beta.1
 
 ### Features
@@ -14,8 +13,6 @@
 - @gradio/client@1.6.0-beta.1
 - @gradio/upload@0.12.4-beta.1
 
-=======
->>>>>>> main
 ## 0.2.51
 
 ### Fixes

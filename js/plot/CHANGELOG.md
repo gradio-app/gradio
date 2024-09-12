@@ -1,6 +1,5 @@
 # @gradio/plot
 
-<<<<<<< HEAD
 ## 0.6.5-beta.1
 
 ### Dependency updates
@@ -11,8 +10,6 @@
 - @gradio/utils@0.7.0-beta.1
 - @gradio/theme@0.3.0-beta.1
 
-=======
->>>>>>> main
 ## 0.6.5
 
 ### Fixes

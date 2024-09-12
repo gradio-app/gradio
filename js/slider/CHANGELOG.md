@@ -1,6 +1,5 @@
 # @gradio/slider
 
-<<<<<<< HEAD
 ## 0.5.0-beta.1
 
 ### Dependency updates
@@ -15,8 +14,6 @@
 
 - [#9197](https://github.com/gradio-app/gradio/pull/9197) [`6773c4d`](https://github.com/gradio-app/gradio/commit/6773c4da22f957a11b2a07f032ce13c7b4c94f8c) - Redesign `gr.Slider()`.  Thanks @hannahblair!
 
-=======
->>>>>>> main
 ## 0.4.13
 
 ### Fixes

@@ -1,10 +1,6 @@
 {
 	"name": "@self/app",
-<<<<<<< HEAD
 	"version": "1.40.1-beta.0",
-=======
-	"version": "1.40.1",
->>>>>>> main
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",

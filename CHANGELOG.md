@@ -1,6 +1,5 @@
 # gradio
 
-<<<<<<< HEAD
 ## 5.0.0-beta.1
 
 ### Features
@@ -52,8 +51,6 @@
 
 - [#9189](https://github.com/gradio-app/gradio/pull/9189) [`ab142ee`](https://github.com/gradio-app/gradio/commit/ab142ee13d19070b75b5eb03efcda7193b8993c2) - Fix serialization error in curl api.  Thanks @freddyaboulton!
 
-=======
->>>>>>> main
 ## 4.44.0
 
 ### Features

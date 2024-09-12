@@ -1,6 +1,5 @@
 # @gradio/lite
 
-<<<<<<< HEAD
 ## 4.43.0-beta.1
 
 ### Features
@@ -14,8 +13,6 @@
 - @gradio/wasm@0.13.1-beta.1
 - @gradio/theme@0.3.0-beta.1
 
-=======
->>>>>>> main
 ## 4.43.0
 
 ### Fixes
