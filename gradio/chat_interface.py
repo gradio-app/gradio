@@ -315,6 +315,7 @@ class ChatInterface(Blocks):
             .then(
                 lambda: update(interactive=False, placeholder=""),
                 outputs=[self.textbox],
+                show_api=False,
             )
             .then(
                 self._display_input,
@@ -338,6 +339,7 @@ class ChatInterface(Blocks):
             .then(
                 lambda: update(interactive=True),
                 outputs=[self.textbox],
+                show_api=False,
             )
         )
         self._setup_stop_events([self.chatbot.retry], retry_event)
