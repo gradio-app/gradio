@@ -313,6 +313,10 @@ class ChatInterface(Blocks):
                 queue=False,
             )
             .then(
+                lambda: update(interactive=False, placeholder=""),
+                outputs=[self.textbox],
+            )
+            .then(
                 self._display_input,
                 [self.saved_input, self.chatbot],
                 [self.chatbot],
@@ -330,6 +334,10 @@ class ChatInterface(Blocks):
                 show_progress=cast(
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
+            )
+            .then(
+                lambda: update(interactive=True),
+                outputs=[self.textbox],
             )
         )
         self._setup_stop_events([self.chatbot.retry], retry_event)
@@ -438,11 +446,11 @@ class ChatInterface(Blocks):
         self, message: str | dict
     ) -> tuple[Textbox | MultimodalTextbox, str | MultimodalData]:
         if self.multimodal:
-            return MultimodalTextbox("", interactive=False), MultimodalData(**cast(dict, message))
+            return MultimodalTextbox(
+                "", interactive=False, placeholder=""
+            ), MultimodalData(**cast(dict, message))
         else:
-            return Textbox("", interactive=False), cast(
-                str, message
-            )
+            return Textbox("", interactive=False, placeholder=""), cast(str, message)
 
     def _append_multimodal_history(
         self,
