@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
+import importlib.resources
 import inspect
 import json
 import math
@@ -45,7 +46,6 @@ from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
-from importlib_resources import files
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -62,6 +62,7 @@ from gradio.data_classes import (
     DataWithFiles,
     DeveloperPath,
     PredictBody,
+    PredictBodyInternal,
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
@@ -102,28 +103,35 @@ mimetypes.init()
 
 STATIC_TEMPLATE_LIB = cast(
     DeveloperPath,
-    files("gradio").joinpath("templates").as_posix(),  # type: ignore
+    importlib.resources.files("gradio").joinpath("templates").as_posix(),  # type: ignore
 )
 STATIC_PATH_LIB = cast(
     DeveloperPath,
-    files("gradio").joinpath("templates", "frontend", "static").as_posix(),  # type: ignore
+    importlib.resources.files("gradio")
+    .joinpath("templates/frontend/static")
+    .as_posix(),  # type: ignore
 )
 BUILD_PATH_LIB = cast(
     DeveloperPath,
-    files("gradio").joinpath("templates", "frontend", "assets").as_posix(),  # type: ignore
+    importlib.resources.files("gradio")
+    .joinpath("templates/frontend/assets")
+    .as_posix(),  # type: ignore
 )
 VERSION = get_package_version()
-XSS_VULNERABLE_EXTENSIONS = [
-    ".html",
-    ".htm",
-    ".js",
-    ".php",
-    ".asp",
-    ".aspx",
-    ".jsp",
-    ".xml",
-    ".svg",
-]
+XSS_SAFE_MIMETYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/ogg",
+    "video/mp4",
+    "video/webm",
+    "video/ogg",
+    "text/plain",
+    "application/json",
+}
 
 
 class ORJSONResponse(JSONResponse):
@@ -396,7 +404,7 @@ class App(FastAPI):
                 request=request, route_path="/", root_path=app.root_path
             )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
-                config = blocks.config
+                config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
                 config["username"] = user
             elif app.auth_dependency:
@@ -450,7 +458,7 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            config = app.get_blocks().config
+            config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
             )
@@ -483,10 +491,15 @@ class App(FastAPI):
             if module_path is None or component_instance is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
-            requested_path = utils.safe_join(
-                component_instance.__class__.TEMPLATE_DIR,
-                UserProvidedPath(f"{type}/{file_name}"),
-            )
+            try:
+                requested_path = utils.safe_join(
+                    component_instance.__class__.TEMPLATE_DIR,
+                    UserProvidedPath(f"{type}/{file_name}"),
+                )
+            except InvalidPathError:
+                raise HTTPException(
+                    status_code=404, detail="Component not found."
+                ) from None
 
             path = routes_safe_join(
                 DeveloperPath(str(Path(module_path).parent)),
@@ -532,8 +545,8 @@ class App(FastAPI):
             except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err)) from err
             rp_resp = await client.send(rp_req, stream=True)
-            file_extension = os.path.splitext(url_path)[1].lower()
-            if file_extension in XSS_VULNERABLE_EXTENSIONS:
+            mime_type, _ = mimetypes.guess_type(url_path)
+            if mime_type not in XSS_SAFE_MIMETYPES:
                 rp_resp.headers.update({"Content-Disposition": "attachment"})
                 rp_resp.headers.update({"Content-Type": "application/octet-stream"})
             return StreamingResponse(
@@ -572,14 +585,12 @@ class App(FastAPI):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             mime_type, _ = mimetypes.guess_type(abs_path)
-            file_extension = os.path.splitext(abs_path)[1].lower()
-
-            if file_extension in XSS_VULNERABLE_EXTENSIONS:
+            if mime_type in XSS_SAFE_MIMETYPES:
+                media_type = mime_type
+                content_disposition_type = "inline"
+            else:
                 media_type = "application/octet-stream"
                 content_disposition_type = "attachment"
-            else:
-                media_type = mime_type or "application/octet-stream"
-                content_disposition_type = "inline"
 
             range_val = request.headers.get("Range", "").strip()
             if range_val.startswith("bytes=") and "-" in range_val:
@@ -608,8 +619,9 @@ class App(FastAPI):
             )
 
         @router.post("/stream/{event_id}")
-        async def _(event_id: str, body: PredictBody):
+        async def _(event_id: str, body: PredictBody, request: fastapi.Request):
             event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            body = PredictBodyInternal(**body.model_dump(), request=request)
             event.data = body
             event.signal.set()
             return {"msg": "success"}
@@ -746,7 +758,7 @@ class App(FastAPI):
                             route_path=f"{API_PREFIX}/hearbeat/{session_hash}",
                             root_path=app.root_path,
                         )
-                        body = PredictBody(
+                        body = PredictBodyInternal(
                             session_hash=session_hash, data=[], request=request
                         )
                         unload_fn_indices = [
@@ -793,6 +805,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
+            body = PredictBodyInternal(**body.model_dump(), request=request)
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=body
             )
@@ -802,7 +815,6 @@ class App(FastAPI):
                     detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
-
             gr_request = route_utils.compile_gr_request(
                 body,
                 fn=fn,
@@ -839,9 +851,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            full_body = PredictBody(
-                **body.model_dump(), request=request, simple_format=True
-            )
+            full_body = PredictBody(**body.model_dump(), simple_format=True)
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
             )
@@ -876,7 +886,7 @@ class App(FastAPI):
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail="Queue is stopped.",
                 )
-
+            body = PredictBodyInternal(**body.model_dump(), request=request)
             success, event_id = await blocks._queue.push(
                 body=body, request=request, username=username
             )

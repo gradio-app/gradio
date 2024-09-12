@@ -1148,7 +1148,7 @@ class Endpoint:
         if helper is None:
             return
         if self.client.app_version > version.Version("4.29.0"):
-            url = urllib.parse.urljoin(self.client.src, utils.CANCEL_URL)
+            url = urllib.parse.urljoin(self.client.src_prefixed, utils.CANCEL_URL)
 
             # The event_id won't be set on the helper until later
             # so need to create the data in a function that's run at cancel time

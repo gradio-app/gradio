@@ -54,6 +54,9 @@
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
 	export let loop = false;
+	export let input_ready: boolean;
+	let uploading = false;
+	$: input_ready = !uploading;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -189,6 +192,7 @@
 			on:change={handle_change}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:error={handle_error}
+			bind:uploading
 			{label}
 			{show_label}
 			{show_download_button}

@@ -8,9 +8,11 @@ import tempfile
 import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
+from threading import Thread
 from unittest.mock import patch
 
 import gradio_client as grc
+import httpx
 import numpy as np
 import pandas as pd
 import pytest
@@ -1555,3 +1557,58 @@ def test_bash_api_multiple_inputs_outputs():
         assert response.status_code == 200
         assert "event: complete\ndata:" in response.text
         assert json.dumps([123, "abc"]) in response.text
+
+
+def test_attacker_cannot_change_root_in_config(
+    attacker_threads=1, victim_threads=10, max_attempts=30
+):
+    def attacker(url):
+        """Simulates the attacker sending a request with a malicious header."""
+        for _ in range(max_attempts):
+            httpx.get(url + "config", headers={"X-Forwarded-Host": "evil"})
+
+    def victim(url, results):
+        """Simulates the victim making a normal request and checking the response."""
+        for _ in range(max_attempts):
+            res = httpx.get(url)
+            config = json.loads(
+                res.text.split("window.gradio_config =", 1)[1].split(";</script>", 1)[0]
+            )
+            if "evil" in config["root"]:
+                results.append(True)
+                return
+
+        results.append(False)
+
+    with gr.Blocks() as demo:
+        i1 = gr.Image("test/test_files/cheetah1.jpg")
+        t = gr.Textbox()
+        i2 = gr.Image()
+        t.change(lambda x: x, i1, i2)
+
+    _, url, _ = demo.launch(prevent_thread_lock=True)
+
+    threads = []
+    results = []
+
+    for _ in range(attacker_threads):
+        t_attacker = Thread(target=attacker, args=(url,))
+        threads.append(t_attacker)
+
+    for _ in range(victim_threads):
+        t_victim = Thread(
+            target=victim,
+            args=(
+                url,
+                results,
+            ),
+        )
+        threads.append(t_victim)
+
+    for t in threads:
+        t.start()
+
+    for t in threads:
+        t.join()
+
+    assert not any(results), "attacker was able to modify a victim's config root url"

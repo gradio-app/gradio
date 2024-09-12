@@ -17,7 +17,7 @@
 	import { Block, Empty, UploadText } from "@gradio/atoms";
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { FileData } from "@gradio/client";
+	import { upload, type FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	type sources = "upload" | "webcam" | "clipboard" | null;
@@ -64,7 +64,9 @@
 	export let mirror_webcam: boolean;
 	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
-
+	export let input_ready: boolean;
+	let uploading = false;
+	$: input_ready = !uploading;
 	export let gradio: Gradio<{
 		input: never;
 		change: never;
@@ -184,6 +186,7 @@
 
 		<ImageUploader
 			bind:this={upload_component}
+			bind:uploading
 			bind:active_source
 			bind:value
 			bind:dragging
