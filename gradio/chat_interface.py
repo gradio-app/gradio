@@ -438,9 +438,7 @@ class ChatInterface(Blocks):
         self, message: str | dict
     ) -> tuple[Textbox | MultimodalTextbox, str | MultimodalData]:
         if self.multimodal:
-            return MultimodalTextbox(
-                {"text": "", "files": []}, interactive=False
-            ), MultimodalData(**cast(dict, message))
+            return MultimodalTextbox("", interactive=False), MultimodalData(**cast(dict, message))
         else:
             return Textbox("", interactive=False), cast(
                 str, message
