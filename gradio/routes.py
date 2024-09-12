@@ -75,6 +75,7 @@ from gradio.data_classes import (
     DataWithFiles,
     DeveloperPath,
     PredictBody,
+    PredictBodyInternal,
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
@@ -125,17 +126,20 @@ BUILD_PATH_LIB = cast(
     files("gradio").joinpath("templates", "frontend", "assets").as_posix(),  # type: ignore
 )
 VERSION = get_package_version()
-XSS_VULNERABLE_EXTENSIONS = [
-    ".html",
-    ".htm",
-    ".js",
-    ".php",
-    ".asp",
-    ".aspx",
-    ".jsp",
-    ".xml",
-    ".svg",
-]
+XSS_SAFE_MIMETYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/ogg",
+    "video/mp4",
+    "video/webm",
+    "video/ogg",
+    "text/plain",
+    "application/json",
+}
 
 
 class ORJSONResponse(JSONResponse):
@@ -541,8 +545,8 @@ class App(FastAPI):
             except PermissionError as err:
                 raise HTTPException(status_code=400, detail=str(err)) from err
             rp_resp = await client.send(rp_req, stream=True)
-            file_extension = os.path.splitext(url_path)[1].lower()
-            if file_extension in XSS_VULNERABLE_EXTENSIONS:
+            mime_type, _ = mimetypes.guess_type(url_path)
+            if mime_type not in XSS_SAFE_MIMETYPES:
                 rp_resp.headers.update({"Content-Disposition": "attachment"})
                 rp_resp.headers.update({"Content-Type": "application/octet-stream"})
             return StreamingResponse(
@@ -604,14 +608,12 @@ class App(FastAPI):
                 raise HTTPException(404, f"File not found: {path_or_url}.")
 
             mime_type, _ = mimetypes.guess_type(abs_path)
-            file_extension = os.path.splitext(abs_path)[1].lower()
-
-            if file_extension in XSS_VULNERABLE_EXTENSIONS:
+            if mime_type in XSS_SAFE_MIMETYPES:
+                media_type = mime_type
+                content_disposition_type = "inline"
+            else:
                 media_type = "application/octet-stream"
                 content_disposition_type = "attachment"
-            else:
-                media_type = mime_type or "application/octet-stream"
-                content_disposition_type = "inline"
 
             range_val = request.headers.get("Range", "").strip()
             if range_val.startswith("bytes=") and "-" in range_val:
@@ -729,7 +731,7 @@ class App(FastAPI):
                             route_path=f"/hearbeat/{session_hash}",
                             root_path=app.root_path,
                         )
-                        body = PredictBody(
+                        body = PredictBodyInternal(
                             session_hash=session_hash, data=[], request=request
                         )
                         unload_fn_indices = [
@@ -766,6 +768,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
+            body = PredictBodyInternal(**body.model_dump(), request=request)
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=body
             )
@@ -775,7 +778,6 @@ class App(FastAPI):
                     detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
-
             gr_request = route_utils.compile_gr_request(
                 body,
                 fn=fn,
@@ -810,9 +812,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            full_body = PredictBody(
-                **body.model_dump(), request=request, simple_format=True
-            )
+            full_body = PredictBody(**body.model_dump(), simple_format=True)
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
             )
@@ -847,7 +847,7 @@ class App(FastAPI):
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail="Queue is stopped.",
                 )
-
+            body = PredictBodyInternal(**body.model_dump(), request=request)
             success, event_id = await blocks._queue.push(
                 body=body, request=request, username=username
             )
