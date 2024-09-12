@@ -1,5 +1,26 @@
 # website
 
+## 0.39.0
+
+### Features
+
+- [#9291](https://github.com/gradio-app/gradio/pull/9291) [`bcb3a2b`](https://github.com/gradio-app/gradio/commit/bcb3a2b9a0e4f1a0195aed92f3ecfd1eda324464) - chore: update error.svx.  Thanks @eltociear!
+
+## 0.38.1
+
+### Features
+
+- [#9206](https://github.com/gradio-app/gradio/pull/9206) [`bdbcf7b`](https://github.com/gradio-app/gradio/commit/bdbcf7b0e374c0769178767a1502cd310312278b) - Cloudflare migration.  Thanks @aliabd!
+
+### Fixes
+
+- [#9163](https://github.com/gradio-app/gradio/pull/9163) [`2b6cbf2`](https://github.com/gradio-app/gradio/commit/2b6cbf25908e42cf027324e54ef2cc0baad11a91) - fix exports and generate types.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/code@0.9.1
+- @gradio/paramviewer@0.4.22
+
 ## 0.38.0
 
 ### Features

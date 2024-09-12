@@ -72,7 +72,7 @@ def classify_image(inp):
 import gradio as gr
 
 gr.Interface(fn=classify_image,
-             inputs=gr.Image(shape=(224, 224)),
+             inputs=gr.Image(width=224, height=224),
              outputs=gr.Label(num_top_classes=3),
              examples=["banana.jpg", "car.jpg"]).launch()
 ```
