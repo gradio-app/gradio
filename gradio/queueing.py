@@ -15,7 +15,7 @@ import fastapi
 
 from gradio import route_utils, routes
 from gradio.data_classes import (
-    PredictBody,
+    PredictBodyInternal,
 )
 from gradio.helpers import TrackedIterable
 from gradio.route_utils import API_PREFIX
@@ -56,7 +56,7 @@ class Event:
         self.request = request
         self.username = username
         self.concurrency_id = fn.concurrency_id
-        self.data: PredictBody | None = None
+        self.data: PredictBodyInternal | None = None
         self.progress: ProgressMessage | None = None
         self.progress_pending: bool = False
         self.alive = True
@@ -209,7 +209,7 @@ class Queue:
         return total_len
 
     async def push(
-        self, body: PredictBody, request: fastapi.Request, username: str | None
+        self, body: PredictBodyInternal, request: fastapi.Request, username: str | None
     ) -> tuple[bool, str]:
         if body.fn_index is None:
             return False, "No function index provided."
@@ -688,7 +688,7 @@ class Queue:
                                 )
                         if not awake_events:
                             break
-                        body = cast(PredictBody, awake_events[0].data)
+                        body = cast(PredictBodyInternal, awake_events[0].data)
                         if batch:
                             body.data = list(
                                 zip(

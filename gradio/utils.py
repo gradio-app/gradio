@@ -113,6 +113,7 @@ class BaseReloader(ABC):
         # Copy over the blocks to get new components and events but
         # not a new queue
         demo._queue = self.running_app.blocks._queue
+        demo.has_launched = True
         demo.max_file_size = self.running_app.blocks.max_file_size
         demo.is_running = True
         self.running_app.state_holder.reset(demo)
@@ -463,6 +464,24 @@ def get_default_args(func: Callable) -> list[Any]:
         v.default if v.default is not inspect.Parameter.empty else None
         for v in signature.parameters.values()
     ]
+
+
+def safe_deepcopy(obj: Any) -> Any:
+    try:
+        return copy.deepcopy(obj)
+    except Exception:
+        if isinstance(obj, dict):
+            return {
+                safe_deepcopy(key): safe_deepcopy(value) for key, value in obj.items()
+            }
+        elif isinstance(obj, list):
+            return [safe_deepcopy(item) for item in obj]
+        elif isinstance(obj, tuple):
+            return tuple(safe_deepcopy(item) for item in obj)
+        elif isinstance(obj, set):
+            return {safe_deepcopy(item) for item in obj}
+        else:
+            return copy.copy(obj)
 
 
 def assert_configs_are_equivalent_besides_ids(
@@ -973,15 +992,21 @@ class TupleNoPrint(tuple):
 
 class MatplotlibBackendMananger:
     def __enter__(self):
-        import matplotlib
+        try:
+            import matplotlib
 
-        self._original_backend = matplotlib.get_backend()
-        matplotlib.use("agg")
+            self._original_backend = matplotlib.get_backend()
+            matplotlib.use("agg")
+        except ImportError:
+            pass
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        import matplotlib
+        try:
+            import matplotlib
 
-        matplotlib.use(self._original_backend)
+            matplotlib.use(self._original_backend)
+        except ImportError:
+            pass
 
 
 def tex2svg(formula, *_args):
@@ -1032,13 +1057,13 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
         path_1: str or Path (to file or directory)
         path_2: str or Path (to file or directory)
     """
-    path_1, path_2 = abspath(path_1), abspath(path_2)
+    path_1, path_2 = (
+        os.path.normpath(os.path.abspath(path_1)),
+        os.path.normpath(os.path.abspath(path_2)),
+    )
     try:
-        relative_path = path_1.relative_to(path_2)
-        if str(relative_path) == ".":
-            return True
-        relative_path = path_1.parent.relative_to(path_2)
-        return ".." not in str(relative_path)
+        relative_path = os.path.relpath(path_1, path_2)
+        return not relative_path.startswith("..")
     except ValueError:
         return False
 

@@ -62,7 +62,7 @@
 		edit: undefined;
 	}>();
 
-	$: record?.on("record-start", () => {
+	function record_start_callback(): void {
 		start_interval();
 		timing = true;
 		dispatch("start_recording");
@@ -70,9 +70,9 @@
 			let waveformCanvas = microphoneContainer;
 			if (waveformCanvas) waveformCanvas.style.display = "block";
 		}
-	});
+	}
 
-	$: record?.on("record-end", async (blob) => {
+	async function record_end_callback(blob: Blob): Promise<void> {
 		seconds = 0;
 		timing = false;
 		clearInterval(interval);
@@ -91,12 +91,7 @@
 		} catch (e) {
 			console.error(e);
 		}
-	});
-
-	$: record?.on("record-pause", () => {
-		dispatch("pause_recording");
-		clearInterval(interval);
-	});
+	}
 
 	$: record?.on("record-resume", () => {
 		start_interval();
@@ -140,6 +135,25 @@
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
 		record.startMic();
+		record?.on("record-end", record_end_callback);
+		record?.on("record-start", record_start_callback);
+		record?.on("record-pause", () => {
+			dispatch("pause_recording");
+			clearInterval(interval);
+		});
+
+		record?.on("record-end", (blob) => {
+			recordedAudio = URL.createObjectURL(blob);
+
+			const microphone = microphoneContainer;
+			const recording = recordingContainer;
+
+			if (microphone) microphone.style.display = "none";
+			if (recording && recordedAudio) {
+				recording.innerHTML = "";
+				create_recording_waveform();
+			}
+		});
 	};
 
 	const create_recording_waveform = (): void => {
@@ -151,19 +165,6 @@
 			...waveform_settings
 		});
 	};
-
-	$: record?.on("record-end", (blob) => {
-		recordedAudio = URL.createObjectURL(blob);
-
-		const microphone = microphoneContainer;
-		const recording = recordingContainer;
-
-		if (microphone) microphone.style.display = "none";
-		if (recording && recordedAudio) {
-			recording.innerHTML = "";
-			create_recording_waveform();
-		}
-	});
 
 	const handle_trim_audio = async (
 		start: number,

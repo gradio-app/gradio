@@ -346,7 +346,7 @@ def test_add_root_url():
     expected = {
         "file": {
             "path": "path",
-            "url": f"{root_url}/file=path",
+            "url": f"{root_url}{API_PREFIX}/file=path",
             "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
@@ -360,7 +360,7 @@ def test_add_root_url():
     new_expected = {
         "file": {
             "path": "path",
-            "url": f"{new_root_url}/file=path",
+            "url": f"{new_root_url}{API_PREFIX}/file=path",
             "meta": {"_type": "gradio.FileData"},
         },
         "file2": {

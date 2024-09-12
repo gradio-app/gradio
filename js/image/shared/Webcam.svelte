@@ -424,6 +424,7 @@
 	.color-primary {
 		fill: var(--primary-600);
 		stroke: var(--primary-600);
+		color: var(--primary-600);
 	}
 
 	.flip {

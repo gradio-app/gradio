@@ -8,6 +8,7 @@ from gradio_client import utils as client_utils
 
 import gradio as gr
 from gradio.data_classes import FileData
+from gradio.exceptions import Error
 
 
 class TestImage:
@@ -17,7 +18,7 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
-        img = FileData(path="test/test_files/bus.png")
+        img = FileData(path="test/test_files/bus.png", orig_name="bus.png")
         image_input = gr.Image()
 
         image_input = gr.Image(type="filepath")
@@ -60,10 +61,15 @@ class TestImage:
         image_input = gr.Image()
         assert image_input.preprocess(img) is not None
         image_input.preprocess(img)
-        file_image = gr.Image(type="filepath")
-        assert isinstance(file_image.preprocess(img), str)
+        file_image = gr.Image(type="filepath", image_mode=None)
+        assert img.path == file_image.preprocess(img)
         with pytest.raises(ValueError):
             gr.Image(type="unknown")  # type: ignore
+
+        with pytest.raises(Error):
+            gr.Image().preprocess(
+                FileData(path="test/test_files/test.svg", orig_name="test.svg")
+            )
 
         string_source = gr.Image(sources="upload")
         assert string_source.sources == ["upload"]
@@ -120,12 +126,16 @@ class TestImage:
         )
         assert image.path.endswith("jpeg")
 
-        assert (image_pre := component.preprocess(FileData(path=file_path)))
+        assert (
+            image_pre := component.preprocess(
+                FileData(path=file_path, orig_name="bus.png")
+            )
+        )
         assert isinstance(image_pre, str)
-        assert image_pre.endswith("webp")
+        assert image_pre.endswith("png")
 
         image_pre = component.preprocess(
             FileData(path="test/test_files/cheetah1.jpg", orig_name="cheetah1.jpg")
         )
         assert isinstance(image_pre, str)
-        assert image_pre.endswith("jpeg")
+        assert image_pre.endswith("jpg")

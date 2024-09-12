@@ -38,7 +38,7 @@
 	export let set_time_limit: (arg0: number) => void;
 
 	let upload_input: Upload;
-	let uploading = false;
+	export let uploading = false;
 	export let active_source: source_type = null;
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {

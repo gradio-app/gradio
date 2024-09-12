@@ -170,4 +170,8 @@
 	.disabled {
 		cursor: not-allowed;
 	}
+
+	input:hover {
+		cursor: pointer;
+	}
 </style>

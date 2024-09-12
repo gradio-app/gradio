@@ -33,7 +33,7 @@ class LoginButton(Button):
         *,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
-        variant: Literal["primary", "secondary", "stop"] = "secondary",
+        variant: Literal["primary", "secondary", "stop", "huggingface"] = "huggingface",
         size: Literal["sm", "lg"] | None = None,
         icon: str
         | None = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
@@ -44,7 +44,7 @@ class LoginButton(Button):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        scale: int | None = 0,
+        scale: int | None = None,
         min_width: int | None = None,
     ):
         """

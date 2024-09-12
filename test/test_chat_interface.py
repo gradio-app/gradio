@@ -45,10 +45,6 @@ class TestInit:
         with pytest.raises(TypeError):
             gr.ChatInterface()  # type: ignore
 
-    def test_configuring_buttons(self):
-        chatbot = gr.ChatInterface(double, submit_btn=None)
-        assert chatbot.submit_btn is None
-
     def test_concurrency_limit(self):
         chat = gr.ChatInterface(double, concurrency_limit=10)
         assert chat.concurrency_limit == 10
@@ -80,14 +76,8 @@ class TestInit:
         chatbot = gr.ChatInterface(double)
         dependencies = chatbot.fns.values()
         textbox = chatbot.textbox._id
-        assert chatbot.submit_btn
-        submit_btn = chatbot.submit_btn._id
         assert next(
-            (
-                d
-                for d in dependencies
-                if d.targets == [(textbox, "submit"), (submit_btn, "click")]
-            ),
+            (d for d in dependencies if d.targets == [(textbox, "submit")]),
             None,
         )
 

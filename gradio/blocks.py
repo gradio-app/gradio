@@ -66,6 +66,7 @@ from gradio.events import (
     EventListenerMethod,
 )
 from gradio.exceptions import (
+    ChecksumMismatchError,
     DuplicateBlockError,
     InvalidApiNameError,
     InvalidComponentError,
@@ -147,6 +148,7 @@ class Block:
         # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
+        self.has_launched = False
 
         if render:
             self.render()
@@ -2017,6 +2019,10 @@ Received outputs:
                 block_fn.renderable
             )
             output["render_config"]["render_id"] = block_fn.renderable._id
+            if root_path is not None:
+                output["render_config"] = processing_utils.add_root_url(
+                    output["render_config"], root_path, None
+                )
 
         return output
 
@@ -2414,6 +2420,7 @@ Received outputs:
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
             )
+            self.has_launched = True
 
             self.protocol = (
                 "https"
@@ -2533,12 +2540,18 @@ Received outputs:
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
-            except (RuntimeError, httpx.ConnectError):
+            except Exception as e:
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
-                if Path(BINARY_PATH).exists():
+                if isinstance(e, ChecksumMismatchError):
+                    print(
+                        strings.en["COULD_NOT_GET_SHARE_LINK_CHECKSUM"].format(
+                            BINARY_PATH
+                        )
+                    )
+                elif Path(BINARY_PATH).exists():
                     print(strings.en["COULD_NOT_GET_SHARE_LINK"])
                 else:
                     print(

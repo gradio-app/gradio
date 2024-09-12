@@ -13,22 +13,20 @@
 	let editorFiles: EditorFile[] = [
 		{
 			name: "app.py",
-			content: `import time
+			content: `
 import gradio as gr
 
 
-def greet_with_time():
-    return "Time is " + time.ctime()
+def fn(x):
+    return x
 
+demo = gr.Interface(
+    fn=fn,
+    inputs=gr.Textbox(),
+    outputs=gr.Textbox(),
+)
 
-with gr.Blocks() as demo:
-    text = gr.Markdown(f"Time is {time.time()}")
-
-    dep = demo.load(greet_with_time, None, text, every=1)
-
-
-if __name__ == "__main__":
-    demo.queue().launch()
+demo.launch()
 `
 		},
 		{

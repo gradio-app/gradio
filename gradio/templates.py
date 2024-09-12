@@ -53,6 +53,8 @@ class TextArea(components.Textbox):
         rtl: bool = False,
         show_copy_button: bool = False,
         max_length: int | None = None,
+        submit_btn: str | bool | None = False,
+        stop_btn: str | bool | None = False,
     ):
         super().__init__(
             value=value,
@@ -80,6 +82,8 @@ class TextArea(components.Textbox):
             rtl=rtl,
             show_copy_button=show_copy_button,
             max_length=max_length,
+            submit_btn=submit_btn,
+            stop_btn=stop_btn,
         )
 
 

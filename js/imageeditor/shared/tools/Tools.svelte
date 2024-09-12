@@ -43,7 +43,8 @@
 </script>
 
 <script lang="ts">
-	import { Toolbar, IconButton } from "@gradio/atoms";
+	import { Toolbar } from "@gradio/atoms";
+	import { default as IconButton } from "./IconButton.svelte";
 	import { getContext, setContext } from "svelte";
 	import { writable } from "svelte/store";
 	import { EDITOR_KEY, type EditorContext } from "../ImageEditor.svelte";
