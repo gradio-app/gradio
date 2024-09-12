@@ -66,14 +66,7 @@
 	$_layout = initial_layout;
 
 	console.log($_layout);
-	$: components,
-		layout,
-		dependencies,
-		root: root + app.api_prefix,
-		app,
-		fill_height,
-		target,
-		run();
+	$: components, layout, dependencies, root, app, fill_height, target, run();
 
 	$: {
 		ready = !!$_layout;
@@ -338,7 +331,7 @@
 					await app.post_data(
 						// @ts-ignore
 						`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_index).event_id()}`,
-						{ ...payload, session_hash: app.session_hash }
+						{ ...payload, session_hash: app.session_hash },
 					);
 					return;
 				}
@@ -631,7 +624,7 @@
 						app.post_data(
 							// @ts-ignore
 							`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}/close`,
-							{}
+							{},
 						);
 					}
 				});
