@@ -1,6 +1,5 @@
 # @gradio/gallery
 
-<<<<<<< HEAD
 ## 0.13.0-beta.1
 
 ### Dependency updates
@@ -21,8 +20,6 @@
 
 - [#9052](https://github.com/gradio-app/gradio/pull/9052) [`f3652eb`](https://github.com/gradio-app/gradio/commit/f3652ebe08211e12739df73c15fd97e5ff81276a) - Video gallery.  Thanks @dawoodkhan82!
 
-=======
->>>>>>> main
 ## 0.12.2
 
 ### Fixes

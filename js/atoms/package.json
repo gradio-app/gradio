@@ -1,10 +1,6 @@
 {
 	"name": "@gradio/atoms",
-<<<<<<< HEAD
 	"version": "0.8.1-beta.1",
-=======
-	"version": "0.8.1",
->>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",

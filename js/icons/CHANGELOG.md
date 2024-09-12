@@ -1,6 +1,5 @@
 # @gradio/icons
 
-<<<<<<< HEAD
 ## 0.8.0-beta.1
 
 ### Features
@@ -14,8 +13,6 @@
 
 - [#9149](https://github.com/gradio-app/gradio/pull/9149) [`3d7a9b8`](https://github.com/gradio-app/gradio/commit/3d7a9b81f6fef06187eca832471dc1692eb493a0) - Open audio/image input stream only when queue is ready.  Thanks @freddyaboulton!
 
-=======
->>>>>>> main
 ## 0.7.2
 
 ### Fixes

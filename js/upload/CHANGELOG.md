@@ -1,6 +1,5 @@
 # @gradio/upload
 
-<<<<<<< HEAD
 ## 0.12.4-beta.1
 
 ### Dependency updates
@@ -11,8 +10,6 @@
 - @gradio/client@1.6.0-beta.1
 - @gradio/wasm@0.13.1-beta.1
 
-=======
->>>>>>> main
 ## 0.12.4
 
 ### Fixes

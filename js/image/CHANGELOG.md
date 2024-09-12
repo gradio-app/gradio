@@ -1,6 +1,5 @@
 # @gradio/image
 
-<<<<<<< HEAD
 ## 0.16.0-beta.1
 
 ### Dependency updates
@@ -21,8 +20,6 @@
 - [#9173](https://github.com/gradio-app/gradio/pull/9173) [`66349fe`](https://github.com/gradio-app/gradio/commit/66349fe26827e3a3c15b738a1177e95fec7f5554) - Streaming Guides.  Thanks @freddyaboulton!
 - [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
 
-=======
->>>>>>> main
 ## 0.15.1
 
 ### Fixes

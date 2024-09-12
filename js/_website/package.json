@@ -1,10 +1,6 @@
 {
 	"name": "website",
-<<<<<<< HEAD
 	"version": "0.39.0-beta.1",
-=======
-	"version": "0.39.0",
->>>>>>> main
 	"private": true,
 	"scripts": {
 		"dev": "pip install boto3 && python generate_jsons/generate.py && vite dev",

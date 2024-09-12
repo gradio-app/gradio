@@ -1,14 +1,11 @@
 # @gradio/timer
 
-<<<<<<< HEAD
 ## 0.3.3-beta.1
 
 ### Dependency updates
 
 - @gradio/utils@0.7.0-beta.1
 
-=======
->>>>>>> main
 ## 0.3.3
 
 ### Fixes

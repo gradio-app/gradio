@@ -1,6 +1,5 @@
 # @gradio/datetime
 
-<<<<<<< HEAD
 ## 0.1.4-beta.1
 
 ### Dependency updates
@@ -10,8 +9,6 @@
 - @gradio/statustracker@0.8.0-beta.1
 - @gradio/utils@0.7.0-beta.1
 
-=======
->>>>>>> main
 ## 0.1.4
 
 ### Fixes
