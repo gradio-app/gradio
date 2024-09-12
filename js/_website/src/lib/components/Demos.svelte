@@ -20,7 +20,7 @@
 			class="hidden lg:block open-btn bg-gray-200 text-gray-500 font-bold px-2 rounded mx-4 my-2"
 			on:click={() => {
 				let code_b64 = btoa(code);
-				window.open("/playground?demo=Blank&code=" + code_b64, "_blank");
+				window.open("/playground?demo=Ask_AI&code=" + code_b64, "_blank");
 			}}
 		>
 			Open in 🎢 ↗
