@@ -15,3 +15,4 @@
 ## We also encourage the development and use of third party clients built by the community: 
 
 - [Rust Client](/docs/third-party-clients/rust-client): `gradio-rs` built by [@JacobLinCool](https://github.com/JacobLinCool) allows you to make requests in Rust. 
+- [Gradio in R](/docs/third-party-clients/gradio-in-r): shows you how to build gradio apps in R. It was created by [@IfeanyiIdiaye](https://github.com/Ifeanyi55). 
