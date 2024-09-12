@@ -1,8 +1,6 @@
 import gradio as gr
-import time
 
 def echo(message, history):
-    time.sleep(2)
     return message["text"]
 
 demo = gr.ChatInterface(
