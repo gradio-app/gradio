@@ -10,31 +10,13 @@
 	import { onMount } from "svelte";
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 
-	import { Client } from '@neondatabase/serverless';
-
-	async function saveToPostgres(query, response, system_prompt) {
-		await client.connect();
-
-		try {
-		const result = await client.query(
-			'INSERT INTO queries (query, response, system_prompt) VALUES ($1, $2, $3)',
-			[query, response, system_prompt]
-		);
-		console.log('Successfully saved to PostgreSQL');
-		} catch (error) {
-		console.log("error", error);
-		console.error('Error saving to PostgreSQL:', error);
-		} finally {
-		await client.end();
-		}
-  };
-
 	let generated = true;
 
 	let ai_code : string | undefined = "";
 
-	const workerUrl = 'https://rough-shape-9eb5.ali-abdalla.workers.dev/';
-
+	const workerUrl = 'https://playground-worker.pages.dev/api/generate';
+	// const workerUrl = 'http://localhost:5174/api/generate';
+	
 	async function* streamFromWorker(query: string, systemPrompt: string) {
 		const response = await fetch(workerUrl, {
 			method: 'POST',
@@ -102,7 +84,6 @@
 			}
 		}
 		generated = true;
-		saveToPostgres(query, out, SYSTEM_PROMPT.SYSTEM);
 	}
 
 
