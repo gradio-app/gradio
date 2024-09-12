@@ -373,9 +373,9 @@ def test_is_in_or_equal():
     assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
     assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
     assert not is_in_or_equal("/safe_dir/subdir/../../unsafe_file.txt", "/safe_dir/")
-    assert is_in_or_equal("//tmp/asd/", "/tmp")
-    assert is_in_or_equal("//tmp/..a", "//tmp")
-    assert is_in_or_equal("//tmp/..²", "/tmp")
+    assert is_in_or_equal("//foo/asd/", "/foo")
+    assert is_in_or_equal("//foo/..a", "//foo")
+    assert is_in_or_equal("//foo/..²", "/foo")
 
 
 def create_path_string():
