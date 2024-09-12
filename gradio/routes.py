@@ -13,6 +13,8 @@ import math
 import mimetypes
 import os
 import secrets
+import signal
+import subprocess
 import sys
 import time
 import traceback
@@ -33,7 +35,15 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import APIRouter, BackgroundTasks, Depends, FastAPI, HTTPException, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    HTTPException,
+    status,
+)
+from fastapi import Request as FastAPIRequest
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -50,6 +60,7 @@ from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
+from starlette.middleware import Middleware
 from starlette.responses import RedirectResponse, StreamingResponse
 
 import gradio
@@ -81,6 +92,7 @@ from gradio.route_utils import (  # noqa: F401
     Request,
     compare_passwords_securely,
     create_lifespan_handler,
+    get_node_path,
     move_uploaded_files_to_cache,
 )
 from gradio.server_messages import (
@@ -132,6 +144,10 @@ XSS_SAFE_MIMETYPES = {
     "text/plain",
     "application/json",
 }
+PYTHON_PORT = 7860
+NODE_PORT = 3000
+
+SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
 
 
 class ORJSONResponse(JSONResponse):
@@ -176,6 +192,10 @@ class App(FastAPI):
     FastAPI App Wrapper
     """
 
+    node_path = get_node_path()
+    force_spa = os.getenv("GRADIO_SPA_MODE") is not None
+    node_process: None | subprocess.Popen = None
+
     def __init__(
         self,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
@@ -202,12 +222,66 @@ class App(FastAPI):
         self.auth_dependency = auth_dependency
         self.api_info = None
         self.all_app_info = None
+
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
         kwargs.setdefault("redoc_url", None)
         self.custom_component_hashes: dict[str, str] = {}
         super().__init__(**kwargs)
+
+    # @staticmethod
+    # def conditional_route(
+    #     app: App, path: str, condition: Callable[[FastAPIRequest], bool]
+    # ):
+    #     def decorator(func: Callable[..., Any]):
+    #         async def wrapped(request: FastAPIRequest, *args, **kwargs):
+    #             if request.method == "HEAD":
+    #                 return Response(status_code=200)
+    #             return await func(request, *args, **kwargs)
+
+    #         app.add_route(
+    #             path,
+    #             ConditionalRoute(
+    #                 path=path,
+    #                 condition=condition,
+    #                 endpoint=wrapped,
+    #                 methods=["GET", "HEAD"],
+    #             ),
+    #         )
+    #         return func
+
+    #     return decorator
+
+    @staticmethod
+    async def proxy_to_node(request: Request, node_port: int) -> Response:
+        client = httpx.AsyncClient()
+
+        full_path = request.url.path
+        if request.url.query:
+            full_path += f"?{request.url.query}"
+
+        url = f"http://localhost:{node_port}{full_path}"
+
+        headers = {
+            k: v
+            for k, v in request.headers.items()
+            if k.lower() not in ["host", "content-length"]
+        }
+        body = await request.body()
+
+        async with client:
+            response = await client.request(
+                method=request.method, url=url, headers=headers, content=body
+            )
+
+        print(response.status_code)
+
+        return Response(
+            content=response.content,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+        )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -254,6 +328,32 @@ class App(FastAPI):
         self._asyncio_tasks = []
 
     @staticmethod
+    def start_node_server():
+        if App.node_path is None or App.force_spa or App.node_process is not None:
+            return
+        try:
+
+            App.node_process = subprocess.Popen([App.node_path, SSR_APP_PATH])
+        except Exception as e:
+            warnings.warn(f"Failed to start node server: {e}")
+
+    @staticmethod
+    async def should_handle_catch_all(request: FastAPIRequest) -> bool:
+        return (
+            App.node_path is not None
+            and not request.url.path.startswith("/gradio_api")
+            and request.url.path not in ["/config", "/login", "/special3"]
+        )
+
+    @staticmethod
+    def handle_sigterm():
+        if App.node_process is not None:
+            print("Stopping Node.js server...")
+            App.node_process.terminate()
+            App.node_process.wait()
+            sys.exit(0)
+
+    @staticmethod
     def create_app(
         blocks: gradio.Blocks,
         app_kwargs: dict[str, Any] | None = None,
@@ -271,8 +371,31 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
+        print(App.node_path)
+
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
+
+        if App.node_path and not App.force_spa:
+            App.start_node_server()
+            signal.signal(signal.SIGTERM, App.handle_sigterm)
+
+            @app.middleware("http")
+            async def conditional_routing_middleware(request: Request, call_next):
+                print(request.url)
+                if (
+                    App.node_path is not None
+                    and not request.url.path.startswith("/gradio_api")
+                    and request.url.path not in ["/config", "/login"]
+                    and not request.url.path.startswith("/theme")
+                ):
+                    try:
+
+                        return await App.proxy_to_node(request, NODE_PORT)
+                    except Exception as e:
+                        print(e)
+                response = await call_next(request)
+                return response
 
         @router.get("/user")
         @router.get("/user/")
@@ -347,7 +470,9 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
+            ) or (
+                callable(app.auth) and app.auth.__call__(username, password)
+            ):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
@@ -1259,8 +1384,10 @@ class App(FastAPI):
                 return True
             return False
 
+        @router.get("/theme.css", response_class=PlainTextResponse)
         @app.get("/theme.css", response_class=PlainTextResponse)
         def theme_css():
+            print("GETTING THEME")
             return PlainTextResponse(app.get_blocks().theme_css, media_type="text/css")
 
         @app.get("/robots.txt", response_class=PlainTextResponse)
@@ -1320,7 +1447,8 @@ class App(FastAPI):
 
 def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     """Safely join the user path to the directory while performing some additional http-related checks,
-    e.g. ensuring that the full path exists on the local file system and is not a directory"""
+    e.g. ensuring that the full path exists on the local file system and is not a directory
+    """
     if path == "":
         raise fastapi.HTTPException(400)
     if route_utils.starts_with_protocol(path):
