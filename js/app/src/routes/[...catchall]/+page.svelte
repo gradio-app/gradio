@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	// import { mount_css, prefix_css } from "@gradio/core";
+	import { mount_css } from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
@@ -130,10 +130,10 @@
 		// 		css_text_stylesheet || undefined,
 		// 	);
 		// }
-		// // await mount_css(
-		// // 	config.root + "/theme.css?v=" + config.theme_hash,
-		// // 	document.head,
-		// // );
+		await mount_css(
+			config.root + config.api_prefix + "/theme.css?v=" + config.theme_hash,
+			document.head,
+		);
 		// if (!config.stylesheets) return;
 		// await Promise.all(
 		// 	config.stylesheets.map((stylesheet) => {
@@ -413,7 +413,10 @@
 <svelte:head>
 	<link
 		rel="stylesheet"
-		href={config?.root + "/theme.css?v=" + config?.theme_hash}
+		href={config?.root +
+			config?.api_prefix +
+			"/theme.css?v=" +
+			config?.theme_hash}
 	/>
 
 	<style></style>

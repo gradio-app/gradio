@@ -1,15 +1,13 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
 
-import { svelte } from "@sveltejs/vite-plugin-svelte";
-import sveltePreprocess from "svelte-preprocess";
 // @ts-ignore
 import custom_media from "postcss-custom-media";
 import global_data from "@csstools/postcss-global-data";
 // @ts-ignore
 import prefixer from "postcss-prefix-selector";
-import { readFileSync } from "fs";
-import { resolve } from "path";
+import { cpSync, readFileSync, writeFileSync } from "fs";
+import { resolve, join } from "path";
 
 import {
 	inject_ejs,
@@ -74,6 +72,10 @@ export default defineConfig(({ mode }) => {
 				]
 			}
 		},
+		ssr: {
+			noExternal: ["@gradio/*", "@huggingface/space-header"]
+		},
+
 		optimizeDeps: {
 			exclude: ["@gradio/*"]
 		},
@@ -87,7 +89,21 @@ export default defineConfig(({ mode }) => {
 			// inject_ejs(),
 			// generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			// handle_ce_css(),
-			inject_component_loader({ mode })
+			inject_component_loader({ mode }),
+			{
+				name: "copy-output",
+				writeBundle() {
+					cpSync(
+						resolve(__dirname, "build"),
+						resolve(__dirname, "../../gradio/templates/node/build"),
+						{ recursive: true }
+					);
+					writeFileSync(
+						resolve(__dirname, "build", "package.json"),
+						JSON.stringify({ type: "module", name: "server-build" }, null, 2)
+					);
+				}
+			}
 		]
 	};
 });
