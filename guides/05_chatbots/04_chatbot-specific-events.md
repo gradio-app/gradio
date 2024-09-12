@@ -1,13 +1,14 @@
-# Retrying and Undoing Messages
+# Liking, Retrying and Undoing Messages
 
 Tags: LLM, CHAT
 
 Users expect modern chatbot UIs to let them easily retry message generations or undo them all together.
-Thankfully, the Gradio Chatbot exposes two events, `.retry` and `.undo`, to let you, the developer, build this functionality into your application.
+As an application developer, you may want to let your users give feedback on individual chatbot generations.
+Thankfully, the Gradio Chatbot exposes three events, `.retry`, `.undo`, and `like`, to let you build this functionality into your application.
 
 In this demo, we'll build a UI that implements these events. You can see our finished demo deployed on Hugging Face spaces here:
 
-$demo_chatbot_retry_undo
+$demo_chatbot_retry_undo_like
 
 Tip: `gr.ChatInterface` automatically uses the `retry` and `.undo` events so it's best to start there in order get a fully working application quickly.
 
@@ -112,4 +113,29 @@ You'll see that the bot messages have a "retry" icon now -
 
 Tip: The Hugging Face inference API caches responses, so in this demo, the retry button will not generate a new response.
 
-That's it! You now know how you can implement the retry and undo events for the Chatbot.
+## The Like Event
+
+By now you should hopefully be seeing the pattern!
+To let users like a message, we'll add a `.like` event to our chatbot.
+We'll pass it a function that accepts a `gr.LikeData` object.
+In this case, we'll just print the message that was either liked or disliked.
+
+```python
+def handle_like(data: gr.LikeData):
+    if data.liked:
+        print("You upvoted this response: ", data.value)
+    else:
+        print("You downvoted this response: ", data.value)
+
+...
+
+chatbot.like(vote, None, None)
+```
+
+
+## Conclusion
+
+That's it! You now know how you can implement the retry, undo, and like events for the Chatbot.
+
+
+

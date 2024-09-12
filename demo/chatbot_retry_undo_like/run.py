@@ -35,6 +35,13 @@ def handle_retry(history, retry_data: gr.RetryData):
     yield from respond(previous_prompt, new_history)
 
 
+def handle_like(data: gr.LikeData):
+    if data.liked:
+        print("You upvoted this response: ", data.value)
+    else:
+        print("You downvoted this response: ", data.value)
+
+
 with gr.Blocks() as demo:
     gr.Markdown("# Chat with Hugging Face Zephyr 7b 🤗")
     chatbot = gr.Chatbot(
@@ -50,6 +57,7 @@ with gr.Blocks() as demo:
     prompt.submit(lambda: "", None, [prompt])
     chatbot.undo(handle_undo, chatbot, [chatbot, prompt])
     chatbot.retry(handle_retry, chatbot, [chatbot])
+    chatbot.like(handle_like, None, None)
 
 
 if __name__ == "__main__":
