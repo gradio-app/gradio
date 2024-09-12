@@ -45,7 +45,8 @@
 				}
 			}
 			const script = document.createElement("script");
-			script.src = "https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.js";
+			script.src =
+				"https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.js";
 			script.type = "module";
 			document.head.appendChild(script);
 		}

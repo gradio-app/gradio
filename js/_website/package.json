@@ -11,7 +11,6 @@
 		"prepare": "svelte-kit sync"
 	},
 	"devDependencies": {
-		"@huggingface/inference": "^2.8.0",
 		"@sveltejs/adapter-auto": "^3.2.2",
 		"@sveltejs/adapter-static": "^3.0.2",
 		"@sveltejs/kit": "^2.5.20",
@@ -20,14 +19,12 @@
 		"@types/prismjs": "^1.26.0",
 		"flexsearch": "^0.7.43",
 		"prismjs": "1.29.0",
-		"tailwindcss": "^3.1.6",
-		"@neondatabase/serverless": "^0.9.5"
+		"tailwindcss": "^3.1.6"
 	},
 	"type": "module",
 	"dependencies": {
 		"@gradio/code": "workspace:^",
 		"@gradio/paramviewer": "workspace:^",
-		"@huggingface/inference": "^2.8.0",
 		"@sindresorhus/slugify": "^2.2.0",
 		"@sveltejs/adapter-vercel": "^5.3.0",
 		"hast-util-to-string": "^3.0.0",
