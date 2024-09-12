@@ -163,7 +163,7 @@ class MultimodalTextbox(FormComponent):
             "files": [f.path for f in payload.files],
         }
 
-    def postprocess(self, value: MultimodalValue | None) -> MultimodalData:
+    def postprocess(self, value: MultimodalValue | str | None) -> MultimodalData:
         """
         Parameters:
             value: Expects a {dict} with "text" and "files", both optional. The files array is a list of file paths or URLs.
@@ -172,10 +172,12 @@ class MultimodalTextbox(FormComponent):
         """
         if value is None:
             return MultimodalData(text="", files=[])
-        if not isinstance(value, dict):
+        if not isinstance(value, (dict, str)):
             raise ValueError(
-                f"MultimodalTextbox expects a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
+                f"MultimodalTextbox expects a string or a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
             )
+        if isinstance(value, str):
+            return MultimodalData(text=value, files=[])
         text = value.get("text", "")
         if "files" in value and isinstance(value["files"], list):
             files = [

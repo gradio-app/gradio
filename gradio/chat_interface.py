@@ -296,7 +296,7 @@ class ChatInterface(Blocks):
                 ),
             )
             .then(
-                lambda: update(value=None, interactive=True, placeholder=""),
+                lambda: update(value=None, interactive=True),
                 None,
                 self.textbox,
                 show_api=False,
@@ -437,13 +437,12 @@ class ChatInterface(Blocks):
     def _clear_and_save_textbox(
         self, message: str | dict
     ) -> tuple[Textbox | MultimodalTextbox, str | MultimodalData]:
-        placeholder = message if isinstance(message, str) else message.get("text", "")
         if self.multimodal:
             return MultimodalTextbox(
-                {"text": "", "files": []}, interactive=False, placeholder=placeholder
+                {"text": "", "files": []}, interactive=False
             ), MultimodalData(**cast(dict, message))
         else:
-            return Textbox("", interactive=False, placeholder=placeholder), cast(
+            return Textbox("", interactive=False), cast(
                 str, message
             )
 
