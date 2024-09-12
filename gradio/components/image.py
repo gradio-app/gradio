@@ -17,6 +17,7 @@ from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -185,10 +186,13 @@ class Image(StreamingInput, Component):
             name = "image"
             suffix = "webp"
 
+        if suffix.lower() == "svg":
+            if self.type == "filepath":
+                return str(file_path)
+            raise Error("SVG files are not supported as input images.")
+
         im = PIL.Image.open(file_path)
-        if suffix.lower() == "svg" or (
-            self.type == "filepath" and self.image_mode in [None, im.mode]
-        ):
+        if self.type == "filepath" and (self.image_mode in [None, im.mode]):
             return str(file_path)
 
         exif = im.getexif()

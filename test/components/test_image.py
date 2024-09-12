@@ -8,6 +8,7 @@ from gradio_client import utils as client_utils
 
 import gradio as gr
 from gradio.data_classes import FileData
+from gradio.exceptions import Error
 
 
 class TestImage:
@@ -64,6 +65,11 @@ class TestImage:
         assert img.path == file_image.preprocess(img)
         with pytest.raises(ValueError):
             gr.Image(type="unknown")  # type: ignore
+
+        with pytest.raises(Error):
+            gr.Image().preprocess(
+                FileData(path="test/test_files/test.svg", orig_name="test.svg")
+            )
 
         string_source = gr.Image(sources="upload")
         assert string_source.sources == ["upload"]
