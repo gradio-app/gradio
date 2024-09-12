@@ -118,8 +118,8 @@
 	export let show_nav = true;
 
 	let new_demo = {
-		name: "Ask AI",
-		dir: "Ask AI",
+		name: "Blank",
+		dir: "Blank",
 		code: "# Describe your app above, and the LLM will generate the code here.",
 		requirements: []
 	};
@@ -291,7 +291,7 @@
 						<div class="flex float-right"></div>
 					</div>
 
-					{#if demo.name === "Ask AI"}
+					{#if demo.name === "Blank"}
 						<div class="search-bar">
 							{#if !generated}
 								<div class="loader"></div>
