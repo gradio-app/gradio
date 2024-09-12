@@ -92,6 +92,7 @@ export default defineConfig(({ mode }) => {
 			inject_component_loader({ mode }),
 			{
 				name: "copy-output",
+				enforce: "post",
 				writeBundle() {
 					cpSync(
 						resolve(__dirname, "build"),
