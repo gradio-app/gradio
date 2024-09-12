@@ -29,7 +29,7 @@ from gradio.components.chatbot import FileDataDict, Message, MessageDict, TupleF
 from gradio.components.multimodal_textbox import MultimodalData
 from gradio.events import Dependency, on
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.helpers import special_args
+from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
@@ -295,6 +295,12 @@ class ChatInterface(Blocks):
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
             )
+            .then(
+                lambda: update(value=None, interactive=True),
+                None,
+                self.textbox,
+                show_api=False,
+            )
         )
         self._setup_stop_events(submit_triggers, submit_event)
 
@@ -305,6 +311,11 @@ class ChatInterface(Blocks):
                 [self.chatbot, self.saved_input],
                 show_api=False,
                 queue=False,
+            )
+            .then(
+                lambda: update(interactive=False, placeholder=""),
+                outputs=[self.textbox],
+                show_api=False,
             )
             .then(
                 self._display_input,
@@ -324,6 +335,11 @@ class ChatInterface(Blocks):
                 show_progress=cast(
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
+            )
+            .then(
+                lambda: update(interactive=True),
+                outputs=[self.textbox],
+                show_api=False,
             )
         )
         self._setup_stop_events([self.chatbot.retry], retry_event)
@@ -430,11 +446,13 @@ class ChatInterface(Blocks):
 
     def _clear_and_save_textbox(
         self, message: str | dict
-    ) -> tuple[str | dict, str | MultimodalData]:
+    ) -> tuple[Textbox | MultimodalTextbox, str | MultimodalData]:
         if self.multimodal:
-            return {"text": "", "files": []}, MultimodalData(**cast(dict, message))
+            return MultimodalTextbox(
+                "", interactive=False, placeholder=""
+            ), MultimodalData(**cast(dict, message))
         else:
-            return "", cast(str, message)
+            return Textbox("", interactive=False, placeholder=""), cast(str, message)
 
     def _append_multimodal_history(
         self,

@@ -57,7 +57,7 @@ class MultimodalTextbox(FormComponent):
 
     def __init__(
         self,
-        value: dict[str, str | list] | Callable | None = None,
+        value: str | dict[str, str | list] | Callable | None = None,
         *,
         file_types: list[str] | None = None,
         file_count: Literal["single", "multiple", "directory"] = "single",
@@ -87,7 +87,7 @@ class MultimodalTextbox(FormComponent):
     ):
         """
         Parameters:
-            value: Default value to show in MultimodalTextbox. A dictionary of the form {"text": "sample text", "files": [{path: "files/file.jpg", orig_name: "file.jpg", url: "http://image_url.jpg", size: 100}]}. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value to show in MultimodalTextbox. A string value, or a dictionary of the form {"text": "sample text", "files": [{path: "files/file.jpg", orig_name: "file.jpg", url: "http://image_url.jpg", size: 100}]}. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             lines: minimum number of line rows to provide in textarea.
@@ -163,7 +163,7 @@ class MultimodalTextbox(FormComponent):
             "files": [f.path for f in payload.files],
         }
 
-    def postprocess(self, value: MultimodalValue | None) -> MultimodalData:
+    def postprocess(self, value: MultimodalValue | str | None) -> MultimodalData:
         """
         Parameters:
             value: Expects a {dict} with "text" and "files", both optional. The files array is a list of file paths or URLs.
@@ -172,10 +172,12 @@ class MultimodalTextbox(FormComponent):
         """
         if value is None:
             return MultimodalData(text="", files=[])
-        if not isinstance(value, dict):
+        if not isinstance(value, (dict, str)):
             raise ValueError(
-                f"MultimodalTextbox expects a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
+                f"MultimodalTextbox expects a string or a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
             )
+        if isinstance(value, str):
+            return MultimodalData(text=value, files=[])
         text = value.get("text", "")
         if "files" in value and isinstance(value["files"], list):
             files = [

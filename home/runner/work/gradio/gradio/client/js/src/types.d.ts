@@ -75,7 +75,6 @@ export type client_return = {
 export interface SubmitIterable<T> extends AsyncIterable<T> {
     [Symbol.asyncIterator](): AsyncIterator<T>;
     cancel: () => Promise<void>;
-    event_id: () => string;
 }
 export type PredictReturn = {
     type: EventType;
@@ -192,9 +191,6 @@ export interface Dependency {
     show_api: boolean;
     zerogpu?: boolean;
     rendered_in: number | null;
-    connection: "stream" | "sse";
-    time_limit: number;
-    stream_every: number;
 }
 export interface DependencyTypes {
     generator: boolean;
@@ -263,7 +259,7 @@ export interface Status {
     queue: boolean;
     code?: string;
     success?: boolean;
-    stage: "pending" | "error" | "complete" | "generating" | "streaming";
+    stage: "pending" | "error" | "complete" | "generating";
     duration?: number;
     visible?: boolean;
     broken?: boolean;
@@ -280,13 +276,11 @@ export interface Status {
     }[];
     time?: Date;
     changed_state_ids?: number[];
-    time_limit?: number;
 }
 export interface StatusMessage extends Status {
     type: "status";
     endpoint: string;
     fn_index: number;
-    original_msg?: string;
 }
 export interface PayloadMessage extends Payload {
     type: "data";
