@@ -14,15 +14,7 @@
 
 ### Dependency updates
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 - @gradio/theme@0.2.5-beta.0
-=======
-- @gradio/theme@0.2.5
->>>>>>> main
-=======
-- @gradio/theme@0.2.5
->>>>>>> main
 
 ## 0.0.2
 
