@@ -17,7 +17,7 @@
 		dispatch("mount");
 	});
 
-	console.log("MOUNT COMPONENTS", { rootNode });
+	console.log("MOUNT COMPONENTS", { rootNode, target });
 </script>
 
 <Render
