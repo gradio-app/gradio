@@ -1059,7 +1059,7 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
     """
     path_1, path_2 = abspath(path_1).resolve(), abspath(path_2).resolve()
     try:
-        _ = path_1.relative_to(path_2)
+        path_1.relative_to(path_2)
         return True
     except ValueError:
         return False
