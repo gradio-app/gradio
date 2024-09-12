@@ -1,11 +1,14 @@
 # @self/build
 
+<<<<<<< HEAD
 ## 0.0.3-beta.1
 
 ### Dependency updates
 
 - @gradio/theme@0.3.0-beta.1
 
+=======
+>>>>>>> main
 ## 0.0.3
 
 ### Fixes
@@ -14,7 +17,11 @@
 
 ### Dependency updates
 
+<<<<<<< HEAD
 - @gradio/theme@0.2.5-beta.0
+=======
+- @gradio/theme@0.2.5
+>>>>>>> main
 
 ## 0.0.2
 

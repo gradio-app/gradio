@@ -1,5 +1,6 @@
 # @gradio/accordion
 
+<<<<<<< HEAD
 ## 0.3.23-beta.1
 
 ### Dependency updates
@@ -11,6 +12,8 @@
 
 ## 0.3.23-beta.0
 
+=======
+>>>>>>> main
 ## 0.3.23
 
 ### Fixes
@@ -19,10 +22,17 @@
 
 ### Dependency updates
 
+<<<<<<< HEAD
 - @gradio/utils@0.7.0-beta.0
 - @gradio/statustracker@0.8.0-beta.0
 - @gradio/atoms@0.8.1-beta.0
 - @gradio/column@0.2.0-beta.0
+=======
+- @gradio/utils@0.6.1
+- @gradio/statustracker@0.7.6
+- @gradio/atoms@0.8.1
+- @gradio/column@0.1.4
+>>>>>>> main
 
 ## 0.3.22
 

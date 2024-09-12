@@ -1,5 +1,6 @@
 # @gradio/core
 
+<<<<<<< HEAD
 ## 0.1.0-beta.1
 
 ### Features
@@ -39,6 +40,8 @@
 - [#9052](https://github.com/gradio-app/gradio/pull/9052) [`f3652eb`](https://github.com/gradio-app/gradio/commit/f3652ebe08211e12739df73c15fd97e5ff81276a) - Video gallery.  Thanks @dawoodkhan82!
 - [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
 
+=======
+>>>>>>> main
 ## 0.0.4
 
 ### Fixes

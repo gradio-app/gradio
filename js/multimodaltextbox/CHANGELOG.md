@@ -1,5 +1,6 @@
 # @gradio/multimodaltextbox
 
+<<<<<<< HEAD
 ## 0.6.0-beta.1
 
 ### Features
@@ -17,6 +18,8 @@
 - @gradio/image@0.16.0-beta.1
 - @gradio/upload@0.12.4-beta.1
 
+=======
+>>>>>>> main
 ## 0.5.7
 
 ### Fixes

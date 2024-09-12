@@ -1,11 +1,14 @@
 # @gradio/theme
 
+<<<<<<< HEAD
 ## 0.3.0-beta.1
 
 ### Features
 
 - [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
 
+=======
+>>>>>>> main
 ## 0.2.5
 
 ### Fixes

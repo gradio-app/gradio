@@ -1,5 +1,6 @@
 # @gradio/fileexplorer
 
+<<<<<<< HEAD
 ## 0.4.19-beta.1
 
 ### Dependency updates
@@ -13,6 +14,8 @@
 - @gradio/file@0.9.4-beta.1
 - @gradio/checkbox@0.4.0-beta.1
 
+=======
+>>>>>>> main
 ## 0.4.19
 
 ### Fixes

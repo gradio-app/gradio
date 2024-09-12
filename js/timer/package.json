@@ -1,6 +1,10 @@
 {
 	"name": "@gradio/timer",
+<<<<<<< HEAD
 	"version": "0.3.3-beta.1",
+=======
+	"version": "0.3.3",
+>>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

@@ -1,6 +1,10 @@
 {
 	"name": "@gradio/dropdown",
+<<<<<<< HEAD
 	"version": "0.7.13-beta.1",
+=======
+	"version": "0.7.13",
+>>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

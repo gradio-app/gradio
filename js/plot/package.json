@@ -1,6 +1,10 @@
 {
 	"name": "@gradio/plot",
+<<<<<<< HEAD
 	"version": "0.6.5-beta.1",
+=======
+	"version": "0.6.5",
+>>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

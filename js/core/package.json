@@ -1,6 +1,10 @@
 {
 	"name": "@gradio/core",
+<<<<<<< HEAD
 	"version": "0.1.0-beta.1",
+=======
+	"version": "0.0.4",
+>>>>>>> main
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",

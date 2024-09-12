@@ -1,6 +1,10 @@
 {
 	"name": "@gradio/file",
+<<<<<<< HEAD
 	"version": "0.9.4-beta.1",
+=======
+	"version": "0.9.4",
+>>>>>>> main
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

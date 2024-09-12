@@ -1,5 +1,6 @@
 # @gradio/checkbox
 
+<<<<<<< HEAD
 ## 0.4.0-beta.1
 
 ### Features
@@ -12,6 +13,8 @@
 - @gradio/statustracker@0.8.0-beta.1
 - @gradio/utils@0.7.0-beta.1
 
+=======
+>>>>>>> main
 ## 0.3.13
 
 ### Fixes
