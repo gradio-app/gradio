@@ -127,7 +127,7 @@ demo = gr.Interface(
 demo.launch()
 ```
 
-Here, when a user uploads an image, the Python code saves it to `input.png`, calls the Rust binary (`sepia`) to process the image, and returns the sepia-filtered output to Gradio.
+Here, when a user uploads an image and clicks submit, Gradio calls the Rust binary (`sepia`) to process the image, and returns the sepia-filtered output to Gradio.
 
 This setup showcases how you can integrate performance-critical or specialized code written in Rust into a Gradio interface.
 
