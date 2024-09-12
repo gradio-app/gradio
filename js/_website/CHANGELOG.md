@@ -38,13 +38,8 @@
 
 ### Dependency updates
 
-<<<<<<< HEAD
 - @gradio/paramviewer@0.4.22-beta.0
 - @gradio/code@0.9.1-beta.0
-=======
-- @gradio/code@0.9.1
-- @gradio/paramviewer@0.4.22
->>>>>>> main
 
 ## 0.38.0
 

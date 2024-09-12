@@ -20,7 +20,9 @@
 	let old_value: string[][];
 	export let label: string;
 	export let show_label: boolean;
-	export let height: number | undefined = undefined;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
 	export let file_count: "single" | "multiple" = "multiple";
 	export let root_dir: string;
 	export let glob: string;
@@ -56,8 +58,11 @@
 	{container}
 	{scale}
 	{min_width}
-	allow_overflow={false}
+	allow_overflow={true}
+	overflow_behavior="auto"
 	{height}
+	{max_height}
+	{min_height}
 >
 	<StatusTracker
 		{...loading_status}
