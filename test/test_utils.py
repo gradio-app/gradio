@@ -374,13 +374,15 @@ def test_is_in_or_equal():
     assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
     assert not is_in_or_equal("/safe_dir/subdir/../../unsafe_file.txt", "/safe_dir/")
     assert is_in_or_equal("//tmp/asd/", "/tmp")
+    assert is_in_or_equal("//tmp/..a", "//tmp")
+    assert is_in_or_equal("//tmp/..²", "/tmp")
 
 
 def create_path_string():
     return st.lists(
         st.one_of(
             st.text(
-                alphabet="abcd",
+                alphabet="ab@1\(",
                 min_size=1,
             ),
             st.just(".."),
@@ -388,7 +390,7 @@ def create_path_string():
         ),
         min_size=1,
         max_size=10,  # Limit depth to avoid excessively long paths
-    ).map(lambda x: os.path.join(*x))
+    ).map(lambda x: os.path.join(*x).replace("(", ".."))
 
 
 def create_path_list():
