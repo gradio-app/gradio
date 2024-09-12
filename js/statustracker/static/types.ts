@@ -2,7 +2,7 @@ export interface LoadingStatus {
 	eta: number;
 	queue_position: number;
 	queue_size: number;
-	status: "pending" | "error" | "complete";
+	status: "pending" | "error" | "complete" | "generating" | "streaming";
 	show_progress: "full" | "minimal" | "hidden";
 	scroll_to_output: boolean;
 	visible: boolean;
@@ -15,6 +15,7 @@ export interface LoadingStatus {
 		unit: string | null;
 		desc: string | null;
 	}[];
+	time_limit?: number | null;
 }
 
 export interface ToastMessage {

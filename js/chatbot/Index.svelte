@@ -36,6 +36,8 @@
 	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let _retryable = false;
+	export let _undoable = false;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -48,6 +50,9 @@
 		error: string;
 		like: LikeData;
 		clear_status: LoadingStatus;
+		retry: null;
+		undo: null;
+		clear: null;
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
@@ -59,7 +64,9 @@
 			: normalise_messages(value as Message[], root);
 
 	export let loading_status: LoadingStatus | undefined = undefined;
-	export let height = 400;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
 	export let placeholder: string | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 </script>
@@ -72,7 +79,10 @@
 	{scale}
 	{min_width}
 	{height}
-	allow_overflow={false}
+	{min_height}
+	{max_height}
+	allow_overflow={true}
+	overflow_behavior="auto"
 >
 	{#if loading_status}
 		<StatusTracker
@@ -105,6 +115,7 @@
 			{render_markdown}
 			{theme_mode}
 			pending_message={loading_status?.status === "pending"}
+			generating={loading_status?.status === "generating"}
 			{rtl}
 			{show_copy_button}
 			on:change={() => gradio.dispatch("change", value)}
@@ -112,12 +123,20 @@
 			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
+			on:retry={() => gradio.dispatch("retry")}
+			on:undo={() => gradio.dispatch("undo")}
+			on:clear={() => {
+				value = [];
+				gradio.dispatch("clear");
+			}}
 			{avatar_images}
 			{sanitize_html}
 			{bubble_full_width}
 			{line_breaks}
 			{layout}
 			{placeholder}
+			{_retryable}
+			{_undoable}
 			upload={gradio.client.upload}
 			_fetch={gradio.client.fetch}
 			load_component={gradio.load_component}

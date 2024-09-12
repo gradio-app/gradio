@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable, Sequence
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Sequence,
 )
 
 import orjson
@@ -50,6 +49,8 @@ class JSON(Component):
         open: bool = False,
         show_indices: bool = False,
         height: int | str | None = None,
+        max_height: int | str | None = 500,
+        min_height: int | str | None = None,
     ):
         """
         Parameters:
@@ -89,6 +90,8 @@ class JSON(Component):
         self.show_indices = show_indices
         self.open = open
         self.height = height
+        self.max_height = max_height
+        self.min_height = min_height
 
     def preprocess(self, payload: dict | list | None) -> dict | list | None:
         """

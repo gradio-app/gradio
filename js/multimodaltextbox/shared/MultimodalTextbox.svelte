@@ -10,7 +10,15 @@
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData, Client } from "@gradio/client";
-	import { Clear, File, Music, Paperclip, Video, Send } from "@gradio/icons";
+	import {
+		Clear,
+		File,
+		Music,
+		Paperclip,
+		Video,
+		Send,
+		Square
+	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -28,6 +36,7 @@
 	export let container = true;
 	export let max_lines: number;
 	export let submit_btn: string | boolean | null = null;
+	export let stop_btn: string | boolean | null = null;
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
@@ -75,6 +84,7 @@
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
 		submit: undefined;
+		stop: undefined;
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
@@ -188,7 +198,11 @@
 		}
 	}
 
-	async function handle_submit(): Promise<void> {
+	function handle_stop(): void {
+		dispatch("stop");
+	}
+
+	function handle_submit(): void {
 		dispatch("submit");
 	}
 
@@ -341,7 +355,20 @@
 					{#if submit_btn === true}
 						<Send />
 					{:else}
-						Hello World
+						{submit_btn}
+					{/if}
+				</button>
+			{/if}
+			{#if stop_btn}
+				<button
+					class="stop-button"
+					class:padded-button={stop_btn !== true}
+					on:click={handle_stop}
+				>
+					{#if stop_btn === true}
+						<Square fill={"none"} stroke_width={2.5} />
+					{:else}
+						{stop_btn}
 					{/if}
 				</button>
 			{/if}
@@ -398,9 +425,8 @@
 	}
 
 	.upload-button,
-	.submit-button {
-		background: var(--button-secondary-background-fill);
-		color: var(--button-secondary-text-color);
+	.submit-button,
+	.stop-button {
 		border: none;
 		text-align: center;
 		text-decoration: none;
@@ -420,11 +446,19 @@
 		padding: 0 10px;
 	}
 
+	.stop-button,
+	.upload-button,
+	.submit-button {
+		background: var(--button-secondary-background-fill);
+	}
+
+	.stop-button:hover,
 	.upload-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
+	.stop-button:active,
 	.upload-button:active,
 	.submit-button:active {
 		box-shadow: var(--button-shadow-active);
@@ -437,6 +471,11 @@
 	.upload-button :global(svg) {
 		height: 17px;
 		width: 17px;
+	}
+
+	.stop-button :global(svg) {
+		height: 16px;
+		width: 16px;
 	}
 
 	.loader {

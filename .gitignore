@@ -31,10 +31,10 @@ js/gradio-preview/test/*
 *.db
 *.sqlite3
 gradio/launches.json
-flagged/
-gradio_cached_examples/
-tmp.zip
 gradio/hash_seed.txt
+.gradio/flagged/
+.gradio/cached_examples/
+tmp.zip
 
 # Tests
 .coverage

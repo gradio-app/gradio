@@ -59,7 +59,9 @@
 		named_endpoints: any;
 		unnamed_endpoints: any;
 	}> {
-		let response = await fetch(root + "info");
+		let response = await fetch(
+			root.replace(/\/$/, "") + app.api_prefix + "/info"
+		);
 		let data = await response.json();
 		return data;
 	}
@@ -235,6 +237,7 @@
 								{root}
 								{space_id}
 								{username}
+								api_prefix={app.api_prefix}
 							/>
 
 							<ParametersSnippet

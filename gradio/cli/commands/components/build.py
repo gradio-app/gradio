@@ -4,12 +4,11 @@ import importlib
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional
+from typing import Annotated, Optional
 
 import semantic_version
 import typer
 from tomlkit import dump, parse
-from typing_extensions import Annotated
 
 import gradio
 from gradio.analytics import custom_component_analytics
