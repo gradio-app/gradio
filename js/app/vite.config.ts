@@ -89,22 +89,7 @@ export default defineConfig(({ mode }) => {
 			// inject_ejs(),
 			// generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			// handle_ce_css(),
-			inject_component_loader({ mode }),
-			{
-				name: "copy-output",
-				enforce: "post",
-				writeBundle() {
-					cpSync(
-						resolve(__dirname, "build"),
-						resolve(__dirname, "../../gradio/templates/node/build"),
-						{ recursive: true }
-					);
-					writeFileSync(
-						resolve(__dirname, "build", "package.json"),
-						JSON.stringify({ type: "module", name: "server-build" }, null, 2)
-					);
-				}
-			}
+			inject_component_loader({ mode })
 		]
 	};
 });
