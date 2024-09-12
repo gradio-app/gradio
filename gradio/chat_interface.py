@@ -442,12 +442,18 @@ class ChatInterface(Blocks):
     ]:
         if self.multimodal:
             previous_input += [message]
-            return MultimodalTextbox(
-                "", interactive=False, placeholder=""
-            ), message, previous_input
+            return (
+                MultimodalTextbox("", interactive=False, placeholder=""),
+                message,
+                previous_input,
+            )
         else:
             previous_input += [message]
-            return Textbox("", interactive=False, placeholder=""), message, previous_input
+            return (
+                Textbox("", interactive=False, placeholder=""),
+                message,
+                previous_input,
+            )
 
     def _append_multimodal_history(
         self,
