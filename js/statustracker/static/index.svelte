@@ -415,7 +415,7 @@
 
 	.meta-text {
 		position: absolute;
-		top: 0;
+		bottom: 0;
 		right: 0;
 		z-index: var(--layer-2);
 		padding: var(--size-1) var(--size-2);
