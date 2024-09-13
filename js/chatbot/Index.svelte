@@ -126,7 +126,6 @@
 			}}
 			{avatar_images}
 			{sanitize_html}
-			{bubble_full_width}
 			{line_breaks}
 			{layout}
 			{placeholder}

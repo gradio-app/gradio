@@ -13,7 +13,6 @@
 		tick,
 		onMount
 	} from "svelte";
-	import { Image } from "@gradio/image/shared";
 
 	import { Clear, Trash, Community } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
@@ -23,17 +22,17 @@
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
-	import MessageBox from "./MessageBox.svelte";
 	import { ShareError } from "@gradio/utils";
 
 	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
 
-	import Component from "./Component.svelte";
 	import LikeButtons from "./ButtonPanel.svelte";
 	import type { LoadedComponent } from "../../core/src/types";
+	import ChatBotBubble from "./ChatBotBubble.svelte";
 
 	import CopyAll from "./CopyAll.svelte";
+	import ChatBotPanel from "./ChatBotPanel.svelte";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
@@ -90,7 +89,6 @@
 	export let show_copy_button = false;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
-	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let theme_mode: "system" | "light" | "dark";
@@ -303,6 +301,8 @@
 
 		return groupedMessages;
 	}
+
+	let ChatbotLayout = layout === "bubble" ? ChatBotBubble : ChatBotPanel;
 </script>
 
 {#if value !== null && value.length > 0}
@@ -342,7 +342,7 @@
 	aria-label="chatbot conversation"
 	aria-live="polite"
 >
-	<div class="message-wrap" use:copy>
+	<div class="chat-messages" use:copy>
 		{#if value !== null && value.length > 0 && groupedMessages !== null}
 			{#each groupedMessages as messages, i}
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
@@ -359,132 +359,50 @@
 						>
 					</div>
 				{/if}
-				<div
-					class="message-row {layout} {role}-row"
-					class:with_avatar={avatar_img !== null}
-					class:with_opposite_avatar={opposite_avatar_img !== null}
-				>
-					{#if avatar_img !== null}
-						<div class="avatar-container">
-							<Image
-								class="avatar-image"
-								src={avatar_img?.url}
-								alt="{role} avatar"
-							/>
-						</div>
-					{/if}
-					<div
-						class="flex-wrap {role} "
-						class:component-wrap={messages[0].type === "component"}
-					>
-						{#each messages as message, thought_index}
-							<div
-								class="message {role} {is_component_message(message)
-									? message?.content.component
-									: ''}"
-								class:message-fit={!bubble_full_width}
-								class:panel-full-width={true}
-								class:message-markdown-disabled={!render_markdown}
-								style:text-align={rtl && role === "user" ? "left" : "right"}
-								class:component={message.type === "component"}
-								class:html={is_component_message(message) &&
-									message.content.component === "html"}
-								class:thought={thought_index > 0}
-							>
-								<button
-									data-testid={role}
-									class:latest={i === value.length - 1}
-									class:message-markdown-disabled={!render_markdown}
-									style:user-select="text"
-									class:selectable
-									style:cursor={selectable ? "pointer" : "default"}
-									style:text-align={rtl ? "right" : "left"}
-									on:click={() => handle_select(i, message)}
-									on:keydown={(e) => {
-										if (e.key === "Enter") {
-											handle_select(i, message);
-										}
-									}}
-									dir={rtl ? "rtl" : "ltr"}
-									aria-label={role +
-										"'s message: " +
-										get_message_label_data(message)}
-								>
-									{#if message.type === "text"}
-										{#if message.metadata.title}
-											<MessageBox title={message.metadata.title}>
-												<Markdown
-													message={message.content}
-													{latex_delimiters}
-													{sanitize_html}
-													{render_markdown}
-													{line_breaks}
-													on:load={scroll}
-													{root}
-												/>
-											</MessageBox>
-										{:else}
-											<Markdown
-												message={message.content}
-												{latex_delimiters}
-												{sanitize_html}
-												{render_markdown}
-												{line_breaks}
-												on:load={scroll}
-												{root}
-											/>
-										{/if}
-									{:else if message.type === "component" && message.content.component in _components}
-										<Component
-											{target}
-											{theme_mode}
-											props={message.content.props}
-											type={message.content.component}
-											components={_components}
-											value={message.content.value}
-											{i18n}
-											{upload}
-											{_fetch}
-											on:load={scroll}
-										/>
-									{:else if message.type === "component" && message.content.component === "file"}
-										<a
-											data-testid="chatbot-file"
-											class="file-pil"
-											href={message.content.value.url}
-											target="_blank"
-											download={window.__is_colab__
-												? null
-												: message.content.value?.orig_name ||
-													message.content.value?.path.split("/").pop() ||
-													"file"}
-										>
-											{message.content.value?.orig_name ||
-												message.content.value?.path.split("/").pop() ||
-												"file"}
-										</a>
-									{/if}
-								</button>
-							</div>
-						{/each}
-					</div>
+				<div class="message-container">
+					<ChatbotLayout
+						{messages}
+						{role}
+						{avatar_img}
+						{opposite_avatar_img}
+						{render_markdown}
+						{latex_delimiters}
+						{sanitize_html}
+						{line_breaks}
+						{root}
+						{is_component_message}
+						{rtl}
+						{handle_select}
+						{value}
+						{get_message_label_data}
+						{i}
+						{selectable}
+						{target}
+						{theme_mode}
+						{upload}
+						{_fetch}
+						{i18n}
+						{_components}
+					/>
+
+					<LikeButtons
+						show={likeable ||
+							(_retryable && is_last_bot_message(messages, value.length)) ||
+							(_undoable && is_last_bot_message(messages, value.length)) ||
+							show_copy_button}
+						handle_action={(selected) => handle_like(i, messages[0], selected)}
+						{likeable}
+						_retryable={_retryable &&
+							is_last_bot_message(messages, value.length)}
+						_undoable={_undoable && is_last_bot_message(messages, value.length)}
+						disable={generating}
+						{show_copy_button}
+						message={msg_format === "tuples" ? messages[0] : messages}
+						position={role === "user" ? "right" : "left"}
+						avatar={avatar_img}
+						{layout}
+					/>
 				</div>
-				<LikeButtons
-					show={likeable ||
-						(_retryable && is_last_bot_message(messages, value.length)) ||
-						(_undoable && is_last_bot_message(messages, value.length)) ||
-						show_copy_button}
-					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					{likeable}
-					_retryable={_retryable && is_last_bot_message(messages, value.length)}
-					_undoable={_undoable && is_last_bot_message(messages, value.length)}
-					disable={generating}
-					{show_copy_button}
-					message={msg_format === "tuples" ? messages[0] : messages}
-					position={role === "user" ? "right" : "left"}
-					avatar={avatar_img}
-					{layout}
-				/>
 			{/each}
 			{#if pending_message}
 				<Pending {layout} />
@@ -498,25 +416,23 @@
 </div>
 
 <style>
+	.message-container {
+		position: relative;
+	}
+
 	.placeholder-container {
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		height: 100%;
 	}
-	.panel-wrap {
-		width: 100%;
-		overflow-y: auto;
-	}
-
-	.flex-wrap {
-		width: 100%;
-		height: 100%;
-	}
-
+	.panel-wrap,
 	.bubble-wrap {
 		width: 100%;
 		overflow-y: auto;
+	}
+
+	.bubble-wrap {
 		height: 100%;
 		padding-top: var(--spacing-xxl);
 	}
@@ -525,276 +441,45 @@
 		background: var(--background-fill-secondary);
 	}
 
-	.message-wrap {
+	.chat-messages {
 		display: flex;
 		flex-direction: column;
-		justify-content: space-between;
 		margin-bottom: var(--spacing-xxl);
 	}
 
-	.bubble-gap {
-		gap: calc(var(--spacing-xxl) + var(--spacing-lg));
-	}
-
-	.message-wrap > div :global(p:not(:first-child)) {
+	.chat-messages > div :global(p:not(:first-child)) {
 		margin-top: var(--spacing-xxl);
 	}
 
-	.message {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-
-		width: calc(100% - var(--spacing-xxl));
-		color: var(--body-text-color);
-		font-size: var(--chatbot-body-text-size);
-		overflow-wrap: break-word;
-	}
-
-	.thought {
-		margin-top: var(--spacing-xxl);
-	}
-
-	.message :global(.prose) {
-		font-size: var(--chatbot-body-text-size);
-	}
-
-	.message-bubble-border {
-		border-width: 1px;
-		border-radius: var(--radius-md);
-	}
-
-	.user {
-		align-self: flex-end;
-	}
-
-	.message-fit {
-		width: fit-content !important;
-	}
-
-	.panel-full-width {
-		width: 100%;
-	}
-	.message-markdown-disabled {
-		white-space: pre-line;
-	}
-
-	.flex-wrap.user {
-		border-width: 1px;
-		border-radius: var(--radius-md);
-		align-self: flex-start;
-		border-bottom-right-radius: 0;
-		box-shadow: var(--shadow-drop);
-		align-self: flex-start;
-		text-align: right;
-		padding: var(--spacing-sm) var(--spacing-xl);
-		border-color: var(--border-color-accent-subdued);
-		background-color: var(--color-accent-soft);
-	}
-
-	:not(.component-wrap).flex-wrap.bot {
-		border-width: 1px;
-		border-radius: var(--radius-lg);
-		align-self: flex-start;
-		border-bottom-left-radius: 0;
-		box-shadow: var(--shadow-drop);
-		align-self: flex-start;
-		text-align: right;
-		padding: var(--spacing-sm) var(--spacing-xl);
-		border-color: var(--border-color-primary);
-		background-color: var(--background-fill-secondary);
-	}
-
-	.panel .user :global(*) {
-		text-align: right;
-	}
-
-	/* Colors */
-	.bubble .bot {
-		border-color: var(--border-color-primary);
-	}
-
-	.message-row {
-		display: flex;
-		/* flex-direction: column; */
-		position: relative;
-	}
-
-	.message-row.user-row {
-		align-self: flex-end;
-	}
-	.message-row.bubble {
-		margin: calc(var(--spacing-xl) * 2);
-		margin-bottom: var(--spacing-xl);
-	}
-
-	.with_avatar.message-row.panel {
-		padding-left: calc(var(--spacing-xl) * 2) !important;
-		padding-right: calc(var(--spacing-xl) * 2) !important;
-	}
-
-	.with_avatar.message-row.bubble.user-row {
-		margin-right: calc(var(--spacing-xl) * 2) !important;
-	}
-
-	.with_avatar.message-row.bubble.bot-row {
-		margin-left: calc(var(--spacing-xl) * 2) !important;
-	}
-
-	.with_opposite_avatar.message-row.bubble.user-row {
-		margin-left: calc(var(--spacing-xxl) + 35px + var(--spacing-xxl));
-	}
-
-	.message-row.panel {
-		margin: 0;
-		padding: calc(var(--spacing-xl) * 3) calc(var(--spacing-xxl) * 2);
-	}
-
-	.message-row.panel.bot-row {
-		background: var(--background-fill-secondary);
-	}
-
-	.message-row.bubble.user-row {
-		align-self: flex-end;
-		max-width: calc(100% - var(--spacing-xl) * 6);
-	}
-
-	.message-row.bubble.bot-row {
-		align-self: flex-start;
-		max-width: calc(100% - var(--spacing-xl) * 6);
-	}
-
-	.message-row:last-of-type {
-		margin-bottom: calc(var(--spacing-xxl) * 2);
-	}
-
-	.user-row.bubble {
-		flex-direction: row;
-		justify-content: flex-end;
-	}
-	@media (max-width: 480px) {
-		.user-row.bubble {
-			align-self: flex-end;
-		}
-
-		.bot-row.bubble {
-			align-self: flex-start;
-		}
-		.message {
-			width: 100%;
-		}
-	}
-
-	.avatar-container {
-		align-self: flex-start;
-		position: relative;
-		display: flex;
-		justify-content: flex-start;
-		align-items: flex-start;
-		width: 35px;
-		height: 35px;
-		flex-shrink: 0;
-		bottom: 0;
-		border-radius: 50%;
-		border: 1px solid var(--border-color-primary);
-	}
-	.user-row > .avatar-container {
-		order: 2;
-		margin-left: var(--spacing-xxl);
-	}
-	.bot-row > .avatar-container {
-		margin-right: var(--spacing-xxl);
-		margin-left: 0;
-		margin-top: -5px;
-	}
-
-	.avatar-container:not(.thumbnail-item) :global(img) {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		border-radius: 50%;
-		padding: 6px;
-	}
-
-	.selectable {
-		cursor: pointer;
-	}
-
-	@keyframes dot-flashing {
-		0% {
-			opacity: 0.8;
-		}
-		50% {
-			opacity: 0.5;
-		}
-		100% {
-			opacity: 0.8;
-		}
-	}
-	.message-wrap > .message :not(.image-button) :global(img) {
-		margin: var(--size-2);
-		max-height: 200px;
-	}
-
-	.message-wrap
+	.chat-messages > .message :not(.image-button) :global(img),
+	.chat-messages
 		> div
 		:not(.avatar-container)
 		div
 		:not(.image-button)
 		:global(img) {
-		border-radius: var(--radius-xl);
 		margin: var(--size-2);
-		width: 400px;
+		max-height: 200px;
+		border-radius: var(--radius-xl);
 		max-width: 30vw;
 		max-height: 30vw;
 	}
 
-	.message-wrap .message :global(a) {
-		color: var(--color-text-link);
-		text-decoration: underline;
-	}
-
-	.message-wrap .bot :global(table),
-	.message-wrap .bot :global(tr),
-	.message-wrap .bot :global(td),
-	.message-wrap .bot :global(th) {
-		border: 1px solid var(--border-color-primary);
-	}
-
-	.message-wrap .user :global(table),
-	.message-wrap .user :global(tr),
-	.message-wrap .user :global(td),
-	.message-wrap .user :global(th) {
-		border: 1px solid var(--border-color-accent);
-	}
-
 	/* KaTeX */
-	.message-wrap :global(span.katex) {
+	.chat-messages :global(span.katex) {
 		font-size: var(--text-lg);
 		direction: ltr;
 	}
 
-	/* Copy button */
-	.message-wrap :global(div[class*="code_wrap"] > button) {
+	.chat-messages :global(div[class*="code_wrap"] > button),
+	.chat-messages :global(code > button > span) {
 		position: absolute;
 		top: var(--spacing-md);
 		right: var(--spacing-md);
 		z-index: 1;
 		cursor: pointer;
-		border-bottom-left-radius: var(--radius-sm);
-		padding: var(--spacing-md);
-		width: 25px;
-		height: 25px;
 	}
-
-	.message-wrap :global(code > button > span) {
-		position: absolute;
-		top: var(--spacing-md);
-		right: var(--spacing-md);
-		width: 12px;
-		height: 12px;
-	}
-	.message-wrap :global(.check) {
+	.chat-messages :global(.check) {
 		position: absolute;
 		top: 0;
 		right: 0;
@@ -808,18 +493,18 @@
 		color: var(--body-text-color);
 	}
 
-	.message-wrap :global(pre) {
+	.chat-messages :global(pre) {
 		position: relative;
 	}
 
-	.message-wrap :global(.grid-wrap) {
-		max-height: 80% !important;
+	.chat-messages :global(.grid-wrap) {
+		max-height: 80%;
 		max-width: 600px;
 		object-fit: contain;
 	}
 
 	/* Image preview */
-	.message :global(.preview) {
+	:global(.message) :global(.preview) {
 		object-fit: contain;
 		width: 95%;
 		max-height: 93%;
@@ -844,68 +529,17 @@
 		position: absolute;
 		top: 10px;
 		right: 10px;
-		background: none;
-		border: none;
-		font-size: 1.5em;
-		cursor: pointer;
-		height: 30px;
-		width: 30px;
-		padding: 3px;
 		background: var(--bg-color);
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--button-secondary-border-color);
 		border-radius: var(--radius-lg);
-	}
-
-	.component {
-		padding: 0;
-		border-radius: var(--radius-md);
-		width: fit-content;
-		max-width: 80%;
-		max-height: 80%;
-		border: none;
-		overflow: hidden;
-	}
-
-	.component.gallery {
-		border: none;
-	}
-
-	.file-pil {
-		display: block;
-		width: fit-content;
-		padding: var(--spacing-sm) var(--spacing-lg);
-		border-radius: var(--radius-md);
-		background: var(--background-fill-secondary);
-		color: var(--body-text-color);
-		text-decoration: none;
-		margin: 0;
-		font-family: var(--font-mono);
-		font-size: var(--text-sm);
-	}
-
-	.file {
-		width: auto !important;
-		max-width: fit-content !important;
-	}
-
-	@media (max-width: 600px) or (max-width: 480px) {
-		.component {
-			max-width: calc(100% - var(--spacing-xl) * 3);
-			width: 100%;
-		}
+		cursor: pointer;
+		height: 30px;
+		width: 30px;
+		padding: 3px;
 	}
 
 	:global(.prose.chatbot.md) {
 		opacity: 0.8;
-	}
-
-	.message > button {
-		width: 100%;
-	}
-	.html {
-		padding: 0;
-		border: none;
-		background: none;
 	}
 </style>

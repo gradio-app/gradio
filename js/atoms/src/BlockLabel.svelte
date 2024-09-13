@@ -24,7 +24,7 @@
 	label {
 		display: inline-flex;
 		align-items: center;
-		z-index: var(--layer-2);
+		z-index: var(--layer-3);
 		box-shadow: var(--block-label-shadow);
 		border: var(--block-label-border-width) solid var(--border-color-primary);
 		border-top: none;

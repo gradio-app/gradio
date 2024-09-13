@@ -91,12 +91,17 @@
 		margin: 0px calc(var(--spacing-xl) * 2);
 	}
 
+	.message-buttons {
+		position: absolute;
+	}
+
 	.message-buttons-left {
-		align-self: flex-start;
+		left: 0;
+		bottom: var(--size-2);
 	}
 
 	.message-buttons-right {
-		align-self: flex-end;
+		right: 0;
 	}
 
 	.message-buttons-right :global(.icon-button-wrapper) {

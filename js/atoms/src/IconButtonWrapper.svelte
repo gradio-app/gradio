@@ -1,8 +1,12 @@
 <script>
 	export let top_panel = true;
+	export let position = "absolute";
 </script>
 
-<div class={`icon-button-wrapper ${top_panel ? "top-panel" : ""}`}>
+<div
+	class={`icon-button-wrapper ${top_panel ? "top-panel" : ""}`}
+	style:position
+>
 	<slot></slot>
 </div>
 
