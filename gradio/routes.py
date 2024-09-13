@@ -585,7 +585,7 @@ class App(FastAPI):
 
             mime_type, _ = mimetypes.guess_type(abs_path)
             if mime_type in XSS_SAFE_MIMETYPES or reason == "allowed":
-                media_type = mime_type
+                media_type = mime_type or "application/octet-stream"
                 content_disposition_type = "inline"
             else:
                 media_type = "application/octet-stream"
