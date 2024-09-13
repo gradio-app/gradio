@@ -149,6 +149,7 @@ Once installed, you can use the package to run Gradio directly from within an R 
 
 ```r
 library(reticulate)
+
 py_install("gradio", pip = TRUE)
 
 gr <- import("gradio") # import gradio as gr
@@ -172,4 +173,4 @@ app$launch(server_name = "localhost",
            server_port = as.integer(3000))
 ```
 
-Credit to [@IfeanyiIdiaye](https://github.com/Ifeanyi55) for contributing this section. You can see more examples [here](https://github.com/Ifeanyi55/Gradio-in-R/tree/main/Code), including using a full example of using Gradio Blocks to build a machine learning application in R.
+Credit to [@IfeanyiIdiaye](https://github.com/Ifeanyi55) for contributing this section. You can see more examples [here](https://github.com/Ifeanyi55/Gradio-in-R/tree/main/Code), including using Gradio Blocks to build a machine learning application in R.
