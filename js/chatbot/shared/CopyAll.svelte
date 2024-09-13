@@ -2,6 +2,7 @@
 	import { onDestroy } from "svelte";
 	import { Copy, Check } from "@gradio/icons";
 	import type { NormalisedMessage } from "../types";
+	import { IconButton } from "@gradio/atoms";
 
 	let copied = false;
 	export let value: NormalisedMessage[] | null;
@@ -45,29 +46,8 @@
 	});
 </script>
 
-<button
+<IconButton
+	Icon={copied ? Check : Copy}
 	on:click={handle_copy}
-	title="Copy conversation"
-	class={copied ? "copied" : "copy-text"}
-	aria-label={copied ? "Copied conversation" : "Copy conversation"}
->
-	{#if copied}
-		<Check />
-	{:else}
-		<Copy />
-	{/if}
-</button>
-
-<style>
-	button {
-		display: flex;
-		align-items: center;
-		width: var(--size-4);
-		height: var(--size-4);
-		color: var(--body-text-color-subdued);
-	}
-
-	button:hover {
-		color: var(--body-text-color);
-	}
-</style>
+	label={copied ? "Copied conversation" : "Copy conversation"}
+></IconButton>
