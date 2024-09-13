@@ -198,7 +198,7 @@ def test_event_pyi_file_matches_source_code():
         if isinstance(node, ast.FunctionDef) and node.name == "stream":
             segment = ast.get_source_segment(code, node)
 
-    # This would fail if Image no longer has a strean method
+    # This would fail if Image no longer has a stream method
     assert segment
     sig = inspect.signature(gr.Image.stream)
     for param in ["time_limit", "stream_every"]:
