@@ -3,19 +3,15 @@
 from __future__ import annotations
 
 import inspect
+import warnings
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
-    List,
     Literal,
     Optional,
-    Sequence,
-    Tuple,
-    Type,
     TypedDict,
     Union,
     cast,
@@ -35,7 +31,6 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 from gradio.exceptions import Error
-from gradio.processing_utils import move_resource_to_block_cache
 
 
 class MetadataDict(TypedDict):
@@ -66,13 +61,13 @@ class FileMessage(GradioModel):
 class ComponentMessage(GradioModel):
     component: str
     value: Any
-    constructor_args: Dict[str, Any]
-    props: Dict[str, Any]
+    constructor_args: dict[str, Any]
+    props: dict[str, Any]
 
 
 class ChatbotDataTuples(GradioRootModel):
-    root: List[
-        Tuple[
+    root: list[
+        tuple[
             Union[str, FileMessage, ComponentMessage, None],
             Union[str, FileMessage, ComponentMessage, None],
         ]
@@ -97,10 +92,10 @@ class ChatMessage:
 
 
 class ChatbotDataMessages(GradioRootModel):
-    root: List[Message]
+    root: list[Message]
 
 
-TupleFormat = List[List[Union[str, Tuple[str], Tuple[str, str], None]]]
+TupleFormat = list[list[Union[str, tuple[str], tuple[str, str], None]]]
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -128,11 +123,11 @@ class Chatbot(Component):
     Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This
     component is usually used as an output component.
 
-    Demos: chatbot_simple, chatbot_core_components_simple
-    Guides: creating-a-chatbot
+    Demos: chatbot_simple, chatbot_streaming, chatbot_with_tools, chatbot_core_components
+    Guides: creating-a-chatbot-fast, creating-a-custom-chatbot-with-blocks, agents-and-tool-usage
     """
 
-    EVENTS = [Events.change, Events.select, Events.like]
+    EVENTS = [Events.change, Events.select, Events.like, Events.retry, Events.undo]
 
     def __init__(
         self,
@@ -159,7 +154,9 @@ class Chatbot(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        height: int | str | None = None,
+        height: int | str | None = 400,
+        max_height: int | str | None = None,
+        min_height: int | str | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         rtl: bool = False,
         show_share_button: bool | None = None,
@@ -177,7 +174,7 @@ class Chatbot(Component):
         """
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            type: The format of the messages. If 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed. If 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content' key's value supports everything the 'tuples' format supports. The 'role' key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output.
+            type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -190,7 +187,9 @@ class Chatbot(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
-            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll.
+            max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll. If messages are shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
+            min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
@@ -212,8 +211,15 @@ class Chatbot(Component):
         if type == "messages":
             self.data_model = ChatbotDataMessages
         else:
+            # DeprecationWarning gets filtered out by default
+            warnings.warn(
+                "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead.",
+                UserWarning,
+            )
             self.data_model = ChatbotDataTuples
         self.height = height
+        self.max_height = max_height
+        self.min_height = min_height
         self.rtl = rtl
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
@@ -433,7 +439,7 @@ class Chatbot(Component):
 
     def _postprocess_message_messages(
         self, message: MessageDict | ChatMessage
-    ) -> list[Message]:
+    ) -> Message:
         if isinstance(message, dict):
             message["content"] = self._postprocess_content(message["content"])
             msg = Message(**message)  # type: ignore
@@ -449,30 +455,7 @@ class Chatbot(Component):
                 f"Invalid message for Chatbot component: {message}", visible=False
             )
 
-        # extract file path from message
-        new_messages = []
-        if isinstance(msg.content, str):
-            for word in msg.content.split(" "):
-                filepath = Path(word)
-                try:
-                    is_file = filepath.is_file() and filepath.exists()
-                except OSError:
-                    is_file = False
-                if is_file:
-                    filepath = cast(
-                        str, move_resource_to_block_cache(filepath, block=self)
-                    )
-                    mime_type = client_utils.get_mimetype(filepath)
-                    new_messages.append(
-                        Message(
-                            role=msg.role,
-                            metadata=msg.metadata,
-                            content=FileMessage(
-                                file=FileData(path=filepath, mime_type=mime_type)
-                            ),
-                        ),
-                    )
-        return [msg, *new_messages]
+        return msg
 
     def postprocess(
         self,
@@ -485,7 +468,7 @@ class Chatbot(Component):
             an object of type ChatbotData
         """
         data_model = cast(
-            Union[Type[ChatbotDataTuples], Type[ChatbotDataMessages]], self.data_model
+            Union[type[ChatbotDataTuples], type[ChatbotDataMessages]], self.data_model
         )
         if value is None:
             return data_model(root=[])
@@ -494,9 +477,8 @@ class Chatbot(Component):
             return self._postprocess_messages_tuples(cast(TupleFormat, value))
         self._check_format(value, "messages")
         processed_messages = [
-            msg
+            self._postprocess_message_messages(cast(MessageDict, message))
             for message in value
-            for msg in self._postprocess_message_messages(cast(MessageDict, message))
         ]
         return ChatbotDataMessages(root=processed_messages)
 

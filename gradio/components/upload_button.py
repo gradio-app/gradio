@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import tempfile
 import warnings
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 import gradio_client.utils as client_utils
 from gradio_client import handle_file

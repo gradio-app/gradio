@@ -55,16 +55,23 @@
 	<Button value="Gradio Button" {...args} />
 </Template>
 
-<Story name="Primary" args={{ variant: "primary", size: "lg", scale: 1 }} />
-<Story name="Secondary" args={{ variant: "secondary", size: "lg" }} />
-<Story name="Stop" args={{ variant: "stop", size: "lg" }} />
+<Story
+	name="Primary"
+	args={{ variant: "primary", size: "lg", scale: 1, interactive: true }}
+/>
+<Story
+	name="Secondary"
+	args={{ variant: "secondary", size: "lg", interactive: true }}
+/>
+<Story name="Stop" args={{ variant: "stop", size: "lg", interactive: true }} />
 <Story
 	name="Button with link"
-	args={{ link: "https://huggingface.co/welcome" }}
+	args={{ link: "https://huggingface.co/welcome", interactive: true }}
 />
 <Story
 	name="Button with external image icon"
 	args={{
+		interactive: true,
 		icon: {
 			url: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
 			path: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"

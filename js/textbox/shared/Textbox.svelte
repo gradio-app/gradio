@@ -6,7 +6,7 @@
 		tick
 	} from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { Copy, Check } from "@gradio/icons";
+	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
@@ -22,6 +22,8 @@
 	export let max_lines: number;
 	export let type: "text" | "password" | "email" = "text";
 	export let show_copy_button = false;
+	export let submit_btn: string | boolean | null = null;
+	export let stop_btn: string | boolean | null = null;
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
@@ -35,6 +37,8 @@
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
 
+	const show_textbox_border = !submit_btn;
+
 	$: value, el && lines !== max_lines && resize({ target: el });
 
 	$: if (value === null) value = "";
@@ -42,6 +46,7 @@
 	const dispatch = createEventDispatcher<{
 		change: string;
 		submit: undefined;
+		stop: undefined;
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
@@ -133,6 +138,14 @@
 		}
 	}
 
+	function handle_stop(): void {
+		dispatch("stop");
+	}
+
+	function handle_submit(): void {
+		dispatch("submit");
+	}
+
 	async function resize(
 		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
 	): Promise<void> {
@@ -180,19 +193,91 @@
 </script>
 
 <!-- svelte-ignore a11y-autofocus -->
-<label class:container>
+<label class:container class:show_textbox_border>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
-	{#if lines === 1 && max_lines === 1}
-		{#if type === "text"}
-			<input
+	<div class="input-container">
+		{#if lines === 1 && max_lines === 1}
+			{#if type === "text"}
+				<input
+					data-testid="textbox"
+					type="text"
+					class="scroll-hide"
+					dir={rtl ? "rtl" : "ltr"}
+					bind:value
+					bind:this={el}
+					{placeholder}
+					{disabled}
+					{autofocus}
+					maxlength={max_length}
+					on:keypress={handle_keypress}
+					on:blur
+					on:select={handle_select}
+					on:focus
+					style={text_align ? "text-align: " + text_align : ""}
+				/>
+			{:else if type === "password"}
+				<input
+					data-testid="password"
+					type="password"
+					class="scroll-hide"
+					bind:value
+					bind:this={el}
+					{placeholder}
+					{disabled}
+					{autofocus}
+					maxlength={max_length}
+					on:keypress={handle_keypress}
+					on:blur
+					on:select={handle_select}
+					on:focus
+					autocomplete=""
+				/>
+			{:else if type === "email"}
+				<input
+					data-testid="textbox"
+					type="email"
+					class="scroll-hide"
+					bind:value
+					bind:this={el}
+					{placeholder}
+					{disabled}
+					{autofocus}
+					maxlength={max_length}
+					on:keypress={handle_keypress}
+					on:blur
+					on:select={handle_select}
+					on:focus
+					autocomplete="email"
+				/>
+			{/if}
+		{:else}
+			{#if show_label && show_copy_button}
+				{#if copied}
+					<button
+						in:fade={{ duration: 300 }}
+						class="copy-button"
+						aria-label="Copied"
+						aria-roledescription="Text copied"><Check /></button
+					>
+				{:else}
+					<button
+						on:click={handle_copy}
+						class="copy-button"
+						aria-label="Copy"
+						aria-roledescription="Copy text"><Copy /></button
+					>
+				{/if}
+			{/if}
+			<textarea
 				data-testid="textbox"
-				type="text"
+				use:text_area_resize={value}
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
 				bind:value
 				bind:this={el}
 				{placeholder}
+				rows={lines}
 				{disabled}
 				{autofocus}
 				maxlength={max_length}
@@ -200,79 +285,37 @@
 				on:blur
 				on:select={handle_select}
 				on:focus
+				on:scroll={handle_scroll}
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
-		{:else if type === "password"}
-			<input
-				data-testid="password"
-				type="password"
-				class="scroll-hide"
-				bind:value
-				bind:this={el}
-				{placeholder}
-				{disabled}
-				{autofocus}
-				maxlength={max_length}
-				on:keypress={handle_keypress}
-				on:blur
-				on:select={handle_select}
-				on:focus
-				autocomplete=""
-			/>
-		{:else if type === "email"}
-			<input
-				data-testid="textbox"
-				type="email"
-				class="scroll-hide"
-				bind:value
-				bind:this={el}
-				{placeholder}
-				{disabled}
-				{autofocus}
-				maxlength={max_length}
-				on:keypress={handle_keypress}
-				on:blur
-				on:select={handle_select}
-				on:focus
-				autocomplete="email"
-			/>
 		{/if}
-	{:else}
-		{#if show_label && show_copy_button}
-			{#if copied}
-				<button
-					in:fade={{ duration: 300 }}
-					aria-label="Copied"
-					aria-roledescription="Text copied"><Check /></button
-				>
-			{:else}
-				<button
-					on:click={handle_copy}
-					aria-label="Copy"
-					aria-roledescription="Copy text"><Copy /></button
-				>
-			{/if}
+		{#if submit_btn}
+			<button
+				class="submit-button"
+				class:padded-button={submit_btn !== true}
+				on:click={handle_submit}
+			>
+				{#if submit_btn === true}
+					<Send />
+				{:else}
+					{submit_btn}
+				{/if}
+			</button>
 		{/if}
-		<textarea
-			data-testid="textbox"
-			use:text_area_resize={value}
-			class="scroll-hide"
-			dir={rtl ? "rtl" : "ltr"}
-			bind:value
-			bind:this={el}
-			{placeholder}
-			rows={lines}
-			{disabled}
-			{autofocus}
-			maxlength={max_length}
-			on:keypress={handle_keypress}
-			on:blur
-			on:select={handle_select}
-			on:focus
-			on:scroll={handle_scroll}
-			style={text_align ? "text-align: " + text_align : ""}
-		/>
-	{/if}
+		{#if stop_btn}
+			<button
+				class="stop-button"
+				class:padded-button={stop_btn !== true}
+				on:click={handle_stop}
+			>
+				{#if stop_btn === true}
+					<Square fill="none" stroke_width={2.5} />
+				{:else}
+					{stop_btn}
+				{/if}
+			</button>
+		{/if}
+	</div>
 </label>
 
 <style>
@@ -283,10 +326,15 @@
 
 	input,
 	textarea {
+		flex-grow: 1;
+		outline: none !important;
+		margin-top: 0px;
+		margin-bottom: 0px;
+		resize: none;
+		z-index: 1;
 		display: block;
 		position: relative;
 		outline: none !important;
-		box-shadow: var(--input-shadow);
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
 		width: 100%;
@@ -296,25 +344,28 @@
 		line-height: var(--line-sm);
 		border: none;
 	}
+	label.show_textbox_border input,
+	label.show_textbox_border textarea {
+		box-shadow: var(--input-shadow);
+	}
 	label:not(.container),
-	label:not(.container) > input,
-	label:not(.container) > textarea {
+	label:not(.container) input,
+	label:not(.container) textarea {
 		height: 100%;
 	}
-	.container > input,
-	.container > textarea {
+	label.container.show_textbox_border input,
+	label.container.show_textbox_border textarea {
 		border: var(--input-border-width) solid var(--input-border-color);
 		border-radius: var(--input-radius);
 	}
 	input:disabled,
 	textarea:disabled {
-		-webkit-text-fill-color: var(--body-text-color);
 		-webkit-opacity: 1;
 		opacity: 1;
 	}
 
-	input:focus,
-	textarea:focus {
+	label.container.show_textbox_border input:focus,
+	label.container.show_textbox_border textarea:focus {
 		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
 	}
@@ -323,7 +374,8 @@
 	textarea::placeholder {
 		color: var(--input-placeholder-color);
 	}
-	button {
+
+	.copy-button {
 		display: flex;
 		position: absolute;
 		top: var(--block-label-margin);
@@ -342,5 +394,54 @@
 		color: var(--block-label-color);
 		font: var(--font-sans);
 		font-size: var(--button-small-text-size);
+	}
+
+	/* Same submit button style as MultimodalTextbox for the consistent UI */
+	.input-container {
+		display: flex;
+		position: relative;
+		align-items: flex-end;
+	}
+	.submit-button,
+	.stop-button {
+		border: none;
+		text-align: center;
+		text-decoration: none;
+		font-size: 14px;
+		cursor: pointer;
+		border-radius: 15px;
+		min-width: 30px;
+		height: 30px;
+		flex-shrink: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-bottom: 5px;
+		z-index: var(--layer-1);
+	}
+	.stop-button,
+	.submit-button {
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
+	}
+	.stop-button:hover,
+	.submit-button:hover {
+		background: var(--button-secondary-background-fill-hover);
+	}
+	.stop-button:active,
+	.submit-button:active {
+		box-shadow: var(--button-shadow-active);
+	}
+	.submit-button :global(svg) {
+		height: 22px;
+		width: 22px;
+	}
+
+	.stop-button :global(svg) {
+		height: 16px;
+		width: 16px;
+	}
+	.padded-button {
+		padding: 0 10px;
 	}
 </style>

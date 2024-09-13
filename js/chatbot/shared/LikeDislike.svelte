@@ -52,6 +52,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		height: var(--size-3);
 	}
 
 	button:hover,

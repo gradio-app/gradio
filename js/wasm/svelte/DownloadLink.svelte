@@ -76,6 +76,8 @@
 	{/if}
 {:else}
 	<a
+		style:position="relative"
+		class="download-link"
 		{href}
 		target={typeof window !== "undefined" && window.__is_colab__
 			? "_blank"
@@ -88,3 +90,10 @@
 		<slot />
 	</a>
 {/if}
+
+<style>
+	.unstyled-link {
+		all: unset;
+		cursor: pointer;
+	}
+</style>

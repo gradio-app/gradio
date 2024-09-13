@@ -8,7 +8,8 @@ import builtins
 import functools
 import inspect
 import warnings
-from typing import AsyncGenerator, Callable, Literal, Union, cast
+from collections.abc import AsyncGenerator, Callable
+from typing import Literal, Union, cast
 
 import anyio
 from gradio_client.documentation import document
@@ -28,7 +29,7 @@ from gradio.components.chatbot import FileDataDict, Message, MessageDict, TupleF
 from gradio.components.multimodal_textbox import MultimodalData
 from gradio.events import Dependency, on
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.helpers import special_args
+from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
@@ -49,7 +50,7 @@ class ChatInterface(Blocks):
         def echo(message, history):
             return message
 
-        demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="Echo Bot")
+        demo = gr.ChatInterface(fn=echo, type="messages", examples=["hello", "hola", "merhaba"], title="Echo Bot")
         demo.launch()
     Demos: chatinterface_multimodal, chatinterface_random_response, chatinterface_streaming_echo
     Guides: creating-a-chatbot-fast, sharing-your-app
@@ -64,7 +65,6 @@ class ChatInterface(Blocks):
         chatbot: Chatbot | None = None,
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
-        additional_inputs_accordion_name: str | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
         examples: list[str] | list[dict[str, str | list]] | list[list] | None = None,
         cache_examples: bool | Literal["lazy"] | None = None,
@@ -76,26 +76,23 @@ class ChatInterface(Blocks):
         js: str | None = None,
         head: str | None = None,
         analytics_enabled: bool | None = None,
-        submit_btn: str | None | Button = "Submit",
-        stop_btn: str | None | Button = "Stop",
-        retry_btn: str | None | Button = "🔄  Retry",
-        undo_btn: str | None | Button = "↩️ Undo",
-        clear_btn: str | None | Button = "🗑️  Clear",
         autofocus: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
         fill_height: bool = True,
         delete_cache: tuple[int, int] | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "minimal",
         fill_width: bool = False,
+        submit_btn: str | bool | None = True,
+        stop_btn: str | bool | None = True,
     ):
         """
         Parameters:
             fn: the function to wrap the chat interface around. Should accept two parameters: a string input message and list of two-element lists of the form [[user_message, bot_message], ...] representing the chat history, and return a string response. See the Chatbot documentation for more information on the chat history format.
             multimodal: if True, the chat interface will use a gr.MultimodalTextbox component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input.
+            type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
-            additional_inputs_accordion_name: Deprecated. Will be removed in a future version of Gradio. Use the `additional_inputs_accordion` parameter instead.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
             examples: sample inputs for the function; if provided, appear below the chatbot and can be clicked to populate the chatbot input. Should be a list of strings if `multimodal` is False, and a list of dictionaries (with keys `text` and `files`) if `multimodal` is True.
             cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
@@ -107,17 +104,14 @@ class ChatInterface(Blocks):
             js: custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
             head: custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
-            submit_btn: text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
-            stop_btn: text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button.
-            retry_btn: text to display on the retry button. If None, no button will be displayed. If a Button object, that button will be used.
-            undo_btn: text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
-            clear_btn: text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
             autofocus: if True, autofocuses to the textbox when the page loads.
             concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: if True, the chat interface will expand to the height of window.
             delete_cache: a tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
+            submit_btn: If True, will show a submit button with a submit icon within the textbox. If a string, will use that string as the submit button text in place of the icon. If False, will not show a submit button.
+            stop_btn: If True, will show a button with a stop icon during generator executions, to stop generating. If a string, will use that string as the submit button text in place of the stop icon. If False, will not show a stop button.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -141,7 +135,6 @@ class ChatInterface(Blocks):
         self.is_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
-        self.buttons: list[Button | None] = []
 
         self.examples = examples
         self.cache_examples = cache_examples
@@ -155,13 +148,6 @@ class ChatInterface(Blocks):
             ]
         else:
             self.additional_inputs = []
-        if additional_inputs_accordion_name is not None:
-            print(
-                "The `additional_inputs_accordion_name` parameter is deprecated and will be removed in a future version of Gradio. Use the `additional_inputs_accordion` parameter instead."
-            )
-            self.additional_inputs_accordion_params = {
-                "label": additional_inputs_accordion_name
-            }
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
                 "label": "Additional Inputs",
@@ -197,7 +183,9 @@ class ChatInterface(Blocks):
                         "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
                     )
                     chatbot.type = self.type
-                self.chatbot = get_component_instance(chatbot, render=True)
+                self.chatbot = cast(
+                    Chatbot, get_component_instance(chatbot, render=True)
+                )
             else:
                 self.chatbot = Chatbot(
                     label="Chatbot",
@@ -206,28 +194,9 @@ class ChatInterface(Blocks):
                     type=self.type,
                 )
 
-            with Row():
-                for btn in [retry_btn, undo_btn, clear_btn]:
-                    if btn is not None:
-                        if isinstance(btn, Button):
-                            btn.render()
-                        elif isinstance(btn, str):
-                            btn = Button(
-                                btn, variant="secondary", size="sm", min_width=60
-                            )
-                        else:
-                            raise ValueError(
-                                f"All the _btn parameters must be a gr.Button, string, or None, not {builtins.type(btn)}"
-                            )
-                    self.buttons.append(btn)  # type: ignore
-
             with Group():
                 with Row():
                     if textbox:
-                        if self.multimodal:
-                            submit_btn = None
-                        else:
-                            textbox.container = False
                         textbox.show_label = False
                         textbox_ = get_component_instance(textbox, render=True)
                         if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
@@ -235,65 +204,26 @@ class ChatInterface(Blocks):
                                 f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
                             )
                         self.textbox = textbox_
-                    elif self.multimodal:
-                        submit_btn = None
-                        self.textbox = MultimodalTextbox(
-                            show_label=False,
-                            label="Message",
-                            placeholder="Type a message...",
-                            scale=7,
-                            autofocus=autofocus,
-                        )
                     else:
-                        self.textbox = Textbox(
-                            container=False,
+                        textbox_component = (
+                            MultimodalTextbox if self.multimodal else Textbox
+                        )
+                        self.textbox = textbox_component(
                             show_label=False,
                             label="Message",
                             placeholder="Type a message...",
                             scale=7,
                             autofocus=autofocus,
+                            submit_btn=submit_btn,
+                            stop_btn=stop_btn,
                         )
-                    if submit_btn is not None and not multimodal:
-                        if isinstance(submit_btn, Button):
-                            submit_btn.render()
-                        elif isinstance(submit_btn, str):
-                            submit_btn = Button(
-                                submit_btn,
-                                variant="primary",
-                                scale=1,
-                                min_width=150,
-                            )
-                        else:
-                            raise ValueError(
-                                f"The submit_btn parameter must be a gr.Button, string, or None, not {builtins.type(submit_btn)}"
-                            )
-                    if stop_btn is not None:
-                        if isinstance(stop_btn, Button):
-                            stop_btn.visible = False
-                            stop_btn.render()
-                        elif isinstance(stop_btn, str):
-                            stop_btn = Button(
-                                stop_btn,
-                                variant="stop",
-                                visible=False,
-                                scale=1,
-                                min_width=150,
-                            )
-                        else:
-                            raise ValueError(
-                                f"The stop_btn parameter must be a gr.Button, string, or None, not {builtins.type(stop_btn)}"
-                            )
-                    self.buttons.extend([submit_btn, stop_btn])  # type: ignore
+
+                    # Hide the stop button at the beginning, and show it with the given value during the generator execution.
+                    self.original_stop_btn = self.textbox.stop_btn
+                    self.textbox.stop_btn = False
 
                 self.fake_api_btn = Button("Fake API", visible=False)
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
-                (
-                    self.retry_btn,
-                    self.undo_btn,
-                    self.clear_btn,
-                    self.submit_btn,
-                    self.stop_btn,
-                ) = self.buttons
 
             if examples:
                 if self.is_generator:
@@ -334,11 +264,7 @@ class ChatInterface(Blocks):
 
     def _setup_events(self) -> None:
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
-        submit_triggers = (
-            [self.textbox.submit, self.submit_btn.click]
-            if self.submit_btn
-            else [self.textbox.submit]
-        )
+        submit_triggers = [self.textbox.submit]
 
         submit_event = (
             on(
@@ -369,39 +295,54 @@ class ChatInterface(Blocks):
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
             )
+            .then(
+                lambda: update(value=None, interactive=True),
+                None,
+                self.textbox,
+                show_api=False,
+            )
         )
         self._setup_stop_events(submit_triggers, submit_event)
 
-        if self.retry_btn:
-            retry_event = (
-                self.retry_btn.click(
-                    self._delete_prev_fn,
-                    [self.saved_input, self.chatbot],
-                    [self.chatbot, self.saved_input],
-                    show_api=False,
-                    queue=False,
-                )
-                .then(
-                    self._display_input,
-                    [self.saved_input, self.chatbot],
-                    [self.chatbot],
-                    show_api=False,
-                    queue=False,
-                )
-                .then(
-                    submit_fn,
-                    [self.saved_input, self.chatbot] + self.additional_inputs,
-                    [self.chatbot],
-                    show_api=False,
-                    concurrency_limit=cast(
-                        Union[int, Literal["default"], None], self.concurrency_limit
-                    ),
-                    show_progress=cast(
-                        Literal["full", "minimal", "hidden"], self.show_progress
-                    ),
-                )
+        retry_event = (
+            self.chatbot.retry(
+                self._delete_prev_fn,
+                [self.saved_input, self.chatbot],
+                [self.chatbot, self.saved_input],
+                show_api=False,
+                queue=False,
             )
-            self._setup_stop_events([self.retry_btn.click], retry_event)
+            .then(
+                lambda: update(interactive=False, placeholder=""),
+                outputs=[self.textbox],
+                show_api=False,
+            )
+            .then(
+                self._display_input,
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
+                show_api=False,
+                queue=False,
+            )
+            .then(
+                submit_fn,
+                [self.saved_input, self.chatbot] + self.additional_inputs,
+                [self.chatbot],
+                show_api=False,
+                concurrency_limit=cast(
+                    Union[int, Literal["default"], None], self.concurrency_limit
+                ),
+                show_progress=cast(
+                    Literal["full", "minimal", "hidden"], self.show_progress
+                ),
+            )
+            .then(
+                lambda: update(interactive=True),
+                outputs=[self.textbox],
+                show_api=False,
+            )
+        )
+        self._setup_stop_events([self.chatbot.retry], retry_event)
 
         async def format_textbox(data: str | MultimodalData) -> str | dict:
             if isinstance(data, MultimodalData):
@@ -409,72 +350,51 @@ class ChatInterface(Blocks):
             else:
                 return data
 
-        if self.undo_btn:
-            self.undo_btn.click(
-                self._delete_prev_fn,
-                [self.saved_input, self.chatbot],
-                [self.chatbot, self.saved_input],
-                show_api=False,
-                queue=False,
-            ).then(
-                format_textbox,
-                [self.saved_input],
-                [self.textbox],
-                show_api=False,
-                queue=False,
-            )
-
-        if self.clear_btn:
-            self.clear_btn.click(
-                async_lambda(lambda: ([], [], None)),
-                None,
-                [self.chatbot, self.saved_input],
-                queue=False,
-                show_api=False,
-            )
+        self.chatbot.undo(
+            self._delete_prev_fn,
+            [self.saved_input, self.chatbot],
+            [self.chatbot, self.saved_input],
+            show_api=False,
+            queue=False,
+        ).then(
+            format_textbox,
+            [self.saved_input],
+            [self.textbox],
+            show_api=False,
+            queue=False,
+        )
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], event_to_cancel: Dependency
     ) -> None:
-        if self.stop_btn and self.is_generator:
-            if self.submit_btn:
-                for event_trigger in event_triggers:
-                    event_trigger(
-                        async_lambda(
-                            lambda: (
-                                Button(visible=False),
-                                Button(visible=True),
-                            )
-                        ),
-                        None,
-                        [self.submit_btn, self.stop_btn],
-                        show_api=False,
-                        queue=False,
-                    )
-                event_to_cancel.then(
-                    async_lambda(lambda: (Button(visible=True), Button(visible=False))),
+        textbox_component = MultimodalTextbox if self.multimodal else Textbox
+        if self.is_generator:
+            original_submit_btn = self.textbox.submit_btn
+            for event_trigger in event_triggers:
+                event_trigger(
+                    async_lambda(
+                        lambda: textbox_component(
+                            submit_btn=False,
+                            stop_btn=self.original_stop_btn,
+                        )
+                    ),
                     None,
-                    [self.submit_btn, self.stop_btn],
+                    [self.textbox],
                     show_api=False,
                     queue=False,
                 )
-            else:
-                for event_trigger in event_triggers:
-                    event_trigger(
-                        async_lambda(lambda: Button(visible=True)),
-                        None,
-                        [self.stop_btn],
-                        show_api=False,
-                        queue=False,
+            event_to_cancel.then(
+                async_lambda(
+                    lambda: textbox_component(
+                        submit_btn=original_submit_btn, stop_btn=False
                     )
-                event_to_cancel.then(
-                    async_lambda(lambda: Button(visible=False)),
-                    None,
-                    [self.stop_btn],
-                    show_api=False,
-                    queue=False,
-                )
-            self.stop_btn.click(
+                ),
+                None,
+                [self.textbox],
+                show_api=False,
+                queue=False,
+            )
+            self.textbox.stop(
                 None,
                 None,
                 None,
@@ -526,11 +446,13 @@ class ChatInterface(Blocks):
 
     def _clear_and_save_textbox(
         self, message: str | dict
-    ) -> tuple[str | dict, str | MultimodalData]:
+    ) -> tuple[Textbox | MultimodalTextbox, str | MultimodalData]:
         if self.multimodal:
-            return {"text": "", "files": []}, MultimodalData(**cast(dict, message))
+            return MultimodalTextbox(
+                "", interactive=False, placeholder=""
+            ), MultimodalData(**cast(dict, message))
         else:
-            return "", cast(str, message)
+            return Textbox("", interactive=False, placeholder=""), cast(str, message)
 
     def _append_multimodal_history(
         self,

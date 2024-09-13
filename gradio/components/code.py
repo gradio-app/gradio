@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -59,7 +59,7 @@ class Code(Component):
 
     def __init__(
         self,
-        value: str | Callable | tuple[str] | None = None,
+        value: str | Callable | None = None,
         language: Literal[
             "python",
             "c",
@@ -158,20 +158,21 @@ class Code(Component):
         """
         return payload
 
-    def postprocess(self, value: tuple[str] | str | None) -> None | str:
+    def postprocess(self, value: str | None) -> None | str:
         """
         Parameters:
-            value: Expects a `str` of code or a single-element `tuple`: (filepath,) with the `str` path to a file containing the code.
+            value: Expects a `str` of code.
         Returns:
-            Returns the code as a `str`.
+            Returns the code as a `str` stripped of leading and trailing whitespace.
         """
         if value is None:
             return None
-        elif isinstance(value, tuple):
-            with open(value[0], encoding="utf-8") as file_data:
-                return file_data.read()
-        else:
-            return value.strip()
+        if isinstance(value, tuple):
+            raise ValueError(
+                "Code component does not support returning files as tuples anymore. "
+                "Please read the file contents and return as str instead."
+            )
+        return value.strip()
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
@@ -182,7 +183,5 @@ class Code(Component):
     def example_value(self) -> Any:
         return "print('Hello World')"
 
-    def process_example(self, value: str | tuple[str] | None) -> str | None:
-        if isinstance(value, tuple):
-            return Path(value[0]).name
+    def process_example(self, value: str | None) -> str | None:
         return super().process_example(value)

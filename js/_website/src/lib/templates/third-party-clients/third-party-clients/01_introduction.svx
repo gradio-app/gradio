@@ -15,3 +15,4 @@
 ## We also encourage the development and use of third party clients built by the community: 
 
 - [Rust Client](/docs/third-party-clients/rust-client): `gradio-rs` built by [@JacobLinCool](https://github.com/JacobLinCool) allows you to make requests in Rust. 
+- [Powershell Client](https://github.com/rrg92/powershai): `powershai` built by [@rrg92](https://github.com/rrg92) allows you to make requests to Gradio apps directly from Powershell. See [here for documentation](https://github.com/rrg92/powershai/blob/main/docs/en-US/providers/HUGGING-FACE.md)
