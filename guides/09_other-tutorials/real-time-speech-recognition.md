@@ -14,7 +14,7 @@ This tutorial will show how to take a pretrained speech-to-text model and deploy
 
 Make sure you have the `gradio` Python package already [installed](/getting_started). You will also need a pretrained speech recognition model. In this tutorial, we will build demos from 2 ASR libraries:
 
-- Transformers (for this, `pip install transformers` and `pip install torch`)
+- Transformers (for this, `pip install torch transformers torchaudio`)
 
 Make sure you have at least one of these installed so that you can follow along the tutorial. You will also need `ffmpeg` [installed on your system](https://www.ffmpeg.org/download.html), if you do not already have it, to process files from the microphone.
 
