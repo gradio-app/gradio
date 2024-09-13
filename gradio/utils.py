@@ -1469,18 +1469,16 @@ def is_allowed_file(
     blocked_paths: Sequence[str | Path],
     allowed_paths: Sequence[str | Path],
     created_paths: Sequence[str | Path],
-) -> tuple[bool, Literal["in_blocklist", "allowed", "created", "not_created_or_allowed"]]:
+) -> tuple[
+    bool, Literal["in_blocklist", "allowed", "created", "not_created_or_allowed"]
+]:
     in_blocklist = any(
         is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths
     )
     if in_blocklist:
         return False, "in_blocklist"
-    if any(
-        is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths
-    ):
+    if any(is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths):
         return True, "allowed"
-    if any(
-        is_in_or_equal(path, created_path) for created_path in created_paths
-    ):
+    if any(is_in_or_equal(path, created_path) for created_path in created_paths):
         return True, "created"
     return False, "not_created_or_allowed"
