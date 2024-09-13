@@ -60,35 +60,6 @@ Of course, in practice, you would replace `bot()` with your own more complex fun
 
 Finally, we enable queuing by running `demo.queue()`, which is required for streaming intermediate outputs. You can try the improved chatbot by scrolling to the demo at the top of this page.
 
-## Liking / Disliking Chat Messages
-
-Once you've created your `gr.Chatbot`, you can add the ability for users to like or dislike messages. This can be useful if you would like users to vote on a bot's responses or flag inappropriate results. 
-
-To add this functionality to your Chatbot, simply attach a `.like()` event to your Chatbot. A chatbot that has the `.like()` event will automatically feature a thumbs-up icon and a thumbs-down icon next to every bot message. 
-
-The `.like()` method requires you to pass in a function that is called when a user clicks on these icons. In your function, you should have an argument whose type is `gr.LikeData`. Gradio will automatically supply the parameter to this argument with an object that contains information about the liked or disliked message. Here's a simplistic example of how you can have users like or dislike chat messages:
-
-```py
-import gradio as gr
-
-def greet(history, msg):
-    return history + {"role": "user", "content": msg} + {"role": "assistant", "content": "Hello, " + msg}
-
-def vote(data: gr.LikeData):
-    if data.liked:
-        print("You upvoted this response: " + data.value["value"])
-    else:
-        print("You downvoted this response: " + data.value["value"])
-    
-
-with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(type="messages")
-    textbox = gr.Textbox()
-    textbox.submit(greet, [chatbot, textbox], [chatbot])
-    chatbot.like(vote, None, None)  # Adding this line causes the like/dislike icons to appear in your chatbot
-    
-demo.launch()
-```
 
 ## Adding Markdown, Images, Audio, or Videos
 

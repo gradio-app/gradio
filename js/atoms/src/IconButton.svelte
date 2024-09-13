@@ -34,7 +34,6 @@
 		class:large={size === "large"}
 		class:medium={size === "medium"}
 	>
-		<!-- handles icon reactivity -->
 		<svelte:component this={Icon} />
 	</div>
 </button>
@@ -49,6 +48,7 @@
 		border-radius: var(--radius-xs);
 		color: var(--block-label-text-color);
 		border: 1px solid transparent;
+		padding: var(--spacing-xxs);
 	}
 
 	button:hover {
@@ -84,9 +84,9 @@
 	}
 
 	div {
-		padding: 2px;
 		display: flex;
-		align-items: flex-end;
+		align-items: center;
+		justify-content: center;
 		transition: filter 0.2s ease-in-out;
 	}
 
