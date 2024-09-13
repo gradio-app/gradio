@@ -99,8 +99,6 @@ except Exception:
 
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from fastapi.applications import FastAPI
-
     from gradio.components.base import Component
     from gradio.renderable import Renderable
 
@@ -2227,7 +2225,7 @@ Received outputs:
         _frontend: bool = True,
         enable_monitoring: bool | None = None,
         strict_cors: bool = True,
-    ) -> tuple[FastAPI, str, str]:
+    ) -> tuple[routes.App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
         public link used by anyone to access the demo from their browser by setting share=True.
