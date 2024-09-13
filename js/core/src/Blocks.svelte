@@ -427,8 +427,9 @@
 					modify_stream(id, "open");
 				}
 			}
-			
-			function handle_status_update(message: StatusMessage): void { // eslint-disable-line complexity
+
+			/* eslint-disable complexity */
+			function handle_status_update(message: StatusMessage): void {
 				const { fn_index, ...status } = message;
 				if (status.stage === "streaming" && status.time_limit) {
 					dep.inputs.forEach((id) => {
@@ -479,7 +480,6 @@
 						dependencies
 							.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
 							.forEach((dep) => {
-								console.log("triggering", dep.id);
 								wait_then_trigger_api_call(dep.id, payload.trigger_id);
 							});
 					});
@@ -533,6 +533,7 @@
 			}
 		}
 	}
+	/* eslint-enable complexity */
 
 	function trigger_share(title: string | undefined, description: string): void {
 		if (space_id === null) {
