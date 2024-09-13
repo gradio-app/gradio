@@ -20,6 +20,7 @@
 	import { Image } from "@gradio/image/shared";
 
 	import { Clear, Trash, Community } from "@gradio/icons";
+	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { MessageRole } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
@@ -27,7 +28,6 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
 	import MessageBox from "./MessageBox.svelte";
-	import ActionButton from "./ActionButton.svelte";
 	import { ShareError } from "@gradio/utils";
 
 	export let value: NormalisedMessage[] | null = [];
@@ -316,11 +316,11 @@
 </script>
 
 {#if value !== null && value.length > 0}
-	<div class="button-row">
+	<IconButtonWrapper>
 		{#if show_share_button}
-			<ActionButton
-				action="share"
-				handle_action={async () => {
+			<IconButton
+				Icon={Community}
+				on:click={async () => {
 					try {
 						// @ts-ignore
 						const formatted = await format_chat_for_sharing(value);
@@ -335,15 +335,13 @@
 				}}
 			>
 				<Community />
-			</ActionButton>
+			</IconButton>
 		{/if}
-		<ActionButton handle_action={() => dispatch("clear")} action="clear">
-			<Trash />
-		</ActionButton>
+		<IconButton Icon={Trash} on:click={() => dispatch("clear")}></IconButton>
 		{#if show_copy_all_button}
 			<CopyAll {value} />
 		{/if}
-	</div>
+	</IconButtonWrapper>
 {/if}
 
 <div
@@ -726,23 +724,6 @@
 		object-fit: cover;
 		border-radius: 50%;
 		padding: 6px;
-	}
-
-	.button-row {
-		display: flex;
-		position: absolute;
-		right: var(--size-4);
-		align-items: center;
-		justify-content: space-evenly;
-		gap: var(--spacing-md);
-		z-index: 2;
-		padding-left: var(--size-2);
-		padding-right: var(--size-2);
-		background: var(--block-label-background-fill);
-		border-radius: var(--radius-md);
-		box-shadow: none;
-		padding-top: var(--size-1);
-		padding-bottom: var(--size-1);
 	}
 
 	.selectable {
