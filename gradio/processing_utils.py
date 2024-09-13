@@ -10,7 +10,6 @@ import shutil
 import socket
 import subprocess
 import tempfile
-import urllib.request
 import warnings
 from functools import lru_cache
 from io import BytesIO
@@ -278,8 +277,8 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 def resolve_with_google_dns(hostname: str) -> str | None:
     url = f"https://dns.google/resolve?name={hostname}&type=A"
 
-    with urllib.request.urlopen(url) as response:
-        data = json.loads(response.read().decode())
+    response = sync_client.get(url)
+    data = response.json()
 
     if data.get("Status") == 0 and "Answer" in data:
         for answer in data["Answer"]:
