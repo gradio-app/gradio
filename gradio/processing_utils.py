@@ -512,18 +512,18 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
 
     abs_path = utils.abspath(path)
 
-    # if check_in_upload_folder=True
-    # we are running this during pre-process
-    # in which case only files in the upload_folder (cache_dir)
-    # are accepted
-    allowed = [utils.get_upload_folder()]
-    if not check_in_upload_folder:
-        allowed += blocks.allowed_paths + [os.getcwd(), tempfile.gettempdir()]
-
+    created_paths = [utils.get_upload_folder()]
+    # if check_in_upload_folder=True, we are running this during pre-process
+    # in which case only files in the upload_folder (cache_dir) are accepted
+    if check_in_upload_folder:
+        allowed_paths = []
+    else:
+        allowed_paths = blocks.allowed_paths + [os.getcwd(), tempfile.gettempdir()]
     allowed, reason = utils.is_allowed_file(
         abs_path,
         blocked_paths=blocks.blocked_paths,
-        allowed_paths=allowed,
+        allowed_paths=allowed_paths,
+        created_paths=created_paths,
     )
     if not allowed:
         msg = f"Cannot move {abs_path} to the gradio cache dir because "
