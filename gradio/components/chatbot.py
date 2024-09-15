@@ -170,7 +170,7 @@ class Chatbot(Component):
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
         show_copy_all_button=False,
-        allow_fullscreen: bool = True,
+        allow_fullscreen: bool = False,
     ):
         """
         Parameters:

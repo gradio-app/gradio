@@ -106,7 +106,7 @@
 	export let _retryable = false;
 	export let _undoable = false;
 	export let root: string;
-	export let allow_fullscreen = true;
+	export let allow_fullscreen = false;
 
 	let is_fullscreen = false;
 	let chat_container: HTMLElement;
