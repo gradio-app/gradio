@@ -6,6 +6,7 @@
 
 	let copied = false;
 	export let value: NormalisedMessage[] | null;
+	export let disabled: boolean = false;
 
 	let timer: NodeJS.Timeout;
 
@@ -49,5 +50,6 @@
 <IconButton
 	Icon={copied ? Check : Copy}
 	on:click={handle_copy}
+	{disabled}
 	label={copied ? "Copied conversation" : "Copy conversation"}
 ></IconButton>

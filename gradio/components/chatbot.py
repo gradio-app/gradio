@@ -170,6 +170,7 @@ class Chatbot(Component):
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
         show_copy_all_button=False,
+        allow_fullscreen: bool = True,
     ):
         """
         Parameters:
@@ -203,6 +204,7 @@ class Chatbot(Component):
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
+            allow_fullscreen: If True, a full-screen toggle button is displayed, allowing the chatbot to take up the full screen.
         """
         self.likeable = likeable
         if type not in ["messages", "tuples"]:
@@ -236,6 +238,7 @@ class Chatbot(Component):
         self.line_breaks = line_breaks
         self.layout = layout
         self.show_copy_all_button = show_copy_all_button
+        self.allow_fullscreen = allow_fullscreen
         super().__init__(
             label=label,
             every=every,

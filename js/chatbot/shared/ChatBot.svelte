@@ -19,7 +19,7 @@
 	} from "svelte";
 	import { Image } from "@gradio/image/shared";
 
-	import { Clear, Trash, Community } from "@gradio/icons";
+	import { Clear, Trash, Community, Maximize, Minimize } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { MessageRole } from "../types";
@@ -106,6 +106,23 @@
 	export let _retryable = false;
 	export let _undoable = false;
 	export let root: string;
+	export let allow_fullscreen = true;
+
+	let is_fullscreen = false;
+	let chat_container: HTMLElement;
+
+	const toggle_fullscreen = (): void => {
+		is_fullscreen = !is_fullscreen;
+		if (is_fullscreen) {
+			if (chat_container.requestFullscreen) {
+				chat_container.requestFullscreen();
+			}
+		} else {
+			if (document.exitFullscreen) {
+				document.exitFullscreen();
+			}
+		}
+	};
 
 	let target: HTMLElement | null = null;
 
@@ -315,7 +332,11 @@
 	}
 </script>
 
-{#if value !== null && value.length > 0}
+<div
+	class:fullscreen={is_fullscreen}
+	bind:this={chat_container}
+	class="container"
+>
 	<IconButtonWrapper>
 		{#if show_share_button}
 			<IconButton
@@ -337,92 +358,118 @@
 				<Community />
 			</IconButton>
 		{/if}
-		<IconButton Icon={Trash} on:click={() => dispatch("clear")}></IconButton>
+		<IconButton
+			disabled={!(value !== null && value.length > 0)}
+			Icon={Trash}
+			on:click={() => dispatch("clear")}
+		></IconButton>
 		{#if show_copy_all_button}
-			<CopyAll {value} />
+			<CopyAll {value} disabled={!(value !== null && value.length > 0)} />
+		{/if}
+		{#if allow_fullscreen}
+			<IconButton
+				Icon={is_fullscreen ? Minimize : Maximize}
+				on:click={toggle_fullscreen}
+			>
+				{#if is_fullscreen}
+					<Minimize />
+				{:else}
+					<Maximize />
+				{/if}
+			</IconButton>
 		{/if}
 	</IconButtonWrapper>
-{/if}
 
-<div
-	class={layout === "bubble" ? "bubble-wrap" : "panel-wrap"}
-	class:placeholder-container={value === null || value.length === 0}
-	bind:this={div}
-	role="log"
-	aria-label="chatbot conversation"
-	aria-live="polite"
->
-	<div class="message-wrap" use:copy>
-		{#if value !== null && value.length > 0 && groupedMessages !== null}
-			{#each groupedMessages as messages, i}
-				{@const role = messages[0].role === "user" ? "user" : "bot"}
-				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
-				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
-				{#if is_image_preview_open}
-					<div class="image-preview">
-						<img src={image_preview_source} alt={image_preview_source_alt} />
-						<button
-							class="image-preview-close-button"
-							on:click={() => {
-								is_image_preview_open = false;
-							}}><Clear /></button
-						>
-					</div>
-				{/if}
-				<div
-					class="message-row {layout} {role}-row"
-					class:with_avatar={avatar_img !== null}
-					class:with_opposite_avatar={opposite_avatar_img !== null}
-				>
-					{#if avatar_img !== null}
-						<div class="avatar-container">
-							<Image
-								class="avatar-image"
-								src={avatar_img?.url}
-								alt="{role} avatar"
-							/>
+	<div
+		class={layout === "bubble" ? "bubble-wrap" : "panel-wrap"}
+		class:placeholder-container={value === null || value.length === 0}
+		bind:this={div}
+		role="log"
+		aria-label="chatbot conversation"
+		aria-live="polite"
+	>
+		<div class="message-wrap" use:copy>
+			{#if value !== null && value.length > 0 && groupedMessages !== null}
+				{#each groupedMessages as messages, i}
+					{@const role = messages[0].role === "user" ? "user" : "bot"}
+					{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
+					{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
+					{#if is_image_preview_open}
+						<div class="image-preview">
+							<img src={image_preview_source} alt={image_preview_source_alt} />
+							<button
+								class="image-preview-close-button"
+								on:click={() => {
+									is_image_preview_open = false;
+								}}><Clear /></button
+							>
 						</div>
 					{/if}
 					<div
-						class="flex-wrap {role} "
-						class:component-wrap={messages[0].type === "component"}
+						class="message-row {layout} {role}-row"
+						class:with_avatar={avatar_img !== null}
+						class:with_opposite_avatar={opposite_avatar_img !== null}
 					>
-						{#each messages as message, thought_index}
-							<div
-								class="message {role} {is_component_message(message)
-									? message?.content.component
-									: ''}"
-								class:message-fit={!bubble_full_width}
-								class:panel-full-width={true}
-								class:message-markdown-disabled={!render_markdown}
-								style:text-align={rtl && role === "user" ? "left" : "right"}
-								class:component={message.type === "component"}
-								class:html={is_component_message(message) &&
-									message.content.component === "html"}
-								class:thought={thought_index > 0}
-							>
-								<button
-									data-testid={role}
-									class:latest={i === value.length - 1}
+						{#if avatar_img !== null}
+							<div class="avatar-container">
+								<Image
+									class="avatar-image"
+									src={avatar_img?.url}
+									alt="{role} avatar"
+								/>
+							</div>
+						{/if}
+						<div
+							class="flex-wrap {role} "
+							class:component-wrap={messages[0].type === "component"}
+						>
+							{#each messages as message, thought_index}
+								<div
+									class="message {role} {is_component_message(message)
+										? message?.content.component
+										: ''}"
+									class:message-fit={!bubble_full_width}
+									class:panel-full-width={true}
 									class:message-markdown-disabled={!render_markdown}
-									style:user-select="text"
-									class:selectable
-									style:cursor={selectable ? "pointer" : "default"}
-									style:text-align={rtl ? "right" : "left"}
-									on:click={() => handle_select(i, message)}
-									on:keydown={(e) => {
-										if (e.key === "Enter") {
-											handle_select(i, message);
-										}
-									}}
-									dir={rtl ? "rtl" : "ltr"}
-									aria-label={role +
-										"'s message: " +
-										get_message_label_data(message)}
+									style:text-align={rtl && role === "user" ? "left" : "right"}
+									class:component={message.type === "component"}
+									class:html={is_component_message(message) &&
+										message.content.component === "html"}
+									class:thought={thought_index > 0}
 								>
-									{#if message.type === "text"}
-										{#if message.metadata.title}
-											<MessageBox title={message.metadata.title}>
+									<button
+										data-testid={role}
+										class:latest={i === value.length - 1}
+										class:message-markdown-disabled={!render_markdown}
+										style:user-select="text"
+										class:selectable
+										style:cursor={selectable ? "pointer" : "default"}
+										style:text-align={rtl ? "right" : "left"}
+										on:click={() => handle_select(i, message)}
+										on:keydown={(e) => {
+											if (e.key === "Enter") {
+												handle_select(i, message);
+											}
+										}}
+										dir={rtl ? "rtl" : "ltr"}
+										aria-label={role +
+											"'s message: " +
+											get_message_label_data(message)}
+									>
+										{#if message.type === "text"}
+											{#if message.metadata.title}
+												<MessageBox title={message.metadata.title}>
+													<Markdown
+														message={message.content}
+														{latex_delimiters}
+														{sanitize_html}
+														{render_markdown}
+														{line_breaks}
+														on:load={scroll}
+														{root}
+													/>
+												</MessageBox>
+											{:else}
 												<Markdown
 													message={message.content}
 													{latex_delimiters}
@@ -432,82 +479,76 @@
 													on:load={scroll}
 													{root}
 												/>
-											</MessageBox>
-										{:else}
-											<Markdown
-												message={message.content}
-												{latex_delimiters}
-												{sanitize_html}
-												{render_markdown}
-												{line_breaks}
+											{/if}
+										{:else if message.type === "component" && message.content.component in _components}
+											<Component
+												{target}
+												{theme_mode}
+												props={message.content.props}
+												type={message.content.component}
+												components={_components}
+												value={message.content.value}
+												{i18n}
+												{upload}
+												{_fetch}
 												on:load={scroll}
-												{root}
 											/>
-										{/if}
-									{:else if message.type === "component" && message.content.component in _components}
-										<Component
-											{target}
-											{theme_mode}
-											props={message.content.props}
-											type={message.content.component}
-											components={_components}
-											value={message.content.value}
-											{i18n}
-											{upload}
-											{_fetch}
-											on:load={scroll}
-										/>
-									{:else if message.type === "component" && message.content.component === "file"}
-										<a
-											data-testid="chatbot-file"
-											class="file-pil"
-											href={message.content.value.url}
-											target="_blank"
-											download={window.__is_colab__
-												? null
-												: message.content.value?.orig_name ||
+										{:else if message.type === "component" && message.content.component === "file"}
+											<a
+												data-testid="chatbot-file"
+												class="file-pil"
+												href={message.content.value.url}
+												target="_blank"
+												download={window.__is_colab__
+													? null
+													: message.content.value?.orig_name ||
+														message.content.value?.path.split("/").pop() ||
+														"file"}
+											>
+												{message.content.value?.orig_name ||
 													message.content.value?.path.split("/").pop() ||
 													"file"}
-										>
-											{message.content.value?.orig_name ||
-												message.content.value?.path.split("/").pop() ||
-												"file"}
-										</a>
-									{/if}
-								</button>
-							</div>
-						{/each}
+											</a>
+										{/if}
+									</button>
+								</div>
+							{/each}
+						</div>
 					</div>
-				</div>
-				<LikeButtons
-					show={likeable ||
-						(_retryable && is_last_bot_message(messages, value)) ||
-						(_undoable && is_last_bot_message(messages, value)) ||
-						show_copy_button}
-					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					{likeable}
-					_retryable={_retryable && is_last_bot_message(messages, value)}
-					_undoable={_undoable && is_last_bot_message(messages, value)}
-					disable={generating}
-					{show_copy_button}
-					message={msg_format === "tuples" ? messages[0] : messages}
-					position={role === "user" ? "right" : "left"}
-					avatar={avatar_img}
-					{layout}
-				/>
-			{/each}
-			{#if pending_message}
-				<Pending {layout} />
+					<LikeButtons
+						show={likeable ||
+							(_retryable && is_last_bot_message(messages, value)) ||
+							(_undoable && is_last_bot_message(messages, value)) ||
+							show_copy_button}
+						handle_action={(selected) => handle_like(i, messages[0], selected)}
+						{likeable}
+						_retryable={_retryable && is_last_bot_message(messages, value)}
+						_undoable={_undoable && is_last_bot_message(messages, value)}
+						disable={generating}
+						{show_copy_button}
+						message={msg_format === "tuples" ? messages[0] : messages}
+						position={role === "user" ? "right" : "left"}
+						avatar={avatar_img}
+						{layout}
+					/>
+				{/each}
+				{#if pending_message}
+					<Pending {layout} />
+				{/if}
+			{:else if placeholder !== null}
+				<center>
+					<Markdown message={placeholder} {latex_delimiters} {root} />
+				</center>
 			{/if}
-		{:else if placeholder !== null}
-			<center>
-				<Markdown message={placeholder} {latex_delimiters} {root} />
-			</center>
-		{/if}
+		</div>
 	</div>
 </div>
 
 <style>
+	.container {
+		width: 100%;
+		height: 100%;
+	}
 	.placeholder-container {
 		display: flex;
 		justify-content: center;
