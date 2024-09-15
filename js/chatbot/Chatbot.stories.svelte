@@ -139,9 +139,10 @@
 />
 
 <Story
-	name="Chatbot with placeholder"
+	name="Chatbot with placeholder and fullscreen enabled"
 	args={{
 		value: [],
+		allow_fullscreen: true,
 		placeholder:
 			"**Gradio Helper**\n\nThis Chatbot can help you on *any topic related to Gradio*."
 	}}
