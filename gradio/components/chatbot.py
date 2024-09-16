@@ -217,7 +217,9 @@ class Chatbot(Component):
                 UserWarning,
             )
         if format not in ["messages", "tuples"]:
-            raise ValueError(f"The `format` parameter must be 'messages' or 'tuples', received: {format}")
+            raise ValueError(
+                f"The `format` parameter must be 'messages' or 'tuples', received: {format}"
+            )
         self.format: Literal["tuples", "messages"] = format
         if self.format == "messages":
             self.data_model = ChatbotDataMessages
