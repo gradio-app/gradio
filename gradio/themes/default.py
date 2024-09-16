@@ -50,7 +50,7 @@ class Default(Base):
             error_icon_color=colors.red.c700,
             error_icon_color_dark=colors.red.c500,
             # Transition
-            button_transition="background-color 0.2s ease",
+            button_transition="background-color 0.2s ease, border-color 0.2s ease",
             # Shadows
             button_shadow="none",
             button_shadow_hover="none",
