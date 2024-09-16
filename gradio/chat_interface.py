@@ -61,7 +61,7 @@ class ChatInterface(Blocks):
         fn: Callable,
         *,
         multimodal: bool = False,
-        type: Literal["messages", "tuples"] = "tuples",
+        format: Literal["messages", "tuples"] | None = "tuples",
         chatbot: Chatbot | None = None,
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
@@ -89,7 +89,7 @@ class ChatInterface(Blocks):
         Parameters:
             fn: the function to wrap the chat interface around. Should accept two parameters: a string input message and list of two-element lists of the form [[user_message, bot_message], ...] representing the chat history, and return a string response. See the Chatbot documentation for more information on the chat history format.
             multimodal: if True, the chat interface will use a gr.MultimodalTextbox component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input.
-            type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
+            format: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
@@ -125,7 +125,7 @@ class ChatInterface(Blocks):
             fill_width=fill_width,
             delete_cache=delete_cache,
         )
-        self.type: Literal["messages", "tuples"] = type
+        self.format: Literal["messages", "tuples"] | None = format
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
         self.fn = fn
@@ -177,12 +177,12 @@ class ChatInterface(Blocks):
                 Markdown(description)
 
             if chatbot:
-                if self.type != chatbot.type:
+                if self.format != chatbot.format:
                     warnings.warn(
-                        "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
-                        "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
+                        "The `format` of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
+                        f"Recieved type of chatbot: {chatbot.format}, type of chat interface: {self.format}"
                     )
-                    chatbot.type = self.type
+                    chatbot.format = self.format
                 self.chatbot = cast(
                     Chatbot, get_component_instance(chatbot, render=True)
                 )
@@ -191,7 +191,7 @@ class ChatInterface(Blocks):
                     label="Chatbot",
                     scale=1,
                     height=200 if fill_height else None,
-                    type=self.type,
+                    type=self.format,
                 )
 
             with Group():
@@ -461,7 +461,7 @@ class ChatInterface(Blocks):
         response: MessageDict | str | None,
         history: list[MessageDict] | TupleFormat,
     ):
-        if self.type == "tuples":
+        if self.format == "tuples":
             for x in message["files"]:
                 history.append([(x,), None])  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
@@ -489,9 +489,9 @@ class ChatInterface(Blocks):
     ) -> tuple[TupleFormat, TupleFormat] | tuple[list[MessageDict], list[MessageDict]]:
         if self.multimodal and isinstance(message, dict):
             self._append_multimodal_history(message, None, history)
-        elif isinstance(message, str) and self.type == "tuples":
+        elif isinstance(message, str) and self.format == "tuples":
             history.append([message, None])  # type: ignore
-        elif isinstance(message, str) and self.type == "messages":
+        elif isinstance(message, str) and self.format == "messages":
             history.append({"role": "user", "content": message})  # type: ignore
         return history  # type: ignore
 
@@ -517,7 +517,7 @@ class ChatInterface(Blocks):
         return message, history
 
     def _append_history(self, history, message, first_response=True):
-        if self.type == "tuples":
+        if self.format == "tuples":
             history[-1][1] = message  # type: ignore
         else:
             message = self.response_as_dict(message)
@@ -593,7 +593,7 @@ class ChatInterface(Blocks):
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-        if self.type == "tuples":
+        if self.format == "tuples":
             return [[message, response]]
         else:
             return [{"role": "user", "content": message}, response]
@@ -613,7 +613,7 @@ class ChatInterface(Blocks):
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
-            if self.type == "tuples":
+            if self.format == "tuples":
                 yield [[message, response]]
             else:
                 new_response = self.response_as_dict(response)
@@ -624,7 +624,7 @@ class ChatInterface(Blocks):
         message: str | MultimodalPostprocess | None,
         history: list[MessageDict] | TupleFormat,
     ) -> tuple[list[MessageDict] | TupleFormat, str | MultimodalPostprocess]:
-        extra = 1 if self.type == "messages" else 0
+        extra = 1 if self.format == "messages" else 0
         if self.multimodal and isinstance(message, dict):
             remove_input = (
                 len(message["files"]) + 1
