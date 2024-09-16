@@ -324,8 +324,8 @@ for demo in important_demos:
     with open(demo_file) as run_py:
         demo_code = run_py.read()
         demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
-    SYSTEM_PROMPT += f"Name: {demo.replace("_", " ")}\n"
-    SYSTEM_PROMPT += f"Code: \n\n"
+    SYSTEM_PROMPT += f"Name: {demo.replace('_', ' ')}\n"
+    SYSTEM_PROMPT += "Code: \n\n"
     SYSTEM_PROMPT += f"{demo_code}\n\n"
 
 SYSTEM_PROMPT += """
