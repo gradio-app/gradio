@@ -17,11 +17,12 @@
 		clear_status: LoadingStatus;
 	}>;
 	export let show_label = false;
+	export let min_height: number | undefined = undefined;
 
 	$: label, gradio.dispatch("change");
 </script>
 
-<Block {visible} {elem_id} {elem_classes} container={false}>
+<Block {visible} {elem_id} {elem_classes} container={false} {min_height}>
 	{#if show_label}
 		<span class="label-container">
 			<BlockLabel Icon={CodeIcon} {show_label} {label} float={true} />
@@ -37,10 +38,11 @@
 	/>
 	<div class:pending={loading_status?.status === "pending"}>
 		<HTML
-			min_height={loading_status && loading_status?.status !== "complete"}
 			{value}
 			{elem_classes}
 			{visible}
+			{min_height}
+			{loading_status}
 			on:change={() => gradio.dispatch("change")}
 		/>
 	</div>

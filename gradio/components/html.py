@@ -38,6 +38,7 @@ class HTML(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
+        min_height: int | None = None,
     ):
         """
         Parameters:
@@ -51,7 +52,9 @@ class HTML(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            min_height: Minimum height of the component.
         """
+        self.min_height = min_height
         super().__init__(
             label=label,
             every=every,
