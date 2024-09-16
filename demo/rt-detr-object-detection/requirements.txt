@@ -1,0 +1,4 @@
+safetensors==0.4.3
+opencv-python
+torch
+transformers
