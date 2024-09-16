@@ -2,9 +2,9 @@
 	import { createEventDispatcher } from "svelte";
 	import { copy } from "@gradio/utils";
 	import { Copy, Check } from "@gradio/icons";
+	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 
 	import MarkdownCode from "./MarkdownCode.svelte";
-	import { fade } from "svelte/transition";
 
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -62,19 +62,13 @@
 	style={height ? `max-height: ${css_units(height)}; overflow-y: auto;` : ""}
 >
 	{#if show_copy_button}
-		{#if copied}
-			<button
-				in:fade={{ duration: 300 }}
-				aria-label="Copied"
-				aria-roledescription="Text copied"><Check /></button
-			>
-		{:else}
-			<button
+		<IconButtonWrapper>
+			<IconButton
+				Icon={copied ? Check : Copy}
 				on:click={handle_copy}
-				aria-label="Copy"
-				aria-roledescription="Copy text"><Copy /></button
-			>
-		{/if}
+				label={copied ? "Copied conversation" : "Copy conversation"}
+			></IconButton>
+		</IconButtonWrapper>
 	{/if}
 	<MarkdownCode
 		message={value}
