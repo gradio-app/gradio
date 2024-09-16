@@ -331,6 +331,7 @@
 					max_lines: max_lines
 				}}
 				class="scroll-hide"
+				class:no-label={!show_label}
 				dir={rtl ? "rtl" : "ltr"}
 				bind:value={value.text}
 				bind:this={el}
@@ -414,6 +415,10 @@
 		position: relative;
 		z-index: 1;
 	}
+	textarea.no-label {
+		padding-top: 5px;
+		padding-bottom: 5px;
+	}
 
 	textarea:disabled {
 		-webkit-opacity: 1;
@@ -439,7 +444,6 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		margin-bottom: 5px;
 		z-index: var(--layer-1);
 	}
 	.padded-button {
@@ -514,6 +518,7 @@
 		gap: var(--spacing-lg);
 		overflow-x: scroll;
 		padding-top: var(--spacing-sm);
+		margin-bottom: 6px;
 	}
 
 	.thumbnail-item {

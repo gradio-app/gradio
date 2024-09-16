@@ -11,7 +11,7 @@
 		type SvelteComponent,
 		type ComponentType,
 		tick,
-		onMount
+		onMount,
 	} from "svelte";
 	import { Image } from "@gradio/image/shared";
 
@@ -63,7 +63,7 @@
 	$: load_components(get_components_from_messages(value));
 
 	function get_components_from_messages(
-		messages: NormalisedMessage[] | null
+		messages: NormalisedMessage[] | null,
 	): string[] {
 		if (!messages) return [];
 		let components: Set<string> = new Set();
@@ -108,37 +108,10 @@
 
 	onMount(() => {
 		target = document.querySelector("div.gradio-container");
-		adjust_text_size();
 	});
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
-
-	function adjust_text_size(): void {
-		let style = getComputedStyle(document.body);
-		let body_text_size = style.getPropertyValue("--body-text-size");
-		let updated_text_size;
-
-		switch (body_text_size) {
-			case "13px":
-				updated_text_size = 14;
-				break;
-			case "14px":
-				updated_text_size = 16;
-				break;
-			case "16px":
-				updated_text_size = 20;
-				break;
-			default:
-				updated_text_size = 14;
-				break;
-		}
-
-		document.body.style.setProperty(
-			"--chatbot-body-text-size",
-			updated_text_size + "px"
-		);
-	}
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -196,22 +169,20 @@
 	}
 
 	$: groupedMessages = value && group_messages(value);
-	$: suggestionsVisible = !(value !== null && value.length > 0);
 
 	function handle_suggestion_select(
 		i: number,
-		suggestion: SuggestionMessage
+		suggestion: SuggestionMessage,
 	): void {
-		suggestionsVisible = false;
 		dispatch("suggestion_select", {
 			index: i,
-			value: { text: suggestion.text, files: suggestion.files }
+			value: { text: suggestion.text, files: suggestion.files },
 		});
 	}
 
 	function is_last_bot_message(
 		messages: NormalisedMessage[],
-		total_length: number
+		total_length: number,
 	): boolean {
 		const is_bot = messages[messages.length - 1].role === "assistant";
 		const last_index = messages[messages.length - 1].index;
@@ -227,14 +198,14 @@
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
 			index: message.index,
-			value: message.content
+			value: message.content,
 		});
 	}
 
 	function handle_like(
 		i: number,
 		message: NormalisedMessage,
-		selected: string | null
+		selected: string | null,
 	): void {
 		if (selected === "undo") {
 			dispatch("undo");
@@ -248,7 +219,7 @@
 			dispatch("like", {
 				index: message.index,
 				value: message.content,
-				liked: selected === "like"
+				liked: selected === "like",
 			});
 		} else {
 			if (!groupedMessages) return;
@@ -256,13 +227,13 @@
 			const message_group = groupedMessages[i];
 			const [first, last] = [
 				message_group[0],
-				message_group[message_group.length - 1]
+				message_group[message_group.length - 1],
 			];
 
 			dispatch("like", {
 				index: [first.index, last.index] as [number, number],
 				value: message_group.map((m) => m.content),
-				liked: selected === "like"
+				liked: selected === "like",
 			});
 		}
 	}
@@ -286,7 +257,7 @@
 	}
 
 	function group_messages(
-		messages: NormalisedMessage[]
+		messages: NormalisedMessage[],
 	): NormalisedMessage[][] {
 		const groupedMessages: NormalisedMessage[][] = [];
 		let currentGroup: NormalisedMessage[] = [];
@@ -329,7 +300,7 @@
 						// @ts-ignore
 						const formatted = await format_chat_for_sharing(value);
 						dispatch("share", {
-							description: formatted
+							description: formatted,
 						});
 					} catch (e) {
 						console.error(e);
@@ -352,14 +323,13 @@
 
 <div
 	class={layout === "bubble" ? "bubble-wrap" : "panel-wrap"}
-	class:placeholder-container={value === null || value.length === 0}
 	bind:this={div}
 	role="log"
 	aria-label="chatbot conversation"
 	aria-live="polite"
 >
-	<div class="message-wrap" use:copy>
-		{#if value !== null && value.length > 0 && groupedMessages !== null}
+	{#if value !== null && value.length > 0 && groupedMessages !== null}
+		<div class="message-wrap" use:copy>
 			{#each groupedMessages as messages, i}
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
 				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
@@ -505,53 +475,55 @@
 			{#if pending_message}
 				<Pending {layout} />
 			{/if}
-		{:else if placeholder !== null}
-			<div class="placeholder">
-				<Markdown message={placeholder} {latex_delimiters} {root} />
-			</div>
-		{/if}
-	</div>
-	{#if suggestionsVisible}
-		<div class="suggestions">
+		</div>
+	{:else}
+		<div class="placeholder-content">
+			{#if placeholder !== null}
+				<div class="placeholder">
+					<Markdown message={placeholder} {latex_delimiters} {root} />
+				</div>
+			{/if}
 			{#if suggestions !== null}
-				{#each suggestions as suggestion, i}
-					<button
-						class="suggestion"
-						on:click={() => handle_suggestion_select(i, suggestion)}
-					>
-						{#if suggestion.icon !== undefined}
-							<div class="suggestion-icon-container">
-								<Image
-									class="suggestion-icon"
-									src={suggestion.icon.url}
-									alt="suggestion-icon"
-								/>
-							</div>
-						{/if}
-						{#if suggestion.display_text !== undefined}
-							<span class="suggestion-display-text"
-								>{suggestion.display_text}</span
-							>
-						{:else}
-							<span class="suggestion-text">{suggestion.text}</span>
-							{#if suggestion.files !== undefined && suggestion.files.length > 1}
-								<span class="suggestion-file"
-									><em>{suggestion.files.length} Files</em></span
-								>
-							{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
-								<Image
-									class="suggestion-image"
-									src={suggestion.files[0].url}
-									alt="suggestion-image"
-								/>
-							{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
-								<span class="suggestion-file"
-									><em>{suggestion.files[0].orig_name}</em></span
-								>
+				<div class="suggestions">
+					{#each suggestions as suggestion, i}
+						<button
+							class="suggestion"
+							on:click={() => handle_suggestion_select(i, suggestion)}
+						>
+							{#if suggestion.icon !== undefined}
+								<div class="suggestion-icon-container">
+									<Image
+										class="suggestion-icon"
+										src={suggestion.icon.url}
+										alt="suggestion-icon"
+									/>
+								</div>
 							{/if}
-						{/if}
-					</button>
-				{/each}
+							{#if suggestion.display_text !== undefined}
+								<span class="suggestion-display-text"
+									>{suggestion.display_text}</span
+								>
+							{:else}
+								<span class="suggestion-text">{suggestion.text}</span>
+								{#if suggestion.files !== undefined && suggestion.files.length > 1}
+									<span class="suggestion-file"
+										><em>{suggestion.files.length} Files</em></span
+									>
+								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
+									<Image
+										class="suggestion-image"
+										src={suggestion.files[0].url}
+										alt="suggestion-image"
+									/>
+								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
+									<span class="suggestion-file"
+										><em>{suggestion.files[0].orig_name}</em></span
+									>
+								{/if}
+							{/if}
+						</button>
+					{/each}
+				</div>
 			{/if}
 		</div>
 	{/if}
@@ -562,51 +534,63 @@
 		display: none;
 	}
 
-	.suggestions {
-		padding-top: calc(var(--spacing-xxl) * 10);
-		margin-bottom: calc(var(--spacing-xxl) * -10);
+	.placeholder-content {
 		display: flex;
-		flex-direction: row;
+		flex-direction: column;
+		height: 100%;
 	}
 
-	.suggestions :global(img) {
-		pointer-events: none;
+	.placeholder {
+		align-items: center;
+		display: flex;
+		justify-content: center;
+		height: 100%;
+		flex-grow: 1;
+	}
+
+	.suggestions {
+		margin: auto;
+		padding: var(--spacing-xxl);
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--spacing-xxl);
+		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
 	}
 
 	.suggestion {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		margin: var(--spacing-md);
-		padding: var(--spacing-md) var(--spacing-md);
+		padding: var(--spacing-md);
 		border: 0.05px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);
 		background-color: var(--background-fill-secondary);
 		cursor: pointer;
-		width: var(--size-36);
+		transition: var(--button-transition);
 	}
 
 	.suggestion:hover {
 		background-color: var(--color-accent-soft);
+		border-color: var(--border-color-accent);
 	}
 
 	.suggestion-icon-container {
 		display: flex;
 		align-self: flex-start;
 		margin-left: var(--spacing-md);
-		width: var(--size-8);
-		height: var(--size-8);
+		width: var(--size-6);
+		height: var(--size-6);
 	}
 
 	.suggestion-display-text,
 	.suggestion-text,
 	.suggestion-file {
+		font-size: var(--body-text-size);
 		display: flex;
 		align-self: flex-start;
 		margin: var(--spacing-md);
 		text-align: left;
 		flex-grow: 1;
-		font-size: var(--chatbot-body-text-size);
 		text-overflow: ellipsis;
 	}
 
@@ -619,24 +603,6 @@
 		align-self: flex-start;
 	}
 
-	@media screen and (max-width: 600px) {
-		.suggestion-text {
-			font-size: var(--chatbot-body-text-size);
-		}
-	}
-
-	.placeholder {
-		align-self: center;
-		display: flex;
-		justify-content: center;
-		height: 100%;
-	}
-	.placeholder-container {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		flex-direction: column;
-	}
 	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;
@@ -677,10 +643,10 @@
 		position: relative;
 		display: flex;
 		flex-direction: column;
-
 		width: calc(100% - var(--spacing-xxl));
+		max-width: 100%;
 		color: var(--body-text-color);
-		font-size: var(--chatbot-body-text-size);
+		font-size: var(--chatbot-text-size);
 		overflow-wrap: break-word;
 	}
 
@@ -689,7 +655,7 @@
 	}
 
 	.message :global(.prose) {
-		font-size: var(--chatbot-body-text-size);
+		font-size: var(--chatbot-text-size);
 	}
 
 	.message-bubble-border {
@@ -853,13 +819,13 @@
 		display: flex;
 		position: absolute;
 		right: var(--size-4);
+		top: var(--size-1);
 		align-items: center;
 		justify-content: space-evenly;
 		gap: var(--spacing-md);
 		z-index: 2;
 		padding-left: var(--size-2);
 		padding-right: var(--size-2);
-		background: var(--block-label-background-fill);
 		border-radius: var(--radius-md);
 		box-shadow: none;
 		padding-top: var(--size-1);
@@ -1046,8 +1012,9 @@
 		}
 	}
 
-	:global(.prose.chatbot.md) {
+	.message-wrap :global(.prose.chatbot.md) {
 		opacity: 0.8;
+		overflow-wrap: break-word;
 	}
 
 	.message > button {
