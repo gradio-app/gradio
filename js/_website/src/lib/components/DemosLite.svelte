@@ -5,6 +5,7 @@
 	import Close from "./icons/Close.svelte";
 	import { page } from "$app/stores";
 	import share from "$lib/assets/img/anchor_gray.svg";
+	import spaces_logo from "$lib/assets/img/spaces-logo.svg";
 	import { svgCheck } from "$lib/assets/copy.js";
 	import { browser } from "$app/environment";
 	import { onMount } from "svelte";
@@ -13,8 +14,11 @@
 	let generated = true;
 
 	let ai_code: string | undefined = "";
+	let current_code = false;
+	let compare = false;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:5174/api/generate";
 
 	async function* streamFromWorker(query: string, systemPrompt: string) {
 		const response = await fetch(workerUrl, {
@@ -66,17 +70,16 @@
 	async function generate_code(query: string) {
 		generated = false;
 		let out = "";
+
 		if (
-			demos[demos.length - 1].code &&
-			demos[demos.length - 1].code !==
-				"# Describe your app above, and the LLM will generate the code here."
+			current_code
 		) {
 			query = "PROMPT: " + query;
 			query +=
 				"\n\nHere is the existing code that either you or the user has written. If it's relevant to the prompt, use it for context. If it's not relevant, ignore it.\n Existing Code: \n\n" +
 				demos[demos.length - 1].code;
 			query +=
-				"\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, and matplotlib ";
+				"\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, plotly, transformers_js_py and matplotlib.";
 		}
 
 		for await (const chunk of streamFromWorker(query, SYSTEM_PROMPT.SYSTEM)) {
@@ -84,16 +87,18 @@
 				const content = chunk.choices[0].delta.content;
 				if (content) {
 					out += content;
-					out = out.replaceAll("```\n", "");
-					out = out.replaceAll("```", "");
 					ai_code = out;
 					demos[demos.length - 1].code =
 						out ||
 						"# Describe your app above, and the LLM will generate the code here.";
+					demos[demos.length - 1].code = demos[demos.length - 1].code.replaceAll("```python\n", "");
+					demos[demos.length - 1].code = demos[demos.length - 1].code.replaceAll("```\n", "");
+					demos[demos.length - 1].code = demos[demos.length - 1].code.replaceAll("```", "");
 				}
 			}
 		}
 		generated = true;
+		compare = true
 	}
 
 	let user_query: string;
@@ -124,6 +129,12 @@
 		requirements: []
 	};
 
+	function clear_code() {
+		demos[demos.length - 1].code =
+			"# Describe your app above, and the LLM will generate the code here.";
+		current_code = false;
+	}
+
 	demos.push(new_demo);
 
 	let mounted = false;
@@ -150,7 +161,7 @@
 	onMount(() => {
 		controller = createGradioApp({
 			target: document.getElementById("lite-demo"),
-			requirements: ["numpy", "pandas", "matplotlib", "plotly"],
+			requirements: ["numpy", "pandas", "matplotlib", "plotly", "transformers_js_py", "requests", "pillow"],
 			code: demos[0].code,
 			info: true,
 			container: true,
@@ -242,6 +253,61 @@
 	$: if (code) {
 		shared = false;
 	}
+	$: if (demos[demos.length - 1].code &&
+			demos[demos.length - 1].code !==
+				"# Describe your app above, and the LLM will generate the code here.") {
+					current_code = true;
+				}
+				
+				
+	function create_spaces_url() {
+		const base_URL = "https://huggingface.co/new-space";
+		const params = new URLSearchParams({
+			name: "new-space",
+			sdk: "gradio",
+		});
+		const encoded_content = code.trimStart()
+		params.append("files[0][path]", "app.py");
+		params.append("files[0][content]", encoded_content);
+		window.open(`${base_URL}?${params.toString()}`, '_blank')?.focus();
+	}
+
+	function highlight_changes(old_answer: string, new_answer: string) {
+
+		const old_lines = old_answer.split('\n');
+		const new_lines = new_answer.split('\n');
+
+		if ((old_lines.length > 3*new_lines.length) || (new_lines.length > 3*old_lines.length)) {
+			return;
+		}
+
+		const inserted_lines = [];
+
+		for (let i = 0; i < new_lines.length; i++) {
+			if (!(old_lines.includes(new_lines[i]))) {
+				inserted_lines.push(i);
+			}
+		}
+
+		if (inserted_lines.length > new_lines.length/2) {
+			return;
+		}
+		const cm = document.querySelectorAll("#Blank .cm-line");
+		for (let line of inserted_lines) {
+			cm[line].classList.add("highlight");
+		}
+	}
+
+	let old_answer = "";
+
+	$: if (compare && browser) {
+		if (demos[demos.length - 1].code !== "# Describe your app above, and the LLM will generate the code here.") {
+			highlight_changes(old_answer, demos[demos.length - 1].code);
+			old_answer = demos[demos.length - 1].code;
+			compare = false;
+		}
+	}
+
 </script>
 
 <svelte:head>
@@ -255,9 +321,9 @@
 
 <svelte:window on:keydown={handle_key_down} />
 
-<div class="flex flex-row" style="position: absolute; top: -6%; right: 0.4%">
+<div class="share-btns flex flex-row absolute">
 	<button
-		class="border border-gray-300 rounded-md mx-2 px-2 py-.5 my-[3px] text-md text-gray-600 hover:bg-gray-50 flex"
+		class="share-button"
 		on:click={() => copy_link(current_selection)}
 	>
 		{#if !copied_link}
@@ -273,6 +339,17 @@
 			<p class="inline-block">Copied Link!</p>
 		{/if}
 	</button>
+	<button
+		class="share-button"
+		on:click={() => create_spaces_url()}
+	>
+			<p class="inline-block">Deploy to</p>
+			<img
+				class="!w-5 align-text-top inline-block self-center mr-.5 ml-1"
+				src={spaces_logo}
+			/>
+			<p class="inline-block font-bold">Spaces</p>
+	</button>
 </div>
 <div
 	class=" absolute top-0 bottom-0 right-0"
@@ -284,11 +361,27 @@
 				<div
 					hidden={current_selection !== demo.name}
 					class="code-editor w-full border-r"
+					id={demo.dir}
 					style="width: {position * 100}%"
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
 						<div class="flex float-right"></div>
+						{#if current_code}
+						<div class="flex items-center">
+							<p class="text-sm text-gray-600">Prompt includes current code.</p>
+							<div class="clear">
+								<button
+									class="button"
+									on:click={() => {
+										clear_code();
+									}}
+								>
+									CLEAR
+								</button>
+							</div>
+						</div>
+						{/if}
 					</div>
 
 					{#if demo.name === "Blank"}
@@ -491,5 +584,66 @@
 
 	.grayed {
 		color: #6b7280 !important;
+	}
+
+	.clear {
+		display: flex;
+		align-items: center;
+		color: #999b9e;
+		font-size: 12px;
+	}
+
+	.button {
+		display: flex;
+		align-items: center;
+		font-weight: 600;
+		padding-left: 0.3rem;
+		padding-right: 0.3rem;
+		border-radius: 0.375rem;
+		float: right;
+		margin: 0.25rem;
+		border: 1px solid #e5e7eb;
+		background: linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+		color: #374151;
+		cursor: pointer;
+		font-family: sans-serif;
+	}
+
+	.share-button {
+		display: flex;
+		align-items: center;
+		font-weight: 500;
+		padding-left: 0.5rem;
+		padding-right: 0.5rem;
+		padding-top: 0.1rem;
+		padding-bottom: 0.1rem;
+		border-radius: 0.375rem;
+		float: right;
+		margin: 0.25rem;
+		border: 1px solid #e5e7eb;
+		background: linear-gradient(to bottom right, #f9fafb, #e5e7eb);
+		color: #374151;
+		cursor: pointer;
+		font-family: sans-serif;
+		font-size: 14px;
+
+	}
+	.share-button:hover {
+		background: linear-gradient(to bottom right, #f9fafb, #d7dadf);
+	}
+
+	:global(.highlight) {
+		background: #e1f7e161;
+	}
+
+	.share-btns {
+		top: -6%;
+		right: 0.4%;
+	}
+
+	@media (min-height: 800px) {
+		.share-btns {
+			top: -5%;
+		}
 	}
 </style>

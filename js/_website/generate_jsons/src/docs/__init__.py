@@ -256,31 +256,93 @@ docs = organize_docs(docs)
 gradio_docs = docs["docs"]["gradio"]
 
 SYSTEM_PROMPT = """
-You are a code generator trained on the Gradio python library. You live in a code editor inside Gradio's website.
-You are used by users trying to learn and understand how Gradio works. 
-You return code that represents a full and valid gradio app that best approximates what the user wants.
-Only answer in code, and don't include backticks in the beginning or end. 
-Clearly explain the code with commented text preceded by a # . Do NOT include text that is not commented with a #.
-Your code may only use the following libraries: gradio, numpy, pandas, and matplotlib. Do not use any other external libraries. 
-Since this is a Gradio documentation tool, the Gradio portion of the code is what is important. Any portion of the code that is outside the scope of Gradio can be replaced with a simpler alternative. But the app must compile and run correctly.
+Generate code for using the Gradio python library. 
+
+The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
+
+RULES: 
+Only respond with code, not text.
+Only respond with valid Python syntax.
+Never include backticks in your response such as ``` or ```python. 
+Never use any external library aside from: gradio, numpy, pandas, plotly, transformers_js and matplotlib.
+Do not include any code that is not necessary for the app to run.
+Respond with a full Gradio app. 
+Only respond with one full Gradio app.
+Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
+
+
+
+Here's an example of a valid response:
+
+# This is a simple Gradio app that greets the user.
+import gradio as gr
+
+# Define a function that takes a name and returns a greeting.
+def greet(name):
+    return "Hello " + name + "!"
+
+# Create a Gradio interface that takes a textbox input, runs it through the greet function, and returns output to a textbox.`
+demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+
+# Launch the interface.
+demo.launch()
+
+
+Here are some more examples of Gradio apps:
+
 
 """
 
-important_demos = ["audio_component_events", "kitchen_sink", "blocks_chained_events", "blocks_essay_simple", "blocks_hello", "blocks_kinematics", "blocks_layout", "calculator", "chatinterface_multimodal", "hello_world", "leaderboard", "on_listener_decorator", "plot_component", "sort_records", "streaming_simple", "tax_calculator", "timer", "video_identity"]
+
+
+# important_demos = ["annotatedimage_component", "audio_component_events", "audio_mixer", "bar_plot_demo", "blocks_chained_events", "blocks_essay", "blocks_essay_simple", "blocks_flashcards", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_js_load", "blocks_js_methods", "blocks_kinematics", "blocks_layout", "blocks_outputs", "blocks_plug", "blocks_simple_squares", "blocks_update", "blocks_xray", "calculator", "chatbot_consecutive", "chatbot_multimodal", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "custom_css", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "fake_gan", "filter_records", "function_values", "gallery_component_events", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sales_projections", "scatter_plot_demo", "sentence_builder", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
+important_demos = ["annotatedimage_component", "audio_mixer", "blocks_chained_events", "blocks_essay", "blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_js_load", "blocks_js_methods", "blocks_kinematics", "blocks_layout", "blocks_plug", "blocks_simple_squares", "blocks_update", "blocks_xray", "calculator", "chatbot_consecutive", "chatbot_multimodal", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "custom_css", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "fake_gan", "filter_records", "function_values", "gallery_component_events", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sales_projections", "sentence_builder", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
+
+
+def length(demo):
+    if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
+        demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
+    else: 
+        return 0
+    with open(demo_file) as run_py:
+        demo_code = run_py.read()
+        demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
+    return len(demo_code)
+
+# important_demos.sort(key=lambda x: length(x))
+# print(important_demos)
+# print(len(important_demos))
 
 SYSTEM_PROMPT += "\n\nHere are some demos showcasing full Gradio apps: \n\n"
 
 
 for demo in important_demos:
-    demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
+    if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
+        demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
+    else: 
+        continue
     with open(demo_file) as run_py:
         demo_code = run_py.read()
         demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
-    SYSTEM_PROMPT += f"Name: {demo}\n"
+    SYSTEM_PROMPT += f"Name: {demo.replace("_", " ")}\n"
     SYSTEM_PROMPT += f"Code: \n\n"
     SYSTEM_PROMPT += f"{demo_code}\n\n"
 
-SYSTEM_PROMPT += "\n\n\n"
+SYSTEM_PROMPT += """
+
+The following RULES must be followed.  Whenever you are forming a response, after each sentence ensure all rules have been followed otherwise start over, forming a new response and repeat until the finished response follows all the rules.  then send the response.
+
+RULES: 
+Only respond with code, not text.
+Only respond with valid Python syntax.
+Never include backticks in your response such as ``` or ```python. 
+Never use any external library aside from: gradio, numpy, pandas, plotly, transformers_js and matplotlib.
+Do not include any code that is not necessary for the app to run.
+Respond with a full Gradio app. 
+Only respond with one full Gradio app.
+Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
+"""
+
 
 def generate(json_path):
     with open(json_path, "w+") as f:
