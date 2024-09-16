@@ -188,4 +188,8 @@
 	span.md :global(.md-header-anchor > svg) {
 		color: var(--body-text-color-subdued);
 	}
+
+	span :global(table) {
+		word-break: break-word;
+	}
 </style>

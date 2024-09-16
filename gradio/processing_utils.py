@@ -10,7 +10,6 @@ import shutil
 import socket
 import subprocess
 import tempfile
-import urllib.request
 import warnings
 from functools import lru_cache
 from io import BytesIO
@@ -278,8 +277,16 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 def resolve_with_google_dns(hostname: str) -> str | None:
     url = f"https://dns.google/resolve?name={hostname}&type=A"
 
-    with urllib.request.urlopen(url) as response:
-        data = json.loads(response.read().decode())
+    if wasm_utils.IS_WASM:
+        import pyodide.http
+
+        content = pyodide.http.open_url(url)
+        data = json.load(content)
+    else:
+        import urllib.request
+
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read().decode())
 
     if data.get("Status") == 0 and "Answer" in data:
         for answer in data["Answer"]:
@@ -505,18 +512,18 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
 
     abs_path = utils.abspath(path)
 
-    # if check_in_upload_folder=True
-    # we are running this during pre-process
-    # in which case only files in the upload_folder (cache_dir)
-    # are accepted
-    allowed = [utils.get_upload_folder()]
-    if not check_in_upload_folder:
-        allowed += blocks.allowed_paths + [os.getcwd(), tempfile.gettempdir()]
-
+    created_paths = [utils.get_upload_folder()]
+    # if check_in_upload_folder=True, we are running this during pre-process
+    # in which case only files in the upload_folder (cache_dir) are accepted
+    if check_in_upload_folder:
+        allowed_paths = []
+    else:
+        allowed_paths = blocks.allowed_paths + [os.getcwd(), tempfile.gettempdir()]
     allowed, reason = utils.is_allowed_file(
         abs_path,
         blocked_paths=blocks.blocked_paths,
-        allowed_paths=allowed,
+        allowed_paths=allowed_paths,
+        created_paths=created_paths,
     )
     if not allowed:
         msg = f"Cannot move {abs_path} to the gradio cache dir because "
