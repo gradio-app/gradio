@@ -71,9 +71,7 @@
 		generated = false;
 		let out = "";
 
-		if (
-			current_code
-		) {
+		if (current_code) {
 			query = "PROMPT: " + query;
 			query +=
 				"\n\nHere is the existing code that either you or the user has written. If it's relevant to the prompt, use it for context. If it's not relevant, ignore it.\n Existing Code: \n\n" +
@@ -91,14 +89,20 @@
 					demos[demos.length - 1].code =
 						out ||
 						"# Describe your app above, and the LLM will generate the code here.";
-					demos[demos.length - 1].code = demos[demos.length - 1].code.replaceAll("```python\n", "");
-					demos[demos.length - 1].code = demos[demos.length - 1].code.replaceAll("```\n", "");
-					demos[demos.length - 1].code = demos[demos.length - 1].code.replaceAll("```", "");
+					demos[demos.length - 1].code = demos[
+						demos.length - 1
+					].code.replaceAll("```python\n", "");
+					demos[demos.length - 1].code = demos[
+						demos.length - 1
+					].code.replaceAll("```\n", "");
+					demos[demos.length - 1].code = demos[
+						demos.length - 1
+					].code.replaceAll("```", "");
 				}
 			}
 		}
 		generated = true;
-		compare = true
+		compare = true;
 	}
 
 	let user_query: string;
@@ -161,7 +165,15 @@
 	onMount(() => {
 		controller = createGradioApp({
 			target: document.getElementById("lite-demo"),
-			requirements: ["numpy", "pandas", "matplotlib", "plotly", "transformers_js_py", "requests", "pillow"],
+			requirements: [
+				"numpy",
+				"pandas",
+				"matplotlib",
+				"plotly",
+				"transformers_js_py",
+				"requests",
+				"pillow"
+			],
 			code: demos[0].code,
 			info: true,
 			container: true,
@@ -253,43 +265,46 @@
 	$: if (code) {
 		shared = false;
 	}
-	$: if (demos[demos.length - 1].code &&
-			demos[demos.length - 1].code !==
-				"# Describe your app above, and the LLM will generate the code here.") {
-					current_code = true;
-				}
-				
-				
+	$: if (
+		demos[demos.length - 1].code &&
+		demos[demos.length - 1].code !==
+			"# Describe your app above, and the LLM will generate the code here."
+	) {
+		current_code = true;
+	}
+
 	function create_spaces_url() {
 		const base_URL = "https://huggingface.co/new-space";
 		const params = new URLSearchParams({
 			name: "new-space",
-			sdk: "gradio",
+			sdk: "gradio"
 		});
-		const encoded_content = code.trimStart()
+		const encoded_content = code.trimStart();
 		params.append("files[0][path]", "app.py");
 		params.append("files[0][content]", encoded_content);
-		window.open(`${base_URL}?${params.toString()}`, '_blank')?.focus();
+		window.open(`${base_URL}?${params.toString()}`, "_blank")?.focus();
 	}
 
 	function highlight_changes(old_answer: string, new_answer: string) {
+		const old_lines = old_answer.split("\n");
+		const new_lines = new_answer.split("\n");
 
-		const old_lines = old_answer.split('\n');
-		const new_lines = new_answer.split('\n');
-
-		if ((old_lines.length > 3*new_lines.length) || (new_lines.length > 3*old_lines.length)) {
+		if (
+			old_lines.length > 3 * new_lines.length ||
+			new_lines.length > 3 * old_lines.length
+		) {
 			return;
 		}
 
 		const inserted_lines = [];
 
 		for (let i = 0; i < new_lines.length; i++) {
-			if (!(old_lines.includes(new_lines[i]))) {
+			if (!old_lines.includes(new_lines[i])) {
 				inserted_lines.push(i);
 			}
 		}
 
-		if (inserted_lines.length > new_lines.length/2) {
+		if (inserted_lines.length > new_lines.length / 2) {
 			return;
 		}
 		const cm = document.querySelectorAll("#Blank .cm-line");
@@ -301,13 +316,15 @@
 	let old_answer = "";
 
 	$: if (compare && browser) {
-		if (demos[demos.length - 1].code !== "# Describe your app above, and the LLM will generate the code here.") {
+		if (
+			demos[demos.length - 1].code !==
+			"# Describe your app above, and the LLM will generate the code here."
+		) {
 			highlight_changes(old_answer, demos[demos.length - 1].code);
 			old_answer = demos[demos.length - 1].code;
 			compare = false;
 		}
 	}
-
 </script>
 
 <svelte:head>
@@ -322,10 +339,7 @@
 <svelte:window on:keydown={handle_key_down} />
 
 <div class="share-btns flex flex-row absolute">
-	<button
-		class="share-button"
-		on:click={() => copy_link(current_selection)}
-	>
+	<button class="share-button" on:click={() => copy_link(current_selection)}>
 		{#if !copied_link}
 			<img
 				class="!w-5 align-text-top inline-block self-center mr-1"
@@ -339,16 +353,13 @@
 			<p class="inline-block">Copied Link!</p>
 		{/if}
 	</button>
-	<button
-		class="share-button"
-		on:click={() => create_spaces_url()}
-	>
-			<p class="inline-block">Deploy to</p>
-			<img
-				class="!w-5 align-text-top inline-block self-center mr-.5 ml-1"
-				src={spaces_logo}
-			/>
-			<p class="inline-block font-bold">Spaces</p>
+	<button class="share-button" on:click={() => create_spaces_url()}>
+		<p class="inline-block">Deploy to</p>
+		<img
+			class="!w-5 align-text-top inline-block self-center mr-.5 ml-1"
+			src={spaces_logo}
+		/>
+		<p class="inline-block font-bold">Spaces</p>
 	</button>
 </div>
 <div
@@ -368,19 +379,21 @@
 						<h3 class="pt-1">Code</h3>
 						<div class="flex float-right"></div>
 						{#if current_code}
-						<div class="flex items-center">
-							<p class="text-sm text-gray-600">Prompt includes current code.</p>
-							<div class="clear">
-								<button
-									class="button"
-									on:click={() => {
-										clear_code();
-									}}
-								>
-									CLEAR
-								</button>
+							<div class="flex items-center">
+								<p class="text-sm text-gray-600">
+									Prompt includes current code.
+								</p>
+								<div class="clear">
+									<button
+										class="button"
+										on:click={() => {
+											clear_code();
+										}}
+									>
+										CLEAR
+									</button>
+								</div>
 							</div>
-						</div>
 						{/if}
 					</div>
 
@@ -626,7 +639,6 @@
 		cursor: pointer;
 		font-family: sans-serif;
 		font-size: 14px;
-
 	}
 	.share-button:hover {
 		background: linear-gradient(to bottom right, #f9fafb, #d7dadf);
