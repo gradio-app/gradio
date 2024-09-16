@@ -105,25 +105,4 @@
 	.hide {
 		display: none;
 	}
-
-	button {
-		display: flex;
-		position: absolute;
-		top: -10px;
-		right: -10px;
-		align-items: center;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--color-border-primary);
-		border-top: none;
-		border-right: none;
-		border-radius: var(--block-label-right-radius);
-		background: var(--block-label-background-fill);
-		padding: 5px;
-		width: 22px;
-		height: 22px;
-		overflow: hidden;
-		color: var(--block-label-color);
-		font: var(--font-sans);
-		font-size: var(--button-small-text-size);
-	}
 </style>
