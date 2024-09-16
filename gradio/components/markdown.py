@@ -49,6 +49,7 @@ class Markdown(Component):
         max_height: int | str | None = None,
         min_height: int | str | None = None,
         show_copy_button: bool = False,
+        container: bool = False,
     ):
         """
         Parameters:
@@ -71,6 +72,7 @@ class Markdown(Component):
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will scroll. If markdown content is shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If markdown content exceeds the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             show_copy_button: If True, includes a copy button to copy the text in the Markdown component. Default is False.
+            container: If True, the Markdown component will be displayed in a container. Default is False.
         """
         self.rtl = rtl
         if latex_delimiters is None:
@@ -95,6 +97,7 @@ class Markdown(Component):
             render=render,
             key=key,
             value=value,
+            container=container,
         )
 
     def preprocess(self, payload: str | None) -> str | None:
