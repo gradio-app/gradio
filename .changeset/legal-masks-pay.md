@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Prevent HTML and Markdown height changing when status changes
+feat:Prevent HTML and Markdown height changing when status is hidden
