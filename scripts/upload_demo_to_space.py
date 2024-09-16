@@ -124,7 +124,7 @@ def upload_demo_to_space(
                 print(f"Successfully committed chunk {idx} with {len(chunk)} file(s).")
             except Exception as e:
                 print(f"Failed to commit chunk {idx}: {e}")
-                raise e  # Re-raise the exception after logging
+                raise  # Re-raise the exception after logging
 
     return f"https://huggingface.co/spaces/{space_id}"
 
