@@ -90,4 +90,4 @@ You can check out our demo hosted on Hugging Face Spaces [here](https://huggingf
 
 It is also embedded on this page below
 
-$demo_
+$demo_YOLOv10-webcam-stream
