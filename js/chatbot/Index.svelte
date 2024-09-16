@@ -63,10 +63,12 @@
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let loading_status: LoadingStatus | undefined = undefined;
-	export let height = 400;
 	export let placeholder: string | null = null;
 	export let suggestions: SuggestionMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
 
 	let _value: NormalisedMessage[] | null = [];
 
@@ -74,13 +76,6 @@
 		type === "tuples"
 			? normalise_tuples(value as TupleFormat, root)
 			: normalise_messages(value as Message[], root);
-
-	export let loading_status: LoadingStatus | undefined = undefined;
-	export let height: number | string | undefined;
-	export let min_height: number | string | undefined;
-	export let max_height: number | string | undefined;
-	export let placeholder: string | null = null;
-	export let theme_mode: "system" | "light" | "dark";
 </script>
 
 <Block

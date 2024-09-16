@@ -143,8 +143,6 @@ class ChatInterface(Blocks):
         self.examples = examples
         self.cache_examples = cache_examples
 
-        if cache_examples is not None:
-            raise NotImplementedError()  # TODO: needs to be implemented
         if additional_inputs:
             if not isinstance(additional_inputs, list):
                 additional_inputs = [additional_inputs]
@@ -232,6 +230,23 @@ class ChatInterface(Blocks):
                 self.fake_api_btn = Button("Fake API", visible=False)
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
 
+            if examples:
+                if self.is_generator:
+                    examples_fn = self._examples_stream_fn
+                else:
+                    examples_fn = self._examples_fn
+
+                # self.examples_handler = Examples(
+                #     examples=examples,
+                #     inputs=[self.textbox] + self.additional_inputs,
+                #     outputs=self.chatbot,
+                #     fn=examples_fn,
+                #     cache_examples=self.cache_examples,
+                #     _defer_caching=True,
+                #     visible=False
+                # )
+
+
             any_unrendered_inputs = any(
                 not inp.is_rendered for inp in self.additional_inputs
             )
@@ -240,6 +255,9 @@ class ChatInterface(Blocks):
                     for input_component in self.additional_inputs:
                         if not input_component.is_rendered:
                             input_component.render()
+
+            # if examples:
+            #     self.examples_handler._start_caching()
 
             self.saved_input = State()
             self.chatbot_state = (
@@ -292,6 +310,12 @@ class ChatInterface(Blocks):
         if isinstance(self.chatbot, Chatbot):
             self.chatbot.suggestion_select(
                 self._examples_fn, [self.chatbot], [self.chatbot]
+            ).then(
+                self._display_input,
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
+                show_api=False,
+                queue=False,
             ).then(
                 submit_fn,
                 [self.saved_input, self.chatbot],
@@ -445,6 +469,7 @@ class ChatInterface(Blocks):
     ]:
         if self.multimodal:
             previous_input += [message]
+            print("123123previous_input", message)
             return (
                 MultimodalTextbox("", interactive=False, placeholder=""),
                 message,
@@ -473,11 +498,12 @@ class ChatInterface(Blocks):
                 history.append([None, response])  # type: ignore
             else:
                 history.append([message["text"], cast(str, response)])  # type: ignore
-        else:
-            for x in message["files"]:
-                history.append(
-                    {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
-                )
+        elif self.type == "messages":
+            if "files" in message:
+                for x in message["files"]:
+                    history.append(
+                        {"role": "user", "content": {"path": x}}  # type: ignore
+                    )
             if message["text"] is None or not isinstance(message["text"], str):
                 return
             else:
@@ -491,11 +517,15 @@ class ChatInterface(Blocks):
         history: TupleFormat | list[MessageDict],
     ) -> tuple[TupleFormat, TupleFormat] | tuple[list[MessageDict], list[MessageDict]]:
         if self.multimodal and isinstance(message, dict):
+            print("dispaly inputttt", message)
             self._append_multimodal_history(message, None, history)
+        elif not self.multimodal and isinstance(message, dict):
+            history.append({"role": "user", "content": message["text"]}) # type: ignore
         elif isinstance(message, str) and self.type == "tuples":
             history.append([message, None])  # type: ignore
         elif isinstance(message, str) and self.type == "messages":
             history.append({"role": "user", "content": message})  # type: ignore
+        print("dispaly inputttt history", history)
         return history  # type: ignore
 
     def response_as_dict(self, response: MessageDict | Message | str) -> MessageDict:
@@ -513,7 +543,8 @@ class ChatInterface(Blocks):
         history_with_input: TupleFormat | list[MessageDict],
     ) -> tuple[str | MultimodalPostprocess, TupleFormat | list[MessageDict]]:
         if isinstance(message, dict):
-            remove_input = len(message["files"]) + int(message["text"] is not None)
+            num_of_files = len(message["files"]) if "files" in message else 0
+            remove_input = num_of_files + int(message["text"] is not None)
             history = history_with_input[:-remove_input]
         else:
             history = history_with_input[:-1]
@@ -550,7 +581,6 @@ class ChatInterface(Blocks):
                 self.fn, *inputs, limiter=self.limiter
             )
         self._append_history(history_with_input, response)
-
         return history_with_input  # type: ignore
 
     async def _stream_fn(
@@ -585,10 +615,13 @@ class ChatInterface(Blocks):
             yield history_with_input
 
     async def _examples_fn(self, x: SelectData, history):
-        message = MultimodalData(**cast(dict, x.value))
+        # print("!!!!", self.examples_handler.load_from_cache(0))
+        message = MultimodalPostprocess(**cast(dict, x.value))
         self.saved_input.value = message
-        if self.multimodal:
-            self._append_multimodal_history(message, None, history)
+        # if self.multimodal:
+        #     self._append_multimodal_history(message, None, history)
+        # else:
+        #     history.append({"role": "user", "content": message["text"]})
         return history
 
     async def _examples_stream_fn(
