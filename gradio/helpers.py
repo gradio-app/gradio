@@ -146,11 +146,6 @@ class Examples:
                         self.cache_examples = True
                     else:
                         self.cache_examples = False
-                elif cache_examples_env.lower() == "lazy":
-                    if fn is not None and outputs is not None:
-                        self.cache_examples = "lazy"
-                    else:
-                        self.cache_examples = False
             elif utils.get_space() and fn is not None and outputs is not None:
                 self.cache_examples = True
             else:
@@ -164,6 +159,20 @@ class Examples:
 
         if self.cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
+
+        if (cache_examples_mode := os.getenv("GRADIO_CACHE_MODE")) and cache_mode is None:
+            if cache_examples_mode.lower() == "eager":
+                cache_mode = "eager"
+            elif cache_examples_mode.lower() == "lazy":
+                cache_mode = "lazy"
+            else:
+                raise ValueError(
+                    "The `GRADIO_CACHE_MODE` environment variable must be one of: 'eager', 'lazy'."
+                )
+
+        if self.cache_examples and cache_mode == "lazy":
+            self.cache_examples = "lazy"
+
         self._defer_caching = _defer_caching
 
         if not isinstance(inputs, Sequence):
