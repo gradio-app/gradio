@@ -1,2 +1,0 @@
-const h=n=>{let t;if(n.currentTarget instanceof Element)t=n.currentTarget.querySelector("img");else return[NaN,NaN];const e=t.getBoundingClientRect(),a=t.naturalWidth/e.width,i=t.naturalHeight/e.height;if(a>i){const c=t.naturalHeight/a,o=(e.height-c)/2;var r=Math.round((n.clientX-e.left)*a),l=Math.round((n.clientY-e.top-o)*a)}else{const c=t.naturalWidth/i,o=(e.width-c)/2;var r=Math.round((n.clientX-e.left-o)*i),l=Math.round((n.clientY-e.top)*i)}return r<0||r>=t.naturalWidth||l<0||l>=t.naturalHeight?null:[r,l]};export{h as g};
-//# sourceMappingURL=utils-Gtzs_Zla.js.map
