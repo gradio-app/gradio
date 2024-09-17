@@ -45,7 +45,7 @@ for (const test_case of cases) {
 
 		await page.getByLabel("retry button").click();
 		const expected_text_el_2 = page.locator(".bot p", {
-			hasText: "Run 3 - You typed: hi"
+			hasText: "Run 3 - You typed: hello"
 		});
 		await expect(expected_text_el_2).toBeVisible();
 

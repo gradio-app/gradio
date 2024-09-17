@@ -35,6 +35,7 @@
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
 	export let show_copy_button = false;
+	export let container = false;
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -43,7 +44,7 @@
 	{visible}
 	{elem_id}
 	{elem_classes}
-	container={false}
+	{container}
 	allow_overflow={true}
 	overflow_behavior="auto"
 	{height}
