@@ -18,7 +18,7 @@
 	let compare = false;
 
 	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5175/api/generate";
+	// const workerUrl = "http://localhost:5174/api/generate";
 	let model_info = "";
 
 	async function* streamFromWorker(query: string, system_prompt: string, system_prompt_8k: string) {
@@ -108,6 +108,7 @@
 					demos[demos.length - 1].code = demos[
 						demos.length - 1
 					].code.replaceAll("```", "");
+					demos[demos.length - 1].code = addShowErrorToLaunch(demos[demos.length - 1].code);
 				}
 			}
 		}
@@ -322,6 +323,25 @@
 			cm[line].classList.add("highlight");
 		}
 	}
+
+	const addShowErrorToLaunch = (launch_code: string) => {
+		const pattern = /\.launch\((.*?)\)/;
+		const replacement = (match: any, p1: any) => {
+			const params = p1.trim();
+			if (params === '') {
+			return '.launch(show_error=True)';
+			} else if (!params.includes('show_error')) {
+			return `.launch(${params}, show_error=True)`;
+			}
+			return match;
+		};
+		return launch_code.replace(pattern, replacement);
+		};
+
+		// Example usage:
+		console.log(addShowErrorToLaunch('.launch()'));
+		console.log(addShowErrorToLaunch('.launch(width=800, height=600)'));
+		console.log(addShowErrorToLaunch('.launch(show_error=False)'));
 
 	let old_answer = "";
 
