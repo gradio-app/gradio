@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "Gradio ile oluşturulmuştur",
+		"clear": "Temizle",
+		"or": "veya",
+		"submit": "Yükle"
+	},
+	"upload_text": {
+		"click_to_upload": "Yüklemek için Tıkla",
+		"drop_audio": "Kaydı Buraya Sürükle",
+		"drop_csv": "CSV'yi Buraya Sürükle",
+		"drop_file": "Dosyayı Buraya Sürükle",
+		"drop_image": "Resmi Buraya Sürükle",
+		"drop_video": "Videoyu Buraya Sürükle"
+	}
+}

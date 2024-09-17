@@ -1,0 +1,34 @@
+{
+	"name": "@gradio/lite",
+	"version": "4.43.0-beta.1",
+	"description": "Serverless Gradio",
+	"type": "module",
+	"main": "dist/lite.js",
+	"author": "Gradio Team",
+	"license": "Apache-2.0",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"cssbuild": "python ../../scripts/generate_theme.py --outfile ./src/theme.css",
+		"pybuild:gradio": "cd ../../ && hatch build -t lite",
+		"pybuild:gradio-client": "cd ../../client/python && python -m build",
+		"pybuild": "run-p pybuild:*",
+		"build": "pnpm pybuild && pnpm cssbuild && pnpm --filter @gradio/client build && pnpm --filter @gradio/wasm build && vite build --mode production",
+		"build:frontend": "vite build --mode production",
+		"dev": "run-p dev:*",
+		"dev:self": "vite --port 9876 --mode development",
+		"dev:worker": "pnpm --filter @gradio/wasm dev",
+		"test:browser": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @self/spa test:browser",
+		"test:browser:dev": "GRADIO_E2E_TEST_LITE=1 pnpm --filter @self/spa test:browser:dev"
+	},
+	"devDependencies": {
+		"gradio": "workspace:^",
+		"@gradio/atoms": "workspace:^",
+		"@self/build": "workspace:^",
+		"@gradio/core": "workspace:^",
+		"@self/spa": "workspace:^",
+		"@gradio/theme": "workspace:^",
+		"@gradio/wasm": "workspace:^"
+	}
+}

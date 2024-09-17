@@ -1,0 +1,47 @@
+{
+	"name": "@gradio/plot",
+	"version": "0.6.5-beta.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/theme": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@rollup/plugin-json": "^6.0.0",
+		"plotly.js-dist-min": "^2.10.1",
+		"vega": "^5.23.0",
+		"vega-embed": "^6.25.0",
+		"vega-lite": "^5.12.0"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"main": "./Index.svelte",
+	"main_changeset": true,
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
+		"./base": {
+			"gradio": "./shared/Plot.svelte",
+			"svelte": "./dist/shared/Plot.svelte",
+			"types": "./dist/shared/Plot.svelte.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/plot"
+	}
+}

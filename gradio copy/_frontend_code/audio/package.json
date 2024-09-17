@@ -1,0 +1,62 @@
+{
+	"name": "@gradio/audio",
+	"version": "0.14.0-beta.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/button": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@gradio/wasm": "workspace:^",
+		"@types/wavesurfer.js": "^6.0.10",
+		"extendable-media-recorder": "^9.0.0",
+		"extendable-media-recorder-wav-encoder": "^7.0.76",
+		"hls.js": "^1.5.13",
+		"resize-observer-polyfill": "^1.5.1",
+		"svelte-range-slider-pips": "^2.0.1",
+		"wavesurfer.js": "^7.4.2"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"main_changeset": true,
+	"main": "index.ts",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"gradio": "./index.ts",
+			"svelte": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		},
+		"./example": {
+			"gradio": "./Example.svelte",
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
+		},
+		"./shared": {
+			"gradio": "./shared/index.ts",
+			"svelte": "./dist/shared/index.js",
+			"types": "./dist/shared/index.d.ts"
+		},
+		"./base": {
+			"gradio": "./static/StaticAudio.svelte",
+			"svelte": "./dist/static/StaticAudio.svelte",
+			"types": "./dist/static/StaticAudio.svelte.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/audio"
+	}
+}

@@ -1,0 +1,26 @@
+{
+	"name": "@gradio/tooltip",
+	"version": "0.1.2",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"main_changeset": true,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/tooltip"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"exports": {
+		".": {
+			"gradio": "./src/index.js",
+			"svelte": "./dist/src/index.js",
+			"types": "./dist/src/index.d.ts"
+		},
+		"./package.json": "./package.json"
+	}
+}

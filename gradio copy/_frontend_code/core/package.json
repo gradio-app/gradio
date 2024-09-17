@@ -1,0 +1,94 @@
+{
+	"name": "@gradio/core",
+	"version": "0.1.0-beta.1",
+	"type": "module",
+	"devDependencies": {
+		"@gradio/accordion": "workspace:^",
+		"@gradio/annotatedimage": "workspace:^",
+		"@gradio/atoms": "workspace:^",
+		"@gradio/audio": "workspace:^",
+		"@gradio/box": "workspace:^",
+		"@gradio/button": "workspace:^",
+		"@gradio/chatbot": "workspace:^",
+		"@gradio/checkbox": "workspace:^",
+		"@gradio/checkboxgroup": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/code": "workspace:^",
+		"@gradio/colorpicker": "workspace:^",
+		"@gradio/column": "workspace:^",
+		"@gradio/dataframe": "workspace:^",
+		"@gradio/dataset": "workspace:^",
+		"@gradio/datetime": "workspace:^",
+		"@gradio/downloadbutton": "workspace:^",
+		"@gradio/dropdown": "workspace:^",
+		"@gradio/fallback": "workspace:^",
+		"@gradio/file": "workspace:^",
+		"@gradio/fileexplorer": "workspace:^",
+		"@gradio/form": "workspace:^",
+		"@gradio/gallery": "workspace:^",
+		"@gradio/group": "workspace:^",
+		"@gradio/highlightedtext": "workspace:^",
+		"@gradio/html": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/image": "workspace:^",
+		"@gradio/imageeditor": "workspace:^",
+		"@gradio/json": "workspace:^",
+		"@gradio/label": "workspace:^",
+		"@gradio/markdown": "workspace:^",
+		"@gradio/model3d": "workspace:^",
+		"@gradio/multimodaltextbox": "workspace:^",
+		"@gradio/nativeplot": "workspace:^",
+		"@gradio/number": "workspace:^",
+		"@gradio/paramviewer": "workspace:^",
+		"@gradio/plot": "workspace:^",
+		"@gradio/radio": "workspace:^",
+		"@gradio/row": "workspace:^",
+		"@gradio/simpledropdown": "workspace:^",
+		"@gradio/simpleimage": "workspace:^",
+		"@gradio/simpletextbox": "workspace:^",
+		"@gradio/slider": "workspace:^",
+		"@gradio/state": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/tabitem": "workspace:^",
+		"@gradio/tabs": "workspace:^",
+		"@gradio/textbox": "workspace:^",
+		"@gradio/theme": "workspace:^",
+		"@gradio/timer": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/uploadbutton": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@gradio/video": "workspace:^",
+		"@gradio/wasm": "workspace:^"
+	},
+	"msw": {
+		"workerDirectory": "public"
+	},
+	"main_changeset": true,
+	"exports": {
+		"./blocks": {
+			"gradio": "./src/Blocks.svelte",
+			"svelte": "./dist/src/Blocks.svelte",
+			"types": "./dist/src/Blocks.svelte.d.ts"
+		},
+		"./login": {
+			"gradio": "./src/Login.svelte",
+			"svelte": "./dist/src/Login.svelte",
+			"types": "./dist/src/Login.svelte.d.ts"
+		},
+		"./package.json": "./package.json",
+		".": {
+			"gradio": "./index.ts",
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"main": "./index.ts",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/core"
+	}
+}

@@ -1,0 +1,32 @@
+{
+	"name": "@gradio/upload",
+	"version": "0.12.4-beta.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@gradio/wasm": "workspace:^"
+	},
+	"main_changeset": true,
+	"exports": {
+		".": {
+			"gradio": "./src/index.ts",
+			"svelte": "./dist/src/index.js",
+			"types": "./dist/src/index.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/upload"
+	}
+}

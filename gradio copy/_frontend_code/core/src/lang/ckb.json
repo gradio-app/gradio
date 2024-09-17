@@ -1,0 +1,108 @@
+{
+	"3D_model": {
+		"3d_model": "مۆدێلی سێ ڕەهەندی"
+	},
+	"annotated_image": {
+		"annotated_image": "وێنەی نیشانە کراو"
+	},
+	"audio": {
+		"allow_recording_access": "تکایە ڕێگە بدە بە بەکارهێنانی مایکرۆفۆنەکە بۆ تۆمارکردن.",
+		"audio": "دەنگ",
+		"record_from_microphone": "تۆمارکردن لە مایکەوە",
+		"stop_recording": "تۆمارکردن بوەستێنە"
+	},
+	"blocks": {
+		"connection_can_break": "لە مۆبایلدا، پەیوەندییەکە دەکرێت بپچڕێت ئەگەر ئەم تابە چالاک نەبێت یان ئامێرەکە بچێتە دۆخی پشوو، ئەمەش شوێنی خۆت لە ڕیزدا لەدەست دەدات.",
+		"long_requests_queue": "ڕیزێکی درێژی داواکاری هەیە. ئەم سپەیسە دووباد بکە بۆی چاوەڕوان نەبیت.",
+		"lost_connection": "پەیوەندی پچڕا بەهۆی جێهێشتنی پەیج. "
+	},
+	"checkbox": {
+		"checkbox": "بۆکسی هەڵبژاردن",
+		"checkbox_group": "گروپی بۆکسی هەڵبژاردن"
+	},
+	"code": {
+		"code": "کۆد"
+	},
+	"color_picker": {
+		"color_picker": "ڕەنگ هەڵبژاردە"
+	},
+	"common": {
+		"built_with": "دروستکراوە لەگەڵ...",
+		"built_with_gradio": "Gradio دروستکراوە بە",
+		"clear": "خاوێنکردنەوە",
+		"download": "دابەزاندن",
+		"edit": "بژارکردن",
+		"empty": "بەتاڵ",
+		"error": "هەڵە",
+		"hosted_on": "میوانداری کراوە لە",
+		"loading": "بارکردن",
+		"logo": "لۆگۆ",
+		"or": "یان",
+		"remove": "لابردن",
+		"share": "هاوبەشکردن",
+		"submit": "پێشکەشکردن",
+		"undo": "پووچکردنەوە"
+	},
+	"dataframe": {
+		"incorrect_format": "فۆرماتێکی هەڵە، تەنها فایلەکانی CSV و TSV پشتگیری دەکرێن",
+		"new_column": "ستوونی نوێ",
+		"new_row": "ڕیزێکی نوێ"
+	},
+	"dropdown": {
+		"dropdown": "فڕێدانە خوار"
+	},
+	"errors": {
+		"build_error": "هەڵەی دروستکردن هەیە",
+		"config_error": "هەڵەی ڕێکخستن هەیە",
+		"contact_page_author": "تکایە پەیوەندی بە نووسەری پەیجەوە بکەن بۆ ئەوەی ئاگاداریان بکەنەوە.",
+		"no_app_file": "هیچ فایلێکی ئەپ نییە",
+		"runtime_error": "هەڵەیەکی runtime هەیە",
+		"space_not_working": "\"سپەیسەکە کارناکات چونکە\" {0}",
+		"space_paused": "فەزاکە وەستاوە",
+		"use_via_api": "لە ڕێگەی API بەکاری بهێنە"
+	},
+	"file": {
+		"uploading": "بارکردن..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "دەقی ڕۆشن کراو"
+	},
+	"image": {
+		"allow_webcam_access": "تکایە ڕێگە بدە بە بەکارهێنانی وێبکامەکە بۆ تۆمارکردن.",
+		"brush_color": "ڕەنگی فڵچە",
+		"brush_radius": "تیژڕەوی فڵچە",
+		"image": "وێنە",
+		"remove_image": "لابردنی وێنە",
+		"select_brush_color": "ڕەنگی فڵچە هەڵبژێرە",
+		"start_drawing": "دەست بکە بە وێنەکێشان",
+		"use_brush": "فڵچە بەکاربهێنە"
+	},
+	"label": {
+		"label": "لەیبڵ"
+	},
+	"login": {
+		"enable_cookies": "ئەگەر تۆ سەردانی HuggingFace Space دەکەیت لە دۆخی نادیاردا، پێویستە کووکی لایەنی سێیەم چالاک بکەیت.",
+		"incorrect_credentials": "بڕوانامەی هەڵە",
+		"login": "چونه‌ ژووره‌وه‌"
+	},
+	"number": {
+		"number": "ژمارە"
+	},
+	"plot": {
+		"plot": "هێڵکاری"
+	},
+	"radio": {
+		"radio": "ڕادیۆ"
+	},
+	"slider": {
+		"slider": "خلیسکە"
+	},
+	"upload_text": {
+		"click_to_upload": "کلیک بکە بۆ بارکردن",
+		"drop_audio": "دەنگ لێرە دابنێ",
+		"drop_csv": "لێرەدا CSV دابنێ",
+		"drop_file": "فایل لێرە دابنێ",
+		"drop_image": "وێنە لێرەدا دابنێ",
+		"drop_video": "ڤیدیۆ لێرە دابنێ"
+	}
+}

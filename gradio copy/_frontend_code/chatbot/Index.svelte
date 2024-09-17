@@ -1,0 +1,163 @@
+<script context="module" lang="ts">
+	export { default as BaseChatBot } from "./shared/ChatBot.svelte";
+</script>
+
+<script lang="ts">
+	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
+
+	import ChatBot from "./shared/ChatBot.svelte";
+	import type { UndoRetryData } from "./shared/utils";
+	import { Block, BlockLabel } from "@gradio/atoms";
+	import type { LoadingStatus } from "@gradio/statustracker";
+	import { Chat } from "@gradio/icons";
+	import type { FileData } from "@gradio/client";
+	import { StatusTracker } from "@gradio/statustracker";
+	import type { Message, TupleFormat, NormalisedMessage } from "./types";
+
+	import { normalise_tuples, normalise_messages } from "./shared/utils";
+
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let visible = true;
+	export let value: TupleFormat | Message[] = [];
+	export let scale: number | null = null;
+	export let min_width: number | undefined = undefined;
+	export let label: string;
+	export let show_label = true;
+	export let root: string;
+	export let _selectable = false;
+	export let likeable = false;
+	export let show_share_button = false;
+	export let rtl = false;
+	export let show_copy_button = true;
+	export let show_copy_all_button = false;
+	export let sanitize_html = true;
+	export let bubble_full_width = true;
+	export let layout: "bubble" | "panel" = "bubble";
+	export let type: "tuples" | "messages" = "tuples";
+	export let render_markdown = true;
+	export let line_breaks = true;
+	export let _retryable = false;
+	export let _undoable = false;
+	export let latex_delimiters: {
+		left: string;
+		right: string;
+		display: boolean;
+	}[];
+	export let gradio: Gradio<{
+		change: typeof value;
+		select: SelectData;
+		share: ShareData;
+		error: string;
+		like: LikeData;
+		clear_status: LoadingStatus;
+		retry: UndoRetryData;
+		undo: UndoRetryData;
+		clear: null;
+	}>;
+	export let avatar_images: [FileData | null, FileData | null] = [null, null];
+
+	let _value: NormalisedMessage[] | null = [];
+
+	$: _value =
+		type === "tuples"
+			? normalise_tuples(value as TupleFormat, root)
+			: normalise_messages(value as Message[], root);
+
+	export let loading_status: LoadingStatus | undefined = undefined;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
+	export let placeholder: string | null = null;
+	export let theme_mode: "system" | "light" | "dark";
+</script>
+
+<Block
+	{elem_id}
+	{elem_classes}
+	{visible}
+	padding={false}
+	{scale}
+	{min_width}
+	{height}
+	{min_height}
+	{max_height}
+	allow_overflow={true}
+	overflow_behavior="auto"
+>
+	{#if loading_status}
+		<StatusTracker
+			autoscroll={gradio.autoscroll}
+			i18n={gradio.i18n}
+			{...loading_status}
+			show_progress={loading_status.show_progress === "hidden"
+				? "hidden"
+				: "minimal"}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
+		/>
+	{/if}
+	<div class="wrapper">
+		{#if show_label}
+			<BlockLabel
+				{show_label}
+				Icon={Chat}
+				float={true}
+				label={label || "Chatbot"}
+			/>
+		{/if}
+		<ChatBot
+			i18n={gradio.i18n}
+			selectable={_selectable}
+			{likeable}
+			{show_share_button}
+			{show_copy_all_button}
+			value={_value}
+			{latex_delimiters}
+			{render_markdown}
+			{theme_mode}
+			pending_message={loading_status?.status === "pending"}
+			generating={loading_status?.status === "generating"}
+			{rtl}
+			{show_copy_button}
+			on:change={() => gradio.dispatch("change", value)}
+			on:select={(e) => gradio.dispatch("select", e.detail)}
+			on:like={(e) => gradio.dispatch("like", e.detail)}
+			on:share={(e) => gradio.dispatch("share", e.detail)}
+			on:error={(e) => gradio.dispatch("error", e.detail)}
+			on:retry={(e) => gradio.dispatch("retry", e.detail)}
+			on:undo={(e) => gradio.dispatch("undo", e.detail)}
+			on:clear={() => {
+				value = [];
+				gradio.dispatch("clear");
+			}}
+			{avatar_images}
+			{sanitize_html}
+			{bubble_full_width}
+			{line_breaks}
+			{layout}
+			{placeholder}
+			{_retryable}
+			{_undoable}
+			upload={gradio.client.upload}
+			_fetch={gradio.client.fetch}
+			load_component={gradio.load_component}
+			msg_format={type}
+			root={gradio.root}
+		/>
+	</div>
+</Block>
+
+<style>
+	.wrapper {
+		display: flex;
+		position: relative;
+		flex-direction: column;
+		align-items: start;
+		width: 100%;
+		height: 100%;
+	}
+
+	:global(.progress-text) {
+		right: auto;
+	}
+</style>

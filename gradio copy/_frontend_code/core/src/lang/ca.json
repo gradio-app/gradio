@@ -1,0 +1,19 @@
+{
+	"common": {
+		"built_with_gradio": "Construït amb gradio",
+		"clear": "Neteja",
+		"empty": "Buit",
+		"error": "Error",
+		"loading": "S'està carregant",
+		"or": "o",
+		"submit": "Envia"
+	},
+	"upload_text": {
+		"click_to_upload": "Feu clic per pujar",
+		"drop_audio": "Deixeu anar l'àudio aquí",
+		"drop_csv": "Deixeu anar el CSV aquí",
+		"drop_file": "Deixeu anar el fitxer aquí",
+		"drop_image": "Deixeu anar la imatge aquí",
+		"drop_video": "Deixeu anar el vídeo aquí"
+	}
+}

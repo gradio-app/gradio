@@ -1,0 +1,30 @@
+{
+	"name": "@gradio/utils",
+	"version": "0.7.0-beta.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "./src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@gradio/theme": "workspace:^",
+		"svelte-i18n": "^3.6.0"
+	},
+	"main_changeset": true,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/utils"
+	},
+	"exports": {
+		".": {
+			"gradio": "./src/index.ts",
+			"types": "./dist/src/index.d.ts",
+			"import": "./dist/src/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"package": "svelte-package --input=. --cwd=../../.config/"
+	}
+}

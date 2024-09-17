@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "Gradiorekin eraikia",
+		"clear": "Garbitu",
+		"or": "edo",
+		"submit": "Bidali"
+	},
+	"upload_text": {
+		"click_to_upload": "Klik egin kargatzeko",
+		"drop_audio": "Jarri hemen audioa",
+		"drop_csv": "Jarri hemen CSVa",
+		"drop_file": "Jarri hemen fitxategia",
+		"drop_image": "Jarri hemen irudia",
+		"drop_video": "Jarri hemen bideoa"
+	}
+}

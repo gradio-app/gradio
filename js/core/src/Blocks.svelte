@@ -65,7 +65,7 @@
 
 	$_layout = initial_layout;
 
-	console.log($_layout);
+	// console.log($_layout);
 	$: components, layout, dependencies, root, app, fill_height, target, run();
 
 	$: {

@@ -1,0 +1,44 @@
+{
+	"name": "@gradio/fileexplorer",
+	"version": "0.4.19-beta.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/checkbox": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/file": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"dequal": "^2.0.2"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"main_changeset": true,
+	"exports": {
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		},
+		"./example": {
+			"gradio": "./Example.svelte",
+			"svelte": "./dist/Example.svelte",
+			"types": "./dist/Example.svelte.d.ts"
+		},
+		"./package.json": "./package.json"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/fileexplorer"
+	}
+}

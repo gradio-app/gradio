@@ -1,0 +1,144 @@
+<!doctype html>
+<!-- A demo HTML file to test the bundled JS and CSS files -->
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1"
+		/>
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			rel="preconnect"
+			href="https://fonts.gstatic.com"
+			crossorigin="anonymous"
+		/>
+		<script type="module" crossorigin src="./dist/lite.js"></script>
+		<link rel="stylesheet" href="./dist/lite.css" />
+	</head>
+
+	<body style="padding: 10px; height: 100%; width: 100%">
+		<h1>Lorem Ipsum Dolor</h1>
+
+		<p>
+			<strong>Lorem ipsum</strong> dolor sit amet, consectetur adipiscing elit.
+			Nullam vitae est maximus,
+			<a href="https://example.com">link to example</a>, vestibulum lorem quis,
+			vehicula nunc.
+		</p>
+
+		<h2>Subheading: Curabitur blandit</h2>
+
+		<p>
+			Curabitur blandit tempus porttitor.
+			<em>Etiam porta sem malesuada</em> magna mollis euismod. Donec ullamcorper
+			nulla non metus auctor fringilla.
+		</p>
+
+		<h3>Subsection: Vestibulum</h3>
+
+		<p>
+			Vestibulum id ligula porta felis euismod semper. Sed posuere consectetur
+			est at lobortis.
+		</p>
+
+		<blockquote>Cras mattis consectetur purus sit amet fermentum.</blockquote>
+
+		<pre><code>// Sample code block
+function helloWorld() {
+    console.log("Hello, world!");
+}
+helloWorld();
+    </code></pre>
+
+		<ul>
+			<li>
+				Praesent commodo cursus magna, vel scelerisque nisl consectetur et.
+			</li>
+			<li>
+				Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+			</li>
+		</ul>
+
+		<p>
+			<b>Bolded text:</b> Duis mollis, est non commodo luctus, nisi erat
+			porttitor ligula, eget lacinia odio sem nec elit.
+		</p>
+
+		<h4>Further Information</h4>
+
+		<p>
+			For more details, visit
+			<a href="https://example.com/moreinfo">our information page</a>.
+		</p>
+
+		<gradio-lite
+			playground
+			layout="horizontal"
+			style="height: 300px; padding: 20px"
+			shared-worker
+		>
+			import gradio as gr
+			<!-- 			 -->
+			gr.Interface(fn=lambda x: x,
+			inputs=gr.Textbox(),outputs=gr.Textbox()).launch()
+		</gradio-lite>
+
+		<h3>Subsection: Vestibulum</h3>
+
+		<p>
+			Vestibulum id ligula porta felis euismod semper. Sed posuere consectetur
+			est at lobortis.
+		</p>
+
+		<blockquote>Cras mattis consectetur purus sit amet fermentum.</blockquote>
+
+		<pre><code>// Sample code block
+	function helloWorld() {
+		console.log("Hello, world!");
+	}
+	helloWorld();
+		</code></pre>
+
+		<ul>
+			<li>
+				Praesent commodo cursus magna, vel scelerisque nisl consectetur et.
+			</li>
+			<li>
+				Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+			</li>
+		</ul>
+
+		<p>
+			<b>Bolded text:</b> Duis mollis, est non commodo luctus, nisi erat
+			porttitor ligula, eget lacinia odio sem nec elit.
+		</p>
+
+		<h4>Further Information</h4>
+
+		<p>
+			For more details, visit
+			<a href="https://example.com/moreinfo">our information page</a>.
+		</p>
+
+		<gradio-lite playground layout="vertical" shared-worker>
+			import gradio as gr
+			<!-- 			 -->
+			gr.ChatInterface(lambda x,y:x).launch()
+		</gradio-lite>
+
+		<h3>Subsection: Vestibulum</h3>
+
+		<p>
+			Vestibulum id ligula porta felis euismod semper. Sed posuere consectetur
+			est at lobortis.
+		</p>
+
+		<gradio-lite playground style="height: 300px" shared-worker>
+			import gradio as gr
+			<!-- 			 -->
+			gr.ChatInterface(lambda x,y:x).launch()
+		</gradio-lite>
+	</body>
+</html>

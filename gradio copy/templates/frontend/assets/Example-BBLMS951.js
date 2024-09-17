@@ -1,0 +1,2 @@
+const{SvelteComponent:i,detach:u,flush:r,init:o,insert:c,noop:s,safe_not_equal:_,set_data:f,text:v}=window.__gradio__svelte__internal;function d(l){let e=(l[0]||"")+"",n;return{c(){n=v(e)},m(t,a){c(t,n,a)},p(t,[a]){a&1&&e!==(e=(t[0]||"")+"")&&f(n,e)},i:s,o:s,d(t){t&&u(n)}}}function h(l,e,n){let{value:t}=e;return l.$$set=a=>{"value"in a&&n(0,t=a.value)},[t]}class x extends i{constructor(e){super(),o(this,e,h,d,_,{value:0})}get value(){return this.$$.ctx[0]}set value(e){this.$$set({value:e}),r()}}export{x as default};
+//# sourceMappingURL=Example-BBLMS951.js.map

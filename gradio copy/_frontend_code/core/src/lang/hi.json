@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "Gradio से बना",
+		"clear": "हटाये",
+		"or": "या",
+		"submit": "सबमिट करे"
+	},
+	"upload_text": {
+		"click_to_upload": "अपलोड के लिए बटन दबायें",
+		"drop_audio": "यहाँ ऑडियो ड्रॉप करें",
+		"drop_csv": "यहाँ CSV ड्रॉप करें",
+		"drop_file": "यहाँ File ड्रॉप करें",
+		"drop_image": "यहाँ इमेज ड्रॉप करें",
+		"drop_video": "यहाँ वीडियो ड्रॉप करें"
+	}
+}

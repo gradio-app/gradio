@@ -1,0 +1,36 @@
+{
+	"name": "@gradio/statustracker",
+	"version": "0.8.0-beta.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "./index.ts",
+	"author": "",
+	"license": "ISC",
+	"main_changeset": true,
+	"exports": {
+		".": {
+			"gradio": "./index.ts",
+			"svelte": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		},
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"dompurify": "^3.0.3",
+		"@types/dompurify": "^3.0.2"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/statustracker"
+	}
+}

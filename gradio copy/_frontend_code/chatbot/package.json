@@ -1,0 +1,50 @@
+{
+	"name": "@gradio/chatbot",
+	"version": "0.14.0-beta.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/client": "workspace:^",
+		"@gradio/gallery": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/markdown": "workspace:^",
+		"@gradio/plot": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/theme": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@gradio/wasm": "workspace:^",
+		"@types/dompurify": "^3.0.2",
+		"@types/katex": "^0.16.0",
+		"@types/prismjs": "1.26.4",
+		"dequal": "^2.0.2"
+	},
+	"devDependencies": {
+		"@gradio/audio": "workspace:^",
+		"@gradio/image": "workspace:^",
+		"@gradio/preview": "workspace:^",
+		"@gradio/video": "workspace:^"
+	},
+	"main_changeset": true,
+	"main": "./Index.svelte",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"gradio": "./Index.svelte",
+			"svelte": "./dist/Index.svelte",
+			"types": "./dist/Index.svelte.d.ts"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gradio-app/gradio.git",
+		"directory": "js/chatbot"
+	}
+}

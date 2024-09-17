@@ -1,0 +1,24 @@
+{
+	"name": "@self/tootils",
+	"version": "0.6.5-beta.1",
+	"description": "Internal test utilities",
+	"type": "module",
+	"main": "src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"private": true,
+	"dependencies": {
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	},
+	"exports": {
+		".": "./src/index.ts",
+		"./render": "./src/render.ts"
+	},
+	"scripts": {
+		"package": "svelte-package --input=. --cwd=../../.config/"
+	}
+}

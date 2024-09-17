@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "کے ساتھ بنایا گیا Gradio",
+		"clear": "ہٹا دیں",
+		"or": "یا",
+		"submit": "جمع کریں"
+	},
+	"upload_text": {
+		"click_to_upload": "اپ لوڈ کے لیے کلک کریں",
+		"drop_audio": "یہاں آڈیو ڈراپ کریں",
+		"drop_csv": "یہاں فائل ڈراپ کریں",
+		"drop_file": "یہاں فائل ڈراپ کریں",
+		"drop_image": "یہاں تصویر ڈراپ کریں",
+		"drop_video": "یہاں ویڈیو ڈراپ کریں"
+	}
+}

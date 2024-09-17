@@ -62,7 +62,7 @@
 		}
 	}
 
-	$: console.log({ target });
+	// $: console.log({ target });
 
 	$: gradio_class = new Gradio<Record<string, any>>(
 		node.id,
@@ -77,7 +77,7 @@
 		load_component,
 	);
 
-	console.log({ node });
+	// console.log({ node });
 </script>
 
 <RenderComponent

@@ -1,0 +1,27 @@
+{
+	"include": ["src/**/*"],
+	"exclude": ["src/**/*.test.ts", "src/**/*.node-test.ts"],
+	"compilerOptions": {
+		"allowJs": true,
+		"declaration": true,
+		"emitDeclarationOnly": true,
+		"outDir": "dist",
+		"declarationMap": true,
+		"module": "ESNext",
+		"target": "ES2020",
+		"useDefineForClassFields": true,
+		"lib": ["ES2020", "DOM", "DOM.Iterable"],
+		"skipLibCheck": true,
+
+		/* Bundler */
+		"moduleResolution": "bundler",
+		"skipDefaultLibCheck": true,
+		"allowImportingTsExtensions": true,
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+
+		/* Linting */
+		"strict": true
+	}
+}

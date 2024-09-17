@@ -1,0 +1,16 @@
+{
+	"common": {
+		"built_with_gradio": "ساخته شده با gradio",
+		"clear": "حذف",
+		"or": "یا",
+		"submit": "ارسال"
+	},
+	"upload_text": {
+		"click_to_upload": "برای آپلود کلیک کنید",
+		"drop_audio": "صوت را اینجا رها کنید",
+		"drop_csv": "فایل csv را  اینجا رها کنید",
+		"drop_file": "فایل را اینجا رها کنید",
+		"drop_image": "تصویر را اینجا رها کنید",
+		"drop_video": "ویدیو را اینجا رها کنید"
+	}
+}
