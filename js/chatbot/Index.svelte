@@ -6,6 +6,7 @@
 	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
 
 	import ChatBot from "./shared/ChatBot.svelte";
+	import type { UndoRetryData } from "./shared/utils";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Chat } from "@gradio/icons";
@@ -50,8 +51,8 @@
 		error: string;
 		like: LikeData;
 		clear_status: LoadingStatus;
-		retry: null;
-		undo: null;
+		retry: UndoRetryData;
+		undo: UndoRetryData;
 		clear: null;
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
@@ -123,8 +124,8 @@
 			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
-			on:retry={() => gradio.dispatch("retry")}
-			on:undo={() => gradio.dispatch("undo")}
+			on:retry={(e) => gradio.dispatch("retry", e.detail)}
+			on:undo={(e) => gradio.dispatch("undo", e.detail)}
 			on:clear={() => {
 				value = [];
 				gradio.dispatch("clear");
@@ -154,5 +155,9 @@
 		align-items: start;
 		width: 100%;
 		height: 100%;
+	}
+
+	:global(.progress-text) {
+		right: auto;
 	}
 </style>

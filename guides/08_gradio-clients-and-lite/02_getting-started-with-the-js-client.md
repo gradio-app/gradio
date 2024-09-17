@@ -58,7 +58,7 @@ Start by connecting instantiating a `client` instance and connecting it to a Gra
 ```js
 import { Client } from "@gradio/client";
 
-const app = Client.connect("abidlabs/en2fr"); // a Space that translates from English to French
+const app = await Client.connect("abidlabs/en2fr"); // a Space that translates from English to French
 ```
 
 You can also connect to private Spaces by passing in your HF token with the `hf_token` property of the options parameter. You can get your HF token here: https://huggingface.co/settings/tokens
@@ -66,7 +66,7 @@ You can also connect to private Spaces by passing in your HF token with the `hf_
 ```js
 import { Client } from "@gradio/client";
 
-const app = Client.connect("abidlabs/my-private-space", { hf_token: "hf_..." })
+const app = await Client.connect("abidlabs/my-private-space", { hf_token: "hf_..." })
 ```
 
 ## Duplicating a Space for private use
@@ -216,7 +216,7 @@ const result = await app.predict("/predict", [handle_file(audio_file)]);
 
 ## Using events
 
-If the API you are working with can return results over time, or you wish to access information about the status of a job, you can use the iterable interface for more flexibility. This is especially useful for iterative endpoints or generator endpoints that will produce a series of values over time as discreet responses.
+If the API you are working with can return results over time, or you wish to access information about the status of a job, you can use the iterable interface for more flexibility. This is especially useful for iterative endpoints or generator endpoints that will produce a series of values over time as discrete responses.
 
 ```js
 import { Client } from "@gradio/client";

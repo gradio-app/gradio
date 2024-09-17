@@ -273,10 +273,18 @@ class TestRoutes:
         app, _, _ = io.launch(
             prevent_thread_lock=True,
             allowed_paths=[
-                os.path.dirname(image_file.name),
-                os.path.dirname(html_file.name),
+                image_file.name,
+                html_file.name,
             ],
         )
+
+        html_file2 = tempfile.NamedTemporaryFile(
+            mode="w", delete=False, suffix=".html", dir=app.uploaded_file_dir
+        )
+        html_file2.write("<html>Hello, world!</html>")
+        html_file2.flush()
+        html_file2_name = str(Path(app.uploaded_file_dir) / html_file2.name)
+
         client = TestClient(app)
 
         file_response = client.get(f"{API_PREFIX}/file={image_file.name}")
@@ -284,6 +292,10 @@ class TestRoutes:
         assert "inline" in file_response.headers["Content-Disposition"]
 
         file_response = client.get(f"{API_PREFIX}/file={html_file.name}")
+        assert file_response.headers["Content-Type"] == "text/html; charset=utf-8"
+        assert "inline" in file_response.headers["Content-Disposition"]
+
+        file_response = client.get(f"{API_PREFIX}/file={html_file2_name}")
         assert file_response.headers["Content-Type"] == "application/octet-stream"
         assert "attachment" in file_response.headers["Content-Disposition"]
 
