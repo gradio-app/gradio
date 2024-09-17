@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import textwrap
 from collections.abc import Iterable
 
 
@@ -63,14 +64,14 @@ class LocalFont(Font):
         self.weights = weights
 
     def stylesheet(self) -> dict:
-        css_template = """
-        @font-face {{
-        font-family: '{name}';
-        src: url('static/fonts/{file_name}/{file_name}-{weight}.woff2') format('woff2');
-        font-weight: {weight};
-        font-style: normal;
-        }}
-        """
+        css_template = textwrap.dedent("""
+            @font-face {{
+                font-family: '{name}';
+                src: url('static/fonts/{file_name}/{file_name}-{weight}.woff2') format('woff2');
+                font-weight: {weight};
+                font-style: normal;
+            }}
+            """)
         css_rules = []
         for weight in self.weights:
             weight_name = "Regular" if weight == 400 else "Bold" if weight == 700 else str(weight)

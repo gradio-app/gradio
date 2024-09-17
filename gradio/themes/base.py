@@ -289,7 +289,7 @@ class ThemeClass:
             mode="w", delete=False, suffix=".json"
         ) as css_file:
             contents = self.to_dict()
-            contents["version"] = version
+            contents["version"] = {"version": version}
             json.dump(contents, css_file, cls=fonts.FontEncoder)
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as readme_file:
             readme_content = README_CONTENT.format(
@@ -490,7 +490,7 @@ class Base(ThemeClass):
             elif isinstance(font_stylesheet, dict):
                 if font_stylesheet["url"]:
                     self._stylesheets.append(font_stylesheet["url"])
-                if font_stylesheet["css"]:
+                elif font_stylesheet["css"]:
                     self._font_css.append(font_stylesheet["css"])
 
         self.set()
