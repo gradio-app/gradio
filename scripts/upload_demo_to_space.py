@@ -4,7 +4,7 @@ import shutil
 import sys
 import tempfile
 import textwrap
-from typing import List, Optional
+from typing import Optional
 
 from huggingface_hub import CommitOperationAdd, HfApi
 
@@ -16,10 +16,10 @@ def upload_demo_to_space(
     Upload a demo from the demo directory to a Hugging Face Space in chunks of 50 files per commit.
 
     Args:
-        demo_name (str): The name of the demo to upload.
-        space_id (str): The ID of the space to upload the demo to (e.g., username/space_name).
-        hf_token (str): Hugging Face API token with write permissions to the space.
-        gradio_version (Optional[str]): If provided, sets the Gradio version in the created space.
+        demo_name: The name of the demo to upload.
+        space_id: The ID of the space to upload the demo to (e.g., username/space_name).
+        hf_token: Hugging Face API token with write permissions to the space.
+        gradio_version: If provided, sets the Gradio version in the created space.
 
     Returns:
         str: URL of the uploaded Hugging Face Space.
@@ -27,38 +27,33 @@ def upload_demo_to_space(
 
     print(f"Uploading demo '{demo_name}' to space '{space_id}'...")
 
-    def split_into_chunks(lst: List, n: int) -> List[List]:
-        """
-        Splits a list into chunks of size n.
-
-        Args:
-            lst (List): The list to split.
-            n (int): The size of each chunk.
-
-        Returns:
-            List[List]: A list of chunks.
-        """
+    def split_into_chunks(lst: list, n: int) -> list[list]:
         for i in range(0, len(lst), n):
             yield lst[i : i + n]
+
+    api = HfApi()
+
+    print("Creating repository...")
+
+    # Create the repository if it doesn't exist
+    space_url = api.create_repo(
+        repo_id=space_id,
+        space_sdk="gradio",
+        repo_type="space",
+        token=hf_token,
+        exist_ok=True,
+    )
+
+    space_id = space_url.repo_id
 
     with tempfile.TemporaryDirectory() as tmpdir:
         demo_path = pathlib.Path.cwd() / "demo" / demo_name
         if not demo_path.exists():
             raise FileNotFoundError(f"Demo path '{demo_path}' does not exist.")
 
-        # Copy demo directory to temporary directory
         shutil.copytree(demo_path, tmpdir, dirs_exist_ok=True)
 
-        # Rename 'run.py' to 'app.py'
-        app_file = pathlib.Path(tmpdir, "run.py")
-        if app_file.exists():
-            app_file.rename(app_file.with_stem("app"))
-        else:
-            raise FileNotFoundError(
-                f"App file '{app_file}' does not exist in the demo directory."
-            )
-
-        # Update README.md with Gradio version if provided
+        # update README.md with Gradio version if provided
         if gradio_version:
             readme = pathlib.Path(tmpdir, "README.md")
             readme_content = f"""
@@ -69,16 +64,13 @@ def upload_demo_to_space(
             colorTo: indigo
             sdk: gradio
             sdk_version: {gradio_version}
-            app_file: app.py
+            app_file: run.py
             pinned: false
             ---
             """
             readme.write_text(textwrap.dedent(readme_content))
 
         print("Uploading files to Hugging Face Space...")
-        api = HfApi()
-
-        print("Creating repository...")
 
         # Create the repository if it doesn't exist
         api.create_repo(
@@ -91,18 +83,13 @@ def upload_demo_to_space(
 
         print("Uploading files...")
 
-        # Collect all files in the temporary directory
         all_files = sorted([p for p in pathlib.Path(tmpdir).rglob("*") if p.is_file()])
-
-        # Convert to relative paths for the repository
         relative_files = [p.relative_to(tmpdir) for p in all_files]
 
         # Create CommitOperationAdd objects for all files
         operations = [
             CommitOperationAdd(
-                path_in_repo=str(rel_path).replace(
-                    "\\", "/"
-                ),  # Ensure Unix-style paths
+                path_in_repo=str(rel_path).replace("\\", "/"),
                 path_or_fileobj=str(pathlib.Path(tmpdir) / rel_path),
             )
             for rel_path in relative_files
@@ -124,7 +111,7 @@ def upload_demo_to_space(
                 print(f"Successfully committed chunk {idx} with {len(chunk)} file(s).")
             except Exception as e:
                 print(f"Failed to commit chunk {idx}: {e}")
-                raise  # Re-raise the exception after logging
+                raise e
 
     return f"https://huggingface.co/spaces/{space_id}"
 
@@ -152,8 +139,10 @@ if __name__ == "__main__":
         new_space_url = upload_demo_to_space(
             args.demo_name, args.space_id, args.hf_token, args.gradio_version
         )
-        print(f"Demo successfully uploaded to {new_space_url}")
+        print("Demo successfully uploaded to:")
+        # do not change the final print statement,
+        # it must appear as the last line of the logs for CI to pick up the URL
+        print(new_space_url)
     except Exception as error:
-        print("An error occurred during upload.")
         print(f"An error occurred during upload: {error}")
         sys.exit(1)
