@@ -11,8 +11,14 @@ class FontEncoder(json.JSONEncoder):
             return {
                 "__gradio_font__": True,
                 "name": obj.name,
-                "class": "google" if isinstance(obj, GoogleFont) else "local" if isinstance(obj, LocalFont) else "font",
-                "weights": obj.weights if isinstance(obj, (GoogleFont, LocalFont)) else None,
+                "class": "google"
+                if isinstance(obj, GoogleFont)
+                else "local"
+                if isinstance(obj, LocalFont)
+                else "font",
+                "weights": obj.weights
+                if isinstance(obj, (GoogleFont, LocalFont))
+                else None,
             }
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
@@ -58,6 +64,7 @@ class GoogleFont(Font):
         url = f'https://fonts.googleapis.com/css2?family={self.name.replace(" ", "+")}:wght@{";".join(str(weight) for weight in self.weights)}&display=swap'
         return {"url": url, "css": None}
 
+
 class LocalFont(Font):
     def __init__(self, name: str, weights: Iterable[int] = (400, 700)):
         super().__init__(name)
@@ -74,10 +81,14 @@ class LocalFont(Font):
             """)
         css_rules = []
         for weight in self.weights:
-            weight_name = "Regular" if weight == 400 else "Bold" if weight == 700 else str(weight)
-            css_rules.append(css_template.format(
-                name=self.name,
-                file_name=self.name.replace(" ", ""),
-                weight=weight_name
-            ))
+            weight_name = (
+                "Regular" if weight == 400 else "Bold" if weight == 700 else str(weight)
+            )
+            css_rules.append(
+                css_template.format(
+                    name=self.name,
+                    file_name=self.name.replace(" ", ""),
+                    weight=weight_name,
+                )
+            )
         return {"url": None, "css": "\n".join(css_rules)}
