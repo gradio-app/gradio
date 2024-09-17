@@ -21,7 +21,11 @@
 	// const workerUrl = "http://localhost:5174/api/generate";
 	let model_info = "";
 
-	async function* streamFromWorker(query: string, system_prompt: string, system_prompt_8k: string) {
+	async function* streamFromWorker(
+		query: string,
+		system_prompt: string,
+		system_prompt_8k: string
+	) {
 		const response = await fetch(workerUrl, {
 			method: "POST",
 			headers: {
@@ -59,7 +63,7 @@
 							const parsed = JSON.parse(data);
 							if (parsed.model) {
 								model_info = parsed.model;
-								console.log('Model used:', model_info);
+								console.log("Model used:", model_info);
 							} else if (parsed.error) {
 								console.log(parsed.error);
 							} else if (parsed.info) {
@@ -90,7 +94,11 @@
 				"\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, plotly, transformers_js_py and matplotlib.";
 		}
 
-		for await (const chunk of streamFromWorker(query, SYSTEM_PROMPT.SYSTEM, SYSTEM_PROMPT.SYSTEM_8K)) {
+		for await (const chunk of streamFromWorker(
+			query,
+			SYSTEM_PROMPT.SYSTEM,
+			SYSTEM_PROMPT.SYSTEM_8K
+		)) {
 			if (chunk.choices && chunk.choices.length > 0) {
 				const content = chunk.choices[0].delta.content;
 				if (content) {
@@ -108,7 +116,9 @@
 					demos[demos.length - 1].code = demos[
 						demos.length - 1
 					].code.replaceAll("```", "");
-					demos[demos.length - 1].code = addShowErrorToLaunch(demos[demos.length - 1].code);
+					demos[demos.length - 1].code = addShowErrorToLaunch(
+						demos[demos.length - 1].code
+					);
 				}
 			}
 		}
@@ -174,10 +184,9 @@
 	let debounced_run_code: Function | undefined;
 	let debounced_install: Function | undefined;
 
-
 	function loadScript(src: string) {
 		return new Promise((resolve, reject) => {
-			const script = document.createElement('script');
+			const script = document.createElement("script");
 			script.src = src;
 			script.onload = () => resolve(script);
 			script.onerror = () => reject(new Error(`Script load error for ${src}`));
@@ -187,38 +196,39 @@
 
 	onMount(async () => {
 		try {
-			await loadScript('https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.js');
+			await loadScript(
+				"https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.js"
+			);
 			controller = createGradioApp({
-			target: document.getElementById("lite-demo"),
-			requirements: [
-				"numpy",
-				"pandas",
-				"matplotlib",
-				"plotly",
-				"transformers_js_py",
-				"requests",
-				"pillow"
-			],
-			code: demos[0].code,
-			info: true,
-			container: true,
-			isEmbed: true,
-			initialHeight: "100%",
-			eager: false,
-			themeMode: null,
-			autoScroll: false,
-			controlPageTitle: false,
-			appMode: true
-		});
-		const debounce_timeout = 1000;
-		debounced_run_code = debounce(controller.run_code, debounce_timeout);
-		debounced_install = debounce(controller.install, debounce_timeout);
+				target: document.getElementById("lite-demo"),
+				requirements: [
+					"numpy",
+					"pandas",
+					"matplotlib",
+					"plotly",
+					"transformers_js_py",
+					"requests",
+					"pillow"
+				],
+				code: demos[0].code,
+				info: true,
+				container: true,
+				isEmbed: true,
+				initialHeight: "100%",
+				eager: false,
+				themeMode: null,
+				autoScroll: false,
+				controlPageTitle: false,
+				appMode: true
+			});
+			const debounce_timeout = 1000;
+			debounced_run_code = debounce(controller.run_code, debounce_timeout);
+			debounced_install = debounce(controller.install, debounce_timeout);
 
-		mounted = true;
+			mounted = true;
 		} catch (error) {
-			console.error('Error loading Gradio Lite:', error);
+			console.error("Error loading Gradio Lite:", error);
 		}
-		
 	});
 
 	let copied_link = false;
@@ -346,20 +356,20 @@
 		const pattern = /\.launch\((.*?)\)/;
 		const replacement = (match: any, p1: any) => {
 			const params = p1.trim();
-			if (params === '') {
-			return '.launch(show_error=True)';
-			} else if (!params.includes('show_error')) {
-			return `.launch(${params}, show_error=True)`;
+			if (params === "") {
+				return ".launch(show_error=True)";
+			} else if (!params.includes("show_error")) {
+				return `.launch(${params}, show_error=True)`;
 			}
 			return match;
 		};
 		return launch_code.replace(pattern, replacement);
-		};
+	};
 
-		// Example usage:
-		console.log(addShowErrorToLaunch('.launch()'));
-		console.log(addShowErrorToLaunch('.launch(width=800, height=600)'));
-		console.log(addShowErrorToLaunch('.launch(show_error=False)'));
+	// Example usage:
+	console.log(addShowErrorToLaunch(".launch()"));
+	console.log(addShowErrorToLaunch(".launch(width=800, height=600)"));
+	console.log(addShowErrorToLaunch(".launch(show_error=False)"));
 
 	let old_answer = "";
 
