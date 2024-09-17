@@ -70,3 +70,4 @@ jobs:
         with:
           name: website
           path: js/_website/.vercel
+          include-hidden-files: true
