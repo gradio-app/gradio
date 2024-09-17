@@ -298,6 +298,8 @@ Here are some more examples of Gradio apps:
 # important_demos = ["annotatedimage_component", "audio_component_events", "audio_mixer", "bar_plot_demo", "blocks_chained_events", "blocks_essay", "blocks_essay_simple", "blocks_flashcards", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_js_load", "blocks_js_methods", "blocks_kinematics", "blocks_layout", "blocks_outputs", "blocks_plug", "blocks_simple_squares", "blocks_update", "blocks_xray", "calculator", "chatbot_consecutive", "chatbot_multimodal", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "custom_css", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "fake_gan", "filter_records", "function_values", "gallery_component_events", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sales_projections", "scatter_plot_demo", "sentence_builder", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
 important_demos = ["annotatedimage_component", "audio_mixer", "blocks_chained_events", "blocks_essay", "blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_js_load", "blocks_js_methods", "blocks_kinematics", "blocks_layout", "blocks_plug", "blocks_simple_squares", "blocks_update", "blocks_xray", "calculator", "chatbot_consecutive", "chatbot_multimodal", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "custom_css", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "fake_gan", "filter_records", "function_values", "gallery_component_events", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sales_projections", "sentence_builder", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
 
+important_demos_8k = ["blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_kinematics", "blocks_layout", "blocks_simple_squares", "calculator", "chatbot_consecutive", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "filter_records", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
+
 
 def length(demo):
     if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
@@ -309,12 +311,13 @@ def length(demo):
         demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
     return len(demo_code)
 
-# important_demos.sort(key=lambda x: length(x))
-# print(important_demos)
-# print(len(important_demos))
+# important_demos_8k.sort(key=lambda x: length(x))
+# print(important_demos_8k)
+# print(len(important_demos_8k))
 
 SYSTEM_PROMPT += "\n\nHere are some demos showcasing full Gradio apps: \n\n"
 
+SYSTEM_PROMPT_8K = SYSTEM_PROMPT
 
 for demo in important_demos:
     if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
@@ -328,7 +331,35 @@ for demo in important_demos:
     SYSTEM_PROMPT += "Code: \n\n"
     SYSTEM_PROMPT += f"{demo_code}\n\n"
 
+for demo in important_demos_8k:
+    if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
+        demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
+    else: 
+        continue
+    with open(demo_file) as run_py:
+        demo_code = run_py.read()
+        demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
+    SYSTEM_PROMPT_8K += f"Name: {demo.replace('_', ' ')}\n"
+    SYSTEM_PROMPT_8K += "Code: \n\n"
+    SYSTEM_PROMPT_8K += f"{demo_code}\n\n"
+
+
 SYSTEM_PROMPT += """
+
+The following RULES must be followed.  Whenever you are forming a response, after each sentence ensure all rules have been followed otherwise start over, forming a new response and repeat until the finished response follows all the rules.  then send the response.
+
+RULES: 
+Only respond with code, not text.
+Only respond with valid Python syntax.
+Never include backticks in your response such as ``` or ```python. 
+Never use any external library aside from: gradio, numpy, pandas, plotly, transformers_js and matplotlib.
+Do not include any code that is not necessary for the app to run.
+Respond with a full Gradio app. 
+Only respond with one full Gradio app.
+Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
+"""
+
+SYSTEM_PROMPT_8K += """
 
 The following RULES must be followed.  Whenever you are forming a response, after each sentence ensure all rules have been followed otherwise start over, forming a new response and repeat until the finished response follows all the rules.  then send the response.
 
@@ -347,4 +378,4 @@ Add comments explaining the code, but do not include any text that is not format
 def generate(json_path):
     with open(json_path, "w+") as f:
         json.dump(docs, f)
-    return  SYSTEM_PROMPT
+    return  SYSTEM_PROMPT, SYSTEM_PROMPT_8K

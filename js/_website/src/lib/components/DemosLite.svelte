@@ -17,10 +17,11 @@
 	let current_code = false;
 	let compare = false;
 
-	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	const workerUrl = "http://localhost:5174/api/generate";
+	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	// const workerUrl = "http://localhost:5175/api/generate";
+	let model_info = "";
 
-	async function* streamFromWorker(query: string, systemPrompt: string) {
+	async function* streamFromWorker(query: string, system_prompt: string, system_prompt_8k: string) {
 		const response = await fetch(workerUrl, {
 			method: "POST",
 			headers: {
@@ -28,7 +29,8 @@
 			},
 			body: JSON.stringify({
 				query: query,
-				SYSTEM_PROMPT: systemPrompt
+				SYSTEM_PROMPT: system_prompt,
+				SYSTEM_PROMPT_8K: system_prompt_8k
 			})
 		});
 
@@ -55,11 +57,19 @@
 					if (data) {
 						try {
 							const parsed = JSON.parse(data);
-							if (parsed.choices && parsed.choices.length > 0) {
+							if (parsed.model) {
+								model_info = parsed.model;
+								console.log('Model used:', model_info);
+							} else if (parsed.error) {
+								console.log(parsed.error);
+							} else if (parsed.info) {
+								console.log(parsed.info);
+							} else if (parsed.choices && parsed.choices.length > 0) {
 								yield parsed;
 							}
 						} catch (e) {
 							console.error("Error parsing JSON:", e);
+							throw e;
 						}
 					}
 				}
@@ -80,7 +90,7 @@
 				"\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, plotly, transformers_js_py and matplotlib.";
 		}
 
-		for await (const chunk of streamFromWorker(query, SYSTEM_PROMPT.SYSTEM)) {
+		for await (const chunk of streamFromWorker(query, SYSTEM_PROMPT.SYSTEM, SYSTEM_PROMPT.SYSTEM_8K)) {
 			if (chunk.choices && chunk.choices.length > 0) {
 				const content = chunk.choices[0].delta.content;
 				if (content) {
