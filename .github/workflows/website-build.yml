@@ -61,8 +61,8 @@ jobs:
 
       - name: build website
         run: VERCEL=1 pnpm --filter website build
-      
-      - name: find 
+
+      - name: find
         run: find . -type d
 
       - name: upload website artifacts
