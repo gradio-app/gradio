@@ -9,7 +9,6 @@ import copy
 import csv
 import inspect
 import os
-import tempfile
 import warnings
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
@@ -601,23 +600,13 @@ async def merge_generated_values_into_output(
                 processed_chunk = output_component.postprocess(chunk)
                 if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
                     processed_chunk = processed_chunk.model_dump()
-                binary_chunks.append(
-                    (await output_component.stream_output(processed_chunk, "", i == 0))[
-                        0
-                    ]
+                stream_chunk = await output_component.stream_output(
+                    processed_chunk, "", i == 0
                 )
-            binary_data = b"".join([d["data"] for d in binary_chunks])
-            tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(
-                Path(tempfile.gettempdir()) / "gradio"
-            )
-            os.makedirs(tempdir, exist_ok=True)
-            temp_file = tempfile.NamedTemporaryFile(dir=tempdir, delete=False)
-            with open(temp_file.name, "wb") as f:
-                f.write(binary_data)
-
-            output[output_index] = {
-                "path": temp_file.name,
-            }
+                if stream_chunk[0]:
+                    binary_chunks.append(stream_chunk[0]["data"])
+            combined_output = await output_component.combine_stream(binary_chunks)
+            output[output_index] = combined_output.model_dump()
 
     return output
 

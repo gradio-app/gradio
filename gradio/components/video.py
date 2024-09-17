@@ -24,6 +24,7 @@ from gradio.events import Events
 if TYPE_CHECKING:
     from gradio.components import Timer
 
+
 if not wasm_utils.IS_WASM:
     # TODO: Support ffmpeg on Wasm
     from ffmpy import FFmpeg
@@ -484,6 +485,57 @@ class Video(StreamingOutput, Component):
             raise RuntimeError(f"FFmpeg command failed: {error_message}")
 
         return ts_file
+
+    async def combine_stream(
+        self, stream: list[bytes], only_file=False
+    ) -> VideoData | FileData:
+        if wasm_utils.IS_WASM:
+            raise wasm_utils.WasmUnsupportedError(
+                "Streaming is not supported in the Wasm mode."
+            )
+
+        output_file = tempfile.NamedTemporaryFile(
+            delete=False, suffix=".mp4", dir=self.GRADIO_CACHE
+        )
+
+        ts_files = [
+            processing_utils.save_bytes_to_cache(
+                s, "video_chunk.ts", cache_dir=self.GRADIO_CACHE
+            )
+            for s in stream
+        ]
+
+        command = [
+            "ffmpeg",
+            "-i",
+            f'concat:{"|".join(ts_files)}',
+            "-y",
+            "-safe",
+            "0",
+            "-c",
+            "copy",
+            output_file.name,
+        ]
+        process = await asyncio.create_subprocess_exec(
+            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+
+        _, stderr = await process.communicate()
+
+        if process.returncode != 0:
+            error_message = stderr.decode().strip()
+            raise RuntimeError(f"FFmpeg command failed: {error_message}")
+
+        video = FileData(
+            path=output_file.name,
+            is_stream=False,
+            orig_name="video-stream.mp4",
+        )
+        if only_file:
+            return video
+
+        output = VideoData(video=video)
+        return output
 
     async def stream_output(
         self,

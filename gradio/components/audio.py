@@ -357,6 +357,20 @@ class Audio(
         value, duration = await self.covert_to_adts(binary_data)
         return {"data": value, "duration": duration, "extension": ".aac"}, output_file
 
+    async def combine_stream(
+        self,
+        stream: list[bytes],
+        only_file=False,  # noqa: ARG002
+    ) -> FileData:
+        output_file = FileData(
+            path=processing_utils.save_bytes_to_cache(
+                b"".join(stream), "audio", cache_dir=self.GRADIO_CACHE
+            ),
+            is_stream=False,
+            orig_name="audio-stream.mp3",
+        )
+        return output_file
+
     def process_example(
         self, value: tuple[int, np.ndarray] | str | Path | bytes | None
     ) -> str:

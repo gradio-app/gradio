@@ -23,6 +23,7 @@ from gradio.component_meta import ComponentMeta
 from gradio.data_classes import (
     BaseModel,
     DeveloperPath,
+    FileData,
     FileDataDict,
     GradioDataModel,
     MediaStreamChunk,
@@ -381,6 +382,14 @@ class StreamingOutput(metaclass=abc.ABCMeta):
     async def stream_output(
         self, value, output_id: str, first_chunk: bool
     ) -> tuple[MediaStreamChunk | None, FileDataDict | dict]:
+        pass
+
+    @abc.abstractmethod
+    async def combine_stream(
+        self,
+        stream: list[bytes],
+        only_file=False,
+    ) -> GradioDataModel | FileData:
         pass
 
 

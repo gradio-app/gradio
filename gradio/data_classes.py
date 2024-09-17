@@ -375,3 +375,4 @@ class MediaStreamChunk(TypedDict):
     duration: float
     extension: str
     id: NotRequired[str]
+    file: NotRequired[str]
