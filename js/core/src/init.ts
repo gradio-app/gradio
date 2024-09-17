@@ -55,8 +55,6 @@ export function create_components(): {
 		dependencies: Dependency[];
 	}) => void;
 } {
-	console.log("create_components start");
-
 	let _component_map: Map<number, ComponentMeta>;
 
 	let target_map: Writable<TargetMap> = writable({});
@@ -101,13 +99,10 @@ export function create_components(): {
 			fill_height: boolean;
 		};
 	}): Promise<void> {
-		console.log("create_layout start");
 		// make sure the state is settled before proceeding
 		flush();
 		app = _app;
 		store_keyed_values(_components);
-
-		console.log({ components, layout, dependencies, root, options });
 
 		_components = components;
 		inputs = new Set();
@@ -158,7 +153,6 @@ export function create_components(): {
 		await walk_layout(layout, root);
 
 		layout_store.set(_rootNode);
-		console.log("layout created", _rootNode, get(layout_store), instance_map);
 		set_stream_every(dependencies);
 	}
 
@@ -310,7 +304,6 @@ export function create_components(): {
 
 	function flush(): void {
 		layout_store.update((layout) => {
-			console.log({ instance_map });
 			for (let i = 0; i < pending_updates.length; i++) {
 				for (let j = 0; j < pending_updates[i].length; j++) {
 					const update = pending_updates[i][j];
@@ -384,7 +377,6 @@ export function create_components(): {
 		}
 	}
 
-	console.log("created components");
 	return {
 		layout: layout_store,
 		targets: target_map,

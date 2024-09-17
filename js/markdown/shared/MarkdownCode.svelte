@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { afterUpdate, onMount } from "svelte";
-	import DOMPurify from "isomorphic-dompurify";
+	import { afterUpdate } from "svelte";
 	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
-
+	import sanitize_server from "sanitize-html";
+	import Amuchina from "amuchina";
 	import "./prism.css";
 
 	export let chatbot = true;
@@ -26,8 +26,47 @@
 	const marked = create_marked({
 		header_links,
 		line_breaks,
-		latex_delimiters
+		latex_delimiters,
 	});
+
+	const amuchina = new Amuchina();
+	const is_browser = typeof window !== "undefined";
+
+	let sanitize = is_browser ? sanitize_browser : sanitize_server;
+
+	function sanitize_browser(source: string): string {
+		const node = new DOMParser().parseFromString(source, "text/html");
+		walk_nodes(node.body, "A", (node) => {
+			if (node instanceof HTMLElement && "target" in node) {
+				if (is_external_url(node.getAttribute("href"))) {
+					node.setAttribute("target", "_blank");
+					node.setAttribute("rel", "noopener noreferrer");
+				}
+			}
+		});
+
+		return amuchina.sanitize(node).body.innerHTML;
+	}
+
+	function walk_nodes(
+		node: Node | null | HTMLElement,
+		test: string | ((node: Node | HTMLElement) => boolean),
+		callback: (node: Node | HTMLElement) => void,
+	): void {
+		console.log(node?.nodeName);
+		if (
+			node &&
+			((typeof test === "string" && node.nodeName === test) ||
+				(typeof test === "function" && test(node)))
+		) {
+			callback(node);
+		}
+		const children = node?.childNodes || [];
+		for (let i = 0; i < children.length; i++) {
+			// @ts-ignore
+			walk_nodes(children[i], test, callback);
+		}
+	}
 
 	const is_external_url = (link: string | null): boolean => {
 		try {
@@ -37,14 +76,14 @@
 		}
 	};
 
-	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
-		if ("target" in node) {
-			if (is_external_url(node.getAttribute("href"))) {
-				node.setAttribute("target", "_blank");
-				node.setAttribute("rel", "noopener noreferrer");
-			}
-		}
-	});
+	// DOMPurify.addHook("afterSanitizeAttributes", function (node) {
+	// 	if ("target" in node) {
+	// 		if (is_external_url(node.getAttribute("href"))) {
+	// 			node.setAttribute("target", "_blank");
+	// 			node.setAttribute("rel", "noopener noreferrer");
+	// 		}
+	// 	}
+	// });
 
 	function escapeRegExp(string: string): string {
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -60,7 +99,7 @@
 				const rightDelimiter = escapeRegExp(delimiter.right);
 				const regex = new RegExp(
 					`${leftDelimiter}([\\s\\S]+?)${rightDelimiter}`,
-					"g"
+					"g",
 				);
 				parsedValue = parsedValue.replace(regex, (match, p1) => {
 					latexBlocks.push(match);
@@ -72,12 +111,12 @@
 
 			parsedValue = parsedValue.replace(
 				/%%%LATEX_BLOCK_(\d+)%%%/g,
-				(match, p1) => latexBlocks[parseInt(p1, 10)]
+				(match, p1) => latexBlocks[parseInt(p1, 10)],
 			);
 		}
 
-		if (sanitize_html) {
-			parsedValue = DOMPurify.sanitize(parsedValue);
+		if (sanitize_html && sanitize) {
+			parsedValue = sanitize(parsedValue);
 		}
 
 		return parsedValue;
@@ -85,6 +124,9 @@
 
 	$: if (message && message.trim()) {
 		html = process_message(message);
+		console.log("BEFORE:", message);
+		console.log("AFTER:", html);
+		console.log("===");
 	} else {
 		html = "";
 	}
@@ -93,12 +135,12 @@
 		if (latex_delimiters.length > 0 && value) {
 			const containsDelimiter = latex_delimiters.some(
 				(delimiter) =>
-					value.includes(delimiter.left) && value.includes(delimiter.right)
+					value.includes(delimiter.left) && value.includes(delimiter.right),
 			);
 			if (containsDelimiter) {
 				render_math_in_element(el, {
 					delimiters: latex_delimiters,
-					throwOnError: false
+					throwOnError: false,
 				});
 			}
 		}

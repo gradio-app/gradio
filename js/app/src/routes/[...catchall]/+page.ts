@@ -33,7 +33,7 @@ export async function load({ url }) {
 	}
 
 	const { create_layout, layout } = create_components();
-	console.log("create_layout start", create_layout);
+	// console.log("create_layout start", create_layout);
 	await create_layout({
 		app,
 		components: app.config.components,
@@ -47,7 +47,7 @@ export async function load({ url }) {
 
 	const layouts = get(layout);
 
-	console.log({ layouts });
+	// console.log({ layouts });
 
 	return {
 		Render: app.config?.auth_required ? Login : Blocks,

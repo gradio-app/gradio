@@ -144,8 +144,9 @@ XSS_SAFE_MIMETYPES = {
     "text/plain",
     "application/json",
 }
+GRADIO_DEV_MODE = os.getenv("GRADIO_DEV_MODE") is not None
 PYTHON_PORT = 7860
-NODE_PORT = 3000
+NODE_PORT = 3000 if not GRADIO_DEV_MODE else 9876
 
 SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
 
@@ -329,10 +330,11 @@ class App(FastAPI):
 
     @staticmethod
     def start_node_server():
+        if GRADIO_DEV_MODE:
+            return
         if App.node_path is None or App.force_spa or App.node_process is not None:
             return
         try:
-
             App.node_process = subprocess.Popen([App.node_path, SSR_APP_PATH])
         except Exception as e:
             warnings.warn(f"Failed to start node server: {e}")
