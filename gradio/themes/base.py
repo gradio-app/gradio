@@ -20,7 +20,6 @@ from gradio.themes.utils import (
     get_theme_assets,
     sizes,
 )
-from gradio.themes.utils.fonts import Font, LocalFont
 from gradio.themes.utils.readme_content import README_CONTENT
 
 
@@ -381,7 +380,6 @@ class Base(ThemeClass):
         """
 
         self.name = "base"
-        self.name = "base"
         self._font_css = []
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
@@ -468,16 +466,16 @@ class Base(ThemeClass):
         self.text_xxl = text_size.xxl
 
         # Font
-        if isinstance(font, (Font, str)):
+        if isinstance(font, (fonts.Font, str)):
             font = [font]
         self._font = [
-            fontfam if isinstance(fontfam, Font) else LocalFont(fontfam)
+            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
             for fontfam in font
         ]
-        if isinstance(font_mono, (Font, str)):
+        if isinstance(font_mono, (fonts.Font, str)):
             font_mono = [font_mono]
         self._font_mono = [
-            fontfam if isinstance(fontfam, Font) else LocalFont(fontfam)
+            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
             for fontfam in font_mono
         ]
         self.font = ", ".join(str(font) for font in self._font)
