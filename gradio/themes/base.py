@@ -20,6 +20,7 @@ from gradio.themes.utils import (
     get_theme_assets,
     sizes,
 )
+from gradio.themes.utils.fonts import Font, LocalFont
 from gradio.themes.utils.readme_content import README_CONTENT
 
 
@@ -27,6 +28,7 @@ class ThemeClass:
     def __init__(self):
         self._stylesheets = []
         self.name = None
+        self._font_css = []
 
     def _get_theme_css(self):
         css = {}
@@ -90,7 +92,9 @@ class ThemeClass:
             + "\n}"
         )
 
-        return f"{css_code}\n{dark_css_code}"
+        font_css = "\n".join(self._font_css)
+
+        return f"{font_css}\n{css_code}\n{dark_css_code}"
 
     def _get_computed_value(self, property: str, depth=0) -> str:
         max_depth = 100
@@ -352,13 +356,13 @@ class Base(ThemeClass):
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("IBM Plex Sans"),
+            fonts.LocalFont("IBM Plex Sans"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("IBM Plex Mono"),
+            fonts.LocalFont("IBM Plex Mono"),
             "ui-monospace",
             "Consolas",
             "monospace",
@@ -377,6 +381,8 @@ class Base(ThemeClass):
         """
 
         self.name = "base"
+        self.name = "base"
+        self._font_css = []
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
             if not isinstance(shortcut, str):
@@ -462,26 +468,32 @@ class Base(ThemeClass):
         self.text_xxl = text_size.xxl
 
         # Font
-        if isinstance(font, (fonts.Font, str)):
+        if isinstance(font, (Font, str)):
             font = [font]
         self._font = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
+            fontfam if isinstance(fontfam, Font) else LocalFont(fontfam)
             for fontfam in font
         ]
-        if isinstance(font, fonts.Font) or isinstance(font_mono, str):
+        if isinstance(font_mono, (Font, str)):
             font_mono = [font_mono]
         self._font_mono = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
+            fontfam if isinstance(fontfam, Font) else LocalFont(fontfam)
             for fontfam in font_mono
         ]
         self.font = ", ".join(str(font) for font in self._font)
         self.font_mono = ", ".join(str(font) for font in self._font_mono)
 
         self._stylesheets = []
+        self._font_css = []
         for font in self._font + self._font_mono:
             font_stylesheet = font.stylesheet()
-            if font_stylesheet:
+            if isinstance(font_stylesheet, str):
                 self._stylesheets.append(font_stylesheet)
+            elif isinstance(font_stylesheet, dict):
+                if font_stylesheet["url"]:
+                    self._stylesheets.append(font_stylesheet["url"])
+                if font_stylesheet["css"]:
+                    self._font_css.append(font_stylesheet["css"])
 
         self.set()
 
