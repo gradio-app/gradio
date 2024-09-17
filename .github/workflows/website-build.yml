@@ -61,9 +61,13 @@ jobs:
 
       - name: build website
         run: VERCEL=1 pnpm --filter website build
+      
+      - name: find 
+        run: find . -type d
 
       - name: upload website artifacts
         uses: actions/upload-artifact@v4
         with:
           name: website
           path: js/_website/.vercel
+          include-hidden-files: true
