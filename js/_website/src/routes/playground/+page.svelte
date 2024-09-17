@@ -75,11 +75,11 @@
 		src="https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.js"
 	></script>
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
-	<!-- <script
+	<script
 		id="gradio-js-script"
 		type="module"
 		src="https://gradio.s3-us-west-2.amazonaws.com/{version}/gradio.js"
-	></script> -->
+	></script>
 </svelte:head>
 
 <!-- Header on Desktop -->

@@ -173,8 +173,22 @@
 
 	let debounced_run_code: Function | undefined;
 	let debounced_install: Function | undefined;
-	onMount(() => {
-		controller = createGradioApp({
+
+
+	function loadScript(src: string) {
+		return new Promise((resolve, reject) => {
+			const script = document.createElement('script');
+			script.src = src;
+			script.onload = () => resolve(script);
+			script.onerror = () => reject(new Error(`Script load error for ${src}`));
+			document.head.appendChild(script);
+		});
+	}
+
+	onMount(async () => {
+		try {
+			await loadScript('https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.js');
+			controller = createGradioApp({
 			target: document.getElementById("lite-demo"),
 			requirements: [
 				"numpy",
@@ -201,6 +215,10 @@
 		debounced_install = debounce(controller.install, debounce_timeout);
 
 		mounted = true;
+		} catch (error) {
+			console.error('Error loading Gradio Lite:', error);
+		}
+		
 	});
 
 	let copied_link = false;
