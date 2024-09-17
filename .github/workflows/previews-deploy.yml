@@ -113,7 +113,7 @@ jobs:
           gradio-pr-deploys/pr-${{ needs.changes.outputs.pr_number }}-all-demos \
           ${{ secrets.SPACES_DEPLOY_TOKEN }} \
           --gradio-version ${{ needs.changes.outputs.gradio_version }} > url.txt
-          echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
+          echo "SPACE_URL=$(tail -n 1 url.txt)" >> $GITHUB_OUTPUT
       - name: Upload Website Demos
         if: github.event.workflow_run.event == 'workflow_dispatch'
         id: upload-website-demos
