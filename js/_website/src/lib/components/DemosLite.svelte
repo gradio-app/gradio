@@ -381,7 +381,7 @@
 		href="https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.css"
 	/>
 
-	<!-- <link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" /> -->
+	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>
 
 <svelte:window on:keydown={handle_key_down} />
