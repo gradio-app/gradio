@@ -700,10 +700,9 @@ class App(FastAPI):
                 combined_file = (
                     await app.get_blocks()
                     .get_component(component_id)
-                    .combine_stream(stream_data)
-                )  # type: ignore
+                    .combine_stream(stream_data, only_file=True)  # type: ignore
+                )
                 stream.combined_file = combined_file.path
-
             return FileResponse(stream.combined_file)
 
         @router.get("/file/{path:path}", dependencies=[Depends(login_check)])

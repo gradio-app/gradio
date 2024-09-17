@@ -390,6 +390,11 @@ class StreamingOutput(metaclass=abc.ABCMeta):
         stream: list[bytes],
         only_file=False,
     ) -> GradioDataModel | FileData:
+        """Combine all of the stream chunks into a single file.
+
+        This is needed for downloading the stream and for caching examples.
+        If `only_file` is True, only the FileData corresponding to the file should be returned.
+        """
         pass
 
 

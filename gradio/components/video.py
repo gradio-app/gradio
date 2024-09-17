@@ -494,6 +494,8 @@ class Video(StreamingOutput, Component):
                 "Streaming is not supported in the Wasm mode."
             )
 
+        # Use an mp4 extension here so that the cached example
+        # is playable in the browser
         output_file = tempfile.NamedTemporaryFile(
             delete=False, suffix=".mp4", dir=self.GRADIO_CACHE
         )
@@ -525,7 +527,6 @@ class Video(StreamingOutput, Component):
         if process.returncode != 0:
             error_message = stderr.decode().strip()
             raise RuntimeError(f"FFmpeg command failed: {error_message}")
-
         video = FileData(
             path=output_file.name,
             is_stream=False,
@@ -547,7 +548,9 @@ class Video(StreamingOutput, Component):
             "video": {
                 "path": output_id,
                 "is_stream": True,
-                "orig_name": "video-stream.ts",
+                # Need to set orig_name so that downloaded file has correct
+                # extension
+                "orig_name": "video-stream.mp4",
             }
         }
         if value is None:
