@@ -42,7 +42,7 @@ We will use the `plot` method to draw a bounding box around each detected object
 The Gradio demo will be pretty straightforward but we'll do a couple of things that are specific to streaming:
 
 * The user's webcam will be both an input and an output. That way, the user will only see their stream with the detected objects.
-* We'll use the `time_limit` and `stream_every` parameters of the `stream` event. The `time_limit` parameter will mean that we'll process each user's stream for that amount of time. The `stream_every` function will control how frequently the webcam stream is sent to the server.
+* We'll use the `time_limit` and `stream_every` parameters of the `stream` event. The `time_limit` parameter will mean that we'll process each user's stream for that amount of time. In a multi-user setting, such as on Spaces, this means that after this period of time, the next user in the queue will be able to use the demo. The `stream_every` function will control how frequently the webcam stream is sent to the server.
 
 In addition, we'll apply some custom css so that the webcam and slider are centered on the page.
 

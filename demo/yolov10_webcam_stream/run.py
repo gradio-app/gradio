@@ -25,16 +25,9 @@ with gr.Blocks(css=css) as app:
     gr.HTML(
         """
     <h1 style='text-align: center'>
-    YOLOv10 Webcam Stream
+    <a href='https://github.com/THU-MIG/yolov10' target='_blank'>YOLO V10</a> Webcam Stream Object Detection
     </h1>
     """
-    )
-    gr.HTML(
-        """
-        <h3 style='text-align: center'>
-        <a href='https://arxiv.org/abs/2405.14458' target='_blank'>arXiv</a> | <a href='https://github.com/THU-MIG/yolov10' target='_blank'>github</a>
-        </h3>
-        """
     )
     with gr.Column(elem_classes=["my-column"]):
         with gr.Group(elem_classes=["my-group"]):
