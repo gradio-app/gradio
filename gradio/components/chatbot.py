@@ -307,7 +307,7 @@ class Chatbot(Component):
                 isinstance(message, dict)
                 and "role" in message
                 and "content" in message
-                or isinstance(message, ChatMessage)
+                or isinstance(message, ChatMessage | Message)
                 for message in messages
             )
             if not all_valid:
@@ -489,6 +489,8 @@ class Chatbot(Component):
                 content=message.content,  # type: ignore
                 metadata=message.metadata,  # type: ignore
             )
+        elif isinstance(message, Message):
+            return message
         else:
             raise Error(
                 f"Invalid message for Chatbot component: {message}", visible=False

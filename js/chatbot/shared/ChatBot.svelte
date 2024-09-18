@@ -548,6 +548,10 @@
 		flex-grow: 1;
 	}
 
+	.suggestions :global(img) {
+		pointer-events: none;
+	}
+
 	.suggestions {
 		margin: auto;
 		padding: var(--spacing-xxl);

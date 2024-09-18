@@ -82,7 +82,7 @@ class MultimodalTextbox(FormComponent):
         key: int | str | None = None,
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
-        submit_btn: str | bool | None = False,
+        submit_btn: str | bool | None = True,
         stop_btn: str | bool | None = False,
     ):
         """
@@ -180,7 +180,7 @@ class MultimodalTextbox(FormComponent):
         if "files" in value and isinstance(value["files"], list):
             files = [
                 file
-                if isinstance(file, FileData)
+                if isinstance(file, FileData | dict)
                 else FileData(
                     path=file,
                     orig_name=Path(file).name,
