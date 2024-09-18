@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { copy } from "@gradio/utils";
+	import { copy, css_units } from "@gradio/utils";
 	import { Copy, Check } from "@gradio/icons";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
@@ -29,12 +29,6 @@
 	let timer: NodeJS.Timeout;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
-
-	const css_units = (dimension_value: string | number): string => {
-		return typeof dimension_value === "number"
-			? dimension_value + "px"
-			: dimension_value;
-	};
 
 	$: value, dispatch("change");
 

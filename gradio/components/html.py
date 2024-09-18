@@ -39,6 +39,7 @@ class HTML(Component):
         render: bool = True,
         key: int | str | None = None,
         min_height: int | None = None,
+        max_height: int | None = None,
     ):
         """
         Parameters:
@@ -53,8 +54,10 @@ class HTML(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If HTML content exceeds the height, the component will expand to fit the content.
+            max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the component will scroll.
         """
         self.min_height = min_height
+        self.max_height = max_height
         super().__init__(
             label=label,
             every=every,
