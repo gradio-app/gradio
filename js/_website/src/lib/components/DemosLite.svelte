@@ -10,6 +10,7 @@
 	import { browser } from "$app/environment";
 	import { onMount } from "svelte";
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
+	import WHEEL from "$lib/json/wheel.json";
 
 	let generated = true;
 
@@ -197,7 +198,7 @@
 	onMount(async () => {
 		try {
 			await loadScript(
-				"https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.js"
+				WHEEL.gradio_lite_url + "/dist/lite.js"	
 			);
 			controller = createGradioApp({
 				target: document.getElementById("lite-demo"),
@@ -388,7 +389,7 @@
 <svelte:head>
 	<link
 		rel="stylesheet"
-		href="https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.css"
+		href="{WHEEL.gradio_lite_url}/dist/lite.css"
 	/>
 
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />

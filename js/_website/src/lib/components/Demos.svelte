@@ -4,13 +4,15 @@
 	export let highlighted_code: string;
 	export let url_version: string;
 
+	import WHEEL from "$lib/json/wheel.json";
+
 	$: url_version;
 </script>
 
 <svelte:head>
 	<link
 		rel="stylesheet"
-		href="https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.css"
+		href="{WHEEL.gradio_lite_url}/dist/lite.css"
 	/>
 </svelte:head>
 

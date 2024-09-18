@@ -117,8 +117,6 @@
 	canonical={$page.url.pathname}
 	description={"Gradio docs for using " + all_headers.page_title.title}
 />
-<!-- <link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" /> -->
-
 <!-- <svelte:head>
 	<link
 		rel="stylesheet"

@@ -16,6 +16,9 @@
 	import Header from "$lib/components/Header.svelte";
 	import Footer from "$lib/components/Footer.svelte";
 
+	import WHEEL from "$lib/json/wheel.json";
+
+
 	import { media_query } from "../lib/utils";
 	store = media_query();
 
@@ -46,7 +49,7 @@
 			}
 			const script = document.createElement("script");
 			script.src =
-				"https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.js";
+				WHEEL.gradio_lite_url + "/dist/lite.js";
 			script.type = "module";
 			document.head.appendChild(script);
 		}
