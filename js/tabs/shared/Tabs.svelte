@@ -7,7 +7,7 @@
 		setContext,
 		createEventDispatcher,
 		onMount,
-		onDestroy,
+		onDestroy
 	} from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
@@ -69,7 +69,7 @@
 			}
 		},
 		selected_tab,
-		selected_tab_index,
+		selected_tab_index
 	});
 
 	function change_tab(id: object | string | number): void {
@@ -124,7 +124,7 @@
 
 		[tab_nav_el, overflow_nav].forEach((menu) => {
 			Array.from(menu.querySelectorAll("button")).forEach((item) =>
-				all_items.push(item as HTMLElement),
+				all_items.push(item as HTMLElement)
 			);
 		});
 
@@ -153,9 +153,7 @@
 		overflow_has_selected_tab = tabs.some(
 			(t) =>
 				t.id === $selected_tab &&
-				overflow_nav.contains(
-					document.querySelector(`[data-tab-id="${t.id}"]`),
-				),
+				overflow_nav.contains(document.querySelector(`[data-tab-id="${t.id}"]`))
 		);
 	}
 </script>
