@@ -50,17 +50,13 @@ def start_node_server(
         host = server_name
 
     # we need two ports for the server and the node server
-    server_ports = (
-        [server_port + 1]
-        if server_port is not None
-        else range(INITIAL_PORT_VALUE + 1, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
-    )
+    server_port = server_port + 1 if server_port is not None else INITIAL_PORT_VALUE + 1
 
     if not spa_mode:
         (node_process, node_port) = start_node_process(
             node_path=node_path or os.getenv("GRADIO_NODE_PATH"),
             server_name=host,
-            initial_port=server_ports[0],
+            initial_port=server_port,
             num_ports=TRY_NUM_PORTS,
         )
 
