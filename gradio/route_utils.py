@@ -9,8 +9,6 @@ import os
 import pickle
 import re
 import shutil
-import subprocess
-import sys
 import threading
 import uuid
 from collections import deque
@@ -749,7 +747,7 @@ class CustomCORSMiddleware:
         }
         self.simple_headers = {"Access-Control-Allow-Credentials": "true"}
         # Any of these hosts suggests that the Gradio app is running locally.
-        self.localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "0.0.0.0:3000"]
+        self.localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0"]
         if not strict_cors:  # type: ignore
             # Note: "null" is a special case that happens if a Gradio app is running
             # as an embedded web component in a local static webpage. However, it can
@@ -912,59 +910,3 @@ class MediaStream:
 
     def end_stream(self):
         self.ended = True
-
-
-def get_node_path():
-    env_node_path = os.environ.get("GRADIO_NODE_PATH")
-    if env_node_path:
-        return env_node_path
-    try:
-        # On Windows, try using 'where' command
-        if sys.platform == "win32":
-            windows_path = (
-                subprocess.check_output(["where", "node"])
-                .decode()
-                .strip()
-                .split("\r\n")[0]
-            )
-            # Verify the path exists
-            if os.path.exists(windows_path):
-                return windows_path
-        # Try using the 'which' command on Unix-like systems
-        else:
-            return subprocess.check_output(["which", "node"]).decode().strip()
-
-    except subprocess.CalledProcessError:
-        # Command failed, fall back to checking common install locations
-        pass
-
-    # Check common install locations
-    common_paths = [
-        sys.executable,
-        "/usr/bin/node",
-        "/usr/local/bin/node",
-        "C:\\Program Files\\nodejs\\node.exe",
-        "C:\\Program Files (x86)\\nodejs\\node.exe",
-    ]
-
-    for node_path in common_paths:
-        if os.path.exists(node_path):
-            return node_path
-
-    # Check PATH environment variable
-    env_path = os.environ.get("PATH", "")
-    path_dirs = env_path.split(os.pathsep)
-
-    for directory in path_dirs:
-        full_path = os.path.join(
-            directory, "node.exe" if sys.platform == "win32" else "node"
-        )
-        if os.path.exists(full_path):
-            return full_path
-
-    # Node not found
-    print("Unable to find node install path, falling back to SPA mode.")
-    print(
-        "If you wish to use the node backend, please install node 18 and/ or set the path with the GRADIO_NODE_PATH environment variable."
-    )
-    return None

@@ -56,7 +56,7 @@ def process_video(input_video, stream_as_mp4):
 
 
 with gr.Blocks() as demo:
-    # gr.Markdown("# Video Streaming Out 📹")
+    gr.Markdown("# Video Streaming Out 📹")
     with gr.Row():
         with gr.Column():
             input_video = gr.Video(label="input")

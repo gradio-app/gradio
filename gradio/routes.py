@@ -13,7 +13,6 @@ import math
 import mimetypes
 import os
 import secrets
-import signal
 import subprocess
 import sys
 import time
@@ -43,7 +42,6 @@ from fastapi import (
     HTTPException,
     status,
 )
-from fastapi import Request as FastAPIRequest
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -91,7 +89,6 @@ from gradio.route_utils import (  # noqa: F401
     Request,
     compare_passwords_securely,
     create_lifespan_handler,
-    get_node_path,
     move_uploaded_files_to_cache,
 )
 from gradio.server_messages import (
@@ -143,11 +140,13 @@ XSS_SAFE_MIMETYPES = {
     "text/plain",
     "application/json",
 }
-GRADIO_DEV_MODE = os.getenv("GRADIO_DEV_MODE") is not None
-PYTHON_PORT = 7860
-NODE_PORT = 3000 if not GRADIO_DEV_MODE else 9876
 
-SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
+# INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
+# GRADIO_NODE_PORT = int(os.getenv("GRADIO_NODE_PORT", "3000"))
+# LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+
+# PYTHON_PORT = INITIAL_PORT_VALUE
+# NODE_PORT = 3000 if not GRADIO_DEV_MODE else 9876
 
 
 class ORJSONResponse(JSONResponse):
@@ -192,10 +191,6 @@ class App(FastAPI):
     FastAPI App Wrapper
     """
 
-    node_path = get_node_path()
-    force_spa = os.getenv("GRADIO_SPA_MODE") is not None
-    node_process: None | subprocess.Popen = None
-
     def __init__(
         self,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
@@ -230,38 +225,19 @@ class App(FastAPI):
         self.custom_component_hashes: dict[str, str] = {}
         super().__init__(**kwargs)
 
-    # @staticmethod
-    # def conditional_route(
-    #     app: App, path: str, condition: Callable[[FastAPIRequest], bool]
-    # ):
-    #     def decorator(func: Callable[..., Any]):
-    #         async def wrapped(request: FastAPIRequest, *args, **kwargs):
-    #             if request.method == "HEAD":
-    #                 return Response(status_code=200)
-    #             return await func(request, *args, **kwargs)
-
-    #         app.add_route(
-    #             path,
-    #             ConditionalRoute(
-    #                 path=path,
-    #                 condition=condition,
-    #                 endpoint=wrapped,
-    #                 methods=["GET", "HEAD"],
-    #             ),
-    #         )
-    #         return func
-
-    #     return decorator
-
     @staticmethod
-    async def proxy_to_node(request: Request, node_port: int) -> Response:
+    async def proxy_to_node(
+        request: Request,
+        server_name: str,
+        node_port: int,
+    ) -> Response:
         client = httpx.AsyncClient()
 
         full_path = request.url.path
         if request.url.query:
             full_path += f"?{request.url.query}"
 
-        url = f"http://localhost:{node_port}{full_path}"
+        url = f"http://{server_name}:{node_port}{full_path}"
 
         headers = {
             k: v
@@ -326,35 +302,6 @@ class App(FastAPI):
         self._asyncio_tasks = []
 
     @staticmethod
-    def start_node_server():
-        if GRADIO_DEV_MODE:
-            return
-        if App.node_path is None or App.force_spa or App.node_process is not None:
-            return
-        try:
-            App.node_process = subprocess.Popen(
-                [App.node_path, SSR_APP_PATH], stdout=subprocess.PIPE
-            )
-        except Exception as e:
-            warnings.warn(f"Failed to start node server: {e}")
-
-    @staticmethod
-    async def should_handle_catch_all(request: FastAPIRequest) -> bool:
-        return (
-            App.node_path is not None
-            and not request.url.path.startswith("/gradio_api")
-            and request.url.path not in ["/config", "/login", "/special3"]
-        )
-
-    @staticmethod
-    def handle_sigterm():
-        if App.node_process is not None:
-            print("Stopping Node.js server...")
-            App.node_process.terminate()
-            App.node_process.wait()
-            sys.exit(0)
-
-    @staticmethod
     def create_app(
         blocks: gradio.Blocks,
         app_kwargs: dict[str, Any] | None = None,
@@ -375,20 +322,19 @@ class App(FastAPI):
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
 
-        if App.node_path and not App.force_spa:
-            App.start_node_server()
-            signal.signal(signal.SIGTERM, App.handle_sigterm)
-
+        if not blocks.spa_mode:
             @app.middleware("http")
             async def conditional_routing_middleware(request: Request, call_next):
                 if (
-                    App.node_path is not None
+                    blocks.node_process is not None
                     and not request.url.path.startswith("/gradio_api")
                     and request.url.path not in ["/config", "/login"]
                     and not request.url.path.startswith("/theme")
                 ):
                     try:
-                        return await App.proxy_to_node(request, NODE_PORT)
+                        return await App.proxy_to_node(
+                            request, blocks.server_name, blocks.node_port
+                        )
                     except Exception as e:
                         print(e)
                 response = await call_next(request)
@@ -467,7 +413,9 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
+            ) or (
+                callable(app.auth) and app.auth.__call__(username, password)
+            ):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
@@ -578,6 +526,7 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
+
             config = utils.safe_deepcopy(app.get_blocks().config)
             root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
