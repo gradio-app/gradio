@@ -6,6 +6,7 @@
 	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
 
 	import ChatBot from "./shared/ChatBot.svelte";
+	import type { UndoRetryData } from "./shared/utils";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Chat } from "@gradio/icons";
@@ -56,16 +57,10 @@
 		like: LikeData;
 		clear_status: LoadingStatus;
 		suggestion_select: SelectData;
-		retry: null;
-		undo: null;
+		retry: UndoRetryData;
+		undo: UndoRetryData;
 		clear: null;
 	}>;
-	export let avatar_images: [FileData | null, FileData | null] = [null, null];
-	export let loading_status: LoadingStatus | undefined = undefined;
-	export let height = 400;
-	export let placeholder: string | null = null;
-	export let suggestions: SuggestionMessage[] | null = null;
-	export let theme_mode: "system" | "light" | "dark";
 
 	let _value: NormalisedMessage[] | null = [];
 
@@ -73,6 +68,15 @@
 		type === "tuples"
 			? normalise_tuples(value as TupleFormat, root)
 			: normalise_messages(value as Message[], root);
+
+	export let avatar_images: [FileData | null, FileData | null] = [null, null];
+	export let loading_status: LoadingStatus | undefined = undefined;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
+	export let placeholder: string | null = null;
+	export let suggestions: SuggestionMessage[] | null = null;
+	export let theme_mode: "system" | "light" | "dark";
 </script>
 
 <Block
@@ -83,7 +87,10 @@
 	{scale}
 	{min_width}
 	{height}
-	allow_overflow={false}
+	{min_height}
+	{max_height}
+	allow_overflow={true}
+	overflow_behavior="auto"
 >
 	{#if loading_status}
 		<StatusTracker
@@ -126,8 +133,8 @@
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:suggestion_select={(e) =>
 				gradio.dispatch("suggestion_select", e.detail)}
-			on:retry={() => gradio.dispatch("retry")}
-			on:undo={() => gradio.dispatch("undo")}
+			on:retry={(e) => gradio.dispatch("retry", e.detail)}
+			on:undo={(e) => gradio.dispatch("undo", e.detail)}
 			on:clear={() => {
 				value = [];
 				gradio.dispatch("clear");
@@ -158,5 +165,9 @@
 		align-items: start;
 		width: 100%;
 		height: 100%;
+	}
+
+	:global(.progress-text) {
+		right: auto;
 	}
 </style>

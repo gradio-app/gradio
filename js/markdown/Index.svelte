@@ -31,8 +31,11 @@
 		display: boolean;
 	}[];
 	export let header_links = false;
-	export let height: number | string | undefined = undefined;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
 	export let show_copy_button = false;
+	export let container = false;
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -41,8 +44,12 @@
 	{visible}
 	{elem_id}
 	{elem_classes}
-	container={false}
+	{container}
 	allow_overflow={true}
+	overflow_behavior="auto"
+	{height}
+	{min_height}
+	{max_height}
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
@@ -63,7 +70,6 @@
 			{sanitize_html}
 			{line_breaks}
 			{header_links}
-			{height}
 			{show_copy_button}
 			root={gradio.root}
 		/>
