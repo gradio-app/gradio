@@ -423,7 +423,10 @@
 								>
 									{#if message.type === "text"}
 										{#if message.metadata.title}
-											<MessageBox title={message.metadata.title}>
+											<MessageBox
+												title={message.metadata.title}
+												expanded={is_last_bot_message(messages, value)}
+											>
 												<Markdown
 													message={message.content}
 													{latex_delimiters}

@@ -429,24 +429,26 @@ def test_is_in_or_equal_fuzzer(path_1, path_2):
     path=create_path_string(),
     blocked_paths=create_path_list(),
     allowed_paths=create_path_list(),
+    created_paths=create_path_list(),
 )
 def test_is_allowed_file_fuzzer(
     path: Path,
     blocked_paths: Sequence[Path],
     allowed_paths: Sequence[Path],
+    created_paths: Sequence[Path],
 ):
-    result, reason = is_allowed_file(path, blocked_paths, allowed_paths)
+    result, reason = is_allowed_file(path, blocked_paths, allowed_paths, created_paths)
 
     assert isinstance(result, bool)
     assert reason in [
         "in_blocklist",
         "allowed",
         "not_created_or_allowed",
-        "created_by_app",
+        "created",
     ]
 
     if result:
-        assert reason == "allowed"
+        assert reason in ("allowed", "created")
     elif reason == "in_blocklist":
         assert any(is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths)
     elif reason == "not_created_or_allowed":
@@ -456,6 +458,8 @@ def test_is_allowed_file_fuzzer(
 
     if reason == "allowed":
         assert any(is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths)
+    elif reason == "created":
+        assert any(is_in_or_equal(path, created_path) for created_path in created_paths)
 
 
 @pytest.mark.parametrize(
@@ -469,7 +473,7 @@ def test_is_allowed_file_fuzzer(
     ],
 )
 def is_allowed_file_corner_cases(path, blocked_paths, allowed_paths, result):
-    assert is_allowed_file(path, blocked_paths, allowed_paths) == result
+    assert is_allowed_file(path, blocked_paths, allowed_paths, []) == result
 
 
 # Additional test for known edge cases

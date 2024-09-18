@@ -141,7 +141,7 @@ class Chatbot(Component):
             | None
         ) = None,
         *,
-        type: Literal["messages", "tuples"] = "tuples",
+        type: Literal["messages", "tuples"] | None = None,
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -202,17 +202,25 @@ class Chatbot(Component):
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
         """
-        if type not in ["messages", "tuples"]:
-            raise ValueError("type must be 'messages' or 'tuples', received: {type}")
-        self.type: Literal["tuples", "messages"] = type
-        if type == "messages":
-            self.data_model = ChatbotDataMessages
-        else:
-            # DeprecationWarning gets filtered out by default
+        if type is None:
             warnings.warn(
-                "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead.",
+                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
                 UserWarning,
             )
+            type = "tuples"
+        elif type == "tuples":
+            warnings.warn(
+                "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
+                UserWarning,
+            )
+        if type not in ["messages", "tuples"]:
+            raise ValueError(
+                f"The `type` parameter must be 'messages' or 'tuples', received: {type}"
+            )
+        self.type: Literal["tuples", "messages"] = type
+        if self.type == "messages":
+            self.data_model = ChatbotDataMessages
+        else:
             self.data_model = ChatbotDataTuples
         self.height = height
         self.max_height = max_height
