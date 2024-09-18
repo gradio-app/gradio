@@ -13,7 +13,6 @@ import math
 import mimetypes
 import os
 import secrets
-import subprocess
 import sys
 import time
 import traceback
@@ -242,7 +241,7 @@ class App(FastAPI):
         headers = {
             k: v
             for k, v in request.headers.items()
-            if k.lower() not in ["host", "content-length"]
+            if k.lower() not in ["content-length"]
         }
         body = await request.body()
 
