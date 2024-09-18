@@ -160,9 +160,7 @@ class Examples:
         if self.cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
 
-        if (
-            cache_mode_env := os.getenv("GRADIO_CACHE_MODE")
-        ) and cache_mode is None:
+        if (cache_mode_env := os.getenv("GRADIO_CACHE_MODE")) and cache_mode is None:
             if cache_mode_env.lower() == "eager":
                 cache_mode = "eager"
             elif cache_mode_env.lower() == "lazy":
