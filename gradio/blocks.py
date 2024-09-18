@@ -72,6 +72,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
@@ -88,6 +89,7 @@ from gradio.utils import (
     check_function_inputs_match,
     component_or_layout_class,
     get_cancelled_fn_indices,
+    get_node_path,
     get_package_version,
     get_upload_folder,
 )
@@ -387,7 +389,9 @@ class Block:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
                 )
-            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+            except (
+                AttributeError
+            ):  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 
@@ -974,6 +978,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
+        spa_mode: bool | None = None,
+        node_server_name: str | None = None,
+        node_port: int | None = None,
         **kwargs,
     ):
         """
@@ -988,8 +995,18 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            spa_mode: Whether to enable single-page application mode. If None, will use GRADIO_SPA_MODE environment variable or default to False.
         """
         self.limiter = None
+        self.spa_mode = (
+            False
+            if wasm_utils.IS_WASM
+            else (
+                spa_mode
+                if spa_mode is not None
+                else os.getenv("GRADIO_SPA_MODE", "False").lower() == "true"
+            )
+        )
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
@@ -1098,6 +1115,18 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
+
+        node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
+        (node_server_name, node_process, node_port) = start_node_server(
+            server_name=node_server_name,
+            server_port=node_port,
+            node_path=node_path,
+            spa_mode=self.spa_mode,
+        )
+
+        self.node_server_name = node_server_name
+        self.node_port = node_port
+        self.node_process = node_process
 
         self.queue()
 
@@ -2365,6 +2394,7 @@ Received outputs:
         self.config = self.get_config_file()
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
             self,
@@ -2390,6 +2420,7 @@ Received outputs:
                 # which the frontend app will directly communicate with through the Worker API,
                 # and we don't need to start a server.
                 wasm_utils.register_app(self.app)
+                self.spa_mode = True
             else:
                 from gradio import http_server
 

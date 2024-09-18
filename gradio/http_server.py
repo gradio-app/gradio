@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 import os
+import signal
 import socket
+import subprocess
+import sys
 import threading
 import time
+import warnings
 from functools import partial
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import uvicorn
@@ -114,21 +119,15 @@ def start_server(
 
     for port in server_ports:
         try:
-            # The fastest way to check if a port is available is to try to bind to it with socket.
-            # If the port is not available, socket will throw an OSError.
-            s = socket.socket()
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # Really, we should be checking if (server_name, server_port) is available, but
-            # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
-            # Instead, we just check if the port is available on localhost.
-            s.bind((LOCALHOST_NAME, port))
-            s.close()
+            available_port = find_available_port(
+                initial_port=port, num_ports=1, host=host
+            )
 
             # To avoid race conditions, so we also check if the port by trying to start the uvicorn server.
             # If the port is not available, this will throw a ServerFailedToStartError.
             config = uvicorn.Config(
                 app=app,
-                port=port,
+                port=available_port,
                 host=host,
                 log_level="warning",
                 ssl_keyfile=ssl_keyfile,
@@ -147,6 +146,14 @@ def start_server(
                 )
             server = Server(config=config, reloader=reloader)
             server.run_in_thread()
+
+            if not verify_server_startup(host, available_port, timeout=5):
+                server.close()
+                warnings.warn(
+                    f"Python server failed to start on port {available_port}. Trying next port..."
+                )
+                continue
+
             break
         except (OSError, ServerFailedToStartError):
             pass
@@ -155,9 +162,44 @@ def start_server(
             f"Cannot find empty port in range: {min(server_ports)}-{max(server_ports)}. You can specify a different port by setting the GRADIO_SERVER_PORT environment variable or passing the `server_port` parameter to `launch()`."
         )
 
-    if ssl_keyfile is not None:
-        path_to_local_server = f"https://{url_host_name}:{port}/"
-    else:
-        path_to_local_server = f"http://{url_host_name}:{port}/"
+    protocol = "https" if ssl_keyfile else "http"
+    path_to_local_server = f"{protocol}://{url_host_name}:{available_port}/"
 
     return server_name, port, path_to_local_server, server
+
+
+def find_available_port(
+    initial_port: int,
+    num_ports: int,
+    host: str,
+) -> int:
+    """Finds an available port by trying to bind to a range of ports."""
+    for port in range(initial_port, initial_port + num_ports):
+        try:
+            # The fastest way to check if a port is available is to try to bind to it with socket.
+            # If the port is not available, socket will throw an OSError.
+            s = socket.socket()
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # Really, we should be checking if (server_name, server_port) is available, but
+            # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
+            # Instead, we just check if the port is available on localhost.
+            s.bind((host, port))
+            s.close()
+            return port
+        except OSError:
+            continue
+    raise OSError(
+        f"Cannot find an empty port in the range {initial_port}-{initial_port + num_ports - 1}."
+    )
+
+
+def verify_server_startup(host: str, port: int, timeout: float = 5.0) -> bool:
+    """Verifies if a server is up and running by attempting to connect."""
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return True
+        except (TimeoutError, OSError):
+            time.sleep(0.1)
+    return False
