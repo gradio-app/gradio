@@ -1496,7 +1496,6 @@ def get_node_path():
         return which_node_path
 
     try:
-
         # On Windows, try using 'where' command
         if sys.platform == "win32":
             windows_path = (
