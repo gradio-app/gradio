@@ -166,8 +166,10 @@ class Examples:
             elif cache_mode_env.lower() == "lazy":
                 cache_mode = "lazy"
             else:
-                raise ValueError(
-                    "The `GRADIO_CACHE_MODE` environment variable must be one of: 'eager', 'lazy'."
+                cache_mode = "eager"
+                warnings.warn(
+                    "The `GRADIO_CACHE_MODE` environment variable must be either 'eager' or 'lazy'. "
+                    "Defaulting to 'eager'."
                 )
 
         if self.cache_examples and cache_mode == "lazy":
