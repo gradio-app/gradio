@@ -12,11 +12,11 @@ import socket
 import subprocess
 import tempfile
 import warnings
-from collections.abc import Callable, Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
 from functools import lru_cache, wraps
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, TypeVar, Awaitable
+from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urlparse
 
 import httpx
@@ -311,13 +311,18 @@ T = TypeVar("T")
 
 
 def lru_cache_async(maxsize: int = 128):
-    def decorator(async_func: Callable[..., Coroutine[Any, Any, T]]) -> Callable[..., Awaitable[T]]:
+    def decorator(
+        async_func: Callable[..., Coroutine[Any, Any, T]],
+    ) -> Callable[..., Awaitable[T]]:
         @lru_cache(maxsize=maxsize)
         @wraps(async_func)
         def wrapper(*args: Any, **kwargs: Any) -> Awaitable[T]:
             return asyncio.create_task(async_func(*args, **kwargs))
+
         return wrapper
+
     return decorator
+
 
 @lru_cache_async(maxsize=256)
 async def resolve_hostname_google(hostname: str) -> list[str]:
