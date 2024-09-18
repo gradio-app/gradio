@@ -1,6 +1,7 @@
 ---
 "@gradio/html": minor
 "@gradio/markdown": minor
+"@gradio/utils": minor
 "gradio": minor
 ---
 
