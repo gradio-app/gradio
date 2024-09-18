@@ -18,7 +18,7 @@ export async function resize(
 	const padding_top = parseFloat(computed_styles.paddingTop);
 	const padding_bottom = parseFloat(computed_styles.paddingBottom);
 	const line_height = parseFloat(computed_styles.lineHeight);
-	
+
 	let max =
 		max_lines === undefined
 			? false
