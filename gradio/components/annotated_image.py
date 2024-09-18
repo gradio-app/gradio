@@ -154,7 +154,7 @@ class AnnotatedImage(Component):
         base_img = value[0]
         if isinstance(base_img, str):
             if client_utils.is_http_url_like(base_img):
-                base_img = processing_utils.save_url_to_cache(
+                base_img = processing_utils.sync_ssrf_protected_httpx_download(
                     base_img, cache_dir=self.GRADIO_CACHE
                 )
             base_img_path = base_img

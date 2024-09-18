@@ -5,7 +5,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import ffmpy
-import httpx
 import numpy as np
 import pytest
 from gradio_client import media_data
@@ -78,29 +77,39 @@ class TestTempFileManagement:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
     @pytest.mark.flaky
-    def test_save_url_to_cache(self, gradio_temp_dir):
+    def test_ssrf_protected_httpx_download(self, gradio_temp_dir):
         url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
         url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
 
-        f = processing_utils.save_url_to_cache(url1, cache_dir=gradio_temp_dir)
+        f = processing_utils.sync_ssrf_protected_httpx_download(
+            url1, cache_dir=gradio_temp_dir
+        )
         try:  # Delete if already exists from before this test
             os.remove(f)
         except OSError:
             pass
 
-        f = processing_utils.save_url_to_cache(url1, cache_dir=gradio_temp_dir)
+        f = processing_utils.sync_ssrf_protected_httpx_download(
+            url1, cache_dir=gradio_temp_dir
+        )
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
-        f = processing_utils.save_url_to_cache(url1, cache_dir=gradio_temp_dir)
+        f = processing_utils.sync_ssrf_protected_httpx_download(
+            url1, cache_dir=gradio_temp_dir
+        )
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
-        f = processing_utils.save_url_to_cache(url2, cache_dir=gradio_temp_dir)
+        f = processing_utils.sync_ssrf_protected_httpx_download(
+            url2, cache_dir=gradio_temp_dir
+        )
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
     @pytest.mark.flaky
-    def test_save_url_to_cache_with_redirect(self, gradio_temp_dir):
+    def test_ssrf_protected_httpx_download_with_redirect(self, gradio_temp_dir):
         url = "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png"
-        processing_utils.save_url_to_cache(url, cache_dir=gradio_temp_dir)
+        processing_utils.sync_ssrf_protected_httpx_download(
+            url, cache_dir=gradio_temp_dir
+        )
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
 
@@ -409,6 +418,7 @@ async def test_json_data_not_moved_to_cache():
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "url",
     [
@@ -420,11 +430,12 @@ async def test_json_data_not_moved_to_cache():
         "http://192.168.1.250.nip.io",
     ],
 )
-def test_local_urls_fail(url):
-    with pytest.raises(httpx.RequestError, match="No public IP address found for URL"):
-        processing_utils.get_public_url(url)
+async def test_local_urls_fail(url):
+    with pytest.raises(ValueError, match="Unable to resolve"):
+        await processing_utils.validate_url(url)
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "url",
     [
@@ -434,5 +445,23 @@ def test_local_urls_fail(url):
         "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/luigi/luigi.ply",
     ],
 )
-def test_public_urls_pass(url):
-    assert processing_utils.get_public_url(url)
+async def test_public_urls_pass(url):
+    assert await processing_utils.validate_url(url)
+
+
+@pytest.mark.asyncio
+async def test_public_request_pass():
+    tempdir = tempfile.TemporaryDirectory()
+    assert await processing_utils.ssrf_protected_httpx_download(
+        "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
+    )
+    assert os.path.exists(os.path.join(tempdir.name, "wikipedia.png"))
+
+
+@pytest.mark.asyncio
+async def test_private_request_fail():
+    with pytest.raises(ValueError, match="Unable to resolve"):
+        tempdir = tempfile.TemporaryDirectory()
+        await processing_utils.ssrf_protected_httpx_download(
+            "http://192.168.1.250.nip.io/image.png", tempdir.name
+        )
