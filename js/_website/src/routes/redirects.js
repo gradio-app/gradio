@@ -16,5 +16,6 @@ export const redirects = {
 	"/docs/textbox": "/docs/gradio/textbox",
 	"/docs/interface": "/docs/gradio/interface",
 	"/docs/python-client/python-client": "/docs/python-client/introduction",
-	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface"
+	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface",
+	"/using_hugging_face_integrations": "/guides/using-hugging-face-integrations"
 };
