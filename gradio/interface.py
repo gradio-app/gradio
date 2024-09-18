@@ -102,7 +102,7 @@ class Interface(Blocks):
         examples: list[Any] | list[list[Any]] | str | None = None,
         *,
         cache_examples: bool | None = None,
-        cache_mode: Literal["lazy", "eager"] | None = None,
+        cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
         live: bool = False,
@@ -224,7 +224,7 @@ class Interface(Blocks):
             outputs = [outputs]
 
         self.cache_examples = cache_examples
-        self.cache_mode = cache_mode
+        self.cache_mode: Literal["eager", "lazy"] | None = cache_mode
 
         state_input_indexes = [
             idx for idx, i in enumerate(inputs) if i == "state" or isinstance(i, State)

@@ -99,7 +99,10 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                double, examples=["hello", "hi"], cache_examples="lazy"
+                double,
+                examples=["hello", "hi"],
+                cache_examples=True,
+                cache_mode="lazy",
             )
             async for _ in chatbot.examples_handler.async_lazy_cache(
                 (0, ["hello"]), "hello"

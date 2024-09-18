@@ -68,7 +68,7 @@ class ChatInterface(Blocks):
         additional_inputs_accordion: str | Accordion | None = None,
         examples: list[str] | list[dict[str, str | list]] | list[list] | None = None,
         cache_examples: bool | None = None,
-        cache_mode: Literal["lazy", "eager"] | None = None,
+        cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         title: str | None = None,
         description: str | None = None,
