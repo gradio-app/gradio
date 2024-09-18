@@ -12,10 +12,11 @@ import socket
 import subprocess
 import tempfile
 import warnings
-from functools import lru_cache
+from collections.abc import Callable, Coroutine
+from functools import lru_cache, wraps
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urlparse
 
 import httpx
@@ -306,7 +307,24 @@ async def resolve_hostname_locally(hostname: str) -> list[str]:
         return []
 
 
-@lru_cache(maxsize=256)
+T = TypeVar("T")
+
+
+def lru_cache_async(maxsize: int = 128):
+    def decorator(
+        async_func: Callable[..., Coroutine[Any, Any, T]],
+    ) -> Callable[..., Coroutine[Any, Any, T]]:
+        @lru_cache(maxsize=maxsize)
+        @wraps(async_func)
+        def wrapper(*args: Any, **kwargs: Any) -> Coroutine[Any, Any, T]:
+            return asyncio.create_task(async_func(*args, **kwargs))
+
+        return wrapper
+
+    return decorator
+
+
+@lru_cache_async(maxsize=256)
 async def resolve_hostname_google(hostname: str) -> list[str]:
     async with httpx.AsyncClient() as client:
         try:
@@ -389,9 +407,10 @@ async def ssrf_protected_httpx_download(url: str, cache_dir: str) -> str:
 
                     filepath = os.path.join(cache_dir, filename)
 
-                    with open(filepath, "wb") as f:
-                        async for chunk in response.aiter_bytes():
-                            f.write(chunk)
+                    async with asyncio.Lock():
+                        with open(filepath, "wb") as f:
+                            async for chunk in response.aiter_bytes():
+                                f.write(chunk)
 
                     return filepath
 
