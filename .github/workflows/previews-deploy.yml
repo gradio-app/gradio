@@ -101,7 +101,7 @@ jobs:
           export AWS_SECRET_ACCESS_KEY=${{ secrets.LITE_PREVIEWS_AWS_S3_SECRET_ACCESS_KEY }}
           export AWS_DEFAULT_REGION=us-east-1
           mkdir -p ./gradio-lite-files
-          tar -xzf ./gradio-lite-${{ needs.changes.outputs.sha }}/gradio-lite-*.tgz -C ./gradio-lite-files
+          tar -xzf ./gradio-lite-tar/gradio-lite-*.tgz -C ./gradio-lite-files
           aws s3 cp ./gradio-lite-files/package/ s3://gradio-lite-previews/${{ needs.changes.outputs.sha }}/ --recursive
       - name: Install Hub Client Library
         run: pip install huggingface-hub==0.23.2
