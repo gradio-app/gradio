@@ -63,4 +63,4 @@ demo.launch()
 
 ## End-to-End Examples
 
-For an end-to-end example of streaming from the webcam, see the object detection from webcam [guide](/main/guides/objec-detection-from-webcam).
+For an end-to-end example of streaming from the webcam, see the object detection from webcam [guide](/main/guides/object-detection-from-webcam).

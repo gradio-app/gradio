@@ -71,4 +71,4 @@ gr.Interface(keep_repeating,
 
 ## End-to-End Examples
 
-For an end-to-end example of streaming media, see the object detection from video [guide](/main/guides/objec-detection-from-video) or the streaming ai generated audio with [transformers](https://huggingface.co/docs/transformers/index) [guide](/main/guides/streaming-ai-generated-audio).
+For an end-to-end example of streaming media, see the object detection from video [guide](/main/guides/object-detection-from-video) or the streaming ai generated audio with [transformers](https://huggingface.co/docs/transformers/index) [guide](/main/guides/streaming-ai-generated-audio).
