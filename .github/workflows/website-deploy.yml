@@ -86,7 +86,6 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy js/_website/.vercel/output/static --project-name=gradio-website --branch=${{ needs.changes.outputs.source_branch#refs/heads/ }}
-
         # production
       - name: Pull Vercel Environment Information
         if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
