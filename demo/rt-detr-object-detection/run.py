@@ -86,16 +86,9 @@ with gr.Blocks() as demo:
     gr.HTML(
         """
     <h1 style='text-align: center'>
-    Video Object Detection with RT-DETR
+    Video Object Detection with <a href='https://huggingface.co/PekingU/rtdetr_r101vd_coco_o365' target='_blank'>RT-DETR</a>
     </h1>
     """
-    )
-    gr.HTML(
-        """
-        <h3 style='text-align: center'>
-        <a href='https://arxiv.org/abs/2304.08069' target='_blank'>arXiv</a> | <a href='https://huggingface.co/PekingU/rtdetr_r101vd_coco_o365' target='_blank'>github</a>
-        </h3>
-        """
     )
     with gr.Row():
         with gr.Column():

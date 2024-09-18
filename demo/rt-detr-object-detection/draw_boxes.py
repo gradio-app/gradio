@@ -1,5 +1,4 @@
 from PIL import ImageDraw, ImageFont  # type: ignore
-import numpy as np
 import colorsys
 
 

@@ -2,8 +2,7 @@
 
 Tags: VISION, STREAMING, VIDEO
 
-In this guide we'll use the [RT-DETR](https://huggingface.co/docs/transformers/en/model_doc/rt_detr) model to detect objects in a user uploaded video. We'll stream the results from the server using the new video streaming  
-features introduced in Gradio 5.0.
+In this guide we'll use the [RT-DETR](https://huggingface.co/docs/transformers/en/model_doc/rt_detr) model to detect objects in a user uploaded video. We'll stream the results from the server using the new video streaming features introduced in Gradio 5.0.
 
 ## Setting up the Model
 
@@ -12,7 +11,7 @@ First, we'll install the following requirements in our system:
 ```
 opencv-python
 torch
-transformers
+transformers>=4.43.0
 spaces
 ```
 
@@ -25,7 +24,7 @@ image_processor = RTDetrImageProcessor.from_pretrained("PekingU/rtdetr_r50vd")
 model = RTDetrForObjectDetection.from_pretrained("PekingU/rtdetr_r50vd").to("cuda")
 ```
 
-We're moving the model to the GPU. We'll be deploying our model to Hugging Face Spaces and running the inference in the free ZeroGPU cluster. 
+We're moving the model to the GPU. We'll be deploying our model to Hugging Face Spaces and running the inference in the [free ZeroGPU cluster](https://huggingface.co/zero-gpu-explorers). 
 
 
 ## The Inference Function
@@ -112,9 +111,9 @@ def stream_object_detection(video, conf_threshold):
         n_frames += 1
 ```
 
-1. The OpenCV set-up
+1. **Reading from the Webcam**
 
-One of the industry standards for creating videos in python is OpenCV. The syntax is a bit confusing but it's speed and popularity make it a good choice for any application.
+One of the industry standards for creating videos in python is OpenCV so we will use it in this video.
 
 The `cap` variable is how we will read from the input video. Whenever we call `cap.read()`, we are reading the next frame in the video.
 
@@ -122,9 +121,9 @@ In order to stream video in Gradio, we need to yield a different video file for 
 We create the next video file to write to with the `output_video = cv2.VideoWriter(output_video_name, video_codec, desired_fps, (width, height))` line. The `video_codec` is how we specify the type of video file. Only "mp4" and "ts" files are supported for video sreaming at the moment.
 
 
-2. The Inference Loop
+2. **The Inference Loop**
 
-For each frame in the video we will resize to be half the size. OpenCV reads files in `BGR` format, so will convert to the expected `RGB` format of transfomers. That's what the first two lines of the while loop are doing. 
+For each frame in the video, we will resize it to be half the size. OpenCV reads files in `BGR` format, so will convert to the expected `RGB` format of transfomers. That's what the first two lines of the while loop are doing. 
 
 We take every other frame and add it to a `batch` list so that the output video is half the original FPS. When the batch covers two seconds of video, we will run the model. The two second threshold was chosen to keep the processing time of each batch small enough so that video is smoothly displayed in the server while not requiring too many separate forward passes. In order for video streaming to work properly in Gradio, the batch size should be at least 1 second. 
 
@@ -147,15 +146,9 @@ with gr.Blocks() as app:
     gr.HTML(
         """
     <h1 style='text-align: center'>
-    Video Object Detection with RT-DETR
+    Video Object Detection with <a href='https://huggingface.co/PekingU/rtdetr_r101vd_coco_o365' target='_blank'>RT-DETR</a>
     </h1>
     """)
-    gr.HTML(
-        """
-        <h3 style='text-align: center'>
-        <a href='https://arxiv.org/abs/2304.08069' target='_blank'>arXiv</a> | <a href='https://huggingface.co/PekingU/rtdetr_r101vd_coco_o365' target='_blank'>github</a>
-        </h3>
-        """)
     with gr.Row():
         with gr.Column():
             video = gr.Video(label="Video Source")

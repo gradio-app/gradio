@@ -1,4 +1,4 @@
 safetensors==0.4.3
 opencv-python
 torch
-transformers
+transformers>=4.43.0
