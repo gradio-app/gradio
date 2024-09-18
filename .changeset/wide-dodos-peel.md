@@ -1,5 +1,4 @@
 ---
-"@gradio/button": minor
 "@gradio/core": minor
 "@gradio/image": minor
 "@gradio/imageeditor": minor
