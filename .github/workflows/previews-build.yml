@@ -53,7 +53,7 @@ jobs:
       - name: Upload Lite NPM package
         uses: actions/upload-artifact@v4
         with:
-          name: gradio-lite-${{ github.sha }}
+          name: gradio-lite-tar
           path: js/lite/gradio-lite-*.tgz
       - name: install deps
         run: python -m pip install build
