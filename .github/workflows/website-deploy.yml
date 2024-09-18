@@ -77,7 +77,7 @@ jobs:
         id: output_url
         shell: bash
         run: echo "vercel_url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website)" >> $GITHUB_OUTPUT
-
+      
       - name: Deploy Preview Website to Cloudflare Pages
         if: needs.changes.outputs.pr_number != 'false'
         id: cloudflare-preview
@@ -85,7 +85,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy js/_website/.vercel/output/static --project-name=gradio-website --branch=${{ needs.changes.outputs.source_branch#refs/heads/ }}
+          command: pages deploy js/_website/.vercel/output/static --project-name=gradio-website command: pages deploy js/_website/.vercel/output/static --project-name=gradio-website --branch=${${{ needs.changes.outputs.source_branch }}#refs/heads/}
+
         # production
       - name: Pull Vercel Environment Information
         if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
