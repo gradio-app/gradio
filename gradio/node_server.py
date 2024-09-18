@@ -83,7 +83,6 @@ def start_node_process(
 
     for port in server_ports:
         try:
-
             # The fastest way to check if a port is available is to try to bind to it with socket.
             # If the port is not available, socket will throw an OSError.
             s = socket.socket()
