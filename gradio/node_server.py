@@ -49,15 +49,18 @@ def start_node_server(
     else:
         host = server_name
 
-    # we need two ports for the server and the node server
-    server_port = server_port + 1 if server_port is not None else INITIAL_PORT_VALUE + 1
+    server_ports = (
+        [server_port]
+        if server_port is not None
+        else range(INITIAL_PORT_VALUE + 1, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
+    )
 
+    print(f"Ports: {server_ports}...")
     if not spa_mode:
         (node_process, node_port) = start_node_process(
             node_path=node_path or os.getenv("GRADIO_NODE_PATH"),
             server_name=host,
-            initial_port=server_port,
-            num_ports=TRY_NUM_PORTS,
+            server_ports=server_ports,
         )
 
     return server_name, node_process, node_port
@@ -70,8 +73,7 @@ SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
 def start_node_process(
     node_path: str,
     server_name: str,
-    initial_port: int,
-    num_ports: int,
+    server_ports: list[int],
 ):
     if GRADIO_LOCAL_DEV_MODE:
         return (None, 9876)
@@ -80,15 +82,22 @@ def start_node_process(
 
     node_process = None
 
-    for attempt in range(num_ports):
+    for port in server_ports:
         try:
-            node_port = find_available_port(
-                initial_port=initial_port + attempt, num_ports=1, host=LOCALHOST_NAME
-            )
+
+            # The fastest way to check if a port is available is to try to bind to it with socket.
+            # If the port is not available, socket will throw an OSError.
+            s = socket.socket()
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # Really, we should be checking if (server_name, server_port) is available, but
+            # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
+            # Instead, we just check if the port is available on localhost.
+            s.bind((server_name, port))
+            s.close()
 
             # Set environment variables for the Node server
             env = os.environ.copy()
-            env["PORT"] = str(node_port)
+            env["PORT"] = str(port)
             env["HOST"] = server_name
 
             node_process = subprocess.Popen(
@@ -98,21 +107,18 @@ def start_node_process(
                 env=env,
             )
 
-            if verify_server_startup(server_name, node_port, timeout=5):
+            if verify_server_startup(server_name, port, timeout=5):
                 signal.signal(
                     signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
                 )
                 signal.signal(signal.SIGINT, lambda _, __: handle_sigterm(node_process))
 
-                return node_process, node_port
+                return node_process, port
 
             else:
                 # If verification failed, terminate the process and try the next port
                 node_process.terminate()
                 node_process.wait(timeout=2)
-                warnings.warn(
-                    f"Node server failed to start on port {node_port}. Trying next port..."
-                )
                 node_process = None
 
         except OSError:
@@ -128,7 +134,7 @@ def start_node_process(
 
     # If all attempts fail
     print(
-        f"Cannot start Node server on any port in the range {initial_port}-{initial_port + num_ports - 1}."
+        f"Cannot start Node server on any port in the range {server_ports[0]}-{server_ports[-1]}."
     )
     print(
         "Please install Node 18 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
@@ -138,31 +144,6 @@ def start_node_process(
     )
 
     return None, None
-
-
-def find_available_port(
-    initial_port: int,
-    num_ports: int,
-    host: str,
-) -> int:
-    """Finds an available port by trying to bind to a range of ports."""
-    for port in range(initial_port, initial_port + num_ports):
-        try:
-            # The fastest way to check if a port is available is to try to bind to it with socket.
-            # If the port is not available, socket will throw an OSError.
-            s = socket.socket()
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # Really, we should be checking if (server_name, server_port) is available, but
-            # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
-            # Instead, we just check if the port is available on localhost.
-            s.bind((host, port))
-            s.close()
-            return port
-        except OSError:
-            continue
-    raise OSError(
-        f"Cannot find an empty port in the range {initial_port}-{initial_port + num_ports - 1}."
-    )
 
 
 def verify_server_startup(host: str, port: int, timeout: float = 5.0) -> bool:
