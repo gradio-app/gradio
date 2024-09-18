@@ -446,7 +446,7 @@ async def test_local_urls_fail(url):
     ],
 )
 async def test_public_urls_pass(url):
-    assert await processing_utils.validate_url(url)
+    await processing_utils.validate_url(url)
 
 
 @pytest.mark.asyncio

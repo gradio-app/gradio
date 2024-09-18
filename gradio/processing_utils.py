@@ -378,17 +378,20 @@ async def ssrf_protected_httpx_download(url: str, cache_dir: str) -> str:
 
                     content_disposition = response.headers.get("Content-Disposition")
                     if content_disposition and "filename=" in content_disposition:
-                        filename = content_disposition.split("filename=")[1].strip('"')
+                        filename = Path(
+                            content_disposition.split("filename=")[1].strip('"')
+                        ).name
+
                     else:
                         filename = client_utils.strip_invalid_filename_characters(
                             Path(url).name
                         )
 
                     filepath = os.path.join(cache_dir, filename)
-                    async with asyncio.Lock():
-                        with open(filepath, "wb") as f:
-                            async for chunk in response.aiter_bytes():
-                                f.write(chunk)
+
+                    with open(filepath, "wb") as f:
+                        async for chunk in response.aiter_bytes():
+                            f.write(chunk)
 
                     return filepath
 
