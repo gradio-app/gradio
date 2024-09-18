@@ -275,8 +275,6 @@ class App(FastAPI):
                 method=request.method, url=url, headers=headers, content=body
             )
 
-        print(response.status_code)
-
         return Response(
             content=response.content,
             status_code=response.status_code,
@@ -334,7 +332,9 @@ class App(FastAPI):
         if App.node_path is None or App.force_spa or App.node_process is not None:
             return
         try:
-            App.node_process = subprocess.Popen([App.node_path, SSR_APP_PATH])
+            App.node_process = subprocess.Popen(
+                [App.node_path, SSR_APP_PATH], stdout=subprocess.PIPE
+            )
         except Exception as e:
             warnings.warn(f"Failed to start node server: {e}")
 
@@ -372,8 +372,6 @@ class App(FastAPI):
 
         app.configure_app(blocks)
 
-        print(App.node_path)
-
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
 
@@ -383,7 +381,6 @@ class App(FastAPI):
 
             @app.middleware("http")
             async def conditional_routing_middleware(request: Request, call_next):
-                print(request.url)
                 if (
                     App.node_path is not None
                     and not request.url.path.startswith("/gradio_api")
@@ -1384,7 +1381,6 @@ class App(FastAPI):
         @router.get("/theme.css", response_class=PlainTextResponse)
         @app.get("/theme.css", response_class=PlainTextResponse)
         def theme_css():
-            print("GETTING THEME")
             return PlainTextResponse(app.get_blocks().theme_css, media_type="text/css")
 
         @app.get("/robots.txt", response_class=PlainTextResponse)

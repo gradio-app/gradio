@@ -53,7 +53,6 @@
 		test: string | ((node: Node | HTMLElement) => boolean),
 		callback: (node: Node | HTMLElement) => void
 	): void {
-		console.log(node?.nodeName);
 		if (
 			node &&
 			((typeof test === "string" && node.nodeName === test) ||
@@ -75,15 +74,6 @@
 			return false;
 		}
 	};
-
-	// DOMPurify.addHook("afterSanitizeAttributes", function (node) {
-	// 	if ("target" in node) {
-	// 		if (is_external_url(node.getAttribute("href"))) {
-	// 			node.setAttribute("target", "_blank");
-	// 			node.setAttribute("rel", "noopener noreferrer");
-	// 		}
-	// 	}
-	// });
 
 	function escapeRegExp(string: string): string {
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -124,9 +114,6 @@
 
 	$: if (message && message.trim()) {
 		html = process_message(message);
-		console.log("BEFORE:", message);
-		console.log("AFTER:", html);
-		console.log("===");
 	} else {
 		html = "";
 	}

@@ -65,7 +65,6 @@
 
 	$_layout = initial_layout;
 
-	// console.log($_layout);
 	$: components, layout, dependencies, root, app, fill_height, target, run();
 
 	$: {
@@ -557,10 +556,7 @@
 	const is_external_url = (link: string | null): boolean =>
 		!!(link && new URL(link, location.href).origin !== location.origin);
 
-	// $: initial_layout, console.log("++initial_layout++");
-
 	async function handle_mount(): Promise<void> {
-		// console.log("HANDLE_MOUNT", $targets);
 		if (js) {
 			let blocks_frontend_fn = new AsyncFunction(
 				`let result = await (${js})();
@@ -591,8 +587,6 @@
 
 		if (!target || render_complete) return;
 
-		console.log("ADDING", "target", target);
-
 		target.addEventListener("prop_change", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 			const { id, prop, value } = e.detail;
@@ -605,7 +599,6 @@
 			}
 		});
 		target.addEventListener("gradio", (e: Event) => {
-			console.log("GOT GRADIO EVENT", e, dependencies, $targets);
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 
 			const { id, event, data } = e.detail;

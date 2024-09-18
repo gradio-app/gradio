@@ -406,8 +406,6 @@
 	onDestroy(() => {
 		spaceheader?.remove();
 	});
-
-	// $: console.log({ layout: data.layout });
 </script>
 
 <svelte:head>

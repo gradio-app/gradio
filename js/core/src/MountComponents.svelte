@@ -16,8 +16,6 @@
 	onMount(() => {
 		dispatch("mount");
 	});
-
-	// console.log("MOUNT COMPONENTS", { rootNode, target });
 </script>
 
 <Render

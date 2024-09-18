@@ -806,9 +806,7 @@ class CustomCORSMiddleware:
         host = request_headers["Host"]
         host_name = get_hostname(host)
         origin_name = get_hostname(origin)
-        print(
-            f"host_name: {host_name}, origin_name: {origin_name}, origin: {origin}, host: {host}"
-        )
+
         return (
             host_name not in self.localhost_aliases
             or origin_name in self.localhost_aliases
@@ -917,7 +915,9 @@ class MediaStream:
 
 
 def get_node_path():
-    print("Checking for node path")
+    env_node_path = os.environ.get("GRADIO_NODE_PATH")
+    if env_node_path:
+        return env_node_path
     try:
         # On Windows, try using 'where' command
         if sys.platform == "win32":
@@ -963,4 +963,8 @@ def get_node_path():
             return full_path
 
     # Node not found
+    print("Unable to find node install path, falling back to SPA mode.")
+    print(
+        "If you wish to use the node backend, please install node 18 and/ or set the path with the GRADIO_NODE_PATH environment variable."
+    )
     return None

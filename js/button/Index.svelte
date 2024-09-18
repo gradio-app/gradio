@@ -36,7 +36,7 @@
 	{min_width}
 	{visible}
 	disabled={!interactive}
-	on:click={() => (console.log("clicked", gradio), gradio.dispatch("click"))}
+	on:click={() => gradio.dispatch("click")}
 >
 	{value ? gradio.i18n(value) : ""}
 </Button>
