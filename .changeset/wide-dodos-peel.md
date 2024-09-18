@@ -4,6 +4,7 @@
 "@gradio/imageeditor": minor
 "@gradio/markdown": minor
 "@gradio/statustracker": minor
+"@gradio/upload": minor
 "@gradio/utils": minor
 "@self/app": minor
 "@self/build": minor
