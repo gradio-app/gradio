@@ -15,7 +15,7 @@
 		type SvelteComponent,
 		type ComponentType,
 		tick,
-		onMount,
+		onMount
 	} from "svelte";
 	import { Image } from "@gradio/image/shared";
 
@@ -67,7 +67,7 @@
 	$: load_components(get_components_from_messages(value));
 
 	function get_components_from_messages(
-		messages: NormalisedMessage[] | null,
+		messages: NormalisedMessage[] | null
 	): string[] {
 		if (!messages) return [];
 		let components: Set<string> = new Set();
@@ -176,11 +176,11 @@
 
 	function handle_suggestion_select(
 		i: number,
-		suggestion: SuggestionMessage,
+		suggestion: SuggestionMessage
 	): void {
 		dispatch("suggestion_select", {
 			index: i,
-			value: { text: suggestion.text, files: suggestion.files },
+			value: { text: suggestion.text, files: suggestion.files }
 		});
 	}
 
@@ -201,14 +201,14 @@
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
 			index: message.index,
-			value: message.content,
+			value: message.content
 		});
 	}
 
 	function handle_like(
 		i: number,
 		message: NormalisedMessage,
-		selected: string | null,
+		selected: string | null
 	): void {
 		if (selected === "undo" || selected === "retry") {
 			const val_ = value as NormalisedMessage[];
@@ -229,7 +229,7 @@
 			dispatch("like", {
 				index: message.index,
 				value: message.content,
-				liked: selected === "like",
+				liked: selected === "like"
 			});
 		} else {
 			if (!groupedMessages) return;
@@ -237,13 +237,13 @@
 			const message_group = groupedMessages[i];
 			const [first, last] = [
 				message_group[0],
-				message_group[message_group.length - 1],
+				message_group[message_group.length - 1]
 			];
 
 			dispatch("like", {
 				index: [first.index, last.index] as [number, number],
 				value: message_group.map((m) => m.content),
-				liked: selected === "like",
+				liked: selected === "like"
 			});
 		}
 	}
@@ -267,7 +267,7 @@
 	}
 
 	function group_messages(
-		messages: NormalisedMessage[],
+		messages: NormalisedMessage[]
 	): NormalisedMessage[][] {
 		const groupedMessages: NormalisedMessage[][] = [];
 		let currentGroup: NormalisedMessage[] = [];
@@ -310,7 +310,7 @@
 						// @ts-ignore
 						const formatted = await format_chat_for_sharing(value);
 						dispatch("share", {
-							description: formatted,
+							description: formatted
 						});
 					} catch (e) {
 						console.error(e);

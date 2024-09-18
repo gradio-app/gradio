@@ -25,7 +25,13 @@ from gradio.components import (
     Textbox,
     get_component_instance,
 )
-from gradio.components.chatbot import FileDataDict, Message, MessageDict, SuggestionMessage, TupleFormat
+from gradio.components.chatbot import (
+    FileDataDict,
+    Message,
+    MessageDict,
+    SuggestionMessage,
+    TupleFormat,
+)
 from gradio.components.multimodal_textbox import MultimodalPostprocess
 from gradio.events import Dependency, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812

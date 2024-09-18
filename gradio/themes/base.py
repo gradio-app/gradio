@@ -1714,7 +1714,9 @@ class Base(ThemeClass):
             self, "button_shadow_hover", "none"
         )
         self.button_transition = button_transition or getattr(
-            self, "button_transition", "background-color 0.3s ease, border-color 0.3s ease"
+            self,
+            "button_transition",
+            "background-color 0.3s ease, border-color 0.3s ease",
         )
 
         self.button_large_padding = button_large_padding or getattr(
