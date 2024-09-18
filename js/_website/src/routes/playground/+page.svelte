@@ -127,17 +127,11 @@
 					>
 				</div>
 				{#if show_nav}
-					<!-- <button
-						on:click={() => (current_selection = "Ask AI")}
-						class:current-playground-demo={current_selection == "Ask AI"}
-						class:shared-link={shared == "Ask AI"}
-						class="thin-link font-light px-4 mt-2 block">Ask AI<sup class="text-orange-500">NEW</sup></button
-					> -->
 					<button
 						on:click={() => (current_selection = "Blank")}
 						class:current-playground-demo={current_selection == "Blank"}
 						class:shared-link={shared == "Blank"}
-						class="mt-2 mx-4 mr-2 inline-block block bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit hover:shadow"
+						class="mt-2 mx-4 mr-2 block bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit hover:shadow"
 						href="./storybook"
 					>
 						Ask AI &rarr;

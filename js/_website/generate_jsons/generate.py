@@ -106,8 +106,4 @@ with open(make_dir(WEBSITE_DIR, "src/lib/json/system_prompt.json"), "w+") as f:
         f,
     )
 
-# print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-# print(SYSTEM_PROMPT_8K)
-# print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-
 print("JSON generated! " + make_dir(WEBSITE_DIR, "src/lib/json/"))

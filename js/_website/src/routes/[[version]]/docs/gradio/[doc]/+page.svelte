@@ -117,12 +117,6 @@
 	canonical={$page.url.pathname}
 	description={"Gradio docs for using " + all_headers.page_title.title}
 />
-<!-- <svelte:head>
-	<link
-		rel="stylesheet"
-		href="https://gradio-docs-json.s3.us-west-2.amazonaws.com/lite-latest-wheel/dist/lite.css"
-	/>
-</svelte:head> -->
 <svelte:window bind:scrollY={y} />
 
 <main class="container mx-auto px-4 flex flex-col gap-4">

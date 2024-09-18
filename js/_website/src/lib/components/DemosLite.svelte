@@ -19,7 +19,6 @@
 	let compare = false;
 
 	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5174/api/generate";
 	let model_info = "";
 
 	async function* streamFromWorker(
@@ -366,11 +365,6 @@
 		};
 		return launch_code.replace(pattern, replacement);
 	};
-
-	// Example usage:
-	console.log(addShowErrorToLaunch(".launch()"));
-	console.log(addShowErrorToLaunch(".launch(width=800, height=600)"));
-	console.log(addShowErrorToLaunch(".launch(show_error=False)"));
 
 	let old_answer = "";
 
