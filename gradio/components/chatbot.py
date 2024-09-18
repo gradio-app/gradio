@@ -141,7 +141,7 @@ class Chatbot(Component):
             | None
         ) = None,
         *,
-        format: Literal["messages", "tuples"] | None = None,
+        type: Literal["messages", "tuples"] | None = None,
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -174,7 +174,7 @@ class Chatbot(Component):
         """
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            format: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
+            type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -205,23 +205,23 @@ class Chatbot(Component):
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
         """
         self.likeable = likeable
-        if format is None:
+        if type is None:
             warnings.warn(
-                "You have not specified a value for the `format` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set format='messages' instead, which uses openai-style 'role' and 'content' keys.",
+                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
                 UserWarning,
             )
-            format = "tuples"
-        elif format == "tuples":
+            type = "tuples"
+        elif type == "tuples":
             warnings.warn(
-                "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version of Gradio. Please set format='messages' instead, which uses openai-style 'role' and 'content' keys.",
+                "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
                 UserWarning,
             )
-        if format not in ["messages", "tuples"]:
+        if type not in ["messages", "tuples"]:
             raise ValueError(
-                f"The `format` parameter must be 'messages' or 'tuples', received: {format}"
+                f"The `type` parameter must be 'messages' or 'tuples', received: {type}"
             )
-        self.format: Literal["tuples", "messages"] = format
-        if self.format == "messages":
+        self.type: Literal["tuples", "messages"] = type
+        if self.type == "messages":
             self.data_model = ChatbotDataMessages
         else:
             self.data_model = ChatbotDataTuples
@@ -365,7 +365,7 @@ class Chatbot(Component):
         """
         if payload is None:
             return payload
-        if self.format == "tuples":
+        if self.type == "tuples":
             if not isinstance(payload, ChatbotDataTuples):
                 raise Error("Data incompatible with the tuples format")
             return self._preprocess_messages_tuples(cast(ChatbotDataTuples, payload))
@@ -480,7 +480,7 @@ class Chatbot(Component):
         )
         if value is None:
             return data_model(root=[])
-        if self.format == "tuples":
+        if self.type == "tuples":
             self._check_format(value, "tuples")
             return self._postprocess_messages_tuples(cast(TupleFormat, value))
         self._check_format(value, "messages")
@@ -491,7 +491,7 @@ class Chatbot(Component):
         return ChatbotDataMessages(root=processed_messages)
 
     def example_payload(self) -> Any:
-        if self.format == "messages":
+        if self.type == "messages":
             return [
                 Message(role="user", content="Hello!").model_dump(),
                 Message(role="assistant", content="How can I help you?").model_dump(),
@@ -499,7 +499,7 @@ class Chatbot(Component):
         return [["Hello!", None]]
 
     def example_value(self) -> Any:
-        if self.format == "messages":
+        if self.type == "messages":
             return [
                 Message(role="user", content="Hello!").model_dump(),
                 Message(role="assistant", content="How can I help you?").model_dump(),
