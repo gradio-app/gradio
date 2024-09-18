@@ -60,7 +60,6 @@ from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
-from starlette.middleware import Middleware
 from starlette.responses import RedirectResponse, StreamingResponse
 
 import gradio
@@ -392,7 +391,6 @@ class App(FastAPI):
                     and not request.url.path.startswith("/theme")
                 ):
                     try:
-
                         return await App.proxy_to_node(request, NODE_PORT)
                     except Exception as e:
                         print(e)
@@ -472,9 +470,7 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (
-                callable(app.auth) and app.auth.__call__(username, password)
-            ):  # type: ignore
+            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
