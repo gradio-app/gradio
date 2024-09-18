@@ -7,7 +7,6 @@
 	import { onMount } from "svelte";
 
 	import type { TopLevelSpec as Spec } from "vega-lite";
-	import vegaEmbed from "vega-embed";
 	import type { View } from "vega";
 	import { LineChart as LabelIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
@@ -47,7 +46,7 @@
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	function reformat_sort(
-		_sort: typeof sort
+		_sort: typeof sort,
 	):
 		| string
 		| "ascending"
@@ -89,7 +88,7 @@
 		s: 1,
 		m: 60,
 		h: 60 * 60,
-		d: 24 * 60 * 60
+		d: 24 * 60 * 60,
 	};
 	$: _x_bin = x_bin
 		? typeof x_bin === "string"
@@ -120,7 +119,7 @@
 		return data.data.map((row) => {
 			const obj = {
 				[x]: row[x_index],
-				[y]: row[y_index]
+				[y]: row[y_index],
 			};
 			if (color && color_index !== null) {
 				obj[color] = row[color_index];
@@ -139,7 +138,8 @@
 	let old_width: number;
 	let resizeObserver: ResizeObserver;
 
-	function load_chart(): void {
+	let vegaEmbed: typeof import("vega-embed").default;
+	async function load_chart(): Promise<void> {
 		if (view) {
 			view.finalize();
 		}
@@ -160,6 +160,10 @@
 				view.signal("width", el[0].target.offsetWidth).run();
 			}
 		});
+
+		if (!vegaEmbed) {
+			vegaEmbed = (await import("vega-embed")).default;
+		}
 		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
 
@@ -176,7 +180,7 @@
 						e.preventDefault();
 					}
 				},
-				false
+				false,
 			);
 			if (_selectable) {
 				view.addSignalListener("brush", function (_, value) {
@@ -190,7 +194,7 @@
 						gradio.dispatch("select", {
 							value: range,
 							index: range,
-							selected: true
+							selected: true,
 						});
 					};
 					if (mouse_down_on_chart) {
@@ -200,7 +204,7 @@
 							gradio.dispatch("select", {
 								value: range,
 								index: range,
-								selected: true
+								selected: true,
 							});
 						}, 250);
 					}
@@ -258,11 +262,11 @@
 		let accent_color = computed_style.getPropertyValue("--color-accent");
 		let body_text_color = computed_style.getPropertyValue("--body-text-color");
 		let borderColorPrimary = computed_style.getPropertyValue(
-			"--border-color-primary"
+			"--border-color-primary",
 		);
 		let font_family = computed_style.fontFamily;
 		let title_weight = computed_style.getPropertyValue(
-			"--block-title-text-weight"
+			"--block-title-text-weight",
 		) as
 			| "bold"
 			| "normal"
@@ -279,10 +283,10 @@
 			return font.endsWith("px") ? parseFloat(font.slice(0, -2)) : 12;
 		};
 		let text_size_md = font_to_px_val(
-			computed_style.getPropertyValue("--text-md")
+			computed_style.getPropertyValue("--text-md"),
 		);
 		let text_size_sm = font_to_px_val(
-			computed_style.getPropertyValue("--text-sm")
+			computed_style.getPropertyValue("--text-sm"),
 		);
 
 		/* eslint-disable complexity */
@@ -304,7 +308,7 @@
 					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
 					domain: false,
-					labelAngle: 0
+					labelAngle: 0,
 				},
 				legend: {
 					labelColor: body_text_color,
@@ -314,25 +318,25 @@
 					titleFontWeight: "normal",
 					titleFontSize: text_size_sm,
 					labelFontWeight: "normal",
-					offset: 2
+					offset: 2,
 				},
 				title: {
 					color: body_text_color,
 					font: font_family,
 					fontSize: text_size_md,
 					fontWeight: title_weight,
-					anchor: "middle"
+					anchor: "middle",
 				},
 				view: { stroke: borderColorPrimary },
 				mark: {
 					stroke: value.mark !== "bar" ? accent_color : undefined,
 					fill: value.mark === "bar" ? accent_color : undefined,
-					cursor: "crosshair"
-				}
+					cursor: "crosshair",
+				},
 			},
 			data: { name: "data" },
 			datasets: {
-				data: _data
+				data: _data,
 			},
 			layer: ["plot", ...(value.mark === "line" ? ["hover"] : [])].map(
 				(mode) => {
@@ -345,13 +349,13 @@
 												condition: {
 													empty: false,
 													param: "hoverPlot",
-													value: 3
+													value: 3,
 												},
-												value: 2
+												value: 2,
 											}
 										: {
 												condition: { empty: false, param: "hover", value: 100 },
-												value: 0
+												value: 0,
 											}
 									: undefined,
 							opacity:
@@ -359,7 +363,7 @@
 									? undefined
 									: {
 											condition: { empty: false, param: "hover", value: 1 },
-											value: 0
+											value: 0,
 										},
 							x: {
 								axis: x_label_angle ? { labelAngle: x_label_angle } : {},
@@ -368,7 +372,7 @@
 								type: value.datatypes[x],
 								scale: _x_lim ? { domain: _x_lim } : undefined,
 								bin: _x_bin ? { step: _x_bin } : undefined,
-								sort: _sort
+								sort: _sort,
 							},
 							y: {
 								axis: y_label_angle ? { labelAngle: y_label_angle } : {},
@@ -376,7 +380,7 @@
 								title: y_title || y,
 								type: value.datatypes[y],
 								scale: y_lim ? { domain: y_lim } : undefined,
-								aggregate: aggregating ? _y_aggregate : undefined
+								aggregate: aggregating ? _y_aggregate : undefined,
 							},
 							color: color
 								? {
@@ -388,17 +392,17 @@
 														domain: unique_colors,
 														range: color_map
 															? unique_colors.map((c) => color_map[c])
-															: undefined
+															: undefined,
 													}
 												: {
 														range: [
-															100, 200, 300, 400, 500, 600, 700, 800, 900
+															100, 200, 300, 400, 500, 600, 700, 800, 900,
 														].map((n) =>
-															computed_style.getPropertyValue("--primary-" + n)
+															computed_style.getPropertyValue("--primary-" + n),
 														),
-														interpolate: "hsl"
+														interpolate: "hsl",
 													},
-										type: value.datatypes[color]
+										type: value.datatypes[color],
 									}
 								: undefined,
 							tooltip: [
@@ -406,30 +410,30 @@
 									field: y,
 									type: value.datatypes[y],
 									aggregate: aggregating ? _y_aggregate : undefined,
-									title: y_title || y
+									title: y_title || y,
 								},
 								{
 									field: x,
 									type: value.datatypes[x],
 									title: x_title || x,
 									format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
-									bin: _x_bin ? { step: _x_bin } : undefined
+									bin: _x_bin ? { step: _x_bin } : undefined,
 								},
 								...(color
 									? [
 											{
 												field: color,
-												type: value.datatypes[color]
-											}
+												type: value.datatypes[color],
+											},
 										]
-									: [])
-							]
+									: []),
+							],
 						},
 						strokeDash: {},
 						mark: { clip: true, type: mode === "hover" ? "point" : value.mark },
-						name: mode
+						name: mode,
 					};
-				}
+				},
 			),
 			// @ts-ignore
 			params: [
@@ -442,9 +446,9 @@
 									fields: color ? [color] : [],
 									nearest: true,
 									on: "mouseover",
-									type: "point" as "point"
+									type: "point" as "point",
 								},
-								views: ["hover"]
+								views: ["hover"],
 							},
 							{
 								name: "hover",
@@ -452,10 +456,10 @@
 									clear: "mouseout",
 									nearest: true,
 									on: "mouseover",
-									type: "point" as "point"
+									type: "point" as "point",
 								},
-								views: ["hover"]
-							}
+								views: ["hover"],
+							},
 						]
 					: []),
 				...(_selectable
@@ -465,15 +469,15 @@
 								select: {
 									encodings: ["x"],
 									mark: { fill: "gray", fillOpacity: 0.3, stroke: "none" },
-									type: "interval" as "interval"
+									type: "interval" as "interval",
 								},
-								views: ["plot"]
-							}
+								views: ["plot"],
+							},
 						]
-					: [])
+					: []),
 			],
 			width: chart_element.offsetWidth,
-			title: title || undefined
+			title: title || undefined,
 		};
 		/* eslint-enable complexity */
 	}
