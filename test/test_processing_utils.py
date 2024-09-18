@@ -81,35 +81,25 @@ class TestTempFileManagement:
         url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
         url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
 
-        f = processing_utils.sync_ssrf_protected_httpx_download(
-            url1, cache_dir=gradio_temp_dir
-        )
+        f = processing_utils.save_url_to_cache(url1, cache_dir=gradio_temp_dir)
         try:  # Delete if already exists from before this test
             os.remove(f)
         except OSError:
             pass
 
-        f = processing_utils.sync_ssrf_protected_httpx_download(
-            url1, cache_dir=gradio_temp_dir
-        )
+        f = processing_utils.save_url_to_cache(url1, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
-        f = processing_utils.sync_ssrf_protected_httpx_download(
-            url1, cache_dir=gradio_temp_dir
-        )
+        f = processing_utils.save_url_to_cache(url1, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
-        f = processing_utils.sync_ssrf_protected_httpx_download(
-            url2, cache_dir=gradio_temp_dir
-        )
+        f = processing_utils.save_url_to_cache(url2, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
     @pytest.mark.flaky
     def test_ssrf_protected_httpx_download_with_redirect(self, gradio_temp_dir):
         url = "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png"
-        processing_utils.sync_ssrf_protected_httpx_download(
-            url, cache_dir=gradio_temp_dir
-        )
+        processing_utils.save_url_to_cache(url, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
 

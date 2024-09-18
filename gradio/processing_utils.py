@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urlparse
 
+import aiofiles
 import httpx
 import numpy as np
 from gradio_client import utils as client_utils
@@ -299,9 +300,7 @@ def is_public_ip(ip: str | ipaddress.IPv4Address | ipaddress.IPv6Address) -> boo
 async def resolve_hostname_locally(hostname: str) -> list[str]:
     try:
         loop = asyncio.get_running_loop()
-        addrinfo = await loop.run_in_executor(
-            None, socket.getaddrinfo, hostname, None, socket.AF_UNSPEC
-        )
+        addrinfo = await loop.getaddrinfo(hostname, None, family=socket.AF_UNSPEC)
         return [ip[4][0] for ip in addrinfo]
     except socket.gaierror:
         return []
@@ -407,10 +406,9 @@ async def ssrf_protected_httpx_download(url: str, cache_dir: str) -> str:
 
                     filepath = os.path.join(cache_dir, filename)
 
-                    async with asyncio.Lock():
-                        with open(filepath, "wb") as f:
-                            async for chunk in response.aiter_bytes():
-                                f.write(chunk)
+                    async with aiofiles.open(filepath, "wb") as f:
+                        async for chunk in response.aiter_raw():
+                            await f.write(chunk)
 
                     return filepath
 
@@ -426,8 +424,19 @@ async def ssrf_protected_httpx_download(url: str, cache_dir: str) -> str:
     raise ValueError("Too many redirects")
 
 
-def sync_ssrf_protected_httpx_download(url: str, cache_dir: str) -> str:
-    return asyncio.run(ssrf_protected_httpx_download(url, cache_dir))
+def save_url_to_cache(url: str, cache_dir: str) -> str:
+    try:
+        loop = asyncio.get_event_loop()
+        new_loop = False
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        new_loop = True
+
+    result = loop.run_until_complete(ssrf_protected_httpx_download(url, cache_dir))
+    if new_loop:
+        loop.close()
+    return result
 
 
 def save_base64_to_cache(

@@ -336,7 +336,7 @@ class Block:
             url_or_file_path = str(url_or_file_path)
 
         if client_utils.is_http_url_like(url_or_file_path):
-            temp_file_path = processing_utils.sync_ssrf_protected_httpx_download(
+            temp_file_path = processing_utils.save_url_to_cache(
                 url_or_file_path, cache_dir=self.GRADIO_CACHE
             )
 

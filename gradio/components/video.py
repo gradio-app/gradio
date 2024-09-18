@@ -326,7 +326,7 @@ class Video(StreamingOutput, Component):
         # For cases where the video needs to be converted to another format
         # or have a watermark added.
         if is_url:
-            video = processing_utils.sync_ssrf_protected_httpx_download(
+            video = processing_utils.save_url_to_cache(
                 video, cache_dir=self.GRADIO_CACHE
             )
         if (
