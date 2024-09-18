@@ -196,9 +196,7 @@
 
 	onMount(async () => {
 		try {
-			await loadScript(
-				WHEEL.gradio_lite_url + "/dist/lite.js"	
-			);
+			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
 			controller = createGradioApp({
 				target: document.getElementById("lite-demo"),
 				requirements: [
@@ -381,10 +379,7 @@
 </script>
 
 <svelte:head>
-	<link
-		rel="stylesheet"
-		href="{WHEEL.gradio_lite_url}/dist/lite.css"
-	/>
+	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
 
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>

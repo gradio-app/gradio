@@ -71,10 +71,7 @@
 />
 
 <svelte:head>
-	<script
-		type="module"
-		src="{WHEEL.gradio_lite_url}/dist/lite.js"
-	></script>
+	<script type="module" src="{WHEEL.gradio_lite_url}/dist/lite.js"></script>
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 	<script
 		id="gradio-js-script"
