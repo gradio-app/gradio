@@ -4,6 +4,8 @@ Tags: VISION, STREAMING, VIDEO
 
 In this guide we'll use the [RT-DETR](https://huggingface.co/docs/transformers/en/model_doc/rt_detr) model to detect objects in a user uploaded video. We'll stream the results from the server using the new video streaming features introduced in Gradio 5.0.
 
+![video_object_detection_stream_latest](https://github.com/user-attachments/assets/4e27ac58-5ded-495d-9e0d-5e87e68b1355)
+
 ## Setting up the Model
 
 First, we'll install the following requirements in our system:
