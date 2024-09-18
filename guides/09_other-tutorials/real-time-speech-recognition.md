@@ -14,7 +14,7 @@ This tutorial will show how to take a pretrained speech-to-text model and deploy
 
 Make sure you have the `gradio` Python package already [installed](/getting_started). You will also need a pretrained speech recognition model. In this tutorial, we will build demos from 2 ASR libraries:
 
-- Transformers (for this, `pip install transformers` and `pip install torch`)
+- Transformers (for this, `pip install torch transformers torchaudio`)
 
 Make sure you have at least one of these installed so that you can follow along the tutorial. You will also need `ffmpeg` [installed on your system](https://www.ffmpeg.org/download.html), if you do not already have it, to process files from the microphone.
 
@@ -61,9 +61,7 @@ Take a look below.
 
 $code_stream_asr
 
-Notice now we have a state variable now, because we need to track all the audio history. `transcribe` gets called whenever there is a new small chunk of audio, but we also need to keep track of all the audio that has been spoken so far in state. 
-As the interface runs, the `transcribe` function gets called, with a record of all the previously spoken audio in `stream`, as well as the new chunk of audio as `new_chunk`. We return the new full audio so that can be stored back in state, and we also return the transcription.
-Here we naively append the audio together and simply call the `transcriber` object on the entire audio. You can imagine more efficient ways of handling this, such as re-processing only the last 5 seconds of audio whenever a new chunk of audio received. 
+Notice that we now have a state variable because we need to track all the audio history. `transcribe` gets called whenever there is a new small chunk of audio, but we also need to keep track of all the audio spoken so far in the state. As the interface runs, the `transcribe` function gets called, with a record of all the previously spoken audio in the `stream` and the new chunk of audio as `new_chunk`. We return the new full audio to be stored back in its current state, and we also return the transcription. Here, we naively append the audio together and call the `transcriber` object on the entire audio. You can imagine more efficient ways of handling this, such as re-processing only the last 5 seconds of audio whenever a new chunk of audio is received. 
 
 $demo_stream_asr
 

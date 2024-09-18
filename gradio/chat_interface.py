@@ -25,17 +25,11 @@ from gradio.components import (
     Textbox,
     get_component_instance,
 )
-from gradio.components.chatbot import (
-    FileDataDict,
-    Message,
-    MessageDict,
-    SuggestionMessage,
-    TupleFormat,
-)
-from gradio.components.multimodal_textbox import MultimodalData
-from gradio.events import Dependency, SelectData, on
+from gradio.components.chatbot import FileDataDict, Message, MessageDict, SuggestionMessage, TupleFormat
+from gradio.components.multimodal_textbox import MultimodalPostprocess
+from gradio.events import Dependency, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
-from gradio.helpers import special_args
+from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
@@ -268,6 +262,7 @@ class ChatInterface(Blocks):
             self.chatbot_state = (
                 State(self.chatbot.value) if self.chatbot.value else State([])
             )
+            self.previous_input = State(value=[])
             self.show_progress = show_progress
             self._setup_events()
             self._setup_api()
@@ -277,14 +272,12 @@ class ChatInterface(Blocks):
         submit_triggers = [self.textbox.submit]
 
         submit_event = (
-            on(
-                submit_triggers,
+            self.textbox.submit(
                 self._clear_and_save_textbox,
-                [self.textbox],
-                [self.textbox, self.saved_input],
+                [self.textbox, self.previous_input],
+                [self.textbox, self.saved_input, self.previous_input],
                 show_api=False,
                 queue=False,
-                preprocess=False,
             )
             .then(
                 self._display_input,
@@ -304,6 +297,12 @@ class ChatInterface(Blocks):
                 show_progress=cast(
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
+            )
+            .then(
+                lambda: update(value=None, interactive=True),
+                None,
+                self.textbox,
+                show_api=False,
             )
         )
 
@@ -338,6 +337,11 @@ class ChatInterface(Blocks):
                 queue=False,
             )
             .then(
+                lambda: update(interactive=False, placeholder=""),
+                outputs=[self.textbox],
+                show_api=False,
+            )
+            .then(
                 self._display_input,
                 [self.saved_input, self.chatbot],
                 [self.chatbot],
@@ -356,25 +360,18 @@ class ChatInterface(Blocks):
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
             )
+            .then(
+                lambda: update(interactive=True),
+                outputs=[self.textbox],
+                show_api=False,
+            )
         )
         self._setup_stop_events([self.chatbot.retry], retry_event)
 
-        async def format_textbox(data: str | MultimodalData) -> str | dict:
-            if isinstance(data, MultimodalData):
-                return {"text": data.text, "files": [x.path for x in data.files]}
-            else:
-                return data
-
         self.chatbot.undo(
-            self._delete_prev_fn,
-            [self.saved_input, self.chatbot],
-            [self.chatbot, self.saved_input],
-            show_api=False,
-            queue=False,
-        ).then(
-            format_textbox,
-            [self.saved_input],
-            [self.textbox],
+            self._undo_msg,
+            [self.previous_input, self.chatbot],
+            [self.chatbot, self.textbox, self.saved_input, self.previous_input],
             show_api=False,
             queue=False,
         )
@@ -460,44 +457,62 @@ class ChatInterface(Blocks):
         )
 
     def _clear_and_save_textbox(
-        self, message: str | dict
-    ) -> tuple[str | dict, str | MultimodalData]:
+        self,
+        message: str | MultimodalPostprocess,
+        previous_input: list[str | MultimodalPostprocess],
+    ) -> tuple[
+        Textbox | MultimodalTextbox,
+        str | MultimodalPostprocess,
+        list[str | MultimodalPostprocess],
+    ]:
         if self.multimodal:
-            return {"text": "", "files": []}, MultimodalData(**cast(dict, message))
+            previous_input += [message]
+            return (
+                MultimodalTextbox("", interactive=False, placeholder=""),
+                message,
+                previous_input,
+            )
         else:
-            return "", cast(str, message)
+            previous_input += [message]
+            return (
+                Textbox("", interactive=False, placeholder=""),
+                message,
+                previous_input,
+            )
 
     def _append_multimodal_history(
         self,
-        message: MultimodalData,
+        message: MultimodalPostprocess,
         response: MessageDict | str | None,
         history: list[MessageDict] | TupleFormat,
     ):
         if self.type == "tuples":
-            for x in message.files:
-                history.append([(x.path,), None])  # type: ignore
-            if message.text is None or not isinstance(message.text, str):
+            for x in message["files"]:
+                history.append([(x,), None])  # type: ignore
+            if message["text"] is None or not isinstance(message["text"], str):
                 return
-            elif message.text == "" and message.files != []:
+            elif message["text"] == "" and message["files"] != []:
                 history.append([None, response])  # type: ignore
             else:
-                history.append([message.text, cast(str, response)])  # type: ignore
+                history.append([message["text"], cast(str, response)])  # type: ignore
         else:
-            for x in message.files:
+            for x in message["files"]:
                 history.append(
                     {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
                 )
-            if message.text is None or not isinstance(message.text, str):
+            if message["text"] is None or not isinstance(message["text"], str):
                 return
             else:
-                history.append({"role": "user", "content": message.text})  # type: ignore
+                history.append({"role": "user", "content": message["text"]})  # type: ignore
             if response:
                 history.append(cast(MessageDict, response))  # type: ignore
 
     async def _display_input(
-        self, message: str | MultimodalData, history: TupleFormat | list[MessageDict]
+        self,
+        message: str | MultimodalPostprocess,
+        history: TupleFormat | list[MessageDict],
     ) -> tuple[TupleFormat, TupleFormat] | tuple[list[MessageDict], list[MessageDict]]:
-        if self.multimodal and isinstance(message, MultimodalData):
+        if self.multimodal and isinstance(message, dict):
             self._append_multimodal_history(message, None, history)
         elif isinstance(message, str) and self.type == "tuples":
             history.append([message, None])  # type: ignore
@@ -516,17 +531,15 @@ class ChatInterface(Blocks):
 
     def _process_msg_and_trim_history(
         self,
-        message: str | MultimodalData,
+        message: str | MultimodalPostprocess,
         history_with_input: TupleFormat | list[MessageDict],
-    ) -> tuple[str | dict, TupleFormat | list[MessageDict]]:
-        if isinstance(message, MultimodalData):
-            remove_input = len(message.files) + int(message.text is not None)
+    ) -> tuple[str | MultimodalPostprocess, TupleFormat | list[MessageDict]]:
+        if isinstance(message, dict):
+            remove_input = len(message["files"]) + int(message["text"] is not None)
             history = history_with_input[:-remove_input]
-            message_serialized = message.model_dump()
         else:
             history = history_with_input[:-1]
-            message_serialized = message
-        return message_serialized, history
+        return message, history
 
     def _append_history(self, history, message, first_response=True):
         if self.type == "tuples":
@@ -540,7 +553,7 @@ class ChatInterface(Blocks):
 
     async def _submit_fn(
         self,
-        message: str | MultimodalData,
+        message: str | MultimodalPostprocess,
         history_with_input: TupleFormat | list[MessageDict],
         request: Request,
         *args,
@@ -564,7 +577,7 @@ class ChatInterface(Blocks):
 
     async def _stream_fn(
         self,
-        message: str | MultimodalData,
+        message: str | MultimodalPostprocess,
         history_with_input: TupleFormat | list[MessageDict],
         request: Request,
         *args,
@@ -643,21 +656,28 @@ class ChatInterface(Blocks):
 
     async def _delete_prev_fn(
         self,
-        message: str | MultimodalData | None,
+        message: str | MultimodalPostprocess | None,
         history: list[MessageDict] | TupleFormat,
-    ) -> tuple[
-        list[MessageDict] | TupleFormat,
-        str | MultimodalData,
-        list[MessageDict] | TupleFormat,
-    ]:
+    ) -> tuple[list[MessageDict] | TupleFormat, str | MultimodalPostprocess]:
         extra = 1 if self.type == "messages" else 0
-        if self.multimodal and isinstance(message, MultimodalData):
+        if self.multimodal and isinstance(message, dict):
             remove_input = (
-                len(message.files) + 1
-                if message.text is not None
-                else len(message.files)
+                len(message["files"]) + 1
+                if message["text"] is not None
+                else len(message["files"])
             ) + extra
             history = history[:-remove_input]
         else:
             history = history[: -(1 + extra)]
         return history, message or ""  # type: ignore
+
+    async def _undo_msg(
+        self,
+        previous_input: list[str | MultimodalPostprocess],
+        history: list[MessageDict] | TupleFormat,
+    ):
+        msg = previous_input.pop()
+
+        history, msg = await self._delete_prev_fn(msg, history)
+        previous_msg = previous_input[-1] if len(previous_input) else msg
+        return history, msg, previous_msg, previous_input

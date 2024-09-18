@@ -14,11 +14,7 @@
 
 ### Dependency updates
 
-<<<<<<< HEAD
 - @gradio/atoms@0.8.1-beta.0
-=======
-- @gradio/atoms@0.8.1
->>>>>>> main
 
 ## 0.1.24
 

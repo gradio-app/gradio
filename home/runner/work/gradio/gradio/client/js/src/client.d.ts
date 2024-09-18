@@ -20,7 +20,6 @@ export declare class Client {
     heartbeat_event: EventSource | null;
     abort_controller: AbortController | null;
     stream_instance: EventSource | null;
-    current_payload: any;
     fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
     stream(url: URL): EventSource;
     view_api: () => Promise<ApiInfo<JsApiData>>;
@@ -38,7 +37,6 @@ export declare class Client {
     _resolve_hearbeat(_config: Config): Promise<void>;
     static connect(app_reference: string, options?: ClientOptions): Promise<Client>;
     close(): void;
-    set_current_payload(payload: any): void;
     static duplicate(app_reference: string, options?: DuplicateOptions): Promise<Client>;
     private _resolve_config;
     private config_success;
