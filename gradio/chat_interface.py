@@ -34,6 +34,7 @@ from gradio.components.chatbot import (
 )
 from gradio.components.multimodal_textbox import MultimodalData
 from gradio.events import Dependency, SelectData, on
+from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args
 from gradio.layouts import Accordion, Group, Row
 from gradio.routes import Request
@@ -140,9 +141,11 @@ class ChatInterface(Blocks):
         ) or inspect.isasyncgenfunction(self.fn)
 
         self.examples = examples
+        self.cache_examples = cache_examples
 
-        if cache_examples is not None:
-            raise NotImplementedError()  # TODO: needs to be implemented
+        # if cache_examples is not None:
+        #     raise NotImplementedError()  # TODO: needs to be implemented
+
         if additional_inputs:
             if not isinstance(additional_inputs, list):
                 additional_inputs = [additional_inputs]
@@ -230,6 +233,24 @@ class ChatInterface(Blocks):
                 self.fake_api_btn = Button("Fake API", visible=False)
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
 
+            if examples:
+                if self.is_generator:
+                    examples_fn = self._examples_stream_fn
+                else:
+                    examples_fn = self._examples_fn
+
+                self.examples_handler = Examples(
+                    examples=examples,
+                    inputs=[self.textbox] + self.additional_inputs,
+                    outputs=self.chatbot,
+                    fn=examples_fn,
+                    cache_examples=self.cache_examples,
+                    _defer_caching=True,
+                    visible=False,
+                    preprocess=False,
+                    postprocess=True,
+                )
+
             any_unrendered_inputs = any(
                 not inp.is_rendered for inp in self.additional_inputs
             )
@@ -238,6 +259,10 @@ class ChatInterface(Blocks):
                     for input_component in self.additional_inputs:
                         if not input_component.is_rendered:
                             input_component.render()
+
+            # The example caching must happen after the input components have rendered
+            if examples:
+                self.examples_handler._start_caching()
 
             self.saved_input = State()
             self.chatbot_state = (
@@ -283,20 +308,25 @@ class ChatInterface(Blocks):
         )
 
         if isinstance(self.chatbot, Chatbot):
-            self.chatbot.suggestion_select(
-                self._examples_fn, [self.chatbot], [self.chatbot]
-            ).then(
-                submit_fn,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
-                show_api=False,
-                concurrency_limit=cast(
-                    Union[int, Literal["default"], None], self.concurrency_limit
-                ),
-                show_progress=cast(
-                    Literal["full", "minimal", "hidden"], self.show_progress
-                ),
-            )
+            if self.cache_examples:
+                self.chatbot.suggestion_select(
+                    self.suggestion_clicked, [self.chatbot], [self.chatbot]
+                )
+            else:
+                self.chatbot.suggestion_select(
+                    self.suggestion_clicked, [self.chatbot], [self.chatbot]
+                ).then(
+                    submit_fn,
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot],
+                    show_api=False,
+                    concurrency_limit=cast(
+                        Union[int, Literal["default"], None], self.concurrency_limit
+                    ),
+                    show_progress=cast(
+                        Literal["full", "minimal", "hidden"], self.show_progress
+                    ),
+                )
         self._setup_stop_events(submit_triggers, submit_event)
 
         retry_event = (
@@ -563,12 +593,32 @@ class ChatInterface(Blocks):
             self._append_history(history_with_input, response, first_response=False)
             yield history_with_input
 
-    async def _examples_fn(self, x: SelectData, history):
+    def suggestion_clicked(self, x: SelectData, history):
+        if self.cache_examples:
+            return self.examples_handler.load_from_cache(x.index)[0].root
         message = MultimodalData(**cast(dict, x.value))
         self.saved_input.value = message
         if self.multimodal:
             self._append_multimodal_history(message, None, history)
         return history
+
+    async def _examples_fn(
+        self, message: SuggestionMessage, *args
+    ) -> TupleFormat | list[MessageDict]:
+        inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
+        if self.is_async:
+            response = await self.fn(*inputs)
+        else:
+            response = await anyio.to_thread.run_sync(
+                self.fn, *inputs, limiter=self.limiter
+            )
+        result = []
+        if "text" in message:
+            result.append({"role": "user", "content": message["text"]})
+        for file in message.get("files", []):
+            result.append({"role": "user", "content": file})
+        result.append({"role": "assistant", "content": response})
+        return result
 
     async def _examples_stream_fn(
         self,
