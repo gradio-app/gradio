@@ -140,13 +140,6 @@ XSS_SAFE_MIMETYPES = {
     "application/json",
 }
 
-# INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
-# GRADIO_NODE_PORT = int(os.getenv("GRADIO_NODE_PORT", "3000"))
-# LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
-
-# PYTHON_PORT = INITIAL_PORT_VALUE
-# NODE_PORT = 3000 if not GRADIO_DEV_MODE else 9876
-
 
 class ORJSONResponse(JSONResponse):
     media_type = "application/json"
@@ -322,6 +315,7 @@ class App(FastAPI):
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
 
         if not blocks.spa_mode:
+
             @app.middleware("http")
             async def conditional_routing_middleware(request: Request, call_next):
                 if (

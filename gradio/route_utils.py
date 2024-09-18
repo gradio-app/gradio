@@ -748,7 +748,7 @@ class CustomCORSMiddleware:
         self.simple_headers = {"Access-Control-Allow-Credentials": "true"}
         # Any of these hosts suggests that the Gradio app is running locally.
         self.localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0"]
-        if not strict_cors:  # type: ignore
+        if not strict_cors or os.getenv("GRADIO_LOCAL_DEV_MODE") is not None:  # type: ignore
             # Note: "null" is a special case that happens if a Gradio app is running
             # as an embedded web component in a local static webpage. However, it can
             # also be used maliciously for CSRF attacks, so it is not allowed by default.

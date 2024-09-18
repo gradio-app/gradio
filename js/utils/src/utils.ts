@@ -251,7 +251,7 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		this.i18n = i18n;
 		this.root = root;
 		this.autoscroll = autoscroll;
-		this.client = {};
+		this.client = client;
 
 		this._load_component = virtual_component_loader;
 	}

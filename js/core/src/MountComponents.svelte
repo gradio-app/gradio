@@ -16,6 +16,8 @@
 	onMount(() => {
 		dispatch("mount");
 	});
+
+	$: console.log({ client });
 </script>
 
 <Render
