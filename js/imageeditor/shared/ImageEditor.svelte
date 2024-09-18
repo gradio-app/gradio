@@ -378,10 +378,9 @@
 	.wrap {
 		display: flex;
 		width: 100%;
-		height: 100%;
+		height: 90%;
 		position: relative;
 		justify-content: center;
-		align-items: flex-start;
 	}
 	.canvas {
 		position: absolute;
