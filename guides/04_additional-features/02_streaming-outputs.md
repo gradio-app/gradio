@@ -33,7 +33,7 @@ For audio, the next "chunk" can be either an `.mp3` or `.wav` file or a `bytes` 
 For video, the next "chunk" has to be either `.mp4` file or a file with `h.264` codec with a `.ts` extension.
 For smooth playback, make sure chunks are consistent lengths and larger than 1 second.
 
-We'll finish with some simple examples illustrating these points. For a deeper tutorial on streaming audio with [transformers](https://huggingface.co/docs/transformers/index), please see [this guide](/main/guides/streaming-ai-generated-audio).
+We'll finish with some simple examples illustrating these points.
 
 ### Streaming Audio
 
@@ -68,3 +68,7 @@ gr.Interface(keep_repeating,
              gr.Video(streaming=True, autoplay=True)
 ).launch()
 ```
+
+## End-to-End Examples
+
+For an end-to-end example of streaming media, see the object detection from video [guide](/main/guides/objec-detection-from-video) or the streaming ai generated audio with [transformers](https://huggingface.co/docs/transformers/index) [guide](/main/guides/streaming-ai-generated-audio).
