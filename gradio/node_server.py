@@ -55,7 +55,6 @@ def start_node_server(
         else range(INITIAL_PORT_VALUE + 1, INITIAL_PORT_VALUE + 1 + TRY_NUM_PORTS)
     )
 
-    print(f"Ports: {server_ports}...")
     if not spa_mode:
         (node_process, node_port) = start_node_process(
             node_path=node_path or os.getenv("GRADIO_NODE_PATH"),
@@ -76,9 +75,9 @@ def start_node_process(
     server_ports: list[int],
 ):
     if GRADIO_LOCAL_DEV_MODE:
-        return (None, 9876)
+        return None, 9876
     if not node_path:
-        return
+        return None, None
 
     node_process = None
 

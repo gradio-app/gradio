@@ -5,7 +5,7 @@
 	import {
 		type SelectData,
 		type I18nFormatter,
-		type ValueData
+		type ValueData,
 	} from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Webcam from "./Webcam.svelte";
@@ -34,6 +34,8 @@
 	export let stream_handler: Client["stream"];
 	export let stream_every: number;
 
+	$: console.log({ upload });
+
 	export let modify_stream: (state: "open" | "closed" | "waiting") => void;
 	export let set_time_limit: (arg0: number) => void;
 
@@ -57,11 +59,11 @@
 
 	async function handle_save(
 		img_blob: Blob | any,
-		event: "change" | "stream" | "upload"
+		event: "change" | "stream" | "upload",
 	): Promise<void> {
 		pending = true;
 		const f = await upload_input.load_files([
-			new File([img_blob], `image/${streaming ? "jpeg" : "png"}`)
+			new File([img_blob], `image/${streaming ? "jpeg" : "png"}`),
 		]);
 
 		if (event === "change" || event === "upload") {
@@ -103,7 +105,7 @@
 	}
 
 	async function handle_select_source(
-		source: (typeof sources)[number]
+		source: (typeof sources)[number],
 	): Promise<void> {
 		switch (source) {
 			case "clipboard":
