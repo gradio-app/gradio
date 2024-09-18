@@ -52,7 +52,7 @@ def start_node_server(
     server_ports = (
         [server_port]
         if server_port is not None
-        else range(INITIAL_PORT_VALUE + 1, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
+        else range(INITIAL_PORT_VALUE + 1, INITIAL_PORT_VALUE + 1 + TRY_NUM_PORTS)
     )
 
     print(f"Ports: {server_ports}...")
