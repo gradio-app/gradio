@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:update package.json
+feat:Update babylon.js to latest version in `gr.Model3D`
