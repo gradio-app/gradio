@@ -13,7 +13,7 @@
 
 	async function scroll_into_view(
 		el: HTMLDivElement,
-		enable: boolean | null = true,
+		enable: boolean | null = true
 	): Promise<void> {
 		if (
 			window.__gradio_mode__ === "website" ||
