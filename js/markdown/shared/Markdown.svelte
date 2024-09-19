@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { copy } from "@gradio/utils";
+	import { copy, css_units } from "@gradio/utils";
 	import { Copy, Check } from "@gradio/icons";
+	import type { LoadingStatus } from "@gradio/statustracker";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 
 	import MarkdownCode from "./MarkdownCode.svelte";
@@ -9,7 +10,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: string;
-	export let min_height = false;
+	export let min_height: number | string | undefined = undefined;
 	export let rtl = false;
 	export let sanitize_html = true;
 	export let line_breaks = false;
@@ -22,17 +23,12 @@
 	export let height: number | string | undefined = undefined;
 	export let show_copy_button = false;
 	export let root: string;
+	export let loading_status: LoadingStatus | undefined = undefined;
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
-
-	const css_units = (dimension_value: string | number): string => {
-		return typeof dimension_value === "number"
-			? dimension_value + "px"
-			: dimension_value;
-	};
 
 	$: value, dispatch("change");
 
@@ -53,13 +49,15 @@
 </script>
 
 <div
-	class:min={min_height}
 	class="prose {elem_classes.join(' ')}"
 	class:hide={!visible}
 	data-testid="markdown"
 	dir={rtl ? "rtl" : "ltr"}
 	use:copy
 	style={height ? `max-height: ${css_units(height)}; overflow-y: auto;` : ""}
+	style:min-height={min_height && loading_status?.status !== "pending"
+		? css_units(min_height)
+		: undefined}
 >
 	{#if show_copy_button}
 		<IconButtonWrapper>
@@ -99,9 +97,6 @@
 		max-width: 100%;
 	}
 
-	.min {
-		min-height: var(--size-24);
-	}
 	.hide {
 		display: none;
 	}
