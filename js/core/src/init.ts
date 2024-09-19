@@ -21,7 +21,7 @@ let pending_updates: UpdateTransaction[][] = [];
 const is_browser = typeof window !== "undefined";
 const raf = is_browser
 	? requestAnimationFrame
-	: async (fn: () => Promise<void>) => await fn();
+	: async (fn: () => Promise<void> | void) => await fn();
 
 /**
  * Create a store with the layout and a map of targets

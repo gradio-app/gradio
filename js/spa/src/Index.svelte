@@ -33,6 +33,7 @@
 		fill_width?: boolean;
 		theme_hash?: number;
 		username: string | null;
+		api_prefix?: string;
 	}
 
 	let id = -1;
@@ -507,6 +508,8 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
+			initial_layout={undefined}
+			search_params={new URLSearchParams(window.location.search)}
 		/>
 	{/if}
 </Embed>

@@ -47,7 +47,7 @@
 	export let username: string | null;
 	export let api_prefix: string;
 	export let max_file_size: number;
-	export let initial_layout: LayoutNode;
+	export let initial_layout: LayoutNode | undefined = undefined;
 
 	let {
 		layout: _layout,
@@ -63,6 +63,7 @@
 		rerender_layout
 	} = create_components();
 
+	// @ts-ignore
 	$_layout = initial_layout;
 
 	$: components, layout, dependencies, root, app, fill_height, target, run();

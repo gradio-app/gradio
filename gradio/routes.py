@@ -222,6 +222,7 @@ class App(FastAPI):
         request: Request,
         server_name: str,
         node_port: int,
+        python_port: int,
     ) -> Response:
         client = httpx.AsyncClient()
 
@@ -236,6 +237,10 @@ class App(FastAPI):
             for k, v in request.headers.items()
             if k.lower() not in ["content-length"]
         }
+
+        headers["x-gradio-server"] = server_name
+        headers["x-gradio-port"] = str(python_port)
+
         body = await request.body()
 
         async with client:
@@ -243,11 +248,11 @@ class App(FastAPI):
                 method=request.method, url=url, headers=headers, content=body
             )
 
-        return Response(
-            content=response.content,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-        )
+            return Response(
+                content=response.content,
+                status_code=response.status_code,
+                headers=dict(response.headers),
+            )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -327,7 +332,10 @@ class App(FastAPI):
                 ):
                     try:
                         return await App.proxy_to_node(
-                            request, blocks.server_name, blocks.node_port
+                            request,
+                            blocks.server_name,
+                            blocks.node_port,
+                            blocks.server_port,
                         )
                     except Exception as e:
                         print(e)

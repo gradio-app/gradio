@@ -9,14 +9,14 @@ function inject_ejs() {
     name: "inject-ejs",
     enforce: "post",
     transformIndexHtml: (html) => {
-      // const replace_gradio_info_info_html = html.replace(
-      //   /%gradio_api_info%/,
-      //   `<script>window.gradio_api_info = {{ gradio_api_info | toorjson }};</script>`
-      // );
-      // return replace_gradio_info_info_html.replace(
-      //   /%gradio_config%/,
-      //   `<script>window.gradio_config = {{ config | toorjson }};</script>`
-      // );
+      const replace_gradio_info_info_html = html.replace(
+        /%gradio_api_info%/,
+        `<script>window.gradio_api_info = {{ gradio_api_info | toorjson }};</script>`
+      );
+      return replace_gradio_info_info_html.replace(
+        /%gradio_config%/,
+        `<script>window.gradio_config = {{ config | toorjson }};</script>`
+      );
     }
   };
 }
