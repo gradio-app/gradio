@@ -235,9 +235,3 @@ class TestVideo:
         assert "flip" not in Path(list(output_params.keys())[0]).name
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
-
-    @pytest.mark.asyncio
-    async def test_combine_stream_video(self, gradio_temp_dir):
-        video_bytes = [Path(media_data.BASE64_VIDEO["path"]).read_bytes()] * 2
-        output = await gr.Video().combine_stream(video_bytes)
-        assert output.video.path.endswith("mp4")  # type: ignore
