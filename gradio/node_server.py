@@ -105,7 +105,7 @@ def start_node_process(
 
             node_process = subprocess.Popen(
                 [node_path, SSR_APP_PATH],
-                # stdout=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
                 env=env,
             )
 
