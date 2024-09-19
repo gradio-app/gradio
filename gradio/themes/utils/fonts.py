@@ -27,7 +27,19 @@ class FontEncoder(json.JSONEncoder):
 def as_font(dct):
     if "__gradio_font__" in dct:
         name = dct["name"]
-        return GoogleFont(name) if dct["class"] == "google" else Font(name)
+        if dct["class"] == "google":
+            return (
+                GoogleFont(name, weights=dct["weights"])
+                if "weights" in dct
+                else GoogleFont(name)
+            )
+        if dct["class"] == "local":
+            return (
+                LocalFont(name, weights=dct["weights"])
+                if "weights" in dct
+                else LocalFont(name)
+            )
+        return Font(name)
     return dct
 
 
