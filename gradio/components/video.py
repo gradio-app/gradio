@@ -487,8 +487,16 @@ class Video(StreamingOutput, Component):
         return ts_file
 
     async def combine_stream(
-        self, stream: list[bytes], only_file=False
+        self,
+        stream: list[bytes],
+        only_file=False,
+        desired_output_format: str | None = None,  # noqa: ARG002
     ) -> VideoData | FileData:
+        """Combine video chunks into a single video file.
+
+        Do not take desired_output_format into consideration as
+        mp4 is a safe format for playing in browser.
+        """
         if wasm_utils.IS_WASM:
             raise wasm_utils.WasmUnsupportedError(
                 "Streaming is not supported in the Wasm mode."

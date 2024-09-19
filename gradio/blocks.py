@@ -1823,7 +1823,13 @@ Received outputs:
                     first_chunk,
                 )
                 if first_chunk:
-                    stream_run[output_id] = MediaStream()
+                    desired_output_format = None
+                    if orig_name := output_data.get("orig_name"):
+                        desired_output_format = Path(orig_name).suffix[1:]
+                    stream_run[output_id] = MediaStream(
+                        desired_output_format=desired_output_format
+                    )
+                    stream_run[output_id]
 
                 await stream_run[output_id].add_segment(binary_data)
                 output_data = await processing_utils.async_move_files_to_cache(

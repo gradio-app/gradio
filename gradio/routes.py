@@ -700,7 +700,11 @@ class App(FastAPI):
                 combined_file = (
                     await app.get_blocks()
                     .get_component(component_id)
-                    .combine_stream(stream_data, only_file=True)  # type: ignore
+                    .combine_stream(
+                        stream_data,
+                        only_file=True,
+                        desired_output_format=stream.desired_output_format,
+                    )  # type: ignore
                 )
                 stream.combined_file = combined_file.path
             return FileResponse(stream.combined_file)

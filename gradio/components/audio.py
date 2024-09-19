@@ -360,15 +360,22 @@ class Audio(
     async def combine_stream(
         self,
         stream: list[bytes],
+        desired_output_format: str | None = None,
         only_file=False,  # noqa: ARG002
     ) -> FileData:
         output_file = FileData(
             path=processing_utils.save_bytes_to_cache(
-                b"".join(stream), "audio", cache_dir=self.GRADIO_CACHE
+                b"".join(stream), "audio.mp3", cache_dir=self.GRADIO_CACHE
             ),
             is_stream=False,
             orig_name="audio-stream.mp3",
         )
+        if desired_output_format and desired_output_format != "mp3":
+            new_path = Path(output_file.path).with_suffix(f".{desired_output_format}")
+            AudioSegment.from_file(output_file.path).export(
+                new_path, format=desired_output_format
+            )
+            output_file.path = str(new_path)
         return output_file
 
     def process_example(

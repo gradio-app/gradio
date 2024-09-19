@@ -603,6 +603,7 @@ async def merge_generated_values_into_output(
     for output_index, output_component in enumerate(components):
         if isinstance(output_component, StreamingOutput) and output_component.streaming:
             binary_chunks = []
+            desired_output_format = None
             for i, chunk in enumerate(generated_values):
                 if len(components) > 1:
                     chunk = chunk[output_index]
@@ -612,9 +613,13 @@ async def merge_generated_values_into_output(
                 stream_chunk = await output_component.stream_output(
                     processed_chunk, "", i == 0
                 )
+                if i == 0 and (orig_name := stream_chunk[1].get("orig_name")):
+                    desired_output_format = Path(orig_name).suffix[1:]
                 if stream_chunk[0]:
                     binary_chunks.append(stream_chunk[0]["data"])
-            combined_output = await output_component.combine_stream(binary_chunks)
+            combined_output = await output_component.combine_stream(
+                binary_chunks, desired_output_format=desired_output_format
+            )
             output[output_index] = combined_output.model_dump()
 
     return output
