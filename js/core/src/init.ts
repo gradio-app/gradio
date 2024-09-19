@@ -154,9 +154,7 @@ export function create_components(): {
 
 		await walk_layout(layout, root);
 
-
 		layout_store.set(_rootNode);
-		set_stream_every(dependencies);
 		set_event_specific_args(dependencies);
 	}
 
