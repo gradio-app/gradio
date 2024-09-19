@@ -224,7 +224,6 @@ class App(FastAPI):
         node_port: int,
         python_port: int,
     ) -> Response:
-        client = httpx.AsyncClient()
 
         full_path = request.url.path
         if request.url.query:
@@ -243,16 +242,15 @@ class App(FastAPI):
 
         body = await request.body()
 
-        async with client:
-            response = await client.request(
-                method=request.method, url=url, headers=headers, content=body
-            )
+        response = await client.request(
+            method=request.method, url=url, headers=headers, content=body
+        )
 
-            return Response(
-                content=response.content,
-                status_code=response.status_code,
-                headers=dict(response.headers),
-            )
+        return Response(
+            content=response.content,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+        )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
