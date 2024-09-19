@@ -9,6 +9,7 @@
 	import { clickOutside } from "$lib/components/clickOutside.js";
 	import Code from "@gradio/code";
 	import version_json from "$lib/json/version.json";
+	import WHEEL from "$lib/json/wheel.json";
 
 	export let data: {
 		demos_by_category: {
@@ -70,15 +71,15 @@
 />
 
 <svelte:head>
-	<script
-		type="module"
-		src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"
-	></script>
+	<script type="module" src="{WHEEL.gradio_lite_url}/dist/lite.js"></script>
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 	<script
 		id="gradio-js-script"
 		type="module"
-		src="https://gradio.s3-us-west-2.amazonaws.com/{version}/gradio.js"
+		src="https://gradio.s3-us-west-2.amazonaws.com/{version.replace(
+			'b',
+			'-beta.'
+		)}/gradio.js"
 	></script>
 </svelte:head>
 
@@ -130,8 +131,12 @@
 						on:click={() => (current_selection = "Blank")}
 						class:current-playground-demo={current_selection == "Blank"}
 						class:shared-link={shared == "Blank"}
-						class="thin-link font-light px-4 mt-2 block">Blank</button
+						class="mt-2 mx-4 mr-2 block bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit hover:shadow"
+						href="./storybook"
 					>
+						Ask AI &rarr;
+					</button>
+
 					{#each data.demos_by_category as { category, demos } (category)}
 						<p class="px-4 my-2">{category}</p>
 						{#each demos as demo, i}
