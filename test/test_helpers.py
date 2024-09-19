@@ -618,7 +618,8 @@ class TestProcessExamples:
                 inputs=[i1, t],
                 outputs=[i2],
                 fn=image_identity,
-                cache_examples="lazy",
+                cache_examples=True,
+                cache_mode="lazy",
                 api_name="load_example",
             )
 

@@ -80,11 +80,11 @@ importers:
         specifier: ^10.4.19
         version: 10.4.19(postcss@8.4.38)
       babylonjs:
-        specifier: ^5.57.1
-        version: 5.57.1
+        specifier: ^7.25.1
+        version: 7.25.2
       babylonjs-loaders:
-        specifier: ^5.57.1
-        version: 5.57.1
+        specifier: ^7.25.1
+        version: 7.25.2
       esbuild:
         specifier: ^0.21.0
         version: 0.21.0
@@ -478,8 +478,8 @@ importers:
         specifier: ^0.5.0
         version: 0.5.0
       wrangler:
-        specifier: ^3.72.3
-        version: 3.72.3(bufferutil@4.0.7)
+        specifier: ^3.73.0
+        version: 3.73.0(bufferutil@4.0.7)
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^3.2.2
@@ -1737,11 +1737,11 @@ importers:
         specifier: ^6.16.6
         version: 6.16.6
       babylonjs:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^7.25.1
+        version: 7.25.2
       babylonjs-loaders:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^7.25.1
+        version: 7.25.2
       dequal:
         specifier: ^2.0.2
         version: 2.0.3
@@ -3154,8 +3154,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@cloudflare/workers-shared@0.4.0':
-    resolution: {integrity: sha512-XAFOldVQsbxQ7mjbqX2q1dNIgcLbKSytk41pwuZTn9e0p7OeTpFTosJef8uwosL6CcOAHqcW1f1HJxyjwmtGxw==}
+  '@cloudflare/workers-shared@0.4.1':
+    resolution: {integrity: sha512-nYh4r8JwOOjYIdH2zub++CmIKlkYFlpxI1nBHimoiHcytJXD/b7ldJ21TtfzUZMCgI78mxVlymMHA/ReaOxKlA==}
     engines: {node: '>=16.7.0'}
 
   '@codemirror/autocomplete@6.3.0':
@@ -5617,23 +5617,14 @@ packages:
     resolution: {integrity: sha512-GAwkz0AihzY5bkwIY5QDR+LvsRQgB/B+1foMPvi0FZPMl5fjD7ICiznUiBdLYMH1QYe6vqu4gWYytZOccLouFw==}
     engines: {node: '>= 10.0.0'}
 
-  babylonjs-gltf2interface@4.2.1:
-    resolution: {integrity: sha512-ZBfKgIoztO1x1nyf9aPQJ+WXmB6Kw0VlyxvcKchIixbICqeeExiN8nmjvypwXC4hl+5ZDMnUKQNrIhh7uzulnA==}
+  babylonjs-gltf2interface@7.25.2:
+    resolution: {integrity: sha512-Vzwp0FmgTdxXH1RsPW8jRReSTkhTcrpulE6uJk4Kd4UTsRi1lpER31LpeysEYrjFf5SS+vc5gx4li8/TAUAWNw==}
 
-  babylonjs-gltf2interface@5.57.1:
-    resolution: {integrity: sha512-RZnaKfJ6Q/AYLdIjBYMRxCW/HPEC8jabAL1U8wJ0KVziw6NSbSV6S80S22fUCPTyaZ7nCekn1TYg1IPmJ/eA6w==}
+  babylonjs-loaders@7.25.2:
+    resolution: {integrity: sha512-FMZ5G2x8QgGowLRMxVifVuMNFnY4aaQuUIwqxrgcrKigaHKx1uNuk1+A4+vCG7i43TJJnTr4++QJF7nn6JdU0g==}
 
-  babylonjs-loaders@4.2.1:
-    resolution: {integrity: sha512-WLpbadXDyxbBQogU0SOrpwgAWN/DJ1xn5kCRD31NVoCbBIpvkdDIvzpRvze2esxrlv/KM8wbDu62ShJd6rQnVQ==}
-
-  babylonjs-loaders@5.57.1:
-    resolution: {integrity: sha512-MGPv0rroDIky4aLHv8iitnZWUPvJfRB4dA0EbMbXJGatDzKclwwK1gJik3TjdmxwlpXpZKwa3reoj0OP00jl6A==}
-
-  babylonjs@4.2.1:
-    resolution: {integrity: sha512-FQdJ2VTENUpUJQ30ddihwTjV6K94kglET0P7jV8OQzjA4eez3sotmG22Fn9+8yb069SA26KnrAGOI2sKMQ7BCw==}
-
-  babylonjs@5.57.1:
-    resolution: {integrity: sha512-X1t3mi8GuJjFVziN1yBJtekphilGN9VfOHm2tn/H6gra+WS7UZkrOOHLlKwYEXKdU73opxOR95jHXmv692KR6g==}
+  babylonjs@7.25.2:
+    resolution: {integrity: sha512-hucoQfYHrBtgq7niZEHwSDcvcESDiJ74AYY42KSDA43bGI+lq8UkW2wgs6euOFrigR4RxSORHWm0nkNrXCn41Q==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -9851,6 +9842,9 @@ packages:
   ufo@1.5.3:
     resolution: {integrity: sha512-Y7HYmWaFwPUmkoQCUIAYpKqkOf+SbVj/2fJJZ4RJMCfZp0rTGwRbzQD+HghfnhKOjL9E01okqz+ncJskGYfBNw==}
 
+  ufo@1.5.4:
+    resolution: {integrity: sha512-UsUk3byDzKd04EyoZ7U4DOlxQaD14JUKQl6/P7wiX4FNvUfm3XL246n9W5AmqwW5RSFJ27NAuM0iLscAOYUiGQ==}
+
   uglify-js@3.17.4:
     resolution: {integrity: sha512-T9q82TJI9e/C1TAxYvfb16xO120tMVFZrGA3f9/P4424DNu6ypK103y0GPFVa17yotwSyZW5iYXgjYHkGrJW/g==}
     engines: {node: '>=0.8.0'}
@@ -9866,8 +9860,8 @@ packages:
     resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
     engines: {node: '>=14.0'}
 
-  unenv-nightly@1.10.0-1717606461.a117952:
-    resolution: {integrity: sha512-u3TfBX02WzbHTpaEfWEKwDijDSFAHcgXkayUZ+MVDrjhLFvgAJzFGTSTmwlEhwWi2exyRQey23ah9wELMM6etg==}
+  unenv-nightly@2.0.0-1724863496.70db6f1:
+    resolution: {integrity: sha512-r+VIl1gnsI4WQxluruSQhy8alpAf1AsLRLm4sEKp3otCyTIVD6I6wHEYzeQnwsyWgaD4+3BD4A/eqrgOpdTzhw==}
 
   unicode-canonical-property-names-ecmascript@2.0.0:
     resolution: {integrity: sha512-yY5PpDlfVIU5+y/BSCxAJRBIS1Zc2dDG3Ujq+sR0U+JjUevW2JhocOF+soROYDSaAezOzOKuyyixhD6mBknSmQ==}
@@ -10328,8 +10322,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  wrangler@3.72.3:
-    resolution: {integrity: sha512-EBlJGOcwanbzFkiJkRB47WKhvevh1AZK0ty0MyD0gptsgWnAxBfmFGiBuzOuRXbvH45ZrFrTqgi8c67EwcV1nA==}
+  wrangler@3.73.0:
+    resolution: {integrity: sha512-VrdDR2OpvsCQp+r5Of3rDP1W64cNN/LHLVx1roULOlPS8PZiv7rUYgkwhdCQ61+HICAaeSxWYIzkL5+B9+8W3g==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
@@ -11462,7 +11456,7 @@ snapshots:
   '@cloudflare/workerd-windows-64@1.20240821.1':
     optional: true
 
-  '@cloudflare/workers-shared@0.4.0': {}
+  '@cloudflare/workers-shared@0.4.1': {}
 
   '@codemirror/autocomplete@6.3.0(@codemirror/language@6.6.0)(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)(@lezer/common@1.0.2)':
     dependencies:
@@ -14305,23 +14299,14 @@ snapshots:
     dependencies:
       '@babel/types': 7.23.3
 
-  babylonjs-gltf2interface@4.2.1: {}
+  babylonjs-gltf2interface@7.25.2: {}
 
-  babylonjs-gltf2interface@5.57.1: {}
-
-  babylonjs-loaders@4.2.1:
+  babylonjs-loaders@7.25.2:
     dependencies:
-      babylonjs: 4.2.1
-      babylonjs-gltf2interface: 4.2.1
+      babylonjs: 7.25.2
+      babylonjs-gltf2interface: 7.25.2
 
-  babylonjs-loaders@5.57.1:
-    dependencies:
-      babylonjs: 5.57.1
-      babylonjs-gltf2interface: 5.57.1
-
-  babylonjs@4.2.1: {}
-
-  babylonjs@5.57.1: {}
+  babylonjs@7.25.2: {}
 
   balanced-match@1.0.2: {}
 
@@ -19020,6 +19005,8 @@ snapshots:
 
   ufo@1.5.3: {}
 
+  ufo@1.5.4: {}
+
   uglify-js@3.17.4:
     optional: true
 
@@ -19036,14 +19023,12 @@ snapshots:
     dependencies:
       '@fastify/busboy': 2.1.1
 
-  unenv-nightly@1.10.0-1717606461.a117952:
+  unenv-nightly@2.0.0-1724863496.70db6f1:
     dependencies:
-      consola: 3.2.3
       defu: 6.1.4
-      mime: 3.0.0
-      node-fetch-native: 1.6.4
+      ohash: 1.1.3
       pathe: 1.1.2
-      ufo: 1.5.3
+      ufo: 1.5.4
 
   unicode-canonical-property-names-ecmascript@2.0.0: {}
 
@@ -19702,10 +19687,10 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20240821.1
       '@cloudflare/workerd-windows-64': 1.20240821.1
 
-  wrangler@3.72.3(bufferutil@4.0.7):
+  wrangler@3.73.0(bufferutil@4.0.7):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
-      '@cloudflare/workers-shared': 0.4.0
+      '@cloudflare/workers-shared': 0.4.1
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
       '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
       blake3-wasm: 2.1.5
@@ -19719,7 +19704,7 @@ snapshots:
       resolve.exports: 2.0.2
       selfsigned: 2.4.1
       source-map: 0.6.1
-      unenv: unenv-nightly@1.10.0-1717606461.a117952
+      unenv: unenv-nightly@2.0.0-1724863496.70db6f1
       workerd: 1.20240821.1
       xxhash-wasm: 1.0.2
     optionalDependencies:

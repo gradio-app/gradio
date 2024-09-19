@@ -16,6 +16,8 @@
 	import Header from "$lib/components/Header.svelte";
 	import Footer from "$lib/components/Footer.svelte";
 
+	import WHEEL from "$lib/json/wheel.json";
+
 	import { media_query } from "../lib/utils";
 	store = media_query();
 
@@ -45,7 +47,7 @@
 				}
 			}
 			const script = document.createElement("script");
-			script.src = "https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js";
+			script.src = WHEEL.gradio_lite_url + "/dist/lite.js";
 			script.type = "module";
 			document.head.appendChild(script);
 		}
