@@ -428,6 +428,7 @@
 				}
 			}
 
+			/* eslint-disable complexity */
 			function handle_status_update(message: StatusMessage): void {
 				const { fn_index, ...status } = message;
 				if (status.stage === "streaming" && status.time_limit) {
@@ -474,7 +475,7 @@
 					];
 				}
 
-				if (status.stage === "complete") {
+				if (status.stage === "complete" || status.stage === "generating") {
 					status.changed_state_ids?.forEach((id) => {
 						dependencies
 							.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
@@ -482,6 +483,8 @@
 								wait_then_trigger_api_call(dep.id, payload.trigger_id);
 							});
 					});
+				}
+				if (status.stage === "complete") {
 					dependencies.forEach(async (dep) => {
 						if (dep.trigger_after === fn_index) {
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
@@ -530,6 +533,7 @@
 			}
 		}
 	}
+	/* eslint-enable complexity */
 
 	function trigger_share(title: string | undefined, description: string): void {
 		if (space_id === null) {

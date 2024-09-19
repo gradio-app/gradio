@@ -20,6 +20,7 @@
 	export let basic = true;
 	export let language: string;
 	export let lines = 5;
+	export let max_lines = 20;
 	export let extensions: Extension[] = [];
 	export let use_tab = true;
 	export let readonly = false;
@@ -59,7 +60,7 @@
 
 	function update_lines(): void {
 		if (view) {
-			view.requestMeasure({ read: update_gutters });
+			view.requestMeasure({ read: resize });
 		}
 	}
 
@@ -96,18 +97,19 @@
 		return null;
 	}
 
-	function update_gutters(_view: EditorView): any {
-		let gutters = _view.dom.querySelectorAll<HTMLElement>(".cm-gutter");
-		let _lines = lines + 1;
-		let lineHeight = getGutterLineHeight(_view);
+	function resize(_view: EditorView): any {
+		let scroller = _view.dom.querySelector<HTMLElement>(".cm-scroller");
+		if (!scroller) {
+			return null;
+		}
+		const lineHeight = getGutterLineHeight(_view);
 		if (!lineHeight) {
 			return null;
 		}
-		for (var i = 0; i < gutters.length; i++) {
-			let node = gutters[i];
-			node.style.minHeight = `calc(${lineHeight} * ${_lines})`;
-		}
-		return null;
+
+		const minLines = lines == 1 ? 1 : lines + 1;
+		scroller.style.minHeight = `calc(${lineHeight} * ${minLines})`;
+		scroller.style.maxHeight = `calc(${lineHeight} * ${max_lines + 1})`;
 	}
 
 	function handle_change(vu: ViewUpdate): void {
@@ -117,7 +119,7 @@
 			value = text;
 			dispatch("change", text);
 		}
-		view.requestMeasure({ read: update_gutters });
+		view.requestMeasure({ read: resize });
 	}
 
 	function get_extensions(): Extension[] {

@@ -1,0 +1,2 @@
+safetensors==0.4.3
+git+https://github.com/THU-MIG/yolov10.git

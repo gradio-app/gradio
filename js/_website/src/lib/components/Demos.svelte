@@ -4,14 +4,13 @@
 	export let highlighted_code: string;
 	export let url_version: string;
 
+	import WHEEL from "$lib/json/wheel.json";
+
 	$: url_version;
 </script>
 
 <svelte:head>
-	<link
-		rel="stylesheet"
-		href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css"
-	/>
+	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
 </svelte:head>
 
 <div class="hidden lg:block py-2 max-h-[750px] overflow-y-scroll">
