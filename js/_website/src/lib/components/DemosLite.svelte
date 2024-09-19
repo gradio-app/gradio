@@ -5,9 +5,138 @@
 	import Close from "./icons/Close.svelte";
 	import { page } from "$app/stores";
 	import share from "$lib/assets/img/anchor_gray.svg";
+	import spaces_logo from "$lib/assets/img/spaces-logo.svg";
 	import { svgCheck } from "$lib/assets/copy.js";
 	import { browser } from "$app/environment";
 	import { onMount } from "svelte";
+	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
+	import WHEEL from "$lib/json/wheel.json";
+
+	let generated = true;
+
+	let ai_code: string | undefined = "";
+	let current_code = false;
+	let compare = false;
+
+	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	let model_info = "";
+
+	async function* streamFromWorker(
+		query: string,
+		system_prompt: string,
+		system_prompt_8k: string
+	) {
+		const response = await fetch(workerUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				query: query,
+				SYSTEM_PROMPT: system_prompt,
+				SYSTEM_PROMPT_8K: system_prompt_8k
+			})
+		});
+
+		const reader = response.body?.getReader();
+		const decoder = new TextDecoder();
+		let buffer = "";
+
+		while (true) {
+			const { done, value } = reader
+				? await reader.read()
+				: { done: true, value: null };
+			if (done) break;
+
+			buffer += decoder.decode(value, { stream: true });
+			const lines = buffer.split("\n");
+			buffer = lines.pop() || "";
+
+			for (const line of lines) {
+				if (line.startsWith("data: ")) {
+					const data = line.slice(6).trim();
+					if (data === "[DONE]") {
+						return;
+					}
+					if (data) {
+						try {
+							const parsed = JSON.parse(data);
+							if (parsed.model) {
+								model_info = parsed.model;
+								console.log("Model used:", model_info);
+							} else if (parsed.error) {
+								console.log(parsed.error);
+							} else if (parsed.info) {
+								console.log(parsed.info);
+							} else if (parsed.choices && parsed.choices.length > 0) {
+								yield parsed;
+							}
+						} catch (e) {
+							console.error("Error parsing JSON:", e);
+							throw e;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	async function generate_code(query: string) {
+		generated = false;
+		let out = "";
+
+		if (current_code) {
+			query = "PROMPT: " + query;
+			query +=
+				"\n\nHere is the existing code that either you or the user has written. If it's relevant to the prompt, use it for context. If it's not relevant, ignore it.\n Existing Code: \n\n" +
+				demos[demos.length - 1].code;
+			query +=
+				"\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, plotly, transformers_js_py and matplotlib.";
+		}
+
+		for await (const chunk of streamFromWorker(
+			query,
+			SYSTEM_PROMPT.SYSTEM,
+			SYSTEM_PROMPT.SYSTEM_8K
+		)) {
+			if (chunk.choices && chunk.choices.length > 0) {
+				const content = chunk.choices[0].delta.content;
+				if (content) {
+					out += content;
+					ai_code = out;
+					demos[demos.length - 1].code =
+						out ||
+						"# Describe your app above, and the LLM will generate the code here.";
+					demos[demos.length - 1].code = demos[
+						demos.length - 1
+					].code.replaceAll("```python\n", "");
+					demos[demos.length - 1].code = demos[
+						demos.length - 1
+					].code.replaceAll("```\n", "");
+					demos[demos.length - 1].code = demos[
+						demos.length - 1
+					].code.replaceAll("```", "");
+					demos[demos.length - 1].code = addShowErrorToLaunch(
+						demos[demos.length - 1].code
+					);
+				}
+			}
+		}
+		generated = true;
+		compare = true;
+	}
+
+	let user_query: string;
+
+	let user_query_elem: HTMLInputElement;
+
+	$: user_query;
+
+	function handle_key_down(e: KeyboardEvent): void {
+		if (e.key === "Enter" && document.activeElement === user_query_elem) {
+			generate_code(user_query);
+		}
+	}
 
 	export let demos: {
 		name: string;
@@ -21,9 +150,15 @@
 	let new_demo = {
 		name: "Blank",
 		dir: "Blank",
-		code: "# Write your own Gradio code here and see what it looks like!\nimport gradio as gr\n\n",
+		code: "# Describe your app above, and the LLM will generate the code here.",
 		requirements: []
 	};
+
+	function clear_code() {
+		demos[demos.length - 1].code =
+			"# Describe your app above, and the LLM will generate the code here.";
+		current_code = false;
+	}
 
 	demos.push(new_demo);
 
@@ -48,26 +183,50 @@
 
 	let debounced_run_code: Function | undefined;
 	let debounced_install: Function | undefined;
-	onMount(() => {
-		controller = createGradioApp({
-			target: document.getElementById("lite-demo"),
-			requirements: demos[0].requirements,
-			code: demos[0].code,
-			info: true,
-			container: true,
-			isEmbed: true,
-			initialHeight: "100%",
-			eager: false,
-			themeMode: null,
-			autoScroll: false,
-			controlPageTitle: false,
-			appMode: true
-		});
-		const debounce_timeout = 1000;
-		debounced_run_code = debounce(controller.run_code, debounce_timeout);
-		debounced_install = debounce(controller.install, debounce_timeout);
 
-		mounted = true;
+	function loadScript(src: string) {
+		return new Promise((resolve, reject) => {
+			const script = document.createElement("script");
+			script.src = src;
+			script.onload = () => resolve(script);
+			script.onerror = () => reject(new Error(`Script load error for ${src}`));
+			document.head.appendChild(script);
+		});
+	}
+
+	onMount(async () => {
+		try {
+			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
+			controller = createGradioApp({
+				target: document.getElementById("lite-demo"),
+				requirements: [
+					"numpy",
+					"pandas",
+					"matplotlib",
+					"plotly",
+					"transformers_js_py",
+					"requests",
+					"pillow"
+				],
+				code: demos[0].code,
+				info: true,
+				container: true,
+				isEmbed: true,
+				initialHeight: "100%",
+				eager: false,
+				themeMode: null,
+				autoScroll: false,
+				controlPageTitle: false,
+				appMode: true
+			});
+			const debounce_timeout = 1000;
+			debounced_run_code = debounce(controller.run_code, debounce_timeout);
+			debounced_install = debounce(controller.install, debounce_timeout);
+
+			mounted = true;
+		} catch (error) {
+			console.error("Error loading Gradio Lite:", error);
+		}
 	});
 
 	let copied_link = false;
@@ -143,20 +302,92 @@
 	$: if (code) {
 		shared = false;
 	}
+	$: if (
+		demos[demos.length - 1].code &&
+		demos[demos.length - 1].code !==
+			"# Describe your app above, and the LLM will generate the code here."
+	) {
+		current_code = true;
+	}
+
+	function create_spaces_url() {
+		const base_URL = "https://huggingface.co/new-space";
+		const params = new URLSearchParams({
+			name: "new-space",
+			sdk: "gradio"
+		});
+		const encoded_content = code.trimStart();
+		params.append("files[0][path]", "app.py");
+		params.append("files[0][content]", encoded_content);
+		window.open(`${base_URL}?${params.toString()}`, "_blank")?.focus();
+	}
+
+	function highlight_changes(old_answer: string, new_answer: string) {
+		const old_lines = old_answer.split("\n");
+		const new_lines = new_answer.split("\n");
+
+		if (
+			old_lines.length > 3 * new_lines.length ||
+			new_lines.length > 3 * old_lines.length
+		) {
+			return;
+		}
+
+		const inserted_lines = [];
+
+		for (let i = 0; i < new_lines.length; i++) {
+			if (!old_lines.includes(new_lines[i])) {
+				inserted_lines.push(i);
+			}
+		}
+
+		if (inserted_lines.length > new_lines.length / 2) {
+			return;
+		}
+		const cm = document.querySelectorAll("#Blank .cm-line");
+		for (let line of inserted_lines) {
+			cm[line].classList.add("highlight");
+		}
+	}
+
+	const addShowErrorToLaunch = (launch_code: string) => {
+		const pattern = /\.launch\((.*?)\)/;
+		const replacement = (match: any, p1: any) => {
+			const params = p1.trim();
+			if (params === "") {
+				return ".launch(show_error=True)";
+			} else if (!params.includes("show_error")) {
+				return `.launch(${params}, show_error=True)`;
+			}
+			return match;
+		};
+		return launch_code.replace(pattern, replacement);
+	};
+
+	let old_answer = "";
+
+	$: if (compare && browser) {
+		if (
+			demos[demos.length - 1].code !==
+			"# Describe your app above, and the LLM will generate the code here."
+		) {
+			highlight_changes(old_answer, demos[demos.length - 1].code);
+			old_answer = demos[demos.length - 1].code;
+			compare = false;
+		}
+	}
 </script>
 
 <svelte:head>
-	<link
-		rel="stylesheet"
-		href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css"
-	/>
+	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
+
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>
-<div class="flex flex-row" style="position: absolute; top: -6%; right: 0.4%">
-	<button
-		class="border border-gray-300 rounded-md mx-2 px-2 py-.5 my-[3px] text-md text-gray-600 hover:bg-gray-50 flex"
-		on:click={() => copy_link(current_selection)}
-	>
+
+<svelte:window on:keydown={handle_key_down} />
+
+<div class="share-btns flex flex-row absolute">
+	<button class="share-button" on:click={() => copy_link(current_selection)}>
 		{#if !copied_link}
 			<img
 				class="!w-5 align-text-top inline-block self-center mr-1"
@@ -170,6 +401,14 @@
 			<p class="inline-block">Copied Link!</p>
 		{/if}
 	</button>
+	<button class="share-button" on:click={() => create_spaces_url()}>
+		<p class="inline-block">Deploy to</p>
+		<img
+			class="!w-5 align-text-top inline-block self-center mr-.5 ml-1"
+			src={spaces_logo}
+		/>
+		<p class="inline-block font-bold">Spaces</p>
+	</button>
 </div>
 <div
 	class=" absolute top-0 bottom-0 right-0"
@@ -181,12 +420,61 @@
 				<div
 					hidden={current_selection !== demo.name}
 					class="code-editor w-full border-r"
+					id={demo.dir}
 					style="width: {position * 100}%"
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
 						<div class="flex float-right"></div>
+						{#if current_code}
+							<div class="flex items-center">
+								<p class="text-sm text-gray-600">
+									Prompt includes current code.
+								</p>
+								<div class="clear">
+									<button
+										class="button"
+										on:click={() => {
+											clear_code();
+										}}
+									>
+										CLEAR
+									</button>
+								</div>
+							</div>
+						{/if}
 					</div>
+
+					{#if demo.name === "Blank"}
+						<div class="search-bar">
+							{#if !generated}
+								<div class="loader"></div>
+							{:else}
+								✨
+							{/if}
+							<input
+								bind:this={user_query_elem}
+								bind:value={user_query}
+								placeholder="What do you want to build?"
+								autocomplete="off"
+								autocorrect="off"
+								autocapitalize="off"
+								enterkeyhint="go"
+								spellcheck="false"
+								type="search"
+								id="user-query"
+								class:grayed={!generated}
+							/>
+							<button
+								on:click={() => {
+									generate_code(user_query);
+								}}
+								class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
+							>
+								<div class="enter">↵</div>
+							</button>
+						</div>
+					{/if}
 
 					<Code
 						bind:value={demos[i].code}
@@ -323,6 +611,99 @@
 	@media (max-width: 640px) {
 		.preview {
 			width: 100% !important;
+		}
+	}
+
+	.search-bar {
+		@apply font-sans text-lg z-10 px-4 relative flex flex-none items-center border-b text-gray-500;
+		border-color: #e5e7eb;
+	}
+
+	.search-bar input {
+		@apply text-lg appearance-none h-14 text-black mx-1	flex-auto min-w-0 border-none cursor-text;
+		outline: none;
+		box-shadow: none;
+	}
+
+	.loader {
+		border: 1px solid #fcc089;
+		border-top: 2px solid #ff7c00;
+		border-radius: 50%;
+		width: 15px;
+		height: 15px;
+		animation: spin 1.2s linear infinite;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+
+	.grayed {
+		color: #6b7280 !important;
+	}
+
+	.clear {
+		display: flex;
+		align-items: center;
+		color: #999b9e;
+		font-size: 12px;
+	}
+
+	.button {
+		display: flex;
+		align-items: center;
+		font-weight: 600;
+		padding-left: 0.3rem;
+		padding-right: 0.3rem;
+		border-radius: 0.375rem;
+		float: right;
+		margin: 0.25rem;
+		border: 1px solid #e5e7eb;
+		background: linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+		color: #374151;
+		cursor: pointer;
+		font-family: sans-serif;
+	}
+
+	.share-button {
+		display: flex;
+		align-items: center;
+		font-weight: 500;
+		padding-left: 0.5rem;
+		padding-right: 0.5rem;
+		padding-top: 0.1rem;
+		padding-bottom: 0.1rem;
+		border-radius: 0.375rem;
+		float: right;
+		margin: 0.25rem;
+		border: 1px solid #e5e7eb;
+		background: linear-gradient(to bottom right, #f9fafb, #e5e7eb);
+		color: #374151;
+		cursor: pointer;
+		font-family: sans-serif;
+		font-size: 14px;
+	}
+	.share-button:hover {
+		background: linear-gradient(to bottom right, #f9fafb, #d7dadf);
+	}
+
+	:global(.highlight) {
+		background: #e1f7e161;
+	}
+
+	.share-btns {
+		top: -6%;
+		right: 0.4%;
+	}
+
+	@media (min-height: 800px) {
+		.share-btns {
+			top: -5%;
 		}
 	}
 </style>
