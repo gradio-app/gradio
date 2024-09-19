@@ -1134,6 +1134,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.node_port = None
 
         if not Blocks.node_process:
+            print("starting node server")
             (node_server_name, node_process, node_port) = start_node_server(
                 server_name=node_server_name,
                 server_port=node_port,
@@ -1144,6 +1145,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             self.node_server_name = node_server_name
             self.node_port = node_port
             self.node_process = node_process
+            print("finished starting node server")
 
         self.queue()
 
