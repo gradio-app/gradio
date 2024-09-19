@@ -27,9 +27,20 @@ def respond(history):
     history[-1][1] = "Cool!"
     return history
 
-
 with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.Chatbot(
+        value=[
+            {"role": "user", "content": "Hello!"},
+            {"role": "assistant", "content": "Hi! How can I help you?"},
+            {"role": "user", "content": "I would like to know more about Gradio."},
+            {"role": "user", "content": gr.Image("files/avatar.png")},
+            {"role": "assistant", "content": gr.Image("files/avatar.png")},
+            {"role": "user", "content": gr.Image("files/avatar.png")},
+            {"role": "assistant", "content": "Hi! How can I help you?"},
+            {"role": "user", "content": "What is shown in the image"},
+            {"role": "user", "content": gr.Audio("files/cantina.wav")},
+        ],
+        type="messages",
         elem_id="chatbot",
         bubble_full_width=False,
         scale=1,

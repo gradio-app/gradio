@@ -975,9 +975,6 @@
 		padding: 0;
 		border-radius: var(--radius-md);
 		width: fit-content;
-		max-width: 80%;
-		max-height: 80%;
-		border: none;
 		overflow: hidden;
 	}
 
@@ -1005,7 +1002,6 @@
 
 	@media (max-width: 600px) or (max-width: 480px) {
 		.component {
-			max-width: calc(100% - var(--spacing-xl) * 3);
 			width: 100%;
 		}
 	}
