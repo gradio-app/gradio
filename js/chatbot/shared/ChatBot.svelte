@@ -485,15 +485,14 @@
 				</div>
 				{@const show_like =
 					role === "user" ? likeable && like_user_message : likeable}
+				{@const show_retry = _retryable && is_last_bot_message(messages, value)}
+				{@const show_undo = _undoable && is_last_bot_message(messages, value)}
 				<LikeButtons
-					show={show_like ||
-						(_retryable && is_last_bot_message(messages, value)) ||
-						(_undoable && is_last_bot_message(messages, value)) ||
-						show_copy_button}
+					show={show_like || show_retry || show_undo || show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					likeable={show_like}
-					_retryable={_retryable && is_last_bot_message(messages, value)}
-					_undoable={_undoable && is_last_bot_message(messages, value)}
+					_retryable={show_retry}
+					_undoable={show_undo}
 					disable={generating}
 					{show_copy_button}
 					message={msg_format === "tuples" ? messages[0] : messages}

@@ -73,7 +73,7 @@ export function create_components(): {
 				const instance = instance_map[target[0]];
 				if (instance && dep.event_specific_args?.length > 0) {
 					dep.event_specific_args?.forEach((arg: string) => {
-						(instance.props as any)[arg] = (dep as any)[arg];
+						instance.props[arg] = dep[arg as keyof Dependency];
 					});
 				}
 			});
