@@ -97,13 +97,15 @@ def start_node_process(
             s.close()
 
             # Set environment variables for the Node server
-            env = os.environ.copy()
+            env = os.environ
             env["PORT"] = str(port)
             env["HOST"] = server_name
+            if GRADIO_LOCAL_DEV_MODE:
+                env["GRADIO_LOCAL_DEV_MODE"] = "1"
 
             node_process = subprocess.Popen(
                 [node_path, SSR_APP_PATH],
-                stdout=subprocess.PIPE,
+                # stdout=subprocess.PIPE,
                 env=env,
             )
 
@@ -121,7 +123,9 @@ def start_node_process(
                 node_process.wait(timeout=2)
                 node_process = None
 
-        except OSError:
+        except OSError as e:
+            print(f"Port {port} is not available. Trying next port...")
+            print(f"Error: {e}")
             continue
         except Exception as e:
             warnings.warn(
