@@ -20,7 +20,7 @@ INTERFACE_TEMPLATE = '''
         from gradio.components import Timer
 
     {% for event in events %}
-    def {{ event }}(self,
+    def {{ event.event_name }}(self,
         fn: Callable[..., Any] | None = None,
         inputs: Block | Sequence[Block] | set[Block] | None = None,
         outputs: Block | Sequence[Block] | None = None,
@@ -39,8 +39,10 @@ INTERFACE_TEMPLATE = '''
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
         show_api: bool = True,
-        time_limit: float | None = None,
-        stream_every: float = 0.5) -> Dependency:
+    {% for arg in event.event_specific_args %}
+        {{ arg.name }}: {{ arg.type }},
+    {% endfor %}
+        ) -> Dependency:
         """
         Parameters:
             fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
@@ -61,8 +63,9 @@ INTERFACE_TEMPLATE = '''
             concurrency_limit: if set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
             concurrency_id: if set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
             show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
-            time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
-            stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
+        {% for arg in event.event_specific_args %}
+            {{ arg.name }}: {{ arg.doc }},
+        {% endfor %}
         """
         ...
     {% endfor %}
@@ -71,8 +74,13 @@ INTERFACE_TEMPLATE = '''
 
 def create_pyi(class_code: str, events: list[EventListener | str]):
     template = Template(INTERFACE_TEMPLATE)
-    events = [e if isinstance(e, str) else e.event_name for e in events]
-    return template.render(events=events, contents=class_code)
+    event_template = [
+        e
+        if isinstance(e, EventListener)
+        else EventListener(event_name=e, event_specific_args=[])
+        for e in events
+    ]
+    return template.render(events=event_template, contents=class_code)
 
 
 def extract_class_source_code(

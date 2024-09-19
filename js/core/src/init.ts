@@ -67,12 +67,14 @@ export function create_components(): {
 	let keyed_component_values: Record<string | number, any> = {};
 	let _rootNode: ComponentMeta;
 
-	function set_stream_every(dependencies: Dependency[]): void {
+	function set_event_specific_args(dependencies: Dependency[]): void {
 		dependencies.forEach((dep) => {
 			dep.targets.forEach((target) => {
 				const instance = instance_map[target[0]];
-				if (instance && dep.connection == "stream") {
-					instance.props.stream_every = dep.stream_every;
+				if (instance && dep.event_specific_args?.length > 0) {
+					dep.event_specific_args?.forEach((arg: string) => {
+						instance.props[arg] = dep[arg as keyof Dependency];
+					});
 				}
 			});
 		});
@@ -150,7 +152,7 @@ export function create_components(): {
 			layout_store.set(_rootNode);
 		});
 
-		set_stream_every(dependencies);
+		set_event_specific_args(dependencies);
 	}
 
 	/**
@@ -227,7 +229,7 @@ export function create_components(): {
 			layout_store.set(_rootNode);
 		});
 
-		set_stream_every(dependencies);
+		set_event_specific_args(dependencies);
 	}
 
 	async function walk_layout(

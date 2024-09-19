@@ -290,12 +290,13 @@
 
 		function trigger_prediction(dep: Dependency, payload: Payload): void {
 			if (dep.trigger_mode === "once") {
-				if (!dep.pending_request) make_prediction(payload);
+				if (!dep.pending_request)
+					make_prediction(payload, dep.connection == "stream");
 			} else if (dep.trigger_mode === "multiple") {
-				make_prediction(payload);
+				make_prediction(payload, dep.connection == "stream");
 			} else if (dep.trigger_mode === "always_last") {
 				if (!dep.pending_request) {
-					make_prediction(payload);
+					make_prediction(payload, dep.connection == "stream");
 				} else {
 					dep.final_event = payload;
 				}
@@ -371,7 +372,7 @@
 				const { data, fn_index } = message;
 				if (dep.pending_request && dep.final_event) {
 					dep.pending_request = false;
-					make_prediction(dep.final_event);
+					make_prediction(dep.final_event, dep.connection == "stream");
 				}
 				dep.pending_request = false;
 				handle_update(data, fn_index);
