@@ -88,7 +88,7 @@
 				value = files.map((x) =>
 					x.mime_type?.includes("video")
 						? { video: x, caption: null }
-						: { image: x, caption: null },
+						: { image: x, caption: null }
 				);
 				gradio.dispatch("upload", value);
 			}}

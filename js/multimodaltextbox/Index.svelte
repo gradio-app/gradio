@@ -29,7 +29,7 @@
 	export let visible = true;
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
-		files: [],
+		files: []
 	};
 	export let file_types: string[] | null = null;
 	export let lines: number;
