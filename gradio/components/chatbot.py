@@ -29,9 +29,9 @@ from gradio.components import (
 )
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.events import Events
+from gradio.events import Events, SelectData
 from gradio.exceptions import Error
-
+from gradio.helpers import SpecialExamplesHandler
 
 class MetadataDict(TypedDict):
     title: Union[str, None]
@@ -84,19 +84,6 @@ class Message(GradioModel):
     content: Union[str, FileMessage, ComponentMessage]
 
 
-class SuggestionMessage(TypedDict):
-    icon: NotRequired[
-        str | FileDataDict
-    ]  # filepath or url to an image to be shown in suggestion box
-    display_text: NotRequired[
-        str
-    ]  # text to be shown in suggestion box. If not provided, main_text will be shown
-    text: NotRequired[str]  # text to be added to chatbot when suggestion is clicked
-    files: NotRequired[
-        list[str | FileDataDict]
-    ]  # list of file paths or URLs to be added to chatbot when suggestion is clicked
-
-
 @dataclass
 class ChatMessage:
     role: Literal["user", "assistant", "system"]
@@ -111,7 +98,7 @@ class ChatbotDataMessages(GradioRootModel):
 TupleFormat = list[list[Union[str, tuple[str], tuple[str, str], None]]]
 
 if TYPE_CHECKING:
-    from gradio.components import Timer
+    from gradio.components import Timer, Dataset
 
 
 def import_component_and_data(
@@ -130,7 +117,7 @@ def import_component_and_data(
 
 
 @document()
-class Chatbot(Component):
+class Chatbot(Component, SpecialExamplesHandler):
     """
     Creates a chatbot that displays user-submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables.
     Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This
@@ -146,7 +133,7 @@ class Chatbot(Component):
         Events.like,
         Events.retry,
         Events.undo,
-        Events.suggestion_select,
+        Events.load_example
     ]
 
     def __init__(
@@ -181,8 +168,8 @@ class Chatbot(Component):
         likeable: bool = False,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
-        suggestions: list[SuggestionMessage] | None = None,
         show_copy_all_button=False,
+        show_examples_inside: bool = True,
     ):
         """
         Parameters:
@@ -215,8 +202,8 @@ class Chatbot(Component):
             likeable: Whether the chat messages display a like or dislike button. Set automatically by the .like method but has to be present in the signature for it to show up in the config.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
-            suggestions: A list of suggestion messages to display in the chatbot before any user/assistant messages are shown. Each suggestion should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the suggestion box, and an optional "display_text" key, whose value should be the text to display in the suggestion box. If "display_text" is not provided, the value of "text" will be displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
+            show_examples_inside: If True and the output of a gr.Example, will show the examples inside the component.
         """
         self.likeable = likeable
         if type not in ["messages", "tuples"]:
@@ -250,6 +237,7 @@ class Chatbot(Component):
         self.line_breaks = line_breaks
         self.layout = layout
         self.show_copy_all_button = show_copy_all_button
+        self.show_examples_inside = show_examples_inside
         super().__init__(
             label=label,
             every=every,
@@ -274,29 +262,7 @@ class Chatbot(Component):
                 self.serve_static_file(avatar_images[1]),
             ]
         self.placeholder = placeholder
-
-        self.suggestions = suggestions
-        if self.suggestions is not None:
-            for i, suggestion in enumerate(self.suggestions):
-                if "icon" in suggestion and isinstance(suggestion["icon"], str):
-                    suggestion["icon"] = self.serve_static_file(suggestion["icon"])
-                file_info = suggestion.get("files")
-                if file_info is not None and not isinstance(file_info, list):
-                    raise Error(
-                        "Data incompatible with files format. The 'files' passed should be a list of file paths or URLs."
-                    )
-                if file_info is not None:
-                    for i, file in enumerate(file_info):
-                        if isinstance(file, str):
-                            orig_name = Path(file).name
-                            file_data = self.serve_static_file(file)
-                            if file_data is not None:
-                                file_data["orig_name"] = orig_name
-                                file_data["mime_type"] = client_utils.get_mimetype(
-                                    orig_name
-                                )
-                                file_data = FileDataDict(**file_data)
-                                file_info[i] = file_data
+        self.examples: list[str] = []
 
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
@@ -538,3 +504,58 @@ class Chatbot(Component):
                 Message(role="assistant", content="How can I help you?").model_dump(),
             ]
         return [["Hello!", None]]
+
+    def get_config(self):
+        config = super().get_config()
+        config["examples"] = self.examples
+        return config
+
+    def handle_examples(
+        self,
+        examples: list[Any] | list[list[Any]] | str,
+        inputs: Component | Sequence[Component],
+        outputs: Component | Sequence[Component] | None,
+        fn: Callable | None,
+        cache_examples: bool | Literal["lazy"] | None,
+        examples_per_page: int,
+        _api_mode: bool,
+        label: str | None,
+        elem_id: str | None,
+        run_on_click: bool,
+        preprocess: bool,
+        postprocess: bool,
+        api_name: str | Literal[False],
+        batch: bool,
+        *,
+        example_labels: list[str] | None,
+        visible: bool,
+        dataset: Dataset,
+    ) -> bool:
+        from gradio.components import Textbox, MultimodalTextbox, Dataset
+        inputs = [inputs] if isinstance(inputs, Component) else inputs
+        try:
+            input_index = [isinstance(input, (Textbox, MultimodalTextbox)) for input in inputs].index(True)
+            input_multimodal = isinstance(inputs[input_index], MultimodalTextbox)
+        except ValueError:
+            if example_labels is None:
+                return False
+        if self.show_examples_inside and fn and (outputs == self or (
+            isinstance(outputs, list) and any(output == self for output in outputs)
+            and isinstance(examples, list)
+        )):
+            if example_labels is None and len(examples) > 0:
+                if not isinstance(examples[0], list):
+                    examples = [[example] for example in examples]
+                example_labels = []
+                for example in examples:
+                    if input_multimodal:
+                        example_labels.append(example[input_index]["text"]) # type: ignore
+                    else:
+                        example_labels.append(example[input_index])
+            self.examples = example_labels
+            dataset.visible = False
+            def select_example(event_data: SelectData):
+                return event_data.index
+            self.load_example(select_example, None, [dataset])
+            return True
+        return False

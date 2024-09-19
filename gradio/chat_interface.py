@@ -29,7 +29,6 @@ from gradio.components.chatbot import (
     FileDataDict,
     Message,
     MessageDict,
-    SuggestionMessage,
     TupleFormat,
 )
 from gradio.components.multimodal_textbox import MultimodalData, MultimodalPostprocess

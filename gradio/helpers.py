@@ -4,6 +4,7 @@ Defines helper methods useful for loading and caching Interface examples.
 
 from __future__ import annotations
 
+import abc
 import ast
 import copy
 import csv
@@ -29,6 +30,7 @@ from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
+    from gradio.components.dataset import Dataset
 
 LOG_FILE = "log.csv"
 
@@ -266,6 +268,33 @@ class Examples:
                 visible=visible,
                 sample_labels=example_labels,
             )
+        
+        special_examples_handler: SpecialExamplesHandler | None = None
+        for component in (inputs if isinstance(inputs, list) else [inputs]) + (
+            [] if outputs is None else (outputs if isinstance(outputs, list) else [outputs])
+        ):
+            if isinstance(component, SpecialExamplesHandler):
+                if component.handle_examples(
+                    examples=examples,
+                    inputs=inputs,
+                    outputs=outputs,
+                    fn=fn,
+                    cache_examples=cache_examples,
+                    examples_per_page=examples_per_page,
+                    _api_mode=_api_mode,
+                    label=label,
+                    elem_id=elem_id,
+                    run_on_click=run_on_click,
+                    preprocess=preprocess,
+                    postprocess=postprocess,
+                    api_name=api_name,
+                    batch=batch,
+                    example_labels=example_labels,
+                    visible=visible,
+                    dataset=self.dataset,
+                ):
+                    run_on_click = True
+                    break
 
         self.cache_logger = CSVLogger(
             simplify_file_data=False, verbose=False, dataset_file_name="log.csv"
@@ -585,6 +614,35 @@ class Examples:
             except (ValueError, TypeError, SyntaxError):
                 output.append(component.read_from_flag(value_to_use))
         return output
+
+
+class SpecialExamplesHandler(metaclass=abc.ABCMeta):
+    def __init__(self):
+        self.dataset: Dataset | None = None
+
+    @abc.abstractmethod
+    def handle_examples(
+        examples: list[Any] | list[list[Any]] | str,
+        inputs: Component | Sequence[Component],
+        outputs: Component | Sequence[Component] | None,
+        fn: Callable | None,
+        cache_examples: bool | Literal["lazy"] | None,
+        examples_per_page: int,
+        _api_mode: bool,
+        label: str | None,
+        elem_id: str | None,
+        run_on_click: bool,
+        preprocess: bool,
+        postprocess: bool,
+        api_name: str | Literal[False],
+        batch: bool,
+        *,
+        example_labels: list[str] | None,
+        visible: bool,
+        dataset: Dataset,
+    ) -> bool:
+        pass
+
 
 
 async def merge_generated_values_into_output(

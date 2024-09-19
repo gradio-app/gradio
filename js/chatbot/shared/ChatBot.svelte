@@ -22,7 +22,7 @@
 	import { Clear, Trash, Community } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { MessageRole, SuggestionMessage } from "../types";
+	import type { MessageRole, exampleMessage } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
@@ -103,7 +103,7 @@
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
 	export let msg_format: "tuples" | "messages" = "tuples";
-	export let suggestions: SuggestionMessage[] | null = null;
+	export let examples: string[] | null = null;
 	export let _retryable = false;
 	export let _undoable = false;
 	export let root: string;
@@ -126,7 +126,7 @@
 		clear: undefined;
 		share: any;
 		error: string;
-		suggestion_select: SelectData;
+		load_example: SelectData;
 	}>();
 
 	beforeUpdate(() => {
@@ -173,16 +173,6 @@
 	}
 
 	$: groupedMessages = value && group_messages(value);
-
-	function handle_suggestion_select(
-		i: number,
-		suggestion: SuggestionMessage
-	): void {
-		dispatch("suggestion_select", {
-			index: i,
-			value: { text: suggestion.text, files: suggestion.files }
-		});
-	}
 
 	function is_last_bot_message(
 		messages: NormalisedMessage[],
@@ -494,44 +484,19 @@
 					<Markdown message={placeholder} {latex_delimiters} {root} />
 				</div>
 			{/if}
-			{#if suggestions !== null}
-				<div class="suggestions">
-					{#each suggestions as suggestion, i}
+			{#if examples !== null}
+				<div class="examples">
+					{#each examples as example, i}
 						<button
-							class="suggestion"
-							on:click={() => handle_suggestion_select(i, suggestion)}
+							class="example"
+							on:click={() => {
+								dispatch("load_example", {
+									index: i,
+									value: example
+								});
+							}}
 						>
-							{#if suggestion.icon !== undefined}
-								<div class="suggestion-icon-container">
-									<Image
-										class="suggestion-icon"
-										src={suggestion.icon.url}
-										alt="suggestion-icon"
-									/>
-								</div>
-							{/if}
-							{#if suggestion.display_text !== undefined}
-								<span class="suggestion-display-text"
-									>{suggestion.display_text}</span
-								>
-							{:else}
-								<span class="suggestion-text">{suggestion.text}</span>
-								{#if suggestion.files !== undefined && suggestion.files.length > 1}
-									<span class="suggestion-file"
-										><em>{suggestion.files.length} Files</em></span
-									>
-								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
-									<Image
-										class="suggestion-image"
-										src={suggestion.files[0].url}
-										alt="suggestion-image"
-									/>
-								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
-									<span class="suggestion-file"
-										><em>{suggestion.files[0].orig_name}</em></span
-									>
-								{/if}
-							{/if}
+							{@html example}
 						</button>
 					{/each}
 				</div>
@@ -559,11 +524,11 @@
 		flex-grow: 1;
 	}
 
-	.suggestions :global(img) {
+	.examples :global(img) {
 		pointer-events: none;
 	}
 
-	.suggestions {
+	.examples {
 		margin: auto;
 		padding: var(--spacing-xxl);
 		display: grid;
@@ -572,11 +537,11 @@
 		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
 	}
 
-	.suggestion {
+	.example {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: var(--spacing-md);
+		padding: var(--spacing-xl) var(--spacing-xxl);
 		border: 0.05px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);
 		background-color: var(--background-fill-secondary);
@@ -584,38 +549,9 @@
 		transition: var(--button-transition);
 	}
 
-	.suggestion:hover {
+	.example:hover {
 		background-color: var(--color-accent-soft);
 		border-color: var(--border-color-accent);
-	}
-
-	.suggestion-icon-container {
-		display: flex;
-		align-self: flex-start;
-		margin-left: var(--spacing-md);
-		width: var(--size-6);
-		height: var(--size-6);
-	}
-
-	.suggestion-display-text,
-	.suggestion-text,
-	.suggestion-file {
-		font-size: var(--body-text-size);
-		display: flex;
-		align-self: flex-start;
-		margin: var(--spacing-md);
-		text-align: left;
-		flex-grow: 1;
-		text-overflow: ellipsis;
-	}
-
-	.suggestion-image {
-		max-height: var(--size-6);
-		max-width: var(--size-6);
-		object-fit: cover;
-		border-radius: var(--radius-xl);
-		margin-top: var(--spacing-md);
-		align-self: flex-start;
 	}
 
 	.panel-wrap {

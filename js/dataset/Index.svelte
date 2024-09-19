@@ -20,6 +20,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: number | null = null;
+	let old_value = value;
 	export let root: string;
 	export let proxy_url: null | string;
 	export let samples_per_page = 10;
@@ -114,6 +115,12 @@
 	}
 
 	$: component_map, get_component_meta(selected_samples);
+
+	$: if (value !== old_value && value !== null && samples) {
+		gradio.dispatch("click", value);
+		gradio.dispatch("select", { index: value, value: samples[value] });
+		old_value = value;
+	}
 </script>
 
 <Block
@@ -152,8 +159,6 @@
 						class="gallery-item"
 						on:click={() => {
 							value = i + page * samples_per_page;
-							gradio.dispatch("click", value);
-							gradio.dispatch("select", { index: value, value: sample_row });
 						}}
 						on:mouseenter={() => handle_mouseenter(i)}
 						on:mouseleave={() => handle_mouseleave()}
@@ -198,7 +203,6 @@
 							class="tr-body"
 							on:click={() => {
 								value = i + page * samples_per_page;
-								gradio.dispatch("click", value);
 							}}
 							on:mouseenter={() => handle_mouseenter(i)}
 							on:mouseleave={() => handle_mouseleave()}

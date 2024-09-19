@@ -45,6 +45,7 @@ class Dataset(Component):
         min_width: int = 160,
         proxy_url: str | None = None,
         sample_labels: list[str] | None = None,
+        selected: int | None = None,
     ):
         """
         Parameters:
@@ -125,6 +126,7 @@ class Dataset(Component):
             self.headers = [c.label or "" for c in self._components]
         self.samples_per_page = samples_per_page
         self.sample_labels = sample_labels
+        self.selected = selected
 
     def api_info(self) -> dict[str, str]:
         return {"type": "integer", "description": "index of selected example"}
