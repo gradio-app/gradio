@@ -49,7 +49,6 @@
 			{value}
 			{elem_classes}
 			{visible}
-			{loading_status}
 			on:change={() => gradio.dispatch("change")}
 		/>
 	</div>
