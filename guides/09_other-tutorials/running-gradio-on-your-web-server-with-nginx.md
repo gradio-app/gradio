@@ -34,7 +34,7 @@ server {
     listen 80;
     server_name example.com www.example.com;  # Change this to your domain name
 
-    location /gradio-demo/ {  # Change this if you'd like to server your Gradio app on a different path
+    location /gradio-demo/ {  # Change this if you'd like to serve your Gradio app on a different path
         proxy_pass http://127.0.0.1:7860/; # Change this if your Gradio app will be running on a different port
         proxy_buffering off;
         proxy_redirect off;
