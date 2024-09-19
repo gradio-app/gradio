@@ -57,7 +57,7 @@
 	<script
 		type="module"
 		src="https://gradio.s3-us-west-2.amazonaws.com/{value === 'main'
-			? version.replace("b", "-beta.")
+			? version.replace('b', '-beta.')
 			: value}/gradio.js"
 	></script>
 </svelte:head>
