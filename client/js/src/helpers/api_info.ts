@@ -315,7 +315,10 @@ export function handle_message(
 					stage: data.success ? "generating" : "error",
 					code: data.code,
 					progress_data: data.progress_data,
-					eta: data.average_duration
+					eta: data.average_duration,
+					changed_state_ids: data.success
+						? data.output.changed_state_ids
+						: undefined
 				},
 				data: data.success ? data.output : null
 			};

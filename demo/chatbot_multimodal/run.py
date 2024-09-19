@@ -41,7 +41,7 @@ with gr.Blocks() as demo:
     bot_msg = chat_msg.then(bot, chatbot, chatbot, api_name="bot_response")
     bot_msg.then(lambda: gr.MultimodalTextbox(interactive=True), None, [chat_input])
 
-    chatbot.like(print_like_dislike, None, None)
+    chatbot.like(print_like_dislike, None, None, like_user_message=True)
 
 if __name__ == "__main__":
     demo.launch()

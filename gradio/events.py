@@ -418,6 +418,7 @@ class EventListener(str):
         trigger_only_on_success: bool = False,
         doc: str = "",
         connection: Literal["sse", "stream"] = "sse",
+        event_specific_args: list[dict[str, str]] | None = None,
     ):
         super().__init__()
         self.has_trigger = has_trigger
@@ -429,6 +430,7 @@ class EventListener(str):
         self.callback = callback
         self.doc = doc
         self.connection = connection
+        self.event_specific_args = event_specific_args or []
         self.listener = self._setup(
             event_name,
             has_trigger,
@@ -436,7 +438,8 @@ class EventListener(str):
             callback,
             trigger_after,
             trigger_only_on_success,
-            connection,
+            self.event_specific_args,
+            self.connection,
         )
         if doc and self.listener.__doc__:
             self.listener.__doc__ = doc + self.listener.__doc__
@@ -457,6 +460,7 @@ class EventListener(str):
             self.trigger_only_on_success,
             self.doc,
             self.connection,  # type: ignore
+            self.event_specific_args,
         )
 
     @staticmethod
@@ -467,6 +471,7 @@ class EventListener(str):
         _callback: Callable | None,
         _trigger_after: int | None,
         _trigger_only_on_success: bool,
+        _event_specific_args: list[dict[str, str]],
         _connection: Literal["sse", "stream"] = "sse",
     ):
         def event_trigger(
@@ -498,6 +503,7 @@ class EventListener(str):
             show_api: bool = True,
             time_limit: int | None = None,
             stream_every: float = 0.5,
+            like_user_message: bool = False,
         ) -> Dependency:
             """
             Parameters:
@@ -592,6 +598,14 @@ class EventListener(str):
                 connection=_connection,
                 time_limit=time_limit,
                 stream_every=stream_every,
+                like_user_message=like_user_message,
+                event_specific_args=[
+                    d["name"]
+                    for d in _event_specific_args
+                    if d.get("component_prop", "true") != "false"
+                ]
+                if _event_specific_args
+                else None,
             )
             set_cancel_events(
                 [event_target],
@@ -843,11 +857,31 @@ class Events:
         doc="This listener is triggered when the user streams the {{ component }}.",
         connection="stream",
         show_progress="minimal",
+        event_specific_args=[
+            {
+                "name": "stream_every",
+                "type": "float = 0.5",
+                "doc": "The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.",
+            },
+            {
+                "name": "time_limit",
+                "type": "float | None = None",
+                "doc": "The time limit for the function to run. Parameter only used for the `.stream()` event.",
+                "component_prop": "false",
+            },
+        ],
     )
     like = EventListener(
         "like",
         config_data=lambda: {"likeable": False},
         callback=lambda block: setattr(block, "likeable", True),
+        event_specific_args=[
+            {
+                "name": "like_user_message",
+                "type": "bool = False",
+                "doc": "Whether to display the like buttons for user messages in the chatbot.",
+            }
+        ],
         doc="This listener is triggered when the user likes/dislikes from within the {{ component }}. This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value. See EventData documentation on how to use this event data.",
     )
     load = EventListener(
