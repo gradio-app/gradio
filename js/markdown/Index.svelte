@@ -60,7 +60,6 @@
 	/>
 	<div class:pending={loading_status?.status === "pending"}>
 		<Markdown
-			min_height={loading_status && loading_status.status !== "complete"}
 			{value}
 			{elem_classes}
 			{visible}
@@ -72,6 +71,7 @@
 			{header_links}
 			{show_copy_button}
 			root={gradio.root}
+			{loading_status}
 		/>
 	</div>
 </Block>
