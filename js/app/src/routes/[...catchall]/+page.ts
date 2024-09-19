@@ -1,9 +1,9 @@
 // import { type LayoutServerLoad } from "./$types";
 
-import { redirect } from "@sveltejs/kit";
 import { Client } from "@gradio/client";
 import { create_components } from "@gradio/core";
 import { get } from "svelte/store";
+import type { Config } from "@gradio/client";
 
 declare let BUILD_MODE: string;
 const gradio_dev_mode = "dev";
@@ -15,7 +15,14 @@ const src = "";
 import Blocks from "@gradio/core/blocks";
 import Login from "@gradio/core/login";
 
-export async function load({ url }) {
+import type { PageLoad, PageData } from "./$types";
+export async function load({ url }): Promise<{
+	Render: typeof Login | typeof Blocks;
+	config: Config;
+	api_url: string;
+	layout: unknown;
+	app: Client;
+}> {
 	const api_url =
 		BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 			? `http://127.0.0.1:${
