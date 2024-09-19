@@ -62,7 +62,7 @@
 		}
 	}
 
-	$: gradio_class = new Gradio<Record<string, any>>(
+	$: node.props.gradio = new Gradio<Record<string, any>>(
 		node.id,
 		target,
 		theme_mode,
@@ -72,7 +72,7 @@
 		max_file_size,
 		formatter,
 		client,
-		load_component
+		load_component,
 	);
 </script>
 
@@ -88,7 +88,6 @@
 	{...node.props}
 	{theme_mode}
 	{root}
-	gradio={gradio_class}
 >
 	{#if node.children && node.children.length}
 		{#each node.children as _node (_node.id)}
@@ -103,7 +102,6 @@
 				on:mount
 				{max_file_size}
 				{client}
-				gradio={gradio_class}
 			/>
 		{/each}
 	{/if}

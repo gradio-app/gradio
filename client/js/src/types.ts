@@ -184,7 +184,8 @@ export interface Config {
 	theme_hash?: number;
 	username: string | null;
 	api_prefix?: string;
-	fill_height: boolean;
+	fill_height?: boolean;
+	fill_width?: boolean;
 }
 
 // todo: DRY up types

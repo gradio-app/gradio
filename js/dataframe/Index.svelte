@@ -18,7 +18,7 @@
 	export let value: { data: Data; headers: Headers; metadata: Metadata } = {
 		data: [["", "", ""]],
 		headers: ["1", "2", "3"],
-		metadata: null
+		metadata: null,
 	};
 	let old_value = "";
 	export let value_is_output = false;
@@ -100,7 +100,7 @@
 			headers: Array(col_count?.[0] || 3)
 				.fill("")
 				.map((_, i) => `${i + 1}`),
-			metadata: null
+			metadata: null,
 		};
 	}
 
@@ -153,7 +153,7 @@
 		i18n={gradio.i18n}
 		{line_breaks}
 		{column_widths}
-		upload={gradio.client.upload}
-		stream_handler={gradio.client.stream}
+		upload={(...args) => gradio.client.upload(...args)}
+		stream_handler={(...args) => gradio.client.stream(...args)}
 	/>
 </Block>

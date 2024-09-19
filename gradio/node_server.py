@@ -64,6 +64,7 @@ def start_node_server(
             server_name=host,
             server_ports=server_ports,
         )
+        print(f"Node server running on {server_name}:{node_port}")
 
     return server_name, node_process, node_port
 
@@ -104,7 +105,7 @@ def start_node_process(
             node_process = subprocess.Popen(
                 [node_path, SSR_APP_PATH],
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                # stderr=subprocess.PIPE,
                 env=env,
             )
 
@@ -123,6 +124,7 @@ def start_node_process(
                 node_process = None
 
         except OSError:
+            print("doing things")
             continue
         except Exception as e:
             warnings.warn(

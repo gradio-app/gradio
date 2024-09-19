@@ -9,6 +9,7 @@ import os
 import random
 import secrets
 import string
+import subprocess
 import sys
 import threading
 import time
@@ -389,7 +390,9 @@ class Block:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
                 )
-            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+            except (
+                AttributeError
+            ):  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 
@@ -964,6 +967,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, using-blocks-like-functions
     """
 
+    node_process: subprocess.Popen[bytes] | None = None
+
     def __init__(
         self,
         theme: Theme | str | None = None,
@@ -995,6 +1000,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
             spa_mode: Whether to enable single-page application mode. If None, will use GRADIO_SPA_MODE environment variable or default to False.
         """
+        print("INIT BLOCKS")
         self.limiter = None
         self.spa_mode = (
             False
@@ -1115,16 +1121,20 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics.initiated_analytics(data)
 
         node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
-        (node_server_name, node_process, node_port) = start_node_server(
-            server_name=node_server_name,
-            server_port=node_port,
-            node_path=node_path,
-            spa_mode=self.spa_mode,
-        )
+        self.node_server_name = None
+        self.node_port = None
 
-        self.node_server_name = node_server_name
-        self.node_port = node_port
-        self.node_process = node_process
+        if not Blocks.node_process:
+            (node_server_name, node_process, node_port) = start_node_server(
+                server_name=node_server_name,
+                server_port=node_port,
+                node_path=node_path,
+                spa_mode=self.spa_mode,
+            )
+            Blocks.node_process = node_process
+            self.node_server_name = node_server_name
+            self.node_port = node_port
+            self.node_process = node_process
 
         self.queue()
 
