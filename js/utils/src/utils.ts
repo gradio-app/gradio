@@ -277,3 +277,9 @@ function _load_component(
 		variant
 	});
 }
+
+export const css_units = (dimension_value: string | number): string => {
+	return typeof dimension_value === "number"
+		? dimension_value + "px"
+		: dimension_value;
+};
