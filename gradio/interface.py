@@ -101,7 +101,8 @@ class Interface(Blocks):
         outputs: str | Component | Sequence[str | Component] | None,
         examples: list[Any] | list[list[Any]] | str | None = None,
         *,
-        cache_examples: bool | Literal["lazy"] | None = None,
+        cache_examples: bool | None = None,
+        cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
         live: bool = False,
@@ -146,7 +147,8 @@ class Interface(Blocks):
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided, but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
-            cache_examples: if True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. If `fn` is a generator function, then the last yielded value will be used as the output. Can also be set by the GRADIO_CACHE_EXAMPLES environment variable, which takes a case-insensitive value, one of: {"true", "false", "lazy"}. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
+            cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             examples_per_page: if examples are provided, how many to display per page.
             live: whether the interface should automatically rerun if any of the inputs change.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
@@ -222,6 +224,7 @@ class Interface(Blocks):
             outputs = [outputs]
 
         self.cache_examples = cache_examples
+        self.cache_mode: Literal["eager", "lazy"] | None = cache_mode
 
         state_input_indexes = [
             idx for idx, i in enumerate(inputs) if i == "state" or isinstance(i, State)
@@ -875,10 +878,11 @@ class Interface(Blocks):
             ]
             self.examples_handler = Examples(
                 examples=self.examples,
-                inputs=non_state_inputs,  # type: ignore
-                outputs=non_state_outputs,  # type: ignore
+                inputs=non_state_inputs,
+                outputs=non_state_outputs,
                 fn=self.fn,
-                cache_examples=self.cache_examples,  # type: ignore
+                cache_examples=self.cache_examples,
+                cache_mode=self.cache_mode,
                 examples_per_page=self.examples_per_page,
                 _api_mode=self.api_mode,
                 batch=self.batch,
