@@ -93,6 +93,7 @@ class Code(Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         lines: int = 5,
+        max_lines: int = 20,
         label: str | None = None,
         interactive: bool | None = None,
         show_label: bool | None = None,
@@ -123,12 +124,14 @@ class Code(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             lines: Minimum number of visible lines to show in the code editor.
+            max_lines: Maximum number of visible lines to show in the code editor.
         """
         if language not in Code.languages:
             raise ValueError(f"Language {language} not supported.")
 
         self.language = language
         self.lines = lines
+        self.max_lines = max(lines, max_lines)
         super().__init__(
             label=label,
             every=every,

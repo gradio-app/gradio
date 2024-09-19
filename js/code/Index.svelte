@@ -29,6 +29,7 @@
 	export let value_is_output = false;
 	export let language = "";
 	export let lines = 5;
+	export let max_lines = 20;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -51,13 +52,10 @@
 		value_is_output = false;
 	});
 	$: value, handle_change();
-
-	const is_browser = typeof window !== "undefined";
-	const default_lines = interactive ? lines : 10.35;
 </script>
 
 <Block
-	height={is_browser ? undefined : default_lines * 25 + 4}
+	height={"fit-content"}
 	variant={"solid"}
 	padding={false}
 	{elem_id}
@@ -85,6 +83,7 @@
 			bind:value
 			{language}
 			{lines}
+			{max_lines}
 			{dark_mode}
 			readonly={!interactive}
 			on:blur={() => gradio.dispatch("blur")}
