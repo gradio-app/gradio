@@ -151,15 +151,7 @@ class Chatbot(Component):
 
     def __init__(
         self,
-        value: (
-            Sequence[
-                Sequence[
-                    str | GradioComponent | tuple[str] | tuple[str | Path, str] | None
-                ]
-            ]
-            | Callable
-            | None
-        ) = None,
+        value: (list[MessageDict | Message] | TupleFormat | Callable | None) = None,
         *,
         type: Literal["messages", "tuples"] = "tuples",
         label: str | None = None,
@@ -194,7 +186,7 @@ class Chatbot(Component):
     ):
         """
         Parameters:
-            value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default list of messages to show in chatbot, where each message is of the format {"role": "user", "content": "Help me."}. Role can be one of "user", "assistant", or "system". Content should be either text, or media passed as a Gradio component, e.g. {"content": gr.Image("lion.jpg")}. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
@@ -448,8 +440,10 @@ class Chatbot(Component):
         elif isinstance(chat_message, FileData):
             return FileMessage(file=chat_message)
         elif isinstance(chat_message, GradioComponent):
+            chat_message.unrender()
             component = import_component_and_data(type(chat_message).__name__)
             if component:
+                chat_message.constructor_args["render"] = False
                 component = chat_message.__class__(**chat_message.constructor_args)
                 chat_message.constructor_args.pop("value", None)
                 config = component.get_config()

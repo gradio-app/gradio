@@ -32,7 +32,7 @@ from gradio.components.chatbot import (
     SuggestionMessage,
     TupleFormat,
 )
-from gradio.components.multimodal_textbox import MultimodalPostprocess
+from gradio.components.multimodal_textbox import MultimodalData, MultimodalPostprocess
 from gradio.events import Dependency, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
