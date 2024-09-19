@@ -304,6 +304,7 @@ class Examples:
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
         self.cache_event: Dependency | None = None
+        self.click_event: Dependency
         self.non_none_processed_examples = UnhashableKeyDict()
 
         if self.dataset.samples:
@@ -363,12 +364,14 @@ class Examples:
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
                     raise ValueError("Cannot run_on_click if no function is provided")
-                self.load_input_event.then(
+                self.click_event = self.load_input_event.then(
                     self.fn,
                     inputs=self.inputs,  # type: ignore
                     outputs=self.outputs,  # type: ignore
                     show_api=False,
                 )
+            else:
+                self.click_event = self.load_input_event
         if not self._defer_caching:
             self._start_caching()
 

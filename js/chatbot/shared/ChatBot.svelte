@@ -540,7 +540,6 @@
 	.example {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
 		padding: var(--spacing-xl) var(--spacing-xxl);
 		border: 0.05px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);

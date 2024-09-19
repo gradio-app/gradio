@@ -169,6 +169,7 @@ class Chatbot(Component, SpecialExamplesHandler):
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
         show_copy_all_button=False,
+        examples: list[str] | None=None,
         show_examples_inside: bool = True,
     ):
         """
@@ -262,7 +263,7 @@ class Chatbot(Component, SpecialExamplesHandler):
                 self.serve_static_file(avatar_images[1]),
             ]
         self.placeholder = placeholder
-        self.examples: list[str] = []
+        self.examples: list[str] = examples
 
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
@@ -505,11 +506,6 @@ class Chatbot(Component, SpecialExamplesHandler):
             ]
         return [["Hello!", None]]
 
-    def get_config(self):
-        config = super().get_config()
-        config["examples"] = self.examples
-        return config
-
     def handle_examples(
         self,
         examples: list[Any] | list[list[Any]] | str,
@@ -549,7 +545,15 @@ class Chatbot(Component, SpecialExamplesHandler):
                 example_labels = []
                 for example in examples:
                     if input_multimodal:
-                        example_labels.append(example[input_index]["text"]) # type: ignore
+                        text = example[input_index]["text"]
+                        files = example[input_index]["files"]
+                        example_label: str = f"<div>{text}</div>" # type: ignore
+                        if files:
+                            if len(files) == 1:
+                                example_label += f"<em>{files[0]}</em>"
+                            else:
+                                example_label += f"<em>{len(files)} file{'s' if len(files) > 1 else ''}</em>"
+                        example_labels.append(example_label)
                     else:
                         example_labels.append(example[input_index])
             self.examples = example_labels
