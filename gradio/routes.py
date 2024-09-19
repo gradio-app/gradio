@@ -320,6 +320,7 @@ class App(FastAPI):
             async def conditional_routing_middleware(request: Request, call_next):
                 if (
                     blocks.node_process is not None
+                    and blocks.node_port is not None
                     and not request.url.path.startswith("/gradio_api")
                     and request.url.path not in ["/config", "/login"]
                     and not request.url.path.startswith("/theme")
@@ -406,7 +407,9 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
+            ) or (
+                callable(app.auth) and app.auth.__call__(username, password)
+            ):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})

@@ -24,8 +24,8 @@ def start_node_server(
     server_name: str | None = None,
     server_port: int | None = None,
     node_path: str | None = None,
-    spa_mode: bool = None,
-) -> tuple[str, subprocess.Popen, int]:
+    spa_mode: bool | None = None,
+) -> tuple[str | None, subprocess.Popen[bytes] | None, int | None]:
     """Launches a local server running the provided Interface
     Parameters:
         server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
@@ -55,6 +55,9 @@ def start_node_server(
         else range(INITIAL_PORT_VALUE + 1, INITIAL_PORT_VALUE + 1 + TRY_NUM_PORTS)
     )
 
+    node_process = None
+    node_port = None
+
     if not spa_mode:
         (node_process, node_port) = start_node_process(
             node_path=node_path or os.getenv("GRADIO_NODE_PATH"),
@@ -70,10 +73,10 @@ SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
 
 
 def start_node_process(
-    node_path: str,
+    node_path: str | None,
     server_name: str,
-    server_ports: list[int],
-):
+    server_ports: list[int] | range,
+) -> tuple[subprocess.Popen[bytes] | None, int | None]:
     if GRADIO_LOCAL_DEV_MODE:
         return None, 9876
     if not node_path:
@@ -156,7 +159,7 @@ def verify_server_startup(host: str, port: int, timeout: float = 5.0) -> bool:
     return False
 
 
-def handle_sigterm(node_process: subprocess.Popen):
+def handle_sigterm(node_process: subprocess.Popen[bytes] | None):
     if node_process is not None:
         print("\nStopping Node.js server...")
         node_process.terminate()
