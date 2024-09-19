@@ -489,8 +489,8 @@ class Video(StreamingOutput, Component):
     async def combine_stream(
         self,
         stream: list[bytes],
-        only_file=False,
         desired_output_format: str | None = None,  # noqa: ARG002
+        only_file=False,
     ) -> VideoData | FileData:
         """Combine video chunks into a single video file.
 
