@@ -114,7 +114,7 @@
 	let active_theme_mode: ThemeMode;
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
-		subscribe: writable({}).subscribe,
+		subscribe: writable({}).subscribe
 	};
 
 	$: if (config?.app_id) {
@@ -132,7 +132,7 @@
 		// }
 		await mount_css(
 			config.root + config.api_prefix + "/theme.css?v=" + config.theme_hash,
-			document.head,
+			document.head
 		);
 		// if (!config.stylesheets) return;
 		// await Promise.all(
@@ -151,7 +151,7 @@
 		// );
 	}
 	async function add_custom_html_head(
-		head_string: string | null,
+		head_string: string | null
 	): Promise<void> {
 		// if (head_string) {
 		// 	const parser = new DOMParser();
@@ -199,7 +199,7 @@
 		} else {
 			const url = new URL(window.location.toString());
 			const url_color_mode: ThemeMode | null = url.searchParams.get(
-				"__theme",
+				"__theme"
 			) as ThemeMode | null;
 			new_theme_mode = theme_mode || url_color_mode || "system";
 		}
@@ -220,7 +220,7 @@
 
 		function update_scheme(): "light" | "dark" {
 			let _theme: "light" | "dark" = window?.matchMedia?.(
-				"(prefers-color-scheme: dark)",
+				"(prefers-color-scheme: dark)"
 			).matches
 				? "dark"
 				: "light";
@@ -246,7 +246,7 @@
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING",
+		detail: "SLEEPING"
 	};
 
 	let app: ClientType;
@@ -276,7 +276,7 @@
 		app = await Client.connect(data.api_url, {
 			status_callback: handle_status,
 			with_null_state: true,
-			events: ["data", "log", "status", "render"],
+			events: ["data", "log", "status", "render"]
 		});
 
 		if (!app.config) {
@@ -290,7 +290,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING",
+			detail: "RUNNING"
 		};
 
 		// await mount_custom_css(config.css);
@@ -315,7 +315,7 @@
 					app = await Client.connect(api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
-						events: ["data", "log", "status", "render"],
+						events: ["data", "log", "status", "render"]
 					});
 
 					if (!app.config) {
@@ -355,7 +355,7 @@
 			CONFIG_ERROR: $_("errors.config_error"),
 			BUILD_ERROR: $_("errors.build_error"),
 			RUNTIME_ERROR: $_("errors.runtime_error"),
-			PAUSED: $_("errors.space_paused"),
+			PAUSED: $_("errors.space_paused")
 		} as const,
 		title(error: error_types): string {
 			return encodeURIComponent($_("errors.space_not_working"));
@@ -364,9 +364,9 @@
 			return encodeURIComponent(
 				`Hello,\n\nFirstly, thanks for creating this space!\n\nI noticed that the space isn't working correctly because there is ${
 					this.readable_error[error] || "an error"
-				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`,
+				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
 			);
-		},
+		}
 	};
 
 	let new_message_fn: (message: string, type: string) => void;
@@ -381,8 +381,8 @@
 			new CustomEvent("render", {
 				bubbles: true,
 				cancelable: false,
-				composed: true,
-			}),
+				composed: true
+			})
 		);
 	}
 
@@ -391,7 +391,7 @@
 
 	async function mount_space_header(
 		space_id: string | null | undefined,
-		is_embed: boolean,
+		is_embed: boolean
 	): Promise<void> {
 		if (space_id && !is_embed && window.self === window.top) {
 			if (spaceheader) {
