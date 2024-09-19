@@ -1000,7 +1000,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
             spa_mode: Whether to enable single-page application mode. If None, will use GRADIO_SPA_MODE environment variable or default to False.
         """
-        print("INIT BLOCKS")
         self.limiter = None
         self.spa_mode = (
             False
@@ -1008,7 +1007,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             else (
                 spa_mode
                 if spa_mode is not None
-                else os.getenv("GRADIO_SPA_MODE", "False").lower() == "true"
+                else os.getenv("GRADIO_SPA_MODE", "True").lower() == "true"
             )
         )
         if theme is None:

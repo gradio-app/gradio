@@ -64,7 +64,6 @@ def start_node_server(
             server_name=host,
             server_ports=server_ports,
         )
-        print(f"Node server running on {server_name}:{node_port}")
 
     return server_name, node_process, node_port
 
