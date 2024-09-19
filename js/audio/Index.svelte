@@ -47,7 +47,7 @@
 	let stream_state = "closed";
 	let _modify_stream: (state: "open" | "closed" | "waiting") => void;
 	export function modify_stream_state(
-		state: "open" | "closed" | "waiting"
+		state: "open" | "closed" | "waiting",
 	): void {
 		stream_state = state;
 		_modify_stream(state);
@@ -115,7 +115,7 @@
 
 	onMount(() => {
 		color_accent = getComputedStyle(document?.documentElement).getPropertyValue(
-			"--color-accent"
+			"--color-accent",
 		);
 		set_trim_region_colour();
 		waveform_settings.waveColor = waveform_options.waveform_color || "#9ca3af";
@@ -136,19 +136,19 @@
 		barRadius: 10,
 		dragToSeek: true,
 		normalize: true,
-		minPxPerSec: 20
+		minPxPerSec: 20,
 	};
 
 	const trim_region_settings = {
 		color: waveform_options.trim_region_color,
 		drag: true,
-		resize: true
+		resize: true,
 	};
 
 	function set_trim_region_colour(): void {
 		document.documentElement.style.setProperty(
 			"--trim-region-color",
-			trim_region_settings.color || color_accent
+			trim_region_settings.color || color_accent,
 		);
 	}
 
@@ -264,8 +264,8 @@
 			{stream_every}
 			bind:modify_stream={_modify_stream}
 			bind:set_time_limit
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
 		</InteractiveAudio>

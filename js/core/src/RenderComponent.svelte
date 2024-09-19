@@ -13,7 +13,7 @@
 	export let theme_mode: ThemeMode;
 	export let instance: ComponentMeta["instance"];
 	export let value: any;
-	export let gradio: Gradio;
+	// export let gradio: Gradio;
 	export let elem_id: string;
 	export let elem_classes: string[];
 	export let _id: number;
@@ -22,7 +22,7 @@
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });
 
 	function wrap(
-		component: ComponentType<SvelteComponent>
+		component: ComponentType<SvelteComponent>,
 	): ComponentType<SvelteComponent> {
 		const ProxiedMyClass = new Proxy(component, {
 			construct(_target, args: Record<string, any>[]) {
@@ -42,7 +42,7 @@
 				});
 
 				return instance;
-			}
+			},
 		});
 
 		return ProxiedMyClass;
@@ -62,7 +62,6 @@
 	{...$$restProps}
 	{theme_mode}
 	{root}
-	{gradio}
 >
 	<slot />
 </svelte:component>

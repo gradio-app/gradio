@@ -32,7 +32,7 @@
 
 	async function handle_event(
 		detail: null | FileData | FileData[],
-		event: "change" | "upload" | "click"
+		event: "change" | "upload" | "click",
 	): Promise<void> {
 		value = detail;
 		gradio.dispatch(event);
@@ -61,7 +61,7 @@
 	on:error={({ detail }) => {
 		gradio.dispatch("error", detail);
 	}}
-	upload={gradio.client.upload}
+	upload={(...args) => gradio.client.upload(...args)}
 >
 	{label ? gradio.i18n(label) : ""}
 </UploadButton>

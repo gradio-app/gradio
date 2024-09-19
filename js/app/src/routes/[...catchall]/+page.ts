@@ -41,6 +41,7 @@ export async function load({ url }): Promise<{
 
 	const { create_layout, layout } = create_components();
 	// console.log("create_layout start", create_layout);
+	console.log({ app });
 	await create_layout({
 		app,
 		components: app.config.components,

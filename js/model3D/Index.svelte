@@ -40,7 +40,7 @@
 	export let camera_position: [number | null, number | null, number | null] = [
 		null,
 		null,
-		null
+		null,
 	];
 	export let interactive: boolean;
 
@@ -140,8 +140,8 @@
 			}}
 			i18n={gradio.i18n}
 			max_file_size={gradio.max_file_size}
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 		>
 			<UploadText i18n={gradio.i18n} type="file" />
 		</Model3DUpload>
