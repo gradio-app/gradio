@@ -19,6 +19,7 @@ class TestHTML:
             "_selectable": False,
             "key": None,
             "min_height": None,
+            "max_height": None,
         }
 
     def test_in_interface(self):
