@@ -106,15 +106,37 @@ Environment variables in Gradio provide a way to customize your applications and
   export FORWARDED_ALLOW_IPS="127.0.0.1,192.168.1.100"
   ```
 
+### 12. `GRADIO_CACHE_EXAMPLES`
 
-### 12. `GRADIO_EXAMPLES_CACHE`
+- **Description**: Whether or not to cache examples by default in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()` when no explicit argument is passed for the `cache_examples` parameter. You can set this environment variable to either the string "true" or "false".
+- **Default**: `"false"`
+- **Example**:
+  ```sh
+  export GRADIO_CACHE_EXAMPLES="true"
+  ```
 
-- **Description**:  If you set `cache_examples=True` or `cache_examples="lazy"` in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`, Gradio will run your prediction function and save the results to disk. By default, this is in the `gradio_cached_examples/` subdirectory within your app's working directory. You can customize the location of cached example files created by Gradio by setting the environment variable `GRADIO_EXAMPLES_CACHE` to an absolute path or a path relative to your working directory.
-- **Default**: `"gradio_cached_examples/"`
+
+### 13. `GRADIO_CACHE_MODE`
+
+- **Description**: How to cache examples. Only applies if `cache_examples` is set to `True` either via enviornment variable or by an explicit parameter, AND no no explicit argument is passed for the `cache_mode` parameter in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`. Can be set to either the strings "lazy" or "eager." If "lazy", examples are cached after their first use for all users of the app. If "eager", all examples are cached at app launch.
+
+- **Default**: `"eager"`
+- **Example**:
+  ```sh
+  export GRADIO_CACHE_MODE="lazy"
+  ```
+
+
+### 14. `GRADIO_EXAMPLES_CACHE`
+
+- **Description**:  If you set `cache_examples=True` in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`, Gradio will run your prediction function and save the results to disk. By default, this is in the `.gradio/cached_examples//` subdirectory within your app's working directory. You can customize the location of cached example files created by Gradio by setting the environment variable `GRADIO_EXAMPLES_CACHE` to an absolute path or a path relative to your working directory.
+- **Default**: `".gradio/cached_examples/"`
 - **Example**:
   ```sh
   export GRADIO_EXAMPLES_CACHE="custom_cached_examples/"
   ```
+
+
 
 ## How to Set Environment Variables
 

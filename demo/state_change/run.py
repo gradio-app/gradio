@@ -61,5 +61,18 @@ with gr.Blocks() as demo:
         click_count,
     )
 
+    async def increment(x):
+        yield x + 1
+
+    n_text = gr.State(0)
+    add_btn = gr.Button("Iterator State Change")
+    add_btn.click(increment, n_text, n_text)
+
+    @gr.render(inputs=n_text)
+    def render_count(count):
+        for i in range(int(count)):
+            gr.Markdown(value = f"Success Box {i} added", key=i)
+
+
 if __name__ == "__main__":
     demo.launch()
