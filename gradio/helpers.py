@@ -9,7 +9,6 @@ import copy
 import csv
 import inspect
 import os
-import tempfile
 import warnings
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
@@ -604,29 +603,24 @@ async def merge_generated_values_into_output(
     for output_index, output_component in enumerate(components):
         if isinstance(output_component, StreamingOutput) and output_component.streaming:
             binary_chunks = []
+            desired_output_format = None
             for i, chunk in enumerate(generated_values):
                 if len(components) > 1:
                     chunk = chunk[output_index]
                 processed_chunk = output_component.postprocess(chunk)
                 if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
                     processed_chunk = processed_chunk.model_dump()
-                binary_chunks.append(
-                    (await output_component.stream_output(processed_chunk, "", i == 0))[
-                        0
-                    ]
+                stream_chunk = await output_component.stream_output(
+                    processed_chunk, "", i == 0
                 )
-            binary_data = b"".join([d["data"] for d in binary_chunks])
-            tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(
-                Path(tempfile.gettempdir()) / "gradio"
+                if i == 0 and (orig_name := stream_chunk[1].get("orig_name")):
+                    desired_output_format = Path(orig_name).suffix[1:]
+                if stream_chunk[0]:
+                    binary_chunks.append(stream_chunk[0]["data"])
+            combined_output = await output_component.combine_stream(
+                binary_chunks, desired_output_format=desired_output_format
             )
-            os.makedirs(tempdir, exist_ok=True)
-            temp_file = tempfile.NamedTemporaryFile(dir=tempdir, delete=False)
-            with open(temp_file.name, "wb") as f:
-                f.write(binary_data)
-
-            output[output_index] = {
-                "path": temp_file.name,
-            }
+            output[output_index] = combined_output.model_dump()
 
     return output
 
