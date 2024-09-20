@@ -974,9 +974,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     Demos: blocks_hello, blocks_flipper, blocks_kinematics
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, using-blocks-like-functions
     """
-
-    node_process: subprocess.Popen[bytes] | None = None
-
     def __init__(
         self,
         theme: Theme | str | None = None,
