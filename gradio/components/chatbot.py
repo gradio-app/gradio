@@ -169,7 +169,7 @@ class Chatbot(Component, SpecialExamplesHandler):
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
         show_copy_all_button=False,
-        examples: list[str] | None=None,
+        examples: list[str | FileData | Component | FileDataDict | list[str | FileData | Component | FileDataDict]] | None=None,
         show_examples_inside: bool = True,
     ):
         """
@@ -263,7 +263,7 @@ class Chatbot(Component, SpecialExamplesHandler):
                 self.serve_static_file(avatar_images[1]),
             ]
         self.placeholder = placeholder
-        self.examples: list[str] = examples
+        self.examples = examples
 
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
