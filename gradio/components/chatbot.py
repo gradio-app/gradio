@@ -84,19 +84,6 @@ class Message(GradioModel):
     content: Union[str, FileMessage, ComponentMessage]
 
 
-class SuggestionMessage(TypedDict):
-    icon: NotRequired[
-        str | FileDataDict
-    ]  # filepath or url to an image to be shown in suggestion box
-    display_text: NotRequired[
-        str
-    ]  # text to be shown in suggestion box. If not provided, main_text will be shown
-    text: NotRequired[str]  # text to be added to chatbot when suggestion is clicked
-    files: NotRequired[
-        list[str | FileDataDict]
-    ]  # list of file paths or URLs to be added to chatbot when suggestion is clicked
-
-
 @dataclass
 class ChatMessage:
     role: Literal["user", "assistant", "system"]
@@ -146,7 +133,7 @@ class Chatbot(Component):
         Events.like,
         Events.retry,
         Events.undo,
-        Events.suggestion_select,
+        Events.load_example,
     ]
 
     def __init__(
@@ -181,7 +168,7 @@ class Chatbot(Component):
         likeable: bool = False,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
-        suggestions: list[SuggestionMessage] | None = None,
+        examples: list[str | FileDataDict | list[str | FileDataDict]] | None = None,
         show_copy_all_button=False,
     ):
         """
@@ -215,7 +202,7 @@ class Chatbot(Component):
             likeable: Whether the chat messages display a like or dislike button. Set automatically by the .like method but has to be present in the signature for it to show up in the config.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
-            suggestions: A list of suggestion messages to display in the chatbot before any user/assistant messages are shown. Each suggestion should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the suggestion box, and an optional "display_text" key, whose value should be the text to display in the suggestion box. If "display_text" is not provided, the value of "text" will be displayed.
+            examples: A list of example messages to display in the chatbot that can be clicked to prepopulate user messages. Each example is a list of messages that represent the starting messages from the user.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
         """
         self.likeable = likeable
@@ -275,28 +262,22 @@ class Chatbot(Component):
             ]
         self.placeholder = placeholder
 
-        self.suggestions = suggestions
-        if self.suggestions is not None:
-            for i, suggestion in enumerate(self.suggestions):
-                if "icon" in suggestion and isinstance(suggestion["icon"], str):
-                    suggestion["icon"] = self.serve_static_file(suggestion["icon"])
-                file_info = suggestion.get("files")
-                if file_info is not None and not isinstance(file_info, list):
-                    raise Error(
-                        "Data incompatible with files format. The 'files' passed should be a list of file paths or URLs."
-                    )
-                if file_info is not None:
-                    for i, file in enumerate(file_info):
-                        if isinstance(file, str):
-                            orig_name = Path(file).name
-                            file_data = self.serve_static_file(file)
-                            if file_data is not None:
-                                file_data["orig_name"] = orig_name
-                                file_data["mime_type"] = client_utils.get_mimetype(
-                                    orig_name
-                                )
-                                file_data = FileDataDict(**file_data)
-                                file_info[i] = file_data
+        if examples:
+            for i, example in enumerate(examples):
+                is_list = isinstance(example, list)
+                if not isinstance(example, list):
+                    example = [example]
+                for j, item in enumerate(example):
+                    if isinstance(item, dict) and "path" in item:
+                        example[j] = self.serve_static_file(item["path"])
+                        example[j]["mime_type"] = client_utils.get_mimetype(
+                            item["path"]
+                        )
+                if not is_list:
+                    examples[i] = example[0]
+            self.examples = examples
+        else:
+            self.examples = None
 
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):

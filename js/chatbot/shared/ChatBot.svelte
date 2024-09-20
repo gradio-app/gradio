@@ -22,7 +22,7 @@
 	import { Clear, Trash, Community } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { MessageRole, SuggestionMessage } from "../types";
+	import type { MessageRole } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
@@ -38,6 +38,7 @@
 	import type { LoadedComponent } from "../../core/src/types";
 
 	import CopyAll from "./CopyAll.svelte";
+	import { background } from "@storybook/theming";
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
@@ -103,7 +104,11 @@
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
 	export let msg_format: "tuples" | "messages" = "tuples";
-	export let suggestions: SuggestionMessage[] | null = null;
+	export let examples: (string | FileData | (string | FileData)[])[] | null =
+		null;
+	$: _examples = examples?.map((example) =>
+		Array.isArray(example) ? example : [example]
+	);
 	export let _retryable = false;
 	export let _undoable = false;
 	export let root: string;
@@ -126,7 +131,7 @@
 		clear: undefined;
 		share: any;
 		error: string;
-		suggestion_select: SelectData;
+		load_example: SelectData;
 	}>();
 
 	beforeUpdate(() => {
@@ -174,13 +179,13 @@
 
 	$: groupedMessages = value && group_messages(value);
 
-	function handle_suggestion_select(
+	function handle_load_example(
 		i: number,
-		suggestion: SuggestionMessage
+		example: string | FileContent | (string | FileContent)[]
 	): void {
-		dispatch("suggestion_select", {
+		dispatch("load_example", {
 			index: i,
-			value: { text: suggestion.text, files: suggestion.files }
+			value: example
 		});
 	}
 
@@ -494,45 +499,39 @@
 					<Markdown message={placeholder} {latex_delimiters} {root} />
 				</div>
 			{/if}
-			{#if suggestions !== null}
-				<div class="suggestions">
-					{#each suggestions as suggestion, i}
-						<button
-							class="suggestion"
-							on:click={() => handle_suggestion_select(i, suggestion)}
-						>
-							{#if suggestion.icon !== undefined}
-								<div class="suggestion-icon-container">
-									<Image
-										class="suggestion-icon"
-										src={suggestion.icon.url}
-										alt="suggestion-icon"
-									/>
-								</div>
-							{/if}
-							{#if suggestion.display_text !== undefined}
-								<span class="suggestion-display-text"
-									>{suggestion.display_text}</span
+			{#if examples != null && _examples != null}
+				<div class="examples">
+					{#each _examples as example_set, i}
+						{#if typeof example_set[0] == "object"}
+							{#if example_set[0].mime_type?.startsWith("image")}
+								<button
+									class="example image-example"
+									style:background-image={`url(${example_set[0].url})`}
+									on:click={() => {
+										handle_load_example(i, examples[i]);
+									}}
 								>
+								</button>
 							{:else}
-								<span class="suggestion-text">{suggestion.text}</span>
-								{#if suggestion.files !== undefined && suggestion.files.length > 1}
-									<span class="suggestion-file"
-										><em>{suggestion.files.length} Files</em></span
-									>
-								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
-									<Image
-										class="suggestion-image"
-										src={suggestion.files[0].url}
-										alt="suggestion-image"
-									/>
-								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
-									<span class="suggestion-file"
-										><em>{suggestion.files[0].orig_name}</em></span
-									>
-								{/if}
+								<button
+									class="example file-example"
+									on:click={() => {
+										handle_load_example(i, examples[i]);
+									}}
+								>
+									{example_set[0].path.split("/").pop()}
+								</button>
 							{/if}
-						</button>
+						{:else}
+							<button
+								class="example text-example"
+								on:click={() => {
+									handle_load_example(i, examples[i]);
+								}}
+							>
+								{example_set[0]}
+							</button>
+						{/if}
 					{/each}
 				</div>
 			{/if}
@@ -559,11 +558,11 @@
 		flex-grow: 1;
 	}
 
-	.suggestions :global(img) {
+	.examples :global(img) {
 		pointer-events: none;
 	}
 
-	.suggestions {
+	.examples {
 		margin: auto;
 		padding: var(--spacing-xxl);
 		display: grid;
@@ -572,50 +571,27 @@
 		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
 	}
 
-	.suggestion {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
+	.example {
 		padding: var(--spacing-md);
 		border: 0.05px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);
 		background-color: var(--background-fill-secondary);
 		cursor: pointer;
 		transition: var(--button-transition);
+		overflow: hidden;
+		max-height: 100px;
 	}
 
-	.suggestion:hover {
+	.example:hover {
 		background-color: var(--color-accent-soft);
 		border-color: var(--border-color-accent);
 	}
 
-	.suggestion-icon-container {
-		display: flex;
-		align-self: flex-start;
-		margin-left: var(--spacing-md);
-		width: var(--size-6);
-		height: var(--size-6);
-	}
-
-	.suggestion-display-text,
-	.suggestion-text,
-	.suggestion-file {
-		font-size: var(--body-text-size);
-		display: flex;
-		align-self: flex-start;
-		margin: var(--spacing-md);
-		text-align: left;
-		flex-grow: 1;
-		text-overflow: ellipsis;
-	}
-
-	.suggestion-image {
-		max-height: var(--size-6);
-		max-width: var(--size-6);
-		object-fit: cover;
-		border-radius: var(--radius-xl);
-		margin-top: var(--spacing-md);
-		align-self: flex-start;
+	.image-example {
+		height: 100px;
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
 	}
 
 	.panel-wrap {
