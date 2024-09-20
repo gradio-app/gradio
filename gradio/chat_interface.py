@@ -243,7 +243,9 @@ class ChatInterface(Blocks):
                     examples_fn = self._examples_fn
 
                 self.examples_handler = Examples(
-                    examples=examples,
+                    examples=examples
+                    if multimodal
+                    else [example["text"] for example in examples],
                     inputs=[self.textbox] + self.additional_inputs,
                     outputs=self.chatbot,
                     fn=examples_fn,
@@ -316,14 +318,20 @@ class ChatInterface(Blocks):
             )
         )
 
-        if isinstance(self.chatbot, Chatbot):
+        if isinstance(self.chatbot, Chatbot) and self.examples:
             if self.cache_examples:
                 self.chatbot.suggestion_select(
-                    self.suggestion_clicked, [self.chatbot], [self.chatbot]
+                    self.suggestion_clicked,
+                    [self.chatbot],
+                    [self.chatbot],
+                    show_api=False,
                 )
             else:
                 self.chatbot.suggestion_select(
-                    self.suggestion_clicked, [self.chatbot], [self.chatbot]
+                    self.suggestion_clicked,
+                    [self.chatbot],
+                    [self.chatbot],
+                    show_api=False,
                 ).then(
                     submit_fn,
                     [self.saved_input, self.chatbot],
@@ -625,8 +633,37 @@ class ChatInterface(Blocks):
             self._append_multimodal_history(message, None, history)
         return history
 
+    def _process_example(
+        self, message: SuggestionMessage | str, response: MessageDict | str | None
+    ):
+        result = []
+        if self.multimodal:
+            message = cast(SuggestionMessage, message)
+            if self.type == "tuples":
+                if "text" in message:
+                    result.append([message["text"], None])
+                for file in message["files"]:
+                    result.append(file, None)
+                result[-1][1] = response
+            else:
+                if "text" in message:
+                    result.append({"role": "user", "content": message["text"]})
+                for file in message.get("files", []):
+                    result.append({"role": "assistant", "content": file})
+                result.append({"role": "assistant", "content": response})
+        else:
+            message = cast(str, message)
+            if self.type == "tuples":
+                result = [[message, response]]
+            else:
+                result = [
+                    {"role": "user", "content": message},
+                    {"role": "assistant", "content": response},
+                ]
+        return result
+
     async def _examples_fn(
-        self, message: SuggestionMessage, *args
+        self, message: SuggestionMessage | str, *args
     ) -> TupleFormat | list[MessageDict]:
         inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
         if self.is_async:
@@ -635,13 +672,7 @@ class ChatInterface(Blocks):
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-        result = []
-        if "text" in message:
-            result.append({"role": "user", "content": message["text"]})
-        for file in message.get("files", []):
-            result.append({"role": "user", "content": file})
-        result.append({"role": "assistant", "content": response})
-        return result
+        return self._process_example(message, response)
 
     async def _examples_stream_fn(
         self,
@@ -658,11 +689,7 @@ class ChatInterface(Blocks):
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
-            if self.type == "tuples":
-                yield [[message, response]]
-            else:
-                new_response = self.response_as_dict(response)
-                yield [{"role": "user", "content": message}, new_response]
+            yield self._process_example(message, response)
 
     async def _delete_prev_fn(
         self,
