@@ -245,7 +245,7 @@ class ChatInterface(Blocks):
                 self.examples_handler = Examples(
                     examples=examples
                     if multimodal
-                    else [example["text"] for example in examples],
+                    else [example.get("text") for example in examples],
                     inputs=[self.textbox] + self.additional_inputs,
                     outputs=self.chatbot,
                     fn=examples_fn,
@@ -642,8 +642,8 @@ class ChatInterface(Blocks):
             if self.type == "tuples":
                 if "text" in message:
                     result.append([message["text"], None])
-                for file in message["files"]:
-                    result.append(file, None)
+                for file in message.get("files", []):
+                    result.append([file, None])
                 result[-1][1] = response
             else:
                 if "text" in message:
