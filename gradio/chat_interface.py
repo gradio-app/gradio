@@ -505,16 +505,16 @@ class ChatInterface(Blocks):
         history: list[MessageDict] | TupleFormat,
     ):
         if self.type == "tuples":
-            for x in message["files"]:
+            for x in message.get("files", []):
                 history.append([(x,), None])  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
                 return
-            elif message["text"] == "" and message["files"] != []:
+            elif message["text"] == "" and message.get("files", []) != []:
                 history.append([None, response])  # type: ignore
             else:
                 history.append([message["text"], cast(str, response)])  # type: ignore
         else:
-            for x in message["files"]:
+            for x in message.get("files", []):
                 history.append(
                     {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
                 )
@@ -553,7 +553,9 @@ class ChatInterface(Blocks):
         history_with_input: TupleFormat | list[MessageDict],
     ) -> tuple[str | MultimodalPostprocess, TupleFormat | list[MessageDict]]:
         if isinstance(message, dict):
-            remove_input = len(message["files"]) + int(message["text"] is not None)
+            remove_input = len(message.get("files", [])) + int(
+                message["text"] is not None
+            )
             history = history_with_input[:-remove_input]
         else:
             history = history_with_input[:-1]
@@ -699,9 +701,9 @@ class ChatInterface(Blocks):
         extra = 1 if self.type == "messages" else 0
         if self.multimodal and isinstance(message, dict):
             remove_input = (
-                len(message["files"]) + 1
+                len(message.get("files", [])) + 1
                 if message["text"] is not None
-                else len(message["files"])
+                else len(message.get("files", []))
             ) + extra
             history = history[:-remove_input]
         else:

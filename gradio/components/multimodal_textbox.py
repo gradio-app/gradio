@@ -26,7 +26,7 @@ class MultimodalData(GradioModel):
 
 class MultimodalPostprocess(TypedDict):
     text: str
-    files: list[FileData]
+    files: NotRequired[list[FileData]]
 
 
 class MultimodalValue(TypedDict):
