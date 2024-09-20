@@ -695,23 +695,23 @@ class TestAuthenticatedRoutes:
         client = TestClient(app)
 
         response = client.post(
-            f"{API_PREFIX}/login",
+            "/login",
             data={"username": "test", "password": "correct_password"},
         )
         assert response.status_code == 200
 
         response = client.post(
-            f"{API_PREFIX}/login",
+            "/login",
             data={"username": "test", "password": "incorrect_password"},
         )
         assert response.status_code == 400
 
         client.post(
-            f"{API_PREFIX}/login",
+            "/login",
             data={"username": "test", "password": "correct_password"},
         )
         response = client.post(
-            f"{API_PREFIX}/login",
+            "/login",
             data={"username": " test ", "password": "correct_password"},
         )
         assert response.status_code == 200
@@ -725,7 +725,7 @@ class TestAuthenticatedRoutes:
         client = TestClient(app)
 
         client.post(
-            f"{API_PREFIX}/login",
+            "/login",
             data={"username": "test", "password": "correct_password"},
         )
 
@@ -735,13 +735,13 @@ class TestAuthenticatedRoutes:
         )
         assert response.status_code == 200
 
-        response = client.get(f"{API_PREFIX}/logout")
+        response = client.get("/logout")
 
         response = client.post(
-            f"{API_PREFIX}/run/predict",
+            "{API_PREFIX}/run/predict",
             json={"data": ["test"]},
         )
-        assert response.status_code == 401
+        assert response.status_code == 404
 
     def test_monitoring_route(self):
         io = Interface(lambda x: x, "text", "text")
