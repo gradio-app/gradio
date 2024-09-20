@@ -9,7 +9,6 @@ import os
 import random
 import secrets
 import string
-import subprocess
 import sys
 import threading
 import time
@@ -974,6 +973,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     Demos: blocks_hello, blocks_flipper, blocks_kinematics
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, using-blocks-like-functions
     """
+
     def __init__(
         self,
         theme: Theme | str | None = None,
@@ -2466,12 +2466,12 @@ Received outputs:
                 else "http"
             )
             if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
-                s = strings.en["RUNNING_LOCALLY_SSR"] if self.node_process else strings.en["RUNNING_LOCALLY"]
-                print(
-                    s.format(
-                        self.protocol, self.server_name, self.server_port
-                    )
+                s = (
+                    strings.en["RUNNING_LOCALLY_SSR"]
+                    if self.node_process
+                    else strings.en["RUNNING_LOCALLY"]
                 )
+                print(s.format(self.protocol, self.server_name, self.server_port))
 
             self._queue.set_server_app(self.server_app)
 
