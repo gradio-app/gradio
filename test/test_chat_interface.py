@@ -86,7 +86,9 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                double, examples=["hello", "hi"], cache_examples=True
+                double,
+                examples=[{"text": "hello"}, {"text": "hi"}],
+                cache_examples=True,
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
             prediction_hi = chatbot.examples_handler.load_from_cache(1)
@@ -100,7 +102,7 @@ class TestInit:
         ):
             chatbot = gr.ChatInterface(
                 double,
-                examples=["hello", "hi"],
+                examples=[{"text": "hello"}, {"text": "hi"}],
                 cache_examples=True,
                 cache_mode="lazy",
             )
@@ -119,7 +121,9 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                async_greet, examples=["abubakar", "tom"], cache_examples=True
+                async_greet,
+                examples=[{"text": "abubakar"}, {"text": "tom"}],
+                cache_examples=True,
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
             prediction_hi = chatbot.examples_handler.load_from_cache(1)
@@ -131,7 +135,9 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                stream, examples=["hello", "hi"], cache_examples=True
+                stream,
+                examples=[{"text": "hello"}, {"text": "hi"}],
+                cache_examples=True,
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
             prediction_hi = chatbot.examples_handler.load_from_cache(1)
@@ -143,7 +149,9 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                async_stream, examples=["hello", "hi"], cache_examples=True
+                async_stream,
+                examples=[{"text": "hello"}, {"text": "hi"}],
+                cache_examples=True,
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
             prediction_hi = chatbot.examples_handler.load_from_cache(1)

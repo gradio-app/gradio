@@ -32,7 +32,7 @@ from gradio.components.chatbot import (
     SuggestionMessage,
     TupleFormat,
 )
-from gradio.components.multimodal_textbox import MultimodalData, MultimodalPostprocess
+from gradio.components.multimodal_textbox import MultimodalPostprocess
 from gradio.events import Dependency, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
@@ -619,7 +619,7 @@ class ChatInterface(Blocks):
     def suggestion_clicked(self, x: SelectData, history):
         if self.cache_examples:
             return self.examples_handler.load_from_cache(x.index)[0].root
-        message = MultimodalData(**cast(dict, x.value))
+        message = MultimodalPostprocess(**cast(dict, x.value))
         self.saved_input.value = message
         if self.multimodal:
             self._append_multimodal_history(message, None, history)

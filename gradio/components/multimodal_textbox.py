@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
 
 import gradio_client.utils as client_utils
 from gradio_client.documentation import document
@@ -181,7 +181,7 @@ class MultimodalTextbox(FormComponent):
         text = value.get("text", "")
         if "files" in value and isinstance(value["files"], list):
             files = [
-                file
+                cast(FileData, file)
                 if isinstance(file, FileData | dict)
                 else FileData(
                     path=file,
