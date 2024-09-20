@@ -123,9 +123,7 @@ def start_node_process(
                 node_process.wait(timeout=2)
                 node_process = None
 
-        except OSError as e:
-            print(f"Port {port} is not available. Trying next port...")
-            print(f"Error: {e}")
+        except OSError:
             continue
         except Exception as e:
             warnings.warn(
