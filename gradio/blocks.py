@@ -389,9 +389,7 @@ class Block:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
                 )
-            except (
-                AttributeError
-            ):  # Can be raised if this function is called before the Block is fully initialized.
+            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 

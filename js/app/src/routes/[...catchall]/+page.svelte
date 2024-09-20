@@ -461,7 +461,7 @@
 	{/if}
 </Embed>
 
-<style>
+<!-- <style>
 	.error {
 		position: relative;
 		padding: var(--size-4);
@@ -489,4 +489,4 @@
 	a:active {
 		color: var(--link-text-color-active);
 	}
-</style>
+</style> -->
