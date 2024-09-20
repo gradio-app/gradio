@@ -601,6 +601,7 @@ class Base(ThemeClass):
         table_text_color=None,
         table_text_color_dark=None,
         checkbox_background_color=None,
+        chatbot_text_size=None,
         checkbox_background_color_dark=None,
         checkbox_background_color_focus=None,
         checkbox_background_color_focus_dark=None,
@@ -844,6 +845,7 @@ class Base(ThemeClass):
             table_text_color_dark: The body text color in the table in dark mode.
             section_header_text_size: The text size of a section header (e.g. tab name).
             section_header_text_weight: The text weight of a section header (e.g. tab name).
+            chatbot_text_size: The text size of the chatbot text.
             checkbox_background_color: The background of a checkbox square or radio circle.
             checkbox_background_color_dark: The background of a checkbox square or radio circle in dark mode.
             checkbox_background_color_focus: The background of a checkbox square or radio circle when focused.
@@ -1271,6 +1273,9 @@ class Base(ThemeClass):
         )
         self.code_background_fill_dark = code_background_fill_dark or getattr(
             self, "code_background_fill_dark", "*neutral_800"
+        )
+        self.chatbot_text_size = chatbot_text_size or getattr(
+            self, "chatbot_text_size", "*text_lg"
         )
         self.checkbox_background_color = checkbox_background_color or getattr(
             self, "checkbox_background_color", "*background_fill_primary"
@@ -1719,7 +1724,9 @@ class Base(ThemeClass):
             self, "button_shadow_hover", "none"
         )
         self.button_transition = button_transition or getattr(
-            self, "button_transition", "background-color 0.3s ease"
+            self,
+            "button_transition",
+            "background-color 0.3s ease, border-color 0.3s ease",
         )
 
         self.button_large_padding = button_large_padding or getattr(

@@ -152,15 +152,18 @@
 		await tick();
 		if (lines === max_lines) return;
 
+		const target = event.target as HTMLTextAreaElement;
+		const computed_styles = window.getComputedStyle(target);
+		const padding_top = parseFloat(computed_styles.paddingTop);
+		const padding_bottom = parseFloat(computed_styles.paddingBottom);
+		const line_height = parseFloat(computed_styles.lineHeight);
+
 		let max =
 			max_lines === undefined
 				? false
-				: max_lines === undefined // default
-					? 21 * 11
-					: 21 * (max_lines + 1);
-		let min = 21 * (lines + 1);
+				: padding_top + padding_bottom + line_height * max_lines;
+		let min = padding_top + padding_bottom + lines * line_height;
 
-		const target = event.target as HTMLTextAreaElement;
 		target.style.height = "1px";
 
 		let scroll_height;
@@ -274,6 +277,7 @@
 				use:text_area_resize={value}
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
+				class:no-label={!show_label && submit_btn}
 				bind:value
 				bind:this={el}
 				{placeholder}
@@ -343,6 +347,10 @@
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 		border: none;
+	}
+	textarea.no-label {
+		padding-top: 5px;
+		padding-bottom: 5px;
 	}
 	label.show_textbox_border input,
 	label.show_textbox_border textarea {
@@ -416,7 +424,6 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		margin-bottom: 5px;
 		z-index: var(--layer-1);
 	}
 	.stop-button,
