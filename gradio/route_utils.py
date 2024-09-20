@@ -892,12 +892,14 @@ def create_lifespan_handler(
 
 
 class MediaStream:
-    def __init__(self):
+    def __init__(self, desired_output_format: str | None = None):
         self.segments: list[MediaStreamChunk] = []
+        self.combined_file: str | None = None
         self.ended = False
         self.segment_index = 0
         self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
-        self.max_length = 5
+        self.max_duration = 5
+        self.desired_output_format = desired_output_format
 
     async def add_segment(self, data: MediaStreamChunk | None):
         if not data:
@@ -905,7 +907,7 @@ class MediaStream:
 
         segment_id = str(uuid.uuid4())
         self.segments.append({"id": segment_id, **data})
-        self.max_duration = max(self.max_length, data["duration"]) + 1
+        self.max_duration = max(self.max_duration, data["duration"]) + 1
 
     def end_stream(self):
         self.ended = True

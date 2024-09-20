@@ -9,7 +9,6 @@ import copy
 import csv
 import inspect
 import os
-import tempfile
 import warnings
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
@@ -38,7 +37,8 @@ def create_examples(
     inputs: Component | Sequence[Component],
     outputs: Component | Sequence[Component] | None = None,
     fn: Callable | None = None,
-    cache_examples: bool | Literal["lazy"] | None = None,
+    cache_examples: bool | None = None,
+    cache_mode: Literal["eager", "lazy"] | None = None,
     examples_per_page: int = 10,
     _api_mode: bool = False,
     label: str | None = None,
@@ -60,6 +60,7 @@ def create_examples(
         outputs=outputs,
         fn=fn,
         cache_examples=cache_examples,
+        cache_mode=cache_mode,
         examples_per_page=examples_per_page,
         _api_mode=_api_mode,
         label=label,
@@ -96,7 +97,8 @@ class Examples:
         inputs: Component | Sequence[Component],
         outputs: Component | Sequence[Component] | None = None,
         fn: Callable | None = None,
-        cache_examples: bool | Literal["lazy"] | None = None,
+        cache_examples: bool | None = None,
+        cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         _api_mode: bool = False,
         label: str | None = "Examples",
@@ -118,7 +120,8 @@ class Examples:
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is not False.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is not False. Also required if `run_on_click` is True.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. Can also be set by the GRADIO_CACHE_EXAMPLES environment variable, which takes a case-insensitive value, one of: {"true", "lazy", or "false"} (for the first two to take effect, `fn` and `outputs` should also be provided). In HuggingFace Spaces, this is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
+            cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
@@ -142,30 +145,35 @@ class Examples:
                         self.cache_examples = True
                     else:
                         self.cache_examples = False
-                elif cache_examples_env.lower() == "lazy":
-                    if fn is not None and outputs is not None:
-                        self.cache_examples = "lazy"
-                    else:
-                        self.cache_examples = False
-                elif cache_examples_env.lower() == "false":
-                    self.cache_examples = False
-                else:
-                    raise ValueError(
-                        "The `GRADIO_CACHE_EXAMPLES` env variable must be one of: 'true', 'false', 'lazy' (case-insensitive)."
-                    )
             elif utils.get_space() and fn is not None and outputs is not None:
                 self.cache_examples = True
             else:
                 self.cache_examples = cache_examples or False
         else:
-            if cache_examples not in [True, False, "lazy"]:
+            if cache_examples not in [True, False]:
                 raise ValueError(
-                    "The `cache_examples` parameter must be one of: True, False, 'lazy'."
+                    "The `cache_examples` parameter must either: True or False."
                 )
             self.cache_examples = cache_examples
 
         if self.cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
+
+        if (cache_mode_env := os.getenv("GRADIO_CACHE_MODE")) and cache_mode is None:
+            if cache_mode_env.lower() == "eager":
+                cache_mode = "eager"
+            elif cache_mode_env.lower() == "lazy":
+                cache_mode = "lazy"
+            else:
+                cache_mode = "eager"
+                warnings.warn(
+                    "The `GRADIO_CACHE_MODE` environment variable must be either 'eager' or 'lazy'. "
+                    "Defaulting to 'eager'."
+                )
+
+        if self.cache_examples and cache_mode == "lazy":
+            self.cache_examples = "lazy"
+
         self._defer_caching = _defer_caching
 
         if not isinstance(inputs, Sequence):
@@ -595,29 +603,24 @@ async def merge_generated_values_into_output(
     for output_index, output_component in enumerate(components):
         if isinstance(output_component, StreamingOutput) and output_component.streaming:
             binary_chunks = []
+            desired_output_format = None
             for i, chunk in enumerate(generated_values):
                 if len(components) > 1:
                     chunk = chunk[output_index]
                 processed_chunk = output_component.postprocess(chunk)
                 if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
                     processed_chunk = processed_chunk.model_dump()
-                binary_chunks.append(
-                    (await output_component.stream_output(processed_chunk, "", i == 0))[
-                        0
-                    ]
+                stream_chunk = await output_component.stream_output(
+                    processed_chunk, "", i == 0
                 )
-            binary_data = b"".join([d["data"] for d in binary_chunks])
-            tempdir = os.environ.get("GRADIO_TEMP_DIR") or str(
-                Path(tempfile.gettempdir()) / "gradio"
+                if i == 0 and (orig_name := stream_chunk[1].get("orig_name")):
+                    desired_output_format = Path(orig_name).suffix[1:]
+                if stream_chunk[0]:
+                    binary_chunks.append(stream_chunk[0]["data"])
+            combined_output = await output_component.combine_stream(
+                binary_chunks, desired_output_format=desired_output_format
             )
-            os.makedirs(tempdir, exist_ok=True)
-            temp_file = tempfile.NamedTemporaryFile(dir=tempdir, delete=False)
-            with open(temp_file.name, "wb") as f:
-                f.write(binary_data)
-
-            output[output_index] = {
-                "path": temp_file.name,
-            }
+            output[output_index] = combined_output.model_dump()
 
     return output
 

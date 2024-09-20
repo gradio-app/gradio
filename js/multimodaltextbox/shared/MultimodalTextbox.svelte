@@ -65,18 +65,6 @@
 		dispatch("change", value);
 		oldValue = value.text;
 	}
-	let accept_file_types: string | null;
-	if (file_types == null) {
-		accept_file_types = null;
-	} else {
-		file_types = file_types.map((x) => {
-			if (x.startsWith(".")) {
-				return x;
-			}
-			return x + "/*";
-		});
-		accept_file_types = file_types.join(", ");
-	}
 
 	$: if (value === null) value = { text: "", files: [] };
 	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
@@ -306,6 +294,7 @@
 				bind:this={upload_component}
 				on:load={handle_upload}
 				{file_count}
+				filetype={file_types}
 				{root}
 				{max_file_size}
 				bind:dragging

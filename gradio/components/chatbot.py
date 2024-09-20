@@ -153,7 +153,7 @@ class Chatbot(Component):
         self,
         value: (list[MessageDict | Message] | TupleFormat | Callable | None) = None,
         *,
-        type: Literal["messages", "tuples"] = "tuples",
+        type: Literal["messages", "tuples"] | None = None,
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -178,7 +178,6 @@ class Chatbot(Component):
         render_markdown: bool = True,
         bubble_full_width: bool = True,
         line_breaks: bool = True,
-        likeable: bool = False,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
         suggestions: list[SuggestionMessage] | None = None,
@@ -212,24 +211,30 @@ class Chatbot(Component):
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
             bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
-            likeable: Whether the chat messages display a like or dislike button. Set automatically by the .like method but has to be present in the signature for it to show up in the config.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
             suggestions: A list of suggestion messages to display in the chatbot before any user/assistant messages are shown. Each suggestion should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the suggestion box, and an optional "display_text" key, whose value should be the text to display in the suggestion box. If "display_text" is not provided, the value of "text" will be displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
         """
-        self.likeable = likeable
-        if type not in ["messages", "tuples"]:
-            raise ValueError("type must be 'messages' or 'tuples', received: {type}")
-        self.type: Literal["tuples", "messages"] = type
-        if type == "messages":
-            self.data_model = ChatbotDataMessages
-        else:
-            # DeprecationWarning gets filtered out by default
+        if type is None:
             warnings.warn(
-                "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead.",
+                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
                 UserWarning,
             )
+            type = "tuples"
+        elif type == "tuples":
+            warnings.warn(
+                "The 'tuples' format for chatbot messages is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
+                UserWarning,
+            )
+        if type not in ["messages", "tuples"]:
+            raise ValueError(
+                f"The `type` parameter must be 'messages' or 'tuples', received: {type}"
+            )
+        self.type: Literal["tuples", "messages"] = type
+        if self.type == "messages":
+            self.data_model = ChatbotDataMessages
+        else:
             self.data_model = ChatbotDataTuples
         self.height = height
         self.max_height = max_height

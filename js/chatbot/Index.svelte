@@ -70,6 +70,7 @@
 			: normalise_messages(value as Message[], root);
 
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
+	export let like_user_message = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height: number | string | undefined;
 	export let min_height: number | string | undefined;
@@ -126,6 +127,7 @@
 			generating={loading_status?.status === "generating"}
 			{rtl}
 			{show_copy_button}
+			{like_user_message}
 			on:change={() => gradio.dispatch("change", value)}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:like={(e) => gradio.dispatch("like", e.detail)}
