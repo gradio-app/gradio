@@ -389,7 +389,9 @@ class Block:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
                 )
-            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+            except (
+                AttributeError
+            ):  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 
@@ -2397,12 +2399,16 @@ Received outputs:
             )
         )
         node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
+        print("starting node server")
         self.node_server_name, self.node_process, self.node_port = start_node_server(
             server_name=node_server_name,
             server_port=node_port,
             node_path=node_path,
             ssr_mode=self.ssr_mode,
         )
+        print("node server started")
+
+        print("createing app")
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
             self,
@@ -2411,6 +2417,8 @@ Received outputs:
             strict_cors=strict_cors,
             ssr_mode=self.ssr_mode,
         )
+
+        print("app created")
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -2432,6 +2440,7 @@ Received outputs:
             else:
                 from gradio import http_server
 
+                print("starting uvicorn server")
                 (
                     server_name,
                     server_port,
@@ -2445,6 +2454,7 @@ Received outputs:
                     ssl_certfile=ssl_certfile,
                     ssl_keyfile_password=ssl_keyfile_password,
                 )
+                print("uvicorn server started")
             self.server_name = server_name
             self.local_url = local_url
             self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
