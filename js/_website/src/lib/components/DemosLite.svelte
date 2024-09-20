@@ -590,6 +590,8 @@
 
 	.code-editor :global(.cm-scroller) {
 		height: 100% !important;
+		min-height: none !important;
+		max-height: none !important;
 	}
 
 	.lite-demo :global(.embed-container) {
