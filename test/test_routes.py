@@ -54,7 +54,7 @@ def test_client():
 
 class TestRoutes:
     def test_get_main_route(self, test_client):
-        response = test_client.get(f"{API_PREFIX}/")
+        response = test_client.get("/")
         assert response.status_code == 200
 
     def test_static_files_served_safely(self, test_client):
@@ -390,12 +390,12 @@ class TestRoutes:
         app = gr.mount_gradio_app(
             app,
             demo,
-            path=f"{API_PREFIX}/echo",
-            app_kwargs={"docs_url": f"{API_PREFIX}/docs-custom"},
+            path="/echo",
+            app_kwargs={"docs_url": "/docs-custom"},
         )
         # Use context manager to trigger start up events
         with TestClient(app) as client:
-            assert client.get(f"{API_PREFIX}/echo/docs-custom").is_success
+            assert client.get("/echo/docs-custom").is_success
 
     def test_mount_gradio_app_with_auth_and_params(self):
         app = FastAPI()

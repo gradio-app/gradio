@@ -1443,7 +1443,7 @@ def mount_gradio_app(
     Parameters:
         app: The parent FastAPI application.
         blocks: The blocks object we want to mount to the parent app.
-        path: The path at which the gradio application will be mounted.
+        path: The path at which the gradio application will be mounted, e.g. "/gradio".
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
         auth: If provided, username and password (or list of username-password tuples) required to access the gradio app. Can also provide function that takes username and password and returns True if valid login.
         auth_message: If provided, HTML message provided on login page for this gradio app.
