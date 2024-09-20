@@ -86,9 +86,7 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                double,
-                examples=[{"text": "hello"}, {"text": "hi"}],
-                cache_examples=True,
+                double, examples=["hello", "hi"], cache_examples=True
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
             prediction_hi = chatbot.examples_handler.load_from_cache(1)
@@ -102,7 +100,7 @@ class TestInit:
         ):
             chatbot = gr.ChatInterface(
                 double,
-                examples=[{"text": "hello"}, {"text": "hi"}],
+                examples=["hello", "hi"],
                 cache_examples=True,
                 cache_mode="lazy",
             )
@@ -121,9 +119,7 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                async_greet,
-                examples=[{"text": "abubakar"}, {"text": "tom"}],
-                cache_examples=True,
+                async_greet, examples=["abubakar", "tom"], cache_examples=True
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
             prediction_hi = chatbot.examples_handler.load_from_cache(1)
@@ -135,9 +131,7 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                stream,
-                examples=[{"text": "hello"}, {"text": "hi"}],
-                cache_examples=True,
+                stream, examples=["hello", "hi"], cache_examples=True
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
             prediction_hi = chatbot.examples_handler.load_from_cache(1)
@@ -149,9 +143,7 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                async_stream,
-                examples=[{"text": "hello"}, {"text": "hi"}],
-                cache_examples=True,
+                async_stream, examples=["hello", "hi"], cache_examples=True
             )
             prediction_hello = chatbot.examples_handler.load_from_cache(0)
             prediction_hi = chatbot.examples_handler.load_from_cache(1)
@@ -185,39 +177,39 @@ class TestInit:
         assert accordion.get_config().get("open") is True
         assert accordion.get_config().get("label") == "MOAR"
 
-    # def test_example_caching_with_additional_inputs(self, monkeypatch):
-    #     with patch(
-    #         "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
-    #     ):
-    #         chatbot = gr.ChatInterface(
-    #             echo_system_prompt_plus_message,
-    #             additional_inputs=["textbox", "slider"],
-    #             examples=[["hello", "robot", 100], ["hi", "robot", 2]],
-    #             cache_examples=True,
-    #         )
-    #         prediction_hello = chatbot.examples_handler.load_from_cache(0)
-    #         prediction_hi = chatbot.examples_handler.load_from_cache(1)
-    #         assert prediction_hello[0].root[0] == ("hello", "robot hello")
-    #         assert prediction_hi[0].root[0] == ("hi", "ro")
+    def test_example_caching_with_additional_inputs(self, monkeypatch):
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            chatbot = gr.ChatInterface(
+                echo_system_prompt_plus_message,
+                additional_inputs=["textbox", "slider"],
+                examples=[["hello", "robot", 100], ["hi", "robot", 2]],
+                cache_examples=True,
+            )
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            assert prediction_hello[0].root[0] == ("hello", "robot hello")
+            assert prediction_hi[0].root[0] == ("hi", "ro")
 
-    # def test_example_caching_with_additional_inputs_already_rendered(self, monkeypatch):
-    #     with patch(
-    #         "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
-    #     ):
-    #         with gr.Blocks():
-    #             with gr.Accordion("Inputs"):
-    #                 text = gr.Textbox()
-    #                 slider = gr.Slider()
-    #                 chatbot = gr.ChatInterface(
-    #                     echo_system_prompt_plus_message,
-    #                     additional_inputs=[text, slider],
-    #                     examples=[["hello", "robot", 100], ["hi", "robot", 2]],
-    #                     cache_examples=True,
-    #                 )
-    #         prediction_hello = chatbot.examples_handler.load_from_cache(0)
-    #         prediction_hi = chatbot.examples_handler.load_from_cache(1)
-    #         assert prediction_hello[0].root[0] == ("hello", "robot hello")
-    #         assert prediction_hi[0].root[0] == ("hi", "ro")
+    def test_example_caching_with_additional_inputs_already_rendered(self, monkeypatch):
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            with gr.Blocks():
+                with gr.Accordion("Inputs"):
+                    text = gr.Textbox()
+                    slider = gr.Slider()
+                    chatbot = gr.ChatInterface(
+                        echo_system_prompt_plus_message,
+                        additional_inputs=[text, slider],
+                        examples=[["hello", "robot", 100], ["hi", "robot", 2]],
+                        cache_examples=True,
+                    )
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            assert prediction_hello[0].root[0] == ("hello", "robot hello")
+            assert prediction_hi[0].root[0] == ("hi", "ro")
 
     def test_custom_chatbot_with_events(self):
         with gr.Blocks() as demo:
