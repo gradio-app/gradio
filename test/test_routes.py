@@ -760,7 +760,7 @@ class TestAuthenticatedRoutes:
         )
         assert response.status_code == 200
 
-        response = client.get(f"{API_PREFIX}/logout")
+        response = client.get("/logout")
 
         response = client.get(
             f"{API_PREFIX}/monitoring",
