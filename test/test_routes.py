@@ -896,7 +896,7 @@ class TestPassingRequest:
         client = TestClient(app)
 
         client.post(
-            f"{API_PREFIX}/login",
+            "/login",
             data={"username": "admin", "password": "password"},
         )
         response = client.post(f"{API_PREFIX}/api/predict/", json={"data": ["test"]})
