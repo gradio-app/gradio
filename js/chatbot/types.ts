@@ -14,10 +14,15 @@ export interface ComponentData {
 	alt_text: string | null;
 }
 
+export interface FileContent {
+	file: FileData;
+	alt_text: string | null;
+}
+
 export interface Message {
 	role: MessageRole;
 	metadata: Metadata;
-	content: string | FileData | ComponentData;
+	content: string | FileContent | ComponentData;
 	index: number | [number, number];
 }
 
@@ -31,18 +36,7 @@ export interface ComponentMessage extends Message {
 	content: ComponentData;
 }
 
-export interface SuggestionMessage {
-	icon?: FileData;
-	display_text?: string;
-	text: string;
-	files?: FileData[];
-}
-
-export type message_data =
-	| string
-	| { file: FileData | FileData[]; alt_text: string | null }
-	| { component: string; value: any; constructor_args: any; props: any }
-	| null;
+export type message_data = string | FileContent | ComponentData | null;
 
 export type TupleFormat = [message_data, message_data][] | null;
 
