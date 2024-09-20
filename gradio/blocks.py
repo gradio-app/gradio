@@ -989,8 +989,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
-        node_server_name: str | None = None,
-        node_port: int | None = None,
         **kwargs,
     ):
         """
@@ -1115,23 +1113,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
-
-        node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
-        self.node_server_name = None
-        self.node_port = None
-
-        if not Blocks.node_process:
-            print("starting node server")
-            (node_server_name, node_process, node_port) = start_node_server(
-                server_name=node_server_name,
-                server_port=node_port,
-                node_path=node_path,
-            )
-            Blocks.node_process = node_process
-            self.node_server_name = node_server_name
-            self.node_port = node_port
-            self.node_process = node_process
-            print("finished starting node server")
 
         self.queue()
 
@@ -2258,6 +2239,8 @@ Received outputs:
         max_file_size: str | int | None = None,
         enable_monitoring: bool | None = None,
         strict_cors: bool = True,
+        node_server_name: str | None = None,
+        node_port: int | None = None,
         ssr_mode: bool | None = None,
         _frontend: bool = True,
     ) -> tuple[routes.App, str, str]:
@@ -2410,6 +2393,20 @@ Received outputs:
                 else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
             )
         )
+        node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
+        self.node_server_name = None
+        self.node_port = None
+
+        if not Blocks.node_process:
+            (node_server_name, node_process, node_port) = start_node_server(
+                server_name=node_server_name,
+                server_port=node_port,
+                node_path=node_path,
+            )
+            Blocks.node_process = node_process
+            self.node_server_name = node_server_name
+            self.node_port = node_port
+            self.node_process = node_process
 
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
@@ -2473,8 +2470,9 @@ Received outputs:
                 else "http"
             )
             if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
+                s = strings.en["RUNNING_LOCALLY"] if self.node_process else strings.en["RUNNING_LOCALLY_SSR"]
                 print(
-                    strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                    s.format(
                         self.protocol, self.server_name, self.server_port
                     )
                 )
