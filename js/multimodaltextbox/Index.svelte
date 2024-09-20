@@ -111,11 +111,3 @@
 		stream_handler={(...args) => gradio.client.stream(...args)}
 	/>
 </Block>
-
-<style>
-	:global(.form .block.multimodal-textbox) {
-		box-shadow: var(--block-shadow) !important;
-		border-width: var(--block-border-width) !important;
-		border-radius: var(--block-radius) !important;
-	}
-</style>
