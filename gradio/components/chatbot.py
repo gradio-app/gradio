@@ -93,7 +93,7 @@ class SuggestionMessage(TypedDict):
     ]  # text to be shown in suggestion box. If not provided, main_text will be shown
     text: NotRequired[str]  # text to be added to chatbot when suggestion is clicked
     files: NotRequired[
-        list[str | FileDataDict]
+        Sequence[str | FileDataDict]
     ]  # list of file paths or URLs to be added to chatbot when suggestion is clicked
 
 

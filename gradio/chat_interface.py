@@ -32,7 +32,7 @@ from gradio.components.chatbot import (
     SuggestionMessage,
     TupleFormat,
 )
-from gradio.components.multimodal_textbox import MultimodalPostprocess
+from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.events import Dependency, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
@@ -72,7 +72,9 @@ class ChatInterface(Blocks):
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
-        examples: list[SuggestionMessage] | None = None,
+        examples: list[str] | list[MultimodalValue] | list[list] | None = None,
+        example_labels: list[str] | None = None,
+        example_icons: list[str] | None = None,
         cache_examples: bool | None = None,
         cache_mode: Literal["eager", "lazy"] | None = None,
         title: str | None = None,
@@ -100,7 +102,9 @@ class ChatInterface(Blocks):
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
-            examples: A list of example messages to display in the chatbot before any user/assistant messages are shown. Each example should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the example box, and an optional "display_text" key, whose value should be the text to display in the example box. If "display_text" is not provided, the value of "text" will be displayed.
+            examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings if `multimodal` is False, and a list of dictionaries (with keys `text` and `files`) if `multimodal` is True. Should also include values for the additional inputs if they are provided.
+            example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list.
+            example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list.
             cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             cache_mode: If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
@@ -197,12 +201,29 @@ class ChatInterface(Blocks):
                     Chatbot, get_component_instance(chatbot, render=True)
                 )
             else:
+                suggestions: list[SuggestionMessage] = []
+                if examples:
+                    for index, example in enumerate(examples):
+                        if isinstance(example, list):
+                            example = example[0]
+                        suggestion: SuggestionMessage = {}
+                        if isinstance(example, str):
+                            suggestion["text"] = example
+                        elif isinstance(example, dict):
+                            suggestion["text"] = example.get("text", "")
+                            suggestion["files"] = example.get("files", [])
+                        if example_labels:
+                            suggestion["display_text"] = example_labels[index]
+                        if example_icons:
+                            suggestion["icon"] = example_icons[index]
+                        suggestions.append(suggestion)
+
                 self.chatbot = Chatbot(
                     label="Chatbot",
                     scale=1,
                     height=200 if fill_height else None,
                     type=self.type,
-                    suggestions=self.examples,
+                    suggestions=suggestions,
                 )
 
             with Group():
@@ -241,11 +262,8 @@ class ChatInterface(Blocks):
                     examples_fn = self._examples_stream_fn
                 else:
                     examples_fn = self._examples_fn
-
                 self.examples_handler = Examples(
-                    examples=examples
-                    if multimodal
-                    else [example.get("text") for example in examples],
+                    examples=examples,
                     inputs=[self.textbox] + self.additional_inputs,
                     outputs=self.chatbot,
                     fn=examples_fn,
@@ -602,6 +620,7 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> AsyncGenerator:
+        print("message", message)
         message_serialized, history = self._process_msg_and_trim_history(
             message, history_with_input
         )
@@ -629,7 +648,10 @@ class ChatInterface(Blocks):
     def suggestion_clicked(self, x: SelectData, history):
         if self.cache_examples:
             return self.examples_handler.load_from_cache(x.index)[0].root
-        message = MultimodalPostprocess(**cast(dict, x.value))
+        if self.multimodal:
+            message = MultimodalPostprocess(**cast(dict, x.value))
+        else:
+            message = x.value["text"]
         self.saved_input.value = message
         if self.multimodal:
             self._append_multimodal_history(message, None, history)
