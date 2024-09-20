@@ -1823,7 +1823,11 @@ Received outputs:
 
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
-            if isinstance(block, components.StreamingOutput) and block.streaming:
+            if (
+                isinstance(block, components.StreamingOutput)
+                and block.streaming
+                and not utils.is_prop_update(data[i])
+            ):
                 if final:
                     stream_run[output_id].end_stream()
                 first_chunk = output_id not in stream_run

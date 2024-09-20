@@ -40,6 +40,7 @@
 	export let stream_handler: Client["stream"];
 	export let stream_every: number;
 	export let uploading = false;
+	export let recording = false;
 
 	let time_limit: number | null = null;
 	let stream_state: "open" | "waiting" | "closed" = "closed";
@@ -65,14 +66,12 @@
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
-	let recording = false;
 	let recorder: IMediaRecorder;
 	let mode = "";
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Uint8Array[] = [];
 	let submit_pending_stream_on_pending_end = false;
 	let inited = false;
-	let stream_open = false;
 
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
@@ -218,6 +217,7 @@
 	}
 
 	function stop(): void {
+		console.log("stopping");
 		recording = false;
 
 		if (streaming) {
@@ -232,6 +232,9 @@
 			mode = "";
 		}
 	}
+
+	$: if (!recording && recorder) stop();
+	$: if (recording && recorder) record();
 </script>
 
 <BlockLabel

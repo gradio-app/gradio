@@ -110,6 +110,7 @@ class Audio(
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
         loop: bool = False,
+        recording: bool = False,
     ):
         """
         Parameters:
@@ -190,6 +191,7 @@ class Audio(
             self.waveform_options = waveform_options
         self.min_length = min_length
         self.max_length = max_length
+        self.recording = recording
         super().__init__(
             label=label,
             every=every,
