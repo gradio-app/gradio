@@ -1432,6 +1432,7 @@ def mount_gradio_app(
     favicon_path: str | None = None,
     show_error: bool = True,
     max_file_size: str | int | None = None,
+    ssr_mode: bool | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1449,6 +1450,7 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
+        ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 18+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.    
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1497,8 +1499,18 @@ def mount_gradio_app(
     if root_path is not None:
         blocks.root_path = root_path
 
+    ssr_mode = (
+        False
+        if wasm_utils.IS_WASM
+        else (
+            ssr_mode
+            if ssr_mode is not None
+            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
+        )
+    )
+
     gradio_app = App.create_app(
-        blocks, app_kwargs=app_kwargs, auth_dependency=auth_dependency
+        blocks, app_kwargs=app_kwargs, auth_dependency=auth_dependency, ssr_mode=ssr_mode,
     )
     old_lifespan = app.router.lifespan_context
 
