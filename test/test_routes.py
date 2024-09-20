@@ -469,8 +469,8 @@ class TestRoutes:
         )
 
         with TestClient(app) as client:
-            assert not client.get(f"{API_PREFIX}/", headers={}).is_success
-            assert client.get(f"{API_PREFIX}/", headers={"user": "abubakar"}).is_success
+            assert not client.get("/", headers={}).is_success
+            assert client.get("/", headers={"user": "abubakar"}).is_success
 
     def test_mount_gradio_app_with_auth_dependency(self):
         app = FastAPI()
@@ -561,9 +561,9 @@ class TestRoutes:
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.get(f"{API_PREFIX}/")
+        response = client.get("/")
         assert response.is_success
-        response = client.get(f"{API_PREFIX}/config/")
+        response = client.get("/config/")
         assert response.is_success
 
     def test_default_cors_restrictions(self):
@@ -1024,7 +1024,7 @@ def test_orjson_serialization():
         gr.DataFrame(df)
     app, _, _ = demo.launch(prevent_thread_lock=True)
     test_client = TestClient(app)
-    response = test_client.get(f"{API_PREFIX}/")
+    response = test_client.get("/")
     assert response.status_code == 200
     demo.close()
 
@@ -1123,17 +1123,10 @@ def test_api_name_set_for_all_events(connect):
             )
 
     with connect(demo) as client:
-        assert (
-            client.predict("freddy", api_name=f"{API_PREFIX}/greet") == "Hello freddy"
-        )
-        assert (
-            client.predict("freddy", api_name=f"{API_PREFIX}/goodbye")
-            == "Goodbye freddy"
-        )
-        assert client.predict("freddy", api_name=f"{API_PREFIX}/greet_me") == "Hello"
-        assert (
-            client.predict("freddy", api_name=f"{API_PREFIX}/Say__goodbye") == "Goodbye"
-        )
+        assert client.predict("freddy", api_name="/greet") == "Hello freddy"
+        assert client.predict("freddy", api_name="/goodbye") == "Goodbye freddy"
+        assert client.predict("freddy", api_name="/greet_me") == "Hello"
+        assert client.predict("freddy", api_name="/Say__goodbye") == "Goodbye"
 
 
 class TestShowAPI:
