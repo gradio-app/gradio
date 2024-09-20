@@ -19,6 +19,7 @@
 	let compare = false;
 
 	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+
 	let model_info = "";
 
 	async function* streamFromWorker(
