@@ -5,7 +5,7 @@ from __future__ import annotations
 import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, Optional, cast
 
 import numpy as np
 import PIL.Image
@@ -15,7 +15,7 @@ from PIL import ImageOps
 
 from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
-from gradio.data_classes import FileData
+from gradio.data_classes import GradioModel
 from gradio.events import Events
 from gradio.exceptions import Error
 
@@ -23,6 +23,17 @@ if TYPE_CHECKING:
     from gradio.components import Timer
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
+
+
+class ImageData(GradioModel):
+    path: Optional[str] = None  # server filepath
+    url: Optional[str] = None  # normalised server url
+    size: Optional[int] = None  # size in bytes
+    orig_name: Optional[str] = None  # original filename
+    mime_type: Optional[str] = None
+    b64: Optional[str] = None
+    is_stream: bool = False
+    meta: dict = {"_type": "gradio.FileData"}
 
 
 @document()
@@ -43,7 +54,7 @@ class Image(StreamingInput, Component):
         Events.input,
     ]
 
-    data_model = FileData
+    data_model = ImageData
 
     def __init__(
         self,
@@ -59,7 +70,7 @@ class Image(StreamingInput, Component):
         sources: list[Literal["upload", "webcam", "clipboard"]]
         | Literal["upload", "webcam", "clipboard"]
         | None = None,
-        type: Literal["numpy", "pil", "filepath"] = "numpy",
+        type: Literal["numpy", "pil", "filepath", "base64"] = "numpy",
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -165,7 +176,7 @@ class Image(StreamingInput, Component):
         )
 
     def preprocess(
-        self, payload: FileData | None
+        self, payload: ImageData | None
     ) -> np.ndarray | PIL.Image.Image | str | None:
         """
         Parameters:
@@ -175,6 +186,17 @@ class Image(StreamingInput, Component):
         """
         if payload is None:
             return payload
+        if payload.b64:
+            if self.type == "pil":
+                return image_utils.decode_base64_to_image(payload.b64)
+            elif self.type == "numpy":
+                return image_utils.decode_base64_to_image_array(payload.b64)
+            elif self.type == "filepath":
+                return image_utils.decode_base64_to_file(
+                    payload.b64, self.GRADIO_CACHE, self.format
+                )
+        if payload.path is None:
+            raise ValueError("Image path is None.")
         file_path = Path(payload.path)
         if payload.orig_name:
             p = Path(payload.orig_name)
@@ -219,7 +241,7 @@ class Image(StreamingInput, Component):
 
     def postprocess(
         self, value: np.ndarray | PIL.Image.Image | str | Path | None
-    ) -> FileData | None:
+    ) -> ImageData | None:
         """
         Parameters:
             value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
@@ -229,10 +251,18 @@ class Image(StreamingInput, Component):
         if value is None:
             return None
         if isinstance(value, str) and value.lower().endswith(".svg"):
-            return FileData(path=value, orig_name=Path(value).name)
+            return ImageData(path=value, orig_name=Path(value).name)
+        if self.format == "base64":
+            if isinstance(value, np.ndarray):
+                return ImageData(url=image_utils.encode_image_array_to_base64(value))
+            elif isinstance(value, PIL.Image.Image):
+                return ImageData(url=image_utils.encode_image_to_base64(value))
+            elif isinstance(value, (Path, str)):
+                return ImageData(url=image_utils.encode_image_file_to_base64(value))
+
         saved = image_utils.save_image(value, self.GRADIO_CACHE, self.format)
         orig_name = Path(saved).name if Path(saved).exists() else None
-        return FileData(path=saved, orig_name=orig_name)
+        return ImageData(path=saved, orig_name=orig_name, b64=None)
 
     def check_streamable(self):
         if self.streaming and self.sources != ["webcam"]:

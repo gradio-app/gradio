@@ -17,6 +17,7 @@
 		get_video_stream,
 		set_available_devices
 	} from "./stream_utils";
+	import type { Base64File } from "./types";
 
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
@@ -53,10 +54,10 @@
 	export let include_audio: boolean;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
-	export let value: FileData | null = null;
+	export let value: FileData | null | Base64File = null;
 
 	const dispatch = createEventDispatcher<{
-		stream: undefined;
+		stream: Blob | string;
 		capture: FileData | Blob | null;
 		error: string;
 		start_recording: undefined;
@@ -139,6 +140,11 @@
 			}
 
 			if (streaming && (!recording || stream_state === "waiting")) {
+				return;
+			}
+			if (streaming) {
+				const image_data = canvas.toDataURL("image/jpeg");
+				dispatch("stream", image_data);
 				return;
 			}
 
