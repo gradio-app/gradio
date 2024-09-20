@@ -14,13 +14,16 @@ export async function resize(
 	await tick();
 	if (lines === max_lines) return;
 
+	const computed_styles = window.getComputedStyle(target);
+	const padding_top = parseFloat(computed_styles.paddingTop);
+	const padding_bottom = parseFloat(computed_styles.paddingBottom);
+	const line_height = parseFloat(computed_styles.lineHeight);
+
 	let max =
 		max_lines === undefined
 			? false
-			: max_lines === undefined // default
-				? 21 * 11
-				: 21 * (max_lines + 1);
-	let min = 21 * (lines + 1);
+			: padding_top + padding_bottom + line_height * max_lines;
+	let min = padding_top + padding_bottom + lines * line_height;
 
 	target.style.height = "1px";
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
 
 import gradio_client.utils as client_utils
 from gradio_client.documentation import document
@@ -26,7 +26,7 @@ class MultimodalData(GradioModel):
 
 class MultimodalPostprocess(TypedDict):
     text: str
-    files: list[FileData]
+    files: NotRequired[list[FileData]]
 
 
 class MultimodalValue(TypedDict):
@@ -82,7 +82,7 @@ class MultimodalTextbox(FormComponent):
         key: int | str | None = None,
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
-        submit_btn: str | bool | None = False,
+        submit_btn: str | bool | None = True,
         stop_btn: str | bool | None = False,
     ):
         """
@@ -181,8 +181,8 @@ class MultimodalTextbox(FormComponent):
         text = value.get("text", "")
         if "files" in value and isinstance(value["files"], list):
             files = [
-                file
-                if isinstance(file, FileData)
+                cast(FileData, file)
+                if isinstance(file, FileData | dict)
                 else FileData(
                     path=file,
                     orig_name=Path(file).name,
