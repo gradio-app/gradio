@@ -444,7 +444,7 @@ class App(FastAPI):
             attach_oauth(app)
         else:
 
-            @router.get("/logout")
+            @app.get("/logout")
             def logout(user: str = Depends(get_current_user)):
                 response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
