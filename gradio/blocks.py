@@ -2391,19 +2391,12 @@ Received outputs:
             )
         )
         node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
-        self.node_server_name = None
-        self.node_port = None
-        if not Blocks.node_process:
-            (node_server_name, node_process, node_port) = start_node_server(
-                server_name=node_server_name,
-                server_port=node_port,
-                node_path=node_path,
-                ssr_mode=self.ssr_mode,
+        self.node_server_name, self.node_process, self.node_port = start_node_server(
+            server_name=node_server_name,
+            server_port=node_port,
+            node_path=node_path,
+            ssr_mode=self.ssr_mode,
             )
-            Blocks.node_process = node_process
-            self.node_server_name = node_server_name
-            self.node_port = node_port
-            self.node_process = node_process
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
             self,
