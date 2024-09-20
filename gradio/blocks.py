@@ -2396,7 +2396,7 @@ Received outputs:
             server_port=node_port,
             node_path=node_path,
             ssr_mode=self.ssr_mode,
-            )
+        )
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
             self,
