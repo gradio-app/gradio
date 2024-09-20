@@ -25,9 +25,15 @@ from gradio.components import (
     Textbox,
     get_component_instance,
 )
-from gradio.components.chatbot import FileDataDict, Message, MessageDict, TupleFormat
-from gradio.components.multimodal_textbox import MultimodalPostprocess
-from gradio.events import Dependency
+from gradio.components.chatbot import (
+    FileDataDict,
+    Message,
+    MessageDict,
+    SuggestionMessage,
+    TupleFormat,
+)
+from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
+from gradio.events import Dependency, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Group, Row
@@ -50,7 +56,7 @@ class ChatInterface(Blocks):
         def echo(message, history):
             return message
 
-        demo = gr.ChatInterface(fn=echo, type="messages", examples=["hello", "hola", "merhaba"], title="Echo Bot")
+        demo = gr.ChatInterface(fn=echo, type="messages", examples=[{"text": "hello", "text": "hola", "text": "merhaba"}], title="Echo Bot")
         demo.launch()
     Demos: chatinterface_multimodal, chatinterface_random_response, chatinterface_streaming_echo
     Guides: creating-a-chatbot-fast, sharing-your-app
@@ -66,10 +72,11 @@ class ChatInterface(Blocks):
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
-        examples: list[str] | list[dict[str, str | list]] | list[list] | None = None,
+        examples: list[str] | list[MultimodalValue] | list[list] | None = None,
+        example_labels: list[str] | None = None,
+        example_icons: list[str] | None = None,
         cache_examples: bool | None = None,
         cache_mode: Literal["eager", "lazy"] | None = None,
-        examples_per_page: int = 10,
         title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
@@ -95,10 +102,11 @@ class ChatInterface(Blocks):
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
-            examples: sample inputs for the function; if provided, appear below the chatbot and can be clicked to populate the chatbot input. Should be a list of strings if `multimodal` is False, and a list of dictionaries (with keys `text` and `files`) if `multimodal` is True.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
+            examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings if `multimodal` is False, and a list of dictionaries (with keys `text` and `files`) if `multimodal` is True. Should also include values for the additional inputs if they are provided.
+            example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list.
+            example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list.
+            cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             cache_mode: If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
-            examples_per_page: if examples are provided, how many to display per page.
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
@@ -141,6 +149,9 @@ class ChatInterface(Blocks):
         self.examples = examples
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
+
+        # if cache_examples is not None:
+        #     raise NotImplementedError()  # TODO: needs to be implemented
 
         if additional_inputs:
             if not isinstance(additional_inputs, list):
@@ -190,11 +201,29 @@ class ChatInterface(Blocks):
                     Chatbot, get_component_instance(chatbot, render=True)
                 )
             else:
+                suggestions: list[SuggestionMessage] = []
+                if examples:
+                    for index, example in enumerate(examples):
+                        if isinstance(example, list):
+                            example = example[0]
+                        suggestion: SuggestionMessage = {}
+                        if isinstance(example, str):
+                            suggestion["text"] = example
+                        elif isinstance(example, dict):
+                            suggestion["text"] = example.get("text", "")
+                            suggestion["files"] = example.get("files", [])
+                        if example_labels:
+                            suggestion["display_text"] = example_labels[index]
+                        if example_icons:
+                            suggestion["icon"] = example_icons[index]
+                        suggestions.append(suggestion)
+
                 self.chatbot = Chatbot(
                     label="Chatbot",
                     scale=1,
                     height=200 if fill_height else None,
                     type=self.type,
+                    suggestions=suggestions,
                 )
 
             with Group():
@@ -233,7 +262,6 @@ class ChatInterface(Blocks):
                     examples_fn = self._examples_stream_fn
                 else:
                     examples_fn = self._examples_fn
-
                 self.examples_handler = Examples(
                     examples=examples,
                     inputs=[self.textbox] + self.additional_inputs,
@@ -242,7 +270,9 @@ class ChatInterface(Blocks):
                     cache_examples=self.cache_examples,
                     cache_mode=self.cache_mode,
                     _defer_caching=True,
-                    examples_per_page=examples_per_page,
+                    visible=False,
+                    preprocess=False,
+                    postprocess=True,
                 )
 
             any_unrendered_inputs = any(
@@ -305,6 +335,33 @@ class ChatInterface(Blocks):
                 show_api=False,
             )
         )
+
+        if isinstance(self.chatbot, Chatbot) and self.examples:
+            if self.cache_examples:
+                self.chatbot.suggestion_select(
+                    self.suggestion_clicked,
+                    [self.chatbot],
+                    [self.chatbot],
+                    show_api=False,
+                )
+            else:
+                self.chatbot.suggestion_select(
+                    self.suggestion_clicked,
+                    [self.chatbot],
+                    [self.chatbot],
+                    show_api=False,
+                ).then(
+                    submit_fn,
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot],
+                    show_api=False,
+                    concurrency_limit=cast(
+                        Union[int, Literal["default"], None], self.concurrency_limit
+                    ),
+                    show_progress=cast(
+                        Literal["full", "minimal", "hidden"], self.show_progress
+                    ),
+                )
         self._setup_stop_events(submit_triggers, submit_event)
 
         retry_event = (
@@ -466,16 +523,16 @@ class ChatInterface(Blocks):
         history: list[MessageDict] | TupleFormat,
     ):
         if self.type == "tuples":
-            for x in message["files"]:
+            for x in message.get("files", []):
                 history.append([(x,), None])  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
                 return
-            elif message["text"] == "" and message["files"] != []:
+            elif message["text"] == "" and message.get("files", []) != []:
                 history.append([None, response])  # type: ignore
             else:
                 history.append([message["text"], cast(str, response)])  # type: ignore
         else:
-            for x in message["files"]:
+            for x in message.get("files", []):
                 history.append(
                     {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
                 )
@@ -514,7 +571,9 @@ class ChatInterface(Blocks):
         history_with_input: TupleFormat | list[MessageDict],
     ) -> tuple[str | MultimodalPostprocess, TupleFormat | list[MessageDict]]:
         if isinstance(message, dict):
-            remove_input = len(message["files"]) + int(message["text"] is not None)
+            remove_input = len(message.get("files", [])) + int(
+                message["text"] is not None
+            )
             history = history_with_input[:-remove_input]
         else:
             history = history_with_input[:-1]
@@ -550,7 +609,6 @@ class ChatInterface(Blocks):
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-
         self._append_history(history_with_input, response)
 
         return history_with_input  # type: ignore
@@ -562,6 +620,7 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> AsyncGenerator:
+        print("message", message)
         message_serialized, history = self._process_msg_and_trim_history(
             message, history_with_input
         )
@@ -586,21 +645,58 @@ class ChatInterface(Blocks):
             self._append_history(history_with_input, response, first_response=False)
             yield history_with_input
 
+    def suggestion_clicked(self, x: SelectData, history):
+        if self.cache_examples:
+            return self.examples_handler.load_from_cache(x.index)[0].root
+        if self.multimodal:
+            message = MultimodalPostprocess(**cast(dict, x.value))
+        else:
+            message = x.value["text"]
+        self.saved_input.value = message
+        if self.multimodal:
+            self._append_multimodal_history(message, None, history)
+        return history
+
+    def _process_example(
+        self, message: SuggestionMessage | str, response: MessageDict | str | None
+    ):
+        result = []
+        if self.multimodal:
+            message = cast(SuggestionMessage, message)
+            if self.type == "tuples":
+                if "text" in message:
+                    result.append([message["text"], None])
+                for file in message.get("files", []):
+                    result.append([file, None])
+                result[-1][1] = response
+            else:
+                if "text" in message:
+                    result.append({"role": "user", "content": message["text"]})
+                for file in message.get("files", []):
+                    result.append({"role": "assistant", "content": file})
+                result.append({"role": "assistant", "content": response})
+        else:
+            message = cast(str, message)
+            if self.type == "tuples":
+                result = [[message, response]]
+            else:
+                result = [
+                    {"role": "user", "content": message},
+                    {"role": "assistant", "content": response},
+                ]
+        return result
+
     async def _examples_fn(
-        self, message: str, *args
+        self, message: SuggestionMessage | str, *args
     ) -> TupleFormat | list[MessageDict]:
         inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
-
         if self.is_async:
             response = await self.fn(*inputs)
         else:
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-        if self.type == "tuples":
-            return [[message, response]]
-        else:
-            return [{"role": "user", "content": message}, response]
+        return self._process_example(message, response)
 
     async def _examples_stream_fn(
         self,
@@ -617,11 +713,7 @@ class ChatInterface(Blocks):
             )
             generator = SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
-            if self.type == "tuples":
-                yield [[message, response]]
-            else:
-                new_response = self.response_as_dict(response)
-                yield [{"role": "user", "content": message}, new_response]
+            yield self._process_example(message, response)
 
     async def _delete_prev_fn(
         self,
@@ -631,9 +723,9 @@ class ChatInterface(Blocks):
         extra = 1 if self.type == "messages" else 0
         if self.multimodal and isinstance(message, dict):
             remove_input = (
-                len(message["files"]) + 1
+                len(message.get("files", [])) + 1
                 if message["text"] is not None
-                else len(message["files"])
+                else len(message.get("files", []))
             ) + extra
             history = history[:-remove_input]
         else:
