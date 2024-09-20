@@ -9,7 +9,6 @@ import os
 import random
 import secrets
 import string
-import subprocess
 import sys
 import threading
 import time
@@ -390,9 +389,7 @@ class Block:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
                 )
-            except (
-                AttributeError
-            ):  # Can be raised if this function is called before the Block is fully initialized.
+            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 
@@ -977,8 +974,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, using-blocks-like-functions
     """
 
-    node_process: subprocess.Popen[bytes] | None = None
-
     def __init__(
         self,
         theme: Theme | str | None = None,
@@ -991,9 +986,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
-        spa_mode: bool | None = None,
-        node_server_name: str | None = None,
-        node_port: int | None = None,
         **kwargs,
     ):
         """
@@ -1008,18 +1000,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
-            spa_mode: Whether to enable single-page application mode. If None, will use GRADIO_SPA_MODE environment variable or default to False.
         """
         self.limiter = None
-        self.spa_mode = (
-            False
-            if wasm_utils.IS_WASM
-            else (
-                spa_mode
-                if spa_mode is not None
-                else os.getenv("GRADIO_SPA_MODE", "True").lower() == "true"
-            )
-        )
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
@@ -1128,24 +1110,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 "version": get_package_version(),
             }
             analytics.initiated_analytics(data)
-
-        node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
-        self.node_server_name = None
-        self.node_port = None
-
-        if not Blocks.node_process:
-            print("starting node server")
-            (node_server_name, node_process, node_port) = start_node_server(
-                server_name=node_server_name,
-                server_port=node_port,
-                node_path=node_path,
-                spa_mode=self.spa_mode,
-            )
-            Blocks.node_process = node_process
-            self.node_server_name = node_server_name
-            self.node_port = node_port
-            self.node_process = node_process
-            print("finished starting node server")
 
         self.queue()
 
@@ -2270,9 +2234,12 @@ Received outputs:
         share_server_protocol: Literal["http", "https"] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         max_file_size: str | int | None = None,
-        _frontend: bool = True,
         enable_monitoring: bool | None = None,
         strict_cors: bool = True,
+        node_server_name: str | None = None,
+        node_port: int | None = None,
+        ssr_mode: bool | None = None,
+        _frontend: bool = True,
     ) -> tuple[routes.App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2307,8 +2274,9 @@ Received outputs:
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
-            strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
+            strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
+            ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 18+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2413,12 +2381,29 @@ Received outputs:
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
 
+        self.ssr_mode = (
+            False
+            if wasm_utils.IS_WASM
+            else (
+                ssr_mode
+                if ssr_mode is not None
+                else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
+            )
+        )
+        node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
+        self.node_server_name, self.node_process, self.node_port = start_node_server(
+            server_name=node_server_name,
+            server_port=node_port,
+            node_path=node_path,
+            ssr_mode=self.ssr_mode,
+            )
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
             self,
             auth_dependency=auth_dependency,
             app_kwargs=app_kwargs,
             strict_cors=strict_cors,
+            ssr_mode=self.ssr_mode,
         )
 
         if self.is_running:
@@ -2438,7 +2423,6 @@ Received outputs:
                 # which the frontend app will directly communicate with through the Worker API,
                 # and we don't need to start a server.
                 wasm_utils.register_app(self.app)
-                self.spa_mode = True
             else:
                 from gradio import http_server
 
@@ -2475,11 +2459,12 @@ Received outputs:
                 else "http"
             )
             if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
-                print(
-                    strings.en["RUNNING_LOCALLY_SEPARATED"].format(
-                        self.protocol, self.server_name, self.server_port
-                    )
+                s = (
+                    strings.en["RUNNING_LOCALLY_SSR"]
+                    if self.node_process
+                    else strings.en["RUNNING_LOCALLY"]
                 )
+                print(s.format(self.protocol, self.server_name, self.server_port))
 
             self._queue.set_server_app(self.server_app)
 
