@@ -66,7 +66,7 @@
 		});
 	};
 
-	$: if (container !== undefined) {
+	$: if (!value?.is_stream && container !== undefined && container !== null) {
 		if (waveform !== undefined) waveform.destroy();
 		container.innerHTML = "";
 		create_waveform();

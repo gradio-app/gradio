@@ -761,15 +761,19 @@ class App(FastAPI):
             if not stream:
                 return Response(status_code=404)
 
-            byte_stream = b""
-            extension = ""
-            for segment in stream.segments:
-                extension = segment["extension"]
-                byte_stream += segment["data"]
-
-            media_type = "video/MP2T" if extension == ".ts" else "audio/aac"
-
-            return Response(content=byte_stream, media_type=media_type)
+            if not stream.combined_file:
+                stream_data = [s["data"] for s in stream.segments]
+                combined_file = (
+                    await app.get_blocks()
+                    .get_component(component_id)
+                    .combine_stream(  # type: ignore
+                        stream_data,
+                        only_file=True,
+                        desired_output_format=stream.desired_output_format,
+                    )
+                )
+                stream.combined_file = combined_file.path
+            return FileResponse(stream.combined_file)
 
         @router.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):

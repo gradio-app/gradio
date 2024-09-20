@@ -23,6 +23,7 @@ from gradio.component_meta import ComponentMeta
 from gradio.data_classes import (
     BaseModel,
     DeveloperPath,
+    FileData,
     FileDataDict,
     GradioDataModel,
     MediaStreamChunk,
@@ -381,6 +382,21 @@ class StreamingOutput(metaclass=abc.ABCMeta):
     async def stream_output(
         self, value, output_id: str, first_chunk: bool
     ) -> tuple[MediaStreamChunk | None, FileDataDict | dict]:
+        pass
+
+    @abc.abstractmethod
+    async def combine_stream(
+        self,
+        stream: list[bytes],
+        desired_output_format: str | None = None,
+        only_file=False,
+    ) -> GradioDataModel | FileData:
+        """Combine all of the stream chunks into a single file.
+
+        This is needed for downloading the stream and for caching examples.
+        If `only_file` is True, only the FileData corresponding to the file should be returned (needed for downloading the stream).
+        The desired_output_format optionally converts the combined file. Should only be used for cached examples.
+        """
         pass
 
 
