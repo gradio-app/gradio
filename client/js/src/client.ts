@@ -63,6 +63,7 @@ export class Client {
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
 	current_payload: any;
+	ws_map: Record<string, WebSocket> = {};
 
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const headers = new Headers(init?.headers || {});
@@ -436,6 +437,40 @@ export class Client {
 			view_api: this.view_api,
 			component_server: this.component_server
 		};
+	}
+
+	private async connect_ws(url: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			const ws = new WebSocket(url);
+
+			ws.onopen = () => {
+				resolve();
+			};
+
+			ws.onerror = (error) => {
+				console.error("WebSocket error:", error);
+				reject(error);
+			};
+
+			ws.onmessage = (event) => {};
+			this.ws_map[url] = ws;
+		});
+	}
+
+	async send_ws_message(url: string, data: any): Promise<void> {
+		// connect if not connected
+		if (!(url in this.ws_map)) {
+			await this.connect_ws(url);
+		}
+		const ws = this.ws_map[url];
+		ws.send(JSON.stringify(data));
+	}
+
+	async close_ws(url: string): Promise<void> {
+		if (url in this.ws_map) {
+			this.ws_map[url].close();
+			delete this.ws_map[url];
+		}
 	}
 }
 

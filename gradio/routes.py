@@ -51,6 +51,7 @@ from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse, StreamingResponse
+from fastapi.websockets import WebSocket, WebSocketDisconnect
 
 import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
@@ -617,13 +618,20 @@ class App(FastAPI):
                 filename=abs_path.name,
             )
 
-        @router.post("/stream/{event_id}")
-        async def _(event_id: str, body: PredictBody, request: fastapi.Request):
-            event = app.get_blocks()._queue.event_ids_to_events[event_id]
-            body = PredictBodyInternal(**body.model_dump(), request=request)
-            event.data = body
-            event.signal.set()
-            return {"msg": "success"}
+        @router.websocket("/stream/{event_id}")
+        async def websocket_endpoint(websocket: WebSocket, event_id: str):
+            await websocket.accept()
+            try:
+                while True:
+                    data = await websocket.receive_json()
+                    body = PredictBody(**data)
+                    event = app.get_blocks()._queue.event_ids_to_events[event_id]
+                    body_internal = PredictBodyInternal(**body.model_dump(), request=None)
+                    event.data = body_internal
+                    event.signal.set()
+                    await websocket.send_json({"msg": "success"})
+            except WebSocketDisconnect:
+                pass
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
