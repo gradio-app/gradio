@@ -180,3 +180,21 @@ class TestAudio:
             (48000, np.random.randint(-256, 256, (5, 3)).astype(np.int16))
         ).model_dump()  # type: ignore
         assert output["path"].endswith("mp3")
+
+    @pytest.mark.asyncio
+    async def test_combine_stream_audio(self, gradio_temp_dir):
+        x_wav = FileData(
+            path=processing_utils.save_base64_to_cache(
+                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
+            )
+        )
+        bytes_output = [Path(x_wav.path).read_bytes()] * 2
+        output = await gr.Audio().combine_stream(
+            bytes_output, desired_output_format="wav"
+        )
+        assert str(output.path).endswith("wav")
+
+        output = await gr.Audio().combine_stream(
+            bytes_output, desired_output_format=None
+        )
+        assert str(output.path).endswith("mp3")

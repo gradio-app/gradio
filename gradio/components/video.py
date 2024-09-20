@@ -24,6 +24,7 @@ from gradio.events import Events
 if TYPE_CHECKING:
     from gradio.components import Timer
 
+
 if not wasm_utils.IS_WASM:
     # TODO: Support ffmpeg on Wasm
     from ffmpy import FFmpeg
@@ -485,6 +486,66 @@ class Video(StreamingOutput, Component):
 
         return ts_file
 
+    async def combine_stream(
+        self,
+        stream: list[bytes],
+        desired_output_format: str | None = None,  # noqa: ARG002
+        only_file=False,
+    ) -> VideoData | FileData:
+        """Combine video chunks into a single video file.
+
+        Do not take desired_output_format into consideration as
+        mp4 is a safe format for playing in browser.
+        """
+        if wasm_utils.IS_WASM:
+            raise wasm_utils.WasmUnsupportedError(
+                "Streaming is not supported in the Wasm mode."
+            )
+
+        # Use an mp4 extension here so that the cached example
+        # is playable in the browser
+        output_file = tempfile.NamedTemporaryFile(
+            delete=False, suffix=".mp4", dir=self.GRADIO_CACHE
+        )
+
+        ts_files = [
+            processing_utils.save_bytes_to_cache(
+                s, "video_chunk.ts", cache_dir=self.GRADIO_CACHE
+            )
+            for s in stream
+        ]
+
+        command = [
+            "ffmpeg",
+            "-i",
+            f'concat:{"|".join(ts_files)}',
+            "-y",
+            "-safe",
+            "0",
+            "-c",
+            "copy",
+            output_file.name,
+        ]
+        process = await asyncio.create_subprocess_exec(
+            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+
+        _, stderr = await process.communicate()
+
+        if process.returncode != 0:
+            error_message = stderr.decode().strip()
+            raise RuntimeError(f"FFmpeg command failed: {error_message}")
+        video = FileData(
+            path=output_file.name,
+            is_stream=False,
+            orig_name="video-stream.mp4",
+        )
+        if only_file:
+            return video
+
+        output = VideoData(video=video)
+        return output
+
     async def stream_output(
         self,
         value: str | None,
@@ -495,7 +556,9 @@ class Video(StreamingOutput, Component):
             "video": {
                 "path": output_id,
                 "is_stream": True,
-                "orig_name": "video-stream.ts",
+                # Need to set orig_name so that downloaded file has correct
+                # extension
+                "orig_name": "video-stream.mp4",
             }
         }
         if value is None:
