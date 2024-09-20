@@ -5,7 +5,7 @@ def greet(name):
     return "Hello " + name + "!"
 
 
-demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox", spa_mode=False)
 
 if __name__ == "__main__":
-    demo.launch(ssr_mode=True)
+    demo.launch()
