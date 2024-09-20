@@ -24,14 +24,14 @@ def start_node_server(
     server_name: str | None = None,
     server_port: int | None = None,
     node_path: str | None = None,
-    spa_mode: bool | None = None,
+    ssr_mode: bool | None = None,
 ) -> tuple[str | None, subprocess.Popen[bytes] | None, int | None]:
     """Launches a local server running the provided Interface
     Parameters:
         server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
         node_path: the path to the node executable. Can be set by environment variable GRADIO_NODE_PATH.
-        spa_mode: If True, will not start the node server and will serve the SPA from the Python server
+        ssr_mode: If False, will not start the node server and will serve the SPA from the Python server
 
     Returns:
         server_name: the name of the server (default is "localhost")
@@ -58,7 +58,7 @@ def start_node_server(
     node_process = None
     node_port = None
 
-    if not spa_mode:
+    if ssr_mode:
         (node_process, node_port) = start_node_process(
             node_path=node_path or os.getenv("GRADIO_NODE_PATH"),
             server_name=host,
