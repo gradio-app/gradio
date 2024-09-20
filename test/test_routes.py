@@ -751,7 +751,7 @@ class TestAuthenticatedRoutes:
         )
         client = TestClient(app)
         client.post(
-            f"{API_PREFIX}/login",
+            "/login",
             data={"username": "test", "password": "correct_password"},
         )
 
