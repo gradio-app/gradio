@@ -2388,7 +2388,7 @@ Received outputs:
         self._queue.max_thread_count = max_threads
 
         self.ssr_mode = (
-            True
+            False
             if wasm_utils.IS_WASM
             else (
                 ssr_mode
