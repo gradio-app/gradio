@@ -2404,6 +2404,13 @@ Received outputs:
         self.node_server_name = node_server_name
         self.node_port = node_port
 
+        self.node_server_name, self.node_process, self.node_port = start_node_server(
+            server_name=self.node_server_name,
+            server_port=self.node_port,
+            node_path=self.node_path,
+            ssr_mode=self.ssr_mode,
+        )
+
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
             self,
@@ -2827,12 +2834,7 @@ Received outputs:
         self.is_running = True
         self.create_limiter()
 
-        self.node_server_name, self.node_process, self.node_port = start_node_server(
-            server_name=self.node_server_name,
-            server_port=self.node_port,
-            node_path=self.node_path,
-            ssr_mode=self.ssr_mode,
-        )
+        
 
     def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """

@@ -107,6 +107,10 @@ from gradio.utils import (
     get_upload_folder,
 )
 
+from gradio.node_server import (
+    start_node_server,
+)
+
 if TYPE_CHECKING:
     from gradio.blocks import Block
 
@@ -1567,6 +1571,13 @@ def mount_gradio_app(
 
     blocks.node_server_name = node_server_name
     blocks.node_port = node_port
+
+    blocks.node_server_name, blocks.node_process, blocks.node_port = start_node_server(
+        server_name=blocks.node_server_name,
+        server_port=blocks.node_port,
+        node_path=blocks.node_path,
+        ssr_mode=blocks.ssr_mode,
+    )
 
     gradio_app = App.create_app(
         blocks,
