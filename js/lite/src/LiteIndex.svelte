@@ -155,8 +155,8 @@
 			{:else}
 				<Index
 					space={null}
-					src={null}
-					host={FAKE_LITE_HOST}
+					src={`http://${FAKE_LITE_HOST}/`}
+					host={null}
 					{info}
 					{container}
 					{is_embed}
@@ -181,8 +181,8 @@
 		{:else}
 			<Index
 				space={null}
-				src={null}
-				host={FAKE_LITE_HOST}
+				src={`http://${FAKE_LITE_HOST}/`}
+				host={null}
 				{info}
 				{container}
 				{is_embed}
