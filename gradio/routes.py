@@ -245,10 +245,13 @@ class App(FastAPI):
             if k.lower() not in ["content-length"]
         }
 
-        headers["x-gradio-server"] = (
-            f"{scheme}://{server_name}:{python_port}{mounted_path}"
-        )
+        server_url = f"{scheme}://{server_name}"
+        if python_port:
+            server_url += f":{python_port}"
+        if mounted_path:
+            server_url += mounted_path
 
+        headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
 
         print(headers)

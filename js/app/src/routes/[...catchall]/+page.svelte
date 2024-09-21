@@ -77,6 +77,7 @@
 	import { page } from "$app/stores";
 
 	import { init } from "@huggingface/space-header";
+	import { browser } from "$app/environment";
 
 	setupi18n();
 
@@ -341,7 +342,9 @@
 		);
 	}
 
-	$: app?.config && mount_space_header(app?.config?.space_id, is_embed);
+	$: app?.config &&
+		browser &&
+		mount_space_header(app?.config?.space_id, is_embed);
 	let spaceheader: HTMLElement | undefined;
 
 	async function mount_space_header(
