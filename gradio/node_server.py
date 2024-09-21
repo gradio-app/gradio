@@ -106,12 +106,12 @@ def start_node_process(
 
             node_process = subprocess.Popen(
                 [node_path, SSR_APP_PATH],
-                stdout=subprocess.DEVNULL,
+                # stdout=subprocess.DEVNULL,
                 env=env,
             )
 
             is_working = verify_server_startup(server_name, port, timeout=5)
-
+            print(f"Node server started on {server_name}:{port}, working: {is_working}")
             if is_working:
                 # signal.signal(
                 #     signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
@@ -162,28 +162,15 @@ def attempt_connection(host: str, port: int) -> bool:
         return False
 
 
-def verify_server_startup(
-    host: str, port: int, timeout: float = 30.0, interval: float = 0.5
-) -> bool:
+def verify_server_startup(host: str, port: int, timeout: float = 5.0) -> bool:
     """Verifies if a server is up and running by attempting to connect."""
-    end_time = time.time() + timeout
-
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        while time.time() < end_time:
-
-            future = executor.submit(attempt_connection, host, port)
-            try:
-                result = future.result(timeout=1)
-                if result:
-                    return True
-            except TimeoutError:
-                pass
-
-            remaining = end_time - time.time()
-            if remaining > 0:
-                sleep_time = min(interval, remaining)
-                time.sleep(sleep_time)
-
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return True
+        except (TimeoutError, OSError):
+            time.sleep(0.1)
     return False
 
 

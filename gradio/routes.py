@@ -75,6 +75,9 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import InvalidPathError
+from gradio.node_server import (
+    start_node_server,
+)
 from gradio.oauth import attach_oauth
 from gradio.route_utils import (  # noqa: F401
     API_PREFIX,
@@ -105,10 +108,6 @@ from gradio.utils import (
     get_node_path,
     get_package_version,
     get_upload_folder,
-)
-
-from gradio.node_server import (
-    start_node_server,
 )
 
 if TYPE_CHECKING:
@@ -268,11 +267,18 @@ class App(FastAPI):
         body = await request.body()
 
         response = await client.request(
-            method=request.method, url=url, headers=headers, content=body
+            method=request.method,
+            url=url,
+            headers=headers,
+            content=body,
         )
 
-        return Response(
-            content=response.content,
+        async def generate_content():
+            async for chunk in response.aiter_bytes():
+                yield chunk
+
+        return StreamingResponse(
+            generate_content(),
             status_code=response.status_code,
             headers=dict(response.headers),
         )
@@ -355,6 +361,10 @@ class App(FastAPI):
                     if custom_mount_path is not None
                     else request.url.path
                 )
+
+                print(f"Path: {path}")
+                print(f"Custom mount path: {custom_mount_path}")
+                print(f"Original path: {request.url.path}")
 
                 if (
                     getattr(blocks, "node_process", None) is not None
