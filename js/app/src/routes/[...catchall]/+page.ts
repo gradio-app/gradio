@@ -1,4 +1,5 @@
 // import { type LayoutServerLoad } from "./$types";
+import { browser } from "$app/environment";
 
 import { Client } from "@gradio/client";
 import { create_components } from "@gradio/core";
@@ -15,7 +16,7 @@ export async function load({ url, data: { server, port } }): Promise<{
 	layout: unknown;
 	app: Client;
 }> {
-	const api_url = `http://${server}:${port}`;
+	const api_url = browser ? `./` : `http://${server}:${port}`;
 
 	const app = await Client.connect(api_url, {
 		with_null_state: true,
@@ -44,7 +45,7 @@ export async function load({ url, data: { server, port } }): Promise<{
 	return {
 		Render: app.config?.auth_required ? Login : Blocks,
 		config: app.config,
-		api_url: api_url,
+		api_url,
 		layout: layouts,
 		app
 	};

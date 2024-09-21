@@ -1,4 +1,4 @@
-export async function load({ request }): Promise<{
+export async function load({ request }: { request: Request }): Promise<{
 	server: string;
 	port: string;
 	local_dev_mode: string | undefined;

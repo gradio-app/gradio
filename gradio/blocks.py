@@ -389,7 +389,9 @@ class Block:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
                 )
-            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+            except (
+                AttributeError
+            ):  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 
@@ -2396,7 +2398,9 @@ Received outputs:
                 else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
             )
         )
-        node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
+        node_path = os.environ.get(
+            "GRADIO_NODE_PATH", False if wasm_utils.IS_WASM else get_node_path()
+        )
         self.node_server_name, self.node_process, self.node_port = start_node_server(
             server_name=node_server_name,
             server_port=node_port,
