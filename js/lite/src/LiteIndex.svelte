@@ -156,7 +156,6 @@
 				<Index
 					space={null}
 					src={`http://${FAKE_LITE_HOST}/`}
-					host={null}
 					{info}
 					{container}
 					{is_embed}
@@ -182,7 +181,6 @@
 			<Index
 				space={null}
 				src={`http://${FAKE_LITE_HOST}/`}
-				host={null}
 				{info}
 				{container}
 				{is_embed}
