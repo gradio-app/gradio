@@ -361,6 +361,7 @@ class App(FastAPI):
 
             @app.middleware("http")
             async def conditional_routing_middleware(request: Request, call_next):
+                print("middleware")
                 custom_mount_path = getattr(blocks, "custom_mount_path", "")
                 path = (
                     request.url.path.replace(custom_mount_path or "", "")
@@ -375,6 +376,7 @@ class App(FastAPI):
                     and path not in ["/config", "/login"]
                     and not path.startswith("/theme")
                 ):
+                    print("proxying")
                     try:
 
                         return await App.proxy_to_node(
