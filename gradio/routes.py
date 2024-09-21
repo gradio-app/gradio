@@ -257,10 +257,6 @@ class App(FastAPI):
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
 
-        print(
-            f"Proxying request from {request.url.path} to {url} with server url {server_url}"
-        )
-
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
@@ -353,18 +349,12 @@ class App(FastAPI):
 
             @app.middleware("http")
             async def conditional_routing_middleware(request: Request, call_next):
-
                 custom_mount_path = getattr(blocks, "custom_mount_path", "")
-
                 path = (
                     request.url.path.replace(custom_mount_path or "", "")
                     if custom_mount_path is not None
                     else request.url.path
                 )
-
-                print(f"Path: {path}")
-                print(f"Custom mount path: {custom_mount_path}")
-                print(f"Original path: {request.url.path}")
 
                 if (
                     getattr(blocks, "node_process", None) is not None
