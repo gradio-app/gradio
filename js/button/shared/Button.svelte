@@ -50,7 +50,12 @@
 		{disabled}
 	>
 		{#if icon}
-			<img class="button-icon" class:right-padded={value} src={icon.url} alt={`${value} icon`} />
+			<img
+				class="button-icon"
+				class:right-padded={value}
+				src={icon.url}
+				alt={`${value} icon`}
+			/>
 		{/if}
 		<slot />
 	</button>
