@@ -66,8 +66,8 @@ export async function process_endpoint(
 		};
 	}
 
-	console.log("app_reference", app_reference);
-	console.log(new URL(app_reference));
+	console.log("app_reference", _app_reference);
+
 	return {
 		space_id: false,
 		...determine_protocol(_app_reference)
