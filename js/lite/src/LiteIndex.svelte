@@ -156,7 +156,7 @@
 				<Index
 					space={null}
 					src={null}
-					host={null}
+					host={FAKE_LITE_HOST}
 					{info}
 					{container}
 					{is_embed}
