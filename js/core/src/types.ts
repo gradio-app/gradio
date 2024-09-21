@@ -72,6 +72,8 @@ export interface Dependency {
 	connection: "stream" | "sse";
 	time_limit: number;
 	stream_every: number;
+	like_user_message: boolean;
+	event_specific_args: string[];
 }
 
 interface TypeDescription {
