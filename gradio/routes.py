@@ -100,7 +100,12 @@ from gradio.server_messages import (
     UnexpectedErrorMessage,
 )
 from gradio.state_holder import StateHolder
-from gradio.utils import cancel_tasks, get_package_version, get_upload_folder
+from gradio.utils import (
+    cancel_tasks,
+    get_node_path,
+    get_package_version,
+    get_upload_folder,
+)
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -223,8 +228,12 @@ class App(FastAPI):
         server_name: str,
         node_port: int,
         python_port: int,
+        scheme: str = "http",
+        mounted_path: str = "",
     ) -> Response:
         full_path = request.url.path
+        if mounted_path:
+            full_path = full_path.replace(mounted_path, "")
         if request.url.query:
             full_path += f"?{request.url.query}"
 
@@ -236,8 +245,16 @@ class App(FastAPI):
             if k.lower() not in ["content-length"]
         }
 
-        headers["x-gradio-server"] = server_name
+        headers["x-gradio-server"] = (
+            f"{scheme}://{server_name}:{python_port}{mounted_path}"
+        )
+
         headers["x-gradio-port"] = str(python_port)
+
+        print(headers)
+
+        if os.getenv("GRADIO_LOCAL_DEV_MODE"):
+            headers["x-gradio-local-dev-mode"] = "1"
 
         body = await request.body()
 
@@ -321,19 +338,31 @@ class App(FastAPI):
 
             @app.middleware("http")
             async def conditional_routing_middleware(request: Request, call_next):
+
+                custom_mount_path = getattr(blocks, "custom_mount_path", "")
+
+                path = (
+                    request.url.path.replace(custom_mount_path or "", "")
+                    if custom_mount_path is not None
+                    else request.url.path
+                )
+
                 if (
-                    blocks.node_process is not None
+                    getattr(blocks, "node_process", None) is not None
                     and blocks.node_port is not None
-                    and not request.url.path.startswith("/gradio_api")
-                    and request.url.path not in ["/config", "/login"]
-                    and not request.url.path.startswith("/theme")
+                    and not path.startswith("/gradio_api")
+                    and path not in ["/config", "/login"]
+                    and not path.startswith("/theme")
                 ):
                     try:
+
                         return await App.proxy_to_node(
                             request,
-                            blocks.server_name,
+                            request.client.host,
                             blocks.node_port,
-                            blocks.server_port,
+                            request.url.port,
+                            request.url.scheme,
+                            custom_mount_path,
                         )
                     except Exception as e:
                         print(e)
@@ -413,7 +442,9 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
+            ) or (
+                callable(app.auth) and app.auth.__call__(username, password)
+            ):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
@@ -1425,6 +1456,8 @@ def mount_gradio_app(
     app: fastapi.FastAPI,
     blocks: gradio.Blocks,
     path: str,
+    server_name: str = "0.0.0.0",
+    server_port: int = 7860,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
@@ -1437,6 +1470,8 @@ def mount_gradio_app(
     show_error: bool = True,
     max_file_size: str | int | None = None,
     ssr_mode: bool | None = None,
+    node_server_name: str | None = None,
+    node_port: int | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1444,6 +1479,8 @@ def mount_gradio_app(
         app: The parent FastAPI application.
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted, e.g. "/gradio".
+        server_name: The server name on which the Gradio app will be run.
+        server_port: The port on which the Gradio app will be run.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
         auth: If provided, username and password (or list of username-password tuples) required to access the gradio app. Can also provide function that takes username and password and returns True if valid login.
         auth_message: If provided, HTML message provided on login page for this gradio app.
@@ -1455,6 +1492,8 @@ def mount_gradio_app(
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 18+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+        node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
+        node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1476,6 +1515,10 @@ def mount_gradio_app(
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
+    blocks.custom_mount_path = path
+    blocks.server_port = server_port
+    blocks.server_name = server_name
+
     if auth is not None and auth_dependency is not None:
         raise ValueError(
             "You cannot provide both `auth` and `auth_dependency` in mount_gradio_app(). Please choose one."
@@ -1503,21 +1546,28 @@ def mount_gradio_app(
     if root_path is not None:
         blocks.root_path = root_path
 
-    ssr_mode = (
+    blocks.ssr_mode = (
         False
         if wasm_utils.IS_WASM
         else (
             ssr_mode
             if ssr_mode is not None
-            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
+            else bool(os.getenv("GRADIO_SSR_MODE", "False"))
         )
     )
+
+    blocks.node_path = os.environ.get(
+        "GRADIO_NODE_PATH", False if wasm_utils.IS_WASM else get_node_path()
+    )
+
+    blocks.node_server_name = node_server_name
+    blocks.node_port = node_port
 
     gradio_app = App.create_app(
         blocks,
         app_kwargs=app_kwargs,
         auth_dependency=auth_dependency,
-        ssr_mode=ssr_mode,
+        ssr_mode=blocks.ssr_mode,
     )
     old_lifespan = app.router.lifespan_context
 

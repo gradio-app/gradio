@@ -9,15 +9,19 @@ import type { Config } from "@gradio/client";
 import Blocks from "@gradio/core/blocks";
 import Login from "@gradio/core/login";
 
-export async function load({ url, data: { server, port } }): Promise<{
+export async function load({
+	url,
+	data: { server, port, local_dev_mode }
+}): Promise<{
 	Render: typeof Login | typeof Blocks;
 	config: Config;
 	api_url: string;
 	layout: unknown;
 	app: Client;
 }> {
-	const api_url = browser ? `./` : `http://${server}:${port}`;
-
+	const api_url =
+		browser && !local_dev_mode ? new URL(".", location.href).href : server;
+	// console.log("API URL", api_url, "-", location.href, "-");
 	const app = await Client.connect(api_url, {
 		with_null_state: true,
 		events: ["data", "log", "status", "render"]

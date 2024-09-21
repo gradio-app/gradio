@@ -158,6 +158,7 @@ class Request:
             username: The username of the logged in user (if auth is enabled)
             session_hash: The session hash of the current session. It is unique for each page load.
         """
+
         self.request = request
         self.username = username
         self.session_hash: str | None = session_hash

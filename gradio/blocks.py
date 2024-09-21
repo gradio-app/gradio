@@ -2395,18 +2395,15 @@ Received outputs:
             else (
                 ssr_mode
                 if ssr_mode is not None
-                else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
+                else os.getenv("GRADIO_SSR_MODE", "False")
             )
         )
-        node_path = os.environ.get(
+        self.node_path = os.environ.get(
             "GRADIO_NODE_PATH", False if wasm_utils.IS_WASM else get_node_path()
         )
-        self.node_server_name, self.node_process, self.node_port = start_node_server(
-            server_name=node_server_name,
-            server_port=node_port,
-            node_path=node_path,
-            ssr_mode=self.ssr_mode,
-        )
+        self.node_server_name = node_server_name
+        self.node_port = node_port
+
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
             self,
@@ -2471,7 +2468,7 @@ Received outputs:
             if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
                 s = (
                     strings.en["RUNNING_LOCALLY_SSR"]
-                    if self.node_process
+                    if self.ssr_mode
                     else strings.en["RUNNING_LOCALLY"]
                 )
                 print(s.format(self.protocol, self.server_name, self.server_port))
@@ -2539,8 +2536,6 @@ Received outputs:
             and not networking.url_ok(self.local_url)
             and not self.share
         ):
-            print(self.local_url)
-            print(networking.url_ok(self.local_url))
 
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
@@ -2831,6 +2826,13 @@ Received outputs:
         self._queue.stopped = False
         self.is_running = True
         self.create_limiter()
+
+        self.node_server_name, self.node_process, self.node_port = start_node_server(
+            server_name=self.node_server_name,
+            server_port=self.node_port,
+            node_path=self.node_path,
+            ssr_mode=self.ssr_mode,
+        )
 
     def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """

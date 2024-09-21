@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import os
-import signal
 import socket
 import subprocess
 import sys
 import time
 import warnings
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from contextlib import closing
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -109,11 +110,13 @@ def start_node_process(
                 env=env,
             )
 
-            if verify_server_startup(server_name, port, timeout=5):
-                signal.signal(
-                    signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
-                )
-                signal.signal(signal.SIGINT, lambda _, __: handle_sigterm(node_process))
+            is_working = verify_server_startup(server_name, port, timeout=5)
+
+            if is_working:
+                # signal.signal(
+                #     signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
+                # )
+                # signal.signal(signal.SIGINT, lambda _, __: handle_sigterm(node_process))
 
                 return node_process, port
 
@@ -148,15 +151,39 @@ def start_node_process(
     return None, None
 
 
-def verify_server_startup(host: str, port: int, timeout: float = 5.0) -> bool:
+def attempt_connection(host: str, port: int) -> bool:
+    """Attempts a single connection to the server."""
+    try:
+        with closing(socket.create_connection((host, port), timeout=1)):
+            return True
+    except (TimeoutError, ConnectionRefusedError):
+        return False
+    except Exception:
+        return False
+
+
+def verify_server_startup(
+    host: str, port: int, timeout: float = 30.0, interval: float = 0.5
+) -> bool:
     """Verifies if a server is up and running by attempting to connect."""
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        try:
-            with socket.create_connection((host, port), timeout=1):
-                return True
-        except (TimeoutError, OSError):
-            time.sleep(0.1)
+    end_time = time.time() + timeout
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        while time.time() < end_time:
+
+            future = executor.submit(attempt_connection, host, port)
+            try:
+                result = future.result(timeout=1)
+                if result:
+                    return True
+            except TimeoutError:
+                pass
+
+            remaining = end_time - time.time()
+            if remaining > 0:
+                sleep_time = min(interval, remaining)
+                time.sleep(sleep_time)
+
     return False
 
 
