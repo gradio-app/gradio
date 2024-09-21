@@ -39,6 +39,7 @@ from fastapi import (
     Depends,
     FastAPI,
     HTTPException,
+    Request,
     status,
 )
 from fastapi.responses import (
@@ -47,6 +48,7 @@ from fastapi.responses import (
     JSONResponse,
     PlainTextResponse,
     Response,
+    StreamingResponse,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -225,6 +227,10 @@ class App(FastAPI):
         self.custom_component_hashes: dict[str, str] = {}
         super().__init__(**kwargs)
 
+    # Create a single client to be reused across requests
+    # We're not overriding any defaults here
+    client = httpx.AsyncClient()
+
     @staticmethod
     async def proxy_to_node(
         request: Request,
@@ -234,13 +240,15 @@ class App(FastAPI):
         scheme: str = "http",
         mounted_path: str = "",
     ) -> Response:
+        start_time = time.time()
+
         full_path = request.url.path
         if mounted_path:
             full_path = full_path.replace(mounted_path, "")
         if request.url.query:
             full_path += f"?{request.url.query}"
 
-        url = f"http://{server_name}:{node_port}{full_path}"
+        url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
         headers = {
             k: v
@@ -257,27 +265,31 @@ class App(FastAPI):
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
 
+        print(
+            f"Proxying request from {request.url.path} to {url} with server url {server_url}"
+        )
+
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
-        body = await request.body()
+        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
+        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
 
-        response = await client.request(
-            method=request.method,
-            url=url,
-            headers=headers,
-            content=body,
+        request_start_time = time.time()
+
+        print(
+            f"Time to get initial response: {time.time() - request_start_time:.4f} seconds"
         )
 
-        async def generate_content():
-            async for chunk in response.aiter_bytes():
-                yield chunk
-
-        return StreamingResponse(
-            generate_content(),
-            status_code=response.status_code,
-            headers=dict(response.headers),
+        print(
+            f"Total setup time before streaming: {time.time() - start_time:.4f} seconds"
         )
+
+        # Remove Content-Length header from the response
+
+        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
+
+        return client.reponse(method=request.method, url=url, headers=headers)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
