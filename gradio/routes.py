@@ -240,7 +240,6 @@ class App(FastAPI):
         scheme: str = "http",
         mounted_path: str = "",
     ) -> Response:
-        start_time = time.time()
 
         full_path = request.url.path
         if mounted_path:
@@ -265,31 +264,14 @@ class App(FastAPI):
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
 
-        print(
-            f"Proxying request from {request.url.path} to {url} with server url {server_url}"
-        )
-
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
-        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
-        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
-
-        request_start_time = time.time()
-
-        print(
-            f"Time to get initial response: {time.time() - request_start_time:.4f} seconds"
+        req = client.build_request("GET", httpx.URL(url), headers=headers)
+        r = await client.send(req, stream=True)
+        return StreamingResponse(
+            r.aiter_raw(), background=BackgroundTask(r.aclose), headers=r.headers
         )
-
-        print(
-            f"Total setup time before streaming: {time.time() - start_time:.4f} seconds"
-        )
-
-        # Remove Content-Length header from the response
-
-        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
-
-        return client.reponse(method=request.method, url=url, headers=headers)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
