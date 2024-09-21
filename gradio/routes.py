@@ -59,7 +59,7 @@ from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
-from starlette.responses import RedirectResponse, StreamingResponse
+from starlette.responses import RedirectResponse
 
 import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
@@ -287,9 +287,7 @@ class App(FastAPI):
         r = await client.send(req, stream=True)
         print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
 
-        return StreamingResponse(
-            r.aiter_raw(), background=BackgroundTask(r.aclose), headers=r.headers
-        )
+        return StreamingResponse(r.aiter_raw(), headers=r.headers)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
