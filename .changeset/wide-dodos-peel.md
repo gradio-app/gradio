@@ -8,6 +8,7 @@
 "@gradio/gallery": minor
 "@gradio/image": minor
 "@gradio/imageeditor": minor
+"@gradio/lite": minor
 "@gradio/markdown": minor
 "@gradio/model3d": minor
 "@gradio/multimodaltextbox": minor
