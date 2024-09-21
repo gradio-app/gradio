@@ -183,7 +183,13 @@ def toorjson(value):
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
-client = httpx.AsyncClient()
+client = httpx.AsyncClient(
+    limits=httpx.Limits(
+        max_connections=100,
+        max_keepalive_connections=20,
+    ),
+    timeout=httpx.Timeout(10.0),
+)
 
 file_upload_statuses = FileUploadProgress()
 
@@ -229,7 +235,6 @@ class App(FastAPI):
 
     # Create a single client to be reused across requests
     # We're not overriding any defaults here
-    client = httpx.AsyncClient()
 
     @staticmethod
     async def proxy_to_node(
