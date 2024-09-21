@@ -1734,7 +1734,8 @@ Received outputs:
         state: SessionState | None,
     ) -> list[Any]:
         state = state or SessionState(self)
-
+        if predictions == skip() and len(block_fn.outputs) > 1:
+            predictions = [skip()] * len(block_fn.outputs)
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
                 [block._id for block in block_fn.outputs], predictions
