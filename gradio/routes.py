@@ -236,6 +236,8 @@ class App(FastAPI):
     # Create a single client to be reused across requests
     # We're not overriding any defaults here
 
+    client = httpx.AsyncClient()
+
     @staticmethod
     async def proxy_to_node(
         request: Request,
@@ -283,8 +285,8 @@ class App(FastAPI):
             f"Total setup time before streaming: {time.time() - start_time:.4f} seconds"
         )
 
-        req = client.build_request("GET", httpx.URL(url), headers=headers)
-        r = await client.send(req, stream=True)
+        req = App.client.build_request("GET", httpx.URL(url), headers=headers)
+        r = await App.client.send(req, stream=True)
         print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
 
         return StreamingResponse(r.aiter_raw(), headers=r.headers)
