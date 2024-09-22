@@ -699,8 +699,9 @@ class TestBlocksPostprocessing:
         with pytest.warns(
             UserWarning,
         ):
-            await demo.postprocess_data(demo.fns[0], predictions=["test", "test2", "test3"], state=None)
-
+            await demo.postprocess_data(
+                demo.fns[0], predictions=["test", "test2", "test3"], state=None
+            )
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
