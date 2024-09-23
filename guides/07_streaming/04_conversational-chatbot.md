@@ -1,36 +1,35 @@
-# Conversational Chatbots
+# Building Conversational Chatbots with Gradio
 
 Tags: AUDIO, STREAMING, CHATBOTS
 
-The next generation of AI user interfaces will be audio-native.
-Users will be able to speak to a chatbot and the chatbot will talk back.
-Several models have been built under this paradigm, namely GPT-4o and [mini omni](https://github.com/gpt-omni/mini-omni).
+## Introduction
 
-In this guide, we'll cover how you can build your own conversational chat application by using mini omni as an example. You can see a demo of the finished app below!
+The next generation of AI user interfaces is moving towards audio-native experiences. Users will be able to speak to chatbots and receive spoken responses in return. Several models have been built under this paradigm, including GPT-4o and [mini omni](https://github.com/gpt-omni/mini-omni).
+
+In this guide, we'll walk you through building your own conversational chat application using mini omni as an example. You can see a demo of the finished app below:
 
 [omni mini demo](https://github.com/user-attachments/assets/db36f4db-7535-49f1-a2dd-bd36c487ebdf)
 
-## App Overview
+## Application Overview
 
-Our application should enable the following use case:
-* Users click a button to start recording their message
-* When we detect the user has finished speaking we stop their recording
-* We will then pass the user audio to the omni model and stream back omni's response
-* After omni mini has finished speaking, we turn on the user's webcam
-* All of the previously spoken audio, from both the user and omni, will be displayed in a chatbot component.
+Our application will enable the following user experience:
 
-Let's get started.
+1. Users click a button to start recording their message
+2. The app detects when the user has finished speaking and stops recording
+3. The user's audio is passed to the omni model, which streams back a response
+4. After omni mini finishes speaking, the user's microphone is reactivated
+5. All previous spoken audio, from both the user and omni, is displayed in a chatbot component
 
+Let's dive into the implementation details.
 
-## Processing the User's Audio
+## Processing User Audio
 
-We will be streaming the user's audio from their microphone to the server and on each new chunk of audio we will determine if the user stopped speaking.
+We'll stream the user's audio from their microphone to the server and determine if the user has stopped speaking on each new chunk of audio.
 
-Our function, called `process_audio` will look like the following:
+Here's our `process_audio` function:
 
 ```python
 import numpy as np
-
 from utils import determine_pause
 
 def process_audio(audio: tuple, state: AppState):
@@ -38,7 +37,7 @@ def process_audio(audio: tuple, state: AppState):
         state.stream = audio[1]
         state.sampling_rate = audio[0]
     else:
-        state.stream =  np.concatenate((state.stream, audio[1]))
+        state.stream = np.concatenate((state.stream, audio[1]))
 
     pause_detected = determine_pause(state.stream, state.sampling_rate, state)
     state.pause_detected = pause_detected
@@ -48,9 +47,15 @@ def process_audio(audio: tuple, state: AppState):
     return None, state
 ```
 
-It's inputs will be the current audio chunk, represented as a tuple of form `(sampling_rate, numpy array of audio)`, and the current application state. In this demo, the application state will be the following dataclass:
+This function takes two inputs:
+1. The current audio chunk (a tuple of `(sampling_rate, numpy array of audio)`)
+2. The current application state
+
+We'll use the following `AppState` dataclass to manage our application state:
 
 ```python
+from dataclasses import dataclass
+
 @dataclass
 class AppState:
     stream: np.ndarray | None = None
@@ -60,21 +65,17 @@ class AppState:
     conversation: list = []
 ```
 
-We concatenate the next chunk of audio to an array that's storing all of the previous audio and the run the `pause_detected` function to determine if the user stopped speaking.
-If the user stopped speaking, we return an update to the component to tell it to stop recording. If not, we return `None` to signify "no updates". In both cases, we return the current `AppState`.
+The function concatenates new audio chunks to the existing stream and checks if the user has stopped speaking. If a pause is detected, it returns an update to stop recording. Otherwise, it returns `None` to indicate no changes.
 
-The implementation of the `determine_pause` function is not covered in this guide since it's specific to the omni-mini implementation but the source code is [here](https://huggingface.co/spaces/gradio/omni-mini/blob/eb027808c7bfe5179b46d9352e3fa1813a45f7c3/app.py#L98).
-
+Tip: The implementation of the `determine_pause` function is specific to the omni-mini project and can be found [here](https://huggingface.co/spaces/gradio/omni-mini/blob/eb027808c7bfe5179b46d9352e3fa1813a45f7c3/app.py#L98).
 
 ## Generating the Response
 
-First, we will convert the user's message, stored in `AppState.stream`, to an array of bytes (this is specific to the omni-mini implementation). We will use the `pydub` library to do this which is already a dependency of Gradio.
-
-Then we will stream the generated audio back to the user by iterating over the outputs of the `speaking` function. Once again, we won't cover the implmentation of that function but its source code can be found [here](https://huggingface.co/spaces/gradio/omni-mini/blob/main/app.py#L116).
-
-Our function is called `response` and it's full implementation is below:
+After processing the user's audio, we need to generate and stream the chatbot's response. Here's our `response` function:
 
 ```python
+import io
+import tempfile
 from pydub import AudioSegment
 
 def response(state: AppState):
@@ -113,17 +114,18 @@ def response(state: AppState):
     yield None, AppState(conversation=state.conversation)
 ```
 
-You'll notice that before and after running the `speaking` function, we save the user or omni audio to a file and append to the `state.conversation` list. This is so that we can store the entire conversation and display it in a chatbot component. 
+This function:
+1. Converts the user's audio to a WAV file
+2. Adds the user's message to the conversation history
+3. Generates and streams the chatbot's response using the `speaking` function
+4. Saves the chatbot's response as an MP3 file
+5. Adds the chatbot's response to the conversation history
 
-## The Gradio App
+Note: The implementation of the `speaking` function is specific to the omni-mini project and can be found [here](https://huggingface.co/spaces/gradio/omni-mini/blob/main/app.py#L116).
 
-We will build the Gradio app with the Blocks API. On the left hand side we will place the input audio component for recording the user's message. On the right hand side, we will show the chatbot and the output audio component for omni's most recent response.
+## Building the Gradio App
 
-We use the `stream` event in the input audio component to stream the user's audio to the server. The `stream_every` parameter means that we will stream the audio in chunks of 0.5 seconds. On each chunk we will run the `process_audio` function. The `time_limit` parameter means that we will process the user's audio for a maximum of 30 seconds.
-
-Once the input audio component has stopped recording, we will generate a response with the `response` function. After the response is done generating, we will add the latest state of the conversation to the chatbot by making use of the `then` event. 
-
-We will also add a button to stop and reset the conversation. The full implementation of the UI is below:
+Now let's put it all together using Gradio's Blocks API:
 
 ```python
 import gradio as gr
@@ -166,11 +168,20 @@ with gr.Blocks() as demo:
     cancel.click(lambda: (AppState(stopped=True), gr.Audio(recording=False)), None,
                 [state, input_audio], cancels=[respond, restart])
 
-
 if __name__ == "__main__":
     demo.launch()
 ```
 
+This setup creates a user interface with:
+- An input audio component for recording user messages
+- A chatbot component to display the conversation history
+- An output audio component for the chatbot's responses
+- A button to stop and reset the conversation
+
+The app streams user audio in 0.5-second chunks, processes it, generates responses, and updates the conversation history accordingly.
+
 ## Conclusion
 
-You can adapt the skeleton of this application to fit any conversational chatbot demos. You can see the full application running on Hugging Face Spaces here: https://huggingface.co/spaces/gradio/omni-mini
+This guide demonstrates how to build a conversational chatbot application using Gradio and the mini omni model. You can adapt this framework to create various audio-based chatbot demos. To see the full application in action, visit the Hugging Face Spaces demo: https://huggingface.co/spaces/gradio/omni-mini
+
+Feel free to experiment with different models, audio processing techniques, or user interface designs to create your own unique conversational AI experiences!
