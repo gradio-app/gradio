@@ -44,7 +44,7 @@ if wasm_utils.IS_WASM:
             self.response = response
 
         def __iter__(self):
-            yield from self.response.stream(decode_content=False)
+            yield from self.response.stream(decode_content=True)
 
     class Urllib3Transport(httpx.BaseTransport):
         def __init__(self):
@@ -64,9 +64,12 @@ if wasm_utils.IS_WASM:
                 preload_content=False,  # Stream the content
             )
 
+            response_headers = response.headers
+            response_headers.discard("content-encoding")
+
             return httpx.Response(
                 status_code=response.status,
-                headers=response.headers,
+                headers=response_headers,
                 stream=Urllib3ResponseSyncByteStream(response),
             )
 
