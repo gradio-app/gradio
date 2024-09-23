@@ -64,7 +64,7 @@ if wasm_utils.IS_WASM:
                 preload_content=False,  # Stream the content
             )
 
-            response_headers = response.headers
+            response_headers = response.headers.copy()
             response_headers.discard("content-encoding")
 
             return httpx.Response(
