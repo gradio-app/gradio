@@ -1,5 +1,16 @@
 # @self/component-test
 
+## 0.2.0-beta.2
+
+### Features
+
+- [#9311](https://github.com/gradio-app/gradio/pull/9311) [`c4afdcd`](https://github.com/gradio-app/gradio/commit/c4afdcdb1f1f80c5f95ab45d527236e9364ace82) - Added max lines and overflow scrollbar for `gr.Code`.  Thanks @micpst!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.2
+- @self/build@0.1.0-beta.2
+
 ## 0.1.1
 
 ### Features

@@ -1,5 +1,13 @@
 # @gradio/tabitem
 
+## 0.3.0-beta.2
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.2
+- @gradio/column@0.2.0-beta.0
+- @gradio/tabs@0.3.0-beta.2
+
 ## 0.3.0-beta.1
 
 ### Features

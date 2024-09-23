@@ -1,5 +1,13 @@
 # @gradio/button
 
+## 0.3.0-beta.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
 ## 0.3.0-beta.1
 
 ### Features
