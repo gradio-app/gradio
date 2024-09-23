@@ -1743,7 +1743,11 @@ Received inputs:
         state: SessionState | None,
     ) -> list[Any]:
         state = state or SessionState(self)
-        if predictions == skip() and len(block_fn.outputs) > 1:
+        if (
+            isinstance(predictions, dict)
+            and predictions == skip()
+            and len(block_fn.outputs) > 1
+        ):
             # For developer convenience, if a function returns a single skip() with multiple outputs,
             # we will skip updating all outputs.
             predictions = [skip()] * len(block_fn.outputs)
