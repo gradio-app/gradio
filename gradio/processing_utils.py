@@ -64,6 +64,8 @@ if wasm_utils.IS_WASM:
                 preload_content=False,  # Stream the content
             )
 
+            # Remove the content-encoding header to prevent httpx from trying to decode the content
+            # since `urllib3` does in `Urllib3ResponseSyncByteStream.__iter__()`.
             response_headers = response.headers.copy()
             response_headers.discard("content-encoding")
 
