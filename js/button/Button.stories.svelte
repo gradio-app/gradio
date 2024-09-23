@@ -79,6 +79,18 @@
 	}}
 />
 <Story
+	name="Button with external image icon and no text"
+	args={{
+		interactive: true,
+		icon: {
+			url: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+			path: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+		},
+		value: ""
+	}}
+/>
+
+<Story
 	name="Button with visible equal to false"
 	args={{
 		visible: false
