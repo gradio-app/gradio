@@ -39,7 +39,6 @@ from fastapi import (
     Depends,
     FastAPI,
     HTTPException,
-    Request,
     status,
 )
 from fastapi.responses import (
@@ -199,6 +198,8 @@ class App(FastAPI):
     FastAPI App Wrapper
     """
 
+    app_port = None
+
     def __init__(
         self,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
@@ -240,15 +241,13 @@ class App(FastAPI):
 
     @staticmethod
     async def proxy_to_node(
-        request: Request,
+        request: fastapi.Request,
         server_name: str,
         node_port: int,
         python_port: int,
         scheme: str = "http",
         mounted_path: str = "",
     ) -> Response:
-        start_time = time.time()
-
         full_path = request.url.path
         if mounted_path:
             full_path = full_path.replace(mounted_path, "")
@@ -257,39 +256,29 @@ class App(FastAPI):
 
         url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
-        headers = {
-            k: v
-            for k, v in request.headers.items()
-            if k.lower() not in ["content-length"]
-        }
-
         server_url = f"{scheme}://{server_name}"
         if python_port:
             server_url += f":{python_port}"
         if mounted_path:
             server_url += mounted_path
 
+        headers = dict(request.headers)
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
-
-        print(
-            f"Proxying request from {request.url.path} to {url} with server url {server_url}"
-        )
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
-        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
-
-        print(
-            f"Total setup time before streaming: {time.time() - start_time:.4f} seconds"
+        new_request = App.client.build_request(
+            request.method, httpx.URL(url), headers=headers
         )
+        node_response = await App.client.send(new_request)
 
-        req = App.client.build_request("GET", httpx.URL(url), headers=headers)
-        r = await App.client.send(req, stream=True)
-        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
-
-        return StreamingResponse(r.aiter_raw(), headers=r.headers)
+        return Response(
+            content=node_response.content,
+            status_code=node_response.status_code,
+            headers=dict(node_response.headers),
+        )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -360,8 +349,9 @@ class App(FastAPI):
         if ssr_mode:
 
             @app.middleware("http")
-            async def conditional_routing_middleware(request: Request, call_next):
-                print("middleware")
+            async def conditional_routing_middleware(
+                request: fastapi.Request, call_next
+            ):
                 custom_mount_path = getattr(blocks, "custom_mount_path", "")
                 path = (
                     request.url.path.replace(custom_mount_path or "", "")
@@ -376,14 +366,18 @@ class App(FastAPI):
                     and path not in ["/config", "/login"]
                     and not path.startswith("/theme")
                 ):
-                    print("proxying")
-                    try:
+                    if App.app_port is None:
+                        App.app_port = request.url.port or int(
+                            os.getenv("GRADIO_SERVER_PORT", "7860")
+                        )
 
+                    try:
                         return await App.proxy_to_node(
                             request,
-                            request.client.host,
+                            os.getenv("GRADIO_SERVER_NAME", blocks.local_url)
+                            or "0.0.0.0",
                             blocks.node_port,
-                            request.url.port,
+                            App.app_port,
                             request.url.scheme,
                             custom_mount_path,
                         )
@@ -465,9 +459,7 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (
-                callable(app.auth) and app.auth.__call__(username, password)
-            ):  # type: ignore
+            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
