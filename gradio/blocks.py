@@ -1046,6 +1046,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             self.js = js
         self.renderables: list[Renderable] = []
         self.state_holder: StateHolder
+        self.custom_mount_path: str | None = None
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
