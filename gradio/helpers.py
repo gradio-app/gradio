@@ -1022,8 +1022,8 @@ def update(
 @document()
 def skip() -> dict:
     """
-    A special function that can be returned from a Gradio function to skip updating the output component. This may be useful when 
-    you want to update the output component conditionally, and in some cases, you want to skip updating the output component. 
+    A special function that can be returned from a Gradio function to skip updating the output component. This may be useful when
+    you want to update the output component conditionally, and in some cases, you want to skip updating the output component.
     If you have multiple output components, you can return `gr.skip()` as part of a tuple to skip updating a specific output component,
     or you can return a single `gr.skip()` to skip updating all output components.
     """
