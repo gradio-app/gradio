@@ -277,7 +277,7 @@ class App(FastAPI):
 
         new_request = App.client.build_request("GET", httpx.URL(url), headers=headers)
         response = await App.client.send(new_request, stream=True)
-
+        print(f"Headers: {response.headers}")
         return StreamingResponse(response.aiter_raw(), headers=response.headers)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
