@@ -2,6 +2,13 @@
 
 ## 0.1.0-beta.1
 
+### Dependency updates
+
+- @gradio/client@1.6.0-beta.3
+- @gradio/core@0.1.0-beta.3
+
+## 0.1.0-beta.1
+
 ### Features
 
 - [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
