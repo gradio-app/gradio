@@ -40,7 +40,7 @@ if wasm_utils.IS_WASM:
 
     # NOTE: In the Wasm env, we use urllib3 to make HTTP requests. See https://github.com/gradio-app/gradio/issues/6837.
     class Urllib3ResponseSyncByteStream(httpx.SyncByteStream):
-        def __init__(self, response) -> None:
+        def __init__(self, response: urllib3.response.BaseHTTPResponse) -> None:
             self.response = response
 
         def __iter__(self):
@@ -73,7 +73,7 @@ if wasm_utils.IS_WASM:
     sync_transport = Urllib3Transport()
 
     class PyodideHttpResponseAsyncByteStream(httpx.AsyncByteStream):
-        def __init__(self, response) -> None:
+        def __init__(self, response: pyodide.http.FetchResponse) -> None:
             self.response = response
 
         async def __aiter__(self):
