@@ -199,6 +199,8 @@ class App(FastAPI):
     FastAPI App Wrapper
     """
 
+    app_port = None
+
     def __init__(
         self,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
@@ -364,6 +366,15 @@ class App(FastAPI):
         if ssr_mode:
 
             @app.middleware("http")
+            async def capture_port(request: Request, call_next):
+                if App.app_port is None:
+                    App.app_port = request.url.port or int(
+                        os.getenv("GRADIO_SERVER_PORT", "7860")
+                    )
+                response = await call_next(request)
+                return response
+
+            @app.middleware("http")
             async def conditional_routing_middleware(request: Request, call_next):
                 print("middleware")
                 custom_mount_path = getattr(blocks, "custom_mount_path", "")
@@ -387,7 +398,7 @@ class App(FastAPI):
                             request,
                             os.getenv("GRADIO_SERVER_NAME") or request.client.host,
                             blocks.node_port,
-                            request.url.port,
+                            App.app_port,
                             request.url.scheme,
                             custom_mount_path,
                         )
