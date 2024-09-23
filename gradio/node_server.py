@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import signal
 import socket
 import subprocess
 import sys
@@ -111,12 +112,11 @@ def start_node_process(
             )
 
             is_working = verify_server_startup(server_name, port, timeout=5)
-            print(f"Node server started on {server_name}:{port}, working: {is_working}")
             if is_working:
-                # signal.signal(
-                #     signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
-                # )
-                # signal.signal(signal.SIGINT, lambda _, __: handle_sigterm(node_process))
+                signal.signal(
+                    signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
+                )
+                signal.signal(signal.SIGINT, lambda _, __: handle_sigterm(node_process))
 
                 return node_process, port
 
