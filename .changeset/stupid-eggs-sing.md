@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:test
+feat:fix SSR apps on spaces
