@@ -385,7 +385,7 @@ class App(FastAPI):
 
                         return await App.proxy_to_node(
                             request,
-                            os.getenv("GRADIO_NODE_SERVER_NAME") or request.client.host,
+                            os.getenv("GRADIO_SERVER_NAME") or request.client.host,
                             blocks.node_port,
                             request.url.port,
                             request.url.scheme,
