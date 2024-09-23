@@ -58,8 +58,6 @@ You'll notice that when a user submits their message, we now _chain_ two event e
 
 Of course, in practice, you would replace `bot()` with your own more complex function, which might call a pretrained model or an API, to generate a response.
 
-Finally, we enable queuing by running `demo.queue()`, which is required for streaming intermediate outputs. You can try the improved chatbot by scrolling to the demo at the top of this page.
-
 
 ## Adding Markdown, Images, Audio, or Videos
 

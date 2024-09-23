@@ -192,7 +192,7 @@ class Dataframe(Component):
     ) -> pd.DataFrame | np.ndarray | pl.DataFrame | list[list]:
         """
         Parameters:
-            payload: the uploaded spreadsheet data as an object with `headers` and `data` attributes
+            payload: the uploaded spreadsheet data as an object with `headers` and `data` attributes. Note that sorting the columns in the browser will not affect the values passed to this function.
         Returns:
             Passes the uploaded spreadsheet data as a `pandas.DataFrame`, `numpy.array`, `polars.DataFrame`, or native 2D Python `list[list]` depending on `type`
         """
