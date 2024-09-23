@@ -275,10 +275,16 @@ class App(FastAPI):
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
-        new_request = App.client.build_request("GET", httpx.URL(url), headers=headers)
-        response = await App.client.send(new_request, stream=True)
-        print(f"Headers: {response.headers}")
-        return StreamingResponse(response.aiter_raw(), headers=response.headers)
+        new_request = App.client.build_request(
+            request.method, httpx.URL(url), headers=headers
+        )
+        node_response = await App.client.send(new_request)
+
+        return Response(
+            content=node_response.content,
+            status_code=node_response.status_code,
+            headers=dict(node_response.headers),
+        )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
