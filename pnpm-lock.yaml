@@ -521,7 +521,7 @@ importers:
         specifier: workspace:^
         version: link:../statustracker
       '@gradio/utils':
-        specifier: workspace:0.7.0-beta.1
+        specifier: workspace:0.7.0-beta.2
         version: link:../utils
       svelte:
         specifier: ^4.0.0
@@ -17304,7 +17304,7 @@ snapshots:
       consola: 3.2.3
       execa: 8.0.1
       pathe: 1.1.2
-      ufo: 1.5.3
+      ufo: 1.5.4
 
   object-assign@4.1.1: {}
 
