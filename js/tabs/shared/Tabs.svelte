@@ -93,11 +93,13 @@
 
 	onMount(() => {
 		handle_menu_overflow();
+
 		window.addEventListener("resize", handle_menu_overflow);
 		window.addEventListener("click", handle_outside_click);
 	});
 
 	onDestroy(() => {
+		if (typeof window === "undefined") return;
 		window.removeEventListener("resize", handle_menu_overflow);
 		window.removeEventListener("click", handle_outside_click);
 	});

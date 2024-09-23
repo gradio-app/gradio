@@ -84,6 +84,19 @@ class Message(GradioModel):
     content: Union[str, FileMessage, ComponentMessage]
 
 
+class SuggestionMessage(TypedDict):
+    icon: NotRequired[
+        str | FileDataDict
+    ]  # filepath or url to an image to be shown in suggestion box
+    display_text: NotRequired[
+        str
+    ]  # text to be shown in suggestion box. If not provided, main_text will be shown
+    text: NotRequired[str]  # text to be added to chatbot when suggestion is clicked
+    files: NotRequired[
+        Sequence[str | FileDataDict]
+    ]  # list of file paths or URLs to be added to chatbot when suggestion is clicked
+
+
 @dataclass
 class ChatMessage:
     role: Literal["user", "assistant", "system"]
@@ -127,19 +140,18 @@ class Chatbot(Component):
     Guides: creating-a-chatbot-fast, creating-a-custom-chatbot-with-blocks, agents-and-tool-usage
     """
 
-    EVENTS = [Events.change, Events.select, Events.like, Events.retry, Events.undo]
+    EVENTS = [
+        Events.change,
+        Events.select,
+        Events.like,
+        Events.retry,
+        Events.undo,
+        Events.suggestion_select,
+    ]
 
     def __init__(
         self,
-        value: (
-            Sequence[
-                Sequence[
-                    str | GradioComponent | tuple[str] | tuple[str | Path, str] | None
-                ]
-            ]
-            | Callable
-            | None
-        ) = None,
+        value: (list[MessageDict | Message] | TupleFormat | Callable | None) = None,
         *,
         type: Literal["messages", "tuples"] | None = None,
         label: str | None = None,
@@ -168,11 +180,12 @@ class Chatbot(Component):
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
+        suggestions: list[SuggestionMessage] | None = None,
         show_copy_all_button=False,
     ):
         """
         Parameters:
-            value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default list of messages to show in chatbot, where each message is of the format {"role": "user", "content": "Help me."}. Role can be one of "user", "assistant", or "system". Content should be either text, or media passed as a Gradio component, e.g. {"content": gr.Image("lion.jpg")}. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
@@ -200,6 +213,7 @@ class Chatbot(Component):
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
+            suggestions: A list of suggestion messages to display in the chatbot before any user/assistant messages are shown. Each suggestion should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the suggestion box, and an optional "display_text" key, whose value should be the text to display in the suggestion box. If "display_text" is not provided, the value of "text" will be displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
         """
         if type is None:
@@ -266,6 +280,29 @@ class Chatbot(Component):
             ]
         self.placeholder = placeholder
 
+        self.suggestions = suggestions
+        if self.suggestions is not None:
+            for i, suggestion in enumerate(self.suggestions):
+                if "icon" in suggestion and isinstance(suggestion["icon"], str):
+                    suggestion["icon"] = self.serve_static_file(suggestion["icon"])
+                file_info = suggestion.get("files")
+                if file_info is not None and not isinstance(file_info, list):
+                    raise Error(
+                        "Data incompatible with files format. The 'files' passed should be a list of file paths or URLs."
+                    )
+                if file_info is not None:
+                    for i, file in enumerate(file_info):
+                        if isinstance(file, str):
+                            orig_name = Path(file).name
+                            file_data = self.serve_static_file(file)
+                            if file_data is not None:
+                                file_data["orig_name"] = orig_name
+                                file_data["mime_type"] = client_utils.get_mimetype(
+                                    orig_name
+                                )
+                                file_data = FileDataDict(**file_data)
+                                file_info[i] = file_data
+
     @staticmethod
     def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
         if type == "messages":
@@ -273,7 +310,7 @@ class Chatbot(Component):
                 isinstance(message, dict)
                 and "role" in message
                 and "content" in message
-                or isinstance(message, ChatMessage)
+                or isinstance(message, ChatMessage | Message)
                 for message in messages
             )
             if not all_valid:
@@ -408,8 +445,10 @@ class Chatbot(Component):
         elif isinstance(chat_message, FileData):
             return FileMessage(file=chat_message)
         elif isinstance(chat_message, GradioComponent):
+            chat_message.unrender()
             component = import_component_and_data(type(chat_message).__name__)
             if component:
+                chat_message.constructor_args["render"] = False
                 component = chat_message.__class__(**chat_message.constructor_args)
                 chat_message.constructor_args.pop("value", None)
                 config = component.get_config()
@@ -455,6 +494,8 @@ class Chatbot(Component):
                 content=message.content,  # type: ignore
                 metadata=message.metadata,  # type: ignore
             )
+        elif isinstance(message, Message):
+            return message
         else:
             raise Error(
                 f"Invalid message for Chatbot component: {message}", visible=False
