@@ -166,8 +166,6 @@
 	afterUpdate(() => {
 		value_is_output = false;
 	});
-
-	$: console.log("recording", recording);
 </script>
 
 {#if !interactive}
