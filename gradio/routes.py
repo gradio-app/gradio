@@ -263,6 +263,10 @@ class App(FastAPI):
             if k.lower() not in ["content-length"]
         }
 
+        print(
+            headers,
+        )
+
         server_url = f"{scheme}://{server_name}"
         if python_port:
             server_url += f":{python_port}"
