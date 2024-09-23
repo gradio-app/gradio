@@ -2397,7 +2397,7 @@ Received outputs:
             )
         )
         self.node_path = os.environ.get(
-            "GRADIO_NODE_PATH", False if wasm_utils.IS_WASM else get_node_path()
+            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
         )
         self.node_server_name = node_server_name
         self.node_port = node_port
