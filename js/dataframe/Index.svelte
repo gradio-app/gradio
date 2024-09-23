@@ -153,7 +153,7 @@
 		i18n={gradio.i18n}
 		{line_breaks}
 		{column_widths}
-		upload={gradio.client.upload}
-		stream_handler={gradio.client.stream}
+		upload={(...args) => gradio.client.upload(...args)}
+		stream_handler={(...args) => gradio.client.stream(...args)}
 	/>
 </Block>

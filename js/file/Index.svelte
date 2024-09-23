@@ -91,8 +91,8 @@
 		/>
 	{:else}
 		<FileUpload
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 			{label}
 			{show_label}
 			{value}

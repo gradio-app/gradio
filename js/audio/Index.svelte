@@ -264,8 +264,8 @@
 			{stream_every}
 			bind:modify_stream={_modify_stream}
 			bind:set_time_limit
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
 		</InteractiveAudio>

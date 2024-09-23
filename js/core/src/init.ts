@@ -18,6 +18,10 @@ export interface UpdateTransaction {
 }
 
 let pending_updates: UpdateTransaction[][] = [];
+const is_browser = typeof window !== "undefined";
+const raf = is_browser
+	? requestAnimationFrame
+	: async (fn: () => Promise<void> | void) => await fn();
 
 /**
  * Create a store with the layout and a map of targets
@@ -42,7 +46,7 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-	}) => void;
+	}) => Promise<void>;
 	rerender_layout: (args: {
 		render_id: number;
 		components: ComponentMeta[];
@@ -80,7 +84,7 @@ export function create_components(): {
 		});
 	}
 
-	function create_layout({
+	async function create_layout({
 		app: _app,
 		components,
 		layout,
@@ -96,7 +100,7 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-	}): void {
+	}): Promise<void> {
 		// make sure the state is settled before proceeding
 		flush();
 		app = _app;
@@ -148,10 +152,9 @@ export function create_components(): {
 			{} as { [id: number]: ComponentMeta }
 		);
 
-		walk_layout(layout, root).then(() => {
-			layout_store.set(_rootNode);
-		});
+		await walk_layout(layout, root);
 
+		layout_store.set(_rootNode);
 		set_event_specific_args(dependencies);
 	}
 
@@ -335,7 +338,7 @@ export function create_components(): {
 		if (!update_scheduled) {
 			update_scheduled = true;
 			update_scheduled_store.set(true);
-			requestAnimationFrame(flush);
+			raf(flush);
 		}
 	}
 
@@ -386,8 +389,7 @@ export function create_components(): {
 		set_time_limit,
 		loading_status,
 		scheduled_updates: update_scheduled_store,
-		create_layout: (...args) =>
-			requestAnimationFrame(() => create_layout(...args)),
+		create_layout: create_layout,
 		rerender_layout
 	};
 }

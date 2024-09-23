@@ -16,6 +16,8 @@ import os
 import pkgutil
 import posixpath
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 import threading
@@ -1482,3 +1484,63 @@ def is_allowed_file(
     if any(is_in_or_equal(path, created_path) for created_path in created_paths):
         return True, "created"
     return False, "not_created_or_allowed"
+
+
+def get_node_path():
+    env_node_path = os.environ.get("GRADIO_NODE_PATH")
+    if env_node_path:
+        return env_node_path
+
+    which_node_path = shutil.which("node")
+    if which_node_path:
+        return which_node_path
+
+    try:
+        # On Windows, try using 'where' command
+        if sys.platform == "win32":
+            windows_path = (
+                subprocess.check_output(["where", "node"])
+                .decode()
+                .strip()
+                .split("\r\n")[0]
+            )
+            # Verify the path exists
+            if os.path.exists(windows_path):
+                return windows_path
+        # Try using the 'which' command on Unix-like systems
+        else:
+            return subprocess.check_output(["which", "node"]).decode().strip()
+
+    except subprocess.CalledProcessError:
+        # Command failed, fall back to checking common install locations
+        pass
+
+    # Check common install locations
+    common_paths = [
+        sys.executable,
+        "/usr/bin/node",
+        "/usr/local/bin/node",
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Program Files (x86)\\nodejs\\node.exe",
+    ]
+
+    for node_path in common_paths:
+        if os.path.exists(node_path):
+            return node_path
+
+    # Check PATH environment variable
+    env_path = os.environ.get("PATH", "")
+    path_dirs = env_path.split(os.pathsep)
+
+    for directory in path_dirs:
+        full_path = os.path.join(
+            directory, "node.exe" if sys.platform == "win32" else "node"
+        )
+        if os.path.exists(full_path):
+            return full_path
+
+    print("Unable to find node install path, falling back to SPA mode.")
+    print(
+        "If you wish to use the node backend, please install node 18 and/ or set the path with the GRADIO_NODE_PATH environment variable."
+    )
+    return None

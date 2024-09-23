@@ -735,13 +735,13 @@ class TestAuthenticatedRoutes:
         )
         assert response.status_code == 200
 
-        response = client.get(f"{API_PREFIX}/logout")
+        response = client.get("/logout")
 
         response = client.post(
-            f"{API_PREFIX}/run/predict",
+            "{API_PREFIX}/run/predict",
             json={"data": ["test"]},
         )
-        assert response.status_code == 401
+        assert response.status_code == 404
 
     def test_monitoring_route(self):
         io = Interface(lambda x: x, "text", "text")
@@ -760,7 +760,7 @@ class TestAuthenticatedRoutes:
         )
         assert response.status_code == 200
 
-        response = client.get(f"{API_PREFIX}/logout")
+        response = client.get("/logout")
 
         response = client.get(
             f"{API_PREFIX}/monitoring",

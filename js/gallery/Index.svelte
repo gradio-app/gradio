@@ -81,8 +81,8 @@
 			file_count={"multiple"}
 			{file_types}
 			i18n={gradio.i18n}
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 			on:upload={(e) => {
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				value = files.map((x) =>
@@ -120,7 +120,7 @@
 			{show_share_button}
 			{show_download_button}
 			i18n={gradio.i18n}
-			_fetch={gradio.client.fetch}
+			_fetch={(...args) => gradio.client.fetch(...args)}
 			{show_fullscreen_button}
 		/>
 	{/if}

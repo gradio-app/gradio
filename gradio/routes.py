@@ -33,13 +33,22 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import APIRouter, BackgroundTasks, Depends, FastAPI, HTTPException, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    HTTPException,
+    Request,
+    status,
+)
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
     Response,
+    StreamingResponse,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -50,7 +59,7 @@ from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
-from starlette.responses import RedirectResponse, StreamingResponse
+from starlette.responses import RedirectResponse
 
 import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
@@ -68,6 +77,9 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import InvalidPathError
+from gradio.node_server import (
+    start_node_server,
+)
 from gradio.oauth import attach_oauth
 from gradio.route_utils import (  # noqa: F401
     API_PREFIX,
@@ -93,7 +105,12 @@ from gradio.server_messages import (
     UnexpectedErrorMessage,
 )
 from gradio.state_holder import StateHolder
-from gradio.utils import cancel_tasks, get_package_version, get_upload_folder
+from gradio.utils import (
+    cancel_tasks,
+    get_node_path,
+    get_package_version,
+    get_upload_folder,
+)
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -166,7 +183,13 @@ def toorjson(value):
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
-client = httpx.AsyncClient()
+client = httpx.AsyncClient(
+    limits=httpx.Limits(
+        max_connections=100,
+        max_keepalive_connections=20,
+    ),
+    timeout=httpx.Timeout(10.0),
+)
 
 file_upload_statuses = FileUploadProgress()
 
@@ -202,12 +225,71 @@ class App(FastAPI):
         self.auth_dependency = auth_dependency
         self.api_info = None
         self.all_app_info = None
+
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
         kwargs.setdefault("redoc_url", None)
         self.custom_component_hashes: dict[str, str] = {}
         super().__init__(**kwargs)
+
+    # Create a single client to be reused across requests
+    # We're not overriding any defaults here
+
+    client = httpx.AsyncClient()
+
+    @staticmethod
+    async def proxy_to_node(
+        request: Request,
+        server_name: str,
+        node_port: int,
+        python_port: int,
+        scheme: str = "http",
+        mounted_path: str = "",
+    ) -> Response:
+        start_time = time.time()
+
+        full_path = request.url.path
+        if mounted_path:
+            full_path = full_path.replace(mounted_path, "")
+        if request.url.query:
+            full_path += f"?{request.url.query}"
+
+        url = f"{scheme}://{server_name}:{node_port}{full_path}"
+
+        headers = {
+            k: v
+            for k, v in request.headers.items()
+            if k.lower() not in ["content-length"]
+        }
+
+        server_url = f"{scheme}://{server_name}"
+        if python_port:
+            server_url += f":{python_port}"
+        if mounted_path:
+            server_url += mounted_path
+
+        headers["x-gradio-server"] = server_url
+        headers["x-gradio-port"] = str(python_port)
+
+        print(
+            f"Proxying request from {request.url.path} to {url} with server url {server_url}"
+        )
+
+        if os.getenv("GRADIO_LOCAL_DEV_MODE"):
+            headers["x-gradio-local-dev-mode"] = "1"
+
+        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
+
+        print(
+            f"Total setup time before streaming: {time.time() - start_time:.4f} seconds"
+        )
+
+        req = App.client.build_request("GET", httpx.URL(url), headers=headers)
+        r = await App.client.send(req, stream=True)
+        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
+
+        return StreamingResponse(r.aiter_raw(), headers=r.headers)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
@@ -259,6 +341,7 @@ class App(FastAPI):
         app_kwargs: dict[str, Any] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         strict_cors: bool = True,
+        ssr_mode: bool = False,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -273,6 +356,41 @@ class App(FastAPI):
 
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware, strict_cors=strict_cors)
+
+        if ssr_mode:
+
+            @app.middleware("http")
+            async def conditional_routing_middleware(request: Request, call_next):
+                print("middleware")
+                custom_mount_path = getattr(blocks, "custom_mount_path", "")
+                path = (
+                    request.url.path.replace(custom_mount_path or "", "")
+                    if custom_mount_path is not None
+                    else request.url.path
+                )
+
+                if (
+                    getattr(blocks, "node_process", None) is not None
+                    and blocks.node_port is not None
+                    and not path.startswith("/gradio_api")
+                    and path not in ["/config", "/login"]
+                    and not path.startswith("/theme")
+                ):
+                    print("proxying")
+                    try:
+
+                        return await App.proxy_to_node(
+                            request,
+                            request.client.host,
+                            blocks.node_port,
+                            request.url.port,
+                            request.url.scheme,
+                            custom_mount_path,
+                        )
+                    except Exception as e:
+                        print(e)
+                response = await call_next(request)
+                return response
 
         @router.get("/user")
         @router.get("/user/")
@@ -347,7 +465,9 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
+            ) or (
+                callable(app.auth) and app.auth.__call__(username, password)
+            ):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
@@ -378,7 +498,7 @@ class App(FastAPI):
             attach_oauth(app)
         else:
 
-            @router.get("/logout")
+            @app.get("/logout")
             def logout(user: str = Depends(get_current_user)):
                 response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
@@ -1262,6 +1382,7 @@ class App(FastAPI):
                 return True
             return False
 
+        @router.get("/theme.css", response_class=PlainTextResponse)
         @app.get("/theme.css", response_class=PlainTextResponse)
         def theme_css():
             return PlainTextResponse(app.get_blocks().theme_css, media_type="text/css")
@@ -1323,7 +1444,8 @@ class App(FastAPI):
 
 def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     """Safely join the user path to the directory while performing some additional http-related checks,
-    e.g. ensuring that the full path exists on the local file system and is not a directory"""
+    e.g. ensuring that the full path exists on the local file system and is not a directory
+    """
     if path == "":
         raise fastapi.HTTPException(400)
     if route_utils.starts_with_protocol(path):
@@ -1357,6 +1479,8 @@ def mount_gradio_app(
     app: fastapi.FastAPI,
     blocks: gradio.Blocks,
     path: str,
+    server_name: str = "0.0.0.0",
+    server_port: int = 7860,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
@@ -1368,13 +1492,18 @@ def mount_gradio_app(
     favicon_path: str | None = None,
     show_error: bool = True,
     max_file_size: str | int | None = None,
+    ssr_mode: bool | None = None,
+    node_server_name: str | None = None,
+    node_port: int | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
     Parameters:
         app: The parent FastAPI application.
         blocks: The blocks object we want to mount to the parent app.
-        path: The path at which the gradio application will be mounted.
+        path: The path at which the gradio application will be mounted, e.g. "/gradio".
+        server_name: The server name on which the Gradio app will be run.
+        server_port: The port on which the Gradio app will be run.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
         auth: If provided, username and password (or list of username-password tuples) required to access the gradio app. Can also provide function that takes username and password and returns True if valid login.
         auth_message: If provided, HTML message provided on login page for this gradio app.
@@ -1385,6 +1514,9 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
+        ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 18+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+        node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
+        node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1406,6 +1538,10 @@ def mount_gradio_app(
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
+    blocks.custom_mount_path = path
+    blocks.server_port = server_port
+    blocks.server_name = server_name
+
     if auth is not None and auth_dependency is not None:
         raise ValueError(
             "You cannot provide both `auth` and `auth_dependency` in mount_gradio_app(). Please choose one."
@@ -1433,8 +1569,35 @@ def mount_gradio_app(
     if root_path is not None:
         blocks.root_path = root_path
 
+    blocks.ssr_mode = (
+        False
+        if wasm_utils.IS_WASM
+        else (
+            ssr_mode
+            if ssr_mode is not None
+            else bool(os.getenv("GRADIO_SSR_MODE", "False"))
+        )
+    )
+
+    blocks.node_path = os.environ.get(
+        "GRADIO_NODE_PATH", False if wasm_utils.IS_WASM else get_node_path()
+    )
+
+    blocks.node_server_name = node_server_name
+    blocks.node_port = node_port
+
+    blocks.node_server_name, blocks.node_process, blocks.node_port = start_node_server(
+        server_name=blocks.node_server_name,
+        server_port=blocks.node_port,
+        node_path=blocks.node_path,
+        ssr_mode=blocks.ssr_mode,
+    )
+
     gradio_app = App.create_app(
-        blocks, app_kwargs=app_kwargs, auth_dependency=auth_dependency
+        blocks,
+        app_kwargs=app_kwargs,
+        auth_dependency=auth_dependency,
+        ssr_mode=blocks.ssr_mode,
     )
     old_lifespan = app.router.lifespan_context
 
