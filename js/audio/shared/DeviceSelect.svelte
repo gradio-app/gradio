@@ -11,7 +11,6 @@
 	}>();
 
 	$: if (typeof window !== "undefined") {
-		console.log("getting audio devices");
 		try {
 			let tempDevices: MediaDeviceInfo[] = [];
 			RecordPlugin.getAvailableAudioDevices().then(
@@ -23,7 +22,7 @@
 						}
 					});
 					micDevices = tempDevices;
-				},
+				}
 			);
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
