@@ -367,10 +367,7 @@
 </script>
 
 <svelte:head>
-	<link
-		rel="stylesheet"
-		href={config?.root + "/theme.css?v=" + config?.theme_hash}
-	/>
+	<link rel="stylesheet" href={"./theme.css?v=" + config?.theme_hash} />
 
 	<style></style>
 </svelte:head>
