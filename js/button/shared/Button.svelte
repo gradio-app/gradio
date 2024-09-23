@@ -50,7 +50,12 @@
 		{disabled}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon.url} alt={`${value} icon`} />
+			<img
+				class="button-icon"
+				class:right-padded={value}
+				src={icon.url}
+				alt={`${value} icon`}
+			/>
 		{/if}
 		<slot />
 	</button>
@@ -177,6 +182,8 @@
 	.button-icon {
 		width: var(--text-xl);
 		height: var(--text-xl);
+	}
+	.button-icon.right-padded {
 		margin-right: var(--spacing-xl);
 	}
 </style>
