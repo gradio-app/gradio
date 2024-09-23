@@ -44,7 +44,7 @@ if wasm_utils.IS_WASM:
             self.response = response
 
         def __iter__(self):
-            yield from self.response.stream()
+            yield from self.response.stream(decode_content=False)
 
     class Urllib3Transport(httpx.BaseTransport):
         def __init__(self):
