@@ -349,7 +349,9 @@ class App(FastAPI):
         if ssr_mode:
 
             @app.middleware("http")
-            async def conditional_routing_middleware(request: fastapi.Request, call_next):
+            async def conditional_routing_middleware(
+                request: fastapi.Request, call_next
+            ):
                 custom_mount_path = getattr(blocks, "custom_mount_path", "")
                 path = (
                     request.url.path.replace(custom_mount_path or "", "")
@@ -372,7 +374,8 @@ class App(FastAPI):
                     try:
                         return await App.proxy_to_node(
                             request,
-                            os.getenv("GRADIO_SERVER_NAME", blocks.local_url) or "0.0.0.0",
+                            os.getenv("GRADIO_SERVER_NAME", blocks.local_url)
+                            or "0.0.0.0",
                             blocks.node_port,
                             App.app_port,
                             request.url.scheme,
