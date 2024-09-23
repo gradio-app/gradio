@@ -264,19 +264,18 @@ class App(FastAPI):
         if mounted_path:
             server_url += mounted_path
 
-        request.headers["x-gradio-server"] = server_url
-        request.headers["x-gradio-port"] = str(python_port)
+        headers = dict(request.headers)
+        headers["x-gradio-server"] = server_url
+        headers["x-gradio-port"] = str(python_port)
 
         print(
             f"Proxying request from {request.url.path} to {url} with server url {server_url}"
         )
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
-            request.headers["x-gradio-local-dev-mode"] = "1"
+            headers["x-gradio-local-dev-mode"] = "1"
 
-        new_request = App.client.build_request(
-            "GET", httpx.URL(url), headers=request.headers
-        )
+        new_request = App.client.build_request("GET", httpx.URL(url), headers=headers)
         response = await App.client.send(new_request, stream=True)
 
         return StreamingResponse(response.aiter_raw(), headers=response.headers)
