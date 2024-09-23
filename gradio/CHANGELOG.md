@@ -1,5 +1,16 @@
 # gradio
 
+## 5.0.0-beta.3
+
+### Features
+
+- [#9376](https://github.com/gradio-app/gradio/pull/9376) [`d92c26f`](https://github.com/gradio-app/gradio/commit/d92c26fe63f6b88e16c356cb84c55b61f795db73) - Small fixes to `gr.Dataframe` and chatbot docs.  Thanks @abidlabs!
+- [#9412](https://github.com/gradio-app/gradio/pull/9412) [`c2c2fd9`](https://github.com/gradio-app/gradio/commit/c2c2fd989348f826566773c07c0e0bda200199ff) - fix SSR apps on spaces.  Thanks @pngwn!
+
+### Fixes
+
+- [#9405](https://github.com/gradio-app/gradio/pull/9405) [`bf27ff4`](https://github.com/gradio-app/gradio/commit/bf27ff4ac8ada33ea03dd26d5c1c1115aa1f318a) - Center icon in button when no text is present.  Thanks @abidlabs!
+
 ## 5.0.0-beta.2
 
 ### Features

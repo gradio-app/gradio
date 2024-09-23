@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.6.0-beta.3
+
+### Features
+
+- [#9412](https://github.com/gradio-app/gradio/pull/9412) [`c2c2fd9`](https://github.com/gradio-app/gradio/commit/c2c2fd989348f826566773c07c0e0bda200199ff) - fix SSR apps on spaces.  Thanks @pngwn!
+
 ## 1.6.0-beta.2
 
 ### Features

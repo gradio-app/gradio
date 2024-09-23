@@ -1,5 +1,11 @@
 # website
 
+## 0.39.0-beta.3
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.3
+
 ## 0.39.0-beta.2
 
 ### Features
