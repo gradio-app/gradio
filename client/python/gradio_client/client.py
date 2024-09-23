@@ -154,8 +154,9 @@ class Client:
         self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = (
             self.config.get("protocol", "ws")
         )
-        self.api_prefix: str = self.config.get("api_prefix", "").lstrip("/") + "/"
-        self.src_prefixed = urllib.parse.urljoin(self.src, self.api_prefix) + "/"
+        api_prefix: str = self.config.get("api_prefix", "")
+        self.api_prefix = api_prefix.lstrip("/") + "/"
+        self.src_prefixed = urllib.parse.urljoin(self.src, api_prefix) + "/"
 
         self.api_url = urllib.parse.urljoin(self.src_prefixed, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
