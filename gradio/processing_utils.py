@@ -277,16 +277,8 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 def resolve_with_google_dns(hostname: str) -> str | None:
     url = f"https://dns.google/resolve?name={hostname}&type=A"
 
-    if wasm_utils.IS_WASM:
-        import pyodide.http
-
-        content = pyodide.http.open_url(url)
-        data = json.load(content)
-    else:
-        import urllib.request
-
-        with urllib.request.urlopen(url) as response:
-            data = json.loads(response.read().decode())
+    response = sync_client.get(url)
+    data = json.loads(response.content)
 
     if data.get("Status") == 0 and "Answer" in data:
         for answer in data["Answer"]:
