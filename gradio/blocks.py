@@ -2393,7 +2393,7 @@ Received outputs:
             else (
                 ssr_mode
                 if ssr_mode is not None
-                else os.getenv("GRADIO_SSR_MODE", "False")
+                else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
             )
         )
         self.node_path = os.environ.get(
