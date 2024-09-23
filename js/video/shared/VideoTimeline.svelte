@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
+	import { Music } from "@gradio/icons";
+	import { IconButton } from "@gradio/atoms";
 
 	export let videoElement: HTMLVideoElement;
 	export let trimmedDuration: number | null;
 	export let dragStart: number;
 	export let dragEnd: number;
 	export let loadingTimeline: boolean;
+	export let is_audio = false;
 
 	let thumbnails: string[] = [];
 	let numberOfThumbnails = 10;
@@ -169,13 +172,20 @@
 			/>
 
 			<div
-				class="opaque-layer"
+				class="translucent-layer"
 				style="left: {leftHandlePosition}%; right: {100 - rightHandlePosition}%"
 			/>
 
 			{#each thumbnails as thumbnail, i (i)}
-				<img src={thumbnail} alt={`frame-${i}`} draggable="false" />
+				{#if is_audio}
+					<span class="audio-icon">
+						<IconButton transparent Icon={Music} />
+					</span>
+				{:else}
+					<img src={thumbnail} alt={`frame-${i}`} draggable="false" />
+				{/if}
 			{/each}
+
 			<button
 				aria-label="end drag handle for trimming video"
 				class="handle right"
@@ -240,14 +250,17 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		margin: var(--spacing-lg) var(--spacing-lg) 0 var(--spacing-lg);
+		margin: var(--spacing-lg);
+		width: 100%;
 	}
 
 	#timeline {
 		display: flex;
 		height: var(--size-10);
-		flex: 1;
 		position: relative;
+		justify-content: space-between;
+		width: 100%;
+		align-items: center;
 	}
 
 	img {
@@ -269,11 +282,15 @@
 		position: absolute;
 	}
 
-	.opaque-layer {
+	.translucent-layer {
 		background-color: rgba(230, 103, 40, 0.25);
 		border: 1px solid var(--color-accent);
 		height: var(--size-12);
 		position: absolute;
 		z-index: 2;
+	}
+
+	.audio-icon {
+		padding: var(--spacing-xs);
 	}
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Upload, ModifyUpload } from "@gradio/upload";
+	import { Upload } from "@gradio/upload";
 	import type { FileData, Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image";
@@ -84,7 +84,7 @@
 				<Upload
 					bind:dragging
 					bind:uploading
-					filetype="video/x-m4v,video/*"
+					filetype="video/x-m4v,video/*,audio/*"
 					on:load={handle_load}
 					{max_file_size}
 					on:error={({ detail }) => dispatch("error", detail)}
@@ -134,6 +134,7 @@
 				{show_download_button}
 				{handle_clear}
 				{has_change_history}
+				is_audio={value?.mime_type?.includes("audio")}
 			/>
 		{/key}
 	{:else if value.size}

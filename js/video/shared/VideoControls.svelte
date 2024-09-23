@@ -23,6 +23,7 @@
 	export let show_download_button = false;
 	export let handle_clear: () => void = () => {};
 	export let has_change_history = false;
+	export let is_audio = false;
 
 	let ffmpeg: FFmpeg;
 
@@ -58,6 +59,7 @@
 				bind:dragEnd
 				bind:trimmedDuration
 				bind:loadingTimeline
+				{is_audio}
 			/>
 		</div>
 	{/if}
