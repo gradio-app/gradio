@@ -258,32 +258,28 @@ class App(FastAPI):
 
         url = f"{scheme}://{server_name}:{node_port}{full_path}"
 
-        headers = {
-            k: v
-            for k, v in request.headers.items()
-            if k.lower() not in ["content-length", "etag"]
-        }
-
         server_url = f"{scheme}://{server_name}"
         if python_port:
             server_url += f":{python_port}"
         if mounted_path:
             server_url += mounted_path
 
-        headers["x-gradio-server"] = server_url
-        headers["x-gradio-port"] = str(python_port)
+        request.headers["x-gradio-server"] = server_url
+        request.headers["x-gradio-port"] = str(python_port)
 
         print(
             f"Proxying request from {request.url.path} to {url} with server url {server_url}"
         )
 
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
-            headers["x-gradio-local-dev-mode"] = "1"
+            request.headers["x-gradio-local-dev-mode"] = "1"
 
-        req = App.client.build_request("GET", httpx.URL(url), headers=headers)
-        r = await App.client.send(req, stream=True)
+        new_request = App.client.build_request(
+            "GET", httpx.URL(url), headers=request.headers
+        )
+        response = await App.client.send(new_request, stream=True)
 
-        return StreamingResponse(r.aiter_raw(), headers=r.headers)
+        return StreamingResponse(response.aiter_raw(), headers=response.headers)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
         auth = blocks.auth
