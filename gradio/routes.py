@@ -249,7 +249,6 @@ class App(FastAPI):
         scheme: str = "http",
         mounted_path: str = "",
     ) -> Response:
-        start_time = time.time()
 
         full_path = request.url.path
         if mounted_path:
@@ -264,10 +263,6 @@ class App(FastAPI):
             for k, v in request.headers.items()
             if k.lower() not in ["content-length"]
         }
-
-        print(
-            headers,
-        )
 
         server_url = f"{scheme}://{server_name}"
         if python_port:
@@ -285,15 +280,8 @@ class App(FastAPI):
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
-        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
-
-        print(
-            f"Total setup time before streaming: {time.time() - start_time:.4f} seconds"
-        )
-
         req = App.client.build_request("GET", httpx.URL(url), headers=headers)
         r = await App.client.send(req, stream=True)
-        print(f"Time to prepare request: {time.time() - start_time:.4f} seconds")
 
         return StreamingResponse(r.aiter_raw(), headers=r.headers)
 
@@ -366,17 +354,8 @@ class App(FastAPI):
         if ssr_mode:
 
             @app.middleware("http")
-            async def capture_port(request: Request, call_next):
-                if App.app_port is None:
-                    App.app_port = request.url.port or int(
-                        os.getenv("GRADIO_SERVER_PORT", "7860")
-                    )
-                response = await call_next(request)
-                return response
-
-            @app.middleware("http")
             async def conditional_routing_middleware(request: Request, call_next):
-                print("middleware")
+
                 custom_mount_path = getattr(blocks, "custom_mount_path", "")
                 path = (
                     request.url.path.replace(custom_mount_path or "", "")
@@ -391,7 +370,11 @@ class App(FastAPI):
                     and path not in ["/config", "/login"]
                     and not path.startswith("/theme")
                 ):
-                    print("proxying")
+                    if App.app_port is None:
+                        App.app_port = request.url.port or int(
+                            os.getenv("GRADIO_SERVER_PORT", "7860")
+                        )
+
                     try:
 
                         return await App.proxy_to_node(
