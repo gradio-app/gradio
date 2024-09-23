@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import os
+import signal
 import socket
 import subprocess
 import sys
 import time
 import warnings
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from concurrent.futures import TimeoutError
 from contextlib import closing
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -106,17 +107,16 @@ def start_node_process(
 
             node_process = subprocess.Popen(
                 [node_path, SSR_APP_PATH],
-                # stdout=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
                 env=env,
             )
 
             is_working = verify_server_startup(server_name, port, timeout=5)
-            print(f"Node server started on {server_name}:{port}, working: {is_working}")
             if is_working:
-                # signal.signal(
-                #     signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
-                # )
-                # signal.signal(signal.SIGINT, lambda _, __: handle_sigterm(node_process))
+                signal.signal(
+                    signal.SIGTERM, lambda _, __: handle_sigterm(node_process)
+                )
+                signal.signal(signal.SIGINT, lambda _, __: handle_sigterm(node_process))
 
                 return node_process, port
 

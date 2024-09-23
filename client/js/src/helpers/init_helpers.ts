@@ -87,7 +87,7 @@ export async function resolve_config(
 		return { ...config, path } as Config;
 	} else if (endpoint) {
 		const config_url = join_urls(endpoint, CONFIG_URL);
-		console.log("config_url", config_url);
+
 		const response = await this.fetch(config_url, {
 			headers,
 			credentials: "include"

@@ -11,7 +11,7 @@ import Login from "@gradio/core/login";
 
 export async function load({
 	url,
-	data: { server, port, local_dev_mode }
+	data: { server, port, local_dev_mode, custom_path }
 }): Promise<{
 	Render: typeof Login | typeof Blocks;
 	config: Config;
