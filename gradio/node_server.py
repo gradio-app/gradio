@@ -6,7 +6,7 @@ import subprocess
 import sys
 import time
 import warnings
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from concurrent.futures import TimeoutError
 from contextlib import closing
 from pathlib import Path
 from typing import TYPE_CHECKING

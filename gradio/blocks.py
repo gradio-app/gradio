@@ -389,9 +389,7 @@ class Block:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
                 )
-            except (
-                AttributeError
-            ):  # Can be raised if this function is called before the Block is fully initialized.
+            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 
@@ -2543,7 +2541,6 @@ Received outputs:
             and not networking.url_ok(self.local_url)
             and not self.share
         ):
-
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True or check your proxy settings to allow access to localhost."
             )
@@ -2833,8 +2830,6 @@ Received outputs:
         self._queue.stopped = False
         self.is_running = True
         self.create_limiter()
-
-        
 
     def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """

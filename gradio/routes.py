@@ -39,7 +39,6 @@ from fastapi import (
     Depends,
     FastAPI,
     HTTPException,
-    Request,
     status,
 )
 from fastapi.responses import (
@@ -242,14 +241,13 @@ class App(FastAPI):
 
     @staticmethod
     async def proxy_to_node(
-        request: Request,
+        request: fastapi.Request,
         server_name: str,
         node_port: int,
         python_port: int,
         scheme: str = "http",
         mounted_path: str = "",
     ) -> Response:
-
         full_path = request.url.path
         if mounted_path:
             full_path = full_path.replace(mounted_path, "")
@@ -356,7 +354,6 @@ class App(FastAPI):
 
             @app.middleware("http")
             async def conditional_routing_middleware(request: Request, call_next):
-
                 custom_mount_path = getattr(blocks, "custom_mount_path", "")
                 path = (
                     request.url.path.replace(custom_mount_path or "", "")
@@ -377,7 +374,6 @@ class App(FastAPI):
                         )
 
                     try:
-
                         return await App.proxy_to_node(
                             request,
                             os.getenv("GRADIO_SERVER_NAME") or request.client.host,
@@ -464,9 +460,7 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (
-                callable(app.auth) and app.auth.__call__(username, password)
-            ):  # type: ignore
+            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
