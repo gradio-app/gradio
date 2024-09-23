@@ -33,6 +33,7 @@
 		fill_width?: boolean;
 		theme_hash?: number;
 		username: string | null;
+		api_prefix?: string;
 	}
 
 	let id = -1;
@@ -107,7 +108,6 @@
 	}
 
 	export let space: string | null;
-	export let host: string | null;
 	export let src: string | null;
 
 	let _id = id++;
@@ -279,7 +279,7 @@
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
 					}`
-				: host || space || src || location.origin;
+				: space || src || location.origin;
 
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
@@ -507,6 +507,8 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
+			initial_layout={undefined}
+			search_params={new URLSearchParams(window.location.search)}
 		/>
 	{/if}
 </Embed>

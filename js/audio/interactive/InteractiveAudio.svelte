@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy, createEventDispatcher } from "svelte";
+	import { onDestroy, createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
@@ -88,7 +88,8 @@
 		];
 	}
 
-	if (streaming) {
+	const is_browser = typeof window !== "undefined";
+	if (is_browser && streaming) {
 		get_modules();
 	}
 
@@ -147,6 +148,7 @@
 			throw err;
 		}
 		if (stream == null) return;
+
 		if (streaming) {
 			const [{ MediaRecorder, register }, { connect }] =
 				await Promise.all(module_promises);
@@ -161,6 +163,7 @@
 		}
 		recorder.addEventListener("stop", async () => {
 			recording = false;
+			// recorder.stop();
 			await dispatch_blob(audio_chunks, "change");
 			await dispatch_blob(audio_chunks, "stop_recording");
 			audio_chunks = [];
@@ -217,13 +220,14 @@
 		dispatch("upload", detail);
 	}
 
-	function stop(): void {
+	async function stop(): Promise<void> {
 		recording = false;
 
 		if (streaming) {
 			dispatch("close_stream");
 			dispatch("stop_recording");
 			recorder.stop();
+
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;
 			}

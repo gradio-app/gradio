@@ -23,7 +23,7 @@
 	type sources = "upload" | "webcam" | "clipboard" | null;
 
 	let stream_state = "closed";
-	let _modify_stream: (state: "open" | "closed" | "waiting") => void;
+	let _modify_stream: (state: "open" | "closed" | "waiting") => void = () => {};
 	export function modify_stream_state(
 		state: "open" | "closed" | "waiting"
 	): void {
@@ -220,8 +220,8 @@
 			bind:set_time_limit
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={gradio.client?.stream}
 		>
 			{#if active_source === "upload" || !active_source}
 				<UploadText i18n={gradio.i18n} type="image" {placeholder} />

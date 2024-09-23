@@ -163,17 +163,13 @@ export class Client {
 			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
 		}
 
-		try {
-			if (this.options.auth) {
-				await this.resolve_cookies();
-			}
-
-			await this._resolve_config().then(({ config }) =>
-				this._resolve_hearbeat(config)
-			);
-		} catch (e: any) {
-			throw Error(e);
+		if (this.options.auth) {
+			await this.resolve_cookies();
 		}
+
+		await this._resolve_config().then(({ config }) =>
+			this._resolve_hearbeat(config)
+		);
 
 		this.api_info = await this.view_api();
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);

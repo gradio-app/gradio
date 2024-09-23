@@ -107,15 +107,7 @@
 			gradio.dispatch("error", detail);
 		}}
 		disabled={!interactive}
-		upload={gradio.client.upload}
-		stream_handler={gradio.client.stream}
+		upload={(...args) => gradio.client.upload(...args)}
+		stream_handler={(...args) => gradio.client.stream(...args)}
 	/>
 </Block>
-
-<style>
-	:global(.form .block.multimodal-textbox) {
-		box-shadow: var(--block-shadow) !important;
-		border-width: var(--block-border-width) !important;
-		border-radius: var(--block-radius) !important;
-	}
-</style>
