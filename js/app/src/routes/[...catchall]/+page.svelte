@@ -115,7 +115,7 @@
 	let active_theme_mode: ThemeMode;
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
-		subscribe: writable({}).subscribe,
+		subscribe: writable({}).subscribe
 	};
 
 	$: if (config?.app_id) {
@@ -133,7 +133,7 @@
 		// }
 		await mount_css(
 			config.root + config.api_prefix + "/theme.css?v=" + config.theme_hash,
-			document.head,
+			document.head
 		);
 		// if (!config.stylesheets) return;
 		// await Promise.all(
@@ -152,7 +152,7 @@
 		// );
 	}
 	async function add_custom_html_head(
-		head_string: string | null,
+		head_string: string | null
 	): Promise<void> {
 		// if (head_string) {
 		// 	const parser = new DOMParser();
@@ -200,7 +200,7 @@
 		} else {
 			const url = new URL(window.location.toString());
 			const url_color_mode: ThemeMode | null = url.searchParams.get(
-				"__theme",
+				"__theme"
 			) as ThemeMode | null;
 			new_theme_mode = theme_mode || url_color_mode || "system";
 		}
@@ -221,7 +221,7 @@
 
 		function update_scheme(): "light" | "dark" {
 			let _theme: "light" | "dark" = window?.matchMedia?.(
-				"(prefers-color-scheme: dark)",
+				"(prefers-color-scheme: dark)"
 			).matches
 				? "dark"
 				: "light";
@@ -247,7 +247,7 @@
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING",
+		detail: "SLEEPING"
 	};
 
 	let app: ClientType = data.app;
@@ -285,7 +285,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING",
+			detail: "RUNNING"
 		};
 
 		// await mount_custom_css(config.css);
@@ -310,7 +310,7 @@
 					app = await Client.connect(api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
-						events: ["data", "log", "status", "render"],
+						events: ["data", "log", "status", "render"]
 					});
 
 					if (!app.config) {
@@ -337,8 +337,8 @@
 			new CustomEvent("render", {
 				bubbles: true,
 				cancelable: false,
-				composed: true,
-			}),
+				composed: true
+			})
 		);
 	}
 
@@ -349,7 +349,7 @@
 
 	async function mount_space_header(
 		space_id: string | null | undefined,
-		is_embed: boolean,
+		is_embed: boolean
 	): Promise<void> {
 		if (space_id && !is_embed && window.self === window.top) {
 			if (spaceheader) {

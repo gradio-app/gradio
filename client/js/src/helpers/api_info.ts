@@ -26,7 +26,6 @@ export async function process_endpoint(
 	ws_protocol: "ws" | "wss";
 	http_protocol: "http:" | "https:";
 }> {
-	console.log("app_reference", app_reference);
 	const headers: { Authorization?: string } = {};
 	if (hf_token) {
 		headers.Authorization = `Bearer ${hf_token}`;
@@ -65,8 +64,6 @@ export async function process_endpoint(
 			host
 		};
 	}
-
-	console.log("app_reference", _app_reference);
 
 	return {
 		space_id: false,

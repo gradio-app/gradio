@@ -266,10 +266,6 @@ class App(FastAPI):
         headers["x-gradio-server"] = server_url
         headers["x-gradio-port"] = str(python_port)
 
-        print(
-            f"Proxying request from {request.url.path} to {url} with server url {server_url}"
-        )
-
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
