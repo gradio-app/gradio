@@ -235,13 +235,13 @@
 	.wrap {
 		display: flex;
 		flex-direction: column;
-		flex-flow: column;
+		flex-grow: 1;
 		margin: 0;
 		padding: 0;
 		height: 100%;
 	}
 	.codemirror-wrapper {
-		height: 100%;
+		flex-grow: 1;
 		overflow: auto;
 	}
 
