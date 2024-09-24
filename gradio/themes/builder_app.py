@@ -13,6 +13,9 @@ themes = [
     gr.themes.Monochrome,
     gr.themes.Glass,
     gr.themes.Origin,
+    gr.themes.Citrus,
+    gr.themes.Colorful,
+    gr.themes.Headlines,
 ]
 colors = gr.themes.Color.all
 sizes = gr.themes.Size.all

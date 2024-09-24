@@ -3,6 +3,9 @@ from gradio.themes.default import Default
 from gradio.themes.glass import Glass
 from gradio.themes.monochrome import Monochrome
 from gradio.themes.origin import Origin
+from gradio.themes.citrus import Citrus
+from gradio.themes.colorful import Colorful
+from gradio.themes.headlines import Headlines
 from gradio.themes.soft import Soft
 from gradio.themes.utils import colors, sizes
 from gradio.themes.utils.colors import Color
@@ -23,6 +26,9 @@ __all__ = [
     "colors",
     "sizes",
     "Origin",
+    "Citrus",
+    "Colorful",
+    "Headlines",
 ]
 
 
