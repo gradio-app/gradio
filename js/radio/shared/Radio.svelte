@@ -48,22 +48,11 @@
 		transition: var(--button-transition);
 		cursor: pointer;
 		box-shadow: var(--checkbox-label-shadow);
-		border: var(--checkbox-label-border-width) solid
-			var(--checkbox-label-border-color);
 		border-radius: var(--button-small-radius);
-		background: var(--checkbox-label-background-fill);
-		padding: var(--checkbox-label-padding);
 		color: var(--checkbox-label-text-color);
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
-	}
-
-	label:hover {
-		background: var(--checkbox-label-background-fill-hover);
-	}
-	label:focus {
-		background: var(--checkbox-label-background-fill-focus);
 	}
 
 	label.selected {
@@ -103,13 +92,15 @@
 	}
 
 	input:hover {
-		border-color: var(--checkbox-border-color-hover);
+		border-color: var(--checkbox-background-color-selected);
 		background-color: var(--checkbox-background-color-hover);
+		cursor: pointer;
 	}
 
 	input:focus {
 		border-color: var(--checkbox-border-color-focus);
 		background-color: var(--checkbox-background-color-focus);
+		cursor: pointer;
 	}
 
 	input:checked:focus {
