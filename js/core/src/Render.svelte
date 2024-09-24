@@ -84,8 +84,8 @@
 	elem_id={("elem_id" in node.props && node.props.elem_id) ||
 		`component-${node.id}`}
 	elem_classes={("elem_classes" in node.props && node.props.elem_classes) || []}
-	{target}
 	{...node.props}
+	{target}
 	{theme_mode}
 	{root}
 >
