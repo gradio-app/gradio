@@ -127,7 +127,11 @@ class File(Component):
         file_name = f.path
         if self.type == "filepath":
             mime_type = client_utils.get_mimetype(file_name)
-            if self.file_types and not client_utils.is_valid_file(mime_type, self.file_types):
+            if (
+                self.file_types
+                and mime_type
+                and not client_utils.is_valid_file(mime_type, self.file_types)
+            ):
                 raise Error(
                     f"Invalid file type: {mime_type}. Please choose from: {self.file_types}"
                 )
