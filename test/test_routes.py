@@ -376,13 +376,13 @@ class TestRoutes:
             lambda s: f"Hello from py, {s}!", "textbox", "textbox"
         ).queue()
 
-        app = gr.mount_gradio_app(app, demo, path=f"{API_PREFIX}/ps")
-        app = gr.mount_gradio_app(app, demo1, path=f"{API_PREFIX}/py")
+        app = gr.mount_gradio_app(app, demo, path="/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/py")
 
         # Use context manager to trigger start up events
         with TestClient(app) as client:
-            assert client.get(f"{API_PREFIX}/ps").is_success
-            assert client.get(f"{API_PREFIX}/py").is_success
+            assert client.get("/ps").is_success
+            assert client.get("/py").is_success
 
     def test_mount_gradio_app_with_app_kwargs(self):
         app = FastAPI()
