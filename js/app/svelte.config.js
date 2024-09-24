@@ -9,7 +9,6 @@ import { join } from "path";
 
 const __dirname = fileURLToPath(import.meta.url);
 const out_path = resolve(__dirname, "../../../gradio/templates/node/build");
-const version_path = join(__dirname, "..", "gradio", "package.json");
 const theme_token_path = join(
 	__dirname,
 	"..",
