@@ -83,12 +83,12 @@ export default defineConfig(({ mode }) => {
 			sveltekit(),
 			// resolve_svelte(development),
 
-			// generate_dev_entry({
-			// 	enable: !development && mode !== "test"
-			// }),
-			// inject_ejs(),
-			// generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
-			// handle_ce_css(),
+			generate_dev_entry({
+				enable: !development && mode !== "test"
+			}),
+			inject_ejs(),
+			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
+			handle_ce_css(),
 			inject_component_loader({ mode })
 		]
 	};
