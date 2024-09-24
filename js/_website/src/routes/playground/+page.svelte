@@ -37,11 +37,7 @@
 
 	let show_nav = true;
 
-	$: show_nav;
-
 	let show_mobile_nav = false;
-
-	$: show_mobile_nav;
 
 	let show_preview = false;
 
@@ -290,9 +286,6 @@
 {/if}
 
 <style>
-	.code {
-		white-space: pre-wrap;
-	}
 	:global(body) {
 		min-height: 100vh;
 		display: grid;
@@ -343,13 +336,6 @@
 		box-shadow: 0 0 1px #fc963c;
 	}
 
-	input:checked + .code-btn {
-		color: #fc963c !important;
-	}
-	input:focus + .code-btn {
-		color: #fc963c !important;
-	}
-
 	input:checked + .slider:before {
 		-webkit-transform: translateX(26px);
 		-ms-transform: translateX(26px);
@@ -362,10 +348,6 @@
 
 	.slider.round:before {
 		border-radius: 50%;
-	}
-
-	.code-mobile .block {
-		height: 100%;
 	}
 
 	.mobile-window {
