@@ -686,6 +686,16 @@ def get_extension(encoding: str) -> str | None:
         extension = extension[1:]
     return extension
 
+def is_valid_file(mime_type: str, file_types: list[str]) -> bool:
+        for file_type in file_types:
+            if file_type == "file":
+                return True
+            if file_type.startswith("."):
+                if file_type ==  mimetypes.guess_extension(mime_type): # Check if the MIME type matches the file extension
+                    return True
+            elif mime_type.startswith(f"{file_type}/"): #Check if the MIME type starts with the file type
+                return True
+        return False
 
 def encode_file_to_base64(f: str | Path):
     with open(f, "rb") as file:

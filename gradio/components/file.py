@@ -16,6 +16,7 @@ from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
+from gradio.exceptions import Error
 from gradio.utils import NamedString
 
 if TYPE_CHECKING:
@@ -125,6 +126,11 @@ class File(Component):
     def _process_single_file(self, f: FileData) -> NamedString | bytes:
         file_name = f.path
         if self.type == "filepath":
+            mime_type = client_utils.get_mimetype(file_name)
+            if self.file_types and not client_utils.is_valid_file(mime_type, self.file_types):
+                raise Error(
+                    f"Invalid file type: {mime_type}. Please choose from: {self.file_types}"
+                )
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
             file.name = file_name
             return NamedString(file_name)
