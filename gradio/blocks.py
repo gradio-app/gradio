@@ -1046,6 +1046,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             self.js = js
         self.renderables: list[Renderable] = []
         self.state_holder: StateHolder
+        self.custom_mount_path: str | None = None
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -1703,7 +1704,7 @@ Received inputs:
         if not isinstance(predictions, (list, tuple)):
             predictions = [predictions]
 
-        if len(predictions) < len(dep_outputs):
+        if len(predictions) != len(dep_outputs):
             name = (
                 f" ({block_fn.name})"
                 if block_fn.name and block_fn.name != "<lambda>"
@@ -1713,7 +1714,7 @@ Received inputs:
             wanted_args = []
             received_args = []
             for block in dep_outputs:
-                wanted_args.append(str(block))
+                wanted_args.append(str(block.get_block_class()))
             for pred in predictions:
                 v = f'"{pred}"' if isinstance(pred, str) else str(pred)
                 received_args.append(v)
@@ -1721,13 +1722,22 @@ Received inputs:
             wanted = ", ".join(wanted_args)
             received = ", ".join(received_args)
 
-            raise ValueError(
-                f"""An event handler{name} didn't receive enough output values (needed: {len(dep_outputs)}, received: {len(predictions)}).
-Wanted outputs:
-    [{wanted}]
-Received outputs:
-    [{received}]"""
-            )
+            if len(predictions) < len(dep_outputs):
+                raise ValueError(
+                    f"""A  function{name} didn't return enough output values (needed: {len(dep_outputs)}, returned: {len(predictions)}).
+    Output components:
+        [{wanted}]
+    Output values returned:
+        [{received}]"""
+                )
+            else:
+                warnings.warn(
+                    f"""A function{name} returned too many output values (needed: {len(dep_outputs)}, returned: {len(predictions)}). Ignoring extra values.
+    Output components:
+        [{wanted}]
+    Output values returned:
+        [{received}]"""
+                )
 
     async def postprocess_data(
         self,
@@ -1736,7 +1746,14 @@ Received outputs:
         state: SessionState | None,
     ) -> list[Any]:
         state = state or SessionState(self)
-
+        if (
+            isinstance(predictions, dict)
+            and predictions == skip()
+            and len(block_fn.outputs) > 1
+        ):
+            # For developer convenience, if a function returns a single skip() with multiple outputs,
+            # we will skip updating all outputs.
+            predictions = [skip()] * len(block_fn.outputs)
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
                 [block._id for block in block_fn.outputs], predictions
