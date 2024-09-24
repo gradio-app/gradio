@@ -77,7 +77,7 @@ class Monochrome(Base):
             checkbox_background_color_selected_dark="*neutral_700",
             checkbox_border_color_selected_dark="*neutral_800",
             # Padding
-            checkbox_label_padding="*spacing_md",
+            checkbox_label_padding="*spacing_xs",
             button_large_padding="*spacing_lg",
             button_small_padding="*spacing_sm",
             # Borders

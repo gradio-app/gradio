@@ -1434,7 +1434,7 @@ class Base(ThemeClass):
             self, "checkbox_label_gap", "*spacing_lg"
         )
         self.checkbox_label_padding = checkbox_label_padding or getattr(
-            self, "checkbox_label_padding", "*spacing_md calc(2 * *spacing_md)"
+            self, "checkbox_label_padding", "*spacing_xs calc(2 * *spacing_xs)"
         )
         self.checkbox_label_shadow = checkbox_label_shadow or getattr(
             self, "checkbox_label_shadow", "none"
