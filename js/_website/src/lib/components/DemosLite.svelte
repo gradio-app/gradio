@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Code from "@gradio/code";
+	import { BaseCode as Code } from "@gradio/code";
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
@@ -479,12 +479,10 @@
 					<Code
 						bind:value={demos[i].code}
 						on:input={() => console.log("input")}
-						label=""
 						language="python"
-						target={dummy_elem}
-						gradio={dummy_gradio}
 						lines={10}
-						interactive="true"
+						readonly={false}
+						dark_mode={false}
 					/>
 				</div>
 			{/each}

@@ -7,7 +7,7 @@
 	import { gradio_logo } from "$lib/assets";
 	import { afterNavigate } from "$app/navigation";
 	import { clickOutside } from "$lib/components/clickOutside.js";
-	import Code from "@gradio/code";
+	import { BaseCode as Code } from "@gradio/code";
 	import version_json from "$lib/json/version.json";
 	import WHEEL from "$lib/json/wheel.json";
 
@@ -56,9 +56,6 @@
 		current_selection = demo_name;
 		show_mobile_nav = false;
 	};
-
-	let dummy_elem: any = { classList: { contains: () => false } };
-	let dummy_gradio: any = { dispatch: (_) => {} };
 
 	let version = version_json.version;
 </script>
@@ -253,12 +250,10 @@
 					{#if !show_preview}
 						<Code
 							bind:value={demos[i].code}
-							label=""
 							language="python"
-							target={dummy_elem}
-							gradio={dummy_gradio}
 							lines={10}
-							interactive="false"
+							readonly
+							dark_mode={false}
 						/>
 					{:else}
 						<gradio-app space={"gradio/" + demo.dir} />
