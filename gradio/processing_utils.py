@@ -9,14 +9,13 @@ import logging
 import os
 import shutil
 import socket
+import ssl
 import subprocess
 import tempfile
 import warnings
-from collections.abc import Awaitable, Callable, Coroutine
-from functools import lru_cache, wraps
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 import aiofiles
@@ -103,9 +102,6 @@ if wasm_utils.IS_WASM:
 else:
     sync_transport = None
     async_transport = None
-
-sync_client = httpx.Client(transport=sync_transport)
-async_client = httpx.AsyncClient(transport=async_transport)
 
 log = logging.getLogger(__name__)
 
@@ -282,7 +278,7 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 PUBLIC_URL_WHITELIST = ["hf.co", "huggingface.co"]
 
 
-def is_public_ip(ip: str | ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
+def is_public_ip(ip: str) -> bool:
     try:
         ip_obj = ipaddress.ip_address(ip)
         return not (
@@ -297,131 +293,73 @@ def is_public_ip(ip: str | ipaddress.IPv4Address | ipaddress.IPv6Address) -> boo
         return False
 
 
-async def resolve_hostname_locally(hostname: str) -> list[str]:
-    try:
-        loop = asyncio.get_running_loop()
-        addrinfo = await loop.getaddrinfo(hostname, None, family=socket.AF_UNSPEC)
-        return [ip[4][0] for ip in addrinfo]
-    except socket.gaierror:
-        return []
+class SecureTransport(httpx.HTTPTransport):
+    def __init__(self, verified_ip: str):
+        self.verified_ip = verified_ip
+        super().__init__()
+
+    def connect(
+        self,
+        hostname: str,
+        port: int,
+        timeout: float = None,
+        ssl_context: ssl.SSLContext = None,
+    ):
+        sock = socket.create_connection((self.verified_ip, port), timeout=timeout)
+        if ssl_context:
+            sock = ssl_context.wrap_socket(sock, server_hostname=hostname)
+        return sock
 
 
-T = TypeVar("T")
-
-
-def lru_cache_async(maxsize: int = 128):
-    def decorator(
-        async_func: Callable[..., Coroutine[Any, Any, T]],
-    ) -> Callable[..., Awaitable[T]]:
-        @lru_cache(maxsize=maxsize)
-        @wraps(async_func)
-        def wrapper(*args: Any, **kwargs: Any) -> Awaitable[T]:
-            return asyncio.create_task(async_func(*args, **kwargs))
-
-        return wrapper
-
-    return decorator
-
-
-@lru_cache_async(maxsize=256)
-async def resolve_hostname_google(hostname: str) -> list[str]:
-    async with httpx.AsyncClient() as client:
-        try:
-            response_v4 = await client.get(
-                f"https://dns.google/resolve?name={hostname}&type=A"
-            )
-            response_v6 = await client.get(
-                f"https://dns.google/resolve?name={hostname}&type=AAAA"
-            )
-
-            ips = []
-            for response in [response_v4.json(), response_v6.json()]:
-                ips.extend([answer["data"] for answer in response.get("Answer", [])])
-            return ips
-        except Exception:
-            return []
-
-
-async def validate_url(url: str):
-    parsed_url = urlparse(url)
-    hostname = parsed_url.hostname
-
-    if hostname is None:
-        raise ValueError("Invalid URL")
-
-    if hostname in PUBLIC_URL_WHITELIST:
-        return
-
-    try:
-        ip = ipaddress.ip_address(hostname)
-        if is_public_ip(ip):
-            return
-        else:
-            raise ValueError(f"URL resolves to private IP: {ip}")
-    except ValueError:
-        # It's a hostname, not an IP
-        pass
-
-    local_ips = await resolve_hostname_locally(hostname)
-    for ip in local_ips:
-        if is_public_ip(ip):
-            return
-
-    google_ips = await resolve_hostname_google(hostname)
-    for ip in google_ips:
-        if is_public_ip(ip):
-            return
-
-    raise ValueError(f"Unable to resolve {hostname} to a public IP address")
+def validate_url(url: str) -> str:
+    hostname = urlparse(url).hostname
+    ip_address = socket.gethostbyname(hostname)
+    if not is_public_ip(ip_address):
+        raise ValueError(f"IP address {ip_address} for {hostname} failed validation")
+    return ip_address
 
 
 async def ssrf_protected_httpx_download(url: str, cache_dir: str) -> str:
-    max_redirects = 10
-    redirect_count = 0
-    current_url = url
+    def get_with_secure_transport(url: str) -> httpx.Response:
+        verified_ip = validate_url(url)
+        transport = SecureTransport(verified_ip)
+        with httpx.Client(transport=transport) as client:
+            return client.get(url, follow_redirects=False)
 
-    async with httpx.AsyncClient() as client:
-        while redirect_count < max_redirects:
-            try:
-                await validate_url(current_url)
+    parsed_url = urlparse(url)
+    hostname = parsed_url.hostname
 
-                async with client.stream(
-                    "GET", current_url, follow_redirects=False
-                ) as response:
-                    if response.is_redirect:
-                        redirect_count += 1
-                        current_url = response.headers["Location"]
-                        continue
+    response = get_with_secure_transport(url)
 
-                    content_disposition = response.headers.get("Content-Disposition")
-                    if content_disposition and "filename=" in content_disposition:
-                        filename = Path(
-                            content_disposition.split("filename=")[1].strip('"')
-                        ).name
+    while response.is_redirect:
+        redirect_url = response.headers["Location"]
+        redirect_parsed = urlparse(redirect_url)
 
-                    else:
-                        filename = client_utils.strip_invalid_filename_characters(
-                            Path(url).name
-                        )
+        if not redirect_parsed.hostname:
+            redirect_url = f"{parsed_url.scheme}://{hostname}{redirect_url}"
 
-                    filepath = os.path.join(cache_dir, filename)
+        response = get_with_secure_transport(redirect_url)
 
-                    async with aiofiles.open(filepath, "wb") as f:
-                        async for chunk in response.aiter_raw():
-                            await f.write(chunk)
+    if response.status_code != 200:
+        raise Exception(f"Failed to download file. Status code: {response.status_code}")
 
-                    return filepath
+    content_disposition = response.headers.get("Content-Disposition")
+    if content_disposition and "filename=" in content_disposition:
+        filename = content_disposition.split("filename=")[1].strip('"')
+    else:
+        filename = client_utils.strip_invalid_filename_characters(Path(url).name)
 
-            except httpx.HTTPStatusError as e:
-                raise ValueError(
-                    f"HTTP error occurred requesting resource {url}: {e}"
-                ) from e
-            except Exception as e:
-                raise ValueError(
-                    f"An error occurred requesting resource {url}: {e}"
-                ) from e
+    temp_dir = hash_url(url)
+    temp_dir = Path(cache_dir) / temp_dir
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    full_temp_file_path = str(abspath(temp_dir / filename))
 
-    raise ValueError("Too many redirects")
+    if not Path(full_temp_file_path).exists():
+        async with aiofiles.open(full_temp_file_path, "wb") as f:
+            async for chunk in response.aiter_raw():
+                await f.write(chunk)
+
+    return full_temp_file_path
 
 
 def save_url_to_cache(url: str, cache_dir: str) -> str:

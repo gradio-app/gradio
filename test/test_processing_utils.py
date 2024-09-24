@@ -442,15 +442,15 @@ async def test_public_urls_pass(url):
 @pytest.mark.asyncio
 async def test_public_request_pass():
     tempdir = tempfile.TemporaryDirectory()
-    assert await processing_utils.ssrf_protected_httpx_download(
+    file = await processing_utils.ssrf_protected_httpx_download(
         "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
     )
-    assert os.path.exists(os.path.join(tempdir.name, "wikipedia.png"))
+    assert os.path.exists(file)
 
 
 @pytest.mark.asyncio
 async def test_private_request_fail():
-    with pytest.raises(ValueError, match="Unable to resolve"):
+    with pytest.raises(ValueError, match="failed validation"):
         tempdir = tempfile.TemporaryDirectory()
         await processing_utils.ssrf_protected_httpx_download(
             "http://192.168.1.250.nip.io/image.png", tempdir.name
