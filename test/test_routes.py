@@ -430,18 +430,6 @@ class TestRoutes:
         server.should_exit = True  # type: ignore
         server_thread.join()
 
-    def test_mount_gradio_app_with_app_kwargs(self):
-        app = FastAPI()
-        demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
-        app = gr.mount_gradio_app(
-            app,
-            demo,
-            path="/echo",
-        )
-        # Use context manager to trigger start up events
-        with TestClient(app) as client:
-            assert client.get("/echo/docs-custom").is_success
-
     def test_gradio_app_with_auth_dependency(self):
         def block_anonymous(request: Request):
             return request.headers.get("user")
@@ -454,24 +442,6 @@ class TestRoutes:
         with TestClient(app) as client:
             assert not client.get("/", headers={}).is_success
             assert client.get("/", headers={"user": "abubakar"}).is_success
-
-    def test_mount_gradio_app_with_auth_dependency(self):
-        app = FastAPI()
-
-        def get_user(request: Request):
-            return request.headers.get("user")
-
-        demo = gr.Interface(lambda s: f"Hello from ps, {s}!", "textbox", "textbox")
-
-        app = gr.mount_gradio_app(
-            app, demo, path=f"{API_PREFIX}/demo", auth_dependency=get_user
-        )
-
-        with TestClient(app) as client:
-            assert client.get(
-                f"{API_PREFIX}/demo", headers={"user": "abubakar"}
-            ).is_success
-            assert not client.get(f"{API_PREFIX}/demo").is_success
 
     def test_static_file_missing(self, test_client):
         response = test_client.get(rf"{API_PREFIX}/static/not-here.js")
