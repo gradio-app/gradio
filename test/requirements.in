@@ -22,3 +22,4 @@ tqdm
 transformers
 vega_datasets
 diffusers
+urllib3
