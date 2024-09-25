@@ -1105,6 +1105,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             )
             data = {
                 "mode": self.mode,
+                "custom_css": self.css is not None,
                 "theme": self.theme.name,
                 "is_custom_theme": is_custom_theme,
                 "version": get_package_version(),
