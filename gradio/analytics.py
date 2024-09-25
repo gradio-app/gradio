@@ -184,8 +184,6 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         "is_sagemaker": blocks.is_sagemaker,
         "using_auth": blocks.auth is not None,
         "dev_mode": blocks.dev_mode,
-        "show_api": blocks.show_api,
-        "show_error": blocks.show_error,
         "inputs": get_inputs_outputs(
             blocks.mode, blocks.input_components, inputs_telemetry
         ),
