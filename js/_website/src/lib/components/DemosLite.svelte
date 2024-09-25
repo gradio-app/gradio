@@ -373,6 +373,8 @@
 			compare = false;
 		}
 	}
+
+	$: demo = demos.find((demo) => demo.name === current_selection);
 </script>
 
 <svelte:head>
@@ -413,16 +415,14 @@
 >
 	<Slider bind:position bind:show_nav>
 		<div class="flex-row min-w-0 h-full" class:flex={!fullscreen}>
-			{#each demos as demo, i}
+			{#if demo}
 				<div
-					hidden={current_selection !== demo.name}
 					class="code-editor w-full border-r"
 					id={demo.dir}
 					style="width: {position * 100}%"
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
-						<div class="flex float-right"></div>
 						{#if current_code}
 							<div class="flex items-center">
 								<p class="text-sm text-gray-600">
@@ -474,16 +474,14 @@
 					{/if}
 
 					<Code
-						bind:value={demos[i].code}
-						on:input={() => console.log("input")}
+						bind:value={demo.code}
 						language="python"
 						lines={10}
 						readonly={false}
 						dark_mode={false}
 					/>
 				</div>
-			{/each}
-
+			{/if}
 			<div
 				class="preview w-full mx-auto"
 				style="width: {fullscreen ? 100 : (1 - position) * 100}%"
