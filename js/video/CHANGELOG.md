@@ -1,5 +1,13 @@
 # @gradio/video
 
+## 0.11.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/image@0.16.0-beta.3
+
 ## 0.11.0-beta.2
 
 ### Features
