@@ -468,6 +468,6 @@ def test_private_request_fail():
 async def test_async_private_request_fail():
     with pytest.raises(ValueError, match="failed validation"):
         tempdir = tempfile.TemporaryDirectory()
-        await processing_utils.ssrf_protected_download(
+        await processing_utils.async_ssrf_protected_download(
             "http://192.168.1.250.nip.io/image.png", tempdir.name
         )
