@@ -3,4 +3,4 @@
 "gradio_client": patch
 ---
 
-fix:File check
+fix:Check for `file_types` parameter in the backend
