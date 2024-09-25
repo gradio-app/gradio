@@ -480,14 +480,10 @@ class TestRoutes:
 
         demo = gr.Interface(lambda s: f"Hello from ps, {s}!", "textbox", "textbox")
 
-        app = gr.mount_gradio_app(
-            app, demo, path="/demo", auth_dependency=get_user
-        )
+        app = gr.mount_gradio_app(app, demo, path="/demo", auth_dependency=get_user)
 
         with TestClient(app) as client:
-            assert client.get(
-                "/demo", headers={"user": "abubakar"}
-            ).is_success
+            assert client.get("/demo", headers={"user": "abubakar"}).is_success
             assert not client.get("/demo").is_success
 
     def test_static_file_missing(self, test_client):
