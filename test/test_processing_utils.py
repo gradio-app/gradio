@@ -77,7 +77,7 @@ class TestTempFileManagement:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
     @pytest.mark.flaky
-    def test_ssrf_protected_httpx_download(self, gradio_temp_dir):
+    def test_ssrf_protected_download(self, gradio_temp_dir):
         url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
         url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
 
@@ -97,7 +97,7 @@ class TestTempFileManagement:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
     @pytest.mark.flaky
-    def test_ssrf_protected_httpx_download_with_redirect(self, gradio_temp_dir):
+    def test_ssrf_protected_download_with_redirect(self, gradio_temp_dir):
         url = "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png"
         processing_utils.save_url_to_cache(url, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
@@ -437,19 +437,37 @@ def test_public_urls_pass(url):
     processing_utils.validate_url(url)
 
 
-@pytest.mark.asyncio
-async def test_public_request_pass():
+def test_public_request_pass():
     tempdir = tempfile.TemporaryDirectory()
-    file = await processing_utils.ssrf_protected_httpx_download(
+    file = processing_utils.ssrf_protected_download(
         "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
     )
     assert os.path.exists(file)
+    assert os.path.getsize(file) == 13444
 
 
 @pytest.mark.asyncio
-async def test_private_request_fail():
+async def test_async_public_request_pass():
+    tempdir = tempfile.TemporaryDirectory()
+    file = await processing_utils.async_ssrf_protected_download(
+        "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
+    )
+    assert os.path.exists(file)
+    assert os.path.getsize(file) == 13444
+
+
+def test_private_request_fail():
     with pytest.raises(ValueError, match="failed validation"):
         tempdir = tempfile.TemporaryDirectory()
-        await processing_utils.ssrf_protected_httpx_download(
+        processing_utils.ssrf_protected_download(
+            "http://192.168.1.250.nip.io/image.png", tempdir.name
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_private_request_fail():
+    with pytest.raises(ValueError, match="failed validation"):
+        tempdir = tempfile.TemporaryDirectory()
+        await processing_utils.ssrf_protected_download(
             "http://192.168.1.250.nip.io/image.png", tempdir.name
         )
