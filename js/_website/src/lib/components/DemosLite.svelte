@@ -165,9 +165,6 @@
 	let mounted = false;
 	let controller: any;
 
-	let dummy_elem: any = { classList: { contains: () => false } };
-	let dummy_gradio: any = { dispatch: (_) => {} };
-
 	function debounce<T extends any[]>(
 		func: (...args: T) => Promise<unknown>,
 		timeout: number
