@@ -407,7 +407,7 @@
 		<div class="flex-row min-w-0 h-full" class:flex={!fullscreen}>
 			{#if selected_demo}
 				<div
-					class="code-editor w-full border-r"
+					class="code-editor w-full border-r flex flex-col"
 					id={selected_demo.dir}
 					style="width: {position * 100}%"
 				>
@@ -463,13 +463,15 @@
 						</div>
 					{/if}
 
-					<Code
-						bind:value={selected_demo.code}
-						language="python"
-						lines={10}
-						readonly={false}
-						dark_mode={false}
-					/>
+					<div class="flex-1 relative">
+						<Code
+							bind:value={selected_demo.code}
+							language="python"
+							lines={10}
+							readonly={false}
+							dark_mode={false}
+						/>
+					</div>
 				</div>
 			{/if}
 			<div
@@ -557,18 +559,6 @@
 		height: 100%;
 		overflow-y: scroll;
 		margin: 0 !important;
-	}
-
-	.code-editor :global(label) {
-		display: none;
-	}
-
-	.code-editor :global(.codemirror-wrappper) {
-		border-radius: var(--block-radius);
-	}
-
-	.code-editor :global(> .block) {
-		border: none !important;
 	}
 
 	.code-editor :global(.cm-scroller) {
