@@ -408,7 +408,6 @@ async def test_json_data_not_moved_to_cache():
     )
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "url",
     [
@@ -420,12 +419,11 @@ async def test_json_data_not_moved_to_cache():
         "http://192.168.1.250.nip.io",
     ],
 )
-async def test_local_urls_fail(url):
+def test_local_urls_fail(url):
     with pytest.raises(ValueError, match="Unable to resolve"):
-        await processing_utils.validate_url(url)
+        processing_utils.validate_url(url)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "url",
     [
@@ -435,8 +433,8 @@ async def test_local_urls_fail(url):
         "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/luigi/luigi.ply",
     ],
 )
-async def test_public_urls_pass(url):
-    await processing_utils.validate_url(url)
+def test_public_urls_pass(url):
+    processing_utils.validate_url(url)
 
 
 @pytest.mark.asyncio

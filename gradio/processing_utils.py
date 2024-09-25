@@ -302,8 +302,8 @@ class SecureTransport(httpx.HTTPTransport):
         self,
         hostname: str,
         port: int,
-        timeout: float = None,
-        ssl_context: ssl.SSLContext = None,
+        timeout: float | None = None,
+        ssl_context: ssl.SSLContext | None = None,
     ):
         sock = socket.create_connection((self.verified_ip, port), timeout=timeout)
         if ssl_context:
@@ -313,6 +313,8 @@ class SecureTransport(httpx.HTTPTransport):
 
 def validate_url(url: str) -> str:
     hostname = urlparse(url).hostname
+    if not hostname:
+        raise ValueError(f"URL {url} does not have a valid hostname")
     ip_address = socket.gethostbyname(hostname)
     if not is_public_ip(ip_address):
         raise ValueError(f"IP address {ip_address} for {hostname} failed validation")
