@@ -231,9 +231,9 @@
 		setTimeout(() => (copied_link = false), 2000);
 	}
 
-	$: code = demos.find((demo) => demo.name === current_selection)?.code || "";
-	$: requirements =
-		demos.find((demo) => demo.name === current_selection)?.requirements || [];
+	$: selected_demo = demos.find((demo) => demo.name === current_selection);
+	$: code = selected_demo?.code || "";
+	$: requirements = selected_demo?.requirements || [];
 	$: requirementsStr = JSON.stringify(requirements); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
 
 	$: if (mounted) {
@@ -365,8 +365,6 @@
 			compare = false;
 		}
 	}
-
-	$: selected_demo = demos.find((demo) => demo.name === current_selection);
 </script>
 
 <svelte:head>
