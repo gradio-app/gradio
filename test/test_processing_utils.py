@@ -420,7 +420,7 @@ async def test_json_data_not_moved_to_cache():
     ],
 )
 def test_local_urls_fail(url):
-    with pytest.raises(ValueError, match="Unable to resolve"):
+    with pytest.raises(ValueError, match="failed validation"):
         processing_utils.validate_url(url)
 
 

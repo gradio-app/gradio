@@ -315,10 +315,17 @@ def validate_url(url: str) -> str:
     hostname = urlparse(url).hostname
     if not hostname:
         raise ValueError(f"URL {url} does not have a valid hostname")
-    ip_address = socket.gethostbyname(hostname)
-    if not is_public_ip(ip_address):
-        raise ValueError(f"IP address {ip_address} for {hostname} failed validation")
-    return ip_address
+    try:
+        addrinfo = socket.getaddrinfo(hostname, None)
+    except socket.gaierror as e:
+        raise ValueError(f"Unable to resolve hostname {hostname}: {e}") from e
+
+    for family, _, _, _, sockaddr in addrinfo:
+        ip_address = sockaddr[0]
+        if family in (socket.AF_INET, socket.AF_INET6) and is_public_ip(ip_address):
+            return ip_address
+
+    raise ValueError(f"IP address {ip_address} for {hostname} failed validation")
 
 
 async def ssrf_protected_httpx_download(url: str, cache_dir: str) -> str:
@@ -347,7 +354,7 @@ async def ssrf_protected_httpx_download(url: str, cache_dir: str) -> str:
 
     content_disposition = response.headers.get("Content-Disposition")
     if content_disposition and "filename=" in content_disposition:
-        filename = content_disposition.split("filename=")[1].strip('"')
+        filename = Path(content_disposition.split("filename=")[1].strip('"')).name
     else:
         filename = client_utils.strip_invalid_filename_characters(Path(url).name)
 
@@ -358,8 +365,7 @@ async def ssrf_protected_httpx_download(url: str, cache_dir: str) -> str:
 
     if not Path(full_temp_file_path).exists():
         async with aiofiles.open(full_temp_file_path, "wb") as f:
-            async for chunk in response.aiter_raw():
-                await f.write(chunk)
+            await f.write(await response.aread())
 
     return full_temp_file_path
 
