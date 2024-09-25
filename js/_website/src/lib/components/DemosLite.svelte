@@ -147,7 +147,7 @@
 	export let current_selection: string;
 	export let show_nav = true;
 
-	let new_demo = {
+	const blank_demo_for_ai_gen = {
 		name: "Blank",
 		dir: "Blank",
 		code: "# Describe your app above, and the LLM will generate the code here.",
@@ -160,7 +160,7 @@
 		current_code = false;
 	}
 
-	demos.push(new_demo);
+	demos.push(blank_demo_for_ai_gen);
 
 	let mounted = false;
 	let controller: any;
