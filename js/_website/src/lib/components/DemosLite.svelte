@@ -126,12 +126,8 @@
 
 	let user_query: string;
 
-	let user_query_elem: HTMLInputElement;
-
-	$: user_query;
-
-	function handle_key_down(e: KeyboardEvent): void {
-		if (e.key === "Enter" && document.activeElement === user_query_elem) {
+	function handle_user_query_key_down(e: KeyboardEvent): void {
+		if (e.key === "Enter") {
 			generate_code(user_query);
 		}
 	}
@@ -383,8 +379,6 @@
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>
 
-<svelte:window on:keydown={handle_key_down} />
-
 <div class="share-btns flex flex-row absolute">
 	<button class="share-button" on:click={() => copy_link(current_selection)}>
 		{#if !copied_link}
@@ -450,8 +444,8 @@
 								✨
 							{/if}
 							<input
-								bind:this={user_query_elem}
 								bind:value={user_query}
+								on:keydown={handle_user_query_key_down}
 								placeholder="What do you want to build?"
 								autocomplete="off"
 								autocorrect="off"
