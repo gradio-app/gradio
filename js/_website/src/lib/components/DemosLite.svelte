@@ -366,7 +366,7 @@
 		}
 	}
 
-	$: demo = demos.find((demo) => demo.name === current_selection);
+	$: selected_demo = demos.find((demo) => demo.name === current_selection);
 </script>
 
 <svelte:head>
@@ -407,10 +407,10 @@
 >
 	<Slider bind:position bind:show_nav>
 		<div class="flex-row min-w-0 h-full" class:flex={!fullscreen}>
-			{#if demo}
+			{#if selected_demo}
 				<div
 					class="code-editor w-full border-r"
-					id={demo.dir}
+					id={selected_demo.dir}
 					style="width: {position * 100}%"
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
@@ -434,7 +434,7 @@
 						{/if}
 					</div>
 
-					{#if demo.name === "Blank"}
+					{#if selected_demo.name === "Blank"}
 						<div class="search-bar">
 							{#if !generated}
 								<div class="loader"></div>
@@ -466,7 +466,7 @@
 					{/if}
 
 					<Code
-						bind:value={demo.code}
+						bind:value={selected_demo.code}
 						language="python"
 						lines={10}
 						readonly={false}
