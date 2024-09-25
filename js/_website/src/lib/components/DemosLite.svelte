@@ -285,7 +285,7 @@
 		}
 	}
 
-	let demos_copy: typeof demos = JSON.parse(JSON.stringify(demos));
+	const demos_copy: typeof demos = JSON.parse(JSON.stringify(demos));
 
 	$: show_dialog(demos, demos_copy, shared);
 	$: if (code) {
