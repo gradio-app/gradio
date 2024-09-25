@@ -138,18 +138,19 @@ class Examples:
                 "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
             )
 
-        if cache_examples is None:
-            if os.getenv("GRADIO_CACHE_EXAMPLES", "").lower() == "true":
-                if fn is not None and outputs is not None:
-                    self.cache_examples = True
-                else:
-                    self.cache_examples = False
+        self.cache_examples = False
+        if (
+            cache_examples is None
+            and os.getenv("GRADIO_CACHE_EXAMPLES", "").lower() == "true"
+            and fn is not None
+            and outputs is not None
+        ):
+            self.cache_examples = True
         elif cache_examples == "lazy":
             warnings.warn(
                 "The `cache_examples` parameter no longer accepts a value of 'lazy'. To enable lazy caching in "
                 "Gradio, you should set `cache_examples=True`, and `cache_mode='lazy'. Defaulting to `cache_examples=False`."
             )
-            self.cache_examples = False
         elif cache_examples in [True, False]:
             self.cache_examples = cache_examples
         else:
