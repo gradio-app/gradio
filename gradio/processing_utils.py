@@ -422,7 +422,7 @@ async def async_validate_url(url: str) -> str:
         if family in (socket.AF_INET, socket.AF_INET6) and is_public_ip(ip_address):
             return ip_address
 
-    for ip_address in await resolve_hostname_google(hostname):
+    for ip_address in await async_resolve_hostname_google(hostname):
         if is_public_ip(ip_address):
             return ip_address
 
