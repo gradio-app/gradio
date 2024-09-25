@@ -64,8 +64,9 @@ if wasm_utils.IS_WASM:
                 preload_content=False,  # Stream the content
             )
 
-            # Remove the content-encoding header to prevent httpx from trying to decode the content
-            # since `urllib3` does in `Urllib3ResponseSyncByteStream.__iter__()`.
+            # HTTPX's gzip decoder sometimes fails to decode the content in the Wasm env as https://github.com/gradio-app/gradio/pull/9333#issuecomment-2348048882,
+            # so we avoid it by removing the content-encoding header passed to httpx.Response,
+            # and handle the decoding in `Urllib3ResponseSyncByteStream.__iter__()` with `urllib3`'s implementation.
             response_headers = response.headers.copy()
             response_headers.discard("content-encoding")
 
