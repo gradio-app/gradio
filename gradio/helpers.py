@@ -154,7 +154,7 @@ class Examples:
             self.cache_examples = cache_examples
         else:
             raise ValueError(
-                f"The `cache_exaples` parameter should be either True or False, not {cache_examples}"
+                f"The `cache_examples` parameter should be either True or False, not {cache_examples}"
             )
         if self.cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
