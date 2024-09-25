@@ -14,7 +14,6 @@
 
 	let generated = true;
 
-	let ai_code: string | undefined = "";
 	let current_code = false;
 	let compare = false;
 
@@ -103,7 +102,6 @@
 				const content = chunk.choices[0].delta.content;
 				if (content) {
 					out += content;
-					ai_code = out;
 					demos[demos.length - 1].code =
 						out ||
 						"# Describe your app above, and the LLM will generate the code here.";
