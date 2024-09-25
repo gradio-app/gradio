@@ -161,7 +161,10 @@
 	demos.push(blank_demo_for_ai_gen);
 
 	let mounted = false;
-	let controller: any;
+	let controller: {
+		run_code: (code: string) => Promise<void>;
+		install: (requirements: string[]) => Promise<void>;
+	};
 
 	function debounce<T extends any[]>(
 		func: (...args: T) => Promise<unknown>,
