@@ -1567,7 +1567,7 @@ def mount_gradio_app(
         else (
             ssr_mode
             if ssr_mode is not None
-            else bool(os.getenv("GRADIO_SSR_MODE", "False"))
+            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
         )
     )
 
