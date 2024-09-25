@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { BaseCode as Code, BaseWidget as CodeWidget } from "@gradio/code";
+	import { BaseTabs as Tabs } from "@gradio/tabs";
+	import { BaseTabItem as TabItem } from "@gradio/tabitem";
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
@@ -188,21 +190,16 @@
 		});
 	}
 
+	function cleanupRequirements(requirements: string[]): string[] {
+		return requirements.filter((r) => r.trim() !== "");
+	}
+
 	onMount(async () => {
 		try {
 			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
 			controller = createGradioApp({
 				target: document.getElementById("lite-demo"),
-				requirements: requirements.concat([
-					// Frequently used libraries
-					"numpy",
-					"pandas",
-					"matplotlib",
-					"plotly",
-					"transformers_js_py",
-					"requests",
-					"pillow"
-				]),
+				requirements: cleanupRequirements(requirements),
 				code,
 				info: true,
 				container: true,
@@ -240,13 +237,13 @@
 	$: selected_demo = demos.find((demo) => demo.name === current_selection);
 	$: code = selected_demo?.code || "";
 	$: requirements = selected_demo?.requirements || [];
-	$: requirementsStr = JSON.stringify(requirements); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
+	$: requirementsStr = requirements.join("\n"); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
 
 	$: if (mounted) {
 		debounced_run_code && debounced_run_code(code);
 	}
 	$: if (mounted) {
-		debounced_install && debounced_install(JSON.parse(requirementsStr));
+		debounced_install && debounced_install(cleanupRequirements(requirementsStr.split("\n")));
 	}
 
 	let position = 0.5;
@@ -371,6 +368,9 @@
 			compare = false;
 		}
 	}
+
+	const TABS = ["Code", "Packages"] as const;
+	let selected_tab: typeof TABS[number] = "Code";
 </script>
 
 <svelte:head>
@@ -415,9 +415,8 @@
 					id={selected_demo.dir}
 					style="width: {position * 100}%"
 				>
+				{#if current_code}
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
-						<h3 class="pt-1">Code</h3>
-						{#if current_code}
 							<div class="flex items-center">
 								<p class="text-sm text-gray-600">
 									Prompt includes current code.
@@ -433,8 +432,8 @@
 									</button>
 								</div>
 							</div>
-						{/if}
 					</div>
+					{/if}
 
 					{#if selected_demo.name === "Blank"}
 						<div class="search-bar">
@@ -467,15 +466,36 @@
 						</div>
 					{/if}
 
-					<div class="flex-1 relative">
-						<CodeWidget value={selected_demo.code} language="python" />
-						<Code
-							bind:value={selected_demo.code}
-							language="python"
-							lines={10}
-							readonly={false}
-							dark_mode={false}
-						/>
+					<div class="mt-1 flex-1 flex flex-col">
+						<Tabs selected={selected_tab} elem_classes={["editor-tabs"]}>
+							<TabItem name={TABS[0]} visible interactive elem_classes={["editor-tabitem"]}>
+								<div class="relative h-full">
+									<CodeWidget value={selected_demo.code} language="python" />
+									<Code
+										bind:value={selected_demo.code}
+										language="python"
+										lines={10}
+										readonly={false}
+										dark_mode={false}
+									/>
+								</div>
+							</TabItem>
+							<TabItem name={TABS[1]} visible interactive elem_classes={["editor-tabitem"]}>
+								<div class="relative h-full">
+									<CodeWidget value={selected_demo.requirements.join("\n")} language="python" />
+									<Code
+										value={selected_demo.requirements.join("\n")}
+										on:change={(e) => {
+											selected_demo.requirements = e.detail.split("\n");
+										}}
+										language="text"
+										lines={10}
+										readonly={false}
+										dark_mode={false}
+									/>
+								</div>
+							</TabItem>
+						</Tabs>
 					</div>
 				</div>
 			{/if}
@@ -539,7 +559,7 @@
 					</div>
 				</div>
 
-				<div class="lite-demo h-[93%] pl-3" id="lite-demo" />
+				<div class="h-[93%] pl-3" id="lite-demo" />
 			</div>
 		</div>
 	</Slider>
@@ -560,7 +580,7 @@
 		width: 0;
 	}
 
-	:global(div.lite-demo div.gradio-container) {
+	:global(#lite-demo div.gradio-container) {
 		height: 100%;
 		overflow-y: scroll;
 		margin: 0 !important;
@@ -572,8 +592,20 @@
 		max-height: none !important;
 	}
 
-	.lite-demo :global(.embed-container) {
+	#lite-demo {
+		overflow: scroll;
+	}
+
+	#lite-demo :global(.embed-container) {
 		border: none !important;
+	}
+
+	:global(div.editor-tabitem) {
+		padding: 0;
+		height: 100%;
+	}
+	:global(div.editor-tabitem > div) {
+		height: 100%;
 	}
 
 	.fullscreen {
