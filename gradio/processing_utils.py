@@ -325,7 +325,7 @@ def validate_url(url: str) -> str:
         if family in (socket.AF_INET, socket.AF_INET6) and is_public_ip(ip_address):
             return ip_address
 
-    raise ValueError(f"IP address {ip_address} for {hostname} failed validation")
+    raise ValueError(f"Hostname {hostname} failed validation")
 
 
 async def ssrf_protected_httpx_download(url: str, cache_dir: str) -> str:
