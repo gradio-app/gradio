@@ -196,7 +196,16 @@
 			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
 			controller = createGradioApp({
 				target: document.getElementById("lite-demo"),
-				requirements,
+				requirements: requirements.concat([
+					// Frequently used libraries
+					"numpy",
+					"pandas",
+					"matplotlib",
+					"plotly",
+					"transformers_js_py",
+					"requests",
+					"pillow"
+				]),
 				code,
 				info: true,
 				container: true,
