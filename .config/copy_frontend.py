@@ -15,6 +15,11 @@ def copy_js_code(root: str | pathlib.Path):
         "playwright-report",
         "workbench",
         "tooltils",
+        "component-test",
+        "core",
+        "spa",
+        "wasm",
+        "utils",
     ]
     for entry in (pathlib.Path(root) / "js").iterdir():
         if (
@@ -43,12 +48,6 @@ def copy_js_code(root: str | pathlib.Path):
                 ignore=ignore,
                 dirs_exist_ok=True,
             )
-    shutil.copytree(
-        str(pathlib.Path(root) / "client" / "js"),
-        str(pathlib.Path("gradio") / "_frontend_code" / "client"),
-        ignore=lambda d, names: ["node_modules"],
-        dirs_exist_ok=True,
-    )
 
 
 class BuildHook(BuildHookInterface):
