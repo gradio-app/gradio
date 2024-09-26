@@ -352,9 +352,9 @@ class App(FastAPI):
             async def conditional_routing_middleware(
                 request: fastapi.Request, call_next
             ):
-                custom_mount_path = getattr(blocks, "custom_mount_path", "")
+                custom_mount_path = blocks.custom_mount_path
                 path = (
-                    request.url.path.replace(custom_mount_path or "", "")
+                    request.url.path.replace(blocks.custom_mount_path or "", "")
                     if custom_mount_path is not None
                     else request.url.path
                 )
@@ -379,7 +379,7 @@ class App(FastAPI):
                             blocks.node_port,
                             App.app_port,
                             request.url.scheme,
-                            custom_mount_path,
+                            custom_mount_path or "",
                         )
                     except Exception as e:
                         print(e)
@@ -1567,12 +1567,12 @@ def mount_gradio_app(
         else (
             ssr_mode
             if ssr_mode is not None
-            else bool(os.getenv("GRADIO_SSR_MODE", "False"))
+            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
         )
     )
 
     blocks.node_path = os.environ.get(
-        "GRADIO_NODE_PATH", False if wasm_utils.IS_WASM else get_node_path()
+        "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
     )
 
     blocks.node_server_name = node_server_name
