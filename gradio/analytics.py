@@ -66,7 +66,6 @@ def _do_analytics_request(topic: str, data: dict[str, Any]) -> None:
 
 
 def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = ""
     try:
         _send_telemetry_in_thread(
             topic=topic,
@@ -79,8 +78,6 @@ def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
 
 
 async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = ""
-
     # We use urllib.parse.urlencode to encode the data as a form.
     # Ref: https://docs.python.org/3/library/urllib.request.html#urllib-examples
     body = urllib.parse.urlencode(data).encode("ascii")
@@ -184,8 +181,6 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         "is_sagemaker": blocks.is_sagemaker,
         "using_auth": blocks.auth is not None,
         "dev_mode": blocks.dev_mode,
-        "show_api": blocks.show_api,
-        "show_error": blocks.show_error,
         "inputs": get_inputs_outputs(
             blocks.mode, blocks.input_components, inputs_telemetry
         ),
