@@ -72,12 +72,9 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	{#if show_label}<BlockLabel
-			Icon={CodeIcon}
-			{show_label}
-			{label}
-			float={false}
-		/>{/if}
+	{#if show_label}
+		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
+	{/if}
 
 	{#if !value && !interactive}
 		<Empty unpadded_box={true} size="large">
