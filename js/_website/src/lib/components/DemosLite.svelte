@@ -239,6 +239,18 @@
 	$: requirements = selected_demo?.requirements || [];
 	$: requirementsStr = requirements.join("\n"); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
 
+	function on_demo_selected(selection: typeof current_selection) {
+		const current_demo = demos.find((demo) => demo.name === selection);
+		if (!current_demo) {
+			return;
+		}
+
+		controller.install(cleanupRequirements(current_demo.requirements));
+	}
+	$: if (mounted) {
+		// When the selected demo changes, we need to call controller.install() immediately without debouncing.
+		on_demo_selected(current_selection);
+	}
 	$: if (mounted) {
 		debounced_run_code && debounced_run_code(code);
 	}
