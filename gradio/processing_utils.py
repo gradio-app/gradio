@@ -430,6 +430,7 @@ def ssrf_protected_download(url: str, cache_dir: str) -> str:
     return client_utils.synchronize_async(async_ssrf_protected_download, url, cache_dir)
 
 
+# Custom components created with versions of gradio < 5.0 may be using the processing_utils.save_url_to_cache method, so we alias to ssrf_protected_download to preserve backwards-compatibility
 save_url_to_cache = ssrf_protected_download
 
 
