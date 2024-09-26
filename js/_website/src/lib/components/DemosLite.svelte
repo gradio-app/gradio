@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Code from "@gradio/code";
+	import { BaseCode as Code, BaseWidget as CodeWidget } from "@gradio/code";
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
@@ -14,7 +14,6 @@
 
 	let generated = true;
 
-	let ai_code: string | undefined = "";
 	let current_code = false;
 	let compare = false;
 
@@ -103,7 +102,6 @@
 				const content = chunk.choices[0].delta.content;
 				if (content) {
 					out += content;
-					ai_code = out;
 					demos[demos.length - 1].code =
 						out ||
 						"# Describe your app above, and the LLM will generate the code here.";
@@ -128,12 +126,8 @@
 
 	let user_query: string;
 
-	let user_query_elem: HTMLInputElement;
-
-	$: user_query;
-
-	function handle_key_down(e: KeyboardEvent): void {
-		if (e.key === "Enter" && document.activeElement === user_query_elem) {
+	function handle_user_query_key_down(e: KeyboardEvent): void {
+		if (e.key === "Enter") {
 			generate_code(user_query);
 		}
 	}
@@ -147,7 +141,7 @@
 	export let current_selection: string;
 	export let show_nav = true;
 
-	let new_demo = {
+	const blank_demo_for_ai_gen = {
 		name: "Blank",
 		dir: "Blank",
 		code: "# Describe your app above, and the LLM will generate the code here.",
@@ -160,13 +154,13 @@
 		current_code = false;
 	}
 
-	demos.push(new_demo);
+	demos.push(blank_demo_for_ai_gen);
 
 	let mounted = false;
-	let controller: any;
-
-	let dummy_elem: any = { classList: { contains: () => false } };
-	let dummy_gradio: any = { dispatch: (_) => {} };
+	let controller: {
+		run_code: (code: string) => Promise<void>;
+		install: (requirements: string[]) => Promise<void>;
+	};
 
 	function debounce<T extends any[]>(
 		func: (...args: T) => Promise<unknown>,
@@ -199,7 +193,8 @@
 			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
 			controller = createGradioApp({
 				target: document.getElementById("lite-demo"),
-				requirements: [
+				requirements: requirements.concat([
+					// Frequently used libraries
 					"numpy",
 					"pandas",
 					"matplotlib",
@@ -207,8 +202,8 @@
 					"transformers_js_py",
 					"requests",
 					"pillow"
-				],
-				code: demos[0].code,
+				]),
+				code,
 				info: true,
 				container: true,
 				isEmbed: true,
@@ -242,9 +237,9 @@
 		setTimeout(() => (copied_link = false), 2000);
 	}
 
-	$: code = demos.find((demo) => demo.name === current_selection)?.code || "";
-	$: requirements =
-		demos.find((demo) => demo.name === current_selection)?.requirements || [];
+	$: selected_demo = demos.find((demo) => demo.name === current_selection);
+	$: code = selected_demo?.code || "";
+	$: requirements = selected_demo?.requirements || [];
 	$: requirementsStr = JSON.stringify(requirements); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
 
 	$: if (mounted) {
@@ -296,7 +291,7 @@
 		}
 	}
 
-	let demos_copy: typeof demos = JSON.parse(JSON.stringify(demos));
+	const demos_copy: typeof demos = JSON.parse(JSON.stringify(demos));
 
 	$: show_dialog(demos, demos_copy, shared);
 	$: if (code) {
@@ -384,8 +379,6 @@
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>
 
-<svelte:window on:keydown={handle_key_down} />
-
 <div class="share-btns flex flex-row absolute">
 	<button class="share-button" on:click={() => copy_link(current_selection)}>
 		{#if !copied_link}
@@ -416,16 +409,14 @@
 >
 	<Slider bind:position bind:show_nav>
 		<div class="flex-row min-w-0 h-full" class:flex={!fullscreen}>
-			{#each demos as demo, i}
+			{#if selected_demo}
 				<div
-					hidden={current_selection !== demo.name}
-					class="code-editor w-full border-r"
-					id={demo.dir}
+					class="code-editor w-full border-r flex flex-col"
+					id={selected_demo.dir}
 					style="width: {position * 100}%"
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
-						<div class="flex float-right"></div>
 						{#if current_code}
 							<div class="flex items-center">
 								<p class="text-sm text-gray-600">
@@ -445,7 +436,7 @@
 						{/if}
 					</div>
 
-					{#if demo.name === "Blank"}
+					{#if selected_demo.name === "Blank"}
 						<div class="search-bar">
 							{#if !generated}
 								<div class="loader"></div>
@@ -453,8 +444,8 @@
 								✨
 							{/if}
 							<input
-								bind:this={user_query_elem}
 								bind:value={user_query}
+								on:keydown={handle_user_query_key_down}
 								placeholder="What do you want to build?"
 								autocomplete="off"
 								autocorrect="off"
@@ -476,19 +467,18 @@
 						</div>
 					{/if}
 
-					<Code
-						bind:value={demos[i].code}
-						on:input={() => console.log("input")}
-						label=""
-						language="python"
-						target={dummy_elem}
-						gradio={dummy_gradio}
-						lines={10}
-						interactive="true"
-					/>
+					<div class="flex-1 relative">
+						<CodeWidget value={selected_demo.code} language="python" />
+						<Code
+							bind:value={selected_demo.code}
+							language="python"
+							lines={10}
+							readonly={false}
+							dark_mode={false}
+						/>
+					</div>
 				</div>
-			{/each}
-
+			{/if}
 			<div
 				class="preview w-full mx-auto"
 				style="width: {fullscreen ? 100 : (1 - position) * 100}%"
@@ -574,18 +564,6 @@
 		height: 100%;
 		overflow-y: scroll;
 		margin: 0 !important;
-	}
-
-	.code-editor :global(label) {
-		display: none;
-	}
-
-	.code-editor :global(.codemirror-wrappper) {
-		border-radius: var(--block-radius);
-	}
-
-	.code-editor :global(> .block) {
-		border: none !important;
 	}
 
 	.code-editor :global(.cm-scroller) {
