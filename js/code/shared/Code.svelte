@@ -151,7 +151,7 @@
 			minHeight: "100%"
 		},
 		".cm-gutterElement": {
-			marginRight: "var(--spacing-sm)"
+			marginRight: "var(--spacing-xs)"
 		},
 		".cm-gutters": {
 			marginRight: "1px",
