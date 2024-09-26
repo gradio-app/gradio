@@ -289,7 +289,6 @@ def is_public_ip(ip: str) -> bool:
             or ip_obj.is_link_local
             or ip_obj.is_multicast
             or ip_obj.is_reserved
-            or (isinstance(ip_obj, ipaddress.IPv6Address) and ip_obj.is_site_local)
         )
     except ValueError:
         return False
