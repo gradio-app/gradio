@@ -367,9 +367,10 @@ async def async_validate_url(url: str) -> str:
         if family in (socket.AF_INET, socket.AF_INET6) and is_public_ip(ip_address):
             return ip_address
 
-    for ip_address in await async_resolve_hostname_google(hostname):
-        if is_public_ip(ip_address):
-            return ip_address
+    if not wasm_utils.IS_WASM:
+        for ip_address in await async_resolve_hostname_google(hostname):
+            if is_public_ip(ip_address):
+                return ip_address
 
     raise ValueError(f"Hostname {hostname} failed validation")
 
@@ -412,8 +413,7 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
     else:
         filename = client_utils.strip_invalid_filename_characters(Path(url).name)
 
-    temp_dir = hash_url(url)
-    temp_dir = Path(cache_dir) / temp_dir
+    temp_dir = Path(cache_dir) / hash_url(url)
     temp_dir.mkdir(exist_ok=True, parents=True)
     full_temp_file_path = str(abspath(temp_dir / filename))
 
@@ -425,8 +425,32 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
     return full_temp_file_path
 
 
+def unsafe_download(url: str, cache_dir: str) -> str:
+    with httpx.Client() as client:
+        response = client.get(url)
+        content_disposition = response.headers.get("Content-Disposition")
+        if content_disposition and "filename=" in content_disposition:
+            filename = Path(content_disposition.split("filename=")[1].strip('"')).name
+        else:
+            filename = client_utils.strip_invalid_filename_characters(Path(url).name)
+
+    temp_dir = Path(cache_dir) / hash_url(url)
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    full_temp_file_path = str(abspath(temp_dir / filename))
+
+    with open(full_temp_file_path, "wb") as f:
+        f.write(response.content)
+
+    return full_temp_file_path
+
+
 def ssrf_protected_download(url: str, cache_dir: str) -> str:
-    return client_utils.synchronize_async(async_ssrf_protected_download, url, cache_dir)
+    if wasm_utils.IS_WASM:
+        return unsafe_download(url, cache_dir)
+    else:
+        return client_utils.synchronize_async(
+            async_ssrf_protected_download, url, cache_dir
+        )
 
 
 # Custom components created with versions of gradio < 5.0 may be using the processing_utils.save_url_to_cache method, so we alias to ssrf_protected_download to preserve backwards-compatibility
