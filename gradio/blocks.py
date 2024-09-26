@@ -980,9 +980,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
-        css: str | None = None,
-        js: str | None = None,
-        head: str | None = None,
+        css: str | Path | None = None,
+        js: str | Path | None = None,
+        head: str | Path | None = None,
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
@@ -994,9 +994,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
-            css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
-            js: Custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            css: Custom css as a code string or pathlib.Path to a css file. This css will be included in the demo webpage.
+            js: Custom js as a code string or pathlib.Path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html to insert into the head of the demo webpage, either as a code string or a pathlib.Path to an html file. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
@@ -1030,20 +1030,24 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.pending_streams = defaultdict(dict)
         self.pending_diff_streams = defaultdict(dict)
         self.show_error = True
-        self.head = head
         self.fill_height = fill_height
         self.fill_width = fill_width
         self.delete_cache = delete_cache
-        if css is not None and os.path.exists(css):
+        if isinstance(css, Path):
             with open(css, encoding="utf-8") as css_file:
                 self.css = css_file.read()
         else:
             self.css = css
-        if js is not None and os.path.exists(js):
+        if isinstance(js, Path):
             with open(js, encoding="utf-8") as js_file:
                 self.js = js_file.read()
         else:
             self.js = js
+        if isinstance(head, Path):
+            with open(head, encoding="utf-8") as head_file:
+                self.head = head_file.read()
+        else:
+            self.head = head
         self.renderables: list[Renderable] = []
         self.state_holder: StateHolder
         self.custom_mount_path: str | None = None
