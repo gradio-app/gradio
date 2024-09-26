@@ -56,7 +56,7 @@
 </script>
 
 <Block
-	height={"fit=content"}
+	height={"fit-content"}
 	variant={"solid"}
 	padding={false}
 	{elem_id}
