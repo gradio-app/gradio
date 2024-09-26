@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BaseCode as Code } from "@gradio/code";
+	import { BaseCode as Code, BaseWidget as CodeWidget } from "@gradio/code";
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
@@ -468,6 +468,7 @@
 					{/if}
 
 					<div class="flex-1 relative">
+						<CodeWidget value={selected_demo.code} language="python" />
 						<Code
 							bind:value={selected_demo.code}
 							language="python"
