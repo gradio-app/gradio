@@ -523,11 +523,13 @@
 										><em>{suggestion.files.length} Files</em></span
 									>
 								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
-									<Image
-										class="suggestion-image"
-										src={suggestion.files[0].url}
-										alt="suggestion-image"
-									/>
+									<div class="suggestion-image-container">
+										<Image
+											class="suggestion-image"
+											src={suggestion.files[0].url}
+											alt="suggestion-image"
+										/>
+									</div>
 								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
 									<span class="suggestion-file"
 										><em>{suggestion.files[0].orig_name}</em></span
@@ -605,19 +607,23 @@
 		font-size: var(--body-text-size);
 		display: flex;
 		align-self: flex-start;
-		margin: var(--spacing-md);
 		text-align: left;
-		flex-grow: 1;
 		text-overflow: ellipsis;
 	}
 
-	.suggestion-image {
-		max-height: var(--size-6);
-		max-width: var(--size-6);
+	.suggestion-image-container {
+		flex-grow: 1;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.suggestion-image-container :global(img) {
+		max-height: var(--size-32);
+		max-width: var(--size-32);
 		object-fit: cover;
 		border-radius: var(--radius-xl);
 		margin-top: var(--spacing-md);
-		align-self: flex-start;
 	}
 
 	.panel-wrap {
