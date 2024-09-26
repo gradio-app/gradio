@@ -150,6 +150,9 @@
 			fontFamily: "var(--font-mono)",
 			minHeight: "100%"
 		},
+		".cm-gutterElement": {
+			marginRight: "var(--spacing-sm)"
+		},
 		".cm-gutters": {
 			marginRight: "1px",
 			borderRight: "1px solid var(--border-color-primary)",

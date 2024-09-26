@@ -37,6 +37,7 @@
 	export let show_label = true;
 	export let loading_status: LoadingStatus;
 	export let scale: number | null = null;
+	export let min_width: number | null = null;
 
 	export let interactive: boolean;
 
@@ -62,6 +63,7 @@
 	{elem_classes}
 	{visible}
 	{scale}
+	{min_width}
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
