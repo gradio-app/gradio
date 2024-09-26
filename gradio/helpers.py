@@ -148,9 +148,10 @@ class Examples:
                 self.cache_examples = True
         elif cache_examples == "lazy":
             warnings.warn(
-                "The `cache_examples` parameter no longer accepts a value of 'lazy'. To enable lazy caching in "
-                "Gradio, you should set `cache_examples=True`, and `cache_mode='lazy'. Defaulting to `cache_examples=False`."
+                "In future versions of Gradio, the `cache_examples` parameter will no longer accept a value of 'lazy'. To enable lazy caching in "
+                "Gradio, you should set `cache_examples=True`, and `cache_mode='lazy'` instead."
             )
+            self.cache_examples = "lazy"
         elif cache_examples in [True, False]:
             self.cache_examples = cache_examples
         else:
