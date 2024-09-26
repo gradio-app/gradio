@@ -128,20 +128,19 @@ def _build(
                     "node must be installed in order to run build command."
                 )
 
-            # gradio_node_path = subprocess.run(
-            #     [node, "-e", "console.log(require.resolve('@gradio/preview'))"],
-            #     cwd=Path(component_directory / "frontend"),
-            #     check=False,
-            #     capture_output=True,
-            # )
+            gradio_node_path = subprocess.run(
+                [node, "-e", "console.log(require.resolve('@gradio/preview'))"],
+                cwd=Path(component_directory / "frontend"),
+                check=False,
+                capture_output=True,
+            )
 
-            # if gradio_node_path.returncode != 0:
-            #     raise ValueError(
-            #         "Could not find `@gradio/preview`. Run `npm i -D @gradio/preview` in your frontend folder."
-            #     )
+            if gradio_node_path.returncode != 0:
+                raise ValueError(
+                    "Could not find `@gradio/preview`. Run `npm i -D @gradio/preview` in your frontend folder."
+                )
 
-            # gradio_node_path = gradio_node_path.stdout.decode("utf-8").strip()
-            gradio_node_path = "/Users/freddy/sources/components/webrtc/webrtc/frontend/node_modules/@gradio/preview/dist/index.js"
+            gradio_node_path = gradio_node_path.stdout.decode("utf-8").strip()
 
             node_cmds = [
                 node,
