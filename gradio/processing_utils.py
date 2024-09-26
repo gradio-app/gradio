@@ -312,25 +312,6 @@ def lru_cache_async(maxsize: int = 128):
     return decorator
 
 
-@lru_cache(maxsize=256)
-def resolve_hostname_google(hostname: str) -> list[str]:
-    with httpx.Client() as client:
-        try:
-            response_v4 = client.get(
-                f"https://dns.google/resolve?name={hostname}&type=A"
-            )
-            response_v6 = client.get(
-                f"https://dns.google/resolve?name={hostname}&type=AAAA"
-            )
-
-            ips = []
-            for response in [response_v4.json(), response_v6.json()]:
-                ips.extend([answer["data"] for answer in response.get("Answer", [])])
-            return ips
-        except Exception:
-            return []
-
-
 @lru_cache_async(maxsize=256)
 async def async_resolve_hostname_google(hostname: str) -> list[str]:
     async with httpx.AsyncClient() as client:
@@ -348,24 +329,6 @@ async def async_resolve_hostname_google(hostname: str) -> list[str]:
             return ips
         except Exception:
             return []
-
-
-class SecureTransport(httpx.HTTPTransport):
-    def __init__(self, verified_ip: str):
-        self.verified_ip = verified_ip
-        super().__init__()
-
-    def connect(
-        self,
-        hostname: str,
-        port: int,
-        timeout: float | None = None,
-        ssl_context: ssl.SSLContext | None = None,
-    ):
-        sock = socket.create_connection((self.verified_ip, port), timeout=timeout)
-        if ssl_context:
-            sock = ssl_context.wrap_socket(sock, server_hostname=hostname)
-        return sock
 
 
 class AsyncSecureTransport(httpx.AsyncHTTPTransport):
@@ -390,27 +353,6 @@ class AsyncSecureTransport(httpx.AsyncHTTPTransport):
         return sock
 
 
-def validate_url(url: str) -> str:
-    hostname = urlparse(url).hostname
-    if not hostname:
-        raise ValueError(f"URL {url} does not have a valid hostname")
-    try:
-        addrinfo = socket.getaddrinfo(hostname, None)
-    except socket.gaierror as e:
-        raise ValueError(f"Unable to resolve hostname {hostname}: {e}") from e
-
-    for family, _, _, _, sockaddr in addrinfo:
-        ip_address = sockaddr[0]
-        if family in (socket.AF_INET, socket.AF_INET6) and is_public_ip(ip_address):
-            return ip_address
-
-    for ip_address in resolve_hostname_google(hostname):
-        if is_public_ip(ip_address):
-            return ip_address
-
-    raise ValueError(f"Hostname {hostname} failed validation")
-
-
 async def async_validate_url(url: str) -> str:
     hostname = urlparse(url).hostname
     if not hostname:
@@ -433,64 +375,16 @@ async def async_validate_url(url: str) -> str:
     raise ValueError(f"Hostname {hostname} failed validation")
 
 
-def get_with_secure_transport(url: str, trust_hostname: bool = False) -> httpx.Response:
-    if trust_hostname:
-        transport = None
-    else:
-        verified_ip = validate_url(url)
-        transport = SecureTransport(verified_ip)
-    with httpx.Client(transport=transport) as client:
-        return client.get(url, follow_redirects=False)
-
-
 async def async_get_with_secure_transport(
     url: str, trust_hostname: bool = False
 ) -> httpx.Response:
     if trust_hostname:
         transport = None
     else:
-        verified_ip = validate_url(url)
+        verified_ip = await async_validate_url(url)
         transport = AsyncSecureTransport(verified_ip)
     async with httpx.AsyncClient(transport=transport) as client:
         return await client.get(url, follow_redirects=False)
-
-
-def ssrf_protected_download(url: str, cache_dir: str) -> str:
-    parsed_url = urlparse(url)
-    hostname = parsed_url.hostname
-
-    response = get_with_secure_transport(
-        url, trust_hostname=hostname in PUBLIC_HOSTNAME_WHITELIST
-    )
-
-    while response.is_redirect:
-        redirect_url = response.headers["Location"]
-        redirect_parsed = urlparse(redirect_url)
-
-        if not redirect_parsed.hostname:
-            redirect_url = f"{parsed_url.scheme}://{hostname}{redirect_url}"
-
-        response = get_with_secure_transport(redirect_url)
-
-    if response.status_code != 200:
-        raise Exception(f"Failed to download file. Status code: {response.status_code}")
-
-    content_disposition = response.headers.get("Content-Disposition")
-    if content_disposition and "filename=" in content_disposition:
-        filename = Path(content_disposition.split("filename=")[1].strip('"'))
-    else:
-        filename = Path(url).name
-
-    temp_dir = hash_url(url)
-    temp_dir = Path(cache_dir) / temp_dir
-    temp_dir.mkdir(exist_ok=True, parents=True)
-    full_temp_file_path = str(abspath(temp_dir / filename))
-
-    if not Path(full_temp_file_path).exists():
-        with open(full_temp_file_path, "wb") as f:
-            f.write(response.content)
-
-    return full_temp_file_path
 
 
 async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
@@ -530,6 +424,10 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
                 await f.write(chunk)
 
     return full_temp_file_path
+
+
+def ssrf_protected_download(url: str, cache_dir: str) -> str:
+    return client_utils.synchronize_async(async_ssrf_protected_download, url, cache_dir)
 
 
 save_url_to_cache = ssrf_protected_download

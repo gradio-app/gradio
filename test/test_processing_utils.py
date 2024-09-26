@@ -408,6 +408,7 @@ async def test_json_data_not_moved_to_cache():
     )
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "url",
     [
@@ -419,11 +420,12 @@ async def test_json_data_not_moved_to_cache():
         "http://192.168.1.250.nip.io",
     ],
 )
-def test_local_urls_fail(url):
+async def test_local_urls_fail(url):
     with pytest.raises(ValueError, match="failed validation"):
-        processing_utils.validate_url(url)
+        await processing_utils.async_validate_url(url)
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "url",
     [
@@ -433,8 +435,8 @@ def test_local_urls_fail(url):
         "https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/luigi/luigi.ply",
     ],
 )
-def test_public_urls_pass(url):
-    processing_utils.validate_url(url)
+async def test_public_urls_pass(url):
+    await processing_utils.async_validate_url(url)
 
 
 def test_public_request_pass():
