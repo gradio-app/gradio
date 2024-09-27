@@ -41,6 +41,7 @@
 	export let streaming: boolean;
 	export let stream_every: number;
 	export let input_ready: boolean;
+	export let recording = false;
 	let uploading = false;
 	$: input_ready = !uploading;
 
@@ -240,6 +241,7 @@
 			{active_source}
 			{pending}
 			{streaming}
+			bind:recording
 			{loop}
 			max_file_size={gradio.max_file_size}
 			{handle_reset_value}
