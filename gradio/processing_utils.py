@@ -105,6 +105,8 @@ else:
     sync_transport = None
     async_transport = None
 
+sync_client = httpx.Client(transport=sync_transport)
+
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -388,6 +390,14 @@ async def async_get_with_secure_transport(
 
 
 async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
+    temp_dir = Path(cache_dir) / hash_url(url)
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    filename = client_utils.strip_invalid_filename_characters(Path(url).name)
+    full_temp_file_path = str(abspath(temp_dir / filename))
+
+    if Path(full_temp_file_path).exists():
+        return full_temp_file_path
+
     parsed_url = urlparse(url)
     hostname = parsed_url.hostname
 
@@ -407,39 +417,28 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
     if response.status_code != 200:
         raise Exception(f"Failed to download file. Status code: {response.status_code}")
 
-    content_disposition = response.headers.get("Content-Disposition")
-    if content_disposition and "filename=" in content_disposition:
-        filename = Path(content_disposition.split("filename=")[1].strip('"')).name
-    else:
-        filename = client_utils.strip_invalid_filename_characters(Path(url).name)
-
-    temp_dir = Path(cache_dir) / hash_url(url)
-    temp_dir.mkdir(exist_ok=True, parents=True)
-    full_temp_file_path = str(abspath(temp_dir / filename))
-
-    if not Path(full_temp_file_path).exists():
-        async with aiofiles.open(full_temp_file_path, "wb") as f:
-            async for chunk in response.aiter_bytes():
-                await f.write(chunk)
+    async with aiofiles.open(full_temp_file_path, "wb") as f:
+        async for chunk in response.aiter_bytes():
+            await f.write(chunk)
 
     return full_temp_file_path
 
 
 def unsafe_download(url: str, cache_dir: str) -> str:
-    with httpx.Client(transport=sync_transport) as sync_client:
-        response = sync_client.get(url)
-        content_disposition = response.headers.get("Content-Disposition")
-        if content_disposition and "filename=" in content_disposition:
-            filename = Path(content_disposition.split("filename=")[1].strip('"')).name
-        else:
-            filename = client_utils.strip_invalid_filename_characters(Path(url).name)
-
     temp_dir = Path(cache_dir) / hash_url(url)
     temp_dir.mkdir(exist_ok=True, parents=True)
+    filename = client_utils.strip_invalid_filename_characters(Path(url).name)
     full_temp_file_path = str(abspath(temp_dir / filename))
 
-    with open(full_temp_file_path, "wb") as f:
-        f.write(response.content)
+    if Path(full_temp_file_path).exists():
+        return full_temp_file_path
+
+    with (
+        sync_client.stream("GET", url, follow_redirects=True) as r,
+        open(full_temp_file_path, "wb") as f,
+    ):
+        for chunk in r.iter_raw():
+            f.write(chunk)
 
     return full_temp_file_path
 
