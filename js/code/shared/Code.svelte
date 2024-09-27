@@ -205,6 +205,7 @@
 		}
 
 		extensions.push(EditorView.updateListener.of(handle_change));
+		extensions.push(EditorView.lineWrapping);
 		return extensions;
 	}
 
