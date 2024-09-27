@@ -150,9 +150,6 @@ class ChatInterface(Blocks):
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
 
-        # if cache_examples is not None:
-        #     raise NotImplementedError()  # TODO: needs to be implemented
-
         if additional_inputs:
             if not isinstance(additional_inputs, list):
                 additional_inputs = [additional_inputs]

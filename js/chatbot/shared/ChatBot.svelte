@@ -518,23 +518,23 @@
 								>
 							{:else}
 								<span class="suggestion-text">{suggestion.text}</span>
-								{#if suggestion.files !== undefined && suggestion.files.length > 1}
-									<span class="suggestion-file"
-										><em>{suggestion.files.length} Files</em></span
-									>
-								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
-									<div class="suggestion-image-container">
-										<Image
-											class="suggestion-image"
-											src={suggestion.files[0].url}
-											alt="suggestion-image"
-										/>
-									</div>
-								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
-									<span class="suggestion-file"
-										><em>{suggestion.files[0].orig_name}</em></span
-									>
-								{/if}
+							{/if}
+							{#if suggestion.files !== undefined && suggestion.files.length > 1}
+								<span class="suggestion-file"
+									><em>{suggestion.files.length} Files</em></span
+								>
+							{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
+								<div class="suggestion-image-container">
+									<Image
+										class="suggestion-image"
+										src={suggestion.files[0].url}
+										alt="suggestion-image"
+									/>
+								</div>
+							{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
+								<span class="suggestion-file"
+									><em>{suggestion.files[0].orig_name}</em></span
+								>
 							{/if}
 						</button>
 					{/each}
@@ -586,6 +586,8 @@
 		background-color: var(--background-fill-secondary);
 		cursor: pointer;
 		transition: var(--button-transition);
+		max-width: var(--size-56);
+		width: 100%;
 	}
 
 	.suggestion:hover {
@@ -604,11 +606,16 @@
 	.suggestion-display-text,
 	.suggestion-text,
 	.suggestion-file {
-		font-size: var(--body-text-size);
-		display: flex;
-		align-self: flex-start;
+		font-size: var(--text-md);
+		width: 100%;
 		text-align: left;
+		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	.suggestion-display-text,
+	.suggestion-file {
+		margin-top: var(--spacing-md);
 	}
 
 	.suggestion-image-container {
@@ -616,14 +623,16 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		margin-top: var(--spacing-xl);
 	}
 
 	.suggestion-image-container :global(img) {
-		max-height: var(--size-32);
-		max-width: var(--size-32);
+		max-height: 100%;
+		max-width: 100%;
+		height: var(--size-32);
+		width: 100%;
 		object-fit: cover;
 		border-radius: var(--radius-xl);
-		margin-top: var(--spacing-md);
 	}
 
 	.panel-wrap {
