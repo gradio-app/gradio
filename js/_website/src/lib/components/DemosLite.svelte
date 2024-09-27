@@ -404,18 +404,18 @@
 
 	let generate_placeholders = [
 		"What do you want to build?",
-		"An image to audio app",
-		"A demo with event listeners",
-		"A tax calculator",
-		"Streaming audio"
+		"What do you want to build? e.g. 'An image to audio app'",
+		"What do you want to build? e.g. 'Demo with event listeners'",
+		"What do you want to build? e.g. 'A tax calculator'",
+		"What do you want to build? e.g. 'Streaming audio'"
 	];
 
 	let update_placeholders = [
 		"What do you want to change?",
-		"Add a title and description",
-		"Replace buttons with change listeners",
-		"Add a cool animation with JS",
-		"Add examples"
+		"What do you want to change? e.g. 'Add a title and description'",
+		"What do you want to change? e.g. 'Replace buttons with listeners'",
+		"What do you want to change? e.g. 'Add a cool animation with JS'",
+		"What do you want to change? e.g. 'Add examples'"
 	];
 
 	let current_placeholder_index = 0;
@@ -478,7 +478,7 @@
 						<h3 class="pt-1">Code</h3>
 					</div>
 
-					<div class="flex-1 relative overflow-scroll code-scroll border-b">
+					<div class="flex-1 relative overflow-scroll code-scroll">
 						<CodeWidget value={selected_demo.code} language="python" />
 						<Code
 							bind:value={selected_demo.code}
@@ -488,21 +488,16 @@
 							dark_mode={false}
 						/>
 					</div>
-					<div class="mx-4 my-2 flex flex-row items-center justify-between">
-						<div
-							class="mr-2 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit min-w-fit text-sm"
-						>
-							Gradio AI
-						</div>
+					<div class="ml-[2.7rem] mr-2 items-center border-l">
 						{#if generation_error}
 							<div
-								class="bg-red-100 border border-red-200 px-2 py-0.5 my-0.5 rounded-lg text-red-800 w-fit text-sm"
+								class="bg-red-100 border border-red-200 px-2 my-1 rounded-lg text-red-800 w-fit text-xs float-right"
 							>
 								{generation_error}
 							</div>
 						{:else if current_code}
-							<div class="flex items-center">
-								<p class="text-gray-600 my-1">
+							<div class="flex items-center float-right">
+								<p class="text-gray-600 my-1 text-xs">
 									Prompt will <span style="font-weight: 500">update</span> code in
 									editor
 								</p>
@@ -517,12 +512,9 @@
 									</button>
 								</div>
 							</div>
-						{:else}
-							<p class="text-gray-600 my-1">
-								Prompt will generate code in editor
-							</p>
 						{/if}
 					</div>
+
 					<div class="search-bar border-t">
 						{#if !generated}
 							<div class="loader"></div>
@@ -543,15 +535,16 @@
 							type="search"
 							id="user-query"
 							class:grayed={!generated}
+							autofocus={true}
 						/>
 						{#if generated}
 							<button
 								on:click={() => {
 									generate_code(user_query, selected_demo.name);
 								}}
-								class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
+								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
 							>
-								<div class="enter">↵</div>
+								<div class="enter">Ask AI</div>
 							</button>
 						{:else}
 							<button
@@ -562,9 +555,9 @@
 										generation_error = "";
 									}, 2000);
 								}}
-								class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
+								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-red-100 to-red-50 border border-red-200 px-4 py-0.5 rounded-full text-red-800 hover:shadow"
 							>
-								<div class="enter">CANCEL</div>
+								<div class="enter">Cancel</div>
 							</button>
 						{/if}
 					</div>
@@ -686,14 +679,15 @@
 	}
 
 	.search-bar {
-		@apply font-sans text-lg z-10 px-4 relative flex flex-none items-center border-b text-gray-500;
+		@apply font-sans z-10 px-4 relative flex flex-none items-center border-b text-gray-500;
 		border-color: #e5e7eb;
 	}
 
 	.search-bar input {
-		@apply text-lg appearance-none h-14 text-black mx-1	flex-auto min-w-0 border-none cursor-text;
+		@apply appearance-none h-14 text-black mx-1	flex-auto min-w-0 border-none cursor-text;
 		outline: none;
 		box-shadow: none;
+		font-size: 1rem;
 	}
 
 	.loader {
@@ -722,7 +716,7 @@
 		display: flex;
 		align-items: center;
 		color: #999b9e;
-		font-size: 12px;
+		font-size: 11px;
 	}
 
 	.button {
