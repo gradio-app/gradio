@@ -4,7 +4,9 @@ Tags: VISION, STREAMING, WEBCAM
 
 In this guide, we'll use YOLOv10 to perform real-time object detection in Gradio from a user's webcam feed. We'll utilize the latest streaming features introduced in Gradio 5.0. You can see the finished product in action below:
 
-![WebRTC Object Detection Demo](https://github.com/user-attachments/assets/4584cec6-8c1a-401b-9b61-a4fe0718b558)
+<video src="https://github.com/user-attachments/assets/4584cec6-8c1a-401b-9b61-a4fe0718b558" controls
+height="600" width="600" style="display: block; margin: auto;" autoplay="true" loop="true">
+</video>
 
 ## Setting up
 
@@ -22,7 +24,7 @@ We'll use the ONNX runtime to speed up YOLOv10 inference. This guide assumes you
 
 We'll use OpenCV for image manipulation and the [Gradio WebRTC](https://github.com/freddyaboulton/gradio-webrtc) custom component to use [WebRTC](https://webrtc.org/) under the hood, achieving near-zero latency.
 
-**Tip:** If you want to deploy this app on any cloud provider, you'll need to use the free Twilio API for their [TURN servers](https://www.twilio.com/docs/stun-turn). Create a free account on Twilio. If you're not familiar with TURN servers, consult this [guide](https://www.twilio.com/docs/stun-turn/faq#faq-what-is-nat).
+**Note**: If you want to deploy this app on any cloud provider, you'll need to use the free Twilio API for their [TURN servers](https://www.twilio.com/docs/stun-turn). Create a free account on Twilio. If you're not familiar with TURN servers, consult this [guide](https://www.twilio.com/docs/stun-turn/faq#faq-what-is-nat).
 
 ## The Inference Function
 
@@ -30,7 +32,7 @@ We'll download the YOLOv10 model from the Hugging Face hub and instantiate a cus
 
 The implementation of the inference class isn't covered in this guide, but you can find the source code [here](https://huggingface.co/spaces/freddyaboulton/webrtc-yolov10n/blob/main/inference.py#L9) if you're interested. This implementation borrows heavily from this [github repository](https://github.com/ibaiGorordo/ONNX-YOLOv8-Object-Detection).
 
-**Tip:** We're using the `yolov10-n` variant because it has the lowest latency. See the [Performance](https://github.com/THU-MIG/yolov10?tab=readme-ov-file#performance) section of the README in the YOLOv10 GitHub repository.
+We're using the `yolov10-n` variant because it has the lowest latency. See the [Performance](https://github.com/THU-MIG/yolov10?tab=readme-ov-file#performance) section of the README in the YOLOv10 GitHub repository.
 
 ```python
 from huggingface_hub import hf_hub_download
@@ -57,7 +59,7 @@ The function returns a numpy array corresponding to the same input image with al
 The Gradio demo is straightforward, but we'll implement a few specific features:
 
 1. Use the `WebRTC` custom component to ensure input and output are sent to/from the server with WebRTC. 
-2. The WebRTC component will serve as both an input and output component.
+2. The [WebRTC](https://github.com/freddyaboulton/gradio-webrtc) component will serve as both an input and output component.
 3. Utilize the `time_limit` parameter of the `stream` event. This parameter sets a processing time for each user's stream. In a multi-user setting, such as on Spaces, we'll stop processing the current user's stream after this period and move on to the next. 
 
 We'll also apply custom CSS to center the webcam and slider on the page.
@@ -72,13 +74,6 @@ with gr.Blocks(css=css) as demo:
         <h1 style='text-align: center'>
         YOLOv10 Webcam Stream (Powered by WebRTC ⚡️)
         </h1>
-        """
-    )
-    gr.HTML(
-        """
-        <h3 style='text-align: center'>
-        <a href='https://arxiv.org/abs/2405.14458' target='_blank'>arXiv</a> | <a href='https://github.com/THU-MIG/yolov10' target='_blank'>GitHub</a>
-        </h3>
         """
     )
     with gr.Column(elem_classes=["my-column"]):
