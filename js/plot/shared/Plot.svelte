@@ -25,15 +25,17 @@
 		plotly: () => import("./plot_types/PlotlyPlot.svelte"),
 		bokeh: () => import("./plot_types/BokehPlot.svelte"),
 		altair: () => import("./plot_types/AltairPlot.svelte"),
-		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte")
+		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte"),
 	};
+
+	const is_browser = typeof window !== "undefined";
 
 	$: {
 		let type = value?.type;
 		if (type !== _type) {
 			PlotComponent = null;
 		}
-		if (type && type in plotTypeMapping) {
+		if (type && type in plotTypeMapping && is_browser) {
 			plotTypeMapping[type]().then((module) => {
 				PlotComponent = module.default;
 			});
@@ -45,7 +47,6 @@
 	<svelte:component
 		this={PlotComponent}
 		{value}
-		{target}
 		{colors}
 		{theme_mode}
 		{caption}

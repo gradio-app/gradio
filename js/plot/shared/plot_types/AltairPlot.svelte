@@ -8,7 +8,6 @@
 	import type { View } from "vega";
 
 	export let value;
-	export let target: HTMLDivElement;
 	export let colors: string[] = [];
 	export let caption: string;
 	export let show_actions_button: bool;
@@ -20,7 +19,7 @@
 	let view: View;
 	export let _selectable: bool;
 
-	let computed_style = window.getComputedStyle(target);
+	let computed_style = window.getComputedStyle(document.body);
 
 	let old_spec: Spec;
 	let spec_width: number;
@@ -47,7 +46,7 @@
 	const get_width = (): number => {
 		return Math.min(
 			parent_element.offsetWidth,
-			spec_width || parent_element.offsetWidth
+			spec_width || parent_element.offsetWidth,
 		);
 	};
 	let resize_callback = (): void => {};
@@ -70,24 +69,24 @@
 							gradio.dispatch("select", {
 								value: null,
 								index: null,
-								selected: false
+								selected: false,
 							});
 						} else {
 							const key = Object.keys(brushValue)[0];
 							let range: [number, number] = brushValue[key].map(
-								(x) => x / 1000
+								(x) => x / 1000,
 							);
 							gradio.dispatch("select", {
 								value: brushValue,
 								index: range,
-								selected: true
+								selected: true,
 							});
 						}
 					}
 				};
 				view.addEventListener("mouseup", callback);
 				view.addEventListener("touchup", callback);
-			}
+			},
 		);
 	};
 	let resizeObserver = new ResizeObserver(() => {
