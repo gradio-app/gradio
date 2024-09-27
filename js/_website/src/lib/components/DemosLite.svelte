@@ -436,7 +436,7 @@
 						{/if}
 					</div>
 
-					<div class="flex-1 relative">
+					<div class="flex-1 relative overflow-scroll">
 						<CodeWidget value={selected_demo.code} language="python" />
 						<Code
 							bind:value={selected_demo.code}
