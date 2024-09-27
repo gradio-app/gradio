@@ -255,7 +255,8 @@
 		debounced_run_code && debounced_run_code(code);
 	}
 	$: if (mounted) {
-		debounced_install && debounced_install(cleanupRequirements(requirementsStr.split("\n")));
+		debounced_install &&
+			debounced_install(cleanupRequirements(requirementsStr.split("\n")));
 	}
 
 	let position = 0.5;
@@ -382,7 +383,7 @@
 	}
 
 	const TABS = ["Code", "Packages"] as const;
-	let selected_tab: typeof TABS[number] = "Code";
+	let selected_tab: (typeof TABS)[number] = "Code";
 </script>
 
 <svelte:head>
@@ -427,8 +428,10 @@
 					id={selected_demo.dir}
 					style="width: {position * 100}%"
 				>
-				{#if current_code}
-					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
+					{#if current_code}
+						<div
+							class="flex justify-between align-middle h-8 border-b pl-4 pr-2"
+						>
 							<div class="flex items-center">
 								<p class="text-sm text-gray-600">
 									Prompt includes current code.
@@ -444,7 +447,7 @@
 									</button>
 								</div>
 							</div>
-					</div>
+						</div>
 					{/if}
 
 					{#if selected_demo.name === "Blank"}
@@ -480,7 +483,12 @@
 
 					<div class="mt-1 flex-1 flex flex-col">
 						<Tabs selected={selected_tab} elem_classes={["editor-tabs"]}>
-							<TabItem name={TABS[0]} visible interactive elem_classes={["editor-tabitem"]}>
+							<TabItem
+								name={TABS[0]}
+								visible
+								interactive
+								elem_classes={["editor-tabitem"]}
+							>
 								<div class="relative h-full">
 									<CodeWidget value={selected_demo.code} language="python" />
 									<Code
@@ -492,9 +500,17 @@
 									/>
 								</div>
 							</TabItem>
-							<TabItem name={TABS[1]} visible interactive elem_classes={["editor-tabitem"]}>
+							<TabItem
+								name={TABS[1]}
+								visible
+								interactive
+								elem_classes={["editor-tabitem"]}
+							>
 								<div class="relative h-full">
-									<CodeWidget value={selected_demo.requirements.join("\n")} language="python" />
+									<CodeWidget
+										value={selected_demo.requirements.join("\n")}
+										language="python"
+									/>
 									<Code
 										value={selected_demo.requirements.join("\n")}
 										on:change={(e) => {
