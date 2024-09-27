@@ -25,7 +25,7 @@
 	async function* streamFromWorker(
 		query: string,
 		system_prompt: string,
-		system_prompt_8k: string, 
+		system_prompt_8k: string,
 		signal: AbortSignal
 	) {
 		const response = await fetch(workerUrl, {
@@ -47,8 +47,8 @@
 
 		while (true) {
 			if (signal.aborted) {
-                throw new DOMException("Aborted", "AbortError");
-            }
+				throw new DOMException("Aborted", "AbortError");
+			}
 			const { done, value } = reader
 				? await reader.read()
 				: { done: true, value: null };
@@ -73,7 +73,7 @@
 							} else if (parsed.error) {
 								console.log(parsed.error);
 								generation_error = "Failed to fetch...";
-								await new Promise(resolve => setTimeout(resolve, 2000));
+								await new Promise((resolve) => setTimeout(resolve, 2000));
 								generation_error = "";
 								// }
 							} else if (parsed.info) {
@@ -104,7 +104,8 @@
 				"\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, plotly, transformers_js_py and matplotlib.";
 		}
 
-		let queried_index = demos.findIndex((demo) => demo.name === demo_name) ?? demos[0];
+		let queried_index =
+			demos.findIndex((demo) => demo.name === demo_name) ?? demos[0];
 
 		let code_to_compare = demos[queried_index].code;
 
@@ -115,7 +116,6 @@
 			SYSTEM_PROMPT.SYSTEM,
 			SYSTEM_PROMPT.SYSTEM_8K,
 			abortController.signal
-
 		)) {
 			if (chunk.choices && chunk.choices.length > 0) {
 				const content = chunk.choices[0].delta.content;
@@ -124,9 +124,18 @@
 					demos[queried_index].code =
 						out ||
 						"# Describe your app above, and the LLM will generate the code here.";
-					demos[queried_index].code = demos[queried_index].code.replaceAll("```python\n", "");
-					demos[queried_index].code = demos[queried_index].code.replaceAll("```\n", "");
-					demos[queried_index].code = demos[queried_index].code.replaceAll("```", "");
+					demos[queried_index].code = demos[queried_index].code.replaceAll(
+						"```python\n",
+						""
+					);
+					demos[queried_index].code = demos[queried_index].code.replaceAll(
+						"```\n",
+						""
+					);
+					demos[queried_index].code = demos[queried_index].code.replaceAll(
+						"```",
+						""
+					);
 					demos[queried_index].code = addShowErrorToLaunch(
 						demos[queried_index].code
 					);
@@ -148,7 +157,6 @@
 	}
 
 	let user_query: string;
-	
 
 	function handle_user_query_key_down(e: KeyboardEvent): void {
 		if (e.key === "Enter") {
@@ -173,8 +181,7 @@
 	};
 
 	function clear_code() {
-		selected_demo.code =
-			"";
+		selected_demo.code = "";
 		current_code = false;
 	}
 
@@ -261,7 +268,8 @@
 		setTimeout(() => (copied_link = false), 2000);
 	}
 
-	$: selected_demo = demos.find((demo) => demo.name === current_selection) ?? demos[0];
+	$: selected_demo =
+		demos.find((demo) => demo.name === current_selection) ?? demos[0];
 	$: code = selected_demo?.code || "";
 	$: requirements = selected_demo?.requirements || [];
 	$: requirementsStr = JSON.stringify(requirements); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
@@ -321,9 +329,7 @@
 	$: if (code) {
 		shared = false;
 	}
-	$: if (
-		selected_demo.code !== ""
-	) {
+	$: if (selected_demo.code !== "") {
 		current_code = true;
 	} else {
 		current_code = false;
@@ -397,25 +403,26 @@
 	}
 
 	let generate_placeholders = [
-		'What do you want to build?',
-		'An image to audio app',
-		'A demo with event listeners',
-		'A tax calculator',
-		'Streaming audio'
+		"What do you want to build?",
+		"An image to audio app",
+		"A demo with event listeners",
+		"A tax calculator",
+		"Streaming audio"
 	];
 
 	let update_placeholders = [
-		'What do you want to change?',
-		'Add a title and description',
-		'Replace buttons with change listeners',
-		'Add a cool animation with JS',
-		'Add examples'
+		"What do you want to change?",
+		"Add a title and description",
+		"Replace buttons with change listeners",
+		"Add a cool animation with JS",
+		"Add examples"
 	];
 
 	let current_placeholder_index = 0;
 
 	function cycle_placeholder() {
-		current_placeholder_index = (current_placeholder_index + 1) % generate_placeholders.length;
+		current_placeholder_index =
+			(current_placeholder_index + 1) % generate_placeholders.length;
 	}
 
 	$: setInterval(cycle_placeholder, 5000);
@@ -423,9 +430,6 @@
 	let generation_error = "";
 
 	$: generation_error;
-
-
-
 </script>
 
 <svelte:head>
@@ -474,7 +478,7 @@
 						<h3 class="pt-1">Code</h3>
 					</div>
 
-					<div class="flex-1 relative overflow-scroll code-scroll border-b ">
+					<div class="flex-1 relative overflow-scroll code-scroll border-b">
 						<CodeWidget value={selected_demo.code} language="python" />
 						<Code
 							bind:value={selected_demo.code}
@@ -485,20 +489,22 @@
 						/>
 					</div>
 					<div class="mx-4 my-2 flex flex-row items-center justify-between">
-							<div
+						<div
 							class="mr-2 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit text-sm"
-							>
-								Gradio AI
-								
-							</div>
+						>
+							Gradio AI
+						</div>
 						{#if generation_error}
-							<div class="bg-red-100 border border-red-200 px-2 py-0.5 my-0.5 rounded-lg text-red-800 w-fit text-sm">
+							<div
+								class="bg-red-100 border border-red-200 px-2 py-0.5 my-0.5 rounded-lg text-red-800 w-fit text-sm"
+							>
 								{generation_error}
 							</div>
 						{:else if current_code}
 							<div class="flex items-center">
 								<p class="text-gray-600 my-1">
-									Prompt will <span style="font-weight: 500">update</span> code in editor
+									Prompt will <span style="font-weight: 500">update</span> code in
+									editor
 								</p>
 								<div class="clear">
 									<button
@@ -512,9 +518,9 @@
 								</div>
 							</div>
 						{:else}
-						<p class="text-gray-600 my-1">
-							Prompt will generate code in editor
-						</p>
+							<p class="text-gray-600 my-1">
+								Prompt will generate code in editor
+							</p>
 						{/if}
 					</div>
 					<div class="search-bar border-t">
@@ -526,7 +532,9 @@
 						<input
 							bind:value={user_query}
 							on:keydown={handle_user_query_key_down}
-							placeholder={current_code ? update_placeholders[current_placeholder_index] : generate_placeholders[current_placeholder_index]}
+							placeholder={current_code
+								? update_placeholders[current_placeholder_index]
+								: generate_placeholders[current_placeholder_index]}
 							autocomplete="off"
 							autocorrect="off"
 							autocapitalize="off"
@@ -545,7 +553,7 @@
 							>
 								<div class="enter">↵</div>
 							</button>
-						{:else} 
+						{:else}
 							<button
 								on:click={() => {
 									cancelGeneration();
@@ -560,8 +568,6 @@
 							</button>
 						{/if}
 					</div>
-
-
 				</div>
 			{/if}
 			<div
@@ -773,29 +779,28 @@
 	}
 
 	.code-scroll {
-	overflow: auto;
-	scrollbar-gutter: stable both-edges;
+		overflow: auto;
+		scrollbar-gutter: stable both-edges;
 	}
 
 	/* For Webkit browsers (Chrome, Safari, etc.) */
 	.code-scroll::-webkit-scrollbar {
-	width: 10px;  /* width of the entire scrollbar */
+		width: 10px; /* width of the entire scrollbar */
 	}
 
 	.code-scroll::-webkit-scrollbar-track {
-	background: transparent;  /* color of the tracking area */
+		background: transparent; /* color of the tracking area */
 	}
 
 	.code-scroll::-webkit-scrollbar-thumb {
-	background-color: #888;  /* color of the scroll thumb */
-	border-radius: 20px;  /* roundness of the scroll thumb */
-	border: 3px solid white;  /* creates padding around scroll thumb */
+		background-color: #888; /* color of the scroll thumb */
+		border-radius: 20px; /* roundness of the scroll thumb */
+		border: 3px solid white; /* creates padding around scroll thumb */
 	}
 
 	/* For Firefox */
 	.code-scroll {
-	scrollbar-width: thin;
-	scrollbar-color: #888 transparent;
+		scrollbar-width: thin;
+		scrollbar-color: #888 transparent;
 	}
-	
 </style>

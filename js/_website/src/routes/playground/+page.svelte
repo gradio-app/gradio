@@ -120,14 +120,13 @@
 					>
 				</div>
 				{#if show_nav}
-					
 					<button
 						on:click={() => (current_selection = "Blank")}
 						class:current-playground-demo={current_selection == "Blank"}
 						class:shared-link={shared == "Blank"}
 						class="thin-link font-light px-4 block my-2">New Demo</button
 					>
-							{#each data.demos_by_category as { category, demos } (category)}
+					{#each data.demos_by_category as { category, demos } (category)}
 						<p class="px-4 my-2 font-medium">{category}</p>
 						{#each demos as demo, i}
 							<button
