@@ -6,4 +6,4 @@
 "website": minor
 ---
 
-feat:Playground requirements
+feat:Playground requirements tab
