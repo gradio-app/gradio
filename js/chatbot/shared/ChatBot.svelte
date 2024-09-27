@@ -580,7 +580,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: var(--spacing-md);
+		padding: var(--spacing-xl);
 		border: 0.05px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);
 		background-color: var(--background-fill-secondary);
@@ -608,7 +608,7 @@
 	.suggestion-file {
 		font-size: var(--text-md);
 		width: 100%;
-		text-align: left;
+		text-align: center;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
