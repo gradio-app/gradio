@@ -18,6 +18,7 @@
 	let compare = false;
 
 	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	// const workerUrl = "http://localhost:5174/api/generate";
 	let model_info = "";
 
 	async function* streamFromWorker(
@@ -80,7 +81,7 @@
 		}
 	}
 
-	async function generate_code(query: string) {
+	async function generate_code(query: string, demo_name: string) {
 		generated = false;
 		let out = "";
 
@@ -88,11 +89,14 @@
 			query = "PROMPT: " + query;
 			query +=
 				"\n\nHere is the existing code that either you or the user has written. If it's relevant to the prompt, use it for context. If it's not relevant, ignore it.\n Existing Code: \n\n" +
-				demos[demos.length - 1].code;
+				code;
 			query +=
 				"\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, plotly, transformers_js_py and matplotlib.";
 		}
 
+		let queried_index = demos.findIndex((demo) => demo.name === demo_name) ?? demos[0];
+
+		let code_to_compare = demos[queried_index].code;
 		for await (const chunk of streamFromWorker(
 			query,
 			SYSTEM_PROMPT.SYSTEM,
@@ -102,33 +106,29 @@
 				const content = chunk.choices[0].delta.content;
 				if (content) {
 					out += content;
-					demos[demos.length - 1].code =
+					demos[queried_index].code =
 						out ||
 						"# Describe your app above, and the LLM will generate the code here.";
-					demos[demos.length - 1].code = demos[
-						demos.length - 1
-					].code.replaceAll("```python\n", "");
-					demos[demos.length - 1].code = demos[
-						demos.length - 1
-					].code.replaceAll("```\n", "");
-					demos[demos.length - 1].code = demos[
-						demos.length - 1
-					].code.replaceAll("```", "");
-					demos[demos.length - 1].code = addShowErrorToLaunch(
-						demos[demos.length - 1].code
+					demos[queried_index].code = demos[queried_index].code.replaceAll("```python\n", "");
+					demos[queried_index].code = demos[queried_index].code.replaceAll("```\n", "");
+					demos[queried_index].code = demos[queried_index].code.replaceAll("```", "");
+					demos[queried_index].code = addShowErrorToLaunch(
+						demos[queried_index].code
 					);
 				}
 			}
 		}
 		generated = true;
-		compare = true;
+		if (selected_demo.name === demo_name) {
+			highlight_changes(code_to_compare, demos[queried_index].code);
+		}
 	}
 
 	let user_query: string;
 
 	function handle_user_query_key_down(e: KeyboardEvent): void {
 		if (e.key === "Enter") {
-			generate_code(user_query);
+			generate_code(user_query, selected_demo.name);
 		}
 	}
 
@@ -141,7 +141,7 @@
 	export let current_selection: string;
 	export let show_nav = true;
 
-	const blank_demo_for_ai_gen = {
+	const blank_demo = {
 		name: "Blank",
 		dir: "Blank",
 		code: "# Describe your app above, and the LLM will generate the code here.",
@@ -149,12 +149,12 @@
 	};
 
 	function clear_code() {
-		demos[demos.length - 1].code =
+		selected_demo.code =
 			"# Describe your app above, and the LLM will generate the code here.";
 		current_code = false;
 	}
 
-	demos.push(blank_demo_for_ai_gen);
+	demos.push(blank_demo);
 
 	let mounted = false;
 	let controller: {
@@ -237,7 +237,7 @@
 		setTimeout(() => (copied_link = false), 2000);
 	}
 
-	$: selected_demo = demos.find((demo) => demo.name === current_selection);
+	$: selected_demo = demos.find((demo) => demo.name === current_selection) ?? demos[0];
 	$: code = selected_demo?.code || "";
 	$: requirements = selected_demo?.requirements || [];
 	$: requirementsStr = JSON.stringify(requirements); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
@@ -298,8 +298,8 @@
 		shared = false;
 	}
 	$: if (
-		demos[demos.length - 1].code &&
-		demos[demos.length - 1].code !==
+		selected_demo.code &&
+		selected_demo.code !==
 			"# Describe your app above, and the LLM will generate the code here."
 	) {
 		current_code = true;
@@ -339,7 +339,7 @@
 		if (inserted_lines.length > new_lines.length / 2) {
 			return;
 		}
-		const cm = document.querySelectorAll("#Blank .cm-line");
+		const cm = document.querySelectorAll(".cm-line");
 		for (let line of inserted_lines) {
 			cm[line].classList.add("highlight");
 		}
@@ -363,11 +363,11 @@
 
 	$: if (compare && browser) {
 		if (
-			demos[demos.length - 1].code !==
+			selected_demo.code !==
 			"# Describe your app above, and the LLM will generate the code here."
 		) {
-			highlight_changes(old_answer, demos[demos.length - 1].code);
-			old_answer = demos[demos.length - 1].code;
+			highlight_changes(old_answer, selected_demo.code);
+			old_answer = selected_demo.code;
 			compare = false;
 		}
 	}
@@ -436,37 +436,6 @@
 						{/if}
 					</div>
 
-					{#if selected_demo.name === "Blank"}
-						<div class="search-bar">
-							{#if !generated}
-								<div class="loader"></div>
-							{:else}
-								✨
-							{/if}
-							<input
-								bind:value={user_query}
-								on:keydown={handle_user_query_key_down}
-								placeholder="What do you want to build?"
-								autocomplete="off"
-								autocorrect="off"
-								autocapitalize="off"
-								enterkeyhint="go"
-								spellcheck="false"
-								type="search"
-								id="user-query"
-								class:grayed={!generated}
-							/>
-							<button
-								on:click={() => {
-									generate_code(user_query);
-								}}
-								class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
-							>
-								<div class="enter">↵</div>
-							</button>
-						</div>
-					{/if}
-
 					<div class="flex-1 relative">
 						<CodeWidget value={selected_demo.code} language="python" />
 						<Code
@@ -477,6 +446,36 @@
 							dark_mode={false}
 						/>
 					</div>
+					<div class="search-bar">
+						{#if !generated}
+							<div class="loader"></div>
+						{:else}
+							✨
+						{/if}
+						<input
+							bind:value={user_query}
+							on:keydown={handle_user_query_key_down}
+							placeholder="What do you want to build?"
+							autocomplete="off"
+							autocorrect="off"
+							autocapitalize="off"
+							enterkeyhint="go"
+							spellcheck="false"
+							type="search"
+							id="user-query"
+							class:grayed={!generated}
+						/>
+						<button
+							on:click={() => {
+								generate_code(user_query, selected_demo.name);
+							}}
+							class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
+						>
+							<div class="enter">↵</div>
+						</button>
+					</div>
+
+
 				</div>
 			{/if}
 			<div
