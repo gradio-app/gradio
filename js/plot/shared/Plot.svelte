@@ -6,7 +6,6 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 
 	export let value;
-	export let target: HTMLElement;
 	export let colors: string[] = [];
 	export let theme_mode: ThemeMode;
 	export let caption: string;
@@ -25,7 +24,7 @@
 		plotly: () => import("./plot_types/PlotlyPlot.svelte"),
 		bokeh: () => import("./plot_types/BokehPlot.svelte"),
 		altair: () => import("./plot_types/AltairPlot.svelte"),
-		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte"),
+		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte")
 	};
 
 	const is_browser = typeof window !== "undefined";
