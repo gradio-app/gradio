@@ -266,6 +266,7 @@
 					bind:mode
 					{i18n}
 					{editable}
+					{recording}
 					{dispatch_blob}
 					{waveform_settings}
 					{waveform_options}
