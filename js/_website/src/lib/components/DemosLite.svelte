@@ -144,13 +144,13 @@
 	const blank_demo = {
 		name: "Blank",
 		dir: "Blank",
-		code: "# Describe your app above, and the LLM will generate the code here.",
+		code: "",
 		requirements: []
 	};
 
 	function clear_code() {
 		selected_demo.code =
-			"# Describe your app above, and the LLM will generate the code here.";
+			"";
 		current_code = false;
 	}
 
@@ -298,11 +298,11 @@
 		shared = false;
 	}
 	$: if (
-		selected_demo.code &&
-		selected_demo.code !==
-			"# Describe your app above, and the LLM will generate the code here."
+		selected_demo.code !== ""
 	) {
 		current_code = true;
+	} else {
+		current_code = false;
 	}
 
 	function create_spaces_url() {
@@ -371,6 +371,33 @@
 			compare = false;
 		}
 	}
+
+	let generate_placeholders = [
+		'What do you want to build?',
+		'An image to audio app',
+		'A demo with event listeners',
+		'A tax calculator',
+		'Streaming audio'
+	];
+
+	let update_placeholders = [
+		'What do you want to change?',
+		'Add a title and description',
+		'Replace buttons with change listeners',
+		'Add a cool animation with JS',
+		'Add examples'
+	];
+
+	let current_placeholder_index = 0;
+
+	function cycle_placeholder() {
+		current_placeholder_index = (current_placeholder_index + 1) % generate_placeholders.length;
+	}
+
+	$: setInterval(cycle_placeholder, 5000);
+
+
+
 </script>
 
 <svelte:head>
@@ -417,10 +444,28 @@
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
+					</div>
+
+					<div class="flex-1 relative overflow-scroll code-scroll border-b ">
+						<CodeWidget value={selected_demo.code} language="python" />
+						<Code
+							bind:value={selected_demo.code}
+							language="python"
+							lines={10}
+							readonly={false}
+							dark_mode={false}
+						/>
+					</div>
+					<div class="mx-4 my-2 flex flex-row items-center justify-between">
+							<div
+						class="mr-2 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit text-sm"
+						>
+							Gradio AI
+						</div>
 						{#if current_code}
 							<div class="flex items-center">
-								<p class="text-sm text-gray-600">
-									Prompt includes current code.
+								<p class="text-gray-600 my-1">
+									Prompt will <span style="font-weight: 500">update</span> code in editor
 								</p>
 								<div class="clear">
 									<button
@@ -433,20 +478,13 @@
 									</button>
 								</div>
 							</div>
+						{:else}
+						<p class="text-gray-600 my-1">
+							Prompt will generate code in editor
+						</p>
 						{/if}
 					</div>
-
-					<div class="flex-1 relative overflow-scroll">
-						<CodeWidget value={selected_demo.code} language="python" />
-						<Code
-							bind:value={selected_demo.code}
-							language="python"
-							lines={10}
-							readonly={false}
-							dark_mode={false}
-						/>
-					</div>
-					<div class="search-bar">
+					<div class="search-bar border-t">
 						{#if !generated}
 							<div class="loader"></div>
 						{:else}
@@ -455,7 +493,7 @@
 						<input
 							bind:value={user_query}
 							on:keydown={handle_user_query_key_down}
-							placeholder="What do you want to build?"
+							placeholder={current_code ? update_placeholders[current_placeholder_index] : generate_placeholders[current_placeholder_index]}
 							autocomplete="off"
 							autocorrect="off"
 							autocapitalize="off"
@@ -685,4 +723,31 @@
 			top: -5%;
 		}
 	}
+
+	.code-scroll {
+	overflow: auto;
+	scrollbar-gutter: stable both-edges;
+	}
+
+	/* For Webkit browsers (Chrome, Safari, etc.) */
+	.code-scroll::-webkit-scrollbar {
+	width: 10px;  /* width of the entire scrollbar */
+	}
+
+	.code-scroll::-webkit-scrollbar-track {
+	background: transparent;  /* color of the tracking area */
+	}
+
+	.code-scroll::-webkit-scrollbar-thumb {
+	background-color: #888;  /* color of the scroll thumb */
+	border-radius: 20px;  /* roundness of the scroll thumb */
+	border: 3px solid white;  /* creates padding around scroll thumb */
+	}
+
+	/* For Firefox */
+	.code-scroll {
+	scrollbar-width: thin;
+	scrollbar-color: #888 transparent;
+	}
+	
 </style>
