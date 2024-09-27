@@ -18,13 +18,15 @@
 	let compare = false;
 
 	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5174/api/generate";
 	let model_info = "";
+
+	let abortController: AbortController | null = null;
 
 	async function* streamFromWorker(
 		query: string,
 		system_prompt: string,
-		system_prompt_8k: string
+		system_prompt_8k: string, 
+		signal: AbortSignal
 	) {
 		const response = await fetch(workerUrl, {
 			method: "POST",
@@ -35,7 +37,8 @@
 				query: query,
 				SYSTEM_PROMPT: system_prompt,
 				SYSTEM_PROMPT_8K: system_prompt_8k
-			})
+			}),
+			signal
 		});
 
 		const reader = response.body?.getReader();
@@ -43,6 +46,9 @@
 		let buffer = "";
 
 		while (true) {
+			if (signal.aborted) {
+                throw new DOMException("Aborted", "AbortError");
+            }
 			const { done, value } = reader
 				? await reader.read()
 				: { done: true, value: null };
@@ -66,6 +72,10 @@
 								console.log("Model used:", model_info);
 							} else if (parsed.error) {
 								console.log(parsed.error);
+								generation_error = "Failed to fetch...";
+								await new Promise(resolve => setTimeout(resolve, 2000));
+								generation_error = "";
+								// }
 							} else if (parsed.info) {
 								console.log(parsed.info);
 							} else if (parsed.choices && parsed.choices.length > 0) {
@@ -97,10 +107,15 @@
 		let queried_index = demos.findIndex((demo) => demo.name === demo_name) ?? demos[0];
 
 		let code_to_compare = demos[queried_index].code;
+
+		abortController = new AbortController();
+
 		for await (const chunk of streamFromWorker(
 			query,
 			SYSTEM_PROMPT.SYSTEM,
-			SYSTEM_PROMPT.SYSTEM_8K
+			SYSTEM_PROMPT.SYSTEM_8K,
+			abortController.signal
+
 		)) {
 			if (chunk.choices && chunk.choices.length > 0) {
 				const content = chunk.choices[0].delta.content;
@@ -122,9 +137,18 @@
 		if (selected_demo.name === demo_name) {
 			highlight_changes(code_to_compare, demos[queried_index].code);
 		}
+		abortController = null;
+	}
+
+	function cancelGeneration() {
+		if (abortController) {
+			abortController.abort();
+		}
+		generated = true;
 	}
 
 	let user_query: string;
+	
 
 	function handle_user_query_key_down(e: KeyboardEvent): void {
 		if (e.key === "Enter") {
@@ -396,6 +420,10 @@
 
 	$: setInterval(cycle_placeholder, 5000);
 
+	let generation_error = "";
+
+	$: generation_error;
+
 
 
 </script>
@@ -458,11 +486,16 @@
 					</div>
 					<div class="mx-4 my-2 flex flex-row items-center justify-between">
 							<div
-						class="mr-2 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit text-sm"
-						>
-							Gradio AI
-						</div>
-						{#if current_code}
+							class="mr-2 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit text-sm"
+							>
+								Gradio AI
+								
+							</div>
+						{#if generation_error}
+							<div class="bg-red-100 border border-red-200 px-2 py-0.5 my-0.5 rounded-lg text-red-800 w-fit text-sm">
+								{generation_error}
+							</div>
+						{:else if current_code}
 							<div class="flex items-center">
 								<p class="text-gray-600 my-1">
 									Prompt will <span style="font-weight: 500">update</span> code in editor
@@ -503,14 +536,29 @@
 							id="user-query"
 							class:grayed={!generated}
 						/>
-						<button
-							on:click={() => {
-								generate_code(user_query, selected_demo.name);
-							}}
-							class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
-						>
-							<div class="enter">↵</div>
-						</button>
+						{#if generated}
+							<button
+								on:click={() => {
+									generate_code(user_query, selected_demo.name);
+								}}
+								class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
+							>
+								<div class="enter">↵</div>
+							</button>
+						{:else} 
+							<button
+								on:click={() => {
+									cancelGeneration();
+									generation_error = "Cancelled!";
+									setInterval(() => {
+										generation_error = "";
+									}, 2000);
+								}}
+								class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
+							>
+								<div class="enter">CANCEL</div>
+							</button>
+						{/if}
 					</div>
 
 
