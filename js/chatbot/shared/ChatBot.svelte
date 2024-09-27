@@ -518,21 +518,23 @@
 								>
 							{:else}
 								<span class="suggestion-text">{suggestion.text}</span>
-								{#if suggestion.files !== undefined && suggestion.files.length > 1}
-									<span class="suggestion-file"
-										><em>{suggestion.files.length} Files</em></span
-									>
-								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
+							{/if}
+							{#if suggestion.files !== undefined && suggestion.files.length > 1}
+								<span class="suggestion-file"
+									><em>{suggestion.files.length} Files</em></span
+								>
+							{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
+								<div class="suggestion-image-container">
 									<Image
 										class="suggestion-image"
 										src={suggestion.files[0].url}
 										alt="suggestion-image"
 									/>
-								{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
-									<span class="suggestion-file"
-										><em>{suggestion.files[0].orig_name}</em></span
-									>
-								{/if}
+								</div>
+							{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
+								<span class="suggestion-file"
+									><em>{suggestion.files[0].orig_name}</em></span
+								>
 							{/if}
 						</button>
 					{/each}
@@ -578,12 +580,14 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: var(--spacing-md);
+		padding: var(--spacing-xl);
 		border: 0.05px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);
 		background-color: var(--background-fill-secondary);
 		cursor: pointer;
 		transition: var(--button-transition);
+		max-width: var(--size-56);
+		width: 100%;
 	}
 
 	.suggestion:hover {
@@ -602,22 +606,33 @@
 	.suggestion-display-text,
 	.suggestion-text,
 	.suggestion-file {
-		font-size: var(--body-text-size);
-		display: flex;
-		align-self: flex-start;
-		margin: var(--spacing-md);
-		text-align: left;
-		flex-grow: 1;
+		font-size: var(--text-md);
+		width: 100%;
+		text-align: center;
+		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
-	.suggestion-image {
-		max-height: var(--size-6);
-		max-width: var(--size-6);
+	.suggestion-display-text,
+	.suggestion-file {
+		margin-top: var(--spacing-md);
+	}
+
+	.suggestion-image-container {
+		flex-grow: 1;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-top: var(--spacing-xl);
+	}
+
+	.suggestion-image-container :global(img) {
+		max-height: 100%;
+		max-width: 100%;
+		height: var(--size-32);
+		width: 100%;
 		object-fit: cover;
 		border-radius: var(--radius-xl);
-		margin-top: var(--spacing-md);
-		align-self: flex-start;
 	}
 
 	.panel-wrap {
