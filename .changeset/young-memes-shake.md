@@ -2,4 +2,4 @@
 "@self/app": minor
 ---
 
-feat:Ssr tweaks
+feat:Ensure media queries work for SSR mode
