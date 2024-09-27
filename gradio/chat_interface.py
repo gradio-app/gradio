@@ -522,7 +522,10 @@ class ChatInterface(Blocks):
     ):
         if self.type == "tuples":
             for x in message.get("files", []):
-                history.append([(x.get("path"),), None])  # type: ignore
+                if isinstance(x, dict):
+                    history.append([(x.get("path"),), None])  # type: ignore
+                else:
+                    history.append([(x,), None])  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
                 return
             elif message["text"] == "" and message.get("files", []) != []:
