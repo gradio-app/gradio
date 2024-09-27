@@ -138,24 +138,26 @@ class Examples:
                 "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
             )
 
+        self.cache_examples = False
         if cache_examples is None:
-            if cache_examples_env := os.getenv("GRADIO_CACHE_EXAMPLES"):
-                if cache_examples_env.lower() == "true":
-                    if fn is not None and outputs is not None:
-                        self.cache_examples = True
-                    else:
-                        self.cache_examples = False
-            elif utils.get_space() and fn is not None and outputs is not None:
+            if (
+                os.getenv("GRADIO_CACHE_EXAMPLES", "").lower() == "true"
+                and fn is not None
+                and outputs is not None
+            ):
                 self.cache_examples = True
-            else:
-                self.cache_examples = cache_examples or False
-        else:
-            if cache_examples not in [True, False]:
-                raise ValueError(
-                    "The `cache_examples` parameter must either: True or False."
-                )
+        elif cache_examples == "lazy":
+            warnings.warn(
+                "In future versions of Gradio, the `cache_examples` parameter will no longer accept a value of 'lazy'. To enable lazy caching in "
+                "Gradio, you should set `cache_examples=True`, and `cache_mode='lazy'` instead."
+            )
+            self.cache_examples = "lazy"
+        elif cache_examples in [True, False]:
             self.cache_examples = cache_examples
-
+        else:
+            raise ValueError(
+                f"The `cache_examples` parameter should be either True or False, not {cache_examples}"
+            )
         if self.cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
 
