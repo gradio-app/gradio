@@ -1,2 +1,6 @@
 safetensors==0.4.3
-git+https://github.com/THU-MIG/yolov10.git
+opencv-python
+twilio
+gradio>=5.0,<6.0
+gradio-webrtc==0.0.1
+onnxruntime-gpu
