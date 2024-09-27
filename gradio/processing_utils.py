@@ -105,9 +105,6 @@ else:
     sync_transport = None
     async_transport = None
 
-sync_client = httpx.Client(transport=sync_transport)
-async_client = httpx.AsyncClient(transport=async_transport)
-
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -429,7 +426,7 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
 
 
 def unsafe_download(url: str, cache_dir: str) -> str:
-    with sync_client:
+    with httpx.Client(transport=sync_transport) as sync_client:
         response = sync_client.get(url)
         content_disposition = response.headers.get("Content-Disposition")
         if content_disposition and "filename=" in content_disposition:
