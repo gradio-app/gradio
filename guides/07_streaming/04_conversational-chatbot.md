@@ -8,7 +8,9 @@ The next generation of AI user interfaces is moving towards audio-native experie
 
 In this guide, we'll walk you through building your own conversational chat application using mini omni as an example. You can see a demo of the finished app below:
 
-[omni mini demo](https://github.com/user-attachments/assets/db36f4db-7535-49f1-a2dd-bd36c487ebdf)
+<video src="https://github.com/user-attachments/assets/db36f4db-7535-49f1-a2dd-bd36c487ebdf" controls
+height="600" width="600" style="display: block; margin: auto;" autoplay="true" loop="true">
+</video>
 
 ## Application Overview
 
