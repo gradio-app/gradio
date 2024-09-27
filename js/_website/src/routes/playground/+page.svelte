@@ -104,8 +104,8 @@
 	<main class="playground flex-col justify-between hidden md:flex">
 		<div class="w-full border border-gray-200 shadow-xl h-full relative">
 			<div
-				class="w-[200px] h-full rounded-tr-none rounded-bl-xl overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
-				style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; width: {show_nav
+				class="w-[200px] rounded-tr-none rounded-bl-xl overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
+				style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; height: 90vh; width: {show_nav
 					? 200
 					: 37}px;"
 			>

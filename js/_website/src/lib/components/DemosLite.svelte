@@ -490,7 +490,7 @@
 					</div>
 					<div class="mx-4 my-2 flex flex-row items-center justify-between">
 						<div
-							class="mr-2 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit text-sm"
+							class="mr-2 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit min-w-fit text-sm"
 						>
 							Gradio AI
 						</div>
