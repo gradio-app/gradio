@@ -29,7 +29,7 @@
 	export let value_is_output = false;
 	export let language = "";
 	export let lines = 5;
-	export let max_lines = 20;
+	export let max_lines: number | null = null;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -56,7 +56,7 @@
 </script>
 
 <Block
-	height={"fit-content"}
+	height={max_lines && "fit-content"}
 	variant={"solid"}
 	padding={false}
 	{elem_id}

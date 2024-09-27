@@ -20,7 +20,7 @@
 	export let basic = true;
 	export let language: string;
 	export let lines = 5;
-	export let max_lines = 20;
+	export let max_lines: number | null = null;
 	export let extensions: Extension[] = [];
 	export let use_tab = true;
 	export let readonly = false;
@@ -109,7 +109,8 @@
 
 		const minLines = lines == 1 ? 1 : lines + 1;
 		scroller.style.minHeight = `calc(${lineHeight} * ${minLines})`;
-		scroller.style.maxHeight = `calc(${lineHeight} * ${max_lines + 1})`;
+		if (max_lines)
+			scroller.style.maxHeight = `calc(${lineHeight} * ${max_lines + 1})`;
 	}
 
 	function handle_change(vu: ViewUpdate): void {
