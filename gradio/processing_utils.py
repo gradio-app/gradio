@@ -430,15 +430,20 @@ def unsafe_download(url: str, cache_dir: str) -> str:
     filename = client_utils.strip_invalid_filename_characters(Path(url).name)
     full_temp_file_path = str(abspath(temp_dir / filename))
 
-    if Path(full_temp_file_path).exists():
-        return full_temp_file_path
-
     with (
         sync_client.stream("GET", url, follow_redirects=True) as r,
         open(full_temp_file_path, "wb") as f,
     ):
         for chunk in r.iter_raw():
             f.write(chunk)
+
+    # print path and file size
+    print(
+        f"Downloaded {full_temp_file_path} ({os.path.getsize(full_temp_file_path)} bytes)"
+    )
+    log.info(
+        f"Downloaded {full_temp_file_path} ({os.path.getsize(full_temp_file_path)} bytes)"
+    )
 
     return full_temp_file_path
 
