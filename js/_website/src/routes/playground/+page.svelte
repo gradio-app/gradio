@@ -7,7 +7,7 @@
 	import { gradio_logo } from "$lib/assets";
 	import { afterNavigate } from "$app/navigation";
 	import { clickOutside } from "$lib/components/clickOutside.js";
-	import Code from "@gradio/code";
+	import { BaseCode as Code } from "@gradio/code";
 	import version_json from "$lib/json/version.json";
 	import WHEEL from "$lib/json/wheel.json";
 
@@ -37,11 +37,7 @@
 
 	let show_nav = true;
 
-	$: show_nav;
-
 	let show_mobile_nav = false;
-
-	$: show_mobile_nav;
 
 	let show_preview = false;
 
@@ -56,9 +52,6 @@
 		current_selection = demo_name;
 		show_mobile_nav = false;
 	};
-
-	let dummy_elem: any = { classList: { contains: () => false } };
-	let dummy_gradio: any = { dispatch: (_) => {} };
 
 	let version = version_json.version;
 </script>
@@ -253,12 +246,10 @@
 					{#if !show_preview}
 						<Code
 							bind:value={demos[i].code}
-							label=""
 							language="python"
-							target={dummy_elem}
-							gradio={dummy_gradio}
 							lines={10}
-							interactive="false"
+							readonly
+							dark_mode={false}
 						/>
 					{:else}
 						<gradio-app space={"gradio/" + demo.dir} />
@@ -295,9 +286,6 @@
 {/if}
 
 <style>
-	.code {
-		white-space: pre-wrap;
-	}
 	:global(body) {
 		min-height: 100vh;
 		display: grid;
@@ -348,13 +336,6 @@
 		box-shadow: 0 0 1px #fc963c;
 	}
 
-	input:checked + .code-btn {
-		color: #fc963c !important;
-	}
-	input:focus + .code-btn {
-		color: #fc963c !important;
-	}
-
 	input:checked + .slider:before {
 		-webkit-transform: translateX(26px);
 		-ms-transform: translateX(26px);
@@ -367,10 +348,6 @@
 
 	.slider.round:before {
 		border-radius: 50%;
-	}
-
-	.code-mobile .block {
-		height: 100%;
 	}
 
 	.mobile-window {
