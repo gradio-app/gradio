@@ -488,15 +488,17 @@
 							dark_mode={false}
 						/>
 					</div>
-					<div class="ml-[2.7rem] mr-2 items-center border-l">
+					<div class="mr-2 items-center -mt-7">
 						{#if generation_error}
 							<div
-								class="bg-red-100 border border-red-200 px-2 my-1 rounded-lg text-red-800 w-fit text-xs float-right"
+								class="pl-2 relative z-10 bg-red-100 border border-red-200 px-2 my-1 rounded-lg text-red-800 w-fit text-xs float-right"
 							>
 								{generation_error}
 							</div>
 						{:else if current_code}
-							<div class="flex items-center float-right">
+							<div
+								class="pl-2 relative z-10 bg-white flex items-center float-right"
+							>
 								<p class="text-gray-600 my-1 text-xs">
 									Prompt will <span style="font-weight: 500">update</span> code in
 									editor
