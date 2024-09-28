@@ -22,10 +22,13 @@
 	const workerUrl = "https://playground-worker.pages.dev/api/generate";
 	let model_info = "";
 
+	let abortController: AbortController | null = null;
+
 	async function* streamFromWorker(
 		query: string,
 		system_prompt: string,
-		system_prompt_8k: string
+		system_prompt_8k: string,
+		signal: AbortSignal
 	) {
 		const response = await fetch(workerUrl, {
 			method: "POST",
@@ -36,7 +39,8 @@
 				query: query,
 				SYSTEM_PROMPT: system_prompt,
 				SYSTEM_PROMPT_8K: system_prompt_8k
-			})
+			}),
+			signal
 		});
 
 		const reader = response.body?.getReader();
@@ -44,6 +48,9 @@
 		let buffer = "";
 
 		while (true) {
+			if (signal.aborted) {
+				throw new DOMException("Aborted", "AbortError");
+			}
 			const { done, value } = reader
 				? await reader.read()
 				: { done: true, value: null };
@@ -67,6 +74,10 @@
 								console.log("Model used:", model_info);
 							} else if (parsed.error) {
 								console.log(parsed.error);
+								generation_error = "Failed to fetch...";
+								await new Promise((resolve) => setTimeout(resolve, 2000));
+								generation_error = "";
+								// }
 							} else if (parsed.info) {
 								console.log(parsed.info);
 							} else if (parsed.choices && parsed.choices.length > 0) {
@@ -82,7 +93,7 @@
 		}
 	}
 
-	async function generate_code(query: string) {
+	async function generate_code(query: string, demo_name: string) {
 		generated = false;
 		let out = "";
 
@@ -90,47 +101,68 @@
 			query = "PROMPT: " + query;
 			query +=
 				"\n\nHere is the existing code that either you or the user has written. If it's relevant to the prompt, use it for context. If it's not relevant, ignore it.\n Existing Code: \n\n" +
-				demos[demos.length - 1].code;
+				code;
 			query +=
 				"\n\nDo NOT include text that is not commented with a #. Your code may ONLY use these libraries: gradio, numpy, pandas, plotly, transformers_js_py and matplotlib.";
 		}
 
+		let queried_index =
+			demos.findIndex((demo) => demo.name === demo_name) ?? demos[0];
+
+		let code_to_compare = demos[queried_index].code;
+
+		abortController = new AbortController();
+
 		for await (const chunk of streamFromWorker(
 			query,
 			SYSTEM_PROMPT.SYSTEM,
-			SYSTEM_PROMPT.SYSTEM_8K
+			SYSTEM_PROMPT.SYSTEM_8K,
+			abortController.signal
 		)) {
 			if (chunk.choices && chunk.choices.length > 0) {
 				const content = chunk.choices[0].delta.content;
 				if (content) {
 					out += content;
-					demos[demos.length - 1].code =
+					demos[queried_index].code =
 						out ||
 						"# Describe your app above, and the LLM will generate the code here.";
-					demos[demos.length - 1].code = demos[
-						demos.length - 1
-					].code.replaceAll("```python\n", "");
-					demos[demos.length - 1].code = demos[
-						demos.length - 1
-					].code.replaceAll("```\n", "");
-					demos[demos.length - 1].code = demos[
-						demos.length - 1
-					].code.replaceAll("```", "");
-					demos[demos.length - 1].code = addShowErrorToLaunch(
-						demos[demos.length - 1].code
+					demos[queried_index].code = demos[queried_index].code.replaceAll(
+						"```python\n",
+						""
+					);
+					demos[queried_index].code = demos[queried_index].code.replaceAll(
+						"```\n",
+						""
+					);
+					demos[queried_index].code = demos[queried_index].code.replaceAll(
+						"```",
+						""
+					);
+					demos[queried_index].code = addShowErrorToLaunch(
+						demos[queried_index].code
 					);
 				}
 			}
 		}
 		generated = true;
-		compare = true;
+		if (selected_demo.name === demo_name) {
+			highlight_changes(code_to_compare, demos[queried_index].code);
+		}
+		abortController = null;
+	}
+
+	function cancelGeneration() {
+		if (abortController) {
+			abortController.abort();
+		}
+		generated = true;
 	}
 
 	let user_query: string;
 
 	function handle_user_query_key_down(e: KeyboardEvent): void {
 		if (e.key === "Enter") {
-			generate_code(user_query);
+			generate_code(user_query, selected_demo.name);
 		}
 	}
 
@@ -143,20 +175,19 @@
 	export let current_selection: string;
 	export let show_nav = true;
 
-	const blank_demo_for_ai_gen = {
+	const blank_demo = {
 		name: "Blank",
 		dir: "Blank",
-		code: "# Describe your app above, and the LLM will generate the code here.",
+		code: "",
 		requirements: []
 	};
 
 	function clear_code() {
-		demos[demos.length - 1].code =
-			"# Describe your app above, and the LLM will generate the code here.";
+		selected_demo.code = "";
 		current_code = false;
 	}
 
-	demos.push(blank_demo_for_ai_gen);
+	demos.push(blank_demo);
 
 	let mounted = false;
 	let controller: {
@@ -234,7 +265,8 @@
 		setTimeout(() => (copied_link = false), 2000);
 	}
 
-	$: selected_demo = demos.find((demo) => demo.name === current_selection);
+	$: selected_demo =
+		demos.find((demo) => demo.name === current_selection) ?? demos[0];
 	$: code = selected_demo?.code || "";
 	$: requirements = selected_demo?.requirements || [];
 	$: requirementsStr = requirements.join("\n"); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
@@ -307,12 +339,10 @@
 	$: if (code) {
 		shared = false;
 	}
-	$: if (
-		demos[demos.length - 1].code &&
-		demos[demos.length - 1].code !==
-			"# Describe your app above, and the LLM will generate the code here."
-	) {
+	$: if (selected_demo.code !== "") {
 		current_code = true;
+	} else {
+		current_code = false;
 	}
 
 	function create_spaces_url() {
@@ -349,7 +379,7 @@
 		if (inserted_lines.length > new_lines.length / 2) {
 			return;
 		}
-		const cm = document.querySelectorAll("#Blank .cm-line");
+		const cm = document.querySelectorAll(".cm-line");
 		for (let line of inserted_lines) {
 			cm[line].classList.add("highlight");
 		}
@@ -373,17 +403,45 @@
 
 	$: if (compare && browser) {
 		if (
-			demos[demos.length - 1].code !==
+			selected_demo.code !==
 			"# Describe your app above, and the LLM will generate the code here."
 		) {
-			highlight_changes(old_answer, demos[demos.length - 1].code);
-			old_answer = demos[demos.length - 1].code;
+			highlight_changes(old_answer, selected_demo.code);
+			old_answer = selected_demo.code;
 			compare = false;
 		}
 	}
 
 	const TABS = ["Code", "Packages"] as const;
 	let selected_tab: (typeof TABS)[number] = "Code";
+	let generate_placeholders = [
+		"What do you want to build?",
+		"What do you want to build? e.g. 'An image to audio app'",
+		"What do you want to build? e.g. 'Demo with event listeners'",
+		"What do you want to build? e.g. 'A tax calculator'",
+		"What do you want to build? e.g. 'Streaming audio'"
+	];
+
+	let update_placeholders = [
+		"What do you want to change?",
+		"What do you want to change? e.g. 'Add a title and description'",
+		"What do you want to change? e.g. 'Replace buttons with listeners'",
+		"What do you want to change? e.g. 'Add a cool animation with JS'",
+		"What do you want to change? e.g. 'Add examples'"
+	];
+
+	let current_placeholder_index = 0;
+
+	function cycle_placeholder() {
+		current_placeholder_index =
+			(current_placeholder_index + 1) % generate_placeholders.length;
+	}
+
+	$: setInterval(cycle_placeholder, 5000);
+
+	let generation_error = "";
+
+	$: generation_error;
 </script>
 
 <svelte:head>
@@ -428,60 +486,9 @@
 					id={selected_demo.dir}
 					style="width: {position * 100}%"
 				>
-					{#if current_code}
-						<div
-							class="flex justify-between align-middle h-8 border-b pl-4 pr-2"
-						>
-							<div class="flex items-center">
-								<p class="text-sm text-gray-600">
-									Prompt includes current code.
-								</p>
-								<div class="clear">
-									<button
-										class="button"
-										on:click={() => {
-											clear_code();
-										}}
-									>
-										CLEAR
-									</button>
-								</div>
-							</div>
-						</div>
-					{/if}
-
-					{#if selected_demo.name === "Blank"}
-						<div class="search-bar">
-							{#if !generated}
-								<div class="loader"></div>
-							{:else}
-								✨
-							{/if}
-							<input
-								bind:value={user_query}
-								on:keydown={handle_user_query_key_down}
-								placeholder="What do you want to build?"
-								autocomplete="off"
-								autocorrect="off"
-								autocapitalize="off"
-								enterkeyhint="go"
-								spellcheck="false"
-								type="search"
-								id="user-query"
-								class:grayed={!generated}
-							/>
-							<button
-								on:click={() => {
-									generate_code(user_query);
-								}}
-								class="text-xs font-semibold rounded-md p-1 border-gray-300 border"
-							>
-								<div class="enter">↵</div>
-							</button>
-						</div>
-					{/if}
-
-					<div class="mt-1 flex-1 flex flex-col">
+					<div
+						class="mt-1 flex-1 flex flex-col relative overflow-scroll code-scroll"
+					>
 						<Tabs selected={selected_tab} elem_classes={["editor-tabs"]}>
 							<TabItem
 								name={TABS[0]}
@@ -489,7 +496,7 @@
 								interactive
 								elem_classes={["editor-tabitem"]}
 							>
-								<div class="relative h-full">
+								<div class="flex-1">
 									<CodeWidget value={selected_demo.code} language="python" />
 									<Code
 										bind:value={selected_demo.code}
@@ -506,7 +513,7 @@
 								interactive
 								elem_classes={["editor-tabitem"]}
 							>
-								<div class="relative h-full">
+								<div class="flex-1">
 									<CodeWidget
 										value={selected_demo.requirements.join("\n")}
 										language="python"
@@ -524,6 +531,82 @@
 								</div>
 							</TabItem>
 						</Tabs>
+					</div>
+
+					<div class="mr-2 items-center -mt-7">
+						{#if generation_error}
+							<div
+								class="pl-2 relative z-10 bg-red-100 border border-red-200 px-2 my-1 rounded-lg text-red-800 w-fit text-xs float-right"
+							>
+								{generation_error}
+							</div>
+						{:else if current_code}
+							<div
+								class="pl-2 relative z-10 bg-white flex items-center float-right"
+							>
+								<p class="text-gray-600 my-1 text-xs">
+									Prompt will <span style="font-weight: 500">update</span> code in
+									editor
+								</p>
+								<div class="clear">
+									<button
+										class="button"
+										on:click={() => {
+											clear_code();
+										}}
+									>
+										CLEAR
+									</button>
+								</div>
+							</div>
+						{/if}
+					</div>
+
+					<div class="search-bar border-t">
+						{#if !generated}
+							<div class="loader"></div>
+						{:else}
+							✨
+						{/if}
+						<input
+							bind:value={user_query}
+							on:keydown={handle_user_query_key_down}
+							placeholder={current_code
+								? update_placeholders[current_placeholder_index]
+								: generate_placeholders[current_placeholder_index]}
+							autocomplete="off"
+							autocorrect="off"
+							autocapitalize="off"
+							enterkeyhint="go"
+							spellcheck="false"
+							type="search"
+							id="user-query"
+							class:grayed={!generated}
+							autofocus={true}
+						/>
+						{#if generated}
+							<button
+								on:click={() => {
+									generate_code(user_query, selected_demo.name);
+								}}
+								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
+							>
+								<div class="enter">Ask AI</div>
+							</button>
+						{:else}
+							<button
+								on:click={() => {
+									cancelGeneration();
+									generation_error = "Cancelled!";
+									setInterval(() => {
+										generation_error = "";
+									}, 2000);
+								}}
+								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-red-100 to-red-50 border border-red-200 px-4 py-0.5 rounded-full text-red-800 hover:shadow"
+							>
+								<div class="enter">Cancel</div>
+							</button>
+						{/if}
 					</div>
 				</div>
 			{/if}
@@ -655,14 +738,15 @@
 	}
 
 	.search-bar {
-		@apply font-sans text-lg z-10 px-4 relative flex flex-none items-center border-b text-gray-500;
+		@apply font-sans z-10 px-4 relative flex flex-none items-center border-b text-gray-500;
 		border-color: #e5e7eb;
 	}
 
 	.search-bar input {
-		@apply text-lg appearance-none h-14 text-black mx-1	flex-auto min-w-0 border-none cursor-text;
+		@apply appearance-none h-14 text-black mx-1	flex-auto min-w-0 border-none cursor-text;
 		outline: none;
 		box-shadow: none;
+		font-size: 1rem;
 	}
 
 	.loader {
@@ -691,7 +775,7 @@
 		display: flex;
 		align-items: center;
 		color: #999b9e;
-		font-size: 12px;
+		font-size: 11px;
 	}
 
 	.button {
@@ -745,5 +829,30 @@
 		.share-btns {
 			top: -5%;
 		}
+	}
+
+	.code-scroll {
+		overflow: auto;
+	}
+
+	/* For Webkit browsers (Chrome, Safari, etc.) */
+	.code-scroll::-webkit-scrollbar {
+		width: 10px; /* width of the entire scrollbar */
+	}
+
+	.code-scroll::-webkit-scrollbar-track {
+		background: transparent; /* color of the tracking area */
+	}
+
+	.code-scroll::-webkit-scrollbar-thumb {
+		background-color: #888; /* color of the scroll thumb */
+		border-radius: 20px; /* roundness of the scroll thumb */
+		border: 3px solid white; /* creates padding around scroll thumb */
+	}
+
+	/* For Firefox */
+	.code-scroll {
+		scrollbar-width: thin;
+		scrollbar-color: #888 transparent;
 	}
 </style>
