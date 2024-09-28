@@ -700,7 +700,7 @@ def is_valid_file(mime_type: str, file_types: list[str]) -> bool:
                 return True
         elif mime_type.startswith(
             f"{file_type}/"
-        ):  # Check if the MIME type starts with the file type
+        ): 
             return True
     return False
 
