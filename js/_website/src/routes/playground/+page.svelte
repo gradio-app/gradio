@@ -101,11 +101,14 @@
 
 <!-- Desktop -->
 {#if on_desktop}
-	<main class="playground flex-col justify-between hidden md:flex">
+	<main
+		class="playground flex-col justify-between hidden md:flex"
+		style="height: 94vh"
+	>
 		<div class="w-full border border-gray-200 shadow-xl h-full relative">
 			<div
-				class="w-[200px] h-full rounded-tr-none rounded-bl-xl overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
-				style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; width: {show_nav
+				class="w-[200px] rounded-tr-none rounded-bl-xl overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
+				style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; height: 100%; width: {show_nav
 					? 200
 					: 37}px;"
 			>
@@ -124,14 +127,10 @@
 						on:click={() => (current_selection = "Blank")}
 						class:current-playground-demo={current_selection == "Blank"}
 						class:shared-link={shared == "Blank"}
-						class="mt-2 mx-4 mr-2 block bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 w-fit hover:shadow"
-						href="./storybook"
+						class="thin-link font-light px-4 block my-2">New Demo</button
 					>
-						Ask AI &rarr;
-					</button>
-
 					{#each data.demos_by_category as { category, demos } (category)}
-						<p class="px-4 my-2">{category}</p>
+						<p class="px-4 my-2 font-medium">{category}</p>
 						{#each demos as demo, i}
 							<button
 								on:click={() => (current_selection = demo.name)}
