@@ -133,7 +133,7 @@ class File(Component):
                 and not client_utils.is_valid_file(mime_type, self.file_types)
             ):
                 raise Error(
-                    f"Invalid file type: {mime_type}. Please choose from: {self.file_types}"
+                    f"Invalid file type: {mime_type}. Please upload a file that is one of these formats: {self.file_types}"
                 )
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
             file.name = file_name
