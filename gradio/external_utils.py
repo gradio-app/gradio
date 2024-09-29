@@ -127,6 +127,7 @@ def text_generation_wrapper(client: InferenceClient):
 
     return text_generation_inner
 
+
 def conversational_wrapper(client: InferenceClient):
     def chat_fn(message, history):
         if not history:
@@ -134,7 +135,9 @@ def conversational_wrapper(client: InferenceClient):
         history.append({"role": "user", "content": message})
         result = client.chat_completion(history)
         return result.choices[0].message.content
+
     return chat_fn
+
 
 def encode_to_base64(r: httpx.Response) -> str:
     # Handles the different ways HF API returns the prediction

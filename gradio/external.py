@@ -36,7 +36,9 @@ if TYPE_CHECKING:
 @document()
 def load(
     name: str,
-    src: Callable[[str, Optional[str], Any, Any], Blocks] | Literal["models", "spaces"] | None = None,
+    src: Callable[[str, Optional[str], Any, Any], Blocks]
+    | Literal["models", "spaces"]
+    | None = None,
     token: str | None = None,
     hf_token: str | None = None,
     *args,
@@ -47,7 +49,7 @@ def load(
     Parameters:
         name: the name of the model (e.g. "google/vit-base-patch16-224") or Space (e.g. "flax-community/spanish-gpt2"). This is the first parameter passed into the `src` function. Can also be formatted as {src}/{repo name} (e.g. "models/google/vit-base-patch16-224") if `src` is not provided.
         src: function that accepts a string model `name` and an optional string `token` and returns a Gradio app. Alternatively, you pass in one of these two strings for convenience: "models" (for loading a Hugging Face model through the Inference API) or "spaces" (for loading a Hugging Face Space). If None, uses the prefix of the `name` parameter to determine `src`.
-        token: optional token that is passed as the second parameter to the `src` function. For Hugging Face repos, uses the local HF token when loading models but not Spaces (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find HF tokens here: https://huggingface.co/settings/tokens. 
+        token: optional token that is passed as the second parameter to the `src` function. For Hugging Face repos, uses the local HF token when loading models but not Spaces (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find HF tokens here: https://huggingface.co/settings/tokens.
         args: additional positional parameter to pass into the `src` function.
         kwargs: additional keyword parameters to pass into the `src` function. If `src` is "models" or "Spaces", these parameters are passed into the `gr.Interface` or `gr.ChatInterface` constructor.
     Returns:
@@ -63,14 +65,14 @@ def load(
             "The `hf_token` parameter is deprecated. Please use the equivalent `token` parameter instead."
         )
     if src is None:
-            # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
-            tokens = name.split("/")
-            if len(tokens) <= 1:
-                raise ValueError(
-                    "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
-                )
-            src = tokens[0]  # type: ignore
-            name = "/".join(tokens[1:])
+        # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
+        tokens = name.split("/")
+        if len(tokens) <= 1:
+            raise ValueError(
+                "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
+            )
+        src = tokens[0]  # type: ignore
+        name = "/".join(tokens[1:])
     if src in ["huggingface", "models", "spaces"]:
         return load_blocks_from_huggingface(
             name=name, src=src, hf_token=token, **kwargs
@@ -81,7 +83,6 @@ def load(
         raise ValueError(
             "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a function that accepts a model name (and optionally, a token), and returns a Gradio app."
         )
-
 
 
 def load_blocks_from_huggingface(
@@ -125,6 +126,7 @@ def from_model(
     GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(  # noqa: N806
         Path(tempfile.gettempdir()) / "gradio"
     )
+
     def custom_post_binary(data):
         data = to_binary({"path": data})
         response = httpx.request("POST", api_url, headers=headers, content=data)
@@ -239,8 +241,14 @@ def from_model(
         # Example: meta-llama/Meta-Llama-3-8B-Instruct
         if tags and "conversational" in tags:
             from gradio import ChatInterface
+
             fn = external_utils.conversational_wrapper(client)
-            examples = ["What is the capital of Pakistan?", "Tell me a joke about calculus.", "Explain gravity to a 5-year-old.", "What were the main causes of World War I?"]
+            examples = [
+                "What is the capital of Pakistan?",
+                "Tell me a joke about calculus.",
+                "Explain gravity to a 5-year-old.",
+                "What were the main causes of World War I?",
+            ]
             return ChatInterface(fn, type="messages", examples=examples)
         inputs = components.Textbox(label="Text")
         outputs = inputs

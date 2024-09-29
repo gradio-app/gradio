@@ -204,7 +204,7 @@ class TestLoadInterface:
 
     def test_sentiment_model(self):
         io = gr.load(
-            "models/distilbert-base-uncased-finetuned-sst-2-english", hf_token=False
+            "models/distilbert-base-uncased-finetuned-sst-2-english", hf_token=None
         )
         try:
             assert io("I am happy, I love you")["label"] == "POSITIVE"
@@ -212,14 +212,14 @@ class TestLoadInterface:
             pass
 
     def test_image_classification_model(self):
-        io = gr.load(name="models/google/vit-base-patch16-224", hf_token=False)
+        io = gr.load(name="models/google/vit-base-patch16-224", hf_token=None)
         try:
             assert io("gradio/test_data/lion.jpg")["label"].startswith("lion")
         except TooManyRequestsError:
             pass
 
     def test_translation_model(self):
-        io = gr.load(name="models/t5-base", hf_token=False)
+        io = gr.load(name="models/t5-base", hf_token=None)
         try:
             output = io("My name is Sarah and I live in London")
             assert output == "Mein Name ist Sarah und ich lebe in London"
@@ -239,7 +239,7 @@ class TestLoadInterface:
             pass
 
     def test_visual_question_answering(self):
-        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa", hf_token=False)
+        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa", hf_token=None)
         try:
             output = io("gradio/test_data/lion.jpg", "What is in the image?")
             assert isinstance(output, dict) and "label" in output
@@ -247,7 +247,7 @@ class TestLoadInterface:
             pass
 
     def test_image_to_text(self):
-        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning", hf_token=False)
+        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning", hf_token=None)
         try:
             output = io("gradio/test_data/lion.jpg")
             assert isinstance(output, str)
@@ -255,7 +255,7 @@ class TestLoadInterface:
             pass
 
     def test_speech_recognition_model(self):
-        io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=False)
+        io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=None)
         try:
             output = io("gradio/test_data/test_audio.wav")
             assert output is not None
