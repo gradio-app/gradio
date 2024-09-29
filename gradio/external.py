@@ -10,7 +10,7 @@ import tempfile
 import warnings
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal, Optional
 
 import httpx
 import huggingface_hub
@@ -37,19 +37,21 @@ if TYPE_CHECKING:
 @document()
 def load(
     name: str,
-    src: str | None = None,
-    token: str | Literal[False] | None = None,
-    hf_token: str | Literal[False] | None = None,
+    src: Callable[[str, Optional[str], Any, Any], Blocks] | Literal["models", "spaces"] | None = None,
+    token: str | None = None,
+    hf_token: str | None = None,
+    *args,
     **kwargs,
 ) -> Blocks:
     """
-    Constructs a demo from a Hugging Face repo. Can accept model repos (if src is "models") or Space repos (if src is "spaces"). The input
-    and output components are automatically loaded from the repo. Note that if a Space is loaded, certain high-level attributes of the Blocks (e.g.
+    Constructs a Gradio app automatically from a Hugging Face model / Space repo or a 3rd-party model / API provider. Note that if a Space is loaded, certain high-level attributes of the Blocks (e.g.
     custom `css`, `js`, and `head` attributes) will not be loaded.
     Parameters:
-        name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
-        src: the source of the model: use "models" to load a Hugging Face model through the Inference API, "spaces" to load a Space, or None to infer the source from the `name` parameter. Can also be any "registry" function that accepts a string model `name` and a string `token` returns a Gradio app.
-        token: optional Hugging Face token for loading private models or Spaces. If None, uses the local Hugging Face token when loading HF models but not HF Spaces (By default, no token is sent to the server, set `hf_token=None` to use the locally saved token if there is one (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). False Find your tokens here: https://huggingface.co/settings/tokens.
+        name: the name of the model (e.g. "meta-llama/Llama-3.1-8B-Instruct") or Space (e.g. "flax-community/spanish-gpt2"). This is the first parameter passed into the `src` function.
+        src: function that accepts a string model `name` and an optional string `token` and returns a Gradio app. Accepts two string shortcuts: "models" (for loading Hugging Face models through the Inference API) and "spaces" (for loading model through Hugging Face Spaces). If None, uses the prefix of the `name` parameter to determine the source.
+        token: optional token that is passed as the second parameter to the `src` function. For Hugging Face repos, uses the local HF token when loading models but not Spaces (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find HF tokens here: https://huggingface.co/settings/tokens. 
+        args: additional positional parameter to pass into the `src` function.
+        kwargs: additional keyword parameters to pass into the `src` function. If `src` is "models" or "Spaces", these parameters are passed into the gr.Interface or gr.ChatInterface constructor.
     Returns:
         a Gradio Blocks object for the given model
     Example:
@@ -57,6 +59,11 @@ def load(
         demo = gr.load("gradio/question-answering", src="spaces")
         demo.launch()
     """
+    if hf_token is not None and token is None:
+        token = hf_token
+        warnings.warn(
+            "The `hf_token` parameter is deprecated. Please use the equivalent `token` parameter instead."
+        )
     if src is None:
             # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
             tokens = name.split("/")
@@ -64,14 +71,14 @@ def load(
                 raise ValueError(
                     "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
                 )
-            src = tokens[0]
+            src = tokens[0]  # type: ignore
             name = "/".join(tokens[1:])
     if src in ["huggingface", "models", "spaces"]:
         return load_blocks_from_huggingface(
             name=name, src=src, hf_token=token, **kwargs
         )
     elif isinstance(src, Callable):
-        return src(name=name, token=token, **kwargs)
+        return src(name, token, *args, **kwargs)
     else:
         raise ValueError(
             "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a Registry function that returns a Gradio app."
