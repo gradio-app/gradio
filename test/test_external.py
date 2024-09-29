@@ -359,7 +359,7 @@ class TestLoadInterfaceWithExamples:
                     name="models/google/vit-base-patch16-224",
                     examples=[Path(test_file_dir, "cheetah1.jpg")],
                     cache_examples=True,
-                    hf_token=False,
+                    hf_token=None,
                 )
             except TooManyRequestsError:
                 pass
