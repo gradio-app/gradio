@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.14.0-beta.4
+
+### Features
+
+- [#9419](https://github.com/gradio-app/gradio/pull/9419) [`018c140`](https://github.com/gradio-app/gradio/commit/018c140ef86cacc8211df05b57b26924dab7fa08) - Start/stop recoding from the backend. Add guide on conversational chatbots.  Thanks @freddyaboulton!
+
 ## 0.14.0-beta.3
 
 ### Features
