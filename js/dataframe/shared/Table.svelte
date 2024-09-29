@@ -427,7 +427,7 @@
 		selected = [index ? index + 1 : data.length - 1, 0];
 	}
 
-	$: data && trigger_change();
+	$: (data || selected_header) && trigger_change();
 
 	async function add_col(): Promise<void> {
 		parent.focus();
