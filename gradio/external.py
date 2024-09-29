@@ -89,7 +89,7 @@ def load(
 def load_blocks_from_huggingface(
     name: str,
     src: str,
-    hf_token: str | Literal[False] | None = False,
+    hf_token: str | Literal[False] | None = None,
     alias: str | None = None,
     **kwargs,
 ) -> Blocks:
@@ -107,6 +107,8 @@ def load_blocks_from_huggingface(
             )
         Context.hf_token = hf_token
 
+    if src == "spaces" and hf_token is None:
+        hf_token = False  # Since Spaces can read the token, we don't want to pass it in unless the user explicitly provides it
     blocks: gradio.Blocks = factory_methods[src](name, hf_token, alias, **kwargs)
     return blocks
 
