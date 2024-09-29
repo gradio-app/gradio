@@ -19,5 +19,6 @@ export const redirects = {
 	"/guides/sharing-your-app#security-and-file-access": "/guides/file-access",
 	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface",
 	"/using_hugging_face_integrations": "/guides/using-hugging-face-integrations",
-	"/main/guides/object-detection-from-webcam": "/main/guides/object-detection-from-webcam-with-webrtc"
+	"/main/guides/object-detection-from-webcam":
+		"/main/guides/object-detection-from-webcam-with-webrtc"
 };
