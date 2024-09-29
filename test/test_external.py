@@ -521,3 +521,24 @@ def test_load_inside_blocks():
     demo = gr.load("spaces/abidlabs/en2fr")
     output = demo("Hello")
     assert isinstance(output, str)
+
+
+def test_load_callable():
+    def mock_src(name: str, token: str | None, *args, **kwargs) -> gr.Blocks:
+        assert name == "test_model"
+        assert token == "test_token"
+        assert args == ("extra_arg",)
+        assert kwargs == {"param1": "value1", "param2": "value2"}
+        return gr.Blocks()
+
+    result = gr.load(
+        "test_model",
+        mock_src,
+        "test_token",
+        None,
+        "extra_arg",
+        param1="value1",
+        param2="value2",
+    )
+
+    assert isinstance(result, gr.Blocks)
