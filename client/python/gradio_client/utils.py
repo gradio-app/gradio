@@ -694,13 +694,9 @@ def is_valid_file(mime_type: str, file_types: list[str]) -> bool:
         if file_type.startswith("."):
             file_type = file_type.lstrip(".").lower()
             mime_type_split = mime_type.lower().split("/")
-            if (
-                file_type in mime_type_split
-            ):  # Check if the MIME type matches the file extension
+            if file_type == mime_type_split[1]:
                 return True
-        elif mime_type.startswith(
-            f"{file_type}/"
-        ): 
+        elif mime_type.startswith(f"{file_type}/"):
             return True
     return False
 

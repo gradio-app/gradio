@@ -14,6 +14,7 @@ from typing_extensions import NotRequired
 from gradio.components.base import Component, FormComponent
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -158,6 +159,15 @@ class MultimodalTextbox(FormComponent):
         """
         if payload is None:
             return None
+        if self.file_types is not None:
+            for f in payload.files:
+                mime_type = f.mime_type
+                if mime_type and not client_utils.is_valid_file(
+                    mime_type, self.file_types
+                ):
+                    raise Error(
+                        f"Invalid file type: {mime_type}. Please upload a file that is one of these formats: {self.file_types}"
+                    )
         return {
             "text": payload.text,
             "files": [f.path for f in payload.files],
