@@ -38,8 +38,8 @@ if TYPE_CHECKING:
 def load(
     name: str,
     src: str | None = None,
-    hf_token: str | Literal[False] | None = False,
-    alias: str | None = None,
+    token: str | Literal[False] | None = None,
+    hf_token: str | Literal[False] | None = None,
     **kwargs,
 ) -> Blocks:
     """
@@ -48,9 +48,8 @@ def load(
     custom `css`, `js`, and `head` attributes) will not be loaded.
     Parameters:
         name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
-        src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-        hf_token: optional Hugging Face token for loading private models or Spaces. By default, no token is sent to the server, set `hf_token=None` to use the locally saved token if there is one (warning: when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find your tokens here: https://huggingface.co/settings/tokens.
-        alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
+        src: the source of the model: use "models" to load a Hugging Face model through the Inference API, "spaces" to load a Space, or None to infer the source from the `name` parameter. Can also be any "registry" function that accepts a string model `name` and a string `token` returns a Gradio app.
+        token: optional Hugging Face token for loading private models or Spaces. If None, uses the local Hugging Face token when loading HF models but not HF Spaces (By default, no token is sent to the server, set `hf_token=None` to use the locally saved token if there is one (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). False Find your tokens here: https://huggingface.co/settings/tokens.
     Returns:
         a Gradio Blocks object for the given model
     Example:
@@ -58,38 +57,42 @@ def load(
         demo = gr.load("gradio/question-answering", src="spaces")
         demo.launch()
     """
-    return load_blocks_from_repo(
-        name=name, src=src, hf_token=hf_token, alias=alias, **kwargs
-    )
+    if src is None:
+            # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
+            tokens = name.split("/")
+            if len(tokens) <= 1:
+                raise ValueError(
+                    "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
+                )
+            src = tokens[0]
+            name = "/".join(tokens[1:])
+    if src in ["huggingface", "models", "spaces"]:
+        return load_blocks_from_huggingface(
+            name=name, src=src, hf_token=token, **kwargs
+        )
+    elif isinstance(src, Callable):
+        return src(name=name, token=token, **kwargs)
+    else:
+        raise ValueError(
+            "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a Registry function that returns a Gradio app."
+        )
 
 
-def load_blocks_from_repo(
+
+def load_blocks_from_huggingface(
     name: str,
-    src: str | None = None,
+    src: str,
     hf_token: str | Literal[False] | None = False,
     alias: str | None = None,
     **kwargs,
 ) -> Blocks:
     """Creates and returns a Blocks instance from a Hugging Face model or Space repo."""
-    if src is None:
-        # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
-        tokens = name.split("/")
-        if len(tokens) <= 1:
-            raise ValueError(
-                "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
-            )
-        src = tokens[0]
-        name = "/".join(tokens[1:])
-
     factory_methods: dict[str, Callable] = {
         # for each repo type, we have a method that returns the Interface given the model name & optionally an hf_token
         "huggingface": from_model,
         "models": from_model,
         "spaces": from_spaces,
     }
-    if src.lower() not in factory_methods:
-        raise ValueError(f"parameter: src must be one of {factory_methods.keys()}")
-
     if hf_token is not None and hf_token is not False:
         if Context.hf_token is not None and Context.hf_token != hf_token:
             warnings.warn(
