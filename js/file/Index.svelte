@@ -44,6 +44,9 @@
 	}>;
 	export let file_count: "single" | "multiple" | "directory";
 	export let file_types: string[] = ["file"];
+	export let input_ready: boolean;
+	let uploading = false;
+	$: input_ready = !uploading;
 
 	let old_value = value;
 	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
@@ -88,8 +91,8 @@
 		/>
 	{:else}
 		<FileUpload
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 			{label}
 			{show_label}
 			{value}
@@ -98,6 +101,7 @@
 			selectable={_selectable}
 			{root}
 			{height}
+			bind:uploading
 			max_file_size={gradio.max_file_size}
 			on:change={({ detail }) => {
 				value = detail;

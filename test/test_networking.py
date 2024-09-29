@@ -5,6 +5,7 @@ import os
 from fastapi.testclient import TestClient
 
 from gradio import Interface, networking
+from gradio.route_utils import API_PREFIX
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -14,7 +15,9 @@ class TestInterfaceErrors:
         io = Interface(lambda x: 1 / x, "number", "number")
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/predict/", json={"data": [0], "fn_index": 0})
+        response = client.post(
+            f"{API_PREFIX}/api/predict/", json={"data": [0], "fn_index": 0}
+        )
         assert response.status_code == 500
         assert "error" in response.json()
         io.close()
@@ -23,7 +26,7 @@ class TestInterfaceErrors:
         io = Interface(lambda x: 1 / x, "number", "number")
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/predict/", json={"fn_index": [0]})
+        response = client.post(f"{API_PREFIX}/api/predict/", json={"fn_index": [0]})
         assert response.status_code == 422
         io.close()
 
@@ -43,9 +46,9 @@ def test_start_server_app_kwargs():
         show_error=True,
         prevent_thread_lock=True,
         app_kwargs={
-            "docs_url": "/docs",
+            "docs_url": f"{API_PREFIX}/docs",
         },
     )
     client = TestClient(app)
-    assert client.get("/docs").status_code == 200
+    assert client.get(f"{API_PREFIX}/docs").status_code == 200
     io.close()

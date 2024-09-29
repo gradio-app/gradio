@@ -43,9 +43,13 @@ class TestChatbot:
             "min_width": 160,
             "scale": None,
             "placeholder": None,
-            "height": None,
+            "height": 400,
+            "max_height": None,
+            "min_height": None,
             "proxy_url": None,
             "_selectable": False,
+            "_retryable": False,
+            "_undoable": False,
             "key": None,
             "type": "tuples",
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
@@ -59,6 +63,8 @@ class TestChatbot:
             "line_breaks": True,
             "layout": None,
             "show_copy_all_button": False,
+            "suggestion_selectable": False,
+            "suggestions": None,
         }
 
     def test_avatar_images_are_moved_to_cache(self):

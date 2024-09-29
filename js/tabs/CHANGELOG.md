@@ -1,5 +1,25 @@
 # @gradio/tabs
 
+## 0.3.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.2
+
+## 0.3.0-beta.1
+
+### Features
+
+- [#9199](https://github.com/gradio-app/gradio/pull/9199) [`3175c7a`](https://github.com/gradio-app/gradio/commit/3175c7aebc6ad2466d31d6949580f5a3cb4cd698) - Redesign `gr.Tabs()`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.1
+
 ## 0.2.14
 
 ### Fixes

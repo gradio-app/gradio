@@ -1,8 +1,5 @@
 import asyncio
-import json
 import os
-import shutil
-import subprocess
 import tempfile
 import time
 from pathlib import Path
@@ -18,6 +15,7 @@ from tqdm import tqdm
 
 import gradio as gr
 from gradio import helpers, utils
+from gradio.route_utils import API_PREFIX
 
 
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
@@ -376,10 +374,10 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        len_input_audio = len(AudioSegment.from_wav(audio))
-        len_output_audio = len(AudioSegment.from_wav(prediction[0].path))
+        len_input_audio = len(AudioSegment.from_file(audio))
+        len_output_audio = len(AudioSegment.from_file(prediction[0].path))
         length_ratio = len_output_audio / len_input_audio
-        assert round(length_ratio, 1) == 3.0  # might not be exactly 3x
+        assert 3 <= round(length_ratio, 1) < 4  # might not be exactly 3x
         assert float(prediction[1]) == 10.0
 
     def test_caching_with_async_generators(self, patched_cache_folder):
@@ -458,7 +456,9 @@ class TestProcessExamples:
 
     def test_caching_with_batch(self, patched_cache_folder):
         def trim_words(words, lens):
-            trimmed_words = [word[:length] for word, length in zip(words, lens)]
+            trimmed_words = [
+                word[:length] for word, length in zip(words, lens, strict=False)
+            ]
             return [trimmed_words]
 
         io = gr.Interface(
@@ -475,7 +475,9 @@ class TestProcessExamples:
 
     def test_caching_with_batch_multiple_outputs(self, patched_cache_folder):
         def trim_words(words, lens):
-            trimmed_words = [word[:length] for word, length in zip(words, lens)]
+            trimmed_words = [
+                word[:length] for word, length in zip(words, lens, strict=False)
+            ]
             return trimmed_words, lens
 
         io = gr.Interface(
@@ -528,7 +530,7 @@ class TestProcessExamples:
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/load_example/", json={"data": [0]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
         assert response.json()["data"] == [
             {
                 "lines": 1,
@@ -545,10 +547,12 @@ class TestProcessExamples:
                 "visible": True,
                 "value": "Hello,",
                 "type": "text",
+                "stop_btn": False,
+                "submit_btn": False,
             }
         ]
 
-        response = client.post("/api/load_example/", json={"data": [1]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         assert response.json()["data"] == [
             {
                 "lines": 1,
@@ -565,6 +569,8 @@ class TestProcessExamples:
                 "visible": True,
                 "value": "Michael",
                 "type": "text",
+                "stop_btn": False,
+                "submit_btn": False,
             }
         ]
 
@@ -589,10 +595,10 @@ class TestProcessExamples:
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/load_example/", json={"data": [0]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
         assert response.json()["data"] == ["Hello,", "World", "Hello, World"]
 
-        response = client.post("/api/load_example/", json={"data": [1]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]
 
     def test_end_to_end_lazy_cache_examples(self, patched_cache_folder):
@@ -612,19 +618,20 @@ class TestProcessExamples:
                 inputs=[i1, t],
                 outputs=[i2],
                 fn=image_identity,
-                cache_examples="lazy",
+                cache_examples=True,
+                cache_mode="lazy",
                 api_name="load_example",
             )
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
-        response = client.post("/api/load_example/", json={"data": [0]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
         data = response.json()["data"]
         assert data[0]["value"]["path"].endswith("cheetah1.jpg")
         assert data[1]["value"] == "cheetah"
 
-        response = client.post("/api/load_example/", json={"data": [1]})
+        response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         data = response.json()["data"]
         assert data[0]["value"]["path"].endswith("bus.png")
         assert data[1]["value"] == "bus"
@@ -671,56 +678,6 @@ def test_examples_keep_all_suffixes(tmp_path):
         assert Path(prediction[0].path).read_text() == "file 2"
         assert prediction[0].orig_name == "foo.bar.txt"
         assert prediction[0].path.endswith("foo.bar.txt")
-
-
-def test_make_waveform_with_spaces_in_filename():
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        audio = os.path.join(tmpdirname, "test audio.wav")
-        shutil.copy("test/test_files/audio_sample.wav", audio)
-        waveform = gr.make_waveform(audio)
-        assert waveform.endswith(".mp4")
-
-        try:
-            command = [
-                "ffprobe",
-                "-v",
-                "error",
-                "-select_streams",
-                "v:0",
-                "-show_entries",
-                "stream=width,height",
-                "-of",
-                "json",
-                waveform,
-            ]
-
-            result = subprocess.run(command, capture_output=True, text=True, check=True)
-            output = result.stdout
-            data = json.loads(output)
-
-            width = data["streams"][0]["width"]
-            height = data["streams"][0]["height"]
-            assert width == 1000
-            assert height == 400
-
-        except subprocess.CalledProcessError as e:
-            print("Error retrieving resolution of output waveform video:", e)
-
-
-def test_make_waveform_raises_if_ffmpeg_fails(tmp_path, monkeypatch):
-    """
-    Test that make_waveform raises an exception if ffmpeg fails,
-    instead of returning a path to a non-existent or empty file.
-    """
-    audio = tmp_path / "test audio.wav"
-    shutil.copy("test/test_files/audio_sample.wav", audio)
-
-    def _failing_ffmpeg(*args, **kwargs):
-        raise subprocess.CalledProcessError(1, "ffmpeg")
-
-    monkeypatch.setattr(subprocess, "call", _failing_ffmpeg)
-    with pytest.raises(Exception):
-        gr.make_waveform(str(audio))
 
 
 class TestProgressBar:

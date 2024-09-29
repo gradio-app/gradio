@@ -204,6 +204,7 @@ def chatbot_postprocess(response):
         zip(
             response["conversation"]["past_user_inputs"],
             response["conversation"]["generated_responses"],
+            strict=False,
         )
     )
     return chatbot_history, response

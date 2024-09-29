@@ -16,6 +16,7 @@
 	export let gradio: Gradio<{
 		change: typeof value;
 		submit: never;
+		stop: never;
 		blur: never;
 		select: SelectData;
 		input: never;
@@ -40,7 +41,8 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let submit_btn: string | null = null;
+	export let submit_btn: string | boolean | null = null;
+	export let stop_btn: string | boolean | null = null;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
 	export let rtl = false;
@@ -88,6 +90,7 @@
 		max_lines={!max_lines ? lines + 1 : max_lines}
 		{placeholder}
 		{submit_btn}
+		{stop_btn}
 		{autofocus}
 		{container}
 		{autoscroll}
@@ -96,6 +99,7 @@
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
+		on:stop={() => gradio.dispatch("stop")}
 		on:blur={() => gradio.dispatch("blur")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:focus={() => gradio.dispatch("focus")}
@@ -103,15 +107,7 @@
 			gradio.dispatch("error", detail);
 		}}
 		disabled={!interactive}
-		upload={gradio.client.upload}
-		stream_handler={gradio.client.stream}
+		upload={(...args) => gradio.client.upload(...args)}
+		stream_handler={(...args) => gradio.client.stream(...args)}
 	/>
 </Block>
-
-<style>
-	:global(.form .block.multimodal-textbox) {
-		box-shadow: var(--block-shadow) !important;
-		border-width: var(--block-border-width) !important;
-		border-radius: var(--block-radius) !important;
-	}
-</style>

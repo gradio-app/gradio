@@ -1,5 +1,48 @@
 # website
 
+## 0.39.0-beta.3
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.3
+
+## 0.39.0-beta.2
+
+### Features
+
+- [#9326](https://github.com/gradio-app/gradio/pull/9326) [`7afb9a1`](https://github.com/gradio-app/gradio/commit/7afb9a14fa64310eb8b70f43a3bad373e46e36c1) - 5.0 merge take 2.  Thanks @pngwn!
+- [#9382](https://github.com/gradio-app/gradio/pull/9382) [`9e70832`](https://github.com/gradio-app/gradio/commit/9e7083286d5681b5fc623304a97d5a24fe6d6080) - Fixes website build in 5.0-dev.  Thanks @aliabd!
+- [#9379](https://github.com/gradio-app/gradio/pull/9379) [`0cad5f3`](https://github.com/gradio-app/gradio/commit/0cad5f348a846024b95b92fb48f88137ccfcd589) - Testing CI.  Thanks @aliabd!
+- [#9402](https://github.com/gradio-app/gradio/pull/9402) [`060acb3`](https://github.com/gradio-app/gradio/commit/060acb3b469530a3ea14275970b7028598052ef1) - Fixes annoying height bug in playground.  Thanks @aliabd!
+- [#9397](https://github.com/gradio-app/gradio/pull/9397) [`4be0933`](https://github.com/gradio-app/gradio/commit/4be0933d3a39099fd573d7db42416d7acef7f40f) - Fix gradio.js aws path.  Thanks @aliabd!
+- [#9343](https://github.com/gradio-app/gradio/pull/9343) [`322ac54`](https://github.com/gradio-app/gradio/commit/322ac5499ec5a8541039bf329e2525e9d24ed2cc) - Add info about Powershell client.  Thanks @abidlabs!
+- [#9233](https://github.com/gradio-app/gradio/pull/9233) [`9a85ccc`](https://github.com/gradio-app/gradio/commit/9a85cccf160118fccfb78dc1edcc7c51ff88de6c) - Adds LLM to the Playground.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.2
+- @gradio/paramviewer@0.4.22-beta.2
+
+## 0.39.0-beta.1
+
+### Features
+
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/code@0.9.1-beta.1
+- @gradio/paramviewer@0.4.22-beta.1
+
+## 0.39.0-beta.0
+
+### Features
+
+- [#9194](https://github.com/gradio-app/gradio/pull/9194) [`20c0836`](https://github.com/gradio-app/gradio/commit/20c0836ed0e0698dbc81d2a4bda04363fd857334) - Deprecate type='tuples for chatbot and focus chatbot docs on 'messages' type.  Thanks @freddyaboulton!
+- [#9213](https://github.com/gradio-app/gradio/pull/9213) [`ab4580b`](https://github.com/gradio-app/gradio/commit/ab4580bd5f755a07c9a9bd2a775220a9a2085f8c) - Remove grey background behind all components.  Thanks @hannahblair!
+- [#9206](https://github.com/gradio-app/gradio/pull/9206) [`bdbcf7b`](https://github.com/gradio-app/gradio/commit/bdbcf7b0e374c0769178767a1502cd310312278b) - Cloudflare migration.  Thanks @aliabd!
+- [#9156](https://github.com/gradio-app/gradio/pull/9156) [`8deeeb6`](https://github.com/gradio-app/gradio/commit/8deeeb6d1b83296e5174c2891b80fb317991289e) - File access security guide.  Thanks @freddyaboulton!
+
 ## 0.39.0
 
 ### Features
@@ -18,8 +61,8 @@
 
 ### Dependency updates
 
-- @gradio/code@0.9.1
-- @gradio/paramviewer@0.4.22
+- @gradio/paramviewer@0.4.22-beta.0
+- @gradio/code@0.9.1-beta.0
 
 ## 0.38.0
 
