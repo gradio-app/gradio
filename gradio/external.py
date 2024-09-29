@@ -44,16 +44,15 @@ def load(
     **kwargs,
 ) -> Blocks:
     """
-    Constructs a Gradio app automatically from a Hugging Face model / Space repo or a 3rd-party model / API provider. Note that if a Space is loaded, certain high-level attributes of the Blocks (e.g.
-    custom `css`, `js`, and `head` attributes) will not be loaded.
+    Constructs a Gradio app automatically from a Hugging Face model/Space repo name or a 3rd-party API provider. Note that if a Space repo is loaded, certain high-level attributes of the Blocks (e.g. custom `css`, `js`, and `head` attributes) will not be loaded.
     Parameters:
-        name: the name of the model (e.g. "meta-llama/Llama-3.1-8B-Instruct") or Space (e.g. "flax-community/spanish-gpt2"). This is the first parameter passed into the `src` function.
-        src: function that accepts a string model `name` and an optional string `token` and returns a Gradio app. Accepts two string shortcuts: "models" (for loading Hugging Face models through the Inference API) and "spaces" (for loading model through Hugging Face Spaces). If None, uses the prefix of the `name` parameter to determine the source.
+        name: the name of the model (e.g. "google/vit-base-patch16-224") or Space (e.g. "flax-community/spanish-gpt2"). This is the first parameter passed into the `src` function. Can also be formatted as {src}/{repo name} (e.g. "models/google/vit-base-patch16-224") if `src` is not provided.
+        src: function that accepts a string model `name` and an optional string `token` and returns a Gradio app. Alternatively, you pass in one of these two strings for convenience: "models" (for loading a Hugging Face model through the Inference API) or "spaces" (for loading a Hugging Face Space). If None, uses the prefix of the `name` parameter to determine `src`.
         token: optional token that is passed as the second parameter to the `src` function. For Hugging Face repos, uses the local HF token when loading models but not Spaces (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find HF tokens here: https://huggingface.co/settings/tokens. 
         args: additional positional parameter to pass into the `src` function.
-        kwargs: additional keyword parameters to pass into the `src` function. If `src` is "models" or "Spaces", these parameters are passed into the gr.Interface or gr.ChatInterface constructor.
+        kwargs: additional keyword parameters to pass into the `src` function. If `src` is "models" or "Spaces", these parameters are passed into the `gr.Interface` or `gr.ChatInterface` constructor.
     Returns:
-        a Gradio Blocks object for the given model
+        a Gradio Blocks app for the given model
     Example:
         import gradio as gr
         demo = gr.load("gradio/question-answering", src="spaces")
@@ -81,7 +80,7 @@ def load(
         return src(name, token, *args, **kwargs)
     else:
         raise ValueError(
-            "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a Registry function that returns a Gradio app."
+            "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a function that accepts a model name (and optionally, a token), and returns a Gradio app."
         )
 
 
