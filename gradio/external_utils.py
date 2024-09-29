@@ -9,9 +9,20 @@ import warnings
 
 import httpx
 import yaml
-from huggingface_hub import InferenceClient
+from huggingface_hub import HfApi, InferenceClient
 
 from gradio import components
+
+
+def get_model_info(model_name, hf_token=None):
+    hf_api = HfApi(token=hf_token)
+    print(f"Fetching model from: https://huggingface.co/{model_name}")
+
+    model_info = hf_api.model_info(model_name)
+    pipeline = model_info.pipeline_tag
+    tags = model_info.tags
+    return pipeline, tags
+
 
 ##################
 # Helper functions for processing tabular data
@@ -116,6 +127,14 @@ def text_generation_wrapper(client: InferenceClient):
 
     return text_generation_inner
 
+def conversational_wrapper(client: InferenceClient):
+    def chat_fn(message, history):
+        if not history:
+            history = []
+        history.append({"role": "user", "content": message})
+        result = client.chat_completion(history)
+        return result.choices[0].message.content
+    return chat_fn
 
 def encode_to_base64(r: httpx.Response) -> str:
     # Handles the different ways HF API returns the prediction

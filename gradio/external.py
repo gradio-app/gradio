@@ -24,7 +24,6 @@ from gradio import components, external_utils, utils
 from gradio.context import Context
 from gradio.exceptions import (
     GradioVersionIncompatibleError,
-    ModelNotFoundError,
     TooManyRequestsError,
 )
 from gradio.processing_utils import save_base64_to_cache, to_binary
@@ -114,31 +113,18 @@ def load_blocks_from_huggingface(
 
 def from_model(
     model_name: str, hf_token: str | Literal[False] | None, alias: str | None, **kwargs
-):
-    model_url = f"https://huggingface.co/{model_name}"
-    api_url = f"https://api-inference.huggingface.co/models/{model_name}"
-    print(f"Fetching model from: {model_url}")
-
-    headers = (
-        {} if hf_token in [False, None] else {"Authorization": f"Bearer {hf_token}"}
-    )
-    response = httpx.request("GET", api_url, headers=headers)
-    if response.status_code != 200:
-        raise ModelNotFoundError(
-            f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `hf_token` parameter."
-        )
-    p = response.json().get("pipeline_tag")
-
-    headers["X-Wait-For-Model"] = "true"
+) -> Blocks:
+    headers = {"X-Wait-For-Model": "true"}
     client = huggingface_hub.InferenceClient(
         model=model_name, headers=headers, token=hf_token
     )
+    p, tags = external_utils.get_model_info(model_name, hf_token)
 
     # For tasks that are not yet supported by the InferenceClient
+    api_url = f"https://api-inference.huggingface.co/models/{model_name}"
     GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(  # noqa: N806
         Path(tempfile.gettempdir()) / "gradio"
     )
-
     def custom_post_binary(data):
         data = to_binary({"path": data})
         response = httpx.request("POST", api_url, headers=headers, content=data)
@@ -250,6 +236,12 @@ def from_model(
         fn = client.text_classification
     # Example: gpt2
     elif p == "text-generation":
+        # Example: meta-llama/Meta-Llama-3-8B-Instruct
+        if tags and "conversational" in tags:
+            from gradio import ChatInterface
+            fn = external_utils.conversational_wrapper(client)
+            examples = ["What is the capital of Pakistan?", "Tell me a joke about calculus.", "Explain gravity to a 5-year-old.", "What were the main causes of World War I?"]
+            return ChatInterface(fn, type="messages", examples=examples)
         inputs = components.Textbox(label="Text")
         outputs = inputs
         examples = ["Once upon a time"]
