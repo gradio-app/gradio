@@ -611,7 +611,7 @@
 				</div>
 			{/if}
 			<div
-				class="preview w-full mx-auto"
+				class="preview w-full mx-auto flex flex-col"
 				style="width: {fullscreen ? 100 : (1 - position) * 100}%"
 				class:fullscreen
 				bind:clientWidth={preview_width}
@@ -670,7 +670,7 @@
 					</div>
 				</div>
 
-				<div class="h-[93%] pl-3" id="lite-demo" />
+				<div class="flex-1 pl-3" id="lite-demo" />
 			</div>
 		</div>
 	</Slider>
