@@ -265,9 +265,7 @@
 		url.searchParams.set("code", code_b64);
 		url.searchParams.set("reqs", reqs_b64);
 
-		await navigator.clipboard.writeText(
-			url.toString()
-		);
+		await navigator.clipboard.writeText(url.toString());
 		copied_link = true;
 		shared = true;
 		setTimeout(() => (copied_link = false), 2000);
