@@ -44,7 +44,7 @@
 	"exports": {
 		".": {
 			"default": "./dist/index.js",
-			"import": "./dist/index.js",			
+			"import": "./dist/index.js",
 			"gradio": "./src/index.ts",
 			"svelte": "./dist/src/index.js",
 			"types": "./dist/index.d.ts"
