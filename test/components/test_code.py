@@ -45,6 +45,7 @@ class TestCode:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "wrap_lines": False,
             "key": None,
         }
 

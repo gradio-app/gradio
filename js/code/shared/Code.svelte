@@ -25,6 +25,7 @@
 	export let use_tab = true;
 	export let readonly = false;
 	export let placeholder: string | HTMLElement | null | undefined = undefined;
+	export let wrap_lines = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -205,7 +206,9 @@
 		}
 
 		extensions.push(EditorView.updateListener.of(handle_change));
-		extensions.push(EditorView.lineWrapping);
+		if (wrap_lines) {
+			extensions.push(EditorView.lineWrapping);
+		}
 		return extensions;
 	}
 

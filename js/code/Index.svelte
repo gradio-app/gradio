@@ -38,6 +38,7 @@
 	export let loading_status: LoadingStatus;
 	export let scale: number | null = null;
 	export let min_width: number | null = null;
+	export let wrap_lines = false;
 
 	export let interactive: boolean;
 
@@ -89,6 +90,7 @@
 			{lines}
 			{max_lines}
 			{dark_mode}
+			{wrap_lines}
 			readonly={!interactive}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
