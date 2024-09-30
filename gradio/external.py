@@ -163,20 +163,6 @@ def from_model(
             "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
         ]
         fn = client.automatic_speech_recognition
-    # example model: microsoft/DialoGPT-medium
-    elif p == "conversational":
-        inputs = [
-            components.Textbox(render=False),
-            components.State(render=False),
-        ]
-        outputs = [
-            components.Chatbot(render=False),
-            components.State(render=False),
-        ]
-        examples = [["Hello World"]]
-        preprocess = external_utils.chatbot_preprocess
-        postprocess = external_utils.chatbot_postprocess
-        fn = client.conversational
     # example model: julien-c/distilbert-feature-extraction
     elif p == "feature-extraction":
         inputs = components.Textbox(label="Input")
