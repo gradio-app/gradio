@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.14.0-beta.4
+
+### Features
+
+- [#9453](https://github.com/gradio-app/gradio/pull/9453) [`56dbf77`](https://github.com/gradio-app/gradio/commit/56dbf77671012015efd3c745bc33e5074ab7158f) - Chatbot bug fixes.  Thanks @dawoodkhan82!
+
 ## 0.14.0-beta.3
 
 ### Dependency updates
