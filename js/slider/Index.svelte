@@ -209,7 +209,7 @@
 	input[type="range"]::-webkit-slider-runnable-track {
 		background: linear-gradient(
 			to right,
-			var(--color-accent) var(--range_progress),
+			var(--slider-color) var(--range_progress),
 			var(--neutral-200) var(--range_progress)
 		);
 	}
@@ -236,7 +236,7 @@
 
 	input[type="range"]::-moz-range-progress {
 		height: var(--size-2);
-		background-color: var(--color-accent);
+		background-color: var(--slider-color);
 		border-radius: var(--radius-xl);
 	}
 
