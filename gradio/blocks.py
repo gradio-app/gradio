@@ -298,7 +298,7 @@ class Block:
             url_or_file_path = str(url_or_file_path)
 
         if client_utils.is_http_url_like(url_or_file_path):
-            temp_file_path = await processing_utils.async_save_url_to_cache(
+            temp_file_path = await processing_utils.async_ssrf_protected_download(
                 url_or_file_path, cache_dir=self.GRADIO_CACHE
             )
 
