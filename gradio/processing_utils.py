@@ -380,7 +380,9 @@ async def async_validate_url(url: str) -> str:
 async def async_get_with_secure_transport(
     url: str, trust_hostname: bool = False
 ) -> httpx.Response:
-    if trust_hostname:
+    if wasm_utils.IS_WASM:
+        transport = PyodideHttpTransport()
+    elif trust_hostname:
         transport = None
     else:
         verified_ip = await async_validate_url(url)
