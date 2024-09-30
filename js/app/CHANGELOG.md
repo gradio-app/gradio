@@ -1,5 +1,15 @@
 # @self/app
 
+## 1.41.0-beta.3
+
+### Features
+
+- [#9427](https://github.com/gradio-app/gradio/pull/9427) [`b672deb`](https://github.com/gradio-app/gradio/commit/b672deb240e1934f3cde6d257dbe93e3fa8b1857) - fix css.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.3
+
 ## 1.41.0-beta.2
 
 ### Features

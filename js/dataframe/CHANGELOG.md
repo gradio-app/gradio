@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.11.0-beta.4
+
+### Features
+
+- [#9469](https://github.com/gradio-app/gradio/pull/9469) [`f7c3396`](https://github.com/gradio-app/gradio/commit/f7c3396f55a5b8364d3880a29d766bd092d7f840) - Fix. Triggered dataframe change event for header change.  Thanks @Joodith!
+
 ## 0.11.0-beta.3
 
 ### Dependency updates
