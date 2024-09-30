@@ -34,6 +34,7 @@
 		theme_hash?: number;
 		username: string | null;
 		api_prefix?: string;
+		max_file_size?: number;
 	}
 
 	let id = -1;
@@ -507,6 +508,8 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
+			api_prefix={config.api_prefix || ""}
+			max_file_size={config.max_file_size}
 			initial_layout={undefined}
 			search_params={new URLSearchParams(window.location.search)}
 		/>

@@ -70,7 +70,6 @@
 	}
 	$: _sort = reformat_sort(sort);
 	export let _selectable = false;
-	export let target: HTMLDivElement;
 	let _data: {
 		[x: string]: string | number;
 	}[];
@@ -131,8 +130,9 @@
 
 	const is_browser = typeof window !== "undefined";
 	let chart_element: HTMLDivElement;
-	$: computed_style =
-		target && is_browser ? window.getComputedStyle(target) : null;
+	$: computed_style = chart_element
+		? window.getComputedStyle(chart_element)
+		: null;
 	let view: View;
 	let mounted = false;
 	let old_width: number;
