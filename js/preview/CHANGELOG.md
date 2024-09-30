@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.11.2
+
+### Features
+
+- [#9478](https://github.com/gradio-app/gradio/pull/9478) [`00d1846`](https://github.com/gradio-app/gradio/commit/00d18463ffeb49d882003f1e4c8bb72f8f7fb596) - fix exports in `main`.  Thanks @abidlabs!
+
 ## 0.11.1
 
 ### Fixes
