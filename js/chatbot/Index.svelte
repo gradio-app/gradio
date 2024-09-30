@@ -12,7 +12,12 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { Message, TupleFormat, NormalisedMessage } from "./types";
+	import type {
+		Message,
+		SuggestionMessage,
+		TupleFormat,
+		NormalisedMessage
+	} from "./types";
 
 	import { normalise_tuples, normalise_messages } from "./shared/utils";
 
@@ -51,11 +56,11 @@
 		error: string;
 		like: LikeData;
 		clear_status: LoadingStatus;
+		suggestion_select: SelectData;
 		retry: UndoRetryData;
 		undo: UndoRetryData;
 		clear: null;
 	}>;
-	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
 	let _value: NormalisedMessage[] | null = [];
 
@@ -64,11 +69,14 @@
 			? normalise_tuples(value as TupleFormat, root)
 			: normalise_messages(value as Message[], root);
 
+	export let avatar_images: [FileData | null, FileData | null] = [null, null];
+	export let like_user_message = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height: number | string | undefined;
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
 	export let placeholder: string | null = null;
+	export let suggestions: SuggestionMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 </script>
 
@@ -119,11 +127,14 @@
 			generating={loading_status?.status === "generating"}
 			{rtl}
 			{show_copy_button}
+			{like_user_message}
 			on:change={() => gradio.dispatch("change", value)}
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
+			on:suggestion_select={(e) =>
+				gradio.dispatch("suggestion_select", e.detail)}
 			on:retry={(e) => gradio.dispatch("retry", e.detail)}
 			on:undo={(e) => gradio.dispatch("undo", e.detail)}
 			on:clear={() => {
@@ -136,10 +147,11 @@
 			{line_breaks}
 			{layout}
 			{placeholder}
+			{suggestions}
 			{_retryable}
 			{_undoable}
-			upload={gradio.client.upload}
-			_fetch={gradio.client.fetch}
+			upload={(...args) => gradio.client.upload(...args)}
+			_fetch={(...args) => gradio.client.fetch(...args)}
 			load_component={gradio.load_component}
 			msg_format={type}
 			root={gradio.root}

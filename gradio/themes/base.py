@@ -27,6 +27,7 @@ class ThemeClass:
     def __init__(self):
         self._stylesheets = []
         self.name = None
+        self._font_css = []
 
     def _get_theme_css(self):
         css = {}
@@ -90,7 +91,9 @@ class ThemeClass:
             + "\n}"
         )
 
-        return f"{css_code}\n{dark_css_code}"
+        font_css = "\n".join(self._font_css)
+
+        return f"{font_css}\n{css_code}\n{dark_css_code}"
 
     def _get_computed_value(self, property: str, depth=0) -> str:
         max_depth = 100
@@ -286,7 +289,7 @@ class ThemeClass:
             mode="w", delete=False, suffix=".json"
         ) as css_file:
             contents = self.to_dict()
-            contents["version"] = version
+            contents["version"] = {"version": version}
             json.dump(contents, css_file, cls=fonts.FontEncoder)
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as readme_file:
             readme_content = README_CONTENT.format(
@@ -352,13 +355,13 @@ class Base(ThemeClass):
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("IBM Plex Sans"),
+            fonts.LocalFont("IBM Plex Sans"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("IBM Plex Mono"),
+            fonts.LocalFont("IBM Plex Mono"),
             "ui-monospace",
             "Consolas",
             "monospace",
@@ -377,6 +380,7 @@ class Base(ThemeClass):
         """
 
         self.name = "base"
+        self._font_css = []
 
         def expand_shortcut(shortcut, mode="color", prefix=None):
             if not isinstance(shortcut, str):
@@ -465,23 +469,29 @@ class Base(ThemeClass):
         if isinstance(font, (fonts.Font, str)):
             font = [font]
         self._font = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
+            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
             for fontfam in font
         ]
-        if isinstance(font, fonts.Font) or isinstance(font_mono, str):
+        if isinstance(font_mono, (fonts.Font, str)):
             font_mono = [font_mono]
         self._font_mono = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
+            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
             for fontfam in font_mono
         ]
         self.font = ", ".join(str(font) for font in self._font)
         self.font_mono = ", ".join(str(font) for font in self._font_mono)
 
         self._stylesheets = []
+        self._font_css = []
         for font in self._font + self._font_mono:
             font_stylesheet = font.stylesheet()
-            if font_stylesheet:
+            if isinstance(font_stylesheet, str):
                 self._stylesheets.append(font_stylesheet)
+            elif isinstance(font_stylesheet, dict):
+                if font_stylesheet["url"]:
+                    self._stylesheets.append(font_stylesheet["url"])
+                elif font_stylesheet["css"]:
+                    self._font_css.append(font_stylesheet["css"])
 
         self.set()
 
@@ -591,6 +601,7 @@ class Base(ThemeClass):
         table_text_color=None,
         table_text_color_dark=None,
         checkbox_background_color=None,
+        chatbot_text_size=None,
         checkbox_background_color_dark=None,
         checkbox_background_color_focus=None,
         checkbox_background_color_focus_dark=None,
@@ -834,6 +845,7 @@ class Base(ThemeClass):
             table_text_color_dark: The body text color in the table in dark mode.
             section_header_text_size: The text size of a section header (e.g. tab name).
             section_header_text_weight: The text weight of a section header (e.g. tab name).
+            chatbot_text_size: The text size of the chatbot text.
             checkbox_background_color: The background of a checkbox square or radio circle.
             checkbox_background_color_dark: The background of a checkbox square or radio circle in dark mode.
             checkbox_background_color_focus: The background of a checkbox square or radio circle when focused.
@@ -1261,6 +1273,9 @@ class Base(ThemeClass):
         )
         self.code_background_fill_dark = code_background_fill_dark or getattr(
             self, "code_background_fill_dark", "*neutral_800"
+        )
+        self.chatbot_text_size = chatbot_text_size or getattr(
+            self, "chatbot_text_size", "*text_lg"
         )
         self.checkbox_background_color = checkbox_background_color or getattr(
             self, "checkbox_background_color", "*background_fill_primary"
@@ -1709,7 +1724,9 @@ class Base(ThemeClass):
             self, "button_shadow_hover", "none"
         )
         self.button_transition = button_transition or getattr(
-            self, "button_transition", "background-color 0.3s ease"
+            self,
+            "button_transition",
+            "background-color 0.3s ease, border-color 0.3s ease",
         )
 
         self.button_large_padding = button_large_padding or getattr(

@@ -108,7 +108,7 @@ If you're familiar with Gradio's `Interface` class, the `gr.ChatInterface` inclu
 
 - add a title and description above your chatbot using `title` and `description` arguments.
 - add a theme or custom css using `theme` and `css` arguments respectively.
-- add `examples` and even enable `cache_examples`, which make it easier for users to try it out .
+- add `examples` and even enable `cache_examples`, which make it easier for users to try it out. `examples` can be customized by adding `display_icon` or `display_text` keys to each example.
 - You can change the text or disable each of the buttons that appear in the chatbot interface: `submit_btn`, `retry_btn`, `undo_btn`, `clear_btn`.
 
 If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `ChatInterface`, then you can pass in your own chatbot or textbox as well. Here's an example of how we can use these parameters:
@@ -130,7 +130,7 @@ gr.ChatInterface(
     title="Yes Man",
     description="Ask Yes Man any question",
     theme="soft",
-    examples=["Hello", "Am I cool?", "Are tomatoes vegetables?"],
+    examples=[{"text": "Hello"}, {"text": "Am I cool?"}, {"text": "Are tomatoes vegetables?"}],
     cache_examples=True,
     retry_btn=None,
     undo_btn="Delete Previous",
@@ -175,7 +175,7 @@ Tip: If you'd like to customize the UI/UX of the textbox for your multimodal cha
 
 You may want to add additional parameters to your chatbot and expose them to your users through the Chatbot UI. For example, suppose you want to add a textbox for a system prompt, or a slider that sets the number of tokens in the chatbot's response. The `ChatInterface` class supports an `additional_inputs` parameter which can be used to add additional input components.
 
-The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have _not_ already been rendered, then the components will appear underneath the chatbot (and any examples) within a `gr.Accordion()`. You can set the label of this accordion using the `additional_inputs_accordion_name` parameter.
+The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have _not_ already been rendered, then the components will appear underneath the chatbot within a `gr.Accordion()`. You can set the label of this accordion using the `additional_inputs_accordion_name` parameter.
 
 Here's a complete example:
 

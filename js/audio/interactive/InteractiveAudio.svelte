@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy, createEventDispatcher } from "svelte";
+	import { onDestroy, createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
@@ -40,6 +40,7 @@
 	export let stream_handler: Client["stream"];
 	export let stream_every: number;
 	export let uploading = false;
+	export let recording = false;
 
 	let time_limit: number | null = null;
 	let stream_state: "open" | "waiting" | "closed" = "closed";
@@ -65,14 +66,12 @@
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
-	let recording = false;
 	let recorder: IMediaRecorder;
 	let mode = "";
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Uint8Array[] = [];
 	let submit_pending_stream_on_pending_end = false;
 	let inited = false;
-	let stream_open = false;
 
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
@@ -88,7 +87,8 @@
 		];
 	}
 
-	if (streaming) {
+	const is_browser = typeof window !== "undefined";
+	if (is_browser && streaming) {
 		get_modules();
 	}
 
@@ -147,6 +147,7 @@
 			throw err;
 		}
 		if (stream == null) return;
+
 		if (streaming) {
 			const [{ MediaRecorder, register }, { connect }] =
 				await Promise.all(module_promises);
@@ -161,6 +162,7 @@
 		}
 		recorder.addEventListener("stop", async () => {
 			recording = false;
+			// recorder.stop();
 			await dispatch_blob(audio_chunks, "change");
 			await dispatch_blob(audio_chunks, "stop_recording");
 			audio_chunks = [];
@@ -217,13 +219,14 @@
 		dispatch("upload", detail);
 	}
 
-	function stop(): void {
+	async function stop(): Promise<void> {
 		recording = false;
 
 		if (streaming) {
 			dispatch("close_stream");
 			dispatch("stop_recording");
 			recorder.stop();
+
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;
 			}
@@ -232,6 +235,9 @@
 			mode = "";
 		}
 	}
+
+	$: if (!recording && recorder) stop();
+	$: if (recording && recorder) record();
 </script>
 
 <BlockLabel
@@ -260,6 +266,7 @@
 					bind:mode
 					{i18n}
 					{editable}
+					{recording}
 					{dispatch_blob}
 					{waveform_settings}
 					{waveform_options}

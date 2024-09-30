@@ -1,5 +1,31 @@
 # @gradio/lite
 
+## 4.43.0-beta.2
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.3
+
+## 4.43.0-beta.2
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.3
+
+## 4.43.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9335](https://github.com/gradio-app/gradio/pull/9335) [`b543465`](https://github.com/gradio-app/gradio/commit/b543465d06d7d1b399c4d0755da05e022611a97f) - Remove lite/theme.css from the Git-managed file tree.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/core@0.1.0-beta.2
+- @self/build@0.1.0-beta.2
+
 ## 4.43.0-beta.1
 
 ### Features

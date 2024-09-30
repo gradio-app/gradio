@@ -1,5 +1,39 @@
 # @self/app
 
+## 1.41.0-beta.3
+
+### Features
+
+- [#9427](https://github.com/gradio-app/gradio/pull/9427) [`b672deb`](https://github.com/gradio-app/gradio/commit/b672deb240e1934f3cde6d257dbe93e3fa8b1857) - fix css.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.3
+
+## 1.41.0-beta.2
+
+### Features
+
+- [#9412](https://github.com/gradio-app/gradio/pull/9412) [`c2c2fd9`](https://github.com/gradio-app/gradio/commit/c2c2fd989348f826566773c07c0e0bda200199ff) - fix SSR apps on spaces.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@1.6.0-beta.3
+- @gradio/core@0.1.0-beta.3
+
+## 1.41.0-beta.1
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/core@0.1.0-beta.2
+- @self/build@0.1.0-beta.2
+
 ## 1.40.1-beta.0
 
 ### Fixes

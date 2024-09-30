@@ -184,6 +184,8 @@ export interface Config {
 	theme_hash?: number;
 	username: string | null;
 	api_prefix?: string;
+	fill_height?: boolean;
+	fill_width?: boolean;
 }
 
 // todo: DRY up types
@@ -256,6 +258,8 @@ export interface Dependency {
 	connection: "stream" | "sse";
 	time_limit: number;
 	stream_every: number;
+	like_user_message: boolean;
+	event_specific_args: string[];
 }
 
 export interface DependencyTypes {

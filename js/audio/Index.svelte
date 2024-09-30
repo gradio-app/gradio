@@ -41,6 +41,7 @@
 	export let streaming: boolean;
 	export let stream_every: number;
 	export let input_ready: boolean;
+	export let recording = false;
 	let uploading = false;
 	$: input_ready = !uploading;
 
@@ -240,6 +241,7 @@
 			{active_source}
 			{pending}
 			{streaming}
+			bind:recording
 			{loop}
 			max_file_size={gradio.max_file_size}
 			{handle_reset_value}
@@ -264,8 +266,8 @@
 			{stream_every}
 			bind:modify_stream={_modify_stream}
 			bind:set_time_limit
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
 		</InteractiveAudio>

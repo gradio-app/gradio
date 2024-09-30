@@ -18,6 +18,10 @@ export interface UpdateTransaction {
 }
 
 let pending_updates: UpdateTransaction[][] = [];
+const is_browser = typeof window !== "undefined";
+const raf = is_browser
+	? requestAnimationFrame
+	: async (fn: () => Promise<void> | void) => await fn();
 
 /**
  * Create a store with the layout and a map of targets
@@ -42,7 +46,7 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-	}) => void;
+	}) => Promise<void>;
 	rerender_layout: (args: {
 		render_id: number;
 		components: ComponentMeta[];
@@ -67,18 +71,20 @@ export function create_components(): {
 	let keyed_component_values: Record<string | number, any> = {};
 	let _rootNode: ComponentMeta;
 
-	function set_stream_every(dependencies: Dependency[]): void {
+	function set_event_specific_args(dependencies: Dependency[]): void {
 		dependencies.forEach((dep) => {
 			dep.targets.forEach((target) => {
 				const instance = instance_map[target[0]];
-				if (instance && dep.connection == "stream") {
-					instance.props.stream_every = dep.stream_every;
+				if (instance && dep.event_specific_args?.length > 0) {
+					dep.event_specific_args?.forEach((arg: string) => {
+						instance.props[arg] = dep[arg as keyof Dependency];
+					});
 				}
 			});
 		});
 	}
 
-	function create_layout({
+	async function create_layout({
 		app: _app,
 		components,
 		layout,
@@ -94,7 +100,7 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-	}): void {
+	}): Promise<void> {
 		// make sure the state is settled before proceeding
 		flush();
 		app = _app;
@@ -146,11 +152,10 @@ export function create_components(): {
 			{} as { [id: number]: ComponentMeta }
 		);
 
-		walk_layout(layout, root).then(() => {
-			layout_store.set(_rootNode);
-		});
+		await walk_layout(layout, root);
 
-		set_stream_every(dependencies);
+		layout_store.set(_rootNode);
+		set_event_specific_args(dependencies);
 	}
 
 	/**
@@ -227,7 +232,7 @@ export function create_components(): {
 			layout_store.set(_rootNode);
 		});
 
-		set_stream_every(dependencies);
+		set_event_specific_args(dependencies);
 	}
 
 	async function walk_layout(
@@ -333,7 +338,7 @@ export function create_components(): {
 		if (!update_scheduled) {
 			update_scheduled = true;
 			update_scheduled_store.set(true);
-			requestAnimationFrame(flush);
+			raf(flush);
 		}
 	}
 
@@ -384,8 +389,7 @@ export function create_components(): {
 		set_time_limit,
 		loading_status,
 		scheduled_updates: update_scheduled_store,
-		create_layout: (...args) =>
-			requestAnimationFrame(() => create_layout(...args)),
+		create_layout: create_layout,
 		rerender_layout
 	};
 }

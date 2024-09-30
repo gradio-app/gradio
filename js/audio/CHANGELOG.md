@@ -1,5 +1,44 @@
 # @gradio/audio
 
+## 0.14.0-beta.4
+
+### Features
+
+- [#9419](https://github.com/gradio-app/gradio/pull/9419) [`018c140`](https://github.com/gradio-app/gradio/commit/018c140ef86cacc8211df05b57b26924dab7fa08) - Start/stop recoding from the backend. Add guide on conversational chatbots.  Thanks @freddyaboulton!
+
+## 0.14.0-beta.3
+
+### Features
+
+- [#9412](https://github.com/gradio-app/gradio/pull/9412) [`c2c2fd9`](https://github.com/gradio-app/gradio/commit/c2c2fd989348f826566773c07c0e0bda200199ff) - fix SSR apps on spaces.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/button@0.3.0-beta.3
+
+## 0.14.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+- [#9253](https://github.com/gradio-app/gradio/pull/9253) [`99648ec`](https://github.com/gradio-app/gradio/commit/99648ec7c4443e74799941e47b0015ac9ca581e1) - Adds ability to block event trigger when file is uploading.  Thanks @dawoodkhan82!
+- [#9373](https://github.com/gradio-app/gradio/pull/9373) [`6443062`](https://github.com/gradio-app/gradio/commit/64430620449ab5b19ea32b02ab82a2d1804dcb2e) - Fix Cached Examples for Streamed Media.  Thanks @freddyaboulton!
+- [#9326](https://github.com/gradio-app/gradio/pull/9326) [`7afb9a1`](https://github.com/gradio-app/gradio/commit/7afb9a14fa64310eb8b70f43a3bad373e46e36c1) - 5.0 merge take 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/button@0.3.0-beta.2
+
 ## 0.14.0-beta.0
 
 ### Features

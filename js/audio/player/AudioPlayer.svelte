@@ -66,7 +66,7 @@
 		});
 	};
 
-	$: if (container !== undefined) {
+	$: if (!value?.is_stream && container !== undefined && container !== null) {
 		if (waveform !== undefined) waveform.destroy();
 		container.innerHTML = "";
 		create_waveform();
@@ -208,6 +208,8 @@
 	autoplay={waveform_settings.autoplay}
 	on:load
 	bind:this={audio_player}
+	on:ended={() => dispatch("stop")}
+	on:play={() => dispatch("play")}
 />
 {#if value === null}
 	<Empty size="small">

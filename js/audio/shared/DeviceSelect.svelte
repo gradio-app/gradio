@@ -10,24 +10,26 @@
 		error: string;
 	}>();
 
-	$: try {
-		let tempDevices: MediaDeviceInfo[] = [];
-		RecordPlugin.getAvailableAudioDevices().then(
-			(devices: MediaDeviceInfo[]) => {
-				micDevices = devices;
-				devices.forEach((device) => {
-					if (device.deviceId) {
-						tempDevices.push(device);
-					}
-				});
-				micDevices = tempDevices;
+	$: if (typeof window !== "undefined") {
+		try {
+			let tempDevices: MediaDeviceInfo[] = [];
+			RecordPlugin.getAvailableAudioDevices().then(
+				(devices: MediaDeviceInfo[]) => {
+					micDevices = devices;
+					devices.forEach((device) => {
+						if (device.deviceId) {
+							tempDevices.push(device);
+						}
+					});
+					micDevices = tempDevices;
+				}
+			);
+		} catch (err) {
+			if (err instanceof DOMException && err.name == "NotAllowedError") {
+				dispatch("error", i18n("audio.allow_recording_access"));
 			}
-		);
-	} catch (err) {
-		if (err instanceof DOMException && err.name == "NotAllowedError") {
-			dispatch("error", i18n("audio.allow_recording_access"));
+			throw err;
 		}
-		throw err;
 	}
 </script>
 

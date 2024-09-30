@@ -1,5 +1,59 @@
 # @gradio/core
 
+## 0.1.0-beta.3
+
+### Features
+
+- [#9412](https://github.com/gradio-app/gradio/pull/9412) [`c2c2fd9`](https://github.com/gradio-app/gradio/commit/c2c2fd989348f826566773c07c0e0bda200199ff) - fix SSR apps on spaces.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/video@0.11.0-beta.3
+- @gradio/code@0.10.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/button@0.3.0-beta.3
+- @gradio/gallery@0.13.0-beta.3
+- @gradio/file@0.10.0-beta.3
+- @gradio/image@0.16.0-beta.3
+
+## 0.1.0-beta.2
+
+### Features
+
+- [#9323](https://github.com/gradio-app/gradio/pull/9323) [`06babda`](https://github.com/gradio-app/gradio/commit/06babda0395fd3fbd323c1c3cb33704ecfd6deb0) - Disable liking user message in chatbot by default but make it configurable.  Thanks @freddyaboulton!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9269](https://github.com/gradio-app/gradio/pull/9269) [`e05f568`](https://github.com/gradio-app/gradio/commit/e05f568f47e9fa33ef91dbbe5cc477d32762bc36) - Fix reload mode and streaming in 5.0 dev.  Thanks @freddyaboulton!
+- [#9253](https://github.com/gradio-app/gradio/pull/9253) [`99648ec`](https://github.com/gradio-app/gradio/commit/99648ec7c4443e74799941e47b0015ac9ca581e1) - Adds ability to block event trigger when file is uploading.  Thanks @dawoodkhan82!
+- [#9335](https://github.com/gradio-app/gradio/pull/9335) [`b543465`](https://github.com/gradio-app/gradio/commit/b543465d06d7d1b399c4d0755da05e022611a97f) - Remove lite/theme.css from the Git-managed file tree.  Thanks @whitphx!
+
+### Fixes
+
+- [#9299](https://github.com/gradio-app/gradio/pull/9299) [`aa35b07`](https://github.com/gradio-app/gradio/commit/aa35b0788e613fdd45446d267513e6f94fa208ea) - Trigger state change event on iterators.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/gallery@0.13.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/markdown@0.10.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/plot@0.6.5-beta.2
+- @gradio/button@0.3.0-beta.2
+- @gradio/file@0.10.0-beta.2
+- @gradio/image@0.16.0-beta.2
+- @gradio/video@0.11.0-beta.2
+- @gradio/code@0.10.0-beta.2
+- @gradio/paramviewer@0.4.22-beta.2
+- @gradio/checkbox@0.4.0-beta.2
+- @gradio/column@0.2.0-beta.0
+- @gradio/textbox@0.7.0-beta.2
+- @gradio/tabs@0.3.0-beta.2
+
 ## 0.1.0-beta.1
 
 ### Features

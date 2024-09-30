@@ -17,13 +17,13 @@ class Default(Base):
         radius_size: sizes.Size | str = sizes.radius_md,
         text_size: sizes.Size | str = sizes.text_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("IBM Plex Sans"),
+            fonts.LocalFont("IBM Plex Sans"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("IBM Plex Mono"),
+            fonts.LocalFont("IBM Plex Mono"),
             "ui-monospace",
             "Consolas",
             "monospace",
@@ -50,7 +50,7 @@ class Default(Base):
             error_icon_color=colors.red.c700,
             error_icon_color_dark=colors.red.c500,
             # Transition
-            button_transition="background-color 0.2s ease",
+            button_transition="background-color 0.2s ease, border-color 0.2s ease",
             # Shadows
             button_shadow="none",
             button_shadow_hover="none",

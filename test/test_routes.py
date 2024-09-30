@@ -376,13 +376,13 @@ class TestRoutes:
             lambda s: f"Hello from py, {s}!", "textbox", "textbox"
         ).queue()
 
-        app = gr.mount_gradio_app(app, demo, path=f"{API_PREFIX}/ps")
-        app = gr.mount_gradio_app(app, demo1, path=f"{API_PREFIX}/py")
+        app = gr.mount_gradio_app(app, demo, path="/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/py")
 
         # Use context manager to trigger start up events
         with TestClient(app) as client:
-            assert client.get(f"{API_PREFIX}/ps").is_success
-            assert client.get(f"{API_PREFIX}/py").is_success
+            assert client.get("/ps").is_success
+            assert client.get("/py").is_success
 
     def test_mount_gradio_app_with_app_kwargs(self):
         app = FastAPI()
@@ -429,13 +429,13 @@ class TestRoutes:
             lambda s: f"Hello from py, {s}!", "textbox", "textbox"
         ).queue()
 
-        app = gr.mount_gradio_app(app, demo, path=f"{API_PREFIX}/ps")
-        app = gr.mount_gradio_app(app, demo1, path=f"{API_PREFIX}/py")
+        app = gr.mount_gradio_app(app, demo, path="/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/py")
 
         # Use context manager to trigger start up events
         with TestClient(app) as client:
-            assert client.get(f"{API_PREFIX}/ps").is_success
-            assert client.get(f"{API_PREFIX}/py").is_success
+            assert client.get("/ps").is_success
+            assert client.get("/py").is_success
 
     def test_mount_gradio_app_with_startup(self):
         app = FastAPI()
@@ -451,13 +451,13 @@ class TestRoutes:
             lambda s: f"Hello from py, {s}!", "textbox", "textbox"
         ).queue()
 
-        app = gr.mount_gradio_app(app, demo, path=f"{API_PREFIX}/ps")
-        app = gr.mount_gradio_app(app, demo1, path=f"{API_PREFIX}/py")
+        app = gr.mount_gradio_app(app, demo, path="/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/py")
 
         # Use context manager to trigger start up events
         with TestClient(app) as client:
-            assert client.get(f"{API_PREFIX}/ps").is_success
-            assert client.get(f"{API_PREFIX}/py").is_success
+            assert client.get("/ps").is_success
+            assert client.get("/py").is_success
 
     def test_gradio_app_with_auth_dependency(self):
         def block_anonymous(request: Request):
@@ -480,15 +480,11 @@ class TestRoutes:
 
         demo = gr.Interface(lambda s: f"Hello from ps, {s}!", "textbox", "textbox")
 
-        app = gr.mount_gradio_app(
-            app, demo, path=f"{API_PREFIX}/demo", auth_dependency=get_user
-        )
+        app = gr.mount_gradio_app(app, demo, path="/demo", auth_dependency=get_user)
 
         with TestClient(app) as client:
-            assert client.get(
-                f"{API_PREFIX}/demo", headers={"user": "abubakar"}
-            ).is_success
-            assert not client.get(f"{API_PREFIX}/demo").is_success
+            assert client.get("/demo", headers={"user": "abubakar"}).is_success
+            assert not client.get("/demo").is_success
 
     def test_static_file_missing(self, test_client):
         response = test_client.get(rf"{API_PREFIX}/static/not-here.js")
@@ -735,13 +731,13 @@ class TestAuthenticatedRoutes:
         )
         assert response.status_code == 200
 
-        response = client.get(f"{API_PREFIX}/logout")
+        response = client.get("/logout")
 
         response = client.post(
-            f"{API_PREFIX}/run/predict",
+            "{API_PREFIX}/run/predict",
             json={"data": ["test"]},
         )
-        assert response.status_code == 401
+        assert response.status_code == 404
 
     def test_monitoring_route(self):
         io = Interface(lambda x: x, "text", "text")
@@ -760,7 +756,7 @@ class TestAuthenticatedRoutes:
         )
         assert response.status_code == 200
 
-        response = client.get(f"{API_PREFIX}/logout")
+        response = client.get("/logout")
 
         response = client.get(
             f"{API_PREFIX}/monitoring",

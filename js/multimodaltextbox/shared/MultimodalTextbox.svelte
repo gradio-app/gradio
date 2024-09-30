@@ -65,18 +65,6 @@
 		dispatch("change", value);
 		oldValue = value.text;
 	}
-	let accept_file_types: string | null;
-	if (file_types == null) {
-		accept_file_types = null;
-	} else {
-		file_types = file_types.map((x) => {
-			if (x.startsWith(".")) {
-				return x;
-			}
-			return x + "/*";
-		});
-		accept_file_types = file_types.join(", ");
-	}
 
 	$: if (value === null) value = { text: "", files: [] };
 	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
@@ -306,6 +294,7 @@
 				bind:this={upload_component}
 				on:load={handle_upload}
 				{file_count}
+				filetype={file_types}
 				{root}
 				{max_file_size}
 				bind:dragging
@@ -331,6 +320,7 @@
 					max_lines: max_lines
 				}}
 				class="scroll-hide"
+				class:no-label={!show_label}
 				dir={rtl ? "rtl" : "ltr"}
 				bind:value={value.text}
 				bind:this={el}
@@ -414,6 +404,10 @@
 		position: relative;
 		z-index: 1;
 	}
+	textarea.no-label {
+		padding-top: 5px;
+		padding-bottom: 5px;
+	}
 
 	textarea:disabled {
 		-webkit-opacity: 1;
@@ -439,7 +433,6 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		margin-bottom: 5px;
 		z-index: var(--layer-1);
 	}
 	.padded-button {
@@ -514,6 +507,7 @@
 		gap: var(--spacing-lg);
 		overflow-x: scroll;
 		padding-top: var(--spacing-sm);
+		margin-bottom: 6px;
 	}
 
 	.thumbnail-item {

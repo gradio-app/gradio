@@ -1,5 +1,23 @@
 # @gradio/textbox
 
+## 0.7.0-beta.2
+
+### Features
+
+- [#8966](https://github.com/gradio-app/gradio/pull/8966) [`8e52b6a`](https://github.com/gradio-app/gradio/commit/8e52b6a3e75957462bc7fdbf6ff9c280084d5f08) - Chatbot Examples.  Thanks @dawoodkhan82!
+- [#9280](https://github.com/gradio-app/gradio/pull/9280) [`7122420`](https://github.com/gradio-app/gradio/commit/712242047fde3a594dfde7f48a44c7ea16239dc8) - Match style of textbox stop button to submit button.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#9328](https://github.com/gradio-app/gradio/pull/9328) [`6a7f631`](https://github.com/gradio-app/gradio/commit/6a7f63180b4105622298dd742d6a0d25216ea629) - Set the color of placeholder in a disabled textbox to gray instead of black, and disable typing while a response is generating in `gr.ChatInterface`, allow `gr.MultimodalTextbox` to accept string values.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
 ## 0.7.0-beta.1
 
 ### Features

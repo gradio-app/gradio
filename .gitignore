@@ -32,8 +32,8 @@ js/gradio-preview/test/*
 *.sqlite3
 gradio/launches.json
 gradio/hash_seed.txt
-.gradio/flagged/
-.gradio/cached_examples/
+.gradio/
+
 tmp.zip
 
 # Tests
@@ -56,6 +56,9 @@ demo/annotatedimage_component/*.png
 demo/fake_diffusion_with_gif/*.gif
 demo/cancel_events/cancel_events_output_log.txt
 demo/unload_event_test/output_log.txt
+demo/stream_video_out/output_*.ts
+demo/stream_video_out/output_*.mp4
+demo/stream_audio_out/*.mp3
 
 # Etc
 .idea/*

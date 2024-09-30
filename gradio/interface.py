@@ -10,6 +10,7 @@ import os
 import warnings
 import weakref
 from collections.abc import Callable, Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
@@ -101,7 +102,8 @@ class Interface(Blocks):
         outputs: str | Component | Sequence[str | Component] | None,
         examples: list[Any] | list[list[Any]] | str | None = None,
         *,
-        cache_examples: bool | Literal["lazy"] | None = None,
+        cache_examples: bool | None = None,
+        cache_mode: Literal["eager", "lazy"] | None = None,
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
         live: bool = False,
@@ -109,7 +111,6 @@ class Interface(Blocks):
         description: str | None = None,
         article: str | None = None,
         theme: Theme | str | None = None,
-        css: str | None = None,
         flagging_mode: Literal["never"]
         | Literal["auto"]
         | Literal["manual"]
@@ -124,8 +125,9 @@ class Interface(Blocks):
         _api_mode: bool = False,
         allow_duplication: bool = False,
         concurrency_limit: int | None | Literal["default"] = "default",
-        js: str | None = None,
-        head: str | None = None,
+        css: str | Path | None = None,
+        js: str | Path | None = None,
+        head: str | Path | None = None,
         additional_inputs: str | Component | Sequence[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
         submit_btn: str | Button = "Submit",
@@ -146,7 +148,8 @@ class Interface(Blocks):
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided, but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
-            cache_examples: if True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. If `fn` is a generator function, then the last yielded value will be used as the output. Can also be set by the GRADIO_CACHE_EXAMPLES environment variable, which takes a case-insensitive value, one of: {"true", "false", "lazy"}. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If None, will use the GRADIO_CACHE_EXAMPLES environment variable, which should be either "true" or "false". In HuggingFace Spaces, this parameter is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
+            cache_mode: if "lazy", examples are cached after their first use. If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             examples_per_page: if examples are provided, how many to display per page.
             live: whether the interface should automatically rerun if any of the inputs change.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
@@ -164,8 +167,9 @@ class Interface(Blocks):
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the prediction function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             allow_duplication: if True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
             concurrency_limit: if set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which itself is 1 by default).
-            js: custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
+            css: Custom css as a code string or pathlib.Path to a css file. This css will be included in the demo webpage.
+            js: Custom js as a code string or pathlib.Path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html to insert into the head of the demo webpage, either as a code string or a pathlib.Path to an html file. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             additional_inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. These components will be rendered in an accordion below the main input components. By default, no additional input components will be displayed.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
             submit_btn: the button to use for submitting inputs. Defaults to a `gr.Button("Submit", variant="primary")`. This parameter does not apply if the Interface is output-only, in which case the submit button always displays "Generate". Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
@@ -222,6 +226,7 @@ class Interface(Blocks):
             outputs = [outputs]
 
         self.cache_examples = cache_examples
+        self.cache_mode: Literal["eager", "lazy"] | None = cache_mode
 
         state_input_indexes = [
             idx for idx, i in enumerate(inputs) if i == "state" or isinstance(i, State)
@@ -875,10 +880,11 @@ class Interface(Blocks):
             ]
             self.examples_handler = Examples(
                 examples=self.examples,
-                inputs=non_state_inputs,  # type: ignore
-                outputs=non_state_outputs,  # type: ignore
+                inputs=non_state_inputs,
+                outputs=non_state_outputs,
                 fn=self.fn,
-                cache_examples=self.cache_examples,  # type: ignore
+                cache_examples=self.cache_examples,
+                cache_mode=self.cache_mode,
                 examples_per_page=self.examples_per_page,
                 _api_mode=self.api_mode,
                 batch=self.batch,

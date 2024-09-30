@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "0.39.0-beta.1",
+	"version": "0.39.0-beta.4",
 	"private": true,
 	"scripts": {
 		"dev": "pip install boto3 && python generate_jsons/generate.py && vite dev",
@@ -31,6 +31,6 @@
 		"mdsvex": "^0.11.0",
 		"postcss": "^8.4.27",
 		"prism-svelte": "^0.5.0",
-		"wrangler": "^3.72.3"
+		"wrangler": "^3.73.0"
 	}
 }

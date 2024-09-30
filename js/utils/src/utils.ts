@@ -214,6 +214,8 @@ type component_loader = (args: Args) => {
 	};
 };
 
+const is_browser = typeof window !== "undefined";
+
 export type I18nFormatter = any;
 export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;
@@ -255,6 +257,7 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	}
 
 	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
+		if (!is_browser || !this.#el) return;
 		const e = new CustomEvent("gradio", {
 			bubbles: true,
 			detail: { data, id: this.#id, event: event_name }
@@ -274,3 +277,9 @@ function _load_component(
 		variant
 	});
 }
+
+export const css_units = (dimension_value: string | number): string => {
+	return typeof dimension_value === "number"
+		? dimension_value + "px"
+		: dimension_value;
+};

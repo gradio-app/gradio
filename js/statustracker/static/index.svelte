@@ -6,6 +6,11 @@
 
 	let called = false;
 
+	const is_browser = typeof window !== "undefined";
+	const raf = is_browser
+		? window.requestAnimationFrame
+		: (cb: (...args: any[]) => void) => {};
+
 	async function scroll_into_view(
 		el: HTMLDivElement,
 		enable: boolean | null = true
@@ -23,7 +28,7 @@
 
 		await tick();
 
-		requestAnimationFrame(() => {
+		raf(() => {
 			let min = [0, 0];
 
 			for (let i = 0; i < items.length; i++) {
@@ -139,7 +144,7 @@
 	};
 
 	function run(): void {
-		requestAnimationFrame(() => {
+		raf(() => {
 			timer_diff = (performance.now() - timer_start) / 1000;
 			if (_timer) run();
 		});

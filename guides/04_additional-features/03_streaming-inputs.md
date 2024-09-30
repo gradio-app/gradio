@@ -38,7 +38,7 @@ $demo_streaming_filter_unified
 
 Your streaming function should be stateless. It should take the current input and return its corresponding output. However, there are cases where you may want to keep track of past inputs or outputs. For example, you may want to keep a buffer of the previous `k` inputs to improve the accuracy of your transcription demo. You can do this with Gradio's `gr.State()` component.
 
-Let's showcase this with a sample demo
+Let's showcase this with a sample demo:
 
 ```python
 def transcribe_handler(current_audio, state, transcript):
@@ -60,3 +60,7 @@ with gr.Blocks() as demo:
 
 demo.launch()
 ```
+
+## End-to-End Examples
+
+For an end-to-end example of streaming from the webcam, see the object detection from webcam [guide](/main/guides/object-detection-from-webcam-with-webrtc).

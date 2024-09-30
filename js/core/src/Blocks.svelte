@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { tick, onMount } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
 
@@ -45,8 +45,11 @@
 	export let fill_height = false;
 	export let ready: boolean;
 	export let username: string | null;
+	export let api_prefix: string;
+	export let max_file_size: number;
+	export let initial_layout: LayoutNode | undefined = undefined;
 
-	const {
+	let {
 		layout: _layout,
 		targets,
 		update_value,
@@ -60,23 +63,32 @@
 		rerender_layout
 	} = create_components();
 
-	$: create_layout({
-		components,
-		layout,
-		dependencies,
-		root: root + app.api_prefix,
-		app,
-		options: {
-			fill_height
-		}
-	});
+	// @ts-ignore
+	$_layout = initial_layout;
+
+	$: components, layout, dependencies, root, app, fill_height, target, run();
 
 	$: {
 		ready = !!$_layout;
 	}
-	let params = new URLSearchParams(window.location.search);
-	let api_docs_visible = params.get("view") === "api" && show_api;
-	let api_recorder_visible = params.get("view") === "api-recorder" && show_api;
+
+	async function run(): Promise<void> {
+		await create_layout({
+			components,
+			layout,
+			dependencies,
+			root: root + api_prefix,
+			app,
+			options: {
+				fill_height
+			}
+		});
+	}
+
+	export let search_params: URLSearchParams;
+	let api_docs_visible = search_params.get("view") === "api" && show_api;
+	let api_recorder_visible =
+		search_params.get("view") === "api-recorder" && show_api;
 	function set_api_docs_visible(visible: boolean): void {
 		api_recorder_visible = false;
 		api_docs_visible = visible;
@@ -168,11 +180,6 @@
 	let _error_id = -1;
 
 	let user_left_page = false;
-	document.addEventListener("visibilitychange", function () {
-		if (document.visibilityState === "hidden") {
-			user_left_page = true;
-		}
-	});
 
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
@@ -182,10 +189,7 @@
 	const WAITING_FOR_INPUTS_MESSAGE = $_("blocks.waiting_for_inputs");
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
-	const is_mobile_device =
-		/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-			navigator.userAgent
-		);
+	let is_mobile_device = false;
 	let showed_duplicate_message = false;
 	let showed_mobile_warning = false;
 	let inputs_waiting: number[] = [];
@@ -290,12 +294,13 @@
 
 		function trigger_prediction(dep: Dependency, payload: Payload): void {
 			if (dep.trigger_mode === "once") {
-				if (!dep.pending_request) make_prediction(payload);
+				if (!dep.pending_request)
+					make_prediction(payload, dep.connection == "stream");
 			} else if (dep.trigger_mode === "multiple") {
-				make_prediction(payload);
+				make_prediction(payload, dep.connection == "stream");
 			} else if (dep.trigger_mode === "always_last") {
 				if (!dep.pending_request) {
-					make_prediction(payload);
+					make_prediction(payload, dep.connection == "stream");
 				} else {
 					dep.final_event = payload;
 				}
@@ -371,7 +376,7 @@
 				const { data, fn_index } = message;
 				if (dep.pending_request && dep.final_event) {
 					dep.pending_request = false;
-					make_prediction(dep.final_event);
+					make_prediction(dep.final_event, dep.connection == "stream");
 				}
 				dep.pending_request = false;
 				handle_update(data, fn_index);
@@ -428,6 +433,7 @@
 				}
 			}
 
+			/* eslint-disable complexity */
 			function handle_status_update(message: StatusMessage): void {
 				const { fn_index, ...status } = message;
 				if (status.stage === "streaming" && status.time_limit) {
@@ -474,7 +480,7 @@
 					];
 				}
 
-				if (status.stage === "complete") {
+				if (status.stage === "complete" || status.stage === "generating") {
 					status.changed_state_ids?.forEach((id) => {
 						dependencies
 							.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
@@ -482,6 +488,8 @@
 								wait_then_trigger_api_call(dep.id, payload.trigger_id);
 							});
 					});
+				}
+				if (status.stage === "complete") {
 					dependencies.forEach(async (dep) => {
 						if (dep.trigger_after === fn_index) {
 							wait_then_trigger_api_call(dep.id, payload.trigger_id);
@@ -530,6 +538,7 @@
 			}
 		}
 	}
+	/* eslint-enable complexity */
 
 	function trigger_share(title: string | undefined, description: string): void {
 		if (space_id === null) {
@@ -582,7 +591,7 @@
 			}
 		});
 
-		if (render_complete) return;
+		if (!target || render_complete) return;
 
 		target.addEventListener("prop_change", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
@@ -688,6 +697,19 @@
 	function isCustomEvent(event: Event): event is CustomEvent {
 		return "detail" in event;
 	}
+
+	onMount(() => {
+		document.addEventListener("visibilitychange", function () {
+			if (document.visibilityState === "hidden") {
+				user_left_page = true;
+			}
+		});
+
+		is_mobile_device =
+			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+				navigator.userAgent
+			);
+	});
 </script>
 
 <svelte:head>
@@ -698,19 +720,19 @@
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
-		{#if $_layout && app.config}
-			<MountComponents
-				rootNode={$_layout}
-				{root}
-				{target}
-				{theme_mode}
-				on:mount={handle_mount}
-				{version}
-				{autoscroll}
-				max_file_size={app.config.max_file_size}
-				client={app}
-			/>
-		{/if}
+		<!-- {#if $_layout} -->
+		<MountComponents
+			rootNode={$_layout}
+			{root}
+			{target}
+			{theme_mode}
+			on:mount={handle_mount}
+			{version}
+			{autoscroll}
+			{max_file_size}
+			client={app}
+		/>
+		<!-- {/if} -->
 	</div>
 
 	{#if show_footer}
