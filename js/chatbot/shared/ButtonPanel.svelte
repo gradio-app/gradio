@@ -104,6 +104,7 @@
 	}
 
 	.with-avatar {
-		margin-left: calc(var(--spacing-xl) * 4 + 31px);
+		margin-left: calc(var(--spacing-xl) * 5);
+		margin-right: calc(var(--spacing-xl) * 5);
 	}
 </style>
