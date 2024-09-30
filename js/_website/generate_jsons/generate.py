@@ -97,6 +97,11 @@ _, _ = docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
 changelog.generate(make_dir(WEBSITE_DIR, "src/lib/json/changelog.json"))
 get_latest_release()
 
+# print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+# print(SYSTEM_PROMPT)
+# print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+
+
 with open(make_dir(WEBSITE_DIR, "src/lib/json/system_prompt.json"), "w+") as f:
     json.dump(
         {

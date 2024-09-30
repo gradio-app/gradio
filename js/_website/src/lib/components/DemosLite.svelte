@@ -18,7 +18,8 @@
 	let current_code = false;
 	let compare = false;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:517/api/generate";
 	let model_info = "";
 
 	async function* streamFromWorker(
