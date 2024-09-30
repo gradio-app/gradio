@@ -44,7 +44,7 @@
 	export let y_lim: [number, number] | null = null;
 	export let x_label_angle: number | null = null;
 	export let y_label_angle: number | null = null;
-	export let x_axis_labels_visible: boolean = true;
+	export let x_axis_labels_visible = true;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	function reformat_sort(
