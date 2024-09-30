@@ -126,14 +126,11 @@ class File(Component):
     def _process_single_file(self, f: FileData) -> NamedString | bytes:
         file_name = f.path
         if self.type == "filepath":
-            mime_type = client_utils.get_mimetype(file_name)
-            if (
-                self.file_types
-                and mime_type
-                and not client_utils.is_valid_file(mime_type, self.file_types)
+            if self.file_types and not client_utils.is_valid_file(
+                file_name, self.file_types
             ):
                 raise Error(
-                    f"Invalid file type: {mime_type}. Please upload a file that is one of these formats: {self.file_types}"
+                    f"Invalid file type. Please upload a file that is one of these formats: {self.file_types}"
                 )
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
             file.name = file_name

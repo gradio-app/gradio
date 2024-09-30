@@ -687,7 +687,8 @@ def get_extension(encoding: str) -> str | None:
     return extension
 
 
-def is_valid_file(mime_type: str, file_types: list[str]) -> bool:
+def is_valid_file(file_path: str, file_types: list[str]) -> bool:
+    mime_type = get_mimetype(file_path)
     for file_type in file_types:
         if file_type == "file":
             return True

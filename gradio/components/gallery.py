@@ -190,14 +190,11 @@ class Gallery(Component):
                 if (type(gallery_element) is GalleryVideo)
                 else gallery_element.image.path
             )
-            mime_type = client_utils.get_mimetype(file_path)
-            if (
-                self.file_types
-                and mime_type
-                and not client_utils.is_valid_file(mime_type, self.file_types)
+            if self.file_types and not client_utils.is_valid_file(
+                file_path, self.file_types
             ):
                 raise Error(
-                    f"Invalid file type: {mime_type}. Please upload a file that is one of these formats: {self.file_types}"
+                    f"Invalid file type. Please upload a file that is one of these formats: {self.file_types}"
                 )
             else:
                 media = (

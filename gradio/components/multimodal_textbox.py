@@ -161,12 +161,9 @@ class MultimodalTextbox(FormComponent):
             return None
         if self.file_types is not None:
             for f in payload.files:
-                mime_type = f.mime_type
-                if mime_type and not client_utils.is_valid_file(
-                    mime_type, self.file_types
-                ):
+                if not client_utils.is_valid_file(f.path, self.file_types):
                     raise Error(
-                        f"Invalid file type: {mime_type}. Please upload a file that is one of these formats: {self.file_types}"
+                        f"Invalid file type: {f.mime_type}. Please upload a file that is one of these formats: {self.file_types}"
                     )
         return {
             "text": payload.text,
