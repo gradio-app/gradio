@@ -1,5 +1,11 @@
 # gradio
 
+## 4.44.1
+
+### Features
+
+- [#9320](https://github.com/gradio-app/gradio/pull/9320) [`98cbcae`](https://github.com/gradio-app/gradio/commit/98cbcaef827de7267462ccba180c7b2ffb1e825d) - chore: fix docs style.  Thanks @imba-tjd!
+
 ## 4.44.0
 
 ### Features
