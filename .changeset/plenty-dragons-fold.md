@@ -1,4 +1,5 @@
 ---
+"@gradio/wasm": minor
 "gradio": minor
 ---
 
