@@ -1243,7 +1243,10 @@ class App(FastAPI):
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Function not found.",
                 )
-            return fn(body.data)
+            if inspect.iscoroutinefunction(fn):
+                return await fn(body.data)
+            else:
+                return fn(body.data)
 
         @router.get(
             "/queue/status",
@@ -1567,7 +1570,7 @@ def mount_gradio_app(
         else (
             ssr_mode
             if ssr_mode is not None
-            else bool(os.getenv("GRADIO_SSR_MODE", "False"))
+            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
         )
     )
 

@@ -40,11 +40,11 @@ if wasm_utils.IS_WASM:
 
     # NOTE: In the Wasm env, we use urllib3 to make HTTP requests. See https://github.com/gradio-app/gradio/issues/6837.
     class Urllib3ResponseSyncByteStream(httpx.SyncByteStream):
-        def __init__(self, response) -> None:
+        def __init__(self, response: urllib3.HTTPResponse) -> None:
             self.response = response
 
         def __iter__(self):
-            yield from self.response.stream()
+            yield from self.response.stream(decode_content=True)
 
     class Urllib3Transport(httpx.BaseTransport):
         def __init__(self):
@@ -64,16 +64,22 @@ if wasm_utils.IS_WASM:
                 preload_content=False,  # Stream the content
             )
 
+            # HTTPX's gzip decoder sometimes fails to decode the content in the Wasm env as https://github.com/gradio-app/gradio/pull/9333#issuecomment-2348048882,
+            # so we avoid it by removing the content-encoding header passed to httpx.Response,
+            # and handle the decoding in `Urllib3ResponseSyncByteStream.__iter__()` with `urllib3`'s implementation.
+            response_headers = response.headers.copy()
+            response_headers.discard("content-encoding")
+
             return httpx.Response(
                 status_code=response.status,
-                headers=response.headers,
+                headers=response_headers,
                 stream=Urllib3ResponseSyncByteStream(response),
             )
 
     sync_transport = Urllib3Transport()
 
     class PyodideHttpResponseAsyncByteStream(httpx.AsyncByteStream):
-        def __init__(self, response) -> None:
+        def __init__(self, response: pyodide.http.FetchResponse) -> None:
             self.response = response
 
         async def __aiter__(self):

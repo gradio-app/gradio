@@ -45,8 +45,8 @@
 	export let fill_height = false;
 	export let ready: boolean;
 	export let username: string | null;
-	export let api_prefix: string;
-	export let max_file_size: number;
+	export let api_prefix = "";
+	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: LayoutNode | undefined = undefined;
 
 	let {
