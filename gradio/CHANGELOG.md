@@ -1,5 +1,13 @@
 # gradio
 
+## 5.0.0-beta.5
+
+### Features
+
+- [#9470](https://github.com/gradio-app/gradio/pull/9470) [`b406139`](https://github.com/gradio-app/gradio/commit/b40613928c0e0d224ff2b4db5d0b45727c178560) - Add support for 3rd party providers to `gr.load`, and provide a better UX for conversational models.  Thanks @abidlabs!
+- [#9383](https://github.com/gradio-app/gradio/pull/9383) [`30d13ac`](https://github.com/gradio-app/gradio/commit/30d13ac8a932d53abfd236d3e4e845570480e701) - Pre/post-processing download requests.  Thanks @aliabid94!
+- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots.  Thanks @pngwn!
+
 ## 5.0.0-beta.4
 
 ### Features

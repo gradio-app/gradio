@@ -1,5 +1,28 @@
 # @gradio/core
 
+## 0.1.0-beta.4
+
+### Features
+
+- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/upload@0.13.0-beta.4
+- @gradio/button@0.3.0-beta.4
+- @gradio/markdown@0.10.0-beta.2
+- @gradio/textbox@0.7.0-beta.2
+- @gradio/checkbox@0.4.0-beta.2
+- @gradio/file@0.10.0-beta.4
+- @gradio/image@0.16.0-beta.4
+- @gradio/video@0.11.0-beta.4
+- @gradio/code@0.10.0-beta.4
+- @gradio/paramviewer@0.4.22-beta.2
+- @gradio/wasm@0.14.0-beta.3
+- @gradio/plot@0.7.0-beta.3
+- @gradio/gallery@0.13.0-beta.4
+
 ## 0.1.0-beta.3
 
 ### Features

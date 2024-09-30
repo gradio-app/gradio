@@ -1,5 +1,12 @@
 # website
 
+## 0.39.0-beta.5
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.4
+- @gradio/paramviewer@0.4.22-beta.2
+
 ## 0.39.0-beta.4
 
 ### Features
