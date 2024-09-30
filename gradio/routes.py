@@ -738,7 +738,9 @@ class App(FastAPI):
                     data = await websocket.receive_json()
                     body = PredictBody(**data)
                     event = app.get_blocks()._queue.event_ids_to_events[event_id]
-                    body_internal = PredictBodyInternal(**body.model_dump(), request=None)
+                    body_internal = PredictBodyInternal(
+                        **body.model_dump(), request=None
+                    )
                     event.data = body_internal
                     event.signal.set()
                     await websocket.send_json({"msg": "success"})
