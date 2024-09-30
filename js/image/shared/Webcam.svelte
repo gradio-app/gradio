@@ -65,7 +65,15 @@
 		close_stream: undefined;
 	}>();
 
-	onMount(() => (canvas = document.createElement("canvas")));
+	onMount(() => {
+		canvas = document.createElement("canvas")
+		if (streaming && mode === "image") {
+		window.setInterval(() => {
+			if (video_source && !pending) {
+				take_picture();
+			}
+		}, stream_every * 1000);
+	}});
 
 	const handle_device_change = async (event: InputEvent): Promise<void> => {
 		const target = event.target as HTMLInputElement;
@@ -230,14 +238,6 @@
 			}, 500);
 			value = null;
 		}
-	}
-
-	if (streaming && mode === "image") {
-		window.setInterval(() => {
-			if (video_source && !pending) {
-				take_picture();
-			}
-		}, stream_every * 1000);
 	}
 
 	let options_open = false;

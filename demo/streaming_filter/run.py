@@ -38,7 +38,7 @@ with gr.Blocks() as demo:
                                     value="flip", label="Transformation")
             input_img = gr.Image(sources=["webcam"], type="numpy")
         with gr.Column():
-            output_img = gr.Image(format="jpeg")
+            output_img = gr.Image(format="base64")
         dep = input_img.stream(transform_cv2, [input_img, transform], [output_img],
                                 time_limit=30, stream_every=0.1, concurrency_limit=30)
 

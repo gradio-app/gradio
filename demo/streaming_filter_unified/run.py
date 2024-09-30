@@ -40,7 +40,7 @@ with gr.Blocks(css=css) as demo:
         with gr.Group(elem_classes=["my-group"]):
             transform = gr.Dropdown(choices=["cartoon", "edges", "flip"],
                                     value="flip", label="Transformation")
-            input_img = gr.Image(sources=["webcam"], type="numpy")
+            input_img = gr.Image(sources=["webcam"], type="numpy", format="base64")
     input_img.stream(transform_cv2, [input_img, transform], [input_img], time_limit=30, stream_every=0.1)
 
 
