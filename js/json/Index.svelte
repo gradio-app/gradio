@@ -29,7 +29,9 @@
 	export let open = false;
 	export let theme_mode: "system" | "light" | "dark";
 	export let show_indices: boolean;
-	export let height: string | number | undefined = undefined;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
 
 	$: {
 		if (value !== old_value) {
@@ -50,8 +52,11 @@
 	{scale}
 	{min_width}
 	padding={false}
-	allow_overflow={false}
+	allow_overflow={true}
+	overflow_behavior="auto"
 	{height}
+	{min_height}
+	{max_height}
 >
 	<div bind:clientHeight={label_height}>
 		{#if label}

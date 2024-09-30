@@ -1,10 +1,47 @@
 # @gradio/file
 
-## 0.9.4
+## 0.10.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/client@1.6.0-beta.3
+
+## 0.10.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+- [#9253](https://github.com/gradio-app/gradio/pull/9253) [`99648ec`](https://github.com/gradio-app/gradio/commit/99648ec7c4443e74799941e47b0015ac9ca581e1) - Adds ability to block event trigger when file is uploading.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.9.4-beta.1
 
 ### Features
 
 - [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/wasm@0.13.1-beta.1
+
+## 0.9.4-beta.0
 
 ### Fixes
 
@@ -12,13 +49,13 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.6.1
-- @gradio/statustracker@0.7.6
-- @gradio/atoms@0.8.1
-- @gradio/icons@0.7.2
-- @gradio/wasm@0.13.1
-- @gradio/client@1.5.2
-- @gradio/upload@0.12.4
+- @gradio/utils@0.7.0-beta.0
+- @gradio/statustracker@0.8.0-beta.0
+- @gradio/atoms@0.8.1-beta.0
+- @gradio/client@1.6.0-beta.0
+- @gradio/icons@0.8.0-beta.0
+- @gradio/upload@0.12.4-beta.0
+- @gradio/wasm@0.13.1-beta.0
 
 ## 0.9.3
 

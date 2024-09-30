@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -160,15 +162,26 @@ class Dropdown(FormComponent):
         Returns:
             Passes the value of the selected dropdown choice as a `str | int | float` or its index as an `int` into the function, depending on `type`. Or, if `multiselect` is True, passes the values of the selected dropdown choices as a list of correspoding values/indices instead.
         """
+        if payload is None:
+            return None
+
+        choice_values = [value for _, value in self.choices]
+        if not self.allow_custom_value:
+            if isinstance(payload, list):
+                for value in payload:
+                    if value not in choice_values:
+                        raise Error(
+                            f"Value: {value} is not in the list of choices: {choice_values}"
+                        )
+            elif payload not in choice_values:
+                raise Error(
+                    f"Value: {payload} is not in the list of choices: {choice_values}"
+                )
+
         if self.type == "value":
             return payload
         elif self.type == "index":
-            choice_values = [value for _, value in self.choices]
-            if payload is None:
-                return None
-            elif self.multiselect:
-                if not isinstance(payload, list):
-                    raise TypeError("Multiselect dropdown payload must be a list")
+            if isinstance(payload, list):
                 return [
                     choice_values.index(choice) if choice in choice_values else None
                     for choice in payload

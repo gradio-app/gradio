@@ -39,7 +39,7 @@
 
 	onMount(async () => {
 		stream = await stream_handler(
-			new URL(`${root}/upload_progress?upload_id=${upload_id}`)
+			new URL(`${root}/gradio_api/upload_progress?upload_id=${upload_id}`)
 		);
 
 		if (stream == null) {

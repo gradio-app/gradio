@@ -1,5 +1,54 @@
 # @gradio/multimodaltextbox
 
+## 0.6.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/video@0.11.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/image@0.16.0-beta.3
+
+## 0.6.0-beta.2
+
+### Features
+
+- [#8966](https://github.com/gradio-app/gradio/pull/8966) [`8e52b6a`](https://github.com/gradio-app/gradio/commit/8e52b6a3e75957462bc7fdbf6ff9c280084d5f08) - Chatbot Examples.  Thanks @dawoodkhan82!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9280](https://github.com/gradio-app/gradio/pull/9280) [`7122420`](https://github.com/gradio-app/gradio/commit/712242047fde3a594dfde7f48a44c7ea16239dc8) - Match style of textbox stop button to submit button.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#9393](https://github.com/gradio-app/gradio/pull/9393) [`53ed0f0`](https://github.com/gradio-app/gradio/commit/53ed0f030551ad876a1fea28a9db9015ba6ec33e) - Fix File Types for MultimodalTextbox.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/image@0.16.0-beta.2
+- @gradio/video@0.11.0-beta.2
+
+## 0.6.0-beta.1
+
+### Features
+
+- [#9235](https://github.com/gradio-app/gradio/pull/9235) [`f8b411f`](https://github.com/gradio-app/gradio/commit/f8b411fe282ff0316ed4abebc0a043b044bf4dd9) - Built-in submit and stop buttons in `gr.ChatInterface(multimodal=False)`, adding `submit_btn` and `stop_btn` props to `gr.Textbox()` and `gr.MultimodalText()`.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.1
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/image@0.16.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+
 ## 0.5.7
 
 ### Fixes

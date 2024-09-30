@@ -36,7 +36,7 @@
 	export let root: string;
 	export let i18n: I18nFormatter;
 
-	export let height = 500;
+	export let max_height = 500;
 	export let line_breaks = true;
 	export let column_widths: string[] = [];
 	export let upload: Client["upload"];
@@ -427,7 +427,7 @@
 		selected = [index ? index + 1 : data.length - 1, 0];
 	}
 
-	$: data && trigger_change();
+	$: (data || selected_header) && trigger_change();
 
 	async function add_col(): Promise<void> {
 		parent.focus();
@@ -564,7 +564,7 @@
 	}
 
 	let table_height: number =
-		values.slice(0, (height / values.length) * 37).length * 37 + 37;
+		values.slice(0, (max_height / values.length) * 37).length * 37 + 37;
 	let scrollbar_width = 0;
 
 	function sort_data(
@@ -744,7 +744,7 @@
 		>
 			<VirtualTable
 				bind:items={data}
-				max_height={height}
+				{max_height}
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}
 				selected={selected_index}

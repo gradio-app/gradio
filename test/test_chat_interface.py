@@ -45,11 +45,6 @@ class TestInit:
         with pytest.raises(TypeError):
             gr.ChatInterface()  # type: ignore
 
-    def test_configuring_buttons(self):
-        chatbot = gr.ChatInterface(double, submit_btn=None, retry_btn=None)
-        assert chatbot.submit_btn is None
-        assert chatbot.retry_btn is None
-
     def test_concurrency_limit(self):
         chat = gr.ChatInterface(double, concurrency_limit=10)
         assert chat.concurrency_limit == 10
@@ -69,40 +64,22 @@ class TestInit:
             chatbot=gr.Chatbot(height=400),
             textbox=gr.Textbox(placeholder="Type Message", container=False, scale=7),
             title="Test",
-            clear_btn="Clear",
         )
         gr.ChatInterface(
             chat,
             chatbot=gr.Chatbot(height=400),
             textbox=gr.MultimodalTextbox(container=False, scale=7),
             title="Test",
-            clear_btn="Clear",
         )
 
     def test_events_attached(self):
         chatbot = gr.ChatInterface(double)
         dependencies = chatbot.fns.values()
         textbox = chatbot.textbox._id
-        assert chatbot.submit_btn
-        submit_btn = chatbot.submit_btn._id
         assert next(
-            (
-                d
-                for d in dependencies
-                if d.targets == [(textbox, "submit"), (submit_btn, "click")]
-            ),
+            (d for d in dependencies if d.targets == [(textbox, "submit")]),
             None,
         )
-        assert chatbot.retry_btn and chatbot.clear_btn and chatbot.undo_btn
-        for btn_id in [
-            chatbot.retry_btn._id,
-            chatbot.clear_btn._id,
-            chatbot.undo_btn._id,
-        ]:
-            assert next(
-                (d for d in dependencies if d.targets[0] == (btn_id, "click")),
-                None,
-            )
 
     def test_example_caching(self):
         with patch(
@@ -122,7 +99,10 @@ class TestInit:
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
             chatbot = gr.ChatInterface(
-                double, examples=["hello", "hi"], cache_examples="lazy"
+                double,
+                examples=["hello", "hi"],
+                cache_examples=True,
+                cache_mode="lazy",
             )
             async for _ in chatbot.examples_handler.async_lazy_cache(
                 (0, ["hello"]), "hello"

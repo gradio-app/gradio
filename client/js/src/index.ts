@@ -14,7 +14,8 @@ export type {
 	UploadResponse,
 	RenderMessage,
 	LogMessage,
-	Payload
+	Payload,
+	Config
 } from "./types";
 
 // todo: remove in @gradio/client v1.0

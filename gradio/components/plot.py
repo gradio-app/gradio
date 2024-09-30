@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Literal, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -128,18 +129,16 @@ class Plot(Component):
         Returns:
             PlotData: A dataclass containing the plot data as a JSON string, as well as the type of chart and the plotting library.
         """
-        import matplotlib.figure
-
         if value is None:
             return None
         if isinstance(value, PlotData):
             return value
-        if isinstance(value, (ModuleType, matplotlib.figure.Figure)):  # type: ignore
+        if isinstance(value, ModuleType) or "matplotlib" in value.__module__:
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(value, self.format)
         elif "bokeh" in value.__module__:
             dtype = "bokeh"
-            from bokeh.embed import json_item  # type: ignore
+            from bokeh.embed import json_item
 
             out_y = json.dumps(json_item(value))
         else:
