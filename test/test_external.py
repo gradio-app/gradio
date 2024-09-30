@@ -524,10 +524,9 @@ def test_load_inside_blocks():
 
 
 def test_load_callable():
-    def mock_src(name: str, token: str | None, *args, **kwargs) -> gr.Blocks:
+    def mock_src(name: str, token: str | None, **kwargs) -> gr.Blocks:
         assert name == "test_model"
         assert token == "test_token"
-        assert args == ("extra_arg",)
         assert kwargs == {"param1": "value1", "param2": "value2"}
         return gr.Blocks()
 
@@ -536,7 +535,6 @@ def test_load_callable():
         mock_src,
         "test_token",
         None,
-        "extra_arg",
         param1="value1",
         param2="value2",
     )

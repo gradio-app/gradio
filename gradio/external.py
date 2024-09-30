@@ -10,7 +10,7 @@ import tempfile
 import warnings
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Literal
 
 import httpx
 import huggingface_hub
@@ -36,12 +36,11 @@ if TYPE_CHECKING:
 @document()
 def load(
     name: str,
-    src: Callable[[str, str | None, Any, Any], Blocks]
+    src: Callable[[str, str | None], Blocks]
     | Literal["models", "spaces"]
     | None = None,
     token: str | None = None,
     hf_token: str | None = None,
-    *args,
     **kwargs,
 ) -> Blocks:
     """
@@ -50,7 +49,6 @@ def load(
         name: the name of the model (e.g. "google/vit-base-patch16-224") or Space (e.g. "flax-community/spanish-gpt2"). This is the first parameter passed into the `src` function. Can also be formatted as {src}/{repo name} (e.g. "models/google/vit-base-patch16-224") if `src` is not provided.
         src: function that accepts a string model `name` and a string or None `token` and returns a Gradio app. Alternatively, this parameter takes one of two strings for convenience: "models" (for loading a Hugging Face model through the Inference API) or "spaces" (for loading a Hugging Face Space). If None, uses the prefix of the `name` parameter to determine `src`.
         token: optional token that is passed as the second parameter to the `src` function. For Hugging Face repos, uses the local HF token when loading models but not Spaces (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find HF tokens here: https://huggingface.co/settings/tokens.
-        args: additional positional parameter to pass into the `src` function.
         kwargs: additional keyword parameters to pass into the `src` function. If `src` is "models" or "Spaces", these parameters are passed into the `gr.Interface` or `gr.ChatInterface` constructor.
     Returns:
         a Gradio Blocks app for the given model
@@ -78,7 +76,7 @@ def load(
             name=name, src=src, hf_token=token, **kwargs
         )
     elif isinstance(src, Callable):
-        return src(name, token, *args, **kwargs)
+        return src(name, token, **kwargs)
     else:
         raise ValueError(
             "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a function that accepts a model name (and optionally, a token), and returns a Gradio app."
