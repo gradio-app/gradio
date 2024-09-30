@@ -25,7 +25,7 @@ $demo_streaming_filter
 
 You will notice that if you change the filter value it will immediately take effect in the output stream. That is an important difference of stream events in comparison to other Gradio events. The input values of the stream can be changed while the stream is being processed. 
 
-Tip: We set the "format" parameter of the image component to be "base64"
+Tip: We set the "format" parameter of the image output component to be "base64". That way, the server does not have to spend time saving the image to a file. This will help reduce latency.
 
 ## Unified Image Demos
 
