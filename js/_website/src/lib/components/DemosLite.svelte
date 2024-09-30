@@ -255,10 +255,18 @@
 	let copied_link = false;
 	let shared = false;
 	async function copy_link(name: string) {
-		let code_b64 = btoa(code);
-		name = name.replaceAll(" ", "_");
+		const name_encoded = name.replaceAll(" ", "_");
+		const code_b64 = btoa(code);
+		const reqs = requirements.join("\n");
+		const reqs_b64 = btoa(reqs);
+
+		const url = new URL($page.url);
+		url.searchParams.set("demo", name_encoded);
+		url.searchParams.set("code", code_b64);
+		url.searchParams.set("reqs", reqs_b64);
+
 		await navigator.clipboard.writeText(
-			`${$page.url.href.split("?")[0]}?demo=${name}&code=${code_b64}`
+			url.toString()
 		);
 		copied_link = true;
 		shared = true;
@@ -300,14 +308,18 @@
 	$: lg_breakpoint = preview_width - 13 >= 688;
 
 	if (browser) {
-		let linked_demo = $page.url.searchParams.get("demo");
-		let b64_code = $page.url.searchParams.get("code");
+		const linked_demo = $page.url.searchParams.get("demo");
+		const b64_code = $page.url.searchParams.get("code");
+		const b64_reqs = $page.url.searchParams.get("reqs");
 
 		if (linked_demo && b64_code) {
 			current_selection = linked_demo.replaceAll("_", " ");
 			let demo = demos.find((demo) => demo.name === current_selection);
 			if (demo) {
 				demo.code = atob(b64_code);
+				if (b64_reqs) {
+					demo.requirements = atob(b64_reqs).split("\n");
+				}
 			}
 		}
 	}
@@ -354,6 +366,8 @@
 		const encoded_content = code.trimStart();
 		params.append("files[0][path]", "app.py");
 		params.append("files[0][content]", encoded_content);
+		params.append("files[1][path]", "requirements.txt");
+		params.append("files[1][content]", requirementsStr);
 		window.open(`${base_URL}?${params.toString()}`, "_blank")?.focus();
 	}
 
