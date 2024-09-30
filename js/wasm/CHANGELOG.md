@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.14.0-beta.3
+
+### Features
+
+- [#9383](https://github.com/gradio-app/gradio/pull/9383) [`30d13ac`](https://github.com/gradio-app/gradio/commit/30d13ac8a932d53abfd236d3e4e845570480e701) - Pre/post-processing download requests.  Thanks @aliabid94!
+
 ## 0.14.0-beta.2
 
 ### Features

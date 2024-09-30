@@ -2,6 +2,12 @@
 
 ## 0.5.0-beta.2
 
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.5.0-beta.2
+
 ### Features
 
 - [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate.  Thanks @abidlabs!

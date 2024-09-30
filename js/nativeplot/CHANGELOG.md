@@ -1,5 +1,15 @@
 # @gradio/nativeplot
 
+## 0.4.0-beta.3
+
+### Features
+
+- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
 ## 0.4.0-beta.2
 
 ### Features
