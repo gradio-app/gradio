@@ -25,6 +25,7 @@ from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -101,7 +102,7 @@ class Gallery(Component):
         Parameters:
             value: List of images or videos to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             format: Format to save images before they are returned to the frontend, such as 'jpeg' or 'png'. This parameter only applies to images that are returned from the prediction function as numpy arrays or PIL Images. The format should be supported by the PIL library.
-            file_types: List of file extensions or types of files to be uploaded (e.g. ['image', 'video']), when this is used as an input component. "image" allows only image files to be uploaded, "video" allows only video files to be uploaded, ".mp4" allows only mp4 files to be uploaded, etc. If None, any image and video files types are allowed.
+            file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.mp4']), when this is used as an input component. "image" allows only image files to be uploaded, "video" allows only video files to be uploaded, ".mp4" allows only mp4 files to be uploaded, etc. If None, any image and video files types are allowed.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
@@ -184,12 +185,23 @@ class Gallery(Component):
             return None
         data = []
         for gallery_element in payload.root:
-            media = (
-                gallery_element.video.path
-                if (type(gallery_element) is GalleryVideo)
-                else self.convert_to_type(gallery_element.image.path, self.type)  # type: ignore
-            )
-            data.append((media, gallery_element.caption))
+            if isinstance(gallery_element, GalleryVideo):
+                file_path = gallery_element.video.path
+            else:
+                file_path = gallery_element.image.path
+            if self.file_types and not client_utils.is_valid_file(
+                file_path, self.file_types
+            ):
+                raise Error(
+                    f"Invalid file type. Please upload a file that is one of these formats: {self.file_types}"
+                )
+            else:
+                media = (
+                    gallery_element.video.path
+                    if (type(gallery_element) is GalleryVideo)
+                    else self.convert_to_type(gallery_element.image.path, self.type)  # type: ignore
+                )
+                data.append((media, gallery_element.caption))
         return data
 
     def postprocess(
