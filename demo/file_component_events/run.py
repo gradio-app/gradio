@@ -54,7 +54,7 @@ with gr.Blocks() as demo:
             )
     with gr.Row():
         with gr.Column():
-            file_component_pdf = gr.File(label="Upload PDF File", file_types=["pdf"])
+            file_component_pdf = gr.File(label="Upload PDF File", file_types=[".pdf"])
         with gr.Column():
             output_file_4 = gr.File(label="Upload PDF File Output")
             num_load_btn_4 = gr.Number(label="# Load Upload PDF File", value=0)
