@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+	export { default as BaseTabItem } from "./shared/TabItem.svelte";
+</script>
+
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import TabItem from "./shared/TabItem.svelte";
