@@ -290,7 +290,7 @@ with gr.Blocks(  # noqa: SIM117
         # App
 
         with gr.Column(scale=6, elem_id="app"):
-            with gr.Column(variant="panel"):
+            with gr.Column(variant="panel", scale=0):
                 gr.Markdown(
                     """
                     # Theme Builder

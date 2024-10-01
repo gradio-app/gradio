@@ -73,19 +73,12 @@
 	}
 
 	button:hover {
-		transform: var(--button-transform);
-		transition: all 0.2s;
-	}
-
-	button:hover,
-	button[disabled],
-	a:hover,
-	a.disabled {
+		transform: var(--button-transform-hover);
 	}
 
 	button:active,
 	a:active {
-		transform: var(--button-active-transform);
+		transform: var(--button-transform-active);
 	}
 
 	button[disabled],

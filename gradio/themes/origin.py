@@ -108,5 +108,5 @@ class Origin(Base):
             button_cancel_text_color_dark="white",
             # Other
             border_color_accent_subdued="*primary_200",
-            button_transform="none",
+            button_transform_hover="none",
         )
