@@ -22,7 +22,7 @@
 	}
 
 	export let visible = true;
-	export let elem_id = "id";
+	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let selected: number | string | object;
 
@@ -205,9 +205,7 @@
 	</div>
 {/if}
 
-<div>
-	<slot />
-</div>
+<slot />
 
 <style>
 	.tabs {

@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	export { TABS } from "./shared/Tabs.svelte";
+	export { default as BaseTabs, TABS } from "./shared/Tabs.svelte";
 </script>
 
 <script lang="ts">
