@@ -85,7 +85,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy js/_website/.vercel/output/static --project-name=gradio-website --branch=${{ needs.changes.outputs.pr_number }}
+          command: pages deploy js/_website/.vercel/output/static --project-name=gradio-website --branch=${{ needs.changes.outputs.source_branch }}
 
         # production
       - name: Pull Vercel Environment Information

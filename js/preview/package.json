@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/preview",
-	"version": "0.11.1",
+	"version": "0.11.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "dist/index.js",
@@ -43,6 +43,8 @@
 	},
 	"exports": {
 		".": {
+			"default": "./dist/index.js",
+			"import": "./dist/index.js",
 			"gradio": "./src/index.ts",
 			"svelte": "./dist/src/index.js",
 			"types": "./dist/index.d.ts"
