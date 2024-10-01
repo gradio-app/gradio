@@ -17,7 +17,7 @@ class Origin(Base):
         radius_size: sizes.Size | str = sizes.radius_md,
         text_size: sizes.Size | str = sizes.text_md,
         font: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.LocalFont("IBM Plex Sans"),
+            fonts.LocalFont("Source Sans Pro"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",

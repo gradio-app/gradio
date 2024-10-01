@@ -975,7 +975,6 @@
 		--ring-color: transparent;
 		position: relative;
 		outline: none;
-		box-shadow: inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 	}
 

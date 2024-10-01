@@ -70,15 +70,18 @@
 		transition: var(--button-transition);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
+		box-shadow: var(--button-shadow);
 	}
 
 	button:hover {
 		transform: var(--button-transform-hover);
+		box-shadow: var(--button-shadow-hover);
 	}
 
 	button:active,
 	a:active {
 		transform: var(--button-transform-active);
+		box-shadow: var(--button-shadow-active);
 	}
 
 	button[disabled],
