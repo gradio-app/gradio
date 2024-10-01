@@ -112,7 +112,7 @@ class MultimodalTextbox(FormComponent):
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
-            stop_btn: If False, will not show a stop button. If a string, will use that string as the stop button text.
+            stop_btn: If True, will show a stop button (useful for streaming demos). If a string, will use that string as the stop button text.
         """
         self.file_types = file_types
         self.file_count = file_count
