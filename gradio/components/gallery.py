@@ -185,11 +185,10 @@ class Gallery(Component):
             return None
         data = []
         for gallery_element in payload.root:
-            file_path = (
-                gallery_element.video.path
-                if (type(gallery_element) is GalleryVideo)
-                else gallery_element.image.path
-            )
+            if isinstance(gallery_element, GalleryVideo):
+                file_path = gallery_element.video.path
+            else:
+                file_path = gallery_element.image.path
             if self.file_types and not client_utils.is_valid_file(
                 file_path, self.file_types
             ):
