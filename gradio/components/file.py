@@ -28,7 +28,7 @@ class File(Component):
     """
     Creates a file component that allows uploading one or more generic files (when used as an input) or displaying generic files or URLs for download (as output).
 
-    Demo: zip_files, zip_to_json
+        Demo: zip_files, zip_to_json
     """
 
     EVENTS = [Events.change, Events.select, Events.clear, Events.upload, Events.delete]

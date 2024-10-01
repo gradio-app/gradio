@@ -72,18 +72,18 @@ def test_decode_base64_to_file():
 
 
 @pytest.mark.parametrize(
-    "mime_type, file_types, expected_result",
+    "path_or_url, file_types, expected_result",
     [
-        ("audio/mp3", [".json", "text", ".mp3", ".pdf"], True),
-        ("image/png", [".png"], True),
-        ("image/png", ["image"], True),
-        ("image/png", ["file"], True),
-        ("application/pdf", [".json", "text", ".mp3"], False),
-        ("video/mp4", ["audio", ".png", ".jpg"], False),
+        ("/home/user/documents/example.pdf", [".json", "text", ".mp3", ".pdf"], True),
+        ("C:\\Users\\user\\documents\\example.png", [".png"], True),
+        ("C:\\Users\\user\\documents\\example.png", ["image"], True),
+        ("C:\\Users\\user\\documents\\example.png", ["file"], True),
+        ("/home/user/documents/example.pdf", [".json", "text", ".mp3"], False),
+        ("https://example.com/avatar/xxxx.mp4", ["audio", ".png", ".jpg"], False),
     ],
 )
-def test_is_valid_file_type(mime_type, file_types, expected_result):
-    assert utils.is_valid_file(mime_type, file_types) is expected_result
+def test_is_valid_file_type(path_or_url, file_types, expected_result):
+    assert utils.is_valid_file(path_or_url, file_types) is expected_result
 
 
 @pytest.mark.parametrize(
