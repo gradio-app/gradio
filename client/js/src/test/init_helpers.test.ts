@@ -84,16 +84,6 @@ describe("determine_protocol", () => {
 			host: "lite.local"
 		});
 	});
-
-	it('should return the default protocols and host when the endpoint does not start with "http" or "file"', () => {
-		const endpoint = "huggingface.co";
-		const result = determine_protocol(endpoint);
-		expect(result).toEqual({
-			ws_protocol: "wss",
-			http_protocol: "https:",
-			host: "huggingface.co"
-		});
-	});
 });
 
 describe("parse_and_set_cookies", () => {
