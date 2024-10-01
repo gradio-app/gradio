@@ -1,3 +1,0 @@
-numpy
-requests
-huggingface_hub
