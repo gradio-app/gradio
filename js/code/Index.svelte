@@ -57,14 +57,14 @@
 </script>
 
 <Block
-	height={max_lines && "fit-content"}
+	height={max_lines ? "fit-content" : null}
 	variant={"solid"}
 	padding={false}
 	{elem_id}
 	{elem_classes}
 	{visible}
 	{scale}
-	{min_width}
+	min_width={min_width ? min_width : null}
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
