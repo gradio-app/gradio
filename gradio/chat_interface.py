@@ -188,22 +188,22 @@ class ChatInterface(Blocks):
             if description:
                 Markdown(description)
 
-            examples: list[ExampleMessage] = []
+            examples_messages: list[ExampleMessage] = []
             if examples:
                 for index, example in enumerate(examples):
                     if isinstance(example, list):
                         example = example[0]
-                    example: ExampleMessage = {}
+                    example_message: ExampleMessage = {}
                     if isinstance(example, str):
-                        example["text"] = example
+                        example_message["text"] = example
                     elif isinstance(example, dict):
-                        example["text"] = example.get("text", "")
-                        example["files"] = example.get("files", [])
+                        example_message["text"] = example.get("text", "")
+                        example_message["files"] = example.get("files", [])
                     if example_labels:
-                        example["display_text"] = example_labels[index]
+                        example_message["display_text"] = example_labels[index]
                     if example_icons:
-                        example["icon"] = example_icons[index]
-                    examples.append(example)
+                        example_message["icon"] = example_icons[index]
+                    examples_messages.append(example_message)
 
             if chatbot:
                 if self.type != chatbot.type:
@@ -215,14 +215,14 @@ class ChatInterface(Blocks):
                 self.chatbot = cast(
                     Chatbot, get_component_instance(chatbot, render=True)
                 )
-                self.chatbot.examples = examples
+                self.chatbot.examples = examples_messages
             else:
                 self.chatbot = Chatbot(
                     label="Chatbot",
                     scale=1,
                     height=200 if fill_height else None,
                     type=self.type,
-                    examples=examples,
+                    examples=examples_messages,
                 )
 
             with Group():
@@ -583,7 +583,10 @@ class ChatInterface(Blocks):
 
     def _append_history(self, history, message, first_response=True):
         if self.type == "tuples":
-            history[-1][1] = message  # type: ignore
+            if history:
+                history[-1][1] = message  # type: ignore
+            else:
+                history.append([None, message])
         else:
             message = self.response_as_dict(message)
             if first_response:
