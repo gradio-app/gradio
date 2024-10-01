@@ -45,7 +45,7 @@
 	}>();
 
 	// Setting the initial value of the dropdown
-	if (value) {
+	if (typeof value === "string" || value.length > 0) {
 		old_selected_index = choices.map((c) => c[1]).indexOf(value as string);
 		selected_index = old_selected_index;
 		if (selected_index === -1) {
@@ -63,6 +63,7 @@
 		old_value = value;
 		old_input_text = input_text;
 	}
+
 
 	$: {
 		if (
