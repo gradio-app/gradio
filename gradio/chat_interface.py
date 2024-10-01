@@ -586,7 +586,7 @@ class ChatInterface(Blocks):
             if history:
                 history[-1][1] = message  # type: ignore
             else:
-                history.append([None, message])
+                history.append([message, None])
         else:
             message = self.response_as_dict(message)
             if first_response:
@@ -654,11 +654,11 @@ class ChatInterface(Blocks):
             return self.examples_handler.load_from_cache(x.index)[0].root
         if self.multimodal:
             message = MultimodalPostprocess(**cast(dict, x.value))
+            self._append_multimodal_history(message, None, history)
         else:
             message = x.value["text"]
+            self._append_history(history, message)
         self.saved_input.value = message
-        if self.multimodal:
-            self._append_multimodal_history(message, None, history)
         return history
 
     def _process_example(
