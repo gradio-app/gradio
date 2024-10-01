@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { BaseCode as Code, BaseWidget as CodeWidget } from "@gradio/code";
+	import { BaseTabs as Tabs } from "@gradio/tabs";
+	import { BaseTabItem as TabItem } from "@gradio/tabitem";
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
@@ -219,21 +221,16 @@
 		});
 	}
 
+	function cleanupRequirements(requirements: string[]): string[] {
+		return requirements.filter((r) => r.trim() !== "");
+	}
+
 	onMount(async () => {
 		try {
 			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
 			controller = createGradioApp({
 				target: document.getElementById("lite-demo"),
-				requirements: requirements.concat([
-					// Frequently used libraries
-					"numpy",
-					"pandas",
-					"matplotlib",
-					"plotly",
-					"transformers_js_py",
-					"requests",
-					"pillow"
-				]),
+				requirements: cleanupRequirements(requirements),
 				code,
 				info: true,
 				container: true,
@@ -258,11 +255,17 @@
 	let copied_link = false;
 	let shared = false;
 	async function copy_link(name: string) {
-		let code_b64 = btoa(code);
-		name = name.replaceAll(" ", "_");
-		await navigator.clipboard.writeText(
-			`${$page.url.href.split("?")[0]}?demo=${name}&code=${code_b64}`
-		);
+		const name_encoded = name.replaceAll(" ", "_");
+		const code_b64 = btoa(code);
+		const reqs = requirements.join("\n");
+		const reqs_b64 = btoa(reqs);
+
+		const url = new URL($page.url);
+		url.searchParams.set("demo", name_encoded);
+		url.searchParams.set("code", code_b64);
+		url.searchParams.set("reqs", reqs_b64);
+
+		await navigator.clipboard.writeText(url.toString());
 		copied_link = true;
 		shared = true;
 		setTimeout(() => (copied_link = false), 2000);
@@ -272,13 +275,26 @@
 		demos.find((demo) => demo.name === current_selection) ?? demos[0];
 	$: code = selected_demo?.code || "";
 	$: requirements = selected_demo?.requirements || [];
-	$: requirementsStr = JSON.stringify(requirements); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
+	$: requirementsStr = requirements.join("\n"); // Use the stringified version to trigger reactivity only when the array values actually change, while the `requirements` object's identity always changes.
 
+	function on_demo_selected(selection: typeof current_selection) {
+		const current_demo = demos.find((demo) => demo.name === selection);
+		if (!current_demo) {
+			return;
+		}
+
+		controller.install(cleanupRequirements(current_demo.requirements));
+	}
+	$: if (mounted) {
+		// When the selected demo changes, we need to call controller.install() immediately without debouncing.
+		on_demo_selected(current_selection);
+	}
 	$: if (mounted) {
 		debounced_run_code && debounced_run_code(code);
 	}
 	$: if (mounted) {
-		debounced_install && debounced_install(JSON.parse(requirementsStr));
+		debounced_install &&
+			debounced_install(cleanupRequirements(requirementsStr.split("\n")));
 	}
 
 	let position = 0.5;
@@ -290,14 +306,18 @@
 	$: lg_breakpoint = preview_width - 13 >= 688;
 
 	if (browser) {
-		let linked_demo = $page.url.searchParams.get("demo");
-		let b64_code = $page.url.searchParams.get("code");
+		const linked_demo = $page.url.searchParams.get("demo");
+		const b64_code = $page.url.searchParams.get("code");
+		const b64_reqs = $page.url.searchParams.get("reqs");
 
 		if (linked_demo && b64_code) {
 			current_selection = linked_demo.replaceAll("_", " ");
 			let demo = demos.find((demo) => demo.name === current_selection);
 			if (demo) {
 				demo.code = atob(b64_code);
+				if (b64_reqs) {
+					demo.requirements = atob(b64_reqs).split("\n");
+				}
 			}
 		}
 	}
@@ -344,6 +364,8 @@
 		const encoded_content = code.trimStart();
 		params.append("files[0][path]", "app.py");
 		params.append("files[0][content]", encoded_content);
+		params.append("files[1][path]", "requirements.txt");
+		params.append("files[1][content]", requirementsStr);
 		window.open(`${base_URL}?${params.toString()}`, "_blank")?.focus();
 	}
 
@@ -402,6 +424,8 @@
 		}
 	}
 
+	const TABS = ["Code", "Packages"] as const;
+	let selected_tab: (typeof TABS)[number] = "Code";
 	let generate_placeholders = [
 		"What do you want to build?",
 		"What do you want to build? e.g. 'An image to audio app'",
@@ -474,20 +498,53 @@
 					id={selected_demo.dir}
 					style="width: {position * 100}%"
 				>
-					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
-						<h3 class="pt-1">Code</h3>
+					<div
+						class="mt-1 flex-1 flex flex-col relative overflow-scroll code-scroll"
+					>
+						<Tabs selected={selected_tab} elem_classes={["editor-tabs"]}>
+							<TabItem
+								name={TABS[0]}
+								visible
+								interactive
+								elem_classes={["editor-tabitem"]}
+							>
+								<div class="flex-1">
+									<CodeWidget value={selected_demo.code} language="python" />
+									<Code
+										bind:value={selected_demo.code}
+										language="python"
+										lines={10}
+										readonly={false}
+										dark_mode={false}
+									/>
+								</div>
+							</TabItem>
+							<TabItem
+								name={TABS[1]}
+								visible
+								interactive
+								elem_classes={["editor-tabitem"]}
+							>
+								<div class="flex-1">
+									<CodeWidget
+										value={selected_demo.requirements.join("\n")}
+										language="python"
+									/>
+									<Code
+										value={selected_demo.requirements.join("\n")}
+										on:change={(e) => {
+											selected_demo.requirements = e.detail.split("\n");
+										}}
+										language="text"
+										lines={10}
+										readonly={false}
+										dark_mode={false}
+									/>
+								</div>
+							</TabItem>
+						</Tabs>
 					</div>
 
-					<div class="flex-1 relative overflow-scroll code-scroll">
-						<CodeWidget value={selected_demo.code} language="python" />
-						<Code
-							bind:value={selected_demo.code}
-							language="python"
-							lines={10}
-							readonly={false}
-							dark_mode={false}
-						/>
-					</div>
 					<div class="mr-2 items-center -mt-7">
 						{#if generation_error}
 							<div
@@ -566,7 +623,7 @@
 				</div>
 			{/if}
 			<div
-				class="preview w-full mx-auto"
+				class="preview w-full mx-auto flex flex-col"
 				style="width: {fullscreen ? 100 : (1 - position) * 100}%"
 				class:fullscreen
 				bind:clientWidth={preview_width}
@@ -625,7 +682,7 @@
 					</div>
 				</div>
 
-				<div class="lite-demo h-[93%] pl-3" id="lite-demo" />
+				<div class="flex-1 pl-3" id="lite-demo" />
 			</div>
 		</div>
 	</Slider>
@@ -646,7 +703,7 @@
 		width: 0;
 	}
 
-	:global(div.lite-demo div.gradio-container) {
+	:global(#lite-demo div.gradio-container) {
 		height: 100%;
 		overflow-y: scroll;
 		margin: 0 !important;
@@ -658,8 +715,20 @@
 		max-height: none !important;
 	}
 
-	.lite-demo :global(.embed-container) {
+	#lite-demo {
+		overflow: scroll;
+	}
+
+	#lite-demo :global(.embed-container) {
 		border: none !important;
+	}
+
+	:global(div.editor-tabitem) {
+		padding: 0;
+		height: 100%;
+	}
+	:global(div.editor-tabitem > div) {
+		height: 100%;
 	}
 
 	.fullscreen {
@@ -776,7 +845,6 @@
 
 	.code-scroll {
 		overflow: auto;
-		scrollbar-gutter: stable both-edges;
 	}
 
 	/* For Webkit browsers (Chrome, Safari, etc.) */
