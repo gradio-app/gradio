@@ -2,6 +2,12 @@
 
 ## 0.7.0-beta.2
 
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.7.0-beta.2
+
 ### Features
 
 - [#8966](https://github.com/gradio-app/gradio/pull/8966) [`8e52b6a`](https://github.com/gradio-app/gradio/commit/8e52b6a3e75957462bc7fdbf6ff9c280084d5f08) - Chatbot Examples.  Thanks @dawoodkhan82!

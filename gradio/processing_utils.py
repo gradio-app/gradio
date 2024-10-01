@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import hashlib
 import ipaddress
@@ -8,14 +9,16 @@ import logging
 import os
 import shutil
 import socket
+import ssl
 import subprocess
 import tempfile
 import warnings
-from functools import lru_cache
+from collections.abc import Awaitable, Callable, Coroutine
+from functools import lru_cache, wraps
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
-from urllib.parse import urlparse, urlunparse
+from typing import TYPE_CHECKING, Any, TypeVar
+from urllib.parse import urlparse
 
 import aiofiles
 import httpx
@@ -40,11 +43,11 @@ if wasm_utils.IS_WASM:
 
     # NOTE: In the Wasm env, we use urllib3 to make HTTP requests. See https://github.com/gradio-app/gradio/issues/6837.
     class Urllib3ResponseSyncByteStream(httpx.SyncByteStream):
-        def __init__(self, response) -> None:
+        def __init__(self, response: urllib3.HTTPResponse) -> None:
             self.response = response
 
         def __iter__(self):
-            yield from self.response.stream()
+            yield from self.response.stream(decode_content=True)
 
     class Urllib3Transport(httpx.BaseTransport):
         def __init__(self):
@@ -64,16 +67,22 @@ if wasm_utils.IS_WASM:
                 preload_content=False,  # Stream the content
             )
 
+            # HTTPX's gzip decoder sometimes fails to decode the content in the Wasm env as https://github.com/gradio-app/gradio/pull/9333#issuecomment-2348048882,
+            # so we avoid it by removing the content-encoding header passed to httpx.Response,
+            # and handle the decoding in `Urllib3ResponseSyncByteStream.__iter__()` with `urllib3`'s implementation.
+            response_headers = response.headers.copy()
+            response_headers.discard("content-encoding")
+
             return httpx.Response(
                 status_code=response.status,
-                headers=response.headers,
+                headers=response_headers,
                 stream=Urllib3ResponseSyncByteStream(response),
             )
 
     sync_transport = Urllib3Transport()
 
     class PyodideHttpResponseAsyncByteStream(httpx.AsyncByteStream):
-        def __init__(self, response) -> None:
+        def __init__(self, response: pyodide.http.FetchResponse) -> None:
             self.response = response
 
         async def __aiter__(self):
@@ -103,7 +112,6 @@ else:
     async_transport = None
 
 sync_client = httpx.Client(transport=sync_transport)
-async_client = httpx.AsyncClient(transport=async_transport)
 
 log = logging.getLogger(__name__)
 
@@ -273,121 +281,192 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
     return full_temp_file_path
 
 
-@lru_cache(maxsize=256)
-def resolve_with_google_dns(hostname: str) -> str | None:
-    url = f"https://dns.google/resolve?name={hostname}&type=A"
-
-    if wasm_utils.IS_WASM:
-        import pyodide.http
-
-        content = pyodide.http.open_url(url)
-        data = json.load(content)
-    else:
-        import urllib.request
-
-        with urllib.request.urlopen(url) as response:
-            data = json.loads(response.read().decode())
-
-    if data.get("Status") == 0 and "Answer" in data:
-        for answer in data["Answer"]:
-            if answer["type"] == 1:
-                return answer["data"]
-
-
 # Always return these URLs as is, without checking to see if they resolve
 # to an internal IP address. This is because Hugging Face uses DNS splitting,
 # which means that requests from HF Spaces to HF Datasets or HF Models
 # may resolve to internal IP addresses even if they are publicly accessible.
-PUBLIC_URL_WHITELIST = ["hf.co", "huggingface.co"]
+PUBLIC_HOSTNAME_WHITELIST = ["hf.co", "huggingface.co"]
 
 
-def get_public_url(url: str) -> str:
-    parsed_url = urlparse(url)
-    if parsed_url.scheme not in ["http", "https"]:
-        raise httpx.RequestError(f"Invalid scheme for URL: {url}")
-    hostname = parsed_url.hostname
-    if not hostname:
-        raise httpx.RequestError(f"Invalid URL: {url}, missing hostname")
-    if hostname.lower() in PUBLIC_URL_WHITELIST:
-        return url
-
+def is_public_ip(ip: str) -> bool:
     try:
-        addrinfo = socket.getaddrinfo(hostname, None)
+        ip_obj = ipaddress.ip_address(ip)
+        return not (
+            ip_obj.is_private
+            or ip_obj.is_loopback
+            or ip_obj.is_link_local
+            or ip_obj.is_multicast
+            or ip_obj.is_reserved
+        )
+    except ValueError:
+        return False
+
+
+T = TypeVar("T")
+
+
+def lru_cache_async(maxsize: int = 128):
+    def decorator(
+        async_func: Callable[..., Coroutine[Any, Any, T]],
+    ) -> Callable[..., Awaitable[T]]:
+        @lru_cache(maxsize=maxsize)
+        @wraps(async_func)
+        def wrapper(*args: Any, **kwargs: Any) -> Awaitable[T]:
+            return asyncio.create_task(async_func(*args, **kwargs))
+
+        return wrapper
+
+    return decorator
+
+
+@lru_cache_async(maxsize=256)
+async def async_resolve_hostname_google(hostname: str) -> list[str]:
+    async with httpx.AsyncClient() as client:
+        try:
+            response_v4 = await client.get(
+                f"https://dns.google/resolve?name={hostname}&type=A"
+            )
+            response_v6 = await client.get(
+                f"https://dns.google/resolve?name={hostname}&type=AAAA"
+            )
+
+            ips = []
+            for response in [response_v4.json(), response_v6.json()]:
+                ips.extend([answer["data"] for answer in response.get("Answer", [])])
+            return ips
+        except Exception:
+            return []
+
+
+class AsyncSecureTransport(httpx.AsyncHTTPTransport):
+    def __init__(self, verified_ip: str):
+        self.verified_ip = verified_ip
+        super().__init__()
+
+    async def connect(
+        self,
+        hostname: str,
+        port: int,
+        _timeout: float | None = None,
+        ssl_context: ssl.SSLContext | None = None,
+        **_kwargs: Any,
+    ):
+        loop = asyncio.get_event_loop()
+        sock = await loop.getaddrinfo(self.verified_ip, port)
+        sock = socket.socket(sock[0][0], sock[0][1])
+        await loop.sock_connect(sock, (self.verified_ip, port))
+        if ssl_context:
+            sock = ssl_context.wrap_socket(sock, server_hostname=hostname)
+        return sock
+
+
+async def async_validate_url(url: str) -> str:
+    hostname = urlparse(url).hostname
+    if not hostname:
+        raise ValueError(f"URL {url} does not have a valid hostname")
+    try:
+        loop = asyncio.get_event_loop()
+        addrinfo = await loop.getaddrinfo(hostname, None)
     except socket.gaierror as e:
-        raise httpx.RequestError(
-            f"Cannot resolve URL with hostname: {hostname}, please download this file and use the path instead."
-        ) from e
+        raise ValueError(f"Unable to resolve hostname {hostname}: {e}") from e
 
     for family, _, _, _, sockaddr in addrinfo:
-        ip = sockaddr[0]
-        if family == socket.AF_INET6:
-            ip = ip.split("%")[0]  # Remove scope ID if present
+        ip_address = sockaddr[0]
+        if family in (socket.AF_INET, socket.AF_INET6) and is_public_ip(ip_address):
+            return ip_address
 
-        if ipaddress.ip_address(ip).is_global:
-            return url
+    if not wasm_utils.IS_WASM:
+        for ip_address in await async_resolve_hostname_google(hostname):
+            if is_public_ip(ip_address):
+                return ip_address
 
-    google_resolved_ip = resolve_with_google_dns(hostname)
-    if google_resolved_ip and ipaddress.ip_address(google_resolved_ip).is_global:
-        if parsed_url.scheme == "https":
-            return url
-        new_parsed = parsed_url._replace(netloc=google_resolved_ip)
-        if parsed_url.port:
-            new_parsed = new_parsed._replace(
-                netloc=f"{google_resolved_ip}:{parsed_url.port}"
-            )
-        return urlunparse(new_parsed)
+    raise ValueError(f"Hostname {hostname} failed validation")
 
-    raise httpx.RequestError(
-        f"No public IP address found for URL: {url}, please download this file and use the path instead."
+
+async def async_get_with_secure_transport(
+    url: str, trust_hostname: bool = False
+) -> httpx.Response:
+    if wasm_utils.IS_WASM:
+        transport = PyodideHttpTransport()
+    elif trust_hostname:
+        transport = None
+    else:
+        verified_ip = await async_validate_url(url)
+        transport = AsyncSecureTransport(verified_ip)
+    async with httpx.AsyncClient(transport=transport) as client:
+        return await client.get(url, follow_redirects=False)
+
+
+async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
+    temp_dir = Path(cache_dir) / hash_url(url)
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    filename = client_utils.strip_invalid_filename_characters(Path(url).name)
+    full_temp_file_path = str(abspath(temp_dir / filename))
+
+    if Path(full_temp_file_path).exists():
+        return full_temp_file_path
+
+    parsed_url = urlparse(url)
+    hostname = parsed_url.hostname
+
+    response = await async_get_with_secure_transport(
+        url, trust_hostname=hostname in PUBLIC_HOSTNAME_WHITELIST
     )
 
+    while response.is_redirect:
+        redirect_url = response.headers["Location"]
+        redirect_parsed = urlparse(redirect_url)
 
-def save_url_to_cache(url: str, cache_dir: str) -> str:
-    """Downloads a file and makes a temporary file path for a copy if does not already
-    exist. Otherwise returns the path to the existing temp file."""
-    url = get_public_url(url)
+        if not redirect_parsed.hostname:
+            redirect_url = f"{parsed_url.scheme}://{hostname}{redirect_url}"
 
-    temp_dir = hash_url(url)
-    temp_dir = Path(cache_dir) / temp_dir
-    temp_dir.mkdir(exist_ok=True, parents=True)
-    name = client_utils.strip_invalid_filename_characters(Path(url).name)
-    full_temp_file_path = str(abspath(temp_dir / name))
+        response = await async_get_with_secure_transport(redirect_url)
 
-    if not Path(full_temp_file_path).exists():
-        with (
-            sync_client.stream("GET", url, follow_redirects=True) as response,
-            open(full_temp_file_path, "wb") as f,
-        ):
-            for redirect in response.history:
-                get_public_url(str(redirect.url))
+    if response.status_code != 200:
+        raise Exception(f"Failed to download file. Status code: {response.status_code}")
 
-            for chunk in response.iter_raw():
-                f.write(chunk)
+    async with aiofiles.open(full_temp_file_path, "wb") as f:
+        async for chunk in response.aiter_bytes():
+            await f.write(chunk)
 
     return full_temp_file_path
 
 
-async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
-    """Downloads a file and makes a temporary file path for a copy if does not already
-    exist. Otherwise returns the path to the existing temp file. Uses async httpx."""
-    url = get_public_url(url)
-
-    temp_dir = hash_url(url)
-    temp_dir = Path(cache_dir) / temp_dir
+def unsafe_download(url: str, cache_dir: str) -> str:
+    temp_dir = Path(cache_dir) / hash_url(url)
     temp_dir.mkdir(exist_ok=True, parents=True)
-    name = client_utils.strip_invalid_filename_characters(Path(url).name)
-    full_temp_file_path = str(abspath(temp_dir / name))
+    filename = client_utils.strip_invalid_filename_characters(Path(url).name)
+    full_temp_file_path = str(abspath(temp_dir / filename))
 
-    if not Path(full_temp_file_path).exists():
-        async with async_client.stream("GET", url, follow_redirects=True) as response:
-            for redirect in response.history:
-                get_public_url(str(redirect.url))
+    with (
+        sync_client.stream("GET", url, follow_redirects=True) as r,
+        open(full_temp_file_path, "wb") as f,
+    ):
+        for chunk in r.iter_raw():
+            f.write(chunk)
 
-            async with aiofiles.open(full_temp_file_path, "wb") as f:
-                async for chunk in response.aiter_raw():
-                    await f.write(chunk)
+    # print path and file size
+    print(
+        f"Downloaded {full_temp_file_path} ({os.path.getsize(full_temp_file_path)} bytes)"
+    )
+    log.info(
+        f"Downloaded {full_temp_file_path} ({os.path.getsize(full_temp_file_path)} bytes)"
+    )
 
     return full_temp_file_path
+
+
+def ssrf_protected_download(url: str, cache_dir: str) -> str:
+    if wasm_utils.IS_WASM:
+        return unsafe_download(url, cache_dir)
+    else:
+        return client_utils.synchronize_async(
+            async_ssrf_protected_download, url, cache_dir
+        )
+
+
+# Custom components created with versions of gradio < 5.0 may be using the processing_utils.save_url_to_cache method, so we alias to ssrf_protected_download to preserve backwards-compatibility
+save_url_to_cache = ssrf_protected_download
 
 
 def save_base64_to_cache(
