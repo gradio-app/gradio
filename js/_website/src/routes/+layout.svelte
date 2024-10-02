@@ -47,7 +47,7 @@
 				}
 			}
 			const script = document.createElement("script");
-			script.src =  WHEEL.gradio_lite_url + "/dist/lite.js";
+			script.src = WHEEL.gradio_lite_url + "/dist/lite.js";
 			script.type = "module";
 			document.head.appendChild(script);
 		}

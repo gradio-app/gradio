@@ -167,7 +167,6 @@
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>
 
-
 <div class="flex flex-row" style="position: absolute; top: -6%; right: 0.4%">
 	<button
 		class="border border-gray-300 rounded-md mx-2 px-2 py-.5 my-[3px] text-md text-gray-600 hover:bg-gray-50 flex"

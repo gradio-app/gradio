@@ -11,7 +11,6 @@
 	import version_json from "$lib/json/version.json";
 	import WHEEL from "$lib/json/wheel.json";
 
-
 	export let data: {
 		demos_by_category: {
 			category: string;
@@ -70,7 +69,6 @@
 	canonical="https://gradio.app/playground"
 	description="Play Around with Gradio Demos"
 />
-
 
 <svelte:head>
 	<script type="module" src="{WHEEL.gradio_lite_url}/dist/lite.js"></script>
