@@ -26,8 +26,7 @@
 	import { Clear, Trash, Community } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { SuggestionMessage } from "../types";
-	import type { MessageRole, ExampleMessage } from "../types";
+	import type { ExampleMessage } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
