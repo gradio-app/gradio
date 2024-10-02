@@ -254,7 +254,7 @@
 		border: none;
 		border-radius: 0;
 		padding: 0 var(--size-4);
-		color: var(--body-text-color-subdued);
+		color: var(--body-text-color);
 		font-weight: var(--section-header-text-weight);
 		font-size: var(--section-header-text-size);
 		transition: all 0.2s ease-out;

@@ -341,7 +341,6 @@
 		top: 0;
 		left: 0;
 		z-index: var(--layer-1);
-		box-shadow: var(--shadow-drop);
 		overflow: hidden;
 	}
 </style>

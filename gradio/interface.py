@@ -555,7 +555,7 @@ class Interface(Blocks):
     ]:
         _submit_btn, _clear_btn, _stop_btn, flag_btns = None, None, None, None
 
-        with Column(variant="panel"):
+        with Column():
             input_component_column = Column()
             with input_component_column:
                 for component in self.main_input_components:
@@ -619,7 +619,7 @@ class Interface(Blocks):
             None,
         )
 
-        with Column(variant="panel"):
+        with Column():
             for component in self.output_components:
                 if not (isinstance(component, State)):
                     component.render()
