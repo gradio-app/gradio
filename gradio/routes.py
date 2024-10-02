@@ -1372,7 +1372,7 @@ class App(FastAPI):
         @router.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:
-                app.get_blocks().startup_events()
+                await app.get_blocks().startup_events()
                 app.startup_events_triggered = True
                 return True
             return False

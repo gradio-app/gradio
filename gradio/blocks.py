@@ -15,7 +15,7 @@ import time
 import warnings
 import webbrowser
 from collections import defaultdict
-from collections.abc import AsyncIterator, Callable, Sequence, Set
+from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
 from pathlib import Path
 from types import ModuleType
 from typing import (
@@ -1033,6 +1033,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.fill_height = fill_height
         self.fill_width = fill_width
         self.delete_cache = delete_cache
+        self.extra_startup_events: list[Callable[..., Coroutine[Any, Any, Any]]] = []
         if isinstance(css, Path):
             with open(css, encoding="utf-8") as css_file:
                 self.css = css_file.read()
@@ -2848,12 +2849,14 @@ Received inputs:
                     )[0]
                     component.load_event = dep.get_config()
 
-    def startup_events(self):
+    async def startup_events(self):
         """Events that should be run when the app containing this block starts up."""
         self._queue.start()
         # So that processing can resume in case the queue was stopped
         self._queue.stopped = False
         self.is_running = True
+        for startup_event in self.extra_startup_events:
+            await startup_event()
         self.create_limiter()
 
     def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
