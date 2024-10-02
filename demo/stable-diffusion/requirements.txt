@@ -3,3 +3,4 @@ transformers
 nvidia-ml-py3
 ftfy
 torch
+Pillow

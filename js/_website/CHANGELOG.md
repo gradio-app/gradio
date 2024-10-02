@@ -1,5 +1,21 @@
 # website
 
+## 0.39.0-beta.5
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.4
+- @gradio/paramviewer@0.4.22-beta.2
+
+## 0.39.0-beta.4
+
+### Features
+
+- [#9419](https://github.com/gradio-app/gradio/pull/9419) [`018c140`](https://github.com/gradio-app/gradio/commit/018c140ef86cacc8211df05b57b26924dab7fa08) - Start/stop recoding from the backend. Add guide on conversational chatbots.  Thanks @freddyaboulton!
+- [#9469](https://github.com/gradio-app/gradio/pull/9469) [`f7c3396`](https://github.com/gradio-app/gradio/commit/f7c3396f55a5b8364d3880a29d766bd092d7f840) - Fix. Triggered dataframe change event for header change.  Thanks @Joodith!
+- [#9426](https://github.com/gradio-app/gradio/pull/9426) [`4e54105`](https://github.com/gradio-app/gradio/commit/4e5410574002ea24067cf4e82b99a6a39f67632c) - Refactoring playground.  Thanks @whitphx!
+- [#9462](https://github.com/gradio-app/gradio/pull/9462) [`b622b1f`](https://github.com/gradio-app/gradio/commit/b622b1fcce888427e87aa1f70c9c2e60aa240e37) - Improve UI on the Playground.  Thanks @aliabd!
+
 ## 0.39.0-beta.3
 
 ### Dependency updates
