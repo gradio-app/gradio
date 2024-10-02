@@ -34,6 +34,7 @@ jobs:
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
+            filter: "gradio"
             token: ${{ secrets.GITHUB_TOKEN }}  
   semgrep:
     permissions:
