@@ -29,7 +29,7 @@
 	export let value_is_output = false;
 	export let language = "";
 	export let lines = 5;
-	export let max_lines: number | null = null;
+	export let max_lines: number | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -37,7 +37,7 @@
 	export let show_label = true;
 	export let loading_status: LoadingStatus;
 	export let scale: number | null = null;
-	export let min_width: number | null = null;
+	export let min_width: number | undefined = undefined;
 	export let wrap_lines = false;
 
 	export let interactive: boolean;
@@ -57,14 +57,14 @@
 </script>
 
 <Block
-	height={max_lines ? "fit-content" : null}
+	height={max_lines && "fit-content"}
 	variant={"solid"}
 	padding={false}
 	{elem_id}
 	{elem_classes}
 	{visible}
 	{scale}
-	min_width={min_width ? min_width : null}
+	{min_width}
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
