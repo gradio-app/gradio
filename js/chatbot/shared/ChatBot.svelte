@@ -37,8 +37,6 @@
 	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
 
-	import LikeButtons from "./ButtonPanel.svelte";
-
 	import CopyAll from "./CopyAll.svelte";
 
 	export let _fetch: typeof fetch;
@@ -47,7 +45,6 @@
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
 	async function update_components(): Promise<void> {
-		console.log("update_components");
 		_components = await load_components(
 			get_components_from_messages(value),
 			_components,
@@ -260,6 +257,10 @@
 						>
 					</div>
 				{/if}
+				{@const show_like =
+					role === "user" ? likeable && like_user_message : likeable}
+				{@const show_retry = _retryable && is_last_bot_message(messages, value)}
+				{@const show_undo = _undoable && is_last_bot_message(messages, value)}
 				<Message
 					{messages}
 					{opposite_avatar_img}
@@ -283,24 +284,13 @@
 					{value}
 					{latex_delimiters}
 					{_components}
-				/>
-
-				{@const show_like =
-					role === "user" ? likeable && like_user_message : likeable}
-				{@const show_retry = _retryable && is_last_bot_message(messages, value)}
-				{@const show_undo = _undoable && is_last_bot_message(messages, value)}
-				<LikeButtons
-					show={show_like || show_retry || show_undo || show_copy_button}
-					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					likeable={show_like}
-					_retryable={show_retry}
-					_undoable={show_undo}
-					disable={generating}
+					{generating}
+					{msg_format}
+					{show_like}
+					{show_retry}
+					{show_undo}
 					{show_copy_button}
-					message={msg_format === "tuples" ? messages[0] : messages}
-					position={role === "user" ? "right" : "left"}
-					avatar={avatar_img}
-					{layout}
+					handle_action={(selected) => handle_like(i, messages[0], selected)}
 				/>
 			{/each}
 			{#if pending_message}
@@ -413,6 +403,15 @@
 		height: var(--size-6);
 	}
 
+	.suggestion-image {
+		max-height: var(--size-6);
+		max-width: var(--size-6);
+		object-fit: cover;
+		border-radius: var(--radius-xl);
+		margin-top: var(--spacing-md);
+		align-self: flex-start;
+	}
+
 	.suggestion-display-text,
 	.suggestion-text,
 	.suggestion-file {
@@ -423,15 +422,6 @@
 		text-align: left;
 		flex-grow: 1;
 		text-overflow: ellipsis;
-	}
-
-	.suggestion-image {
-		max-height: var(--size-6);
-		max-width: var(--size-6);
-		object-fit: cover;
-		border-radius: var(--radius-xl);
-		margin-top: var(--spacing-md);
-		align-self: flex-start;
 	}
 
 	.panel-wrap {
@@ -456,8 +446,4 @@
 		justify-content: space-between;
 		margin-bottom: var(--spacing-xxl);
 	}
-
-	/* .bubble-gap {
-		gap: calc(var(--spacing-xxl) + var(--spacing-lg));
-	} */
 </style>

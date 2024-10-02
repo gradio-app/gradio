@@ -243,7 +243,6 @@ export async function load_components(
 		_components[names[i]] = component.default;
 	});
 
-	console.log("_components", _components);
 	return _components;
 }
 

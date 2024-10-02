@@ -87,7 +87,7 @@
 {/if}
 
 <style>
-	:global(.icon-button-wrapper) {
+	.bubble :global(.icon-button-wrapper) {
 		margin: 0px calc(var(--spacing-xl) * 2);
 	}
 
@@ -95,7 +95,7 @@
 		align-self: flex-start;
 	}
 
-	.message-buttons-right {
+	.bubble.message-buttons-right {
 		align-self: flex-end;
 	}
 
@@ -103,8 +103,14 @@
 		margin-left: auto;
 	}
 
-	.with-avatar {
+	.bubble.with-avatar {
 		margin-left: calc(var(--spacing-xl) * 5);
 		margin-right: calc(var(--spacing-xl) * 5);
+	}
+
+	.panel {
+		display: flex;
+		align-self: flex-start;
+		padding: 0 var(--spacing-xl);
 	}
 </style>

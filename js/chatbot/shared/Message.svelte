@@ -8,6 +8,7 @@
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { ComponentType, SvelteComponent } from "svelte";
+	import ButtonPanel from "./ButtonPanel.svelte";
 
 	export let value: NormalisedMessage[];
 	export let avatar_img: FileData | null;
@@ -35,6 +36,13 @@
 	export let theme_mode: "light" | "dark" | "system";
 	export let _components: Record<string, ComponentType<SvelteComponent>>;
 	export let i: number;
+	export let show_copy_button: boolean;
+	export let generating: boolean;
+	export let show_like: boolean;
+	export let show_retry: boolean;
+	export let show_undo: boolean;
+	export let msg_format: "tuples" | "messages";
+	export let handle_action: (selected: string | null) => void;
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -60,6 +68,22 @@
 		}
 		return `a component of type ${message.content.component ?? "unknown"}`;
 	}
+
+	function get_button_panel_props(): any {
+		return {
+			show: show_like || show_retry || show_undo || show_copy_button,
+			handle_action,
+			likeable: show_like,
+			_retryable: show_retry,
+			_undoable: show_undo,
+			disable: generating,
+			show_copy_button,
+			message: msg_format === "tuples" ? messages[0] : messages,
+			position: role === "user" ? "right" : "left",
+			avatar: avatar_img,
+			layout
+		};
+	}
 </script>
 
 <div
@@ -73,7 +97,8 @@
 		</div>
 	{/if}
 	<div
-		class="flex-wrap {role} "
+		class:role
+		class="flex-wrap"
 		class:component-wrap={messages[0].type === "component"}
 	>
 		{#each messages as message, thought_index}
@@ -166,13 +191,43 @@
 					{/if}
 				</button>
 			</div>
+
+			{#if layout === "panel"}
+				<ButtonPanel {...get_button_panel_props()} />
+			{/if}
 		{/each}
 	</div>
 </div>
 
+{#if layout === "bubble"}
+	<ButtonPanel {...get_button_panel_props()} />
+{/if}
+
 <style>
 	.message {
 		position: relative;
+		width: 100%;
+	}
+
+	/* avatar styles */
+	.avatar-container {
+		flex-shrink: 0;
+		width: 35px;
+		height: 35px;
+		border-radius: 50%;
+		border: 1px solid var(--border-color-primary);
+		overflow: hidden;
+	}
+
+	.avatar-container :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		padding: 6px;
+	}
+
+	/* message wrapper */
+	.flex-wrap {
 		display: flex;
 		flex-direction: column;
 		width: calc(100% - var(--spacing-xxl));
@@ -180,6 +235,8 @@
 		color: var(--body-text-color);
 		font-size: var(--chatbot-text-size);
 		overflow-wrap: break-word;
+		width: 100%;
+		height: 100%;
 	}
 
 	.component {
@@ -226,10 +283,6 @@
 		border-radius: var(--radius-md);
 	}
 
-	.user {
-		align-self: flex-end;
-	}
-
 	.message-fit {
 		width: fit-content !important;
 	}
@@ -241,12 +294,7 @@
 		white-space: pre-line;
 	}
 
-	.flex-wrap {
-		width: 100%;
-		height: 100%;
-	}
-
-	.flex-wrap.user {
+	.user {
 		border-width: 1px;
 		border-radius: var(--radius-md);
 		align-self: flex-start;
@@ -259,17 +307,16 @@
 		background-color: var(--color-accent-soft);
 	}
 
-	:not(.component-wrap).flex-wrap.bot {
+	.bot {
 		border-width: 1px;
 		border-radius: var(--radius-lg);
-		align-self: flex-start;
 		border-bottom-left-radius: 0;
+		border-color: var(--border-color-primary);
+		background-color: var(--background-fill-secondary);
 		box-shadow: var(--shadow-drop);
 		align-self: flex-start;
 		text-align: right;
 		padding: var(--spacing-sm) var(--spacing-xl);
-		border-color: var(--border-color-primary);
-		background-color: var(--background-fill-secondary);
 	}
 
 	.panel .user :global(*) {
@@ -283,61 +330,89 @@
 
 	.message-row {
 		display: flex;
-		/* flex-direction: column; */
 		position: relative;
 	}
 
-	.message-row.user-row {
-		align-self: flex-end;
-	}
-	.message-row.bubble {
+	/* bubble mode styles */
+	.bubble {
 		margin: calc(var(--spacing-xl) * 2);
 		margin-bottom: var(--spacing-xl);
 	}
 
-	.with_avatar.message-row.panel {
-		padding-left: calc(var(--spacing-xl) * 2) !important;
-		padding-right: calc(var(--spacing-xl) * 2) !important;
-	}
-
-	.with_avatar.message-row.bubble.user-row {
-		margin-right: calc(var(--spacing-xl) * 2) !important;
-	}
-
-	.with_avatar.message-row.bubble.bot-row {
-		margin-left: calc(var(--spacing-xl) * 2) !important;
-	}
-
-	.with_opposite_avatar.message-row.bubble.user-row {
-		margin-left: calc(var(--spacing-xxl) + 35px + var(--spacing-xxl));
-	}
-
-	.message-row.panel {
-		margin: 0;
-		padding: calc(var(--spacing-xl) * 3) calc(var(--spacing-xxl) * 2);
-	}
-
-	.message-row.panel.bot-row {
-		background: var(--background-fill-secondary);
-	}
-
-	.message-row.bubble.user-row {
+	.bubble.user-row {
 		align-self: flex-end;
 		max-width: calc(100% - var(--spacing-xl) * 6);
 	}
 
-	.message-row.bubble.bot-row {
+	.bubble.bot-row {
 		align-self: flex-start;
 		max-width: calc(100% - var(--spacing-xl) * 6);
 	}
 
-	.message-row:last-of-type {
-		margin-bottom: calc(var(--spacing-xxl) * 2);
-	}
-
-	.user-row.bubble {
+	.bubble .user-row {
 		flex-direction: row;
 		justify-content: flex-end;
+	}
+
+	.bubble .with_avatar.user-row {
+		margin-right: calc(var(--spacing-xl) * 2) !important;
+	}
+
+	.bubble .with_avatar.bot-row {
+		margin-left: calc(var(--spacing-xl) * 2) !important;
+	}
+
+	.bubble .with_opposite_avatar.user-row {
+		margin-left: calc(var(--spacing-xxl) + 35px + var(--spacing-xxl));
+	}
+
+	.bubble .message-fit {
+		width: fit-content !important;
+	}
+
+	/* panel mode styles */
+	.panel {
+		margin: 0;
+		padding: calc(var(--spacing-xxl) * 2) calc(var(--spacing-xl) * 2);
+	}
+
+	.panel.bot-row {
+		background: var(--background-fill-secondary);
+	}
+
+	.panel .with_avatar {
+		padding-left: calc(var(--spacing-xl) * 2) !important;
+		padding-right: calc(var(--spacing-xl) * 2) !important;
+	}
+
+	.panel .panel-full-width {
+		width: 100%;
+	}
+
+	.panel .user :global(*) {
+		text-align: right;
+	}
+
+	/* message content */
+	.flex-wrap {
+		display: flex;
+		flex-direction: column;
+		max-width: 100%;
+		color: var(--body-text-color);
+		font-size: var(--chatbot-text-size);
+		overflow-wrap: break-word;
+	}
+
+	.user {
+		border-width: 1px;
+		border-radius: var(--radius-md);
+		align-self: flex-start;
+		border-bottom-right-radius: 0;
+		box-shadow: var(--shadow-drop);
+		text-align: right;
+		padding: var(--spacing-sm) var(--spacing-xl);
+		border-color: var(--border-color-accent-subdued);
+		background-color: var(--color-accent-soft);
 	}
 	@media (max-width: 480px) {
 		.user-row.bubble {
@@ -367,9 +442,21 @@
 	}
 	.user-row > .avatar-container {
 		order: 2;
+	}
+
+	.user-row.bubble > .avatar-container {
 		margin-left: var(--spacing-xxl);
 	}
-	.bot-row > .avatar-container {
+
+	.bot-row.bubble > .avatar-container {
+		margin-left: var(--spacing-xxl);
+	}
+
+	.panel.user-row > .avatar-container {
+		order: 0;
+	}
+
+	.bot-row.bubble > .avatar-container {
 		margin-right: var(--spacing-xxl);
 		margin-left: 0;
 		margin-top: -5px;
@@ -416,11 +503,13 @@
 		max-height: 30vw;
 	}
 
+	/* link styles */
 	.message-wrap .message :global(a) {
 		color: var(--color-text-link);
 		text-decoration: underline;
 	}
 
+	/* table styles */
 	.message-wrap .bot :global(table),
 	.message-wrap .bot :global(tr),
 	.message-wrap .bot :global(td),
@@ -551,5 +640,39 @@
 		flex-direction: column;
 		justify-content: space-between;
 		margin-bottom: var(--spacing-xxl);
+	}
+
+	.panel .bot,
+	.panel .user {
+		border: none;
+		box-shadow: none;
+		background-color: var(--background-fill-secondary);
+	}
+
+	.panel.user-row {
+		background-color: var(--color-accent-soft);
+	}
+
+	.panel .user-row,
+	.panel .bot-row {
+		align-self: flex-start;
+	}
+
+	.panel .user :global(*),
+	.panel .bot :global(*) {
+		text-align: left;
+	}
+
+	.panel .user {
+		background-color: var(--color-accent-soft);
+	}
+
+	.panel .user-row {
+		background-color: var(--color-accent-soft);
+		align-self: flex-start;
+	}
+
+	.panel .message {
+		margin-bottom: var(--spacing-md);
 	}
 </style>
