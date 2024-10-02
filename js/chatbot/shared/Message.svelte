@@ -374,7 +374,11 @@
 	/* panel mode styles */
 	.panel {
 		margin: 0;
-		padding: calc(var(--spacing-xxl) * 2) calc(var(--spacing-xl) * 2);
+		padding: calc(var(--spacing-lg) * 2) calc(var(--spacing-lg) * 2);
+	}
+
+	.panel .message:first-child {
+		padding-top: var(--spacing-xxl);
 	}
 
 	.panel.bot-row {
