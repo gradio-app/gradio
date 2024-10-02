@@ -374,8 +374,7 @@ class App(FastAPI):
                     try:
                         return await App.proxy_to_node(
                             request,
-                            os.getenv("GRADIO_SERVER_NAME", blocks.local_url)
-                            or "0.0.0.0",
+                            blocks.node_server_name or "0.0.0.0",
                             blocks.node_port,
                             App.app_port,
                             request.url.scheme,
@@ -1581,12 +1580,14 @@ def mount_gradio_app(
     blocks.node_server_name = node_server_name
     blocks.node_port = node_port
 
-    blocks.node_server_name, blocks.node_process, blocks.node_port = start_node_server(
-        server_name=blocks.node_server_name,
-        server_port=blocks.node_port,
-        node_path=blocks.node_path,
-        ssr_mode=blocks.ssr_mode,
-    )
+    if blocks.ssr_mode:
+        blocks.node_server_name, blocks.node_process, blocks.node_port = (
+            start_node_server(
+                server_name=blocks.node_server_name,
+                server_port=blocks.node_port,
+                node_path=blocks.node_path,
+            )
+        )
 
     gradio_app = App.create_app(
         blocks,
