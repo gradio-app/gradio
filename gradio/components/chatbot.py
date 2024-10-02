@@ -84,17 +84,17 @@ class Message(GradioModel):
     content: Union[str, FileMessage, ComponentMessage]
 
 
-class SuggestionMessage(TypedDict):
+class ExampleMessage(TypedDict):
     icon: NotRequired[
         str | FileDataDict
-    ]  # filepath or url to an image to be shown in suggestion box
+    ]  # filepath or url to an image to be shown in example box
     display_text: NotRequired[
         str
-    ]  # text to be shown in suggestion box. If not provided, main_text will be shown
-    text: NotRequired[str]  # text to be added to chatbot when suggestion is clicked
+    ]  # text to be shown in example box. If not provided, main_text will be shown
+    text: NotRequired[str]  # text to be added to chatbot when example is clicked
     files: NotRequired[
         Sequence[str | FileDataDict]
-    ]  # list of file paths or URLs to be added to chatbot when suggestion is clicked
+    ]  # list of file paths or URLs to be added to chatbot when example is clicked
 
 
 @dataclass
@@ -146,7 +146,7 @@ class Chatbot(Component):
         Events.like,
         Events.retry,
         Events.undo,
-        Events.suggestion_select,
+        Events.example_select,
     ]
 
     def __init__(
@@ -180,7 +180,7 @@ class Chatbot(Component):
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
-        suggestions: list[SuggestionMessage] | None = None,
+        examples: list[ExampleMessage] | None = None,
         show_copy_all_button=False,
     ):
         """
@@ -213,7 +213,7 @@ class Chatbot(Component):
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
-            suggestions: A list of suggestion messages to display in the chatbot before any user/assistant messages are shown. Each suggestion should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the suggestion box, and an optional "display_text" key, whose value should be the text to display in the suggestion box. If "display_text" is not provided, the value of "text" will be displayed.
+            examples: A list of example messages to display in the chatbot before any user/assistant messages are shown. Each example should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the example box, and an optional "display_text" key, whose value should be the text to display in the example box. If "display_text" is not provided, the value of "text" will be displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
         """
         if type is None:
@@ -280,12 +280,12 @@ class Chatbot(Component):
             ]
         self.placeholder = placeholder
 
-        self.suggestions = suggestions
-        if self.suggestions is not None:
-            for i, suggestion in enumerate(self.suggestions):
-                if "icon" in suggestion and isinstance(suggestion["icon"], str):
-                    suggestion["icon"] = self.serve_static_file(suggestion["icon"])
-                file_info = suggestion.get("files")
+        self.examples = examples
+        if self.examples is not None:
+            for i, example in enumerate(self.examples):
+                if "icon" in example and isinstance(example["icon"], str):
+                    example["icon"] = self.serve_static_file(example["icon"])
+                file_info = example.get("files")
                 if file_info is not None and not isinstance(file_info, list):
                     raise Error(
                         "Data incompatible with files format. The 'files' passed should be a list of file paths or URLs."
