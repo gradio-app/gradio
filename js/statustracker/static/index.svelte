@@ -170,10 +170,10 @@
 		}
 	}
 
-	$: el &&
-		scroll_to_output &&
-		(status === "pending" || status === "complete") &&
-		scroll_into_view(el, autoscroll);
+	// $: el &&
+	// 	scroll_to_output &&
+	// 	(status === "pending" || status === "complete") &&
+	// 	scroll_into_view(el, autoscroll);
 
 	let formatted_eta: string | null = null;
 	$: {
