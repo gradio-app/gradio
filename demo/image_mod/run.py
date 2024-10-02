@@ -18,9 +18,7 @@ with gr.Blocks() as demo:
         examples=[
             os.path.join(os.path.dirname(__file__), "images/cheetah1.jpg"),
             os.path.join(os.path.dirname(__file__), "images/lion.jpg"),
-            "https://pbs.twimg.com/profile_images/1813671511351492608/Zd_8OdDh_400x400.jpg"
         ],
-        cache_examples=True
     )
 
     btn = gr.Button("Update Examples")
