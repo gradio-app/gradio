@@ -1,6 +1,6 @@
 import gradio as gr
 import os
-# Multimodal Chatbot demo that shows support for suggestions (example messages shown within the chatbot).
+# Multimodal Chatbot demo that shows support for examples (example messages shown within the chatbot).
 
 def print_like_dislike(x: gr.LikeData):
     print(x.index, x.value, x.liked)
@@ -12,7 +12,7 @@ def add_message(history, message):
         history.append((message["text"], None))
     return history, gr.MultimodalTextbox(value=None, interactive=False)
 
-def append_suggestion_message(x: gr.SelectData, history):
+def append_example_message(x: gr.SelectData, history):
     if x.value["text"] is not None:
         history.append((x.value["text"], None))
     if "files" in x.value:
@@ -33,7 +33,7 @@ with gr.Blocks(fill_height=True) as demo:
         bubble_full_width=False,
         scale=1,
         placeholder='<h1 style="font-weight: bold; color: #FFFFFF; text-align: center; font-size: 48px; font-family: Arial, sans-serif;">Welcome to Gradio!</h1>',
-        suggestions=[{"icon": os.path.join(os.path.dirname(__file__), "files/avatar.png"), "display_text": "Display Text Here!", "text": "Try this example with this audio.", "files": [os.path.join(os.path.dirname(__file__), "files/cantina.wav")]},
+        examples=[{"icon": os.path.join(os.path.dirname(__file__), "files/avatar.png"), "display_text": "Display Text Here!", "text": "Try this example with this audio.", "files": [os.path.join(os.path.dirname(__file__), "files/cantina.wav")]},
                      {"text": "Try this example with this image.", "files": [os.path.join(os.path.dirname(__file__), "files/avatar.png")]},
                      {"text": "This is just text, no files!"},
                      {"text": "Try this example with this image.", "files": [os.path.join(os.path.dirname(__file__), "files/avatar.png"), os.path.join(os.path.dirname(__file__), "files/avatar.png")]},
@@ -49,7 +49,7 @@ with gr.Blocks(fill_height=True) as demo:
     bot_msg.then(lambda: gr.MultimodalTextbox(interactive=True), None, [chat_input])
 
     chatbot.like(print_like_dislike, None, None)
-    chatbot.suggestion_select(append_suggestion_message, [chatbot], [chatbot]).then(respond, chatbot, chatbot, api_name="respond")
+    chatbot.example_select(append_example_message, [chatbot], [chatbot]).then(respond, chatbot, chatbot, api_name="respond")
 
 if __name__ == "__main__":
     demo.launch()

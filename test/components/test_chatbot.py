@@ -63,8 +63,8 @@ class TestChatbot:
             "line_breaks": True,
             "layout": None,
             "show_copy_all_button": False,
-            "suggestion_selectable": False,
-            "suggestions": None,
+            "example_selectable": False,
+            "examples": None,
         }
 
     def test_avatar_images_are_moved_to_cache(self):
