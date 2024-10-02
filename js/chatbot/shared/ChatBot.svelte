@@ -27,6 +27,7 @@
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { SuggestionMessage } from "../types";
+	import type { MessageRole, ExampleMessage } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
@@ -78,7 +79,7 @@
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
 	export let msg_format: "tuples" | "messages" = "tuples";
-	export let suggestions: SuggestionMessage[] | null = null;
+	export let examples: ExampleMessage[] | null = null;
 	export let _retryable = false;
 	export let _undoable = false;
 	export let like_user_message = false;
@@ -102,7 +103,7 @@
 		clear: undefined;
 		share: any;
 		error: string;
-		suggestion_select: SelectData;
+		example_select: SelectData;
 	}>();
 
 	beforeUpdate(() => {
@@ -150,13 +151,10 @@
 
 	$: groupedMessages = value && group_messages(value, msg_format);
 
-	function handle_suggestion_select(
-		i: number,
-		suggestion: SuggestionMessage
-	): void {
-		dispatch("suggestion_select", {
+	function handle_example_select(i: number, example: ExampleMessage): void {
+		dispatch("example_select", {
 			index: i,
-			value: { text: suggestion.text, files: suggestion.files }
+			value: { text: example.text, files: example.files }
 		});
 	}
 
@@ -304,44 +302,42 @@
 					<Markdown message={placeholder} {latex_delimiters} {root} />
 				</div>
 			{/if}
-			{#if suggestions !== null}
-				<div class="suggestions">
-					{#each suggestions as suggestion, i}
+			{#if examples !== null}
+				<div class="examples">
+					{#each examples as example, i}
 						<button
-							class="suggestion"
-							on:click={() => handle_suggestion_select(i, suggestion)}
+							class="example"
+							on:click={() => handle_example_select(i, example)}
 						>
-							{#if suggestion.icon !== undefined}
-								<div class="suggestion-icon-container">
+							{#if example.icon !== undefined}
+								<div class="example-icon-container">
 									<Image
-										class="suggestion-icon"
-										src={suggestion.icon.url}
-										alt="suggestion-icon"
+										class="example-icon"
+										src={example.icon.url}
+										alt="example-icon"
 									/>
 								</div>
 							{/if}
-							{#if suggestion.display_text !== undefined}
-								<span class="suggestion-display-text"
-									>{suggestion.display_text}</span
-								>
+							{#if example.display_text !== undefined}
+								<span class="example-display-text">{example.display_text}</span>
 							{:else}
-								<span class="suggestion-text">{suggestion.text}</span>
+								<span class="example-text">{example.text}</span>
 							{/if}
-							{#if suggestion.files !== undefined && suggestion.files.length > 1}
-								<span class="suggestion-file"
-									><em>{suggestion.files.length} Files</em></span
+							{#if example.files !== undefined && example.files.length > 1}
+								<span class="example-file"
+									><em>{example.files.length} Files</em></span
 								>
-							{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined && suggestion.files[0].mime_type?.includes("image")}
-								<div class="suggestion-image-container">
+							{:else if example.files !== undefined && example.files[0] !== undefined && example.files[0].mime_type?.includes("image")}
+								<div class="example-image-container">
 									<Image
-										class="suggestion-image"
-										src={suggestion.files[0].url}
-										alt="suggestion-image"
+										class="example-image"
+										src={example.files[0].url}
+										alt="example-image"
 									/>
 								</div>
-							{:else if suggestion.files !== undefined && suggestion.files[0] !== undefined}
-								<span class="suggestion-file"
-									><em>{suggestion.files[0].orig_name}</em></span
+							{:else if example.files !== undefined && example.files[0] !== undefined}
+								<span class="example-file"
+									><em>{example.files[0].orig_name}</em></span
 								>
 							{/if}
 						</button>
@@ -367,11 +363,11 @@
 		flex-grow: 1;
 	}
 
-	.suggestions :global(img) {
+	.examples :global(img) {
 		pointer-events: none;
 	}
 
-	.suggestions {
+	.examples {
 		margin: auto;
 		padding: var(--spacing-xxl);
 		display: grid;
@@ -380,7 +376,7 @@
 		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
 	}
 
-	.suggestion {
+	.example {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -394,12 +390,12 @@
 		width: 100%;
 	}
 
-	.suggestion:hover {
+	.example:hover {
 		background-color: var(--color-accent-soft);
 		border-color: var(--border-color-accent);
 	}
 
-	.suggestion-icon-container {
+	.example-icon-container {
 		display: flex;
 		align-self: flex-start;
 		margin-left: var(--spacing-md);
@@ -407,18 +403,9 @@
 		height: var(--size-6);
 	}
 
-	.suggestion-image {
-		max-height: var(--size-6);
-		max-width: var(--size-6);
-		object-fit: cover;
-		border-radius: var(--radius-xl);
-		margin-top: var(--spacing-md);
-		align-self: flex-start;
-	}
-
-	.suggestion-display-text,
-	.suggestion-text,
-	.suggestion-file {
+	.example-display-text,
+	.example-text,
+	.example-file {
 		font-size: var(--text-md);
 		width: 100%;
 		text-align: center;
@@ -426,12 +413,12 @@
 		text-overflow: ellipsis;
 	}
 
-	.suggestion-display-text,
-	.suggestion-file {
+	.example-display-text,
+	.example-file {
 		margin-top: var(--spacing-md);
 	}
 
-	.suggestion-image-container {
+	.example-image-container {
 		flex-grow: 1;
 		display: flex;
 		justify-content: center;
@@ -439,7 +426,7 @@
 		margin-top: var(--spacing-xl);
 	}
 
-	.suggestion-image-container :global(img) {
+	.example-image-container :global(img) {
 		max-height: 100%;
 		max-width: 100%;
 		height: var(--size-32);

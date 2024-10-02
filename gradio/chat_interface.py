@@ -27,10 +27,10 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.components.chatbot import (
+    ExampleMessage,
     FileDataDict,
     Message,
     MessageDict,
-    SuggestionMessage,
     TupleFormat,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
@@ -188,6 +188,23 @@ class ChatInterface(Blocks):
             if description:
                 Markdown(description)
 
+            examples_messages: list[ExampleMessage] = []
+            if examples:
+                for index, example in enumerate(examples):
+                    if isinstance(example, list):
+                        example = example[0]
+                    example_message: ExampleMessage = {}
+                    if isinstance(example, str):
+                        example_message["text"] = example
+                    elif isinstance(example, dict):
+                        example_message["text"] = example.get("text", "")
+                        example_message["files"] = example.get("files", [])
+                    if example_labels:
+                        example_message["display_text"] = example_labels[index]
+                    if example_icons:
+                        example_message["icon"] = example_icons[index]
+                    examples_messages.append(example_message)
+
             if chatbot:
                 if self.type != chatbot.type:
                     warnings.warn(
@@ -198,30 +215,14 @@ class ChatInterface(Blocks):
                 self.chatbot = cast(
                     Chatbot, get_component_instance(chatbot, render=True)
                 )
+                self.chatbot.examples = examples_messages
             else:
-                suggestions: list[SuggestionMessage] = []
-                if examples:
-                    for index, example in enumerate(examples):
-                        if isinstance(example, list):
-                            example = example[0]
-                        suggestion: SuggestionMessage = {}
-                        if isinstance(example, str):
-                            suggestion["text"] = example
-                        elif isinstance(example, dict):
-                            suggestion["text"] = example.get("text", "")
-                            suggestion["files"] = example.get("files", [])
-                        if example_labels:
-                            suggestion["display_text"] = example_labels[index]
-                        if example_icons:
-                            suggestion["icon"] = example_icons[index]
-                        suggestions.append(suggestion)
-
                 self.chatbot = Chatbot(
                     label="Chatbot",
                     scale=1,
                     height=200 if fill_height else None,
                     type=self.type,
-                    suggestions=suggestions,
+                    examples=examples_messages,
                 )
 
             with Group():
@@ -336,15 +337,15 @@ class ChatInterface(Blocks):
 
         if isinstance(self.chatbot, Chatbot) and self.examples:
             if self.cache_examples:
-                self.chatbot.suggestion_select(
-                    self.suggestion_clicked,
+                self.chatbot.example_select(
+                    self.example_clicked,
                     [self.chatbot],
                     [self.chatbot],
                     show_api=False,
                 )
             else:
-                self.chatbot.suggestion_select(
-                    self.suggestion_clicked,
+                self.chatbot.example_select(
+                    self.example_clicked,
                     [self.chatbot],
                     [self.chatbot],
                     show_api=False,
@@ -582,7 +583,10 @@ class ChatInterface(Blocks):
 
     def _append_history(self, history, message, first_response=True):
         if self.type == "tuples":
-            history[-1][1] = message  # type: ignore
+            if history:
+                history[-1][1] = message  # type: ignore
+            else:
+                history.append([message, None])
         else:
             message = self.response_as_dict(message)
             if first_response:
@@ -621,7 +625,6 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> AsyncGenerator:
-        print("message", message)
         message_serialized, history = self._process_msg_and_trim_history(
             message, history_with_input
         )
@@ -646,24 +649,24 @@ class ChatInterface(Blocks):
             self._append_history(history_with_input, response, first_response=False)
             yield history_with_input
 
-    def suggestion_clicked(self, x: SelectData, history):
+    def example_clicked(self, x: SelectData, history):
         if self.cache_examples:
             return self.examples_handler.load_from_cache(x.index)[0].root
         if self.multimodal:
             message = MultimodalPostprocess(**cast(dict, x.value))
+            self._append_multimodal_history(message, None, history)
         else:
             message = x.value["text"]
+            self._append_history(history, message)
         self.saved_input.value = message
-        if self.multimodal:
-            self._append_multimodal_history(message, None, history)
         return history
 
     def _process_example(
-        self, message: SuggestionMessage | str, response: MessageDict | str | None
+        self, message: ExampleMessage | str, response: MessageDict | str | None
     ):
         result = []
         if self.multimodal:
-            message = cast(SuggestionMessage, message)
+            message = cast(ExampleMessage, message)
             if self.type == "tuples":
                 if "text" in message:
                     result.append([message["text"], None])
@@ -688,7 +691,7 @@ class ChatInterface(Blocks):
         return result
 
     async def _examples_fn(
-        self, message: SuggestionMessage | str, *args
+        self, message: ExampleMessage | str, *args
     ) -> TupleFormat | list[MessageDict]:
         inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
         if self.is_async:
