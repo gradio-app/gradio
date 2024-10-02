@@ -1,5 +1,5 @@
 """
- This file defines two useful high-level abstractions to build Gradio apps: Interface and TabbedInterface.
+This file defines two useful high-level abstractions to build Gradio apps: Interface and TabbedInterface.
 """
 
 from __future__ import annotations
