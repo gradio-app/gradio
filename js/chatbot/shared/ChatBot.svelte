@@ -288,6 +288,7 @@
 					{show_undo}
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
+					{scroll}
 				/>
 			{/each}
 			{#if pending_message}

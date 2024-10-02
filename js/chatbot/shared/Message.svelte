@@ -43,6 +43,7 @@
 	export let show_undo: boolean;
 	export let msg_format: "tuples" | "messages";
 	export let handle_action: (selected: string | null) => void;
+	export let scroll: () => void;
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
