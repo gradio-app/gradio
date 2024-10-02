@@ -2425,10 +2425,12 @@ Received inputs:
             "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
         )
         if self.ssr_mode:
-            self.node_server_name, self.node_process, self.node_port = start_node_server(
-                server_name=node_server_name,
-                server_port=node_port,
-                node_path=self.node_path,
+            self.node_server_name, self.node_process, self.node_port = (
+                start_node_server(
+                    server_name=node_server_name,
+                    server_port=node_port,
+                    node_path=self.node_path,
+                )
             )
         else:
             self.node_server_name = self.node_port = self.node_process = None

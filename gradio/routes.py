@@ -1581,10 +1581,12 @@ def mount_gradio_app(
     blocks.node_port = node_port
 
     if blocks.ssr_mode:
-        blocks.node_server_name, blocks.node_process, blocks.node_port = start_node_server(
-            server_name=blocks.node_server_name,
-            server_port=blocks.node_port,
-            node_path=blocks.node_path,
+        blocks.node_server_name, blocks.node_process, blocks.node_port = (
+            start_node_server(
+                server_name=blocks.node_server_name,
+                server_port=blocks.node_port,
+                node_path=blocks.node_path,
+            )
         )
 
     gradio_app = App.create_app(
