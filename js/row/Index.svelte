@@ -63,7 +63,6 @@
 		gap: var(--layout-gap);
 		width: var(--size-full);
 		position: relative;
-		overflow: auto;
 	}
 
 	.hide {
