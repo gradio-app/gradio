@@ -1,4 +1,4 @@
-name: trigger-changeset
+name: trigger-semgrep
 on:
   pull_request:
     branches:
