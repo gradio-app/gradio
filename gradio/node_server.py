@@ -56,10 +56,7 @@ def start_node_server(
         else range(INITIAL_PORT_VALUE + 1, INITIAL_PORT_VALUE + 1 + TRY_NUM_PORTS)
     )
 
-    node_process = None
-    node_port = None
-
-    (node_process, node_port) = start_node_process(
+    node_process, node_port = start_node_process(
         node_path=node_path or os.getenv("GRADIO_NODE_PATH"),
         server_name=host,
         server_ports=server_ports,
