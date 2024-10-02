@@ -16,6 +16,7 @@ from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
+from gradio.exceptions import Error
 from gradio.utils import NamedString
 
 if TYPE_CHECKING:
@@ -27,7 +28,7 @@ class File(Component):
     """
     Creates a file component that allows uploading one or more generic files (when used as an input) or displaying generic files or URLs for download (as output).
 
-    Demo: zip_files, zip_to_json
+        Demo: zip_files, zip_to_json
     """
 
     EVENTS = [Events.change, Events.select, Events.clear, Events.upload, Events.delete]
@@ -125,6 +126,12 @@ class File(Component):
     def _process_single_file(self, f: FileData) -> NamedString | bytes:
         file_name = f.path
         if self.type == "filepath":
+            if self.file_types and not client_utils.is_valid_file(
+                file_name, self.file_types
+            ):
+                raise Error(
+                    f"Invalid file type. Please upload a file that is one of these formats: {self.file_types}"
+                )
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
             file.name = file_name
             return NamedString(file_name)
