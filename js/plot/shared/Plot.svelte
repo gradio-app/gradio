@@ -6,7 +6,6 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 
 	export let value;
-	export let target: HTMLElement;
 	export let colors: string[] = [];
 	export let theme_mode: ThemeMode;
 	export let caption: string;
@@ -28,12 +27,14 @@
 		matplotlib: () => import("./plot_types/MatplotlibPlot.svelte")
 	};
 
+	const is_browser = typeof window !== "undefined";
+
 	$: {
 		let type = value?.type;
 		if (type !== _type) {
 			PlotComponent = null;
 		}
-		if (type && type in plotTypeMapping) {
+		if (type && type in plotTypeMapping && is_browser) {
 			plotTypeMapping[type]().then((module) => {
 				PlotComponent = module.default;
 			});
@@ -45,7 +46,6 @@
 	<svelte:component
 		this={PlotComponent}
 		{value}
-		{target}
 		{colors}
 		{theme_mode}
 		{caption}

@@ -1,5 +1,17 @@
 # @self/component-test
 
+## 0.2.0-beta.4
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.4
+
+## 0.2.0-beta.3
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.3
+
 ## 0.2.0-beta.2
 
 ### Features

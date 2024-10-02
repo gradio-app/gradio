@@ -427,7 +427,7 @@
 		selected = [index ? index + 1 : data.length - 1, 0];
 	}
 
-	$: data && trigger_change();
+	$: (data || selected_header) && trigger_change();
 
 	async function add_col(): Promise<void> {
 		parent.focus();
@@ -956,7 +956,6 @@
 		top: 0;
 		left: 0;
 		z-index: var(--layer-1);
-		box-shadow: var(--shadow-drop);
 	}
 
 	tr {
@@ -976,7 +975,6 @@
 		--ring-color: transparent;
 		position: relative;
 		outline: none;
-		box-shadow: inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 	}
 

@@ -6,6 +6,7 @@
 
 	export let record: RecordPlugin;
 	export let i18n: I18nFormatter;
+	export let recording = false;
 
 	let micDevices: MediaDeviceInfo[] = [];
 	let recordButton: HTMLButtonElement;
@@ -13,6 +14,7 @@
 	let resumeButton: HTMLButtonElement;
 	let stopButton: HTMLButtonElement;
 	let stopButtonPaused: HTMLButtonElement;
+	let recording_ongoing = false;
 
 	export let record_time: string;
 	export let show_recording_waveform: boolean | undefined;
@@ -53,6 +55,14 @@
 		stopButton.style.display = "flex";
 		stopButtonPaused.style.display = "none";
 	});
+
+	$: if (recording && !recording_ongoing) {
+		record.startRecording();
+		recording_ongoing = true;
+	} else {
+		record.stopRecording();
+		recording_ongoing = false;
+	}
 </script>
 
 <div class="controls">

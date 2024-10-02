@@ -31,7 +31,7 @@ export interface ComponentMessage extends Message {
 	content: ComponentData;
 }
 
-export interface SuggestionMessage {
+export interface ExampleMessage {
 	icon?: FileData;
 	display_text?: string;
 	text: string;

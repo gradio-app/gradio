@@ -134,6 +134,17 @@ $demo_blocks_essay_simple
 
 See how we can configure the Textbox itself through a new `gr.Textbox()` method. The `value=` argument can still be used to update the value along with Component configuration. Any arguments we do not set will preserve their previous values.
 
+## Not Changing a Component's Value
+
+In some cases, you may want to leave a component's value unchanged. Gradio includes a special function, `gr.skip()`, which can be returned from your function. Returning this function will keep the output component (or components') values as is. Let us illustrate with an example:
+
+$code_skip
+$demo_skip
+
+Note the difference between returning `None` (which generally resets a component's value to an empty state) versus returning `gr.skip()`, which leaves the component value unchanged.
+
+Tip: if you have multiple output components, and you want to leave all of their values unchanged, you can just return a single `gr.skip()` instead of returning a tuple of skips, one for each element.
+
 ## Running Events Consecutively
 
 You can also run events consecutively by using the `then` method of an event listener. This will run an event after the previous event has finished running. This is useful for running events that update components in multiple steps.

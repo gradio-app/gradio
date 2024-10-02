@@ -50,7 +50,12 @@
 		{disabled}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon.url} alt={`${value} icon`} />
+			<img
+				class="button-icon"
+				class:right-padded={value}
+				src={icon.url}
+				alt={`${value} icon`}
+			/>
 		{/if}
 		<slot />
 	</button>
@@ -65,22 +70,18 @@
 		transition: var(--button-transition);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
+		box-shadow: var(--button-shadow);
 	}
 
 	button:hover {
-		transform: var(--button-transform);
-		transition: all 0.2s;
-	}
-
-	button:hover,
-	button[disabled],
-	a:hover,
-	a.disabled {
+		transform: var(--button-transform-hover);
+		box-shadow: var(--button-shadow-hover);
 	}
 
 	button:active,
 	a:active {
-		transform: var(--button-active-transform);
+		transform: var(--button-transform-active);
+		box-shadow: var(--button-shadow-active);
 	}
 
 	button[disabled],
@@ -177,6 +178,8 @@
 	.button-icon {
 		width: var(--text-xl);
 		height: var(--text-xl);
+	}
+	.button-icon.right-padded {
 		margin-right: var(--spacing-xl);
 	}
 </style>

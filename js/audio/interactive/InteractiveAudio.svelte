@@ -40,12 +40,13 @@
 	export let stream_handler: Client["stream"];
 	export let stream_every: number;
 	export let uploading = false;
+	export let recording = false;
 
 	let time_limit: number | null = null;
 	let stream_state: "open" | "waiting" | "closed" = "closed";
 
 	export const modify_stream: (state: "open" | "closed" | "waiting") => void = (
-		state: "open" | "closed" | "waiting",
+		state: "open" | "closed" | "waiting"
 	) => {
 		if (state === "closed") {
 			time_limit = null;
@@ -65,26 +66,24 @@
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
-	let recording = false;
 	let recorder: IMediaRecorder;
 	let mode = "";
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Uint8Array[] = [];
 	let submit_pending_stream_on_pending_end = false;
 	let inited = false;
-	let stream_open = false;
 
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
 	let module_promises: [
 		Promise<typeof import("extendable-media-recorder")>,
-		Promise<typeof import("extendable-media-recorder-wav-encoder")>,
+		Promise<typeof import("extendable-media-recorder-wav-encoder")>
 	];
 
 	function get_modules(): void {
 		module_promises = [
 			import("extendable-media-recorder"),
-			import("extendable-media-recorder-wav-encoder"),
+			import("extendable-media-recorder-wav-encoder")
 		];
 	}
 
@@ -113,13 +112,13 @@
 
 	const dispatch_blob = async (
 		blobs: Uint8Array[] | Blob[],
-		event: "stream" | "change" | "stop_recording",
+		event: "stream" | "change" | "stop_recording"
 	): Promise<void> => {
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
 		value = (
 			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
-				Boolean,
+				Boolean
 			) as FileData[]
 		)[0];
 		dispatch(event, value);
@@ -148,7 +147,7 @@
 			throw err;
 		}
 		if (stream == null) return;
-		console.log({ streaming });
+
 		if (streaming) {
 			const [{ MediaRecorder, register }, { connect }] =
 				await Promise.all(module_promises);
@@ -159,7 +158,6 @@
 			recorder = new MediaRecorder(stream);
 			recorder.addEventListener("dataavailable", (event) => {
 				audio_chunks.push(event.data);
-				console.log("data");
 			});
 		}
 		recorder.addEventListener("stop", async () => {
@@ -187,7 +185,6 @@
 			dispatch_blob(blobParts, "stream");
 			pending_stream = [];
 		}
-		console.log("chunk");
 	}
 
 	$: if (submit_pending_stream_on_pending_end && pending === false) {
@@ -200,7 +197,6 @@
 	}
 
 	async function record(): Promise<void> {
-		console.log("recording");
 		recording = true;
 		dispatch("start_recording");
 		if (!inited) await prepare_audio();
@@ -224,7 +220,6 @@
 	}
 
 	async function stop(): Promise<void> {
-		console.log("stopping");
 		recording = false;
 
 		if (streaming) {
@@ -240,6 +235,9 @@
 			mode = "";
 		}
 	}
+
+	$: if (!recording && recorder) stop();
+	$: if (recording && recorder) record();
 </script>
 
 <BlockLabel
@@ -268,6 +266,7 @@
 					bind:mode
 					{i18n}
 					{editable}
+					{recording}
 					{dispatch_blob}
 					{waveform_settings}
 					{waveform_options}
