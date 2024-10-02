@@ -69,7 +69,7 @@
 	url="https://gradio.app/playground"
 	canonical="https://gradio.app/playground"
 	description="Play Around with Gradio Demos"
-/>	import WHEEL from "$lib/json/wheel.json";
+/>
 
 
 <svelte:head>
