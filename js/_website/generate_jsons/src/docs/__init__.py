@@ -337,7 +337,7 @@ signature = f"""<component_name>.<event_name>({', '.join([
 SYSTEM_PROMPT += signature
 SYSTEM_PROMPT += "\nEach component only supports some specific events. Below is a list of all gradio components and every event that each component supports. If an event is supported by a component, it is a valid method of the component."
 for component in gradio_docs["events_matrix"]:
-    SYSTEM_PROMPT += f"{component}: {", ".join(gradio_docs['events_matrix'][component])}\n\n"
+    SYSTEM_PROMPT += f"{component}: {', '.join(gradio_docs['events_matrix'][component])}\n\n"
 
 
 SYSTEM_PROMPT += "Below are examples of full end-to-end Gradio apps:\n\n"
