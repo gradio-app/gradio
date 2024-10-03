@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Callable, Sequence
 
 from gradio_client.documentation import document
-
 from gradio.components.base import Component
 from gradio.events import Events
 
@@ -37,20 +36,13 @@ class HTML(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
+        scroll_to_bottom: bool = False,  # Add this parameter
     ):
         """
         Parameters:
-            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
-            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
-            show_label: If True, the label will be displayed. If False, the label will be hidden.
-            visible: If False, component will be hidden.
-            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            scroll_to_bottom: If True, automatically scroll to the bottom of the HTML content.
         """
+        self.scroll_to_bottom = scroll_to_bottom  # Store this flag for scrolling behavior
         super().__init__(
             label=label,
             every=every,
@@ -71,22 +63,31 @@ class HTML(Component):
         return "<p>Hello</p>"
 
     def preprocess(self, payload: str | None) -> str | None:
-        """
-        Parameters:
-            payload: string corresponding to the HTML
-        Returns:
-            (Rarely used) passes the HTML as a `str`.
-        """
         return payload
 
     def postprocess(self, value: str | None) -> str | None:
         """
-        Parameters:
-            value: Expects a `str` consisting of valid HTML.
-        Returns:
-            Returns the HTML string.
+        Automatically scroll to the bottom if the scroll_to_bottom flag is set.
         """
+        if value:
+            scroll_behavior = ''
+            if self.scroll_to_bottom:
+                scroll_behavior = '''
+                <script>
+                    var element = document.getElementById('html-content');
+                    if (element) {
+                        element.scrollTop = element.scrollHeight;
+                    }
+                </script>
+                '''
+            return f'''
+            <div id="html-content" style="height: 300px; overflow-y: auto;">
+                {value}
+            </div>
+            {scroll_behavior}
+            '''
         return value
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
+

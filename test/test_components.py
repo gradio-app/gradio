@@ -38,6 +38,18 @@ class TestGettingComponents:
                 component, render=render, unrender=unrender
             )
             assert textbox.is_rendered == should_be_rendered
+            
+    def test_html_component_scroll(self):
+        def return_html(text):
+            return text
+
+        # Test with scroll_to_bottom = True
+        html_component = gr.HTML(scroll_to_bottom=True)
+        assert 'scrollTop' in html_component.postprocess("<p>Hello World</p>")
+
+        # Test with scroll_to_bottom = False
+        html_component = gr.HTML(scroll_to_bottom=False)
+        assert 'scrollTop' not in html_component.postprocess("<p>Hello World</p>")
 
 
 class TestNames:
