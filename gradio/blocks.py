@@ -980,9 +980,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
-        css: str | Path | None = None,
-        js: str | Path | None = None,
-        head: str | Path | None = None,
+        css: str | None = None,
+        css_paths: str | Path | list[str | Path] | None = None,
+        js: str | None = None,
+        js_paths: str | Path | list[str | Path] | None = None,
+        head: str | None = None,
+        head_paths: str | Path | list[str | Path] | None = None,
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
@@ -994,9 +997,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
-            css: Custom css as a code string or pathlib.Path to a css file. This css will be included in the demo webpage.
-            js: Custom js as a code string or pathlib.Path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: Custom html to insert into the head of the demo webpage, either as a code string or a pathlib.Path to an html file. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            css: Custom css as a code string. This css will be included in the demo webpage.
+            css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
+            js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            js_paths: Custom js as a pathlib.Path to a js file or a list of such paths. This js files will be read, concatenated, and included in the demo webpage. If the `js` parameter is also set, the js from `js` will be included first.
+            head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
@@ -1033,21 +1039,22 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.fill_height = fill_height
         self.fill_width = fill_width
         self.delete_cache = delete_cache
-        if isinstance(css, Path):
-            with open(css, encoding="utf-8") as css_file:
-                self.css = css_file.read()
-        else:
-            self.css = css
-        if isinstance(js, Path):
-            with open(js, encoding="utf-8") as js_file:
-                self.js = js_file.read()
-        else:
-            self.js = js
-        if isinstance(head, Path):
-            with open(head, encoding="utf-8") as head_file:
-                self.head = head_file.read()
-        else:
-            self.head = head
+        self.css = css or ""
+        css_paths = utils.none_or_singleton_to_list(css_paths)
+        for css_path in css_paths or []:
+            with open(css_path, encoding="utf-8") as css_file:
+                self.css += css_file.read()
+        self.js = js or ""
+        js_paths = utils.none_or_singleton_to_list(js_paths)
+        for js_path in js_paths or []:
+            with open(js_path, encoding="utf-8") as js_file:
+                self.js += js_file.read()
+        self.head = head or ""
+        head_paths = utils.none_or_singleton_to_list(head_paths)
+        for head_path in head_paths or []:
+            with open(head_path, encoding="utf-8") as head_file:
+                self.head += head_file.read()
+
         self.renderables: list[Renderable] = []
         self.state_holder: StateHolder
         self.custom_mount_path: str | None = None
