@@ -17,8 +17,8 @@
 	let current_code = false;
 	let compare = false;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5174/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:5174/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -26,7 +26,6 @@
 	async function* streamFromWorker(
 		query: string,
 		system_prompt: string,
-		system_prompt_8k: string,
 		signal: AbortSignal
 	) {
 		const response = await fetch(workerUrl, {
@@ -36,8 +35,7 @@
 			},
 			body: JSON.stringify({
 				query: query,
-				SYSTEM_PROMPT: system_prompt,
-				SYSTEM_PROMPT_8K: system_prompt_8k
+				SYSTEM_PROMPT: system_prompt
 			}),
 			signal
 		});
@@ -115,7 +113,6 @@
 		for await (const chunk of streamFromWorker(
 			query,
 			SYSTEM_PROMPT.SYSTEM,
-			SYSTEM_PROMPT.SYSTEM_8K,
 			abortController.signal
 		)) {
 			if (chunk.choices && chunk.choices.length > 0) {
@@ -515,6 +512,14 @@
 									</button>
 								</div>
 							</div>
+						{:else}
+						<div
+								class="pl-2 relative z-10 bg-white flex items-center float-right"
+							>
+								<p class="text-gray-600 my-1 text-xs">
+									<span style="font-weight: 500">Note:</span> This is still an <span style="font-weight: 500">experimental</span> feature. The generated code may be incorrect.
+								</p>
+						</div>
 						{/if}
 					</div>
 
@@ -549,6 +554,7 @@
 							>
 								<div class="enter">Ask AI</div>
 							</button>
+							<sup class="text-orange-800 text-xs ml-0.5">BETA</sup>
 						{:else}
 							<button
 								on:click={() => {
@@ -562,6 +568,7 @@
 							>
 								<div class="enter">Cancel</div>
 							</button>
+							<sup class="text-orange-800 text-xs ml-0.5">BETA</sup>
 						{/if}
 					</div>
 				</div>

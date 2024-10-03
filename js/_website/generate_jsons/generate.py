@@ -6,7 +6,6 @@ import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
 
-from js._website.generate_jsons.src.docs import SYSTEM_PROMPT_8K
 from src import changelog, demos, docs, guides
 
 WEBSITE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -92,8 +91,8 @@ create_dir_if_not_exists(make_dir(WEBSITE_DIR, "src/lib/json/guides"))
 
 demos.generate(make_dir(WEBSITE_DIR, "src/lib/json/demos.json"))
 guides.generate(make_dir(WEBSITE_DIR, "src/lib/json/guides/") + "/")
-SYSTEM_PROMPT, SYSTEM_PROMPT_8K = docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
-_, _ = docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
+SYSTEM_PROMPT = docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
+_ = docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
 changelog.generate(make_dir(WEBSITE_DIR, "src/lib/json/changelog.json"))
 get_latest_release()
 
@@ -106,7 +105,6 @@ with open(make_dir(WEBSITE_DIR, "src/lib/json/system_prompt.json"), "w+") as f:
     json.dump(
         {
             "SYSTEM": SYSTEM_PROMPT,
-            "SYSTEM_8K": SYSTEM_PROMPT_8K,
         },
         f,
     )

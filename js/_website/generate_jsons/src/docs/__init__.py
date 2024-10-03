@@ -326,43 +326,6 @@ for key in gradio_docs:
 
 SYSTEM_PROMPT += "\nEvent listeners allow Gradio to respond to user interactions with the UI components defined in a Blocks app. When a user interacts with an element, such as changing a slider value or uploading an image, a function is called.\n"
 
-SYSTEM_PROMPT += """
-Below is a list of all events and a description of how they're triggered:
-
-change: Triggered when the value of the {{ component }} changes either because of user input (e.g. a user types in a textbox) OR because of a function update (e.g. an image receives a value from the output of an event trigger). See `.input()` for a listener that is only triggered by user input.
-input: This listener is triggered when the user changes the value of the {{ component }}.
-click: Triggered when the {{ component }} is clicked.
-double_click: Triggered when the {{ component }} is double clicked.
-submit: This listener is triggered when the user presses the Enter key while the {{ component }} is focused.
-stop: This listener is triggered when the user clicks on the stop button or icon.
-edit: This listener is triggered when the user edits the {{ component }} (e.g. image) using the built-in editor.
-clear: This listener is triggered when the user clears the {{ component }} using the X button for the component.
-play: This listener is triggered when the user plays the media in the {{ component }}.
-pause: This listener is triggered when the media in the {{ component }} stops for any reason.
-stop: This listener is triggered when the user reaches the end of the media playing in the {{ component }}.
-end: This listener is triggered when the user reaches the end of the media playing in the {{ component }}.
-start_recording: This listener is triggered when the user starts recording with the {{ component }}.
-pause_recording: This listener is triggered when the user pauses recording with the {{ component }}.
-stop_recording: This listener is triggered when the user stops recording with the {{ component }}.
-focus: This listener is triggered when the {{ component }} is focused.
-blur: This listener is triggered when the {{ component }} is unfocused/blurred.
-upload: This listener is triggered when the user uploads a file into the {{ component }}.
-release: This listener is triggered when the user releases the mouse on this {{ component }}.
-select: Event listener for when the user selects or deselects the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the label of the {{ component }}, and `selected` to refer to state of the {{ component }}. See EventData documentation on how to use this event data
-stream: This listener is triggered when the user streams the {{ component }}.
-like: This listener is triggered when the user likes/dislikes from within the {{ component }}. This event has EventData of type gradio.LikeData that carries information, accessible through LikeData.index and LikeData.value. See EventData documentation on how to use this event data.
-suggestion_select: This listener is triggered when the user clicks on an suggestion from within the {{ component }}. This event has SelectData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value. See SelectData documentation on how to use this event data.
-load: This listener is triggered when the {{ component }} initially loads in the browser.
-key_up: This listener is triggered when the user presses a key while the {{ component }} is focused.
-apply: This listener is triggered when the user applies changes to the {{ component }} through an integrated UI action.
-delete: This listener is triggered when the user deletes and item from the {{ component }}. Uses event data gradio.DeletedFileData to carry `value` referring to the file that was deleted as an instance of FileData. See EventData documentation on how to use this event data
-tick: This listener is triggered at regular intervals defined by the {{ component }}.
-undo: This listener is triggered when the user clicks the undo button in the chatbot message.
-retry: This listener is triggered when the user clicks the retry button in the chatbot message.
-
-
-"""
-
 SYSTEM_PROMPT += "All event listeners have the same signature:\n"
 
 f = gradio_docs["components"]["audio"]["fns"][0]
@@ -379,11 +342,9 @@ for component in gradio_docs["events_matrix"]:
 
 SYSTEM_PROMPT += "Below are examples of full end-to-end Gradio apps:\n\n"
 
-# 'audio_component_events', 'audio_mixer', 'blocks_essay', 'blocks_chained_events', 'blocks_xray', 'chatbot_multimodal', 'sentence_builder', 'custom_css', 'blocks_update',
+# 'audio_component_events', 'audio_mixer', 'blocks_essay', 'blocks_chained_events', 'blocks_xray', 'chatbot_multimodal', 'sentence_builder', 'custom_css', 'blocks_update', 'fake_gan'
 # important_demos = ["annotatedimage_component", "blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_js_load", "blocks_js_methods", "blocks_kinematics", "blocks_layout", "blocks_plug", "blocks_simple_squares", "calculator", "chatbot_consecutive", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "fake_gan", "filter_records", "function_values", "gallery_component_events", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sales_projections", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
-important_demos = ['audio_component_events', 'audio_mixer', 'blocks_essay', 'blocks_chained_events', 'blocks_xray', 'chatbot_multimodal', 'sentence_builder', 'custom_css', 'blocks_update', "annotatedimage_component", "blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_js_load", "blocks_js_methods", "blocks_kinematics", "blocks_layout", "blocks_plug", "blocks_simple_squares", "calculator", "chatbot_consecutive", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "fake_gan", "filter_records", "function_values", "gallery_component_events", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sales_projections", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
-
-important_demos_8k = ["blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_kinematics", "blocks_layout", "blocks_simple_squares", "calculator", "chatbot_consecutive", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "filter_records", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
+important_demos = ['custom_css', "annotatedimage_component", "blocks_essay_simple", "blocks_flipper", "blocks_form", "blocks_hello", "blocks_js_load", "blocks_js_methods", "blocks_kinematics", "blocks_layout", "blocks_plug", "blocks_simple_squares", "calculator", "chatbot_consecutive", "chatbot_simple", "chatbot_streaming", "chatinterface_multimodal", "datetimes", "diff_texts", "dropdown_key_up", "fake_diffusion", "filter_records", "function_values", "gallery_component_events", "generate_tone", "hangman", "hello_blocks", "hello_blocks_decorator", "hello_world", "image_editor", "matrix_transpose", "model3D", "on_listener_decorator", "plot_component", "render_merge", "render_split", "reverse_audio_2", "sales_projections", "sepia_filter", "sort_records", "streaming_simple", "tabbed_interface_lite", "tax_calculator", "theme_soft", "timer", "timer_simple", "variable_outputs", "video_identity"]
 
 
 def length(demo):
@@ -399,9 +360,6 @@ def length(demo):
 # important_demos = sorted(important_demos, key=length, reverse=True)
 # print(important_demos)
 
-
-SYSTEM_PROMPT_8K = SYSTEM_PROMPT
-
 for demo in important_demos:
     if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
         demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
@@ -413,18 +371,6 @@ for demo in important_demos:
     SYSTEM_PROMPT += f"Name: {demo.replace('_', ' ')}\n"
     SYSTEM_PROMPT += "Code: \n\n"
     SYSTEM_PROMPT += f"{demo_code}\n\n"
-
-for demo in important_demos_8k:
-    if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
-        demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
-    else: 
-        continue
-    with open(demo_file) as run_py:
-        demo_code = run_py.read()
-        demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
-    SYSTEM_PROMPT_8K += f"Name: {demo.replace('_', ' ')}\n"
-    SYSTEM_PROMPT_8K += "Code: \n\n"
-    SYSTEM_PROMPT_8K += f"{demo_code}\n\n"
 
 
 SYSTEM_PROMPT += """
@@ -680,22 +626,7 @@ Only respond with one full Gradio app.
 Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
 """
 
-SYSTEM_PROMPT_8K += """
-
-The following RULES must be followed.  Whenever you are forming a response, after each sentence ensure all rules have been followed otherwise start over, forming a new response and repeat until the finished response follows all the rules.  then send the response.
-
-RULES: 
-Only respond with code, not text.
-Only respond with valid Python syntax.
-Never include backticks in your response such as ``` or ```python. 
-Never use any external library aside from: gradio, numpy, pandas, plotly, transformers_js and matplotlib.
-Do not include any code that is not necessary for the app to run.
-Respond with a full Gradio app. 
-Only respond with one full Gradio app.
-Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
-"""
-
 def generate(json_path):
     with open(json_path, "w+") as f:
         json.dump(docs, f)
-    return  SYSTEM_PROMPT, SYSTEM_PROMPT_8K
+    return  SYSTEM_PROMPT
