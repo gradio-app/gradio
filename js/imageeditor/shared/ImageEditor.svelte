@@ -393,7 +393,7 @@
 
 	.stage-wrap {
 		margin: var(--size-8);
-		/* margin-bottom: var(--size-1); */
+		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
 		overflow: hidden;
 	}
