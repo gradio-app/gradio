@@ -289,6 +289,15 @@
 		}
 
 		controller.install(cleanupRequirements(current_demo.requirements));
+		controller.install([
+					"numpy",
+					"pandas",
+					"matplotlib",
+					"plotly",
+					"transformers_js_py",
+					"requests",
+					"pillow"
+				])
 	}
 	$: if (mounted) {
 		// When the selected demo changes, we need to call controller.install() immediately without debouncing.
@@ -299,7 +308,16 @@
 	}
 	$: if (mounted) {
 		debounced_install &&
-			debounced_install(cleanupRequirements(requirementsStr.split("\n")));
+			debounced_install(cleanupRequirements(requirementsStr.split("\n")))
+				&& debounced_install([
+					"numpy",
+					"pandas",
+					"matplotlib",
+					"plotly",
+					"transformers_js_py",
+					"requests",
+					"pillow"
+				]);
 	}
 
 	let position = 0.5;
