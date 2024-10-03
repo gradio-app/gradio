@@ -13,7 +13,7 @@
 	<slot />
 </span>
 {#if info}
-	<Info>{info}</Info>
+	<Info {info} />
 {/if}
 
 <style>
