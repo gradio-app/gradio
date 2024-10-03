@@ -29,7 +29,6 @@ def io_components():
             gr.components.FormComponent,
             gr.State,
             gr.LoginButton,
-            gr.LogoutButton,
             gr.Timer,
         ]:
             continue

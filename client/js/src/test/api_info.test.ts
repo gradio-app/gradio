@@ -238,6 +238,7 @@ describe("handle_message", () => {
 		const result = handle_message(data, last_status);
 		expect(result).toEqual({
 			type: "update",
+			original_msg: "process_starts",
 			status: {
 				queue: true,
 				stage: "pending",

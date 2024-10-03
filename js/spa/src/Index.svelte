@@ -33,6 +33,8 @@
 		fill_width?: boolean;
 		theme_hash?: number;
 		username: string | null;
+		api_prefix?: string;
+		max_file_size?: number;
 	}
 
 	let id = -1;
@@ -107,7 +109,6 @@
 	}
 
 	export let space: string | null;
-	export let host: string | null;
 	export let src: string | null;
 
 	let _id = id++;
@@ -279,7 +280,7 @@
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
 					}`
-				: host || space || src || location.origin;
+				: space || src || location.origin;
 
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
@@ -311,7 +312,7 @@
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
-				let url = new URL(`http://${host}/dev/reload`);
+				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
 					new_message_fn("Error reloading app", "error");
@@ -507,6 +508,10 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
+			api_prefix={config.api_prefix || ""}
+			max_file_size={config.max_file_size}
+			initial_layout={undefined}
+			search_params={new URLSearchParams(window.location.search)}
 		/>
 	{/if}
 </Embed>

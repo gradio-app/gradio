@@ -1,5 +1,31 @@
 # @gradio/accordion
 
+## 0.3.23-beta.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.3.23-beta.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/column@0.2.0-beta.0
+
+## 0.3.23-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/column@0.2.0-beta.0
+
+## 0.3.23-beta.0
+
 ## 0.3.23
 
 ### Fixes
@@ -8,10 +34,10 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.6.1
-- @gradio/statustracker@0.7.6
-- @gradio/atoms@0.8.1
-- @gradio/column@0.1.4
+- @gradio/utils@0.7.0-beta.0
+- @gradio/statustracker@0.8.0-beta.0
+- @gradio/atoms@0.8.1-beta.0
+- @gradio/column@0.2.0-beta.0
 
 ## 0.3.22
 

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -117,10 +119,15 @@ class CheckboxGroup(FormComponent):
         Returns:
             Passes the list of checked checkboxes as a `list[str | int | float]` or their indices as a `list[int]` into the function, depending on `type`.
         """
+        choice_values = [value for _, value in self.choices]
+        for value in payload:
+            if value not in choice_values:
+                raise Error(
+                    f"Value: {value} is not in the list of choices: {choice_values}"
+                )
         if self.type == "value":
             return payload
         elif self.type == "index":
-            choice_values = [value for _, value in self.choices]
             return [
                 choice_values.index(choice) if choice in choice_values else None
                 for choice in payload

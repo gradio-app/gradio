@@ -13,12 +13,13 @@ import shutil
 import tempfile
 import time
 import warnings
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, Literal, Optional, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
@@ -122,6 +123,7 @@ class ServerMessage(str, Enum):
     server_stopped = "Server stopped unexpectedly."
     unexpected_error = "unexpected_error"
     close_stream = "close_stream"
+    process_streaming = "process_streaming"
 
 
 class Status(Enum):
@@ -683,6 +685,23 @@ def get_extension(encoding: str) -> str | None:
     if extension is not None and extension.startswith("."):
         extension = extension[1:]
     return extension
+
+
+def is_valid_file(file_path: str, file_types: list[str]) -> bool:
+    mime_type = get_mimetype(file_path)
+    if mime_type is None:
+        return False
+    for file_type in file_types:
+        if file_type == "file":
+            return True
+        if file_type.startswith("."):
+            file_type = file_type.lstrip(".").lower()
+            mime_type_split = mime_type.lower().split("/")
+            if file_type == mime_type_split[1]:
+                return True
+        elif mime_type.startswith(f"{file_type}/"):
+            return True
+    return False
 
 
 def encode_file_to_base64(f: str | Path):
