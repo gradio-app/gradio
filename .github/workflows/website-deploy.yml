@@ -67,17 +67,6 @@ jobs:
       - name: list files
         run: ls -R .
 
-      - name: Pull Vercel Environment Information
-        shell: bash
-        if: needs.changes.outputs.pr_number != 'false'
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website
-
-      - name: Deploy Project Artifacts to Vercel
-        if: needs.changes.outputs.pr_number != 'false'
-        id: output_url
-        shell: bash
-        run: echo "vercel_url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website)" >> $GITHUB_OUTPUT
-
       - name: Deploy Preview Website to Cloudflare Pages
         if: needs.changes.outputs.pr_number != 'false'
         id: cloudflare-preview
@@ -88,16 +77,6 @@ jobs:
           command: pages deploy js/_website/.vercel/output/static --project-name=gradio-website --branch=${{ needs.changes.outputs.source_branch }}
 
         # production
-      - name: Pull Vercel Environment Information
-        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
-        shell: bash
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website
-
-      - name: Deploy Project Artifacts to Vercel
-        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
-        shell: bash
-        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} --cwd js/_website)" >> $GITHUB_ENV
-
       - name: Deploy Production Website to Cloudflare Pages
         if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
         id: cloudflare-production
@@ -115,7 +94,7 @@ jobs:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: website~success~${{needs.deploy.outputs.vercel_url}}
+      message: website~success~${{steps.cloudflare-preview.outputs.deployment-url}}
   comment-deploy-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
