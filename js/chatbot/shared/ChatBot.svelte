@@ -462,4 +462,99 @@
 		opacity: 0.8;
 		overflow-wrap: break-word;
 	}
+
+	.message-wrap > :global(.message :not(.image-button) img) {
+		margin: var(--size-2);
+		max-height: 200px;
+	}
+
+	.message-wrap :global(.message-row .md img) {
+		border-radius: var(--radius-xl);
+		margin: var(--size-2);
+		width: 400px;
+		max-width: 30vw;
+		max-height: 30vw;
+	}
+
+	/* link styles */
+	.message-wrap :global(.message a) {
+		color: var(--color-text-link);
+		text-decoration: underline;
+	}
+
+	/* table styles */
+	.message-wrap :global(.bot table),
+	.message-wrap :global(.bot tr),
+	.message-wrap :global(.bot td),
+	.message-wrap :global(.bot th) {
+		border: 1px solid var(--border-color-primary);
+	}
+
+	.message-wrap :global(.user table),
+	.message-wrap :global(.user tr),
+	.message-wrap :global(.user td),
+	.message-wrap :global(.user th) {
+		border: 1px solid var(--border-color-accent);
+	}
+
+	/* KaTeX */
+	.message-wrap :global(span.katex) {
+		font-size: var(--text-lg);
+		direction: ltr;
+	}
+
+	/* Copy button */
+	.message-wrap :global(div[class*="code_wrap"] > button) {
+		position: absolute;
+		top: var(--spacing-md);
+		right: var(--spacing-md);
+		z-index: 1;
+		cursor: pointer;
+		border-bottom-left-radius: var(--radius-sm);
+		padding: var(--spacing-md);
+		width: 25px;
+		height: 25px;
+	}
+
+	.message-wrap :global(code > button > span) {
+		position: absolute;
+		top: var(--spacing-md);
+		right: var(--spacing-md);
+		width: 12px;
+		height: 12px;
+	}
+	.message-wrap :global(.check) {
+		position: absolute;
+		top: 0;
+		right: 0;
+		opacity: 0;
+		z-index: var(--layer-top);
+		transition: opacity 0.2s;
+		background: var(--background-fill-primary);
+		padding: var(--size-1);
+		width: 100%;
+		height: 100%;
+		color: var(--body-text-color);
+	}
+
+	.message-wrap :global(pre) {
+		position: relative;
+	}
+
+	.message-wrap :global(.grid-wrap) {
+		max-height: 80% !important;
+		max-width: 600px;
+		object-fit: contain;
+	}
+
+	.message-wrap > div :global(p:not(:first-child)) {
+		margin-top: var(--spacing-xxl);
+	}
+
+	.message-wrap {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		margin-bottom: var(--spacing-xxl);
+	}
 </style>
