@@ -26,7 +26,6 @@ def start_node_server(
     server_name: str | None = None,
     server_port: int | None = None,
     node_path: str | None = None,
-    ssr_mode: bool | None = None,
 ) -> tuple[str | None, subprocess.Popen[bytes] | None, int | None]:
     """Launches a local server running the provided Interface
     Parameters:
@@ -57,15 +56,11 @@ def start_node_server(
         else range(INITIAL_PORT_VALUE + 1, INITIAL_PORT_VALUE + 1 + TRY_NUM_PORTS)
     )
 
-    node_process = None
-    node_port = None
-
-    if ssr_mode:
-        (node_process, node_port) = start_node_process(
-            node_path=node_path or os.getenv("GRADIO_NODE_PATH"),
-            server_name=host,
-            server_ports=server_ports,
-        )
+    node_process, node_port = start_node_process(
+        node_path=node_path or os.getenv("GRADIO_NODE_PATH"),
+        server_name=host,
+        server_ports=server_ports,
+    )
 
     return server_name, node_process, node_port
 
