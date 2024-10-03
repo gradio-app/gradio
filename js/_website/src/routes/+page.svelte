@@ -141,7 +141,7 @@
 		</p>
 		<p class="text-gray-600">
 			Seamlessly use any python library on your computer. If you can write a
-			python function, gradio can run it.
+			python function, gradio can run it. cloudflare
 		</p>
 	</div>
 	<div
