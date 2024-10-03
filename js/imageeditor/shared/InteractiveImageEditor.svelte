@@ -56,7 +56,7 @@
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
 	export let placeholder: string | undefined = undefined;
-	export let height = 400;
+	export let height: undefined | number = undefined;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;

@@ -378,7 +378,7 @@
 	.wrap {
 		display: flex;
 		width: 100%;
-		height: 90%;
+		height: 100%;
 		position: relative;
 		justify-content: center;
 	}
@@ -395,7 +395,7 @@
 
 	.stage-wrap {
 		margin: var(--size-8);
-		margin-bottom: var(--size-1);
+		/* margin-bottom: var(--size-1); */
 		border-radius: var(--radius-md);
 		overflow: hidden;
 	}
