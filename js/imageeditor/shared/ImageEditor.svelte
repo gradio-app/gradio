@@ -363,8 +363,6 @@
 	<div
 		class="canvas"
 		class:no-border={!bg && $active_tool === "bg" && !history}
-		style:width="{$crop[2] * $editor_box.child_width + 1}px"
-		style:height="{$crop[3] * $editor_box.child_height + 1}px"
 		style:top="{$crop[1] * $editor_box.child_height +
 			($editor_box.child_top - $editor_box.parent_top) -
 			0.5}px"
