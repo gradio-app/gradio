@@ -570,7 +570,7 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request, route_path="/info", root_path=app.root_path
             )
-            info = route_utils.update_root_in_config(info, root)
+            info = route_utils.update_root_in_api_info(info, root)
             return info
 
         @app.get("/config/", dependencies=[Depends(login_check)])
