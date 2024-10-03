@@ -52,10 +52,7 @@ jobs:
     permissions:
       actions: read
     outputs:
-      vercel_url: ${{ steps.output_url.outputs.vercel_url }}
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      cloudflare_url: ${{ steps.cloudflare-preview.outputs.deployment-url }}
     steps:
       - name: download website artifacts
         uses: actions/download-artifact@v4
@@ -94,7 +91,7 @@ jobs:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: website~success~${{steps.cloudflare-preview.outputs.deployment-url}}
+      message: website~success~${{needs.deploy.outputs.cloudflare_url}}
   comment-deploy-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
