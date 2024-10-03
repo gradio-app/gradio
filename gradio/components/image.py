@@ -82,7 +82,7 @@ class Image(StreamingInput, Component):
         sources: list[Literal["upload", "webcam", "clipboard"]]
         | Literal["upload", "webcam", "clipboard"]
         | None = None,
-        type: Literal["numpy", "pil", "filepath", "base64"] = "numpy",
+        type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
