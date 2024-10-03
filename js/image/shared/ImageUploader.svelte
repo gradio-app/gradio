@@ -16,7 +16,6 @@
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
 	import type { Base64File } from "./types";
-	import File from "js/file/File.stories.svelte";
 
 	export let value: null | FileData | Base64File = null;
 	export let label: string | undefined = undefined;
