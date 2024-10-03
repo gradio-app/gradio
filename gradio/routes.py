@@ -730,6 +730,14 @@ class App(FastAPI):
                 filename=abs_path.name,
             )
 
+        @router.post("/stream/{event_id}")
+        async def _(event_id: str, body: PredictBody, request: fastapi.Request):
+            event = app.get_blocks()._queue.event_ids_to_events[event_id]
+            body = PredictBodyInternal(**body.model_dump(), request=request)
+            event.data = body
+            event.signal.set()
+            return {"msg": "success"}
+
         @router.websocket("/stream/{event_id}")
         async def websocket_endpoint(websocket: WebSocket, event_id: str):
             await websocket.accept()

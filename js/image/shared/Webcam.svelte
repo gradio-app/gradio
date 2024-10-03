@@ -66,14 +66,15 @@
 	}>();
 
 	onMount(() => {
-		canvas = document.createElement("canvas")
+		canvas = document.createElement("canvas");
 		if (streaming && mode === "image") {
-		window.setInterval(() => {
-			if (video_source && !pending) {
-				take_picture();
-			}
-		}, stream_every * 1000);
-	}});
+			window.setInterval(() => {
+				if (video_source && !pending) {
+					take_picture();
+				}
+			}, stream_every * 1000);
+		}
+	});
 
 	const handle_device_change = async (event: InputEvent): Promise<void> => {
 		const target = event.target as HTMLInputElement;

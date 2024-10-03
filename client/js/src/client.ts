@@ -63,7 +63,7 @@ export class Client {
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
 	current_payload: any;
-	ws_map: Record<string, WebSocket> = {};
+	ws_map: Record<string, WebSocket | "failed"> = {};
 
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const headers = new Headers(init?.headers || {});
@@ -445,7 +445,14 @@ export class Client {
 
 			ws.onerror = (error) => {
 				console.error("WebSocket error:", error);
-				reject(error);
+				this.close_ws(url);
+				this.ws_map[url] = "failed";
+				resolve();
+			};
+
+			ws.onclose = () => {
+				delete this.ws_map[url];
+				this.ws_map[url] = "failed";
 			};
 
 			ws.onmessage = (event) => {};
@@ -459,13 +466,20 @@ export class Client {
 			await this.connect_ws(url);
 		}
 		const ws = this.ws_map[url];
-		ws.send(JSON.stringify(data));
+		if (ws instanceof WebSocket) {
+			ws.send(JSON.stringify(data));
+		} else {
+			this.post_data(url, data);
+		}
 	}
 
 	async close_ws(url: string): Promise<void> {
 		if (url in this.ws_map) {
-			this.ws_map[url].close();
-			delete this.ws_map[url];
+			const ws = this.ws_map[url];
+			if (ws instanceof WebSocket) {
+				ws.close();
+				delete this.ws_map[url];
+			}
 		}
 	}
 }
