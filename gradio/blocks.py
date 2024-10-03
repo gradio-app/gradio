@@ -1043,17 +1043,17 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         css_paths = utils.none_or_singleton_to_list(css_paths)
         for css_path in css_paths or []:
             with open(css_path, encoding="utf-8") as css_file:
-                self.css += css_file.read()
+                self.css += "\n" + css_file.read()
         self.js = js or ""
         js_paths = utils.none_or_singleton_to_list(js_paths)
         for js_path in js_paths or []:
             with open(js_path, encoding="utf-8") as js_file:
-                self.js += js_file.read()
+                self.js += "\n" + js_file.read()
         self.head = head or ""
         head_paths = utils.none_or_singleton_to_list(head_paths)
         for head_path in head_paths or []:
             with open(head_path, encoding="utf-8") as head_file:
-                self.head += head_file.read()
+                self.head += "\n" + head_file.read()
 
         self.renderables: list[Renderable] = []
         self.state_holder: StateHolder

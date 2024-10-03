@@ -1903,9 +1903,8 @@ def test_render_when_mounted_sets_root_path_for_files():
 @pytest.fixture
 def mock_css_files():
     css_contents = {
-        "file1.css": "body { color: red; }",
-        "file2.css": "h1 { font-size: 20px; }",
-        "file3.css": ".class { margin: 10px; }",
+        "file1.css": "h1 { font-size: 20px; }",
+        "file2.css": ".class { margin: 10px; }",
     }
 
     def mock_open_file(filename, encoding):
@@ -1915,12 +1914,13 @@ def mock_css_files():
         yield
 
 
-def test_css_concatenation(mock_css_files):
-    css_paths = ["file1.css", "file2.css", "file3.css"]
-    instance = gr.Blocks(css_paths=css_paths)
+def test_css_and_css_paths_parameters(mock_css_files):
+    css_paths = ["file1.css", "file2.css"]
+    instance = gr.Blocks(css="body { color: red; }", css_paths=css_paths)
+    expected_css = """
+body { color: red; }
+h1 { font-size: 20px; }
+.class { margin: 10px; }
+        """
 
-    expected_css = (
-        "body { color: red; }" "h1 { font-size: 20px; }" ".class { margin: 10px; }"
-    )
-
-    assert instance.css == expected_css
+    assert instance.css.strip() == expected_css.strip()
