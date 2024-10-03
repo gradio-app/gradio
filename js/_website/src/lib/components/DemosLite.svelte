@@ -42,6 +42,13 @@
 			signal
 		});
 
+		if (response.status == 429) {
+			generation_error = "Too busy... :( Please try again later.";
+			await new Promise((resolve) => setTimeout(resolve, 4000));
+			generation_error = "";
+			return;
+		}
+
 		const reader = response.body?.getReader();
 		const decoder = new TextDecoder();
 		let buffer = "";
@@ -625,7 +632,6 @@
 							>
 								<div class="enter">Cancel</div>
 							</button>
-							<sup class="text-orange-800 text-xs ml-0.5">BETA</sup>
 						{/if}
 					</div>
 				</div>
