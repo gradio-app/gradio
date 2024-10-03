@@ -12,7 +12,7 @@ from concurrent.futures import wait
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
-from unittest.mock import patch
+from unittest.mock import mock_open, patch
 
 import gradio_client as grc
 import numpy as np
@@ -1898,3 +1898,29 @@ def test_render_when_mounted_sets_root_path_for_files():
                             ].startswith(f"http://testserver/test{API_PREFIX}/file=")
                             checked_component = True
         assert checked_component
+
+
+@pytest.fixture
+def mock_css_files():
+    css_contents = {
+        "file1.css": "body { color: red; }",
+        "file2.css": "h1 { font-size: 20px; }",
+        "file3.css": ".class { margin: 10px; }",
+    }
+
+    def mock_open_file(filename, encoding):
+        return mock_open(read_data=css_contents[filename])()
+
+    with patch("builtins.open", side_effect=mock_open_file):
+        yield
+
+
+def test_css_concatenation(mock_css_files):
+    css_paths = ["file1.css", "file2.css", "file3.css"]
+    instance = gr.Blocks(css_paths=css_paths)
+
+    expected_css = (
+        "body { color: red; }" "h1 { font-size: 20px; }" ".class { margin: 10px; }"
+    )
+
+    assert instance.css == expected_css

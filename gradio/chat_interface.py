@@ -8,7 +8,7 @@ import builtins
 import functools
 import inspect
 import warnings
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator, Callable, Sequence
 from pathlib import Path
 from typing import Literal, Union, cast
 
@@ -82,11 +82,11 @@ class ChatInterface(Blocks):
         description: str | None = None,
         theme: Theme | str | None = None,
         css: str | None = None,
-        css_paths: str | Path | list[str | Path] | None = None,
+        css_paths: str | Path | Sequence[str | Path] | None = None,
         js: str | None = None,
-        js_paths: str | Path | list[str | Path] | None = None,
+        js_paths: str | Path | Sequence[str | Path] | None = None,
         head: str | None = None,
-        head_paths: str | Path | list[str | Path] | None = None,
+        head_paths: str | Path | Sequence[str | Path] | None = None,
         analytics_enabled: bool | None = None,
         autofocus: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
