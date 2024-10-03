@@ -140,7 +140,11 @@ async def _call_asgi_app_from_js(app_id, scope, receive, send):
 
 	async def rcv():
 			event = await receive()
-			return event.to_py()
+			py_event = event.to_py()
+			if "body" in py_event:
+					if isinstance(py_event["body"], memoryview):
+							py_event["body"] = py_event["body"].tobytes()
+			return py_event
 
 	async def snd(event):
 			await send(event)

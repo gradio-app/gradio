@@ -1,5 +1,12 @@
 # website
 
+## 0.39.0-beta.5
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.4
+- @gradio/paramviewer@0.4.22-beta.2
+
 ## 0.39.0-beta.4
 
 ### Features
@@ -51,6 +58,17 @@
 - [#9213](https://github.com/gradio-app/gradio/pull/9213) [`ab4580b`](https://github.com/gradio-app/gradio/commit/ab4580bd5f755a07c9a9bd2a775220a9a2085f8c) - Remove grey background behind all components.  Thanks @hannahblair!
 - [#9206](https://github.com/gradio-app/gradio/pull/9206) [`bdbcf7b`](https://github.com/gradio-app/gradio/commit/bdbcf7b0e374c0769178767a1502cd310312278b) - Cloudflare migration.  Thanks @aliabd!
 - [#9156](https://github.com/gradio-app/gradio/pull/9156) [`8deeeb6`](https://github.com/gradio-app/gradio/commit/8deeeb6d1b83296e5174c2891b80fb317991289e) - File access security guide.  Thanks @freddyaboulton!
+
+## 0.39.1
+
+### Features
+
+- [#9379](https://github.com/gradio-app/gradio/pull/9379) [`0cad5f3`](https://github.com/gradio-app/gradio/commit/0cad5f348a846024b95b92fb48f88137ccfcd589) - Testing CI.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.9.1
+- @gradio/paramviewer@0.4.22
 
 ## 0.39.0
 

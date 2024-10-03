@@ -1,5 +1,28 @@
 # @gradio/core
 
+## 0.1.0-beta.4
+
+### Features
+
+- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/upload@0.13.0-beta.4
+- @gradio/button@0.3.0-beta.4
+- @gradio/markdown@0.10.0-beta.2
+- @gradio/textbox@0.7.0-beta.2
+- @gradio/checkbox@0.4.0-beta.2
+- @gradio/file@0.10.0-beta.4
+- @gradio/image@0.16.0-beta.4
+- @gradio/video@0.11.0-beta.4
+- @gradio/code@0.10.0-beta.4
+- @gradio/paramviewer@0.4.22-beta.2
+- @gradio/wasm@0.14.0-beta.3
+- @gradio/plot@0.7.0-beta.3
+- @gradio/gallery@0.13.0-beta.4
+
 ## 0.1.0-beta.3
 
 ### Features
@@ -92,6 +115,13 @@
 - [#9173](https://github.com/gradio-app/gradio/pull/9173) [`66349fe`](https://github.com/gradio-app/gradio/commit/66349fe26827e3a3c15b738a1177e95fec7f5554) - Streaming Guides.  Thanks @freddyaboulton!
 - [#9052](https://github.com/gradio-app/gradio/pull/9052) [`f3652eb`](https://github.com/gradio-app/gradio/commit/f3652ebe08211e12739df73c15fd97e5ff81276a) - Video gallery.  Thanks @dawoodkhan82!
 - [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
+
+## 0.0.4
+
+### Dependency updates
+
+- @gradio/code@0.9.1
+- @gradio/paramviewer@0.4.22
 
 ## 0.0.4
 

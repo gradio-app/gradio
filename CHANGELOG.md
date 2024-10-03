@@ -1,5 +1,13 @@
 # gradio
 
+## 5.0.0-beta.5
+
+### Features
+
+- [#9470](https://github.com/gradio-app/gradio/pull/9470) [`b406139`](https://github.com/gradio-app/gradio/commit/b40613928c0e0d224ff2b4db5d0b45727c178560) - Add support for 3rd party providers to `gr.load`, and provide a better UX for conversational models.  Thanks @abidlabs!
+- [#9383](https://github.com/gradio-app/gradio/pull/9383) [`30d13ac`](https://github.com/gradio-app/gradio/commit/30d13ac8a932d53abfd236d3e4e845570480e701) - Pre/post-processing download requests.  Thanks @aliabid94!
+- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots.  Thanks @pngwn!
+
 ## 5.0.0-beta.4
 
 ### Features
@@ -126,6 +134,12 @@
 ### Fixes
 
 - [#9189](https://github.com/gradio-app/gradio/pull/9189) [`ab142ee`](https://github.com/gradio-app/gradio/commit/ab142ee13d19070b75b5eb03efcda7193b8993c2) - Fix serialization error in curl api.  Thanks @freddyaboulton!
+
+## 4.44.1
+
+### Features
+
+- [#9320](https://github.com/gradio-app/gradio/pull/9320) [`98cbcae`](https://github.com/gradio-app/gradio/commit/98cbcaef827de7267462ccba180c7b2ffb1e825d) - chore: fix docs style.  Thanks @imba-tjd!
 
 ## 4.44.0
 

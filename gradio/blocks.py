@@ -298,7 +298,7 @@ class Block:
             url_or_file_path = str(url_or_file_path)
 
         if client_utils.is_http_url_like(url_or_file_path):
-            temp_file_path = await processing_utils.async_save_url_to_cache(
+            temp_file_path = await processing_utils.async_ssrf_protected_download(
                 url_or_file_path, cache_dir=self.GRADIO_CACHE
             )
 
@@ -1222,7 +1222,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             original_mapping[0] = root_block = Context.root_block or blocks
 
             if "layout" in config:
-                iterate_over_children(config["layout"]["children"])  #
+                iterate_over_children(config["layout"]["children"])
 
             first_dependency = None
 
@@ -2424,15 +2424,16 @@ Received inputs:
         self.node_path = os.environ.get(
             "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
         )
-        self.node_server_name = node_server_name
-        self.node_port = node_port
-
-        self.node_server_name, self.node_process, self.node_port = start_node_server(
-            server_name=self.node_server_name,
-            server_port=self.node_port,
-            node_path=self.node_path,
-            ssr_mode=self.ssr_mode,
-        )
+        if self.ssr_mode:
+            self.node_server_name, self.node_process, self.node_port = (
+                start_node_server(
+                    server_name=node_server_name,
+                    server_port=node_port,
+                    node_path=self.node_path,
+                )
+            )
+        else:
+            self.node_server_name = self.node_port = self.node_process = None
 
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(

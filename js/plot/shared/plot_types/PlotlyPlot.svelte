@@ -4,7 +4,6 @@
 	import { afterUpdate, createEventDispatcher } from "svelte";
 
 	export let value;
-	export let target;
 
 	$: plot = value?.plot;
 
@@ -17,7 +16,7 @@
 		if (!plotly_global_style) {
 			plotly_global_style = document.getElementById("plotly.js-style-global");
 			const plotly_style_clone = plotly_global_style.cloneNode();
-			target.appendChild(plotly_style_clone);
+			plot_div.appendChild(plotly_style_clone);
 			for (const rule of plotly_global_style.sheet.cssRules) {
 				plotly_style_clone.sheet.insertRule(rule.cssText);
 			}

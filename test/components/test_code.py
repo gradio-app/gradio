@@ -32,7 +32,7 @@ class TestCode:
             "value": None,
             "language": None,
             "lines": 5,
-            "max_lines": 20,
+            "max_lines": None,
             "name": "code",
             "show_label": True,
             "label": None,
@@ -45,6 +45,7 @@ class TestCode:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "wrap_lines": False,
             "key": None,
         }
 
