@@ -1,5 +1,22 @@
 # @self/spa
 
+## 0.1.0-beta.2
+
+### Features
+
+- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/wasm@0.14.0-beta.3
+- @gradio/core@0.1.0-beta.4
+
+## 0.1.0-beta.1
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.3
+
 ## 0.1.0-beta.1
 
 ### Dependency updates

@@ -678,7 +678,7 @@ class TestBlocksPostprocessing:
             assert output["data"][1] == {"__type__": "update", "interactive": True}
 
     @pytest.mark.asyncio
-    async def test_error_raised_if_num_outputs_mismatch(self):
+    async def test_error_raised_if_num_outputs_is_too_low(self):
         with gr.Blocks() as demo:
             textbox1 = gr.Textbox()
             textbox2 = gr.Textbox()
@@ -686,9 +686,22 @@ class TestBlocksPostprocessing:
             button.click(lambda x: x, textbox1, [textbox1, textbox2])
         with pytest.raises(
             ValueError,
-            match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
             await demo.postprocess_data(demo.fns[0], predictions=["test"], state=None)
+
+    @pytest.mark.asyncio
+    async def test_warning_raised_if_num_outputs_is_too_high(self):
+        with gr.Blocks() as demo:
+            textbox1 = gr.Textbox()
+            textbox2 = gr.Textbox()
+            button = gr.Button()
+            button.click(lambda x: (x, x), textbox1, [textbox1, textbox2])
+        with pytest.warns(
+            UserWarning,
+        ):
+            await demo.postprocess_data(
+                demo.fns[0], predictions=["test", "test2", "test3"], state=None
+            )
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
@@ -702,7 +715,6 @@ class TestBlocksPostprocessing:
             button.click(infer, textbox1, [textbox1, textbox2])
         with pytest.raises(
             ValueError,
-            match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
             await demo.postprocess_data(demo.fns[0], predictions=["test"], state=None)
 
@@ -715,7 +727,6 @@ class TestBlocksPostprocessing:
             btn.click(lambda a: a, num1, [num1, num2])
         with pytest.raises(
             ValueError,
-            match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
             await demo.postprocess_data(demo.fns[0], predictions=[1], state=None)
 
@@ -732,7 +743,6 @@ class TestBlocksPostprocessing:
             btn.click(infer, num1, [num1, num2, num3])
         with pytest.raises(
             ValueError,
-            match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:",
         ):
             await demo.postprocess_data(demo.fns[0], predictions=[1, 2], state=None)
 
