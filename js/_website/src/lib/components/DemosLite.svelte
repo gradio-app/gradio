@@ -290,14 +290,14 @@
 
 		controller.install(cleanupRequirements(current_demo.requirements));
 		controller.install([
-					"numpy",
-					"pandas",
-					"matplotlib",
-					"plotly",
-					"transformers_js_py",
-					"requests",
-					"pillow"
-				])
+			"numpy",
+			"pandas",
+			"matplotlib",
+			"plotly",
+			"transformers_js_py",
+			"requests",
+			"pillow"
+		]);
 	}
 	$: if (mounted) {
 		// When the selected demo changes, we need to call controller.install() immediately without debouncing.
@@ -308,16 +308,16 @@
 	}
 	$: if (mounted) {
 		debounced_install &&
-			debounced_install(cleanupRequirements(requirementsStr.split("\n")))
-				&& debounced_install([
-					"numpy",
-					"pandas",
-					"matplotlib",
-					"plotly",
-					"transformers_js_py",
-					"requests",
-					"pillow"
-				]);
+			debounced_install(cleanupRequirements(requirementsStr.split("\n"))) &&
+			debounced_install([
+				"numpy",
+				"pandas",
+				"matplotlib",
+				"plotly",
+				"transformers_js_py",
+				"requests",
+				"pillow"
+			]);
 	}
 
 	let position = 0.5;
@@ -595,13 +595,15 @@
 								</div>
 							</div>
 						{:else}
-						<div
+							<div
 								class="pl-2 relative z-10 bg-white flex items-center float-right"
 							>
 								<p class="text-gray-600 my-1 text-xs">
-									<span style="font-weight: 500">Note:</span> This is still an <span style="font-weight: 500">experimental</span> feature. The generated code may be incorrect.
+									<span style="font-weight: 500">Note:</span> This is still an
+									<span style="font-weight: 500">experimental</span> feature. The
+									generated code may be incorrect.
 								</p>
-						</div>
+							</div>
 						{/if}
 					</div>
 
