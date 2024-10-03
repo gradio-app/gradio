@@ -337,6 +337,12 @@ class Component(ComponentBase, Block):
             f"The api_info method has not been implemented for {self.get_block_name()}"
         )
 
+    def api_info_as_input(self) -> dict[str, Any]:
+        return self.api_info()
+
+    def api_info_as_output(self) -> dict[str, Any]:
+        return self.api_info()
+
     def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
         """
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.

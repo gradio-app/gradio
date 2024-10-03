@@ -917,9 +917,14 @@ class BlocksConfig:
                 block_config["renderable"] = renderable._id
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
-                # .example_inputs() has been renamed .example_payload() but
-                # we use the old name for backwards compatibility with custom components
-                # created on Gradio 4.20.0 or earlier
+                if hasattr(block, "api_info_as_input"):
+                    block_config["api_info_as_input"] = block.api_info_as_input()  # type: ignore
+                else:
+                    block_config["api_info_as_input"] = block.api_info()  # type: ignore
+                if hasattr(block, "api_info_as_output"):
+                    block_config["api_info_as_output"] = block.api_info_as_output()  # type: ignore
+                else:
+                    block_config["api_info_as_output"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
 
@@ -2890,7 +2895,7 @@ Received inputs:
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
-                info = component["api_info"]
+                info = component.get("api_info_as_input", component.get("api_info"))
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
 
@@ -2957,7 +2962,7 @@ Received inputs:
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
-                info = component["api_info"]
+                info = component.get("api_info_as_output", component["api_info"])
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["returns"].append(

@@ -12,6 +12,7 @@ import PIL.Image
 from gradio_client import handle_file
 from gradio_client.documentation import document
 from PIL import ImageOps
+from pydantic import Field
 
 from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
@@ -31,9 +32,12 @@ class ImageData(GradioModel):
     size: Optional[int] = None  # size in bytes
     orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
-    b64: Optional[str] = None
     is_stream: bool = False
     meta: dict = {"_type": "gradio.FileData"}
+
+
+class Base64ImageData(GradioModel):
+    url: str = Field(description="base64 encoded image")
 
 
 @document()
@@ -186,14 +190,14 @@ class Image(StreamingInput, Component):
         """
         if payload is None:
             return payload
-        if payload.b64:
+        if payload.url and payload.url.startswith("data:"):
             if self.type == "pil":
-                return image_utils.decode_base64_to_image(payload.b64)
+                return image_utils.decode_base64_to_image(payload.url)
             elif self.type == "numpy":
-                return image_utils.decode_base64_to_image_array(payload.b64)
+                return image_utils.decode_base64_to_image_array(payload.url)
             elif self.type == "filepath":
                 return image_utils.decode_base64_to_file(
-                    payload.b64, self.GRADIO_CACHE, self.format
+                    payload.url, self.GRADIO_CACHE, self.format
                 )
         if payload.path is None:
             raise ValueError("Image path is None.")
@@ -241,7 +245,7 @@ class Image(StreamingInput, Component):
 
     def postprocess(
         self, value: np.ndarray | PIL.Image.Image | str | Path | None
-    ) -> ImageData | None:
+    ) -> ImageData | Base64ImageData | None:
         """
         Parameters:
             value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
@@ -254,15 +258,26 @@ class Image(StreamingInput, Component):
             return ImageData(path=value, orig_name=Path(value).name)
         if self.format == "base64":
             if isinstance(value, np.ndarray):
-                return ImageData(url=image_utils.encode_image_array_to_base64(value))
+                return Base64ImageData(
+                    url=image_utils.encode_image_array_to_base64(value)
+                )
             elif isinstance(value, PIL.Image.Image):
-                return ImageData(url=image_utils.encode_image_to_base64(value))
+                return Base64ImageData(url=image_utils.encode_image_to_base64(value))
             elif isinstance(value, (Path, str)):
-                return ImageData(url=image_utils.encode_image_file_to_base64(value))
+                return Base64ImageData(
+                    url=image_utils.encode_image_file_to_base64(value)
+                )
 
         saved = image_utils.save_image(value, self.GRADIO_CACHE, self.format)
         orig_name = Path(saved).name if Path(saved).exists() else None
-        return ImageData(path=saved, orig_name=orig_name, b64=None)
+        return ImageData(path=saved, orig_name=orig_name)
+
+    def api_info_as_output(self) -> dict[str, Any]:
+        if self.format == "base64":
+            schema = Base64ImageData.model_json_schema()
+            schema.pop("description", None)
+            return schema
+        return self.api_info()
 
     def check_streamable(self):
         if self.streaming and self.sources != ["webcam"]:

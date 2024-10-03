@@ -121,7 +121,7 @@ def decode_base64_to_image_array(encoding: str) -> np.ndarray:
     return np.asarray(img)
 
 
-def decode_base64_to_file(encoding: str, cache_dir: str, format: str = "webp"):
+def decode_base64_to_file(encoding: str, cache_dir: str, format: str = "webp") -> str:
     img = decode_base64_to_image(encoding)
     return save_image(img, cache_dir, format)
 
