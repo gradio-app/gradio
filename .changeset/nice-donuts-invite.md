@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:remove default height value
+feat:Remove default height value from gr.ImageEditor
