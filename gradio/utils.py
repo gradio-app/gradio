@@ -16,6 +16,8 @@ import os
 import pkgutil
 import posixpath
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 import threading
@@ -23,10 +25,11 @@ import time
 import traceback
 import typing
 import urllib.parse
+import uuid
 import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from collections.abc import MutableMapping
+from collections.abc import Callable, Iterable, Iterator, MutableMapping, Sequence
 from contextlib import contextmanager
 from functools import wraps
 from io import BytesIO
@@ -35,14 +38,9 @@ from types import ModuleType
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Generic,
-    Iterable,
-    Iterator,
-    List,
     Literal,
     Optional,
-    Sequence,
     TypeVar,
 )
 
@@ -62,15 +60,12 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import Error, InvalidPathError
-from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
     from gradio.routes import App, Request
     from gradio.state_holder import SessionState
-
-JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -120,7 +115,9 @@ class BaseReloader(ABC):
         # Copy over the blocks to get new components and events but
         # not a new queue
         demo._queue = self.running_app.blocks._queue
+        demo.has_launched = True
         demo.max_file_size = self.running_app.blocks.max_file_size
+        demo.is_running = True
         self.running_app.state_holder.reset(demo)
         self.running_app.blocks = demo
 
@@ -446,22 +443,21 @@ def download_if_url(article: str) -> str:
     return article
 
 
-def launch_counter() -> None:
+HASH_SEED_PATH = os.path.join(os.path.dirname(gradio.__file__), "hash_seed.txt")
+
+
+def get_hash_seed() -> str:
     try:
-        if not os.path.exists(JSON_PATH):
-            launches = {"launches": 1}
-            with open(JSON_PATH, "w+", encoding="utf-8") as j:
-                json.dump(launches, j)
+        if os.path.exists(HASH_SEED_PATH):
+            with open(HASH_SEED_PATH) as j:
+                return j.read().strip()
         else:
-            with open(JSON_PATH, encoding="utf-8") as j:
-                launches = json.load(j)
-            launches["launches"] += 1
-            if launches["launches"] in [25, 50, 150, 500, 1000]:
-                print(en["BETA_INVITE"])
-            with open(JSON_PATH, "w", encoding="utf-8") as j:
-                j.write(json.dumps(launches))
+            with open(HASH_SEED_PATH, "w") as j:
+                seed = uuid.uuid4().hex
+                j.write(seed)
+                return seed
     except Exception:
-        pass
+        return uuid.uuid4().hex
 
 
 def get_default_args(func: Callable) -> list[Any]:
@@ -470,6 +466,24 @@ def get_default_args(func: Callable) -> list[Any]:
         v.default if v.default is not inspect.Parameter.empty else None
         for v in signature.parameters.values()
     ]
+
+
+def safe_deepcopy(obj: Any) -> Any:
+    try:
+        return copy.deepcopy(obj)
+    except Exception:
+        if isinstance(obj, dict):
+            return {
+                safe_deepcopy(key): safe_deepcopy(value) for key, value in obj.items()
+            }
+        elif isinstance(obj, list):
+            return [safe_deepcopy(item) for item in obj]
+        elif isinstance(obj, tuple):
+            return tuple(safe_deepcopy(item) for item in obj)
+        elif isinstance(obj, set):
+            return {safe_deepcopy(item) for item in obj}
+        else:
+            return copy.copy(obj)
 
 
 def assert_configs_are_equivalent_besides_ids(
@@ -513,7 +527,7 @@ def assert_configs_are_equivalent_besides_ids(
             raise ValueError(f"{c1} does not match {c2}")
 
     def same_children_recursive(children1, chidren2):
-        for child1, child2 in zip(children1, chidren2):
+        for child1, child2 in zip(children1, chidren2, strict=False):
             assert_same_components(child1["id"], child2["id"])
             if "children" in child1 or "children" in child2:
                 same_children_recursive(child1["children"], child2["children"])
@@ -522,12 +536,12 @@ def assert_configs_are_equivalent_besides_ids(
     children2 = config2["layout"]["children"]
     same_children_recursive(children1, children2)
 
-    for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
-        for t1, t2 in zip(d1.pop("targets"), d2.pop("targets")):
+    for d1, d2 in zip(config1["dependencies"], config2["dependencies"], strict=False):
+        for t1, t2 in zip(d1.pop("targets"), d2.pop("targets"), strict=False):
             assert_same_components(t1[0], t2[0])
-        for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs")):
+        for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs"), strict=False):
             assert_same_components(i1, i2)
-        for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
+        for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs"), strict=False):
             assert_same_components(o1, o2)
 
         if d1 != d2:
@@ -667,8 +681,7 @@ class SyncToAsyncIterator:
 
 
 async def async_iteration(iterator):
-    # anext not introduced until 3.10 :(
-    return await iterator.__anext__()
+    return await anext(iterator)
 
 
 @contextmanager
@@ -901,55 +914,13 @@ def get_cancelled_fn_indices(
 
 
 def get_type_hints(fn):
-    # Importing gradio with the canonical abbreviation. Used in typing._eval_type.
-    import gradio as gr  # noqa: F401
-    from gradio import OAuthProfile, OAuthToken, Request  # noqa: F401
-
     if inspect.isfunction(fn) or inspect.ismethod(fn):
         pass
     elif callable(fn):
         fn = fn.__call__
     else:
         return {}
-
-    try:
-        return typing.get_type_hints(fn)
-    except TypeError:
-        # On Python 3.9 or earlier, get_type_hints throws a TypeError if the function
-        # has a type annotation that include "|". We resort to parsing the signature
-        # manually using inspect.signature.
-        type_hints = {}
-        sig = inspect.signature(fn)
-        for name, param in sig.parameters.items():
-            if param.annotation is inspect.Parameter.empty:
-                continue
-            if param.annotation in ["gr.OAuthProfile | None", "None | gr.OAuthProfile"]:
-                # Special case: we want to inject the OAuthProfile value even on Python 3.9
-                type_hints[name] = Optional[OAuthProfile]
-            if param.annotation == ["gr.OAuthToken | None", "None | gr.OAuthToken"]:
-                # Special case: we want to inject the OAuthToken value even on Python 3.9
-                type_hints[name] = Optional[OAuthToken]
-            if param.annotation in [
-                "gr.Request | None",
-                "Request | None",
-                "None | gr.Request",
-                "None | Request",
-            ]:
-                # Special case: we want to inject the Request value even on Python 3.9
-                type_hints[name] = Optional[Request]
-            if "|" in str(param.annotation):
-                continue
-            # To convert the string annotation to a class, we use the
-            # internal typing._eval_type function. This is not ideal, but
-            # it's the only way to do it without eval-ing the string.
-            # Since the API is internal, it may change in the future.
-            try:
-                type_hints[name] = typing._eval_type(  # type: ignore
-                    typing.ForwardRef(param.annotation), globals(), locals()
-                )
-            except (NameError, TypeError):
-                pass
-        return type_hints
+    return typing.get_type_hints(fn)
 
 
 def is_special_typed_parameter(name, parameter_types):
@@ -1023,15 +994,21 @@ class TupleNoPrint(tuple):
 
 class MatplotlibBackendMananger:
     def __enter__(self):
-        import matplotlib
+        try:
+            import matplotlib
 
-        self._original_backend = matplotlib.get_backend()
-        matplotlib.use("agg")
+            self._original_backend = matplotlib.get_backend()
+            matplotlib.use("agg")
+        except ImportError:
+            pass
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        import matplotlib
+        try:
+            import matplotlib
 
-        matplotlib.use(self._original_backend)
+            matplotlib.use(self._original_backend)
+        except ImportError:
+            pass
 
 
 def tex2svg(formula, *_args):
@@ -1082,13 +1059,10 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
         path_1: str or Path (to file or directory)
         path_2: str or Path (to file or directory)
     """
-    path_1, path_2 = abspath(path_1), abspath(path_2)
+    path_1, path_2 = abspath(path_1).resolve(), abspath(path_2).resolve()
     try:
-        relative_path = path_1.relative_to(path_2)
-        if str(relative_path) == ".":
-            return True
-        relative_path = path_1.parent.relative_to(path_2)
-        return ".." not in str(relative_path)
+        path_1.relative_to(path_2)
+        return True
     except ValueError:
         return False
 
@@ -1228,7 +1202,7 @@ class LRUCache(OrderedDict, Generic[K, V]):
 
 
 def get_cache_folder() -> Path:
-    return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"))
+    return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", ".gradio/cached_examples"))
 
 
 def diff(old, new):
@@ -1378,6 +1352,7 @@ def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
 
     any_state = any(isinstance(block, State) for block in blocks)
     any_unload = False
+    any_stream = False
 
     if "dependencies" not in config:
         raise ValueError(
@@ -1391,7 +1366,10 @@ def connect_heartbeat(config: BlocksConfigDict, blocks) -> bool:
                 any_unload = target[1] == "unload"
                 if any_unload:
                     break
-    return any_state or any_unload
+                any_stream = target[1] == "stream"
+                if any_stream:
+                    break
+    return any_state or any_unload or any_stream
 
 
 def deep_hash(obj):
@@ -1471,7 +1449,7 @@ class UnhashableKeyDict(MutableMapping):
 def safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     """Safely path to a base directory to avoid escaping the base directory.
     Borrowed from: werkzeug.security.safe_join"""
-    _os_alt_seps: List[str] = [
+    _os_alt_seps: list[str] = [
         sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
     ]
 
@@ -1486,3 +1464,83 @@ def safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
         raise InvalidPathError()
 
     return fullpath
+
+
+def is_allowed_file(
+    path: Path,
+    blocked_paths: Sequence[str | Path],
+    allowed_paths: Sequence[str | Path],
+    created_paths: Sequence[str | Path],
+) -> tuple[
+    bool, Literal["in_blocklist", "allowed", "created", "not_created_or_allowed"]
+]:
+    in_blocklist = any(
+        is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths
+    )
+    if in_blocklist:
+        return False, "in_blocklist"
+    if any(is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths):
+        return True, "allowed"
+    if any(is_in_or_equal(path, created_path) for created_path in created_paths):
+        return True, "created"
+    return False, "not_created_or_allowed"
+
+
+def get_node_path():
+    env_node_path = os.environ.get("GRADIO_NODE_PATH")
+    if env_node_path:
+        return env_node_path
+
+    which_node_path = shutil.which("node")
+    if which_node_path:
+        return which_node_path
+
+    try:
+        # On Windows, try using 'where' command
+        if sys.platform == "win32":
+            windows_path = (
+                subprocess.check_output(["where", "node"])
+                .decode()
+                .strip()
+                .split("\r\n")[0]
+            )
+            # Verify the path exists
+            if os.path.exists(windows_path):
+                return windows_path
+        # Try using the 'which' command on Unix-like systems
+        else:
+            return subprocess.check_output(["which", "node"]).decode().strip()
+
+    except subprocess.CalledProcessError:
+        # Command failed, fall back to checking common install locations
+        pass
+
+    # Check common install locations
+    common_paths = [
+        sys.executable,
+        "/usr/bin/node",
+        "/usr/local/bin/node",
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Program Files (x86)\\nodejs\\node.exe",
+    ]
+
+    for node_path in common_paths:
+        if os.path.exists(node_path):
+            return node_path
+
+    # Check PATH environment variable
+    env_path = os.environ.get("PATH", "")
+    path_dirs = env_path.split(os.pathsep)
+
+    for directory in path_dirs:
+        full_path = os.path.join(
+            directory, "node.exe" if sys.platform == "win32" else "node"
+        )
+        if os.path.exists(full_path):
+            return full_path
+
+    print("Unable to find node install path, falling back to SPA mode.")
+    print(
+        "If you wish to use the node backend, please install node 18 and/ or set the path with the GRADIO_NODE_PATH environment variable."
+    )
+    return None

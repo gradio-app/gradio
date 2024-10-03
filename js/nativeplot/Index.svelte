@@ -7,7 +7,6 @@
 	import { onMount } from "svelte";
 
 	import type { TopLevelSpec as Spec } from "vega-lite";
-	import vegaEmbed from "vega-embed";
 	import type { View } from "vega";
 	import { LineChart as LabelIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
@@ -71,7 +70,6 @@
 	}
 	$: _sort = reformat_sort(sort);
 	export let _selectable = false;
-	export let target: HTMLDivElement;
 	let _data: {
 		[x: string]: string | number;
 	}[];
@@ -132,14 +130,16 @@
 
 	const is_browser = typeof window !== "undefined";
 	let chart_element: HTMLDivElement;
-	$: computed_style =
-		target && is_browser ? window.getComputedStyle(target) : null;
+	$: computed_style = chart_element
+		? window.getComputedStyle(chart_element)
+		: null;
 	let view: View;
 	let mounted = false;
 	let old_width: number;
 	let resizeObserver: ResizeObserver;
 
-	function load_chart(): void {
+	let vegaEmbed: typeof import("vega-embed").default;
+	async function load_chart(): Promise<void> {
 		if (view) {
 			view.finalize();
 		}
@@ -160,6 +160,10 @@
 				view.signal("width", el[0].target.offsetWidth).run();
 			}
 		});
+
+		if (!vegaEmbed) {
+			vegaEmbed = (await import("vega-embed")).default;
+		}
 		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
 

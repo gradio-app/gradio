@@ -1,5 +1,5 @@
 <script lang="ts">
-	let expanded = false;
+	export let expanded = false;
 	export let title: string;
 
 	function toggleExpanded(): void {

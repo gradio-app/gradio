@@ -3,7 +3,7 @@ Defines internal helper methods for handling transformers and diffusers pipeline
 These are used by load_from_pipeline method in pipelines.py.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import numpy as np
 from PIL import Image
@@ -11,7 +11,7 @@ from PIL import Image
 from gradio import components
 
 
-def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
+def handle_transformers_pipeline(pipeline: Any) -> Optional[dict[str, Any]]:
     try:
         import transformers
     except ImportError as ie:
@@ -196,7 +196,7 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     raise ValueError(f"Unsupported transformers pipeline type: {type(pipeline)}")
 
 
-def handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
+def handle_diffusers_pipeline(pipeline: Any) -> Optional[dict[str, Any]]:
     try:
         import diffusers
     except ImportError as ie:
@@ -488,7 +488,7 @@ def handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     raise ValueError(f"Unsupported diffusers pipeline type: {type(pipeline)}")
 
 
-def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
+def handle_transformers_js_pipeline(pipeline: Any) -> dict[str, Any]:
     try:
         from transformers_js_py import as_url, read_audio  # type: ignore
     except ImportError as ie:
@@ -605,7 +605,9 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 text,
                 [c.strip() for c in classnames.split(",")],
             ),
-            "postprocess": lambda result: dict(zip(result["labels"], result["scores"])),
+            "postprocess": lambda result: dict(
+                zip(result["labels"], result["scores"], strict=False)
+            ),
         }
     if pipeline.task == "feature-extraction":
         return {

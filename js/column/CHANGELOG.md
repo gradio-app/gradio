@@ -1,5 +1,31 @@
 # @gradio/column
 
+## 0.2.0-beta.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.2.0-beta.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.2.0-beta.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
+## 0.2.0-beta.0
+
+### Features
+
+- [#9213](https://github.com/gradio-app/gradio/pull/9213) [`ab4580b`](https://github.com/gradio-app/gradio/commit/ab4580bd5f755a07c9a9bd2a775220a9a2085f8c) - Remove grey background behind all components.  Thanks @hannahblair!
+
 ## 0.1.4
 
 ### Fixes

@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { format_chat_for_sharing, is_component_message } from "./utils";
+	import {
+		format_chat_for_sharing,
+		is_component_message,
+		type UndoRetryData
+	} from "./utils";
 	import type { NormalisedMessage } from "../types";
 	import { Gradio, copy } from "@gradio/utils";
 
@@ -13,17 +17,18 @@
 		tick,
 		onMount
 	} from "svelte";
-	import { ShareButton } from "@gradio/atoms";
 	import { Image } from "@gradio/image/shared";
 
-	import { Clear } from "@gradio/icons";
+	import { Clear, Trash, Community } from "@gradio/icons";
+	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { MessageRole } from "../types";
+	import type { MessageRole, ExampleMessage } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
 	import MessageBox from "./MessageBox.svelte";
+	import { ShareError } from "@gradio/utils";
 
 	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
@@ -80,6 +85,7 @@
 		display: boolean;
 	}[];
 	export let pending_message = false;
+	export let generating = false;
 	export let selectable = false;
 	export let likeable = false;
 	export let show_share_button = false;
@@ -97,48 +103,31 @@
 	export let placeholder: string | null = null;
 	export let upload: Client["upload"];
 	export let msg_format: "tuples" | "messages" = "tuples";
+	export let examples: ExampleMessage[] | null = null;
+	export let _retryable = false;
+	export let _undoable = false;
+	export let like_user_message = false;
 	export let root: string;
 
 	let target: HTMLElement | null = null;
 
 	onMount(() => {
 		target = document.querySelector("div.gradio-container");
-		adjust_text_size();
 	});
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
 
-	function adjust_text_size(): void {
-		let style = getComputedStyle(document.body);
-		let body_text_size = style.getPropertyValue("--body-text-size");
-		let updated_text_size;
-
-		switch (body_text_size) {
-			case "13px":
-				updated_text_size = 14;
-				break;
-			case "14px":
-				updated_text_size = 16;
-				break;
-			case "16px":
-				updated_text_size = 20;
-				break;
-			default:
-				updated_text_size = 14;
-				break;
-		}
-
-		document.body.style.setProperty(
-			"--chatbot-body-text-size",
-			updated_text_size + "px"
-		);
-	}
-
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
 		like: LikeData;
+		undo: UndoRetryData;
+		retry: UndoRetryData;
+		clear: undefined;
+		share: any;
+		error: string;
+		example_select: SelectData;
 	}>();
 
 	beforeUpdate(() => {
@@ -186,6 +175,27 @@
 
 	$: groupedMessages = value && group_messages(value);
 
+	function handle_example_select(i: number, example: ExampleMessage): void {
+		dispatch("example_select", {
+			index: i,
+			value: { text: example.text, files: example.files }
+		});
+	}
+
+	function is_last_bot_message(
+		messages: NormalisedMessage[],
+		all_messages: NormalisedMessage[]
+	): boolean {
+		const is_bot = messages[messages.length - 1].role === "assistant";
+		const last_index = messages[messages.length - 1].index;
+		// use JSON.stringify to handle both the number and tuple cases
+		// when msg_format is tuples, last_index is an array and when it is messages, it is a number
+		const is_last =
+			JSON.stringify(last_index) ===
+			JSON.stringify(all_messages[all_messages.length - 1].index);
+		return is_last && is_bot;
+	}
+
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
 			index: message.index,
@@ -198,6 +208,21 @@
 		message: NormalisedMessage,
 		selected: string | null
 	): void {
+		if (selected === "undo" || selected === "retry") {
+			const val_ = value as NormalisedMessage[];
+			// iterate through messages until we find the last user message
+			// the index of this message is where the user needs to edit the chat history
+			let last_index = val_.length - 1;
+			while (val_[last_index].role === "assistant") {
+				last_index--;
+			}
+			dispatch(selected, {
+				index: val_[last_index].index,
+				value: val_[last_index].content
+			});
+			return;
+		}
+
 		if (msg_format === "tuples") {
 			dispatch("like", {
 				index: message.index,
@@ -273,32 +298,44 @@
 	}
 </script>
 
-{#if show_share_button && value !== null && value.length > 0}
-	<div class="share-button">
-		<ShareButton
-			{i18n}
-			on:error
-			on:share
-			formatter={format_chat_for_sharing}
-			{value}
-		/>
-	</div>
-{/if}
-
-{#if show_copy_all_button}
-	<CopyAll {value} />
+{#if value !== null && value.length > 0}
+	<IconButtonWrapper>
+		{#if show_share_button}
+			<IconButton
+				Icon={Community}
+				on:click={async () => {
+					try {
+						// @ts-ignore
+						const formatted = await format_chat_for_sharing(value);
+						dispatch("share", {
+							description: formatted
+						});
+					} catch (e) {
+						console.error(e);
+						let message = e instanceof ShareError ? e.message : "Share failed.";
+						dispatch("error", message);
+					}
+				}}
+			>
+				<Community />
+			</IconButton>
+		{/if}
+		<IconButton Icon={Trash} on:click={() => dispatch("clear")}></IconButton>
+		{#if show_copy_all_button}
+			<CopyAll {value} />
+		{/if}
+	</IconButtonWrapper>
 {/if}
 
 <div
 	class={layout === "bubble" ? "bubble-wrap" : "panel-wrap"}
-	class:placeholder-container={value === null || value.length === 0}
 	bind:this={div}
 	role="log"
 	aria-label="chatbot conversation"
 	aria-live="polite"
 >
-	<div class="message-wrap" use:copy>
-		{#if value !== null && value.length > 0 && groupedMessages !== null}
+	{#if value !== null && value.length > 0 && groupedMessages !== null}
+		<div class="message-wrap" use:copy>
 			{#each groupedMessages as messages, i}
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
 				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
@@ -333,7 +370,6 @@
 						class:component-wrap={messages[0].type === "component"}
 					>
 						{#each messages as message, thought_index}
-							{@const msg_type = messages[0].type}
 							<div
 								class="message {role} {is_component_message(message)
 									? message?.content.component
@@ -342,7 +378,7 @@
 								class:panel-full-width={true}
 								class:message-markdown-disabled={!render_markdown}
 								style:text-align={rtl && role === "user" ? "left" : "right"}
-								class:component={msg_type === "component"}
+								class:component={message.type === "component"}
 								class:html={is_component_message(message) &&
 									message.content.component === "html"}
 								class:thought={thought_index > 0}
@@ -368,7 +404,10 @@
 								>
 									{#if message.type === "text"}
 										{#if message.metadata.title}
-											<MessageBox title={message.metadata.title}>
+											<MessageBox
+												title={message.metadata.title}
+												expanded={is_last_bot_message(messages, value)}
+											>
 												<Markdown
 													message={message.content}
 													{latex_delimiters}
@@ -425,10 +464,17 @@
 						{/each}
 					</div>
 				</div>
+				{@const show_like =
+					role === "user" ? likeable && like_user_message : likeable}
+				{@const show_retry = _retryable && is_last_bot_message(messages, value)}
+				{@const show_undo = _undoable && is_last_bot_message(messages, value)}
 				<LikeButtons
-					show={likeable || show_copy_button}
+					show={show_like || show_retry || show_undo || show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					{likeable}
+					likeable={show_like}
+					_retryable={show_retry}
+					_undoable={show_undo}
+					disable={generating}
 					{show_copy_button}
 					message={msg_format === "tuples" ? messages[0] : messages}
 					position={role === "user" ? "right" : "left"}
@@ -439,21 +485,151 @@
 			{#if pending_message}
 				<Pending {layout} />
 			{/if}
-		{:else if placeholder !== null}
-			<center>
-				<Markdown message={placeholder} {latex_delimiters} {root} />
-			</center>
-		{/if}
-	</div>
+		</div>
+	{:else}
+		<div class="placeholder-content">
+			{#if placeholder !== null}
+				<div class="placeholder">
+					<Markdown message={placeholder} {latex_delimiters} {root} />
+				</div>
+			{/if}
+			{#if examples !== null}
+				<div class="examples">
+					{#each examples as example, i}
+						<button
+							class="example"
+							on:click={() => handle_example_select(i, example)}
+						>
+							{#if example.icon !== undefined}
+								<div class="example-icon-container">
+									<Image
+										class="example-icon"
+										src={example.icon.url}
+										alt="example-icon"
+									/>
+								</div>
+							{/if}
+							{#if example.display_text !== undefined}
+								<span class="example-display-text">{example.display_text}</span>
+							{:else}
+								<span class="example-text">{example.text}</span>
+							{/if}
+							{#if example.files !== undefined && example.files.length > 1}
+								<span class="example-file"
+									><em>{example.files.length} Files</em></span
+								>
+							{:else if example.files !== undefined && example.files[0] !== undefined && example.files[0].mime_type?.includes("image")}
+								<div class="example-image-container">
+									<Image
+										class="example-image"
+										src={example.files[0].url}
+										alt="example-image"
+									/>
+								</div>
+							{:else if example.files !== undefined && example.files[0] !== undefined}
+								<span class="example-file"
+									><em>{example.files[0].orig_name}</em></span
+								>
+							{/if}
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style>
-	.placeholder-container {
+	.hidden {
+		display: none;
+	}
+
+	.placeholder-content {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+
+	.placeholder {
+		align-items: center;
+		display: flex;
+		justify-content: center;
+		height: 100%;
+		flex-grow: 1;
+	}
+
+	.examples :global(img) {
+		pointer-events: none;
+	}
+
+	.examples {
+		margin: auto;
+		padding: var(--spacing-xxl);
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--spacing-xxl);
+		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
+	}
+
+	.example {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: var(--spacing-xl);
+		border: 0.05px solid var(--border-color-primary);
+		border-radius: var(--radius-xl);
+		background-color: var(--background-fill-secondary);
+		cursor: pointer;
+		transition: var(--button-transition);
+		max-width: var(--size-56);
+		width: 100%;
+	}
+
+	.example:hover {
+		background-color: var(--color-accent-soft);
+		border-color: var(--border-color-accent);
+	}
+
+	.example-icon-container {
+		display: flex;
+		align-self: flex-start;
+		margin-left: var(--spacing-md);
+		width: var(--size-6);
+		height: var(--size-6);
+	}
+
+	.example-display-text,
+	.example-text,
+	.example-file {
+		font-size: var(--text-md);
+		width: 100%;
+		text-align: center;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.example-display-text,
+	.example-file {
+		margin-top: var(--spacing-md);
+	}
+
+	.example-image-container {
+		flex-grow: 1;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		height: 100%;
+		margin-top: var(--spacing-xl);
 	}
+
+	.example-image-container :global(img) {
+		max-height: 100%;
+		max-width: 100%;
+		height: var(--size-32);
+		width: 100%;
+		object-fit: cover;
+		border-radius: var(--radius-xl);
+	}
+
 	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;
@@ -494,10 +670,10 @@
 		position: relative;
 		display: flex;
 		flex-direction: column;
-
 		width: calc(100% - var(--spacing-xxl));
+		max-width: 100%;
 		color: var(--body-text-color);
-		font-size: var(--chatbot-body-text-size);
+		font-size: var(--chatbot-text-size);
 		overflow-wrap: break-word;
 	}
 
@@ -506,7 +682,7 @@
 	}
 
 	.message :global(.prose) {
-		font-size: var(--chatbot-body-text-size);
+		font-size: var(--chatbot-text-size);
 	}
 
 	.message-bubble-border {
@@ -574,7 +750,7 @@
 		align-self: flex-end;
 	}
 	.message-row.bubble {
-		margin: calc(var(--spacing-xl) * 3);
+		margin: calc(var(--spacing-xl) * 2);
 		margin-bottom: var(--spacing-xl);
 	}
 
@@ -604,8 +780,9 @@
 		background: var(--background-fill-secondary);
 	}
 
-	.message-row.panel.user-row {
+	.message-row.bubble.user-row {
 		align-self: flex-end;
+		max-width: calc(100% - var(--spacing-xl) * 6);
 	}
 
 	.message-row.bubble.bot-row {
@@ -663,12 +840,6 @@
 		object-fit: cover;
 		border-radius: 50%;
 		padding: 6px;
-	}
-
-	.share-button {
-		position: absolute;
-		top: 4px;
-		right: 6px;
 	}
 
 	.selectable {
@@ -816,9 +987,6 @@
 		padding: 0;
 		border-radius: var(--radius-md);
 		width: fit-content;
-		max-width: 80%;
-		max-height: 80%;
-		border: 1px solid var(--border-color-primary);
 		overflow: hidden;
 	}
 
@@ -846,13 +1014,13 @@
 
 	@media (max-width: 600px) or (max-width: 480px) {
 		.component {
-			max-width: calc(100% - var(--spacing-xl) * 3);
 			width: 100%;
 		}
 	}
 
-	:global(.prose.chatbot.md) {
+	.message-wrap :global(.prose.chatbot.md) {
 		opacity: 0.8;
+		overflow-wrap: break-word;
 	}
 
 	.message > button {

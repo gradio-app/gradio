@@ -15,6 +15,7 @@ from gradio.context import Context
 from gradio.exceptions import GradioVersionIncompatibleError, InvalidApiNameError
 from gradio.external import TooManyRequestsError
 from gradio.external_utils import cols_to_rows, get_tabular_examples
+from gradio.route_utils import API_PREFIX
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -203,7 +204,7 @@ class TestLoadInterface:
 
     def test_sentiment_model(self):
         io = gr.load(
-            "models/distilbert-base-uncased-finetuned-sst-2-english", hf_token=False
+            "models/distilbert-base-uncased-finetuned-sst-2-english", hf_token=None
         )
         try:
             assert io("I am happy, I love you")["label"] == "POSITIVE"
@@ -211,14 +212,14 @@ class TestLoadInterface:
             pass
 
     def test_image_classification_model(self):
-        io = gr.load(name="models/google/vit-base-patch16-224", hf_token=False)
+        io = gr.load(name="models/google/vit-base-patch16-224", hf_token=None)
         try:
             assert io("gradio/test_data/lion.jpg")["label"].startswith("lion")
         except TooManyRequestsError:
             pass
 
     def test_translation_model(self):
-        io = gr.load(name="models/t5-base", hf_token=False)
+        io = gr.load(name="models/t5-base", hf_token=None)
         try:
             output = io("My name is Sarah and I live in London")
             assert output == "Mein Name ist Sarah und ich lebe in London"
@@ -238,7 +239,7 @@ class TestLoadInterface:
             pass
 
     def test_visual_question_answering(self):
-        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa", hf_token=False)
+        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa", hf_token=None)
         try:
             output = io("gradio/test_data/lion.jpg", "What is in the image?")
             assert isinstance(output, dict) and "label" in output
@@ -246,7 +247,7 @@ class TestLoadInterface:
             pass
 
     def test_image_to_text(self):
-        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning", hf_token=False)
+        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning", hf_token=None)
         try:
             output = io("gradio/test_data/lion.jpg")
             assert isinstance(output, str)
@@ -254,7 +255,7 @@ class TestLoadInterface:
             pass
 
     def test_speech_recognition_model(self):
-        io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=False)
+        io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=None)
         try:
             output = io("gradio/test_data/test_audio.wav")
             assert output is not None
@@ -321,7 +322,7 @@ class TestLoadInterface:
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
         r = test_client.get(
-            "/proxy=https://gradio-tests-test-loading-examples-privatev4-sse.hf.space/file=Bunny.obj"
+            f"{API_PREFIX}/proxy=https://gradio-tests-test-loading-examples-privatev4-sse.hf.space/file=Bunny.obj"
         )
         assert r.status_code == 200
 
@@ -358,7 +359,7 @@ class TestLoadInterfaceWithExamples:
                     name="models/google/vit-base-patch16-224",
                     examples=[Path(test_file_dir, "cheetah1.jpg")],
                     cache_examples=True,
-                    hf_token=False,
+                    hf_token=None,
                 )
             except TooManyRequestsError:
                 pass
@@ -520,3 +521,22 @@ def test_load_inside_blocks():
     demo = gr.load("spaces/abidlabs/en2fr")
     output = demo("Hello")
     assert isinstance(output, str)
+
+
+def test_load_callable():
+    def mock_src(name: str, token: str | None, **kwargs) -> gr.Blocks:
+        assert name == "test_model"
+        assert token == "test_token"
+        assert kwargs == {"param1": "value1", "param2": "value2"}
+        return gr.Blocks()
+
+    result = gr.load(
+        "test_model",
+        mock_src,
+        "test_token",
+        None,
+        param1="value1",
+        param2="value2",
+    )
+
+    assert isinstance(result, gr.Blocks)

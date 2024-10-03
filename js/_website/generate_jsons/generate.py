@@ -63,11 +63,12 @@ def get_latest_release():
                 .strip("'\n")
             )
             json.dump(
-                {
-                    "gradio_install": f"pip install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-{version}-py3-none-any.whl",
-                    "gradio_py_client_install": f"pip install 'gradio-client @ git+https://github.com/gradio-app/gradio@{sha}#subdirectory=client/python'",
-                    "gradio_js_client_install": f"npm install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-client-{js_client_version}.tgz",
-                },
+                    {
+                        "gradio_install": f"pip install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-{version}-py3-none-any.whl",
+                        "gradio_py_client_install": f"pip install 'gradio-client @ git+https://github.com/gradio-app/gradio@{sha}#subdirectory=client/python'",
+                        "gradio_js_client_install": f"npm install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-client-{js_client_version}.tgz",
+                        "gradio_lite_url": f"https://gradio-lite-previews.s3.amazonaws.com/{sha}"
+                    },
                 j,
             )
         if not os.path.exists(
@@ -90,9 +91,22 @@ create_dir_if_not_exists(make_dir(WEBSITE_DIR, "src/lib/json/guides"))
 
 demos.generate(make_dir(WEBSITE_DIR, "src/lib/json/demos.json"))
 guides.generate(make_dir(WEBSITE_DIR, "src/lib/json/guides/") + "/")
-docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
-docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
+SYSTEM_PROMPT = docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
+_ = docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
 changelog.generate(make_dir(WEBSITE_DIR, "src/lib/json/changelog.json"))
 get_latest_release()
+
+# print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+# print(SYSTEM_PROMPT)
+# print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+
+
+with open(make_dir(WEBSITE_DIR, "src/lib/json/system_prompt.json"), "w+") as f:
+    json.dump(
+        {
+            "SYSTEM": SYSTEM_PROMPT,
+        },
+        f,
+    )
 
 print("JSON generated! " + make_dir(WEBSITE_DIR, "src/lib/json/"))

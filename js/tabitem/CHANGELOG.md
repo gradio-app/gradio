@@ -1,5 +1,25 @@
 # @gradio/tabitem
 
+## 0.3.0-beta.2
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.2
+- @gradio/column@0.2.0-beta.0
+- @gradio/tabs@0.3.0-beta.2
+
+## 0.3.0-beta.1
+
+### Features
+
+- [#9199](https://github.com/gradio-app/gradio/pull/9199) [`3175c7a`](https://github.com/gradio-app/gradio/commit/3175c7aebc6ad2466d31d6949580f5a3cb4cd698) - Redesign `gr.Tabs()`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.1
+- @gradio/tabs@0.3.0-beta.1
+- @gradio/column@0.2.0-beta.0
+
 ## 0.2.15
 
 ### Fixes
