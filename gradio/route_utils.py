@@ -700,6 +700,33 @@ def update_root_in_config(config: BlocksConfigDict, root: str) -> BlocksConfigDi
     return config
 
 
+def update_root_in_api_info(api_info: dict[str, Any], root: str) -> dict[str, Any]:
+    """
+    Updates the root url in the api_info dictionary to the new root url.
+    """
+
+    def _add_root_url(file_dict: dict):
+        default_value = file_dict.get("parameter_default")
+        if default_value is not None and client_utils.is_file_obj_with_url(
+            default_value
+        ):
+            if client_utils.is_http_url_like(default_value["url"]):
+                return file_dict
+            # If running locally or in an insecure evironment use the publicly accessible example_input
+            # to avoid SSRF checks
+            if root.startswith("https"):
+                default_value["url"] = f'{root}{default_value["url"]}'
+            elif client_utils.is_file_obj_with_url(file_dict["example_input"]):
+                default_value["url"] = file_dict["example_input"]["url"]
+        return file_dict
+
+    return client_utils.traverse(
+        api_info,
+        _add_root_url,
+        lambda d: isinstance(d, dict) and "parameter_default" in d,
+    )
+
+
 def compare_passwords_securely(input_password: str, correct_password: str) -> bool:
     return hmac.compare_digest(input_password.encode(), correct_password.encode())
 
