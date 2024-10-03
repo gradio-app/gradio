@@ -36,8 +36,13 @@
 		gradio.dispatch("change");
 	}
 
-	$: value, handle_change();
-
+	let old_value = value;
+	$: {
+		if (value !== old_value) {
+			old_value = value;
+			handle_change();
+		}
+	}
 	$: disabled = !interactive;
 </script>
 
