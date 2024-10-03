@@ -331,7 +331,8 @@ class Component(ComponentBase, Block):
         """
         if self.data_model is not None:
             schema = self.data_model.model_json_schema()
-            schema.pop("description", None)
+            desc = schema.pop("description", None)
+            schema["additional_description"] = desc
             return schema
         raise NotImplementedError(
             f"The api_info method has not been implemented for {self.get_block_name()}"

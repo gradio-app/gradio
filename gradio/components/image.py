@@ -12,7 +12,7 @@ import PIL.Image
 from gradio_client import handle_file
 from gradio_client.documentation import document
 from PIL import ImageOps
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
 from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
@@ -27,13 +27,21 @@ PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 class ImageData(GradioModel):
-    path: Optional[str] = None  # server filepath
-    url: Optional[str] = None  # normalised server url
-    size: Optional[int] = None  # size in bytes
-    orig_name: Optional[str] = None  # original filename
-    mime_type: Optional[str] = None
-    is_stream: bool = False
+    path: Optional[str] = Field(default=None, description="Path to a local file")
+    url: Optional[str] = Field(
+        default=None, description="Publicly available url or base64 encoded image"
+    )
+    size: Optional[int] = Field(default=None, description="Size of image in bytes")
+    orig_name: Optional[str] = Field(default=None, description="Original filename")
+    mime_type: Optional[str] = Field(default=None, description="mime type of image")
+    is_stream: bool = Field(default=False, description="Can always be set to False")
     meta: dict = {"_type": "gradio.FileData"}
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "For input, either path or url must be provided. For output, path is always provided."
+        }
+    )
 
 
 class Base64ImageData(GradioModel):

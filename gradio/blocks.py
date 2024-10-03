@@ -2940,7 +2940,7 @@ Received inputs:
                         "type": info,
                         "python_type": {
                             "type": python_type,
-                            "description": info.get("description", ""),
+                            "description": info.get("additional_description", ""),
                         },
                         "component": type.capitalize(),
                         "example_input": example,
