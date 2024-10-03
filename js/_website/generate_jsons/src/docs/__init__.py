@@ -297,30 +297,30 @@ for key in gradio_docs:
         continue
     if "name" in key:
         o = gradio_docs[key]
-        signature = f"{o['name']}({', '.join([
+        signature = f"""{o['name']}({', '.join([
             p['name'] + 
             ': ' + p['annotation']
             + (' = ' + p['default'] if 'default' in p else '')
-            for p in o['parameters']])})"
+            for p in o['parameters']])})"""
         SYSTEM_PROMPT += f"{signature}\n"
         SYSTEM_PROMPT += f"{o['description']}\n\n"
     else: 
         for c in gradio_docs[key]:
             o = gradio_docs[key][c]
-            signature = f"{o['name']}({', '.join([
+            signature = f"""{o['name']}({', '.join([
                 p['name'] + 
                 ': ' + p['annotation']
                 + (' = ' + p['default'] if 'default' in p else '')
-                for p in o['parameters']])})"          
+                for p in o['parameters']])})"""          
             SYSTEM_PROMPT += f"{signature}\n"
             SYSTEM_PROMPT += f"{o['description']}\n\n"
             if "fns" in o and key != "components":
                 for f in o["fns"]:
-                    signature = f"{o['name']}.{f['name']}({', '.join([
+                    signature = f"""{o['name']}.{f['name']}({', '.join([
                         p['name'] + 
                         ': ' + p['annotation']
                         + (' = ' + p['default'] if 'default' in p else '')
-                        for p in f['parameters']])})"
+                        for p in f['parameters']])})"""
                     SYSTEM_PROMPT += f"{signature}\n"
                     SYSTEM_PROMPT += f"{f['description']}\n\n"
 
@@ -329,11 +329,11 @@ SYSTEM_PROMPT += "\nEvent listeners allow Gradio to respond to user interactions
 SYSTEM_PROMPT += "All event listeners have the same signature:\n"
 
 f = gradio_docs["components"]["audio"]["fns"][0]
-signature = f"<component_name>.<event_name>({', '.join([
+signature = f"""<component_name>.<event_name>({', '.join([
                         p['name'] + 
                         ': ' + p['annotation']
                         + (' = ' + p['default'] if 'default' in p else '')
-                        for p in f['parameters']])})"
+                        for p in f['parameters']])})"""
 SYSTEM_PROMPT += signature
 SYSTEM_PROMPT += "\nEach component only supports some specific events. Below is a list of all gradio components and every event that each component supports. If an event is supported by a component, it is a valid method of the component."
 for component in gradio_docs["events_matrix"]:
