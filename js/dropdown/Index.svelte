@@ -17,9 +17,11 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: string | string[] | undefined = undefined;
-	export let value_is_output = false;
 	export let multiselect = false;
+	export let value: string | string[] | undefined = multiselect
+		? []
+		: undefined;
+	export let value_is_output = false;
 	export let max_choices: number | null = null;
 	export let choices: [string, string | number][];
 	export let show_label: boolean;
