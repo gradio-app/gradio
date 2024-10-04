@@ -279,6 +279,9 @@
 			set_tool("bg");
 		}
 		dispatch("clear");
+
+		let _size = (canvas_size ? canvas_size : crop_size) || [800, 600];
+		editor_context.reset(true, _size);
 	}
 
 	onMount(() => {
