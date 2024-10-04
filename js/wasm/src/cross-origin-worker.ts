@@ -32,19 +32,9 @@ export class CrossOriginWorkerMaker {
 	constructor(url: URL, options?: WorkerOptions & { shared?: boolean }) {
 		const { shared = false, ...workerOptions } = options ?? {};
 
-		try {
-			// This is the normal way to load a worker script, which is the best straightforward if possible.
-			this.worker = shared
-				? new SharedWorker(url, workerOptions)
-				: new Worker(url, workerOptions);
-		} catch (e) {
-			console.debug(
-				`Failed to load a worker script from ${url.toString()}. Trying to load a cross-origin worker...`
-			);
-			const worker_blob_url = get_blob_url(url);
-			this.worker = shared
-				? new SharedWorker(worker_blob_url, workerOptions)
-				: new Worker(worker_blob_url, workerOptions);
-		}
+		const worker_blob_url = get_blob_url(url);
+		this.worker = shared
+			? new SharedWorker(worker_blob_url, workerOptions)
+			: new Worker(worker_blob_url, workerOptions);
 	}
 }
