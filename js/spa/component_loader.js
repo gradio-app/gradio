@@ -1,6 +1,8 @@
 // @ts-nocheck
 
 const request_map = {};
+const is_browser = typeof window !== "undefined";
+
 
 export function load_component({ api_url, name, id, variant }) {
 	const comps = window.__GRADIO__CC__;
@@ -59,6 +61,9 @@ export function load_component({ api_url, name, id, variant }) {
 }
 
 function load_css(url) {
+	if(!is_browser) {
+		return Promise.resolve();
+	}
 	return new Promise((resolve, reject) => {
 		const link = document.createElement("link");
 		link.rel = "stylesheet";
@@ -73,7 +78,7 @@ function get_component_with_css(api_url, id, variant) {
 	return Promise.all([
 		load_css(`${api_url}/custom_component/${id}/${variant}/style.css`),
 		import(
-			/* @vite-ignore */ `${api_url}/custom_component/${id}/${variant}/index.js`
+			/* @vite-ignore */ `${api_url}/custom_component/${id}/${variant}/index.js/client`
 		)
 	]).then(([_, module]) => {
 		return module;

@@ -506,6 +506,13 @@ class App(FastAPI):
         # Main Routes
         ###############
 
+        @app.get("/svelte/{path:path}")
+        def _(path: str):
+            svelte_path = routes_safe_join(BUILD_PATH_LIB, UserProvidedPath("svelte"))
+            return FileResponse(
+                routes_safe_join(DeveloperPath(svelte_path), UserProvidedPath(path))
+            )
+
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
@@ -582,9 +589,9 @@ class App(FastAPI):
             static_file = routes_safe_join(STATIC_PATH_LIB, UserProvidedPath(path))
             return FileResponse(static_file)
 
-        @router.get("/custom_component/{id}/{type}/{file_name}")
+        @router.get("/custom_component/{id}/{type}/{file_name}/{environment}")
         def custom_component_path(
-            id: str, type: str, file_name: str, req: fastapi.Request
+            id: str, type: str, file_name: str, environment: Literal["client", "server"], req: fastapi.Request
         ):
             config = app.get_blocks().config
             components = config["components"]
@@ -616,6 +623,9 @@ class App(FastAPI):
                 DeveloperPath(str(Path(module_path).parent)),
                 UserProvidedPath(requested_path),
             )
+
+            if environment == "server":
+                return PlainTextResponse(path)
 
             key = f"{id}-{type}-{file_name}"
 

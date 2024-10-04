@@ -41,6 +41,11 @@ export default defineConfig(({ mode }) => {
 		resolve: {
 			conditions: ["gradio"]
 		},
+		build:{
+			rollupOptions: {
+				external: ["/svelte/svelte.js", "/svelte/svelte-submodules.js"],
+			}
+		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
@@ -82,7 +87,6 @@ export default defineConfig(({ mode }) => {
 		plugins: [
 			sveltekit(),
 			// resolve_svelte(development),
-
 			// 	generate_dev_entry({
 			// 		enable: !development && mode !== "test"
 			// 	}),

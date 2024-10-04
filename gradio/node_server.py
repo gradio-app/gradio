@@ -100,8 +100,29 @@ def start_node_process(
             if GRADIO_LOCAL_DEV_MODE:
                 env["GRADIO_LOCAL_DEV_MODE"] = "1"
 
+            svelte_path = Path(__file__).parent.joinpath("templates", "frontend", "assets", "svelte", "svelte.js")
+            svelte_submodules = Path(__file__).parent.joinpath("templates", "frontend", "assets", "svelte", "svelte-submodules.js")
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".js") as file:
+                file.write(
+"""
+export function resolve(specifier, _, nextResolve) {
+  console.error("specifier", specifier);
+  if (specifier === "svelte/internal" || specifier === "svelte") {
+  return nextResolve('|svelte|');
+}
+  if (specifier.startsWith("svelte/")) {
+  return nextResolve('|svelte_submodules|');
+}
+
+
+  return nextResolve(specifier);
+}
+""".replace("|svelte|", str(svelte_path)).replace("|svelte_submodules|", str(svelte_submodules))
+         )
+            print("loader file", file.name)
             node_process = subprocess.Popen(
-                [node_path, SSR_APP_PATH],
+                [node_path, SSR_APP_PATH, "--loader", file.name],
                 stdout=subprocess.DEVNULL,
                 env=env,
             )
