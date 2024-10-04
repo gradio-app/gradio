@@ -1,5 +1,16 @@
 # @gradio/lite
 
+## 4.43.0-beta.3
+
+### Features
+
+- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.4
+- @gradio/atoms@0.9.0-beta.3
+
 ## 4.43.0-beta.2
 
 ### Dependency updates
