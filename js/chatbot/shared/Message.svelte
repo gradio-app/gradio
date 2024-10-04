@@ -103,54 +103,42 @@
 		class:component-wrap={messages[0].type === "component"}
 	>
 		{#each messages as message, thought_index}
-			{#if message.content || message.type === "component"}
-				<div
-					class="message {role} {is_component_message(message)
-						? message?.content.component
-						: ''}"
-					class:message-fit={layout === "bubble" && !bubble_full_width}
-					class:panel-full-width={true}
+			<div
+				class="message {role} {is_component_message(message)
+					? message?.content.component
+					: ''}"
+				class:message-fit={layout === "bubble" && !bubble_full_width}
+				class:panel-full-width={true}
+				class:message-markdown-disabled={!render_markdown}
+				style:text-align={rtl && role === "user" ? "left" : "right"}
+				class:component={message.type === "component"}
+				class:html={is_component_message(message) &&
+					message.content.component === "html"}
+				class:thought={thought_index > 0}
+			>
+				<button
+					data-testid={role}
+					class:latest={i === value.length - 1}
 					class:message-markdown-disabled={!render_markdown}
-					style:text-align={rtl && role === "user" ? "left" : "right"}
-					class:component={message.type === "component"}
-					class:html={is_component_message(message) &&
-						message.content.component === "html"}
-					class:thought={thought_index > 0}
+					style:user-select="text"
+					class:selectable
+					style:cursor={selectable ? "pointer" : "default"}
+					style:text-align={rtl ? "right" : "left"}
+					on:click={() => handle_select(i, message)}
+					on:keydown={(e) => {
+						if (e.key === "Enter") {
+							handle_select(i, message);
+						}
+					}}
+					dir={rtl ? "rtl" : "ltr"}
+					aria-label={role + "'s message: " + get_message_label_data(message)}
 				>
-					<button
-						data-testid={role}
-						class:latest={i === value.length - 1}
-						class:message-markdown-disabled={!render_markdown}
-						style:user-select="text"
-						class:selectable
-						style:cursor={selectable ? "pointer" : "default"}
-						style:text-align={rtl ? "right" : "left"}
-						on:click={() => handle_select(i, message)}
-						on:keydown={(e) => {
-							if (e.key === "Enter") {
-								handle_select(i, message);
-							}
-						}}
-						dir={rtl ? "rtl" : "ltr"}
-						aria-label={role + "'s message: " + get_message_label_data(message)}
-					>
-						{#if message.type === "text"}
-							{#if message.metadata.title}
-								<MessageBox
-									title={message.metadata.title}
-									expanded={is_last_bot_message(messages, value)}
-								>
-									<Markdown
-										message={message.content}
-										{latex_delimiters}
-										{sanitize_html}
-										{render_markdown}
-										{line_breaks}
-										on:load={scroll}
-										{root}
-									/>
-								</MessageBox>
-							{:else}
+					{#if message.type === "text"}
+						{#if message.metadata.title}
+							<MessageBox
+								title={message.metadata.title}
+								expanded={is_last_bot_message(messages, value)}
+							>
 								<Markdown
 									message={message.content}
 									{latex_delimiters}
@@ -160,43 +148,53 @@
 									on:load={scroll}
 									{root}
 								/>
-							{/if}
-						{:else if message.type === "component" && message.content.component in _components}
-							<Component
-								{target}
-								{theme_mode}
-								props={message.content.props}
-								type={message.content.component}
-								components={_components}
-								value={message.content.value}
-								{i18n}
-								{upload}
-								{_fetch}
+							</MessageBox>
+						{:else}
+							<Markdown
+								message={message.content}
+								{latex_delimiters}
+								{sanitize_html}
+								{render_markdown}
+								{line_breaks}
 								on:load={scroll}
+								{root}
 							/>
-						{:else if message.type === "component" && message.content.component === "file"}
-							<a
-								data-testid="chatbot-file"
-								class="file-pil"
-								href={message.content.value.url}
-								target="_blank"
-								download={window.__is_colab__
-									? null
-									: message.content.value?.orig_name ||
-										message.content.value?.path.split("/").pop() ||
-										"file"}
-							>
-								{message.content.value?.orig_name ||
+						{/if}
+					{:else if message.type === "component" && message.content.component in _components}
+						<Component
+							{target}
+							{theme_mode}
+							props={message.content.props}
+							type={message.content.component}
+							components={_components}
+							value={message.content.value}
+							{i18n}
+							{upload}
+							{_fetch}
+							on:load={scroll}
+						/>
+					{:else if message.type === "component" && message.content.component === "file"}
+						<a
+							data-testid="chatbot-file"
+							class="file-pil"
+							href={message.content.value.url}
+							target="_blank"
+							download={window.__is_colab__
+								? null
+								: message.content.value?.orig_name ||
 									message.content.value?.path.split("/").pop() ||
 									"file"}
-							</a>
-						{/if}
-					</button>
-				</div>
+						>
+							{message.content.value?.orig_name ||
+								message.content.value?.path.split("/").pop() ||
+								"file"}
+						</a>
+					{/if}
+				</button>
+			</div>
 
-				{#if layout === "panel"}
-					<ButtonPanel {...get_button_panel_props()} />
-				{/if}
+			{#if layout === "panel"}
+				<ButtonPanel {...get_button_panel_props()} />
 			{/if}
 		{/each}
 	</div>
