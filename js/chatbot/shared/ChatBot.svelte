@@ -503,6 +503,10 @@
 		direction: ltr;
 	}
 
+	.message-wrap :global(span.katex-display) {
+		margin-top: 0;
+	}
+
 	/* Copy button */
 	.message-wrap :global(div[class*="code_wrap"] > button) {
 		position: absolute;
@@ -556,5 +560,9 @@
 		flex-direction: column;
 		justify-content: space-between;
 		margin-bottom: var(--spacing-xxl);
+	}
+
+	.panel-wrap :global(.message-row:first-child) {
+		padding-top: calc(var(--spacing-xxl) * 2);
 	}
 </style>

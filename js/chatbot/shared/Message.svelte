@@ -108,7 +108,7 @@
 					class="message {role} {is_component_message(message)
 						? message?.content.component
 						: ''}"
-					class:message-fit={!bubble_full_width}
+					class:message-fit={layout === "bubble" && !bubble_full_width}
 					class:panel-full-width={true}
 					class:message-markdown-disabled={!render_markdown}
 					style:text-align={rtl && role === "user" ? "left" : "right"}
@@ -379,10 +379,6 @@
 		padding: calc(var(--spacing-lg) * 2) calc(var(--spacing-lg) * 2);
 	}
 
-	.panel .message:first-child {
-		padding-top: var(--spacing-xxl);
-	}
-
 	.panel.bot-row {
 		background: var(--background-fill-secondary);
 	}
@@ -466,7 +462,6 @@
 	.bot-row.bubble > .avatar-container {
 		margin-right: var(--spacing-xxl);
 		margin-left: 0;
-		margin-top: -5px;
 	}
 
 	.avatar-container:not(.thumbnail-item) :global(img) {
