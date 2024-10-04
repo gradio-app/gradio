@@ -12,18 +12,18 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 
+	type Item = string | number;
+
 	export let label = "Dropdown";
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let multiselect = false;
-	export let value: string | string[] | undefined = multiselect
-		? []
-		: undefined;
+	export let value: Item | Item[] | undefined = multiselect ? [] : undefined;
 	export let value_is_output = false;
 	export let max_choices: number | null = null;
-	export let choices: [string, string | number][];
+	export let choices: [string, Item][];
 	export let show_label: boolean;
 	export let filterable: boolean;
 	export let container = true;
