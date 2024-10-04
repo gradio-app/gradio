@@ -1,4 +1,4 @@
-name: Semgrep
+name: semgrep ci
 
 on:
     workflow_run:
