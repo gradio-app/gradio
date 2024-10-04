@@ -10,6 +10,7 @@ import PIL.Image
 from PIL import ImageOps
 
 from gradio import processing_utils
+from gradio_client.utils import get_mimetype
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843 (remove when requiring Pillow 9.4+)
 
@@ -146,7 +147,8 @@ def encode_image_to_base64(image: PIL.Image.Image) -> str:
 
 
 def encode_image_file_to_base64(image_file: str | Path) -> str:
+    mime_type = get_mimetype(str(image_file))
     with open(image_file, "rb") as f:
         bytes_data = f.read()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return "data:image/jpeg;base64," + base64_str
+    return f"data:{mime_type};base64," + base64_str
