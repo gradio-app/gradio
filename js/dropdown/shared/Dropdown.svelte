@@ -80,12 +80,10 @@
 		}
 	}
 
-	$: {
-		if (value != old_value) {
-			set_input_text();
-			handle_change(dispatch, value, value_is_output);
-			old_value = value;
-		}
+	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
+		set_input_text();
+		handle_change(dispatch, value, value_is_output);
+		old_value = value;
 	}
 
 	function set_choice_names_values(): void {
