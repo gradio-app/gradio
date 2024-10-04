@@ -43,7 +43,7 @@ jobs:
         with:
           repository: ${{ steps.json.outputs.source_repo }}
           ref: ${{ steps.json.outputs.sha }}
-      - run: semgrep ci
+      - run: semgrep ci --config .github/workflows/semgrep_rules.yaml
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN2 }}
   update-status:
