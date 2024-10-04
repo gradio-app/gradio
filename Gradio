@@ -1,0 +1,283 @@
+## GRADIO APPLICATION CODE
+import gradio as gr
+import uvicorn
+
+
+def greet(name):
+    return "Hello, " + name + "!"
+
+
+with gr.Blocks() as demo:
+    gr.Markdown("Welcome to your Gradio application!")
+
+    name = gr.Textbox(label="Name", elem_id="name")
+    greeting = gr.Textbox(label="Greeting", elem_id="greeting")
+    button = gr.Button("Greet", elem_id="greet")
+    button.click(fn=greet,
+                 inputs=name,
+                 outputs=greeting,
+                 api_name="greet")
+
+
+# Middleware that injects a /gradio root_path.
+class RootPathMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] == "http":
+            scope["root_path"] = "/gradio"
+        await self.app(scope, receive, send)
+
+
+if __name__ == '__main__':
+    host = "0.0.0.0"
+    port = 12345
+
+    app = gr.routes.App.create_app(demo)
+    app = RootPathMiddleware(app)
+    uvicorn.run(app, host=host, port=port)
+# DOCKERFILE
+# Use the official Python image from the Docker Hub
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install them
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the Gradio application code into the container
+COPY . .
+
+# Command to run the Gradio application
+CMD ["python", "app.py"]
+
+# REQUIREMENT FILE
+gradio
+uvicorn
+#Nginx Configuration
+events {}
+
+http {
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ""      close;
+    }
+
+    server {
+        listen 80;
+
+        location /gradio {
+            proxy_pass http://gradio:12345/;
+
+            rewrite ^/gradio/(.*)$ /$1 break;
+            proxy_redirect / /gradio/;
+
+            proxy_pass_request_headers on;
+
+            proxy_buffering off;
+            proxy_cache off;
+            chunked_transfer_encoding on;
+
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+#Docker Compose Configuration
+version: '3.8'
+
+services:
+  gradio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "12345:12345"
+    restart: always
+
+  nginx:
+    image: nginx:1.21
+    ports:
+      - "4080:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - gradio
+docker-compose up --build
+
+##DOCKER SETUP FOR GRADIO
+FROM ubuntu:22.04
+
+# Install necessary packages
+RUN apt-get update -qq && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    apt-transport-https \
+    curl \
+    libcurl4-openssl-dev \
+    libev-dev \
+    locales \
+    python3 \
+    python3-pip \
+    tzdata && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Gradio and Uvicorn
+RUN PIP_ROOT_USER_ACTION=ignore pip3 install gradio uvicorn
+
+# Create a non-root user for running the app
+RUN useradd -r -m -s /usr/sbin/nologin gradio
+
+# Copy the Gradio application code
+COPY app.py /content/
+
+# Expose the port the app runs on
+EXPOSE 12345
+
+# Switch to the non-root user
+USER gradio
+
+# Command to run the Gradio application
+ENTRYPOINT ["/usr/bin/python3", "/content/app.py"]
+
+### GRADIO APPLICATION CODE
+import gradio as gr
+import uvicorn
+
+
+def greet(name):
+    return "Hello, " + name + "!"
+
+
+with gr.Blocks() as demo:
+    gr.Markdown("Welcome to your Gradio application!")
+
+    name = gr.Textbox(label="Name", elem_id="name")
+    greeting = gr.Textbox(label="Greeting", elem_id="greeting")
+    button = gr.Button("Greet", elem_id="greet")
+    button.click(fn=greet,
+                 inputs=name,
+                 outputs=greeting,
+                 api_name="greet")
+
+
+class RootPathMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] == "http":
+            scope["root_path"] = "/gradio"
+        await self.app(scope, receive, send)
+
+
+if __name__ == '__main__':
+    host = "0.0.0.0"
+    port = 12345
+
+    app = gr.routes.App.create_app(demo)
+    app = RootPathMiddleware(app)
+    uvicorn.run(app, host=host, port=port)
+###Nginx Configuration 
+events {}
+
+http {
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ""      close;
+    }
+
+    server {
+        listen 80;
+
+        location /gradio {
+            proxy_pass http://gradio:12345/;
+
+            rewrite ^/gradio/(.*)$ /$1 break;
+            proxy_redirect / /gradio/;
+
+            proxy_pass_request_headers on;
+
+            proxy_buffering off;
+            proxy_cache off;
+            chunked_transfer_encoding on;
+
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+events {}
+
+http {
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ""      close;
+    }
+
+    server {
+        listen 80;
+
+        location /gradio {
+            proxy_pass http://gradio:12345/;
+
+            rewrite ^/gradio/(.*)$ /$1 break;
+            proxy_redirect / /gradio/;
+
+            proxy_pass_request_headers on;
+
+            proxy_buffering off;
+            proxy_cache off;
+            chunked_transfer_encoding on;
+
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+version: '3.8'
+
+services:
+  gradio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "12345:12345"
+    restart: always
+
+  nginx:
+    image: nginx:1.21
+    ports:
+      - "4080:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - gradio
+docker-compose up --build
+
+
