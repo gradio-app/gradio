@@ -214,7 +214,7 @@ class Interface(Blocks):
             )
 
         if not isinstance(inputs, list):
-            inputs = [inputs]
+            inputs = [eval(str(inputs))]
         if not isinstance(outputs, list):
             outputs = [outputs]
 
