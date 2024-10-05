@@ -8,6 +8,7 @@
 	import { svgCheck } from "$lib/assets/copy.js";
 	import { browser } from "$app/environment";
 	import { onMount } from "svelte";
+	import WHEEL from "$lib/json/wheel.json";
 
 	export let demos: {
 		name: string;
@@ -48,26 +49,42 @@
 
 	let debounced_run_code: Function | undefined;
 	let debounced_install: Function | undefined;
-	onMount(() => {
-		controller = createGradioApp({
-			target: document.getElementById("lite-demo"),
-			requirements: demos[0].requirements,
-			code: demos[0].code,
-			info: true,
-			container: true,
-			isEmbed: true,
-			initialHeight: "100%",
-			eager: false,
-			themeMode: null,
-			autoScroll: false,
-			controlPageTitle: false,
-			appMode: true
-		});
-		const debounce_timeout = 1000;
-		debounced_run_code = debounce(controller.run_code, debounce_timeout);
-		debounced_install = debounce(controller.install, debounce_timeout);
 
-		mounted = true;
+	function loadScript(src: string) {
+		return new Promise((resolve, reject) => {
+			const script = document.createElement("script");
+			script.src = src;
+			script.onload = () => resolve(script);
+			script.onerror = () => reject(new Error(`Script load error for ${src}`));
+			document.head.appendChild(script);
+		});
+	}
+
+	onMount(async () => {
+		try {
+			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
+			controller = createGradioApp({
+				target: document.getElementById("lite-demo"),
+				requirements: demos[0].requirements,
+				code: demos[0].code,
+				info: true,
+				container: true,
+				isEmbed: true,
+				initialHeight: "100%",
+				eager: false,
+				themeMode: null,
+				autoScroll: false,
+				controlPageTitle: false,
+				appMode: true
+			});
+			const debounce_timeout = 1000;
+			debounced_run_code = debounce(controller.run_code, debounce_timeout);
+			debounced_install = debounce(controller.install, debounce_timeout);
+
+			mounted = true;
+		} catch (error) {
+			console.error("Error loading Gradio Lite:", error);
+		}
 	});
 
 	let copied_link = false;
@@ -146,12 +163,10 @@
 </script>
 
 <svelte:head>
-	<link
-		rel="stylesheet"
-		href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css"
-	/>
+	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>
+
 <div class="flex flex-row" style="position: absolute; top: -6%; right: 0.4%">
 	<button
 		class="border border-gray-300 rounded-md mx-2 px-2 py-.5 my-[3px] text-md text-gray-600 hover:bg-gray-50 flex"
