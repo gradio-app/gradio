@@ -9,6 +9,7 @@
 	import { clickOutside } from "$lib/components/clickOutside.js";
 	import Code from "@gradio/code";
 	import version_json from "$lib/json/version.json";
+	import WHEEL from "$lib/json/wheel.json";
 
 	export let data: {
 		demos_by_category: {
@@ -70,10 +71,7 @@
 />
 
 <svelte:head>
-	<script
-		type="module"
-		src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"
-	></script>
+	<script type="module" src="{WHEEL.gradio_lite_url}/dist/lite.js"></script>
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 	<script
 		id="gradio-js-script"

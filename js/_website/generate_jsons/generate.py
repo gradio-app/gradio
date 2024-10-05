@@ -67,6 +67,7 @@ def get_latest_release():
                     "gradio_install": f"pip install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-{version}-py3-none-any.whl",
                     "gradio_py_client_install": f"pip install 'gradio-client @ git+https://github.com/gradio-app/gradio@{sha}#subdirectory=client/python'",
                     "gradio_js_client_install": f"npm install https://gradio-builds.s3.amazonaws.com/{sha}/gradio-client-{js_client_version}.tgz",
+                    "gradio_lite_url": f"https://gradio-lite-previews.s3.amazonaws.com/{sha}"
                 },
                 j,
             )
