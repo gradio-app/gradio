@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Add `css_paths`, `js_paths`, `head_paths`
+feat:Add `css_paths` and `head_paths` parameters
