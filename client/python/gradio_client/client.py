@@ -1080,7 +1080,7 @@ class Endpoint:
         ]
         self.parameters_info = self._get_parameters_info()
 
-        self.root_url = client.src.rstrip("/") + "/" + client.api_prefix
+        self.root_url = self.client.src_prefixed
 
         # Disallow hitting endpoints that the Gradio app has disabled
         self.is_valid = self.api_name is not False

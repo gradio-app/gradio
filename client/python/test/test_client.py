@@ -130,7 +130,7 @@ class TestClientPredictions:
         space_id = "gradio-tests/not-actually-private-space"
         api = huggingface_hub.HfApi()
         assert api.space_info(space_id).private
-        client = Client(space_id)
+        client = Client(space_id, hf_token=None)
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -141,6 +141,7 @@ class TestClientPredictions:
         assert api.space_info(space_id).private
         client = Client(
             space_id,
+            hf_token=None,
         )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
@@ -152,6 +153,7 @@ class TestClientPredictions:
         assert api.space_info(space_id).private
         client = Client(
             space_id,
+            hf_token=None,
         )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
