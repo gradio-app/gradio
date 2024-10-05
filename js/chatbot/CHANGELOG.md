@@ -1,5 +1,23 @@
 # @gradio/chatbot
 
+## 0.14.0-beta.6
+
+### Features
+
+- [#9488](https://github.com/gradio-app/gradio/pull/9488) [`4e6a47f`](https://github.com/gradio-app/gradio/commit/4e6a47f5a29cb885d5bc01a79ca4cc45d298f0b1) - Fixes: Chatbot examples for custom chatbot + rename `suggestions` -> `examples`.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/video@0.11.0-beta.5
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/markdown@0.10.0-beta.3
+- @gradio/gallery@0.13.0-beta.5
+- @gradio/plot@0.7.0-beta.4
+- @gradio/image@0.16.0-beta.5
+
 ## 0.14.0-beta.5
 
 ### Dependency updates
