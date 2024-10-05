@@ -1,0 +1,6 @@
+safetensors==0.4.3
+opencv-python
+twilio
+gradio>=5.0,<6.0
+gradio-webrtc==0.0.1
+onnxruntime-gpu

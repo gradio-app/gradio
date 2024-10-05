@@ -1,6 +1,7 @@
 let supports_adopted_stylesheets = false;
 
 if (
+	typeof window !== "undefined" &&
 	"attachShadow" in Element.prototype &&
 	"adoptedStyleSheets" in Document.prototype
 ) {

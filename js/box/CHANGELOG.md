@@ -1,5 +1,27 @@
 # @gradio/box
 
+## 0.2.0-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.3
+
+## 0.2.0-beta.0
+
+### Features
+
+- [#9326](https://github.com/gradio-app/gradio/pull/9326) [`7afb9a1`](https://github.com/gradio-app/gradio/commit/7afb9a14fa64310eb8b70f43a3bad373e46e36c1) - 5.0 merge take 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+
+## 0.1.25-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+
 ## 0.1.25
 
 ### Fixes
@@ -8,7 +30,7 @@
 
 ### Dependency updates
 
-- @gradio/atoms@0.8.1
+- @gradio/atoms@0.8.1-beta.0
 
 ## 0.1.24
 

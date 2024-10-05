@@ -1,5 +1,62 @@
 # @gradio/lite
 
+## 4.43.0-beta.3
+
+### Features
+
+- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.4
+- @gradio/atoms@0.9.0-beta.3
+
+## 4.43.0-beta.2
+
+### Dependency updates
+
+- @gradio/wasm@0.14.0-beta.3
+- @gradio/core@0.1.0-beta.4
+
+## 4.43.0-beta.2
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.3
+
+## 4.43.0-beta.2
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.3
+
+## 4.43.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+- [#9335](https://github.com/gradio-app/gradio/pull/9335) [`b543465`](https://github.com/gradio-app/gradio/commit/b543465d06d7d1b399c4d0755da05e022611a97f) - Remove lite/theme.css from the Git-managed file tree.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/core@0.1.0-beta.2
+- @self/build@0.1.0-beta.2
+
+## 4.43.0-beta.1
+
+### Features
+
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
+- [#9246](https://github.com/gradio-app/gradio/pull/9246) [`38cf712`](https://github.com/gradio-app/gradio/commit/38cf71234bf57fe9da6eea2d32b1d6e7ef35c700) - Stop using `multiprocessing` in `flagging.CSVLogger` on Lite v5.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/wasm@0.13.1-beta.1
+- @gradio/theme@0.3.0-beta.1
+
 ## 4.43.0
 
 ### Fixes

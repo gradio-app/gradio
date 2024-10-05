@@ -1,10 +1,52 @@
 # @gradio/dataset
 
-## 0.2.5
+## 0.2.5-beta.5
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/textbox@0.7.0-beta.3
+
+## 0.2.5-beta.4
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.4
+- @gradio/textbox@0.7.0-beta.2
+
+## 0.2.5-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/client@1.6.0-beta.3
+
+## 0.2.5-beta.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/textbox@0.7.0-beta.2
+
+## 0.2.5-beta.1
 
 ### Features
 
 - [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/textbox@0.7.0-beta.1
+
+## 0.2.5-beta.0
 
 ### Fixes
 

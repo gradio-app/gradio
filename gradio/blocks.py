@@ -15,16 +15,13 @@ import time
 import warnings
 import webbrowser
 from collections import defaultdict
+from collections.abc import AsyncIterator, Callable, Sequence, Set
 from pathlib import Path
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
-    AbstractSet,
     Any,
-    AsyncIterator,
-    Callable,
     Literal,
-    Sequence,
     cast,
 )
 from urllib.parse import urlparse, urlunparse
@@ -69,11 +66,14 @@ from gradio.events import (
     EventListenerMethod,
 )
 from gradio.exceptions import (
+    ChecksumMismatchError,
     DuplicateBlockError,
     InvalidApiNameError,
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
+from gradio.node_server import start_node_server
+from gradio.route_utils import API_PREFIX, MediaStream
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -89,6 +89,7 @@ from gradio.utils import (
     check_function_inputs_match,
     component_or_layout_class,
     get_cancelled_fn_indices,
+    get_node_path,
     get_package_version,
     get_upload_folder,
 )
@@ -100,8 +101,6 @@ except Exception:
 
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from fastapi.applications import FastAPI
-
     from gradio.components.base import Component
     from gradio.renderable import Renderable
 
@@ -113,6 +112,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Monochrome(),
         themes.Soft(),
         themes.Glass(),
+        themes.Origin(),
     ]
 }
 
@@ -148,6 +148,7 @@ class Block:
         # Keep tracks of files that should not be deleted when the delete_cache parmameter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
+        self.has_launched = False
 
         if render:
             self.render()
@@ -261,8 +262,9 @@ class Block:
         config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
         if self.rendered_in is not None:
             config["rendered_in"] = self.rendered_in._id
-        if (_selectable := getattr(self, "_selectable", None)) is not None:
-            config["_selectable"] = _selectable
+        for event_attribute in ["_selectable", "_undoable", "_retryable", "likeable"]:
+            if (attributable := getattr(self, event_attribute, None)) is not None:
+                config[event_attribute] = attributable
         return config
 
     @classmethod
@@ -296,7 +298,7 @@ class Block:
             url_or_file_path = str(url_or_file_path)
 
         if client_utils.is_http_url_like(url_or_file_path):
-            temp_file_path = await processing_utils.async_save_url_to_cache(
+            temp_file_path = await processing_utils.async_ssrf_protected_download(
                 url_or_file_path, cache_dir=self.GRADIO_CACHE
             )
 
@@ -514,6 +516,11 @@ class BlockFunction:
         renderable: Renderable | None = None,
         rendered_in: Renderable | None = None,
         is_cancel_function: bool = False,
+        connection: Literal["stream", "sse"] = "sse",
+        time_limit: float | None = None,
+        stream_every: float = 0.5,
+        like_user_message: bool = False,
+        event_specific_args: list[str] | None = None,
     ):
         self.fn = fn
         self._id = _id
@@ -552,6 +559,11 @@ class BlockFunction:
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
+        self.time_limit = time_limit
+        self.stream_every = stream_every
+        self.connection = connection
+        self.like_user_message = like_user_message
+        self.event_specific_args = event_specific_args
 
         self.spaces_auto_wrap()
 
@@ -600,6 +612,11 @@ class BlockFunction:
             "show_api": self.show_api,
             "zerogpu": self.zero_gpu,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
+            "connection": self.connection,
+            "time_limit": self.time_limit,
+            "stream_every": self.stream_every,
+            "like_user_message": self.like_user_message,
+            "event_specific_args": self.event_specific_args,
         }
 
 
@@ -671,14 +688,14 @@ class BlocksConfig:
             Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext]
+            | Set[Component | BlockContext]
             | None
         ),
         outputs: (
             Component
             | BlockContext
             | Sequence[Component | BlockContext]
-            | AbstractSet[Component | BlockContext]
+            | Set[Component | BlockContext]
             | None
         ),
         preprocess: bool = True,
@@ -701,6 +718,11 @@ class BlocksConfig:
         show_api: bool = True,
         renderable: Renderable | None = None,
         is_cancel_function: bool = False,
+        connection: Literal["stream", "sse"] = "sse",
+        time_limit: float | None = None,
+        stream_every: float = 0.5,
+        like_user_message: bool = False,
+        event_specific_args: list[str] | None = None,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -728,6 +750,9 @@ class BlocksConfig:
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
             show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             is_cancel_function: whether this event cancels another running event.
+            connection: The connection format, either "sse" or "stream".
+            time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
+            stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -738,7 +763,7 @@ class BlocksConfig:
             )
             for target in targets
         ]
-        if isinstance(inputs, AbstractSet):
+        if isinstance(inputs, Set):
             inputs_as_dict = True
             inputs = sorted(inputs, key=lambda x: x._id)
         else:
@@ -748,7 +773,7 @@ class BlocksConfig:
             elif not isinstance(inputs, Sequence):
                 inputs = [inputs]
 
-        if isinstance(outputs, AbstractSet):
+        if isinstance(outputs, Set):
             outputs = sorted(outputs, key=lambda x: x._id)
         elif outputs is None:
             outputs = []
@@ -760,6 +785,8 @@ class BlocksConfig:
 
         if _targets[0][1] in ["change", "key_up"] and trigger_mode is None:
             trigger_mode = "always_last"
+        elif _targets[0][1] in ["stream"] and trigger_mode is None:
+            trigger_mode = "multiple"
         elif trigger_mode is None:
             trigger_mode = "once"
         elif trigger_mode not in ["once", "multiple", "always_last"]:
@@ -839,6 +866,11 @@ class BlocksConfig:
             renderable=renderable,
             rendered_in=rendered_in,
             is_cancel_function=is_cancel_function,
+            connection=connection,
+            time_limit=time_limit,
+            stream_every=stream_every,
+            like_user_message=like_user_message,
+            event_specific_args=event_specific_args,
         )
 
         self.fns[self.fn_id] = block_fn
@@ -948,9 +980,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
-        css: str | None = None,
-        js: str | None = None,
-        head: str | None = None,
+        css: str | Path | None = None,
+        js: str | Path | None = None,
+        head: str | Path | None = None,
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
@@ -962,9 +994,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
-            css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
-            js: Custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            css: Custom css as a code string or pathlib.Path to a css file. This css will be included in the demo webpage.
+            js: Custom js as a code string or pathlib.Path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html to insert into the head of the demo webpage, either as a code string or a pathlib.Path to an html file. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
@@ -998,22 +1030,27 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.pending_streams = defaultdict(dict)
         self.pending_diff_streams = defaultdict(dict)
         self.show_error = True
-        self.head = head
         self.fill_height = fill_height
         self.fill_width = fill_width
         self.delete_cache = delete_cache
-        if css is not None and os.path.exists(css):
+        if isinstance(css, Path):
             with open(css, encoding="utf-8") as css_file:
                 self.css = css_file.read()
         else:
             self.css = css
-        if js is not None and os.path.exists(js):
+        if isinstance(js, Path):
             with open(js, encoding="utf-8") as js_file:
                 self.js = js_file.read()
         else:
             self.js = js
+        if isinstance(head, Path):
+            with open(head, encoding="utf-8") as head_file:
+                self.head = head_file.read()
+        else:
+            self.head = head
         self.renderables: list[Renderable] = []
         self.state_holder: StateHolder
+        self.custom_mount_path: str | None = None
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -1194,7 +1231,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 raise ValueError(
                     "This config is missing the 'dependencies' field and cannot be loaded."
                 )
-            for dependency, fn in zip(config["dependencies"], fns):
+            for dependency, fn in zip(config["dependencies"], fns, strict=False):
                 # We used to add a "fake_event" to the config to cache examples
                 # without removing it. This was causing bugs in calling gr.load
                 # We fixed the issue by removing "fake_event" from the config in examples.py
@@ -1303,8 +1340,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
         return any(
-            isinstance(block, (components.LoginButton, components.LogoutButton))
-            for block in self.blocks.values()
+            isinstance(block, components.LoginButton) for block in self.blocks.values()
         )
 
     def unload(self, fn: Callable[..., Any]) -> None:
@@ -1501,7 +1537,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         if iterator is None:  # If not a generator function that has already run
             if block_fn.inputs_as_dict:
-                processed_input = [dict(zip(block_fn.inputs, processed_input))]
+                processed_input = [
+                    dict(zip(block_fn.inputs, processed_input, strict=False))
+                ]
 
             processed_input, progress_index, _ = special_args(
                 block_fn.fn, processed_input, request, event_data
@@ -1670,7 +1708,7 @@ Received inputs:
         if not isinstance(predictions, (list, tuple)):
             predictions = [predictions]
 
-        if len(predictions) < len(dep_outputs):
+        if len(predictions) != len(dep_outputs):
             name = (
                 f" ({block_fn.name})"
                 if block_fn.name and block_fn.name != "<lambda>"
@@ -1680,7 +1718,7 @@ Received inputs:
             wanted_args = []
             received_args = []
             for block in dep_outputs:
-                wanted_args.append(str(block))
+                wanted_args.append(str(block.get_block_class()))
             for pred in predictions:
                 v = f'"{pred}"' if isinstance(pred, str) else str(pred)
                 received_args.append(v)
@@ -1688,13 +1726,22 @@ Received inputs:
             wanted = ", ".join(wanted_args)
             received = ", ".join(received_args)
 
-            raise ValueError(
-                f"""An event handler{name} didn't receive enough output values (needed: {len(dep_outputs)}, received: {len(predictions)}).
-Wanted outputs:
-    [{wanted}]
-Received outputs:
-    [{received}]"""
-            )
+            if len(predictions) < len(dep_outputs):
+                raise ValueError(
+                    f"""A  function{name} didn't return enough output values (needed: {len(dep_outputs)}, returned: {len(predictions)}).
+    Output components:
+        [{wanted}]
+    Output values returned:
+        [{received}]"""
+                )
+            else:
+                warnings.warn(
+                    f"""A function{name} returned too many output values (needed: {len(dep_outputs)}, returned: {len(predictions)}). Ignoring extra values.
+    Output components:
+        [{wanted}]
+    Output values returned:
+        [{received}]"""
+                )
 
     async def postprocess_data(
         self,
@@ -1703,7 +1750,14 @@ Received outputs:
         state: SessionState | None,
     ) -> list[Any]:
         state = state or SessionState(self)
-
+        if (
+            isinstance(predictions, dict)
+            and predictions == skip()
+            and len(block_fn.outputs) > 1
+        ):
+            # For developer convenience, if a function returns a single skip() with multiple outputs,
+            # we will skip updating all outputs.
+            predictions = [skip()] * len(block_fn.outputs)
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
                 [block._id for block in block_fn.outputs], predictions
@@ -1752,7 +1806,6 @@ Received outputs:
                     kwargs["render"] = False
 
                     state[block._id] = block.__class__(**kwargs)
-
                     prediction_value = postprocess_update_dict(
                         block=state[block._id],
                         update_dict=prediction_value,
@@ -1783,23 +1836,39 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         root_path: str | None = None,
+        final: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
         if run not in self.pending_streams[session_hash]:
             self.pending_streams[session_hash][run] = {}
-        stream_run = self.pending_streams[session_hash][run]
+        stream_run: dict[int, MediaStream] = self.pending_streams[session_hash][run]
 
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
-            if isinstance(block, components.StreamingOutput) and block.streaming:
+            if (
+                isinstance(block, components.StreamingOutput)
+                and block.streaming
+                and not utils.is_prop_update(data[i])
+            ):
+                if final:
+                    stream_run[output_id].end_stream()
                 first_chunk = output_id not in stream_run
-                binary_data, output_data = block.stream_output(
-                    data[i], f"{session_hash}/{run}/{output_id}", first_chunk
+                binary_data, output_data = await block.stream_output(
+                    data[i],
+                    f"{session_hash}/{run}/{output_id}/playlist.m3u8",
+                    first_chunk,
                 )
                 if first_chunk:
-                    stream_run[output_id] = []
-                self.pending_streams[session_hash][run][output_id].append(binary_data)
+                    desired_output_format = None
+                    if orig_name := output_data.get("orig_name"):
+                        desired_output_format = Path(orig_name).suffix[1:]
+                    stream_run[output_id] = MediaStream(
+                        desired_output_format=desired_output_format
+                    )
+                    stream_run[output_id]
+
+                await stream_run[output_id].add_segment(binary_data)
                 output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,
@@ -1883,6 +1952,7 @@ Received outputs:
         batch = block_fn.batch
         state_ids_to_track, hashed_values = self.get_state_ids_to_track(block_fn, state)
         changed_state_ids = []
+        LocalContext.blocks.set(self)
 
         if batch:
             max_batch_size = block_fn.max_batch_size
@@ -1902,11 +1972,11 @@ Received outputs:
                 )
             inputs = [
                 await self.preprocess_data(block_fn, list(i), state, explicit_call)
-                for i in zip(*inputs)
+                for i in zip(*inputs, strict=False)
             ]
             result = await self.call_function(
                 block_fn,
-                list(zip(*inputs)),
+                list(zip(*inputs, strict=False)),
                 None,
                 request,
                 event_id,
@@ -1917,11 +1987,11 @@ Received outputs:
             preds = result["prediction"]
             data = [
                 await self.postprocess_data(block_fn, list(o), state)
-                for o in zip(*preds)
+                for o in zip(*preds, strict=False)
             ]
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)  # type: ignore
-            data = list(zip(*data))
+            data = list(zip(*data, strict=False))
             is_generating, iterator = None, None
         else:
             old_iterator = iterator
@@ -1946,7 +2016,9 @@ Received outputs:
             if state:
                 changed_state_ids = [
                     state_id
-                    for hash_value, state_id in zip(hashed_values, state_ids_to_track)
+                    for hash_value, state_id in zip(
+                        hashed_values, state_ids_to_track, strict=False
+                    )
                     if hash_value != utils.deep_hash(state[state_id])
                 ]
 
@@ -1961,6 +2033,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                     root_path=root_path,
+                    final=not is_generating,
                 )
                 data = self.handle_streaming_diffs(
                     block_fn,
@@ -2023,6 +2096,7 @@ Received outputs:
     def get_config_file(self) -> BlocksConfigDict:
         config: BlocksConfigDict = {
             "version": routes.VERSION,
+            "api_prefix": API_PREFIX,
             "mode": self.mode,
             "app_id": self.app_id,
             "dev_mode": self.dev_mode,
@@ -2106,7 +2180,6 @@ Received outputs:
         status_update_rate: float | Literal["auto"] = "auto",
         api_open: bool | None = None,
         max_size: int | None = None,
-        concurrency_count: int | None = None,
         *,
         default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
@@ -2116,7 +2189,6 @@ Received outputs:
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
-            concurrency_count: Deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().
             default_concurrency_limit: The default value of `concurrency_limit` to use for event listeners that don't specify a value. Can be set by environment variable GRADIO_DEFAULT_CONCURRENCY_LIMIT. Defaults to 1 if not set otherwise.
         Example: (Blocks)
             with gr.Blocks() as demo:
@@ -2129,10 +2201,6 @@ Received outputs:
             demo.queue(max_size=20)
             demo.launch()
         """
-        if concurrency_count:
-            raise DeprecationWarning(
-                "concurrency_count has been deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch()."
-            )
         if api_open is not None:
             self.api_open = api_open
         if utils.is_zero_gpu_space():
@@ -2197,9 +2265,13 @@ Received outputs:
         share_server_protocol: Literal["http", "https"] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         max_file_size: str | int | None = None,
-        _frontend: bool = True,
         enable_monitoring: bool | None = None,
-    ) -> tuple[FastAPI, str, str]:
+        strict_cors: bool = True,
+        node_server_name: str | None = None,
+        node_port: int | None = None,
+        ssr_mode: bool | None = None,
+        _frontend: bool = True,
+    ) -> tuple[routes.App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
         public link used by anyone to access the demo from their browser by setting share=True.
@@ -2224,7 +2296,7 @@ Received outputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True.
-            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS.
+            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Can be set by comma separated environment variable GRADIO_ALLOWED_PATHS. These files are generally assumed to be secure and will be displayed in the browser when possible.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Can be set by comma separated environment variable GRADIO_BLOCKED_PATHS.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
@@ -2234,6 +2306,8 @@ Received outputs:
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
+            strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
+            ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 18+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2297,7 +2371,6 @@ Received outputs:
             self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         else:
             self.root_path = root_path
-
         self.show_api = show_api
 
         if allowed_paths:
@@ -2338,9 +2411,37 @@ Received outputs:
         self.config = self.get_config_file()
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+
+        self.ssr_mode = (
+            False
+            if wasm_utils.IS_WASM
+            else (
+                ssr_mode
+                if ssr_mode is not None
+                else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
+            )
+        )
+        self.node_path = os.environ.get(
+            "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
+        )
+        if self.ssr_mode:
+            self.node_server_name, self.node_process, self.node_port = (
+                start_node_server(
+                    server_name=node_server_name,
+                    server_port=node_port,
+                    node_path=self.node_path,
+                )
+            )
+        else:
+            self.node_server_name = self.node_port = self.node_process = None
+
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
-            self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
+            self,
+            auth_dependency=auth_dependency,
+            app_kwargs=app_kwargs,
+            strict_cors=strict_cors,
+            ssr_mode=self.ssr_mode,
         )
 
         if self.is_running:
@@ -2378,6 +2479,7 @@ Received outputs:
                 )
             self.server_name = server_name
             self.local_url = local_url
+            self.local_api_url = f"{self.local_url.rstrip('/')}{API_PREFIX}/"
             self.server_port = server_port
             self.server = server
             self.is_running = True
@@ -2387,6 +2489,7 @@ Received outputs:
             self.share_server_protocol = share_server_protocol or (
                 "http" if share_server_address is not None else "https"
             )
+            self.has_launched = True
 
             self.protocol = (
                 "https"
@@ -2394,11 +2497,12 @@ Received outputs:
                 else "http"
             )
             if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
-                print(
-                    strings.en["RUNNING_LOCALLY_SEPARATED"].format(
-                        self.protocol, self.server_name, self.server_port
-                    )
+                s = (
+                    strings.en["RUNNING_LOCALLY_SSR"]
+                    if self.ssr_mode
+                    else strings.en["RUNNING_LOCALLY"]
                 )
+                print(s.format(self.protocol, self.server_name, self.server_port))
 
             self._queue.set_server_app(self.server_app)
 
@@ -2406,7 +2510,9 @@ Received outputs:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
                 httpx.get(
-                    f"{self.local_url}startup-events", verify=ssl_verify, timeout=None
+                    f"{self.local_api_url}startup-events",
+                    verify=ssl_verify,
+                    timeout=None,
                 )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
@@ -2417,10 +2523,7 @@ Received outputs:
                 # So we need to manually cancel them. See `self.close()`..
                 self.startup_events()
 
-        utils.launch_counter()
-        self.is_sagemaker = (
-            utils.sagemaker_check() if self.is_sagemaker is None else self.is_sagemaker
-        )
+        self.is_sagemaker = False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
         if share is None:
             if self.is_colab:
                 if not quiet:
@@ -2504,12 +2607,18 @@ Received outputs:
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
-            except (RuntimeError, httpx.ConnectError):
+            except Exception as e:
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
-                if Path(BINARY_PATH).exists():
+                if isinstance(e, ChecksumMismatchError):
+                    print(
+                        strings.en["COULD_NOT_GET_SHARE_LINK_CHECKSUM"].format(
+                            BINARY_PATH
+                        )
+                    )
+                elif Path(BINARY_PATH).exists():
                     print(strings.en["COULD_NOT_GET_SHARE_LINK"])
                 else:
                     print(

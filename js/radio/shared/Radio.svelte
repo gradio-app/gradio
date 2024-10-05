@@ -92,6 +92,16 @@
 		background-color: var(--checkbox-background-color-selected);
 	}
 
+	input:checked::after {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		border-radius: 50%;
+		background-color: white;
+	}
+
 	input:hover {
 		border-color: var(--checkbox-border-color-hover);
 		background-color: var(--checkbox-background-color-hover);

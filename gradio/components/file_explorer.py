@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import fnmatch
 import os
-import warnings
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 class FileExplorerData(GradioRootModel):
     # The outer list is the list of files selected, and the inner list
     # is the path to the file as a list, split by the os.sep.
-    root: List[List[str]]
+    root: list[list[str]]
 
 
 @document()
@@ -51,14 +51,15 @@ class FileExplorer(Component):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        height: int | float | str | None = None,
+        height: int | str | None = None,
+        max_height: int | str | None = 500,
+        min_height: int | str | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        root: None = None,
     ):
         """
         Parameters:
@@ -82,12 +83,6 @@ class FileExplorer(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
-        if root is not None:
-            warnings.warn(
-                "The `root` parameter has been deprecated. Please use `root_dir` instead."
-            )
-            root_dir = root
-            self._constructor_args[0]["root_dir"] = root
         self.root_dir = DeveloperPath(os.path.abspath(root_dir))
         self.glob = glob
         self.ignore_glob = ignore_glob
@@ -98,6 +93,8 @@ class FileExplorer(Component):
             )
         self.file_count = file_count
         self.height = height
+        self.max_height = max_height
+        self.min_height = min_height
 
         super().__init__(
             label=label,

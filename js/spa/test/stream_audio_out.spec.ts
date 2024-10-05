@@ -1,18 +1,41 @@
 import { test, expect } from "@self/tootils";
 
-test("audio streams correctly", async ({ page }) => {
-	const uploader = await page.locator("input[type=file]");
-	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
+test.skip("audio streams from wav file correctly", async ({ page }) => {
+	test.skip(!!process.env.CI, "Not supported in CI");
+	await page.getByRole("gridcell", { name: "wav" }).first().click();
 	await page.getByRole("button", { name: "Stream as File" }).click();
-	await page.waitForSelector("audio");
-	const isAudioPlaying = await page.evaluate(async () => {
-		const audio = document.querySelector("audio");
-		if (!audio) {
-			return false;
-		}
-		await audio.play();
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-		return audio.currentTime > 0;
-	});
-	await expect(isAudioPlaying).toBeTruthy();
+	// @ts-ignore
+	await page
+		.locator("#stream_as_file_output audio")
+		.evaluate(async (el) => await el.play());
+	await expect
+		.poll(
+			async () =>
+				await page
+					.locator("#stream_as_file_output audio")
+					// @ts-ignore
+					.evaluate((el) => el.currentTime)
+		)
+		.toBeGreaterThan(0);
+});
+
+test.skip("audio streams from wav file correctly as bytes", async ({
+	page
+}) => {
+	test.skip(!!process.env.CI, "Not supported in CI");
+	await page.getByRole("gridcell", { name: "wav" }).first().click();
+	await page.getByRole("button", { name: "Stream as Bytes" }).click();
+	// @ts-ignore
+	await page
+		.locator("#stream_as_bytes_output audio")
+		.evaluate(async (el) => await el.play());
+	await expect
+		.poll(
+			async () =>
+				await page
+					.locator("#stream_as_bytes_output audio")
+					// @ts-ignore
+					.evaluate((el) => el.currentTime)
+		)
+		.toBeGreaterThan(0);
 });

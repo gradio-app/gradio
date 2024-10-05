@@ -1,6 +1,36 @@
 # @gradio/atoms
 
-## 0.8.1
+## 0.9.0-beta.3
+
+### Features
+
+- [#9504](https://github.com/gradio-app/gradio/pull/9504) [`d054262`](https://github.com/gradio-app/gradio/commit/d054262f611d5f1eb1a1c936db7152347a891f8e) - Centre components within `Block` when height and width are set.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.3
+
+## 0.9.0-beta.2
+
+### Features
+
+- [#9261](https://github.com/gradio-app/gradio/pull/9261) [`73647a0`](https://github.com/gradio-app/gradio/commit/73647a07b0439efabe3dd218ff6c366ffa3b84a0) - Move icons into `IconButtonWrapper`.  Thanks @hannahblair!
+- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate.  Thanks @abidlabs!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.8.1-beta.1
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
+## 0.8.1-beta.0
 
 ### Fixes
 
@@ -8,8 +38,8 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.6.1
-- @gradio/icons@0.7.2
+- @gradio/utils@0.7.0-beta.0
+- @gradio/icons@0.8.0-beta.0
 
 ## 0.8.0
 
