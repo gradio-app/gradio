@@ -946,7 +946,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self,
         theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
-        is_sagemaker: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
         css: str | None = None,
@@ -1030,7 +1029,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         self.enable_monitoring: bool | None = None
-        self.is_sagemaker: bool | None = is_sagemaker
 
         self.default_config = BlocksConfig(self)
         super().__init__(render=False, **kwargs)
