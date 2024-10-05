@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import pathlib
 import tempfile
 import time
@@ -16,7 +15,6 @@ import gradio as gr
 import httpx
 import huggingface_hub
 import pytest
-from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client, handle_file
