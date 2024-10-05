@@ -1,0 +1,29 @@
+name: trigger-semgrep
+on:
+  pull_request:
+    branches:
+      - main
+      - 5.0-dev
+
+permissions: {}
+
+jobs:
+  changes:
+    permissions:
+      contents: read
+      pull-requests: read
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      pr_number: ${{ steps.changes.outputs.pr_number }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          filter: "gradio"
+          token: ${{ secrets.GITHUB_TOKEN }}
