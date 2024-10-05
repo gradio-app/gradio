@@ -24,7 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: semgrep/semgrep
-      options: --volume ${{ github.workspace }}/.github/configs:/mnt/
+      volumes: 
+        ${{ github.workspace }}/.github/configs:/mnt/
+      options: --name semgrepcicontainer      
     outputs:
       pr_number: ${{ steps.json.outputs.pr_number }}
       sha: ${{ steps.json.outputs.sha }}
@@ -44,6 +46,10 @@ jobs:
         with:
           repository: ${{ steps.json.outputs.source_repo }}
           ref: ${{ steps.json.outputs.sha }}
+      - name: restart_semgrepcicontainer
+        uses: docker://docker
+        with:
+          args: docker restart semgrepcicontainer  
       - run: ls -la /mnt     
       - run: semgrep ci --config=/mnt/semgrep_rules.yaml
   update-status:
