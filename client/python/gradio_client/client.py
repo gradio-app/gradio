@@ -76,7 +76,7 @@ class Client:
     def __init__(
         self,
         src: str,
-        hf_token: str | Literal[False] | None = None,
+        hf_token: str | Literal[False] | None = False,
         max_workers: int = 40,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
@@ -90,7 +90,7 @@ class Client:
         """
         Parameters:
             src: either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
-            hf_token: optional Hugging Face token to use to access private Spaces. By default, the locally saved token is used if there is one (warning: only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). If False, no token is sent to the server. Find your tokens here: https://huggingface.co/settings/tokens.
+            hf_token: optional Hugging Face token to use to access private Spaces. By default, no token is sent to the server. Set `hf_token=None` to use the locally saved token if there is one (warning: only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find your tokens here: https://huggingface.co/settings/tokens.
             max_workers: maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: whether the client should print statements to the console.
             headers: additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
