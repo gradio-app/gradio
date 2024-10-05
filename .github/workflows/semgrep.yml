@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: semgrep/semgrep
-      options: --volume ${{ github.workspace }}/.github/semgrep_rules.yaml:/mnt/semgrep_rules.yaml
+      options: --volume ${{ github.workspace }}/.github/configs:/mnt/
     outputs:
       pr_number: ${{ steps.json.outputs.pr_number }}
       sha: ${{ steps.json.outputs.sha }}
