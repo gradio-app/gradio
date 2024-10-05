@@ -368,7 +368,7 @@
 										},
 							x: {
 								axis: {
-									labelAngle: x_label_angle,
+									...(x_label_angle !== null && { labelAngle: x_label_angle }),
 									labels: x_axis_labels_visible,
 									ticks: x_axis_labels_visible
 								},
