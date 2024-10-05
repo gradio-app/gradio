@@ -45,7 +45,7 @@ jobs:
           repository: ${{ steps.json.outputs.source_repo }}
           ref: ${{ steps.json.outputs.sha }}
       - run: ls -la /mnt     
-      - run: semgrep ci --config /mnt/semgrep_rules.yaml
+      - run: semgrep ci --config=/mnt/semgrep_rules.yaml
   update-status:
     permissions:
       actions: read
