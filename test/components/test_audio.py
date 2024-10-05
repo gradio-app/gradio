@@ -7,7 +7,6 @@ import numpy as np
 import pytest
 from gradio_client import media_data
 from gradio_client import utils as client_utils
-from scipy.io import wavfile
 
 import gradio as gr
 from gradio import processing_utils, utils
@@ -56,7 +55,8 @@ class TestAudio:
             "interactive": None,
             "proxy_url": None,
             "type": "numpy",
-            "format": "wav",
+            "format": None,
+            "recording": False,
             "streamable": False,
             "max_length": None,
             "min_length": None,
@@ -106,6 +106,7 @@ class TestAudio:
             "container": True,
             "editable": True,
             "min_width": 160,
+            "recording": False,
             "scale": None,
             "elem_id": None,
             "elem_classes": [],
@@ -114,7 +115,7 @@ class TestAudio:
             "interactive": None,
             "proxy_url": None,
             "type": "filepath",
-            "format": "wav",
+            "format": None,
             "streamable": False,
             "sources": ["upload", "microphone"],
             "waveform_options": {
@@ -167,16 +168,6 @@ class TestAudio:
         iface = gr.Interface(generate_noise, "slider", "audio")
         assert iface(100).endswith(".wav")
 
-    def test_audio_preprocess_can_be_read_by_scipy(self, gradio_temp_dir):
-        x_wav = FileData(
-            path=processing_utils.save_base64_to_cache(
-                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
-            )
-        )
-        audio_input = gr.Audio(type="filepath")
-        output = audio_input.preprocess(x_wav)
-        wavfile.read(output)
-
     def test_prepost_process_to_mp3(self, gradio_temp_dir):
         x_wav = FileData(
             path=processing_utils.save_base64_to_cache(
@@ -191,3 +182,21 @@ class TestAudio:
             (48000, np.random.randint(-256, 256, (5, 3)).astype(np.int16))
         ).model_dump()  # type: ignore
         assert output["path"].endswith("mp3")
+
+    @pytest.mark.asyncio
+    async def test_combine_stream_audio(self, gradio_temp_dir):
+        x_wav = FileData(
+            path=processing_utils.save_base64_to_cache(
+                media_data.BASE64_MICROPHONE["data"], cache_dir=gradio_temp_dir
+            )
+        )
+        bytes_output = [Path(x_wav.path).read_bytes()] * 2
+        output = await gr.Audio().combine_stream(
+            bytes_output, desired_output_format="wav"
+        )
+        assert str(output.path).endswith("wav")
+
+        output = await gr.Audio().combine_stream(
+            bytes_output, desired_output_format=None
+        )
+        assert str(output.path).endswith("mp3")

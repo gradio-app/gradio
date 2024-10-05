@@ -7,7 +7,6 @@
 	import { onMount } from "svelte";
 
 	import type { TopLevelSpec as Spec } from "vega-lite";
-	import vegaEmbed from "vega-embed";
 	import type { View } from "vega";
 	import { LineChart as LabelIcon } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
@@ -44,6 +43,7 @@
 	export let y_lim: [number, number] | null = null;
 	export let x_label_angle: number | null = null;
 	export let y_label_angle: number | null = null;
+	export let x_axis_labels_visible = true;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	function reformat_sort(
@@ -71,7 +71,6 @@
 	}
 	$: _sort = reformat_sort(sort);
 	export let _selectable = false;
-	export let target: HTMLDivElement;
 	let _data: {
 		[x: string]: string | number;
 	}[];
@@ -132,14 +131,16 @@
 
 	const is_browser = typeof window !== "undefined";
 	let chart_element: HTMLDivElement;
-	$: computed_style =
-		target && is_browser ? window.getComputedStyle(target) : null;
+	$: computed_style = chart_element
+		? window.getComputedStyle(chart_element)
+		: null;
 	let view: View;
 	let mounted = false;
 	let old_width: number;
 	let resizeObserver: ResizeObserver;
 
-	function load_chart(): void {
+	let vegaEmbed: typeof import("vega-embed").default;
+	async function load_chart(): Promise<void> {
 		if (view) {
 			view.finalize();
 		}
@@ -160,6 +161,10 @@
 				view.signal("width", el[0].target.offsetWidth).run();
 			}
 		});
+
+		if (!vegaEmbed) {
+			vegaEmbed = (await import("vega-embed")).default;
+		}
 		vegaEmbed(chart_element, spec, { actions: false }).then(function (result) {
 			view = result.view;
 
@@ -362,7 +367,11 @@
 											value: 0
 										},
 							x: {
-								axis: x_label_angle ? { labelAngle: x_label_angle } : {},
+								axis: {
+									...(x_label_angle !== null && { labelAngle: x_label_angle }),
+									labels: x_axis_labels_visible,
+									ticks: x_axis_labels_visible
+								},
 								field: x,
 								title: x_title || x,
 								type: value.datatypes[x],

@@ -1,6 +1,6 @@
 {
 	"name": "gradio",
-	"version": "4.44.1",
+	"version": "5.0.0-beta.6",
 	"description": "",
 	"python": "true"
 }

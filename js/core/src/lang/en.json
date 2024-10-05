@@ -16,12 +16,14 @@
 		"record": "Record",
 		"no_microphone": "No microphone found",
 		"pause": "Pause",
-		"play": "Play"
+		"play": "Play",
+		"waiting": "Waiting"
 	},
 	"blocks": {
 		"connection_can_break": "On mobile, the connection can break if this tab is unfocused or the device sleeps, losing your position in queue.",
 		"long_requests_queue": "There is a long queue of requests pending. Duplicate this Space to skip.",
-		"lost_connection": "Lost connection due to leaving page. Rejoining queue..."
+		"lost_connection": "Lost connection due to leaving page. Rejoining queue...",
+		"waiting_for_inputs": "Waiting for file(s) to finish uploading, please retry."
 	},
 	"checkbox": {
 		"checkbox": "Checkbox",
@@ -112,7 +114,7 @@
 		"drop_file": "Drop File Here",
 		"drop_image": "Drop Image Here",
 		"drop_video": "Drop Video Here",
-		"drop_gallery": "Drop Image(s) Here",
+		"drop_gallery": "Drop Media Here",
 		"paste_clipboard": "Paste from Clipboard"
 	}
 }

@@ -82,7 +82,7 @@ class TestHighlightedText:
         entities = []
         assert (result_ := component.postprocess({"text": text, "entities": entities}))
         result_ = result_.model_dump()
-        assert [{"token": text, "class_or_confidence": None}] == result_
+        assert result_ == [{"token": text, "class_or_confidence": None}]
 
         text = "Wolfgang"
         entities = [
@@ -90,11 +90,11 @@ class TestHighlightedText:
         ]
         assert (result_ := component.postprocess({"text": text, "entities": entities}))
         result_ = result_.model_dump()
-        assert [
+        assert result_ == [
             {"token": "", "class_or_confidence": None},
             {"token": text, "class_or_confidence": "PER"},
             {"token": "", "class_or_confidence": None},
-        ] == result_
+        ]
 
     def test_component_functions(self):
         """

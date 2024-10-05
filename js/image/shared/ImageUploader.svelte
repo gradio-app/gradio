@@ -2,12 +2,16 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
-	import type { SelectData, I18nFormatter } from "@gradio/utils";
+	import {
+		type SelectData,
+		type I18nFormatter,
+		type ValueData
+	} from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import Webcam from "./Webcam.svelte";
 
 	import { Upload } from "@gradio/upload";
-	import type { FileData, Client } from "@gradio/client";
+	import { FileData, type Client } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
@@ -28,14 +32,21 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let stream_every: number;
+
+	export let modify_stream: (state: "open" | "closed" | "waiting") => void;
+	export let set_time_limit: (arg0: number) => void;
 
 	let upload_input: Upload;
-	let uploading = false;
+	export let uploading = false;
 	export let active_source: source_type = null;
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
-		value = detail;
-		dispatch("upload");
+		// only trigger streaming event if streaming
+		if (!streaming) {
+			value = detail;
+			dispatch("upload");
+		}
 	}
 
 	function handle_clear(): void {
@@ -44,17 +55,22 @@
 		dispatch("change", null);
 	}
 
-	async function handle_save(img_blob: Blob | any): Promise<void> {
+	async function handle_save(
+		img_blob: Blob | any,
+		event: "change" | "stream" | "upload"
+	): Promise<void> {
 		pending = true;
 		const f = await upload_input.load_files([
-			new File([img_blob], `webcam.png`)
+			new File([img_blob], `image/${streaming ? "jpeg" : "png"}`)
 		]);
 
-		value = f?.[0] || null;
-
-		await tick();
-
-		dispatch(streaming ? "stream" : "change");
+		if (event === "change" || event === "upload") {
+			value = f?.[0] || null;
+			await tick();
+			dispatch("change");
+		} else {
+			dispatch("stream", { value: f?.[0] || null, is_value_data: true });
+		}
 		pending = false;
 	}
 
@@ -63,11 +79,12 @@
 
 	const dispatch = createEventDispatcher<{
 		change?: never;
-		stream?: never;
+		stream: ValueData;
 		clear?: never;
 		drag: boolean;
 		upload?: never;
 		select: SelectData;
+		end_stream: never;
 	}>();
 
 	export let dragging = false;
@@ -135,17 +152,22 @@
 		{#if active_source === "webcam" && (streaming || (!streaming && !value))}
 			<Webcam
 				{root}
-				on:capture={(e) => handle_save(e.detail)}
-				on:stream={(e) => handle_save(e.detail)}
+				{value}
+				on:capture={(e) => handle_save(e.detail, "change")}
+				on:stream={(e) => handle_save(e.detail, "stream")}
 				on:error
 				on:drag
-				on:upload={(e) => handle_save(e.detail)}
+				on:upload={(e) => handle_save(e.detail, "upload")}
+				on:close_stream
 				{mirror_webcam}
+				{stream_every}
 				{streaming}
 				mode="image"
 				include_audio={false}
 				{i18n}
 				{upload}
+				bind:modify_stream
+				bind:set_time_limit
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->

@@ -3,11 +3,10 @@ from __future__ import annotations
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional
+from typing import Annotated, Optional
 
 from rich.markup import escape
 from typer import Argument, Option
-from typing_extensions import Annotated
 
 from gradio.cli.commands.display import LivePanelDisplay
 from gradio.utils import set_directory

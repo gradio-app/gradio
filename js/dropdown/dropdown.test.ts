@@ -472,7 +472,7 @@ describe("Dropdown", () => {
 		await expect(item.value).toBe("apple_choice");
 	});
 
-	test("ensure dropdown can have an empty value", async () => {
+	test("ensure dropdown can have the first item of the choices as a default value", async () => {
 		const { getByLabelText } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
@@ -488,7 +488,7 @@ describe("Dropdown", () => {
 		const item: HTMLInputElement = getByLabelText(
 			"Dropdown"
 		) as HTMLInputElement;
-		await expect(item.value).toBe("");
+		await expect(item.value).toBe("apple_choice");
 	});
 
 	test("ensure dropdown works when initial value is undefined and allow custom value is set", async () => {
@@ -508,6 +508,6 @@ describe("Dropdown", () => {
 		const item: HTMLInputElement = getByLabelText(
 			"Dropdown"
 		) as HTMLInputElement;
-		await expect(item.value).toBe("");
+		await expect(item.value).toBe("apple_choice");
 	});
 });

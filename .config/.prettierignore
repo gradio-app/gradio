@@ -21,7 +21,7 @@
 ../js/lite/src/theme.css
 ../js/storybook/theme.css
 **/gradio_cached_examples/**
-**/storybook-static/**  
+**/storybook-static/**
 **/.vscode/**
 sweep.yaml
 **/.vercel/**
@@ -32,4 +32,4 @@ sweep.yaml
 **/venv/**
 ../js/app/src/api_docs/CodeSnippet.svelte
 ../js/app/src/api_docs/RecordingSnippet.svelte
-.changeset/pre.json
+../.changeset/pre.json

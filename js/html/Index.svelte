@@ -5,6 +5,7 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Code as CodeIcon } from "@gradio/icons";
+	import { css_units } from "@gradio/utils";
 
 	export let label: string;
 	export let elem_id = "";
@@ -17,6 +18,8 @@
 		clear_status: LoadingStatus;
 	}>;
 	export let show_label = false;
+	export let min_height: number | undefined = undefined;
+	export let max_height: number | undefined = undefined;
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -35,9 +38,14 @@
 		variant="center"
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
-	<div class:pending={loading_status?.status === "pending"}>
+	<div
+		class:pending={loading_status?.status === "pending"}
+		style:min-height={min_height && loading_status?.status !== "pending"
+			? css_units(min_height)
+			: undefined}
+		style:max-height={max_height ? css_units(max_height) : undefined}
+	>
 		<HTML
-			min_height={loading_status && loading_status?.status !== "complete"}
 			{value}
 			{elem_classes}
 			{visible}

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
@@ -24,7 +24,7 @@ class Glass(Base):
             "sans-serif",
         ),
         font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
-            fonts.GoogleFont("IBM Plex Mono"),
+            fonts.LocalFont("IBM Plex Mono"),
             "ui-monospace",
             "Consolas",
             "monospace",
@@ -49,6 +49,9 @@ class Glass(Base):
             button_primary_background_fill_hover="linear-gradient(180deg, *primary_100 0%, *primary_200 50%, *primary_300 50%, *primary_200 100%)",
             button_primary_background_fill_dark="linear-gradient(180deg, *primary_400 0%, *primary_500 50%, *primary_600 50%, *primary_500 100%)",
             button_primary_background_fill_hover_dark="linear-gradient(180deg, *primary_400 0%, *primary_500 50%, *primary_600 50%, *primary_500 100%)",
+            button_primary_text_color="*body_text_color",
+            button_primary_border_color="*button_secondary_border_color",
+            button_primary_border_color_hover="*button_secondary_border_color_hover",
             button_secondary_background_fill="*button_primary_background_fill",
             button_secondary_background_fill_hover="*button_primary_background_fill_hover",
             button_secondary_background_fill_dark="*button_primary_background_fill",
