@@ -983,7 +983,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
         js: str | None = None,
-        js_paths: str | Path | Sequence[str | Path] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         fill_height: bool = False,
@@ -1000,7 +999,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             css: Custom css as a code string. This css will be included in the demo webpage.
             css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
             js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            js_paths: Custom js as a pathlib.Path to a js file or a list of such paths. This js files will be read, concatenated, and included in the demo webpage. If the `js` parameter is also set, the js from `js` will be included first.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
@@ -1045,10 +1043,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             with open(css_path, encoding="utf-8") as css_file:
                 self.css += "\n" + css_file.read()
         self.js = js or ""
-        js_paths = utils.none_or_singleton_to_list(js_paths)
-        for js_path in js_paths or []:
-            with open(js_path, encoding="utf-8") as js_file:
-                self.js += "\n" + js_file.read()
         self.head = head or ""
         head_paths = utils.none_or_singleton_to_list(head_paths)
         for head_path in head_paths or []:

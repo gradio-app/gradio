@@ -84,7 +84,6 @@ class ChatInterface(Blocks):
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
         js: str | None = None,
-        js_paths: str | Path | Sequence[str | Path] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         analytics_enabled: bool | None = None,
@@ -117,7 +116,6 @@ class ChatInterface(Blocks):
             css: Custom css as a code string. This css will be included in the demo webpage.
             css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
             js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            js_paths: Custom js as a pathlib.Path to a js file or a list of such paths. This js files will be read, concatenated, and included in the demo webpage. If the `js` parameter is also set, the js from `js` will be included first.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
@@ -138,7 +136,6 @@ class ChatInterface(Blocks):
             css=css,
             css_paths=css_paths,
             js=js,
-            js_paths=js_paths,
             head=head,
             head_paths=head_paths,
             fill_height=fill_height,
