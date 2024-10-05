@@ -2,11 +2,11 @@
 
 <div align="center">
 
-[<img src="../gradio.svg" alt="gradio" width=400>](https://gradio.app)<br>
+[<img src="https://github.com/gradio-app/gradio/blob/main/readme_files/gradio.svg" alt="gradio" width=400>](https://gradio.app)<br>
 <em>轻松构建 & 分享 令人愉快的机器学习程序</em>
 
-[![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
-[![gradio-js](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
+[Gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
+[Gradio-js](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
  [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
 ![Python version](https://img.shields.io/badge/python-3.8+-important)
