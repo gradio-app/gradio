@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 from gradio_client import media_data
-from huggingface_hub import HfFolder
+import huggingface_hub
 
 import gradio as gr
 from gradio.context import Context
@@ -30,7 +30,7 @@ pytestmark = pytest.mark.flaky
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+HF_TOKEN = huggingface_hub.get_token()
 
 
 class TestLoadInterface:
@@ -75,7 +75,7 @@ class TestLoadInterface:
     def test_summarization(self):
         model_type = "summarization"
         interface = gr.load(
-            "models/facebook/bart-large-cnn", hf_token=None, alias=model_type
+            "models/facebook/bart-large-cnn", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -85,7 +85,7 @@ class TestLoadInterface:
     def test_translation(self):
         model_type = "translation"
         interface = gr.load(
-            "models/facebook/bart-large-cnn", hf_token=None, alias=model_type
+            "models/facebook/bart-large-cnn", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -95,7 +95,7 @@ class TestLoadInterface:
     def test_text2text_generation(self):
         model_type = "text2text-generation"
         interface = gr.load(
-            "models/sshleifer/tiny-mbart", hf_token=None, alias=model_type
+            "models/sshleifer/tiny-mbart", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -106,7 +106,7 @@ class TestLoadInterface:
         model_type = "text-classification"
         interface = gr.load(
             "models/distilbert-base-uncased-finetuned-sst-2-english",
-            hf_token=None,
+            hf_token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -116,7 +116,7 @@ class TestLoadInterface:
 
     def test_fill_mask(self):
         model_type = "fill-mask"
-        interface = gr.load("models/bert-base-uncased", hf_token=None, alias=model_type)
+        interface = gr.load("models/bert-base-uncased", hf_token=HF_TOKEN, alias=model_type)
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
@@ -125,7 +125,7 @@ class TestLoadInterface:
     def test_zero_shot_classification(self):
         model_type = "zero-shot-classification"
         interface = gr.load(
-            "models/facebook/bart-large-mnli", hf_token=None, alias=model_type
+            "models/facebook/bart-large-mnli", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -137,7 +137,7 @@ class TestLoadInterface:
     def test_automatic_speech_recognition(self):
         model_type = "automatic-speech-recognition"
         interface = gr.load(
-            "models/facebook/wav2vec2-base-960h", hf_token=None, alias=model_type
+            "models/facebook/wav2vec2-base-960h", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -147,7 +147,7 @@ class TestLoadInterface:
     def test_image_classification(self):
         model_type = "image-classification"
         interface = gr.load(
-            "models/google/vit-base-patch16-224", hf_token=None, alias=model_type
+            "models/google/vit-base-patch16-224", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -158,7 +158,7 @@ class TestLoadInterface:
         model_type = "feature-extraction"
         interface = gr.load(
             "models/sentence-transformers/distilbert-base-nli-mean-tokens",
-            hf_token=None,
+            hf_token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -170,7 +170,7 @@ class TestLoadInterface:
         model_type = "text-to-speech"
         interface = gr.load(
             "models/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train",
-            hf_token=None,
+            hf_token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -182,7 +182,7 @@ class TestLoadInterface:
         model_type = "text-to-speech"
         interface = gr.load(
             "models/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train",
-            hf_token=None,
+            hf_token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
