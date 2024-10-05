@@ -1,5 +1,15 @@
 # @gradio/atoms
 
+## 0.9.0-beta.3
+
+### Features
+
+- [#9504](https://github.com/gradio-app/gradio/pull/9504) [`d054262`](https://github.com/gradio-app/gradio/commit/d054262f611d5f1eb1a1c936db7152347a891f8e) - Centre components within `Block` when height and width are set.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.3
+
 ## 0.9.0-beta.2
 
 ### Features

@@ -1,5 +1,16 @@
 # @gradio/slider
 
+## 0.5.0-beta.3
+
+### Features
+
+- [#9481](https://github.com/gradio-app/gradio/pull/9481) [`2510a6e`](https://github.com/gradio-app/gradio/commit/2510a6e978a49432d7820e9518f164a70cf8acc8) - Fix `slider-color` var.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
 ## 0.5.0-beta.2
 
 ### Dependency updates

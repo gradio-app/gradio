@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/lite",
-	"version": "4.43.0-beta.2",
+	"version": "4.43.0-beta.3",
 	"description": "Serverless Gradio",
 	"type": "module",
 	"main": "dist/lite.js",
