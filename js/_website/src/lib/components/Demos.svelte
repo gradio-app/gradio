@@ -1,4 +1,6 @@
 <script lang="ts">
+	import WHEEL from "$lib/json/wheel.json";
+
 	export let name: string;
 	export let code: string;
 	export let highlighted_code: string;
