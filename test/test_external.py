@@ -5,10 +5,10 @@ import warnings
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import huggingface_hub
 import pytest
 from fastapi.testclient import TestClient
 from gradio_client import media_data
-import huggingface_hub
 
 import gradio as gr
 from gradio.context import Context
@@ -116,7 +116,9 @@ class TestLoadInterface:
 
     def test_fill_mask(self):
         model_type = "fill-mask"
-        interface = gr.load("models/bert-base-uncased", hf_token=HF_TOKEN, alias=model_type)
+        interface = gr.load(
+            "models/bert-base-uncased", hf_token=HF_TOKEN, alias=model_type
+        )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
@@ -328,7 +330,7 @@ class TestLoadInterface:
     def test_private_space_v4_sse_v1(self):
         io = gr.load(
             "spaces/gradio-tests/not-actually-private-spacev4-sse-v1",
-            hf_token=HfFolder.get_token(),
+            hf_token=HF_TOKEN,
         )
         try:
             output = io("abc")
