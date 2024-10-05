@@ -1,4 +1,4 @@
-name: Semgrep
+name: semgrep ci
 
 on:
   workflow_run:
@@ -43,9 +43,7 @@ jobs:
         with:
           repository: ${{ steps.json.outputs.source_repo }}
           ref: ${{ steps.json.outputs.sha }}
-      - run: semgrep ci
-        env:
-          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN2 }}
+      - run: semgrep ci --config .github/workflows/semgrep_rules.yaml
   update-status:
     permissions:
       actions: read
