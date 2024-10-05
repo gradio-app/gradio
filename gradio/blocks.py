@@ -946,6 +946,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self,
         theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
+        is_sagemaker: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
         css: str | None = None,
@@ -1029,6 +1030,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
         self.enable_monitoring: bool | None = None
+        self.is_sagemaker: bool | None = is_sagemaker
 
         self.default_config = BlocksConfig(self)
         super().__init__(render=False, **kwargs)
@@ -1185,7 +1187,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             original_mapping[0] = root_block = Context.root_block or blocks
 
             if "layout" in config:
-                iterate_over_children(config["layout"]["children"])  #
+                iterate_over_children(config["layout"]["children"])
 
             first_dependency = None
 
@@ -2418,7 +2420,9 @@ Received outputs:
                 self.startup_events()
 
         utils.launch_counter()
-        self.is_sagemaker = utils.sagemaker_check()
+        self.is_sagemaker = (
+            utils.sagemaker_check() if self.is_sagemaker is None else self.is_sagemaker
+        )
         if share is None:
             if self.is_colab:
                 if not quiet:
