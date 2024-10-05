@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.8.0-beta.3
+
+### Features
+
+- [#9450](https://github.com/gradio-app/gradio/pull/9450) [`991883e`](https://github.com/gradio-app/gradio/commit/991883e217dc0a3512b3ae3245378812f373b8db) - Improve `gr.Code`.  Thanks @hannahblair!
+
 ## 0.8.0-beta.2
 
 ### Features

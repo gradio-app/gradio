@@ -1,5 +1,15 @@
 # @self/app
 
+## 1.41.0-beta.5
+
+### Features
+
+- [#9428](https://github.com/gradio-app/gradio/pull/9428) [`a17c7b6`](https://github.com/gradio-app/gradio/commit/a17c7b6e01bcee88b57a5231d0ff876f79adb8b1) - Ensure media queries work for SSR mode.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.4
+
 ## 1.41.0-beta.4
 
 ### Dependency updates

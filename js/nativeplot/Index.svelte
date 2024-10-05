@@ -43,6 +43,7 @@
 	export let y_lim: [number, number] | null = null;
 	export let x_label_angle: number | null = null;
 	export let y_label_angle: number | null = null;
+	export let x_axis_labels_visible = true;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
 	function reformat_sort(
@@ -366,7 +367,11 @@
 											value: 0
 										},
 							x: {
-								axis: x_label_angle ? { labelAngle: x_label_angle } : {},
+								axis: {
+									...(x_label_angle !== null && { labelAngle: x_label_angle }),
+									labels: x_axis_labels_visible,
+									ticks: x_axis_labels_visible
+								},
 								field: x,
 								title: x_title || x,
 								type: value.datatypes[x],
