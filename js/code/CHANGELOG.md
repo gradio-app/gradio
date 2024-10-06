@@ -1,5 +1,11 @@
 # @gradio/code
 
+## 0.10.0-beta.6
+
+### Features
+
+- [#9545](https://github.com/gradio-app/gradio/pull/9545) [`098a009`](https://github.com/gradio-app/gradio/commit/098a009c05243967bd9e5acc28864eb40a135f6a) - Add Jinja2 language to Code component.  Thanks @CISC!
+
 ## 0.10.0-beta.5
 
 ### Features
