@@ -8,7 +8,7 @@
 [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/tests-js.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/tests-js.yml)
  [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
-![Python version](https://img.shields.io/badge/python-3.8+-important)
+![Python version](https://img.shields.io/badge/python-3.10+-important)
 [![Twitter follow](https://img.shields.io/twitter/follow/gradio?style=social&label=follow)](https://twitter.com/gradio)
 
 [Website](https://gradio.app)
@@ -32,13 +32,13 @@ It just takes a few lines of Python to create a beautiful demo like the one abov
 
 ### Installation
 
-**Prerequisite**: Gradio requires [Python 3.8 or higher](https://www.python.org/downloads/)
+**Prerequisite**: Gradio 5 requires [Python 3.10 or higher](https://www.python.org/downloads/)
 
 
 We recommend installing Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
 
 ```
-pip install gradio
+pip install --upgrade gradio
 ```
 
 
