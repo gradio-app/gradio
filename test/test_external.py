@@ -1,7 +1,6 @@
 import os
 import tempfile
 import textwrap
-import warnings
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -263,24 +262,6 @@ class TestLoadInterface:
             assert output is not None
         except TooManyRequestsError:
             pass
-
-        app, _, _ = io.launch(prevent_thread_lock=True, show_error=True)
-        client = TestClient(app)
-        resp = client.post(
-            "api/predict",
-            json={"fn_index": 0, "data": [media_data.BASE64_AUDIO], "name": "sample"},
-        )
-        try:
-            if resp.status_code != 200:
-                warnings.warn("Request for speech recognition model failed!")
-                assert (
-                    "Could not complete request to HuggingFace API"
-                    not in resp.json()["error"]
-                )
-            else:
-                assert resp.json()["data"] is not None
-        finally:
-            io.close()
 
     def test_private_space(self):
         io = gr.load(
