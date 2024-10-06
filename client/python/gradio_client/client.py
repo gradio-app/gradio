@@ -1080,8 +1080,7 @@ class Endpoint:
         ]
         self.parameters_info = self._get_parameters_info()
 
-        self.root_url = self.client.src_prefixed
-        print("ROOT URL", self.root_url)
+        self.root_url = self.client.src_prefixed.rstrip("/") + "/"
 
         # Disallow hitting endpoints that the Gradio app has disabled
         self.is_valid = self.api_name is not False
@@ -1377,6 +1376,7 @@ class Endpoint:
 
     def _download_file(self, x: dict) -> str:
         url_path = self.root_url + "file=" + x["path"]
+        print("URL PATH", url_path)
         if self.client.output_dir is not None:
             os.makedirs(self.client.output_dir, exist_ok=True)
 
