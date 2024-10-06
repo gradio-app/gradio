@@ -1079,7 +1079,6 @@ class Endpoint:
             self._get_component_type(id_) for id_ in dependency["outputs"]
         ]
         self.parameters_info = self._get_parameters_info()
-
         self.root_url = self.client.src_prefixed.rstrip("/") + "/"
 
         # Disallow hitting endpoints that the Gradio app has disabled
