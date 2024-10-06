@@ -1,5 +1,11 @@
 # website
 
+## 0.40.0
+
+### Features
+
+- [#9500](https://github.com/gradio-app/gradio/pull/9500) [`ed8be90`](https://github.com/gradio-app/gradio/commit/ed8be9055f5de6621841d041ea82f96cb02e0647) - Use latest lite wheel on website.  Thanks @aliabd!
+
 ## 0.39.1
 
 ### Features

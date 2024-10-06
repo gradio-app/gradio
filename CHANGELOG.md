@@ -1,5 +1,12 @@
 # gradio
 
+## 4.45.0
+
+### Features
+
+- [#9535](https://github.com/gradio-app/gradio/pull/9535) [`324e8eb`](https://github.com/gradio-app/gradio/commit/324e8eb637f3ddd23d8610927c1d445a2490486c) - test semgrep ci.  Thanks @abidlabs!
+- [#9549](https://github.com/gradio-app/gradio/pull/9549) [`186f647`](https://github.com/gradio-app/gradio/commit/186f6474d33b7684f82ad37d47ab42a52631136f) - semgrep test.  Thanks @abidlabs!
+
 ## 4.44.1
 
 ### Features
