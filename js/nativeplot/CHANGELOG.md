@@ -1,5 +1,11 @@
 # @gradio/nativeplot
 
+## 0.4.0-beta.5
+
+### Features
+
+- [#9497](https://github.com/gradio-app/gradio/pull/9497) [`d826faa`](https://github.com/gradio-app/gradio/commit/d826faa8c2584cf0772d4e66b4073e33b83f3a00) - Hide x axis labels.  Thanks @aliabid94!
+
 ## 0.4.0-beta.4
 
 ### Dependency updates
