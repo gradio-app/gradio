@@ -1,5 +1,14 @@
 # gradio
 
+## 5.0.0-beta.7
+
+### Features
+
+- [#9546](https://github.com/gradio-app/gradio/pull/9546) [`b82aa6f`](https://github.com/gradio-app/gradio/commit/b82aa6f115f6ad9a9690bdecb0fe63c162dc75c0) - Disable sagemaker_check() for now.  Thanks @vmatt!
+- [#9545](https://github.com/gradio-app/gradio/pull/9545) [`098a009`](https://github.com/gradio-app/gradio/commit/098a009c05243967bd9e5acc28864eb40a135f6a) - Add Jinja2 language to Code component.  Thanks @CISC!
+- [#9526](https://github.com/gradio-app/gradio/pull/9526) [`f60bb68`](https://github.com/gradio-app/gradio/commit/f60bb68f52cd0863d9087b3fbc56635e297adef1) - Fix single select dropdown.  Thanks @whitphx!
+- [#9497](https://github.com/gradio-app/gradio/pull/9497) [`d826faa`](https://github.com/gradio-app/gradio/commit/d826faa8c2584cf0772d4e66b4073e33b83f3a00) - Hide x axis labels.  Thanks @aliabid94!
+
 ## 5.0.0-beta.6
 
 ### Features
