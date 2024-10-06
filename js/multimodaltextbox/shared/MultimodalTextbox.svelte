@@ -48,6 +48,9 @@
 	export let dragging = false;
 	let uploading = false;
 	let oldValue = value.text;
+	let isRecording =false;
+	let mediaRecorder;
+	let audiochunks = [];
 	$: dispatch("drag", dragging);
 
 	let full_container: HTMLDivElement;
@@ -230,6 +233,65 @@
 			upload_component.load_files(Array.from(event.dataTransfer.files));
 		}
 	}
+
+  async function startRecording() {
+		isRecording = true;
+		try {
+				const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+				mediaRecorder = new MediaRecorder(stream);
+
+				mediaRecorder.ondataavailable(e) => {
+								audiochunks.push(e.data);
+				};
+
+				mediaRecorder.onstop = () => {
+						const audioBlob = new Blob(audiochunks, {type: 'audio/wav'});
+															sendAudioToBackend(audioBlob);
+															audiochunks = [];
+															isRecording = false;
+				};
+
+				mediaRecorder.start();
+		} catch (err) {
+				console.error('Error accessing microphone: ', err);
+				isRecording = false;
+		}
+	}	
+
+	function stopRecording() {
+		if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+		mediaRecorder.stop();
+		}
+    isRecording = false;
+    audioChunks = [];
+		}
+
+	async function sendAudioToBackend(audioBlob) {
+    try {
+        const formData = new FormData();
+        formData.append('audio_data', audioBlob, 'recording.wav');
+
+        const response = await fetch('/api/gradio/call/your_function_name', { 
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.text) {
+            value.text = data.text;
+        } else {
+            console.error("No 'text' field found in the response");
+        }
+
+    } catch (err) {
+        console.error('Error sending audio to backend:', err);
+    }
+}
 </script>
 
 <div
@@ -288,7 +350,20 @@
 			</div>
 		{/if}
 		<div class="input-container">
-			<Upload
+			<button 
+        on:click={startRecording} 
+        class="microphone-button" 
+        class:recording={isRecording}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+          <path fill-rule="evenodd" d="M12 3a6 6 0 00-6 6v6a6 6 0 006 6 6 6 0 006-6V9a6 6 0 00-6-6zM11.5 11.75a.75.75 0 00-1.5 0v2.5a.75.75 0 001.5 0v-2.5zM12 15a.75.75 0 01-.75-.75V9a.75.75 0 011.5 0v5.25a.75.75 0 01-.75.75z" clip-rule="evenodd" />
+        </svg> 
+      </button>
+    {#if isRecording}
+        <button on:click={stopRecording} class="stop-button"> 
+            Stop Recording 
+        </button>
+      <Upload
 				bind:this={upload_component}
 				on:load={handle_upload}
 				{file_count}
@@ -539,5 +614,9 @@
 	.delete-button:hover {
 		filter: brightness(1.2);
 		border: 0.8px solid var(--color-grey-500);
+	}
+
+	.microphone-button.recording {
+    background-color: red;
 	}
 </style>
