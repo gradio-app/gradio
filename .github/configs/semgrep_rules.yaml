@@ -1,0 +1,110 @@
+rules:
+  - id: third-party-action-not-pinned-to-commit-sha
+    patterns:
+      - pattern-inside: "{steps: ...}"
+      - pattern: |
+          uses: "$USES"
+      - metavariable-pattern:
+          metavariable: $USES
+          language: generic
+          patterns:
+            - pattern-not-regex: ^[.]/
+            - pattern-not-regex: ^actions/
+            - pattern-not-regex: ^github/
+            - pattern-not-regex: ^gradio-app/gradio
+            - pattern-not-regex: ^gradio-app/github
+            - pattern-not-regex: "@[0-9a-f]{40}$"
+            - pattern-not-regex: ^docker://.*@sha256:[0-9a-f]{64}$
+            - pattern-not-regex: ^docker://docker$
+    message:
+      An action sourced from a third-party repository on GitHub is not pinned
+      to a full length commit SHA. Pinning an action to a full length commit SHA
+      is currently the only way to use an action as an immutable release.
+      Pinning to a particular SHA helps mitigate the risk of a bad actor adding
+      a backdoor to the action's repository, as they would need to generate a
+      SHA-1 collision for a valid Git object payload.
+    languages:
+      - yaml
+    severity: WARNING
+    metadata:
+      cwe:
+        - "CWE-1357: Reliance on Insufficiently Trustworthy Component"
+        - "CWE-353: Missing Support for Integrity Check"
+      owasp: A06:2021 - Vulnerable and Outdated Components
+      references:
+        - https://owasp.org/Top10/A06_2021-Vulnerable_and_Outdated_Components
+        - https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
+      category: security
+      technology:
+        - github-actions
+      subcategory:
+        - vuln
+      likelihood: LOW
+      impact: LOW
+      confidence: HIGH
+      license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+      vulnerability_class:
+        - Cryptographic Issues
+        - Other
+
+  - id: insecure-file-permissions
+    languages:
+      - python
+    severity: ERROR
+    message: These permissions `$BITS` are widely permissive and grant access to
+      more people than may be necessary. A good default is `0o644` which gives
+      read and write access to yourself and read access to everyone else.
+    patterns:
+      - pattern-inside: os.$METHOD(...)
+      - pattern-either:
+          - patterns:
+              - pattern: os.$METHOD($FILE, $BITS, ...)
+              - metavariable-comparison:
+                  comparison: $BITS >= 0o650 and $BITS < 0o100000
+          - patterns:
+              - pattern: os.$METHOD($FILE, $BITS)
+              - metavariable-comparison:
+                  comparison: $BITS >= 0o100650
+          - patterns:
+              - pattern: os.$METHOD($FILE, $BITS, ...)
+              - metavariable-pattern:
+                  metavariable: $BITS
+                  patterns:
+                    - pattern-either:
+                        - pattern: <... stat.S_IWGRP ...>
+                        - pattern: <... stat.S_IXGRP ...>
+                        - pattern: <... stat.S_IWOTH ...>
+                        - pattern: <... stat.S_IXOTH ...>
+                        - pattern: <... stat.S_IRWXO ...>
+                        - pattern: <... stat.S_IRWXG ...>
+          - patterns:
+              - pattern: os.$METHOD($FILE, $EXPR | $MOD, ...)
+              - metavariable-comparison:
+                  comparison: $MOD == 0o111
+      - metavariable-pattern:
+          metavariable: $METHOD
+          patterns:
+            - pattern-either:
+                - pattern: chmod
+                - pattern: lchmod
+                - pattern: fchmod
+    metadata:
+      category: security
+      owasp:
+        - A01:2021 - Broken Access Control
+      cwe:
+        - "CWE-276: Incorrect Default Permissions"
+      technology:
+        - python
+      references:
+        - https://owasp.org/Top10/A01_2021-Broken_Access_Control
+      cwe2022-top25: true
+      cwe2021-top25: true
+      subcategory:
+        - vuln
+      likelihood: LOW
+      impact: MEDIUM
+      confidence: MEDIUM
+      license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+      vulnerability_class:
+        - Improper Authorization
