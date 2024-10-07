@@ -308,43 +308,10 @@ class Examples:
         ]
 
     def create(self) -> None:
-        """Caches the examples if self.cache_examples is True and creates the Dataset
-        component to hold the examples"""
-
-        async def load_example(example_tuple):
-            _, example_value = example_tuple
-            processed_example = self._get_processed_example(example_value)
-            if len(self.inputs_with_examples) == 1:
-                return update(
-                    value=processed_example[0],
-                    **self.dataset.component_props[0],  # type: ignore
-                )
-            return [
-                update(value=processed_example[i], **self.dataset.component_props[i])  # type: ignore
-                for i in range(len(self.inputs_with_examples))
-            ]
+        """Creates the Dataset component to hold the examples"""
 
         self.root_block = Context.root_block
         if self.root_block:
-            self.load_input_event = self.dataset.click(
-                load_example,
-                inputs=[self.dataset],
-                outputs=self.inputs_with_examples,  # type: ignore
-                show_progress="hidden",
-                postprocess=False,
-                queue=False,
-                api_name=self.api_name,
-                show_api=False,
-            )
-            if self.run_on_click and not self.cache_examples:
-                if self.fn is None:
-                    raise ValueError("Cannot run_on_click if no function is provided")
-                self.load_input_event.then(
-                    self.fn,
-                    inputs=self.inputs,  # type: ignore
-                    outputs=self.outputs,  # type: ignore
-                    show_api=False,
-                )
             self.root_block.extra_startup_events.append(self._start_caching)
 
             def load_example(example_tuple):
@@ -354,16 +321,60 @@ class Examples:
                 ) + self.load_from_cache(example_id)
                 return utils.resolve_singleton(processed_example)
 
-            self.cache_event = self.load_input_event = self.dataset.click(
-                load_example,
-                inputs=[self.dataset],
-                outputs=self.inputs_with_examples + self.outputs,  # type: ignore
-                show_progress="hidden",
-                postprocess=False,
-                queue=False,
-                api_name=self.api_name,
-                show_api=False,
-            )
+            if self.cache_examples == True:  # noqa: E712
+                self.cache_event = self.load_input_event = self.dataset.click(
+                    load_example,
+                    inputs=[self.dataset],
+                    outputs=self.inputs_with_examples + self.outputs,  # type: ignore
+                    show_progress="hidden",
+                    postprocess=False,
+                    queue=False,
+                    api_name=self.api_name,
+                    show_api=False,
+                )
+            else:
+
+                def load_example(example_tuple):
+                    _, example_value = example_tuple
+                    processed_example = self._get_processed_example(example_value)
+                    if len(self.inputs_with_examples) == 1:
+                        return update(
+                            value=processed_example[0],
+                            **self.dataset.component_props[0],  # type: ignore
+                        )
+                    return [
+                        update(
+                            value=processed_example[i],
+                            **self.dataset.component_props[i],
+                        )  # type: ignore
+                        for i in range(len(self.inputs_with_examples))
+                    ]
+
+                self.load_input_event = self.dataset.click(
+                    load_example,
+                    inputs=[self.dataset],
+                    outputs=self.inputs_with_examples,  # type: ignore
+                    show_progress="hidden",
+                    postprocess=False,
+                    queue=False,
+                    api_name=self.api_name,
+                    show_api=False,
+                )
+
+                if self.cache_examples == "lazy":
+                    self.lazy_cache()
+
+                if self.run_on_click and self.cache_examples == False:  # noqa: E712
+                    if self.fn is None:
+                        raise ValueError(
+                            "Cannot run_on_click if no function is provided"
+                        )
+                    self.load_input_event.then(
+                        self.fn,
+                        inputs=self.inputs,  # type: ignore
+                        outputs=self.outputs,  # type: ignore
+                        show_api=False,
+                    )
 
     async def _postprocess_output(self, output) -> list:
         """
@@ -401,8 +412,6 @@ class Examples:
                         "or you provide default values for those particular parameters in your function."
                     )
                     break
-        if self.cache_examples == "lazy":
-            await self.lazy_cache()
         if self.cache_examples is True:
             if wasm_utils.IS_WASM:
                 # In the Wasm mode, the `threading` module is not supported,
@@ -416,7 +425,7 @@ class Examples:
             else:
                 await self.cache()
 
-    async def lazy_cache(self) -> None:
+    def lazy_cache(self) -> None:
         print(
             f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
             end="",
