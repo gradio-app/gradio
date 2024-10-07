@@ -3,6 +3,7 @@
 "@gradio/checkbox": minor
 "@gradio/checkboxgroup": minor
 "@gradio/colorpicker": minor
+"@gradio/core": minor
 "@gradio/datetime": minor
 "@gradio/dropdown": minor
 "@gradio/multimodaltextbox": minor
