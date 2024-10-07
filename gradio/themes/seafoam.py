@@ -39,7 +39,7 @@ class Seafoam(Base):
             font=font,
             font_mono=font_mono,
         )
-        self.name = "colorful"
+        self.name = "seafoam"
         super().set(
             button_border_width="0px",
             checkbox_label_border_width="1px",
