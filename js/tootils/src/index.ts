@@ -31,6 +31,9 @@ const test_normal = base.extend<{ setup: void }>({
 			const test_name = path.basename(file, ".spec.ts");
 
 			await page.goto(`localhost:${port}/${test_name}`);
+			if (process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true") {
+				await page.waitForSelector("#svelte-announcer");
+			}
 
 			await use();
 		},
