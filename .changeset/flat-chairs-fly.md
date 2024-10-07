@@ -1,5 +1,6 @@
 ---
 "@gradio/atoms": minor
+"@gradio/checkbox": minor
 "gradio": minor
 ---
 
