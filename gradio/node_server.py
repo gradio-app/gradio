@@ -108,8 +108,6 @@ def start_node_process(
                 env=env,
             )
 
-            print("NODE ARGS", node_process.args)
-
             is_working = verify_server_startup(server_name, port, timeout=5)
             if is_working:
                 signal.signal(

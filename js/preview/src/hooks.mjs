@@ -6,7 +6,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export async function resolve(specifier, context, nextResolve) {
     // Take an `import` or `require` specifier and resolve it to a URL.
-    console.error("specifier", specifier);
     if (specifier === "svelte/internal" || specifier === "svelte") {
         return nextResolve(join(__dirname, "frontend", "assets", "svelte", "svelte.js"));
     }
