@@ -106,7 +106,7 @@ class Image(StreamingInput, Component):
         """
         Parameters:
             value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            format: File format (e.g. "png" or "gif") or "base64". Used to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image). If not "base64", the format should be supported by the PIL library. Applies both when this component is used as an input or output. This parameter has no effect on SVG files.
+            format: File format (e.g. "png" or "gif"). Used to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image). The format should be supported by the PIL library. Applies both when this component is used as an input or output. This parameter has no effect on SVG files.
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
             width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
             image_mode: The pixel format and color depth that the image should be loaded and preprocessed as. "RGB" will load the image as a color image, or "L" as black-and-white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning. This parameter has no effect on SVG or GIF files. If set to None, the image_mode will be inferred from the image file type (e.g. "RGBA" for a .png image, "RGB" in most other cases).
@@ -122,7 +122,7 @@ class Image(StreamingInput, Component):
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
-            streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
+            streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'. If the component is an output component, will automatically convert images to base64.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
@@ -264,7 +264,7 @@ class Image(StreamingInput, Component):
             return None
         if isinstance(value, str) and value.lower().endswith(".svg"):
             return ImageData(path=value, orig_name=Path(value).name)
-        if self.format == "base64":
+        if self.streaming:
             if isinstance(value, np.ndarray):
                 return Base64ImageData(
                     url=image_utils.encode_image_array_to_base64(value)
@@ -281,7 +281,7 @@ class Image(StreamingInput, Component):
         return ImageData(path=saved, orig_name=orig_name)
 
     def api_info_as_output(self) -> dict[str, Any]:
-        if self.format == "base64":
+        if self.streaming == "base64":
             schema = Base64ImageData.model_json_schema()
             schema.pop("description", None)
             return schema

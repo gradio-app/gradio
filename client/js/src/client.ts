@@ -437,7 +437,13 @@ export class Client {
 
 	private async connect_ws(url: string): Promise<void> {
 		return new Promise((resolve, reject) => {
-			const ws = new WebSocket(url);
+			let ws;
+			try {
+				ws = new WebSocket(url);
+			} catch (e) {
+				this.ws_map[url] = "failed";
+				return;
+			}
 
 			ws.onopen = () => {
 				resolve();
