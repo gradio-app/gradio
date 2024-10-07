@@ -9,7 +9,8 @@
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let value: string | number | (string | number)[] | undefined = [];
-	let old_value: string | number | (string | number)[] | undefined = [];
+	let old_value: string | number | (string | number)[] | undefined =
+		Array.isArray(value) ? value.slice() : value;
 	export let value_is_output = false;
 	export let choices: [string, string | number][];
 	let old_choices: [string, string | number][];

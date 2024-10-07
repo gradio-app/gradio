@@ -463,6 +463,25 @@ with gr.Blocks(  # noqa: SIM117
         secret_css = gr.Textbox(visible=False)
         secret_font = gr.JSON(visible=False)
 
+        demo.load(  # doing this via python was not working for some reason, so using this hacky method for now
+            None,
+            None,
+            None,
+            js="""() => {
+                let evt_listener = window.setTimeout(
+                    () => {
+                        load_theme_btn = document.querySelector('#load_theme');
+                        if (load_theme_btn) {
+                            load_theme_btn.click();
+                            window.clearTimeout(evt_listener);
+                        }
+                    },
+                    100
+                );
+            }""",
+            show_api=False,
+        )
+
         theme_inputs = (
             [primary_hue, secondary_hue, neutral_hue]
             + primary_hues
