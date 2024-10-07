@@ -314,16 +314,17 @@ class Examples:
         if self.root_block:
             self.root_block.extra_startup_events.append(self._start_caching)
 
-            def load_example(example_tuple):
-                example_id, example_value = example_tuple
-                processed_example = self._get_processed_example(
-                    example_value
-                ) + self.load_from_cache(example_id)
-                return utils.resolve_singleton(processed_example)
-
             if self.cache_examples == True:  # noqa: E712
+
+                def load_example_with_output(example_tuple):
+                    example_id, example_value = example_tuple
+                    processed_example = self._get_processed_example(
+                        example_value
+                    ) + self.load_from_cache(example_id)
+                    return utils.resolve_singleton(processed_example)
+
                 self.cache_event = self.load_input_event = self.dataset.click(
-                    load_example,
+                    load_example_with_output,
                     inputs=[self.dataset],
                     outputs=self.inputs_with_examples + self.outputs,  # type: ignore
                     show_progress="hidden",
@@ -345,8 +346,8 @@ class Examples:
                     return [
                         update(
                             value=processed_example[i],
-                            **self.dataset.component_props[i],
-                        )  # type: ignore
+                            **self.dataset.component_props[i],  # type: ignore
+                        )
                         for i in range(len(self.inputs_with_examples))
                     ]
 
