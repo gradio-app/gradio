@@ -1,5 +1,15 @@
 # @gradio/column
 
+## 0.2.0-beta.1
+
+### Features
+
+- [#9496](https://github.com/gradio-app/gradio/pull/9496) [`1647ebd`](https://github.com/gradio-app/gradio/commit/1647ebddc3e2ed6fc143a62629409e32afcc5801) - UI theme fixes.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.3
+
 ## 0.2.0-beta.0
 
 ### Dependency updates

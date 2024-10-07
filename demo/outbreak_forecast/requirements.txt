@@ -3,4 +3,3 @@ matplotlib
 bokeh
 plotly
 altair
-opencv-python

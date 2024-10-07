@@ -2426,15 +2426,16 @@ Received inputs:
         self.node_path = os.environ.get(
             "GRADIO_NODE_PATH", "" if wasm_utils.IS_WASM else get_node_path()
         )
-        self.node_server_name = node_server_name
-        self.node_port = node_port
-
-        self.node_server_name, self.node_process, self.node_port = start_node_server(
-            server_name=self.node_server_name,
-            server_port=self.node_port,
-            node_path=self.node_path,
-            ssr_mode=self.ssr_mode,
-        )
+        if self.ssr_mode:
+            self.node_server_name, self.node_process, self.node_port = (
+                start_node_server(
+                    server_name=node_server_name,
+                    server_port=node_port,
+                    node_path=self.node_path,
+                )
+            )
+        else:
+            self.node_server_name = self.node_port = self.node_process = None
 
         # self.server_app is included for backwards compatibility
         self.server_app = self.app = App.create_app(
@@ -2524,7 +2525,9 @@ Received inputs:
                 # So we need to manually cancel them. See `self.close()`..
                 self.startup_events()
 
-        self.is_sagemaker = utils.sagemaker_check()
+        self.is_sagemaker = (
+            False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
+        )
         if share is None:
             if self.is_colab:
                 if not quiet:
