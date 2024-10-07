@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Update gr.ColorPicker dialog
+feat:Update gr.ColorPicker UI
