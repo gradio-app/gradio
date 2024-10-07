@@ -1544,3 +1544,11 @@ def get_node_path():
         "If you wish to use the node backend, please install node 18 and/ or set the path with the GRADIO_NODE_PATH environment variable."
     )
     return None
+
+
+def none_or_singleton_to_list(value: Any) -> list:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        return list(value)
+    return [value]
