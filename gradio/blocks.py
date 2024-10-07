@@ -1037,7 +1037,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.fill_height = fill_height
         self.fill_width = fill_width
         self.delete_cache = delete_cache
-        self.extra_startup_events: list[Callable[..., Coroutine[Any, Any, Any]]] = []        
+        self.extra_startup_events: list[Callable[..., Coroutine[Any, Any, Any]]] = []
         self.css = css or ""
         css_paths = utils.none_or_singleton_to_list(css_paths)
         for css_path in css_paths or []:
