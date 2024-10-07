@@ -11,7 +11,6 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import exp from "constants";
 
 	export let label = "ColorPicker";
 	export let info: string | undefined = undefined;

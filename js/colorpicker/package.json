@@ -24,7 +24,9 @@
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
-		"@gradio/utils": "workspace:^"
+		"@gradio/utils": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"tinycolor2": "^1.6.0"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"
