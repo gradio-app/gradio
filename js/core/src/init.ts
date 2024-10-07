@@ -10,6 +10,7 @@ import { load_component } from "virtual:component-loader";
 import type { client_return } from "@gradio/client";
 import { create_loading_status_store } from "./stores";
 import { _ } from "svelte-i18n";
+import { tick } from "svelte";
 
 export interface UpdateTransaction {
 	id: number;
@@ -27,7 +28,7 @@ const raf = is_browser
  * Create a store with the layout and a map of targets
  * @returns A store with the layout and a map of targets
  */
-export function create_components(): {
+export function create_components(initial_layout: ComponentMeta | undefined): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
 	update_value: (updates: UpdateTransaction[]) => void;
@@ -65,7 +66,7 @@ export function create_components(): {
 	let instance_map: { [id: number]: ComponentMeta };
 	let loading_status: ReturnType<typeof create_loading_status_store> =
 		create_loading_status_store();
-	const layout_store: Writable<ComponentMeta> = writable();
+	const layout_store: Writable<ComponentMeta> = writable(initial_layout);
 	let _components: ComponentMeta[] = [];
 	let app: client_return;
 	let keyed_component_values: Record<string | number, any> = {};
@@ -328,7 +329,7 @@ export function create_components(): {
 		});
 		pending_updates = [];
 		update_scheduled = false;
-		update_scheduled_store.set(false);
+		tick().then(() => update_scheduled_store.set(false));
 	}
 
 	function update_value(updates: UpdateTransaction[] | undefined): void {
@@ -341,9 +342,12 @@ export function create_components(): {
 			raf(flush);
 		}
 	}
-
 	function get_data(id: number): any | Promise<any> {
-		const comp = _component_map.get(id);
+		let comp = _component_map.get(id);
+		if (!comp) {
+			const layout = get(layout_store);
+			comp = findComponentById(layout, id);
+		}
 		if (!comp) {
 			return null;
 		}
@@ -351,6 +355,24 @@ export function create_components(): {
 			return comp.instance.get_value() as Promise<any>;
 		}
 		return comp.props.value;
+	}
+
+	function findComponentById(
+		node: ComponentMeta,
+		id: number
+	): ComponentMeta | undefined {
+		if (node.id === id) {
+			return node;
+		}
+		if (node.children) {
+			for (const child of node.children) {
+				const result = findComponentById(child, id);
+				if (result) {
+					return result;
+				}
+			}
+		}
+		return undefined;
 	}
 
 	function modify_stream(
