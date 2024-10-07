@@ -188,7 +188,7 @@ class ThemeClass:
 
         try:
             space_info = api.space_info(name)
-        except huggingface_hub.utils._errors.RepositoryNotFoundError as e:
+        except huggingface_hub.utils.RepositoryNotFoundError as e:
             raise ValueError(f"The space {name} does not exist") from e
 
         assets = get_theme_assets(space_info)

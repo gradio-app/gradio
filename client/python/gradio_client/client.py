@@ -156,7 +156,7 @@ class Client:
         )
         api_prefix: str = self.config.get("api_prefix", "")
         self.api_prefix = api_prefix.lstrip("/") + "/"
-        self.src_prefixed = urllib.parse.urljoin(self.src, api_prefix) + "/"
+        self.src_prefixed = urllib.parse.urljoin(self.src, api_prefix).rstrip("/") + "/"
 
         self.api_url = urllib.parse.urljoin(self.src_prefixed, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
@@ -1079,8 +1079,7 @@ class Endpoint:
             self._get_component_type(id_) for id_ in dependency["outputs"]
         ]
         self.parameters_info = self._get_parameters_info()
-
-        self.root_url = client.src.rstrip("/") + "/" + client.api_prefix
+        self.root_url = self.client.src_prefixed
 
         # Disallow hitting endpoints that the Gradio app has disabled
         self.is_valid = self.api_name is not False
