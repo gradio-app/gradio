@@ -700,9 +700,9 @@ def update_root_in_config(config: BlocksConfigDict, root: str) -> BlocksConfigDi
     return config
 
 
-def update_root_in_api_info(api_info: dict[str, Any], root: str) -> dict[str, Any]:
+def update_example_values_to_use_public_url(api_info: dict[str, Any]) -> dict[str, Any]:
     """
-    Updates the root url in the api_info dictionary to the new root url.
+    Updates the example values in the api_info dictionary to use a public url
     """
 
     def _add_root_url(file_dict: dict):
@@ -712,8 +712,9 @@ def update_root_in_api_info(api_info: dict[str, Any], root: str) -> dict[str, An
         ):
             if client_utils.is_http_url_like(default_value["url"]):
                 return file_dict
-            # If running locally or in an insecure evironment use the publicly accessible example_input
-            # to avoid SSRF checks
+            # If the default value's url is not already a full public url,
+            # we use the example_input url. This makes it so that the example
+            # value for images, audio, and video components pass SSRF checks.
             default_value["url"] = file_dict["example_input"]["url"]
         return file_dict
 
