@@ -29,7 +29,7 @@ const version = version_raw.replace(/\./g, "-");
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
 const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
 
-export default defineConfig(({ mode, isSsrBuild }) => {
+export default defineConfig(({ mode }) => {
 	const production = mode === "production";
 	const development = mode === "development";
 	return {
@@ -96,15 +96,14 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			inject_component_loader({ mode }),
 			{name: "resolve_svelte",
 			 enforce: "pre",
-			 resolveId(id) {
-				console.log("$$isSSrBuild", isSsrBuild);
-				if(!isSsrBuild){
-					// if (id === "svelte" || id === "svelte/internal") {
-					// 	return { id: "./svelte.js", external: true };
-					// }
-					// if (id.startsWith("svelte/")) {
-					// 	return { id: "./svelte/svelte-submodules.js", external: true };
-					// }
+			 resolveId(id, importer,  options) {
+				if(!options?.ssr){
+					if (id === "svelte" || id === "svelte/internal") {
+						return { id: "./svelte.js", external: true };
+					}
+					if (id.startsWith("svelte/")) {
+						return { id: "./svelte/svelte-submodules.js", external: true };
+					}
 				}
 				}
 			}
