@@ -714,10 +714,7 @@ def update_root_in_api_info(api_info: dict[str, Any], root: str) -> dict[str, An
                 return file_dict
             # If running locally or in an insecure evironment use the publicly accessible example_input
             # to avoid SSRF checks
-            if root.startswith("https"):
-                default_value["url"] = f'{root}{default_value["url"]}'
-            elif client_utils.is_file_obj_with_url(file_dict["example_input"]):
-                default_value["url"] = file_dict["example_input"]["url"]
+            default_value["url"] = file_dict["example_input"]["url"]
         return file_dict
 
     return client_utils.traverse(
