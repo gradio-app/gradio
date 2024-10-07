@@ -1375,7 +1375,6 @@ class Endpoint:
 
     def _download_file(self, x: dict) -> str:
         url_path = self.root_url + "file=" + x["path"]
-        print("URL PATH", url_path)
         if self.client.output_dir is not None:
             os.makedirs(self.client.output_dir, exist_ok=True)
 
