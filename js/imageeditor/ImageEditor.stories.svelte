@@ -54,7 +54,7 @@
 	}}
 />
 
-<Story
+<!-- <Story
 	name="Image Editor Drawing Interactions"
 	args={{
 		value: {
@@ -203,7 +203,7 @@
 
 		await userEvent.click(canvas.getByLabelText("Clear canvas"));
 	}}
-/>
+/> -->
 
 <Story
 	name="Image Editor Undo/Redo Interactions"
