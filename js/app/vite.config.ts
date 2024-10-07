@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => {
 		},
 		build:{
 			rollupOptions: {
-				external: ["/svelte/svelte.js", "/svelte/svelte-submodules.js"],
+				external: ["/svelte/svelte.js", "/svelte/svelte-submodules.js", "svelte", "svelte/*"],
 			}
 		},
 		define: {
@@ -78,11 +78,11 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		ssr: {
-			noExternal: ["@gradio/*", "@huggingface/space-header"]
+			noExternal: ["@gradio/*", "@huggingface/space-header"],
+			external: ["svelte", "svelte/*"]
 		},
-
 		optimizeDeps: {
-			exclude: ["@gradio/*"]
+			exclude: ["@gradio/*", "svelte", "svelte/*"]
 		},
 		plugins: [
 			sveltekit(),

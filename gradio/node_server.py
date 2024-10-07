@@ -100,32 +100,15 @@ def start_node_process(
             if GRADIO_LOCAL_DEV_MODE:
                 env["GRADIO_LOCAL_DEV_MODE"] = "1"
 
-            svelte_path = Path(__file__).parent.joinpath("templates", "frontend", "assets", "svelte", "svelte.js")
-            svelte_submodules = Path(__file__).parent.joinpath("templates", "frontend", "assets", "svelte", "svelte-submodules.js")
-            import tempfile
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".js") as file:
-                file.write(
-"""
-export function resolve(specifier, _, nextResolve) {
-  console.error("specifier", specifier);
-  if (specifier === "svelte/internal" || specifier === "svelte") {
-  return nextResolve('|svelte|');
-}
-  if (specifier.startsWith("svelte/")) {
-  return nextResolve('|svelte_submodules|');
-}
+            register_file = Path(__file__).parent.joinpath("templates", "register.mjs")
 
-
-  return nextResolve(specifier);
-}
-""".replace("|svelte|", str(svelte_path)).replace("|svelte_submodules|", str(svelte_submodules))
-         )
-            print("loader file", file.name)
             node_process = subprocess.Popen(
-                [node_path, SSR_APP_PATH, "--loader", file.name],
+                [node_path, "--import", str(register_file), SSR_APP_PATH],
                 stdout=subprocess.DEVNULL,
                 env=env,
             )
+
+            print("NODE ARGS", node_process.args)
 
             is_working = verify_server_startup(server_name, port, timeout=5)
             if is_working:

@@ -365,6 +365,7 @@ class App(FastAPI):
                     and not path.startswith("/gradio_api")
                     and path not in ["/config", "/login"]
                     and not path.startswith("/theme")
+                    and not path.startswith("/svelte")
                 ):
                     if App.app_port is None:
                         App.app_port = request.url.port or int(
@@ -508,6 +509,7 @@ class App(FastAPI):
 
         @app.get("/svelte/{path:path}")
         def _(path: str):
+            print("svelte path", path)
             svelte_path = routes_safe_join(BUILD_PATH_LIB, UserProvidedPath("svelte"))
             return FileResponse(
                 routes_safe_join(DeveloperPath(svelte_path), UserProvidedPath(path))
