@@ -2523,7 +2523,9 @@ Received inputs:
                 # So we need to manually cancel them. See `self.close()`..
                 self.startup_events()
 
-        self.is_sagemaker = utils.sagemaker_check()
+        self.is_sagemaker = (
+            False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
+        )
         if share is None:
             if self.is_colab:
                 if not quiet:

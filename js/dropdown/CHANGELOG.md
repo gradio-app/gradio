@@ -1,5 +1,23 @@
 # @gradio/dropdown
 
+## 0.8.0-beta.4
+
+### Features
+
+- [#9526](https://github.com/gradio-app/gradio/pull/9526) [`f60bb68`](https://github.com/gradio-app/gradio/commit/f60bb68f52cd0863d9087b3fbc56635e297adef1) - Fix single select dropdown.  Thanks @whitphx!
+
+## 0.8.0-beta.3
+
+### Features
+
+- [#9519](https://github.com/gradio-app/gradio/pull/9519) [`0ab6ac5`](https://github.com/gradio-app/gradio/commit/0ab6ac5dc01b69e4f2462d00c4910f3354441227) - Fix change triggers for dropdown and radio.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
 ## 0.7.13-beta.2
 
 ### Dependency updates
