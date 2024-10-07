@@ -8,7 +8,7 @@ import builtins
 import functools
 import inspect
 import warnings
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator, Callable, Sequence
 from pathlib import Path
 from typing import Literal, Union, cast
 
@@ -81,9 +81,11 @@ class ChatInterface(Blocks):
         title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
-        css: str | Path | None = None,
-        js: str | Path | None = None,
-        head: str | Path | None = None,
+        css: str | None = None,
+        css_paths: str | Path | Sequence[str | Path] | None = None,
+        js: str | None = None,
+        head: str | None = None,
+        head_paths: str | Path | Sequence[str | Path] | None = None,
         analytics_enabled: bool | None = None,
         autofocus: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
@@ -111,9 +113,11 @@ class ChatInterface(Blocks):
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
-            css: custom css as a code string or pathlib.Path to a css file. This css will be included in the demo webpage.
-            js: custom js as a code string or pathlib.Path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: custom html to insert into the head of the demo webpage, either as a code string or a pathlib.Path to an html file. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            css: Custom css as a code string. This css will be included in the demo webpage.
+            css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
+            js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             autofocus: if True, autofocuses to the textbox when the page loads.
             concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
@@ -127,11 +131,13 @@ class ChatInterface(Blocks):
         super().__init__(
             analytics_enabled=analytics_enabled,
             mode="chat_interface",
-            css=css,
             title=title or "Gradio",
             theme=theme,
+            css=css,
+            css_paths=css_paths,
             js=js,
             head=head,
+            head_paths=head_paths,
             fill_height=fill_height,
             fill_width=fill_width,
             delete_cache=delete_cache,
@@ -268,7 +274,6 @@ class ChatInterface(Blocks):
                     fn=examples_fn,
                     cache_examples=self.cache_examples,
                     cache_mode=self.cache_mode,
-                    _defer_caching=True,
                     visible=False,
                     preprocess=False,
                     postprocess=True,
@@ -282,10 +287,6 @@ class ChatInterface(Blocks):
                     for input_component in self.additional_inputs:
                         if not input_component.is_rendered:
                             input_component.render()
-
-            # The example caching must happen after the input components have rendered
-            if examples:
-                self.examples_handler._start_caching()
 
             self.saved_input = State()
             self.chatbot_state = (

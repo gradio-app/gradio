@@ -4,7 +4,7 @@ fastapi<1.0
 ffmpy
 gradio_client==1.4.0-beta.3
 httpx>=0.24.1
-huggingface_hub>=0.22.0
+huggingface_hub>=0.25.1
 Jinja2<4.0
 markupsafe~=2.0
 numpy>=1.0,<3.0
