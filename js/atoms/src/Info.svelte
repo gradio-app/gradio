@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { MarkdownCode as Markdown } from "@gradio/markdown";
+	import { Markdown } from "@gradio/markdown";
 	export let info: string;
 </script>
 

@@ -53,7 +53,7 @@
 	/>
 
 	{#if info}
-		<Info>{info}</Info>
+		<Info {info} />
 	{/if}
 
 	<BaseCheckbox
