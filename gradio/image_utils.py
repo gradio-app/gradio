@@ -7,10 +7,10 @@ from typing import Literal, cast
 
 import numpy as np
 import PIL.Image
+from gradio_client.utils import get_mimetype
 from PIL import ImageOps
 
 from gradio import processing_utils
-from gradio_client.utils import get_mimetype
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843 (remove when requiring Pillow 9.4+)
 

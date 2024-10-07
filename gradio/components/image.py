@@ -12,7 +12,7 @@ import PIL.Image
 from gradio_client import handle_file
 from gradio_client.documentation import document
 from PIL import ImageOps
-from pydantic import Field, ConfigDict
+from pydantic import ConfigDict, Field
 
 from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
