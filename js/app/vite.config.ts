@@ -99,10 +99,10 @@ export default defineConfig(({ mode }) => {
 			 resolveId(id, importer,  options) {
 				if(!options?.ssr){
 					if (id === "svelte" || id === "svelte/internal") {
-						return { id: "./svelte.js", external: true };
+						return { id: "../../../svelte/svelte.js", external: true };
 					}
 					if (id.startsWith("svelte/")) {
-						return { id: "./svelte/svelte-submodules.js", external: true };
+						return { id: "../../../svelte/svelte-submodules.js", external: true };
 					}
 				}
 				}

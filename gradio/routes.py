@@ -509,10 +509,11 @@ class App(FastAPI):
 
         @app.get("/svelte/{path:path}")
         def _(path: str):
-            print("svelte path", path)
-            svelte_path = routes_safe_join(BUILD_PATH_LIB, UserProvidedPath("svelte"))
+            svelte_path = Path(BUILD_PATH_LIB) / "svelte"
             return FileResponse(
-                routes_safe_join(DeveloperPath(svelte_path), UserProvidedPath(path))
+                routes_safe_join(
+                    DeveloperPath(str(svelte_path)), UserProvidedPath(path)
+                )
             )
 
         @app.head("/", response_class=HTMLResponse)
@@ -593,7 +594,11 @@ class App(FastAPI):
 
         @router.get("/custom_component/{id}/{type}/{file_name}/{environment}")
         def custom_component_path(
-            id: str, type: str, file_name: str, environment: Literal["client", "server"], req: fastapi.Request
+            id: str,
+            type: str,
+            file_name: str,
+            environment: Literal["client", "server"],
+            req: fastapi.Request,
         ):
             config = app.get_blocks().config
             components = config["components"]
