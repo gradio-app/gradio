@@ -15,7 +15,7 @@ import time
 import warnings
 import webbrowser
 from collections import defaultdict
-from collections.abc import AsyncIterator, Callable, Sequence, Set
+from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
 from pathlib import Path
 from types import ModuleType
 from typing import (
@@ -1033,6 +1033,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.fill_height = fill_height
         self.fill_width = fill_width
         self.delete_cache = delete_cache
+        self.extra_startup_events: list[Callable[..., Coroutine[Any, Any, Any]]] = []
         if isinstance(css, Path):
             with open(css, encoding="utf-8") as css_file:
                 self.css = css_file.read()
@@ -2521,7 +2522,7 @@ Received inputs:
                 # will be cancelled just by stopping the server.
                 # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
                 # So we need to manually cancel them. See `self.close()`..
-                self.startup_events()
+                self.run_startup_events()
 
         self.is_sagemaker = (
             False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
@@ -2851,13 +2852,17 @@ Received inputs:
                     )[0]
                     component.load_event = dep.get_config()
 
-    def startup_events(self):
+    def run_startup_events(self):
         """Events that should be run when the app containing this block starts up."""
         self._queue.start()
         # So that processing can resume in case the queue was stopped
         self._queue.stopped = False
         self.is_running = True
         self.create_limiter()
+
+    async def run_extra_startup_events(self):
+        for startup_event in self.extra_startup_events:
+            await startup_event()
 
     def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """
