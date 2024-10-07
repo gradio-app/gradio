@@ -6,10 +6,10 @@
 <Meta title="Components/Color Picker" component={ColorPicker} argTypes={{}} />
 
 <Template let:args>
-	<ColorPicker value="Color Picker" {...args} />
+	<ColorPicker label="Color Picker" {...args} />
 </Template>
 
-<Story name="Default" />
+<Story name="Default" args={{ interactive: true }} />
 <Story
 	name="Color Picker with a color value and hidden label"
 	args={{ value: "#FFC0CB", show_label: false, interactive: true }}
