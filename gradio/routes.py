@@ -565,13 +565,10 @@ class App(FastAPI):
                     app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
                 return app.all_app_info
             if not app.api_info:
-                app.api_info = app.get_blocks().get_api_info()
-            info = utils.safe_deepcopy(app.api_info)
-            root = route_utils.get_root_url(
-                request=request, route_path="/info", root_path=app.root_path
-            )
-            info = route_utils.update_root_in_api_info(info, root)
-            return info
+                api_info = cast(dict[str, Any], app.get_blocks().get_api_info())
+                api_info = route_utils.update_example_values_to_use_public_url(api_info)
+                app.api_info = api_info
+            return app.api_info
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
