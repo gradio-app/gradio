@@ -15,7 +15,7 @@ en = {
     "COULD_NOT_GET_SHARE_LINK": "\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app.",
     "COULD_NOT_GET_SHARE_LINK_MISSING_FILE": "\nCould not create share link. Missing file: {}. \n\nPlease check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: \n\n1. Download this file: {}\n2. Rename the downloaded file to: {}\n3. Move the file to this location: {}",
     "COLAB_NO_LOCAL": "Cannot display local interface on google colab, public link created.",
-    "PUBLIC_SHARE_TRUE": "\nTo create a public link, set `share=True` in `launch()`.",
+    "PUBLIC_SHARE_TRUE": "\nTo create a public link, set `share=True` in `launch()` or use the --share flag in the command line.",
     "MODEL_PUBLICLY_AVAILABLE_URL": "Model available publicly at: {} (may take up to a minute for link to be usable)",
     "GENERATING_PUBLIC_LINK": "Generating public link (may take a few seconds...):",
     "BETA_INVITE": "\nThanks for being a Gradio user! If you have questions or feedback, please join our Discord server and chat with us: https://discord.gg/feTf9x3ZSB",

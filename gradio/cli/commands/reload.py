@@ -108,6 +108,7 @@ def main(
     demo_name: str = "demo",
     watch_dirs: Optional[List[str]] = None,
     encoding: str = "utf-8",
+    share: bool = False,
 ):
     # default execution pattern to start the server and watch changes
     module_name, path, watch_sources, demo_name = _setup_config(
@@ -124,6 +125,7 @@ def main(
             GRADIO_WATCH_MODULE_NAME=module_name,
             GRADIO_WATCH_DEMO_NAME=demo_name,
             GRADIO_WATCH_DEMO_PATH=str(path),
+            GRADIO_SHARE=str(share),
         ),
     )
     if popen.poll() is None:
