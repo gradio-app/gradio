@@ -277,6 +277,7 @@
 	.wrap:focus-within {
 		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
+		background: var(--input-background-fill-focus);
 	}
 
 	.wrap-inner {

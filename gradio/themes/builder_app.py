@@ -14,8 +14,7 @@ themes = [
     gr.themes.Glass,
     gr.themes.Origin,
     gr.themes.Citrus,
-    gr.themes.Colorful,
-    gr.themes.Headlines,
+    gr.themes.Seafoam,
 ]
 colors = gr.themes.Color.all
 sizes = gr.themes.Size.all
@@ -84,6 +83,7 @@ with gr.Blocks(  # noqa: SIM117
     theme=gr.themes.Base(),
     css=css,
     title="Gradio Theme Builder",
+    head="<style id='theme_css'></style>",
 ) as demo:
     with gr.Row():
         with gr.Column(scale=1, elem_id="controls", min_width=400):
@@ -330,6 +330,8 @@ with gr.Blocks(  # noqa: SIM117
                 interactive=True,
             )
 
+            gr.Interface(lambda x: x, "number", "textbox")
+
             with gr.Row():
                 slider1 = gr.Slider(label="Slider 1")
                 slider2 = gr.Slider(label="Slider 2")
@@ -460,26 +462,6 @@ with gr.Blocks(  # noqa: SIM117
 
         secret_css = gr.Textbox(visible=False)
         secret_font = gr.JSON(visible=False)
-
-        demo.load(  # doing this via python was not working for some reason, so using this hacky method for now
-            None,
-            None,
-            None,
-            js="""() => {
-                document.head.innerHTML += "<style id='theme_css'></style>";
-                let evt_listener = window.setTimeout(
-                    () => {
-                        load_theme_btn = document.querySelector('#load_theme');
-                        if (load_theme_btn) {
-                            load_theme_btn.click();
-                            window.clearTimeout(evt_listener);
-                        }
-                    },
-                    100
-                );
-            }""",
-            show_api=False,
-        )
 
         theme_inputs = (
             [primary_hue, secondary_hue, neutral_hue]
