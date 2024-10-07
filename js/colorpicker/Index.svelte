@@ -33,6 +33,7 @@
 		clear_status: LoadingStatus;
 	}>;
 	export let interactive: boolean;
+	export let disabled = false;
 </script>
 
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
@@ -49,7 +50,7 @@
 		{label}
 		{info}
 		{show_label}
-		disabled={!interactive}
+		disabled={!interactive || disabled}
 		on:change={() => gradio.dispatch("change")}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}

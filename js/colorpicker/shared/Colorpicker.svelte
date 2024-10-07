@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { createEventDispatcher, afterUpdate, onMount } from "svelte";
+	import { createEventDispatcher, afterUpdate, onMount, tick } from "svelte";
 	import tinycolor from "tinycolor2";
 	import { BlockTitle } from "@gradio/atoms";
 	import { click_outside } from "./events";
 	import { Eyedropper } from "@gradio/icons";
+	import { hsva_to_rgba, format_color } from "./utils";
 
 	export let value = "#000000";
 	export let value_is_output = false;
@@ -27,21 +28,9 @@
 		submit: undefined;
 		blur: undefined;
 		focus: undefined;
+		selected: string;
+		close: void;
 	}>();
-
-	onMount(async () => {
-		// @ts-ignore
-		eyedropper_supported = window !== undefined && !!window.EyeDropper;
-	});
-
-	function request_eyedropper(): void {
-		// @ts-ignore
-		const eyeDropper = new EyeDropper();
-
-		eyeDropper.open().then((result: { sRGBHex: string }) => {
-			value = result.sRGBHex;
-		});
-	}
 
 	let sl_marker_pos = [0, 0];
 	let sl_rect: DOMRect | null = null;
@@ -53,23 +42,6 @@
 	let hue_rect: DOMRect | null = null;
 	let hue_moving = false;
 
-	const modes = [
-		["Hex", "hex"],
-		["RGB", "rgb"],
-		["HSL", "hsl"]
-	] as const;
-
-	function format_color(color: string, mode: "hex" | "rgb" | "hsl"): string {
-		if (mode === "hex") {
-			return tinycolor(color).toHexString();
-		} else if (mode === "rgb") {
-			return tinycolor(color).toRgbString();
-		}
-		return tinycolor(color).toHslString();
-	}
-
-	$: color_string = format_color(value, current_mode);
-
 	function handle_hue_down(
 		event: MouseEvent & { currentTarget: HTMLDivElement }
 	): void {
@@ -80,11 +52,30 @@
 
 	function update_hue_from_mouse(x: number): void {
 		if (!hue_rect) return;
-		const _x = Math.max(0, Math.min(x - hue_rect.left, hue_rect.width));
+		const _x = Math.max(0, Math.min(x - hue_rect.left, hue_rect.width)); // Get the x-coordinate relative to the box
 		hue_marker_pos = _x;
-		const _hue = (_x / hue_rect.width) * 360;
+		const _hue = (_x / hue_rect.width) * 360; // Scale the x position to a hue value (0-360)
+
 		hue = _hue;
-		update_color();
+
+		value = hsva_to_rgba({ h: _hue, s: sl[0], v: sl[1], a: 1 });
+	}
+
+	function update_color_from_mouse(x: number, y: number): void {
+		if (!sl_rect) return;
+		const _x = Math.max(0, Math.min(x - sl_rect.left, sl_rect.width));
+		const _y = Math.max(0, Math.min(y - sl_rect.top, sl_rect.height));
+		sl_marker_pos = [_x, _y];
+		const _hsva = {
+			h: hue * 1,
+			s: _x / sl_rect.width,
+			v: 1 - _y / sl_rect.height,
+			a: 1
+		};
+
+		sl = [_hsva.s, _hsva.v];
+
+		value = hsva_to_rgba(_hsva);
 	}
 
 	function handle_sl_down(
@@ -93,20 +84,6 @@
 		sl_moving = true;
 		sl_rect = event.currentTarget.getBoundingClientRect();
 		update_color_from_mouse(event.clientX, event.clientY);
-	}
-
-	function update_color_from_mouse(x: number, y: number): void {
-		if (!sl_rect) return;
-		const _x = Math.max(0, Math.min(x - sl_rect.left, sl_rect.width));
-		const _y = Math.max(0, Math.min(y - sl_rect.top, sl_rect.height));
-		sl_marker_pos = [_x, _y];
-		sl = [_x / sl_rect.width, 1 - _y / sl_rect.height];
-		update_color();
-	}
-
-	function update_color(): void {
-		value = tinycolor({ h: hue, s: sl[0], v: sl[1] }).toRgbString();
-		dispatch("change", value);
 	}
 
 	function handle_move(event: MouseEvent): void {
@@ -119,18 +96,53 @@
 		hue_moving = false;
 	}
 
-	function update_from_input(): void {
-		const tc = tinycolor(value);
-		const hsv = tc.toHsv();
-		hue = hsv.h;
-		sl = [hsv.s, hsv.v];
-		hue_marker_pos = (hue / 360) * (hue_rect?.width || 0);
-		sl_marker_pos = [
-			sl[0] * (sl_rect?.width || 0),
-			(1 - sl[1]) * (sl_rect?.height || 0)
-		];
-		dispatch("change", value);
+	async function update_mouse_from_color(color: string): Promise<void> {
+		if (sl_moving || hue_moving) return;
+		await tick();
+		if (!color) return;
+
+		if (!sl_rect && sl_wrap) {
+			sl_rect = sl_wrap.getBoundingClientRect();
+		}
+
+		if (!hue_rect && hue_wrap) {
+			hue_rect = hue_wrap.getBoundingClientRect();
+		}
+
+		// Exit if we still don't have valid rectangles
+		if (!sl_rect || !hue_rect) return;
+
+		const hsva = tinycolor(color).toHsv();
+		const _x = hsva.s * sl_rect.width;
+		const _y = (1 - hsva.v) * sl_rect.height;
+		sl_marker_pos = [_x, _y];
+		sl = [hsva.s, hsva.v];
+		hue = hsva.h;
+		hue_marker_pos = (hsva.h / 360) * hue_rect.width;
 	}
+
+	function request_eyedropper(): void {
+		// @ts-ignore
+		const eyeDropper = new EyeDropper();
+
+		eyeDropper.open().then((result: { sRGBHex: string }) => {
+			value = result.sRGBHex;
+		});
+	}
+
+	const modes = [
+		["Hex", "hex"],
+		["RGB", "rgb"],
+		["HSL", "hsl"]
+	] as const;
+
+	$: color_string = format_color(value, current_mode);
+	$: color_string && dispatch("selected", color_string);
+
+	onMount(async () => {
+		// @ts-ignore
+		eyedropper_supported = window !== undefined && !!window.EyeDropper;
+	});
 
 	function handle_click_outside(): void {
 		dialog_open = false;
@@ -147,7 +159,13 @@
 		value_is_output = false;
 	});
 
+	$: update_mouse_from_color(value);
 	$: value, handle_change();
+
+	function handle_click(): void {
+		dispatch("selected", color_string);
+		dispatch("close");
+	}
 </script>
 
 <BlockTitle {show_label} {info}>{label}</BlockTitle>
@@ -155,7 +173,10 @@
 	class="dialog-button"
 	style:background={value}
 	{disabled}
-	on:click={() => (dialog_open = !dialog_open)}
+	on:click={() => {
+		update_mouse_from_color(value);
+		dialog_open = !dialog_open;
+	}}
 />
 
 <svelte:window on:mousemove={handle_move} on:mouseup={handle_end} />
@@ -170,9 +191,9 @@
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
 			class="color-gradient"
-			bind:this={sl_wrap}
 			on:mousedown={handle_sl_down}
 			style="--hue:{hue}"
+			bind:this={sl_wrap}
 		>
 			<div
 				class="marker"
@@ -190,13 +211,14 @@
 		</div>
 
 		<div class="input">
-			<div class="swatch" style:background={value}></div>
+			<button class="swatch" style:background={value} on:click={handle_click}
+			></button>
 			<div>
 				<div class="input-wrap">
 					<input
 						type="text"
 						bind:value={color_string}
-						on:change={update_from_input}
+						on:change={(e) => (value = e.currentTarget.value)}
 					/>
 					<button class="eyedropper" on:click={request_eyedropper}>
 						{#if eyedropper_supported}
@@ -225,7 +247,10 @@
 		width: var(--size-10);
 		height: var(--size-5);
 		border: var(--block-border-width) solid var(--block-border-color);
-		cursor: pointer;
+	}
+
+	.dialog-button:disabled {
+		cursor: not-allowed;
 	}
 
 	.input {
