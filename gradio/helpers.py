@@ -19,7 +19,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
-from gradio.context import Context, LocalContext, get_blocks_context
+from gradio.context import Context, LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
@@ -51,7 +51,6 @@ def create_examples(
     *,
     example_labels: list[str] | None = None,
     visible: bool = True,
-    _defer_caching: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -70,7 +69,6 @@ def create_examples(
         postprocess=postprocess,
         api_name=api_name,
         batch=batch,
-        _defer_caching=_defer_caching,
         example_labels=example_labels,
         visible=visible,
         _initiated_directly=False,
@@ -111,7 +109,6 @@ class Examples:
         *,
         example_labels: list[str] | None = None,
         visible: bool = True,
-        _defer_caching: bool = False,
         _initiated_directly: bool = True,
     ):
         """
@@ -175,8 +172,6 @@ class Examples:
 
         if self.cache_examples and cache_mode == "lazy":
             self.cache_examples = "lazy"
-
-        self._defer_caching = _defer_caching
 
         if not isinstance(inputs, Sequence):
             inputs = [inputs]
@@ -313,45 +308,74 @@ class Examples:
         ]
 
     def create(self) -> None:
-        """Caches the examples if self.cache_examples is True and creates the Dataset
-        component to hold the examples"""
+        """Creates the Dataset component to hold the examples"""
 
-        async def load_example(example_tuple):
-            _, example_value = example_tuple
-            processed_example = self._get_processed_example(example_value)
-            if len(self.inputs_with_examples) == 1:
-                return update(
-                    value=processed_example[0],
-                    **self.dataset.component_props[0],  # type: ignore
-                )
-            return [
-                update(value=processed_example[i], **self.dataset.component_props[i])  # type: ignore
-                for i in range(len(self.inputs_with_examples))
-            ]
+        self.root_block = Context.root_block
+        if self.root_block:
+            self.root_block.extra_startup_events.append(self._start_caching)
 
-        root_block = get_blocks_context()
-        if root_block:
-            self.load_input_event = self.dataset.click(
-                load_example,
-                inputs=[self.dataset],
-                outputs=self.inputs_with_examples,  # type: ignore
-                show_progress="hidden",
-                postprocess=False,
-                queue=False,
-                api_name=self.api_name,
-                show_api=False,
-            )
-            if self.run_on_click and not self.cache_examples:
-                if self.fn is None:
-                    raise ValueError("Cannot run_on_click if no function is provided")
-                self.load_input_event.then(
-                    self.fn,
-                    inputs=self.inputs,  # type: ignore
-                    outputs=self.outputs,  # type: ignore
+            if self.cache_examples == True:  # noqa: E712
+
+                def load_example_with_output(example_tuple):
+                    example_id, example_value = example_tuple
+                    processed_example = self._get_processed_example(
+                        example_value
+                    ) + self.load_from_cache(example_id)
+                    return utils.resolve_singleton(processed_example)
+
+                self.cache_event = self.load_input_event = self.dataset.click(
+                    load_example_with_output,
+                    inputs=[self.dataset],
+                    outputs=self.inputs_with_examples + self.outputs,  # type: ignore
+                    show_progress="hidden",
+                    postprocess=False,
+                    queue=False,
+                    api_name=self.api_name,
                     show_api=False,
                 )
-        if not self._defer_caching:
-            self._start_caching()
+            else:
+
+                def load_example(example_tuple):
+                    _, example_value = example_tuple
+                    processed_example = self._get_processed_example(example_value)
+                    if len(self.inputs_with_examples) == 1:
+                        return update(
+                            value=processed_example[0],
+                            **self.dataset.component_props[0],  # type: ignore
+                        )
+                    return [
+                        update(
+                            value=processed_example[i],
+                            **self.dataset.component_props[i],  # type: ignore
+                        )
+                        for i in range(len(self.inputs_with_examples))
+                    ]
+
+                self.load_input_event = self.dataset.click(
+                    load_example,
+                    inputs=[self.dataset],
+                    outputs=self.inputs_with_examples,  # type: ignore
+                    show_progress="hidden",
+                    postprocess=False,
+                    queue=False,
+                    api_name=self.api_name,
+                    show_api=False,
+                )
+
+                if self.cache_examples == "lazy":
+                    self.lazy_cache()
+
+                if self.run_on_click and self.cache_examples == False:  # noqa: E712
+                    if self.fn is None:
+                        raise ValueError(
+                            "Cannot run_on_click if no function is provided"
+                        )
+                    self.load_input_event.then(
+                        self.fn,
+                        inputs=self.inputs,  # type: ignore
+                        outputs=self.outputs,  # type: ignore
+                        show_api=False,
+                    )
 
     async def _postprocess_output(self, output) -> list:
         """
@@ -377,7 +401,7 @@ class Examples:
                 return cached_index
         return None
 
-    def _start_caching(self):
+    async def _start_caching(self):
         if self.cache_examples:
             for example in self.examples:
                 if len([ex for ex in example if ex is not None]) != len(self.inputs):
@@ -389,8 +413,6 @@ class Examples:
                         "or you provide default values for those particular parameters in your function."
                     )
                     break
-        if self.cache_examples == "lazy":
-            client_utils.synchronize_async(self.lazy_cache)
         if self.cache_examples is True:
             if wasm_utils.IS_WASM:
                 # In the Wasm mode, the `threading` module is not supported,
@@ -402,9 +424,9 @@ class Examples:
                     "Setting `cache_examples=True` is not supported in the Wasm mode. You can set `cache_examples='lazy'` to cache examples after first use."
                 )
             else:
-                client_utils.synchronize_async(self.cache)
+                await self.cache()
 
-    async def lazy_cache(self) -> None:
+    def lazy_cache(self) -> None:
         print(
             f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
             end="",
@@ -473,9 +495,8 @@ class Examples:
         """
         Caches examples so that their predictions can be shown immediately.
         """
-        blocks_config = get_blocks_context()
-        if blocks_config is None or Context.root_block is None:
-            raise ValueError("Cannot cache examples if not in a Blocks context")
+        if self.root_block is None:
+            raise Error("Cannot cache examples if not in a Blocks context.")
         if Path(self.cached_file).exists():
             print(
                 f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
@@ -510,7 +531,7 @@ class Examples:
             # create a fake dependency to process the examples and get the predictions
             from gradio.events import EventListenerMethod
 
-            _, fn_index = blocks_config.set_event_trigger(
+            _, fn_index = self.root_block.default_config.set_event_trigger(
                 [EventListenerMethod(Context.root_block, "load")],
                 fn=fn,
                 inputs=self.inputs_with_examples,  # type: ignore
@@ -528,8 +549,8 @@ class Examples:
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
                 with utils.MatplotlibBackendMananger():
-                    prediction = await Context.root_block.process_api(
-                        block_fn=blocks_config.fns[fn_index],
+                    prediction = await self.root_block.process_api(
+                        block_fn=self.root_block.default_config.fns[fn_index],
                         inputs=processed_input,
                         request=None,
                     )
@@ -542,30 +563,7 @@ class Examples:
                     output = [value[0] for value in output]
                 self.cache_logger.flag(output)
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
-            blocks_config.fns.pop(fn_index)
-
-        # Remove the original load_input_event and replace it with one that
-        # also populates the input. We do it this way to to allow the cache()
-        # method to be called independently of the create() method
-        blocks_config.fns.pop(self.load_input_event["id"])
-
-        def load_example(example_tuple):
-            example_id, example_value = example_tuple
-            processed_example = self._get_processed_example(
-                example_value
-            ) + self.load_from_cache(example_id)
-            return utils.resolve_singleton(processed_example)
-
-        self.cache_event = self.load_input_event = self.dataset.click(
-            load_example,
-            inputs=[self.dataset],
-            outputs=self.inputs_with_examples + self.outputs,  # type: ignore
-            show_progress="hidden",
-            postprocess=False,
-            queue=False,
-            api_name=self.api_name,
-            show_api=False,
-        )
+            self.root_block.default_config.fns.pop(fn_index)
 
     def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
