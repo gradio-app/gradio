@@ -2522,7 +2522,7 @@ Received inputs:
                 # will be cancelled just by stopping the server.
                 # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
                 # So we need to manually cancel them. See `self.close()`..
-                self.startup_events()
+                self.run_startup_events()
 
         self.is_sagemaker = utils.sagemaker_check()
         if share is None:
@@ -2850,15 +2850,17 @@ Received inputs:
                     )[0]
                     component.load_event = dep.get_config()
 
-    async def startup_events(self):
+    def run_startup_events(self):
         """Events that should be run when the app containing this block starts up."""
         self._queue.start()
         # So that processing can resume in case the queue was stopped
         self._queue.stopped = False
         self.is_running = True
+        self.create_limiter()
+
+    async def run_extra_startup_events(self):
         for startup_event in self.extra_startup_events:
             await startup_event()
-        self.create_limiter()
 
     def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """

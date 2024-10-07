@@ -1371,7 +1371,8 @@ class App(FastAPI):
         @router.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:
-                await app.get_blocks().startup_events()
+                app.get_blocks().run_startup_events()
+                await app.get_blocks().run_extra_startup_events()
                 app.startup_events_triggered = True
                 return True
             return False
@@ -1601,9 +1602,10 @@ def mount_gradio_app(
     async def new_lifespan(app: FastAPI):
         async with old_lifespan(
             app
-        ):  # Instert the startup events inside the FastAPI context manager
+        ):  # Insert the startup events inside the FastAPI context manager
             async with gradio_app.router.lifespan_context(gradio_app):
-                await gradio_app.get_blocks().startup_events()
+                gradio_app.get_blocks().run_startup_events()
+                await gradio_app.get_blocks().run_extra_startup_events()
                 yield
 
     app.router.lifespan_context = new_lifespan
