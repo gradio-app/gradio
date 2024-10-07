@@ -26,7 +26,8 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/icons": "workspace:^",
-		"tinycolor2": "^1.6.0"
+		"tinycolor2": "^1.6.0",
+		"@types/tinycolor2": "^1.4.6"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

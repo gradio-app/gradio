@@ -934,6 +934,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@types/tinycolor2':
+        specifier: ^1.4.6
+        version: 1.4.6
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
