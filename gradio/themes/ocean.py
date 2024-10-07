@@ -6,7 +6,7 @@ from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
 
 
-class Seafoam(Base):
+class Ocean(Base):
     def __init__(
         self,
         *,
@@ -39,7 +39,7 @@ class Seafoam(Base):
             font=font,
             font_mono=font_mono,
         )
-        self.name = "seafoam"
+        self.name = "ocean"
         super().set(
             button_border_width="0px",
             checkbox_label_border_width="1px",

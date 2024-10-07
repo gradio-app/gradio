@@ -14,7 +14,7 @@ themes = [
     gr.themes.Glass,
     gr.themes.Origin,
     gr.themes.Citrus,
-    gr.themes.Seafoam,
+    gr.themes.Ocean,
 ]
 colors = gr.themes.Color.all
 sizes = gr.themes.Size.all

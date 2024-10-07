@@ -91,6 +91,7 @@ demo = gr.Interface(
     outputs=[
         gr.State(value=lambda: random.choice(string.ascii_lowercase))
     ],
+    theme="citrus",
 )
 
 if __name__ == "__main__":

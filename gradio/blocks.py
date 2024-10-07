@@ -114,7 +114,7 @@ BUILT_IN_THEMES: dict[str, Theme] = {
         themes.Glass(),
         themes.Origin(),
         themes.Citrus(),
-        themes.Seafoam(),
+        themes.Ocean(),
     ]
 }
 

@@ -14,7 +14,7 @@ def change_textbox(choice):
     else:
         return gr.Textbox(visible=False), gr.Button(interactive=False)
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme="ocean") as demo:
     radio = gr.Radio(
         ["short", "long", "none"], label="What kind of essay would you like to write?"
     )
@@ -26,6 +26,7 @@ with gr.Blocks() as demo:
     minimum_slider = gr.Slider(0, 100, 0, label="min")
     maximum_slider = gr.Slider(0, 100, 100, label="max")
     submit_btn = gr.Button("Submit", variant="primary")
+    submit_btn = gr.Button("Submit", variant="secondary")
 
     with gr.Row():
         country = gr.Dropdown(list(countries_cities_dict.keys()), label="Country")
