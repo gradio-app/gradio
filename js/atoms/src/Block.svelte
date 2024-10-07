@@ -17,6 +17,7 @@
 	export let overflow_behavior: "visible" | "auto" = "auto";
 	export let scale: number | null = null;
 	export let min_width = 0;
+	export let flex: boolean = false;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
@@ -41,6 +42,7 @@
 	class:hidden={visible === false}
 	class="block {elem_classes.join(' ')}"
 	class:padded={padding}
+	class:flex
 	class:border_focus={border_mode === "focus"}
 	class:border_contrast={border_mode === "contrast"}
 	class:hide-container={!explicit_call && !container}
@@ -88,6 +90,11 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.flex {
+		display: flex;
+		flex-direction: column;
 	}
 	.hide-container {
 		margin: 0;
