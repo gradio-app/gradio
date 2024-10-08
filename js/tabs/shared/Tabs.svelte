@@ -166,6 +166,7 @@
 					<button
 						role="tab"
 						class:selected={t.id === $selected_tab}
+						class:hide={!t.visible}
 						aria-selected={t.id === $selected_tab}
 						aria-controls={t.elem_id}
 						disabled={!t.interactive}
