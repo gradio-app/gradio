@@ -29,9 +29,12 @@ test("selecting plotly should show plotly plot and pressing clear should clear o
 	await page.getByLabel("Social Distancing?").check();
 
 	await page.click("text=Submit");
-	await expect(page.locator(".js-plotly-plot")).toHaveCount(1);
+
+	const plotly_plot = page.getByTestId("plotly");
+	await expect(plotly_plot).toHaveCount(1);
+
 	await page.getByRole("button", { name: "Clear" }).click();
-	await expect(page.locator(".js-plotly-plot")).toHaveCount(0);
+	await expect(plotly_plot).toHaveCount(0);
 });
 
 test("selecting altair should show altair plot and pressing clear should clear output", async ({
@@ -45,7 +48,7 @@ test("selecting altair should show altair plot and pressing clear should clear o
 
 	await page.click("text=Submit");
 
-	const altair = await page.getByTestId("altair");
+	const altair = page.getByTestId("altair");
 	await expect(altair).toHaveCount(1);
 
 	await page.getByRole("button", { name: "Clear" }).click();
@@ -63,7 +66,7 @@ test("selecting bokeh should show bokeh plot and pressing clear should clear out
 
 	await page.click("text=Submit");
 
-	const altair = await page.getByTestId("bokeh");
+	const altair = page.getByTestId("bokeh");
 	await expect(altair).toHaveCount(1);
 
 	await page.getByRole("button", { name: "Clear" }).click();
