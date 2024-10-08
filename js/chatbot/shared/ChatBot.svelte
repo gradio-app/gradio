@@ -142,7 +142,13 @@
 		show_scroll_button = false;
 	}
 
-	let on_child_component_load: (() => void) | null = null;
+	let scroll_after_component_load = false;
+	function on_child_component_load(): void {
+		if (scroll_after_component_load) {
+			scroll_to_bottom();
+			scroll_after_component_load = false;
+		}
+	}
 
 	async function scroll_on_value_update(): Promise<void> {
 		if (!autoscroll) return;
@@ -153,11 +159,10 @@
 			scroll_to_bottom();
 
 			// Child components may be loaded asynchronously,
-			// so we set the on:load event handler to trigger a scroll to bottom after they load.
-			on_child_component_load = scroll_to_bottom;
+			// so trigger the scroll again after they load.
+			scroll_after_component_load = true;
 		} else {
 			show_scroll_button = true;
-			on_child_component_load = null;
 		}
 	}
 	onMount(() => {
