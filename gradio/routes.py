@@ -639,8 +639,9 @@ class App(FastAPI):
                 UserProvidedPath(requested_path),
             )
 
-            if environment == "server":
-                return PlainTextResponse(path)
+            # Uncomment when we support custom component SSR
+            # if environment == "server":
+            #     return PlainTextResponse(path)
 
             key = f"{id}-{type}-{file_name}"
 
