@@ -384,7 +384,7 @@ class Block:
         if client_utils.is_http_url_like(url_or_file_path):
             return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
         else:
-            data = {"path": url_or_file_path}
+            data = {"path": url_or_file_path, "meta": {"_type": "gradio.FileData"}}
             try:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
@@ -917,9 +917,14 @@ class BlocksConfig:
                 block_config["renderable"] = renderable._id
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
-                # .example_inputs() has been renamed .example_payload() but
-                # we use the old name for backwards compatibility with custom components
-                # created on Gradio 4.20.0 or earlier
+                if hasattr(block, "api_info_as_input"):
+                    block_config["api_info_as_input"] = block.api_info_as_input()  # type: ignore
+                else:
+                    block_config["api_info_as_input"] = block.api_info()  # type: ignore
+                if hasattr(block, "api_info_as_output"):
+                    block_config["api_info_as_output"] = block.api_info_as_output()  # type: ignore
+                else:
+                    block_config["api_info_as_output"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
 
@@ -2898,7 +2903,7 @@ Received inputs:
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
-                info = component["api_info"]
+                info = component.get("api_info_as_input", component.get("api_info"))
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
 
@@ -2943,7 +2948,7 @@ Received inputs:
                         "type": info,
                         "python_type": {
                             "type": python_type,
-                            "description": info.get("description", ""),
+                            "description": info.get("additional_description", ""),
                         },
                         "component": type.capitalize(),
                         "example_input": example,
@@ -2965,7 +2970,7 @@ Received inputs:
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
-                info = component["api_info"]
+                info = component.get("api_info_as_output", component["api_info"])
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["returns"].append(

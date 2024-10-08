@@ -34,6 +34,7 @@ from gradio.components.chatbot import (
     TupleFormat,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
+from gradio.context import get_blocks_context
 from gradio.events import Dependency, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
@@ -88,6 +89,7 @@ class ChatInterface(Blocks):
         head_paths: str | Path | Sequence[str | Path] | None = None,
         analytics_enabled: bool | None = None,
         autofocus: bool = True,
+        autoscroll: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
         fill_height: bool = True,
         delete_cache: tuple[int, int] | None = None,
@@ -120,6 +122,7 @@ class ChatInterface(Blocks):
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             autofocus: if True, autofocuses to the textbox when the page loads.
+            autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: if True, the chat interface will expand to the height of window.
             delete_cache: a tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
@@ -211,6 +214,7 @@ class ChatInterface(Blocks):
                         example_message["icon"] = example_icons[index]
                     examples_messages.append(example_message)
 
+            self.provided_chatbot = chatbot is not None
             if chatbot:
                 if self.type != chatbot.type:
                     warnings.warn(
@@ -228,7 +232,8 @@ class ChatInterface(Blocks):
                     scale=1,
                     height=200 if fill_height else None,
                     type=self.type,
-                    examples=examples_messages,
+                    autoscroll=autoscroll,
+                    examples=examples_messages if not self.additional_inputs else None,
                 )
 
             with Group():
@@ -267,17 +272,27 @@ class ChatInterface(Blocks):
                     examples_fn = self._examples_stream_fn
                 else:
                     examples_fn = self._examples_fn
-                self.examples_handler = Examples(
-                    examples=examples,
-                    inputs=[self.textbox] + self.additional_inputs,
-                    outputs=self.chatbot,
-                    fn=examples_fn,
-                    cache_examples=self.cache_examples,
-                    cache_mode=self.cache_mode,
-                    visible=False,
-                    preprocess=False,
-                    postprocess=True,
-                )
+                if self.examples and self.additional_inputs:
+                    self.examples_handler = Examples(
+                        examples=examples,
+                        inputs=[self.textbox] + self.additional_inputs,
+                        outputs=self.chatbot,
+                        fn=examples_fn,
+                        cache_examples=self.cache_examples,
+                        cache_mode=self.cache_mode,
+                    )
+                else:
+                    self.examples_handler = Examples(
+                        examples=examples,
+                        inputs=[self.textbox] + self.additional_inputs,
+                        outputs=self.chatbot,
+                        fn=examples_fn,
+                        cache_examples=self.cache_examples,
+                        cache_mode=self.cache_mode,
+                        visible=False,
+                        preprocess=False,
+                        postprocess=True,
+                    )
 
             any_unrendered_inputs = any(
                 not inp.is_rendered for inp in self.additional_inputs
@@ -336,7 +351,11 @@ class ChatInterface(Blocks):
             )
         )
 
-        if isinstance(self.chatbot, Chatbot) and self.examples:
+        if (
+            isinstance(self.chatbot, Chatbot)
+            and self.examples
+            and not self.additional_inputs
+        ):
             if self.cache_examples:
                 self.chatbot.example_select(
                     self.example_clicked,
@@ -536,9 +555,12 @@ class ChatInterface(Blocks):
                 history.append([message["text"], cast(str, response)])  # type: ignore
         else:
             for x in message.get("files", []):
-                history.append(
-                    {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
-                )
+                if isinstance(x, dict):
+                    history.append(
+                        {"role": "user", "content": cast(FileDataDict, x)}  # type: ignore
+                    )
+                else:
+                    history.append({"role": "user", "content": (x,)})  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
                 return
             else:
@@ -747,3 +769,10 @@ class ChatInterface(Blocks):
         history, msg = await self._delete_prev_fn(msg, history)
         previous_msg = previous_input[-1] if len(previous_input) else msg
         return history, msg, previous_msg, previous_input
+
+    def render(self) -> ChatInterface:
+        # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
+        if get_blocks_context() and not self.provided_chatbot:
+            self.chatbot.height = 400
+            super().render()
+        return self

@@ -1366,9 +1366,8 @@ class Endpoint:
         # use the suffix of the original name to determine format to save it to in cache.
         return {
             "path": file_path,
-            "orig_name": utils.strip_invalid_filename_characters(orig_name.name)
-            if orig_name.suffix
-            else None,
+            "orig_name": utils.strip_invalid_filename_characters(orig_name.name),
+            "meta": {"_type": "gradio.FileData"} if orig_name.suffix else None,
         }
 
     def _download_file(self, x: dict) -> str:

@@ -21,6 +21,7 @@
 	export let x: string;
 	export let y: string;
 	export let color: string | null = null;
+	export let root: string;
 	$: unique_colors =
 		color && value && value.datatypes[color] === "nominal"
 			? Array.from(new Set(_data.map((d) => d[color])))
@@ -516,7 +517,7 @@
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
-	<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} info={undefined}>{label}</BlockTitle>
 	{#if value && is_browser}
 		<div bind:this={chart_element}></div>
 

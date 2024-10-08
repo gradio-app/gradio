@@ -31,6 +31,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let allow_custom_value = false;
+	export let root: string;
 	export let gradio: Gradio<{
 		change: never;
 		input: never;
@@ -65,6 +66,7 @@
 			bind:value_is_output
 			{choices}
 			{max_choices}
+			{root}
 			{label}
 			{info}
 			{show_label}
@@ -86,6 +88,7 @@
 			bind:value_is_output
 			{choices}
 			{label}
+			{root}
 			{info}
 			{show_label}
 			{filterable}

@@ -39,7 +39,7 @@
 	style:max-height={get_dimension(max_height)}
 	style:min-height={get_dimension(min_height)}
 	id={elem_id}
-	class={elem_classes.join(" ")}
+	class="row {elem_classes.join(' ')}"
 >
 	{#if loading_status && show_progress && gradio}
 		<StatusTracker
@@ -84,6 +84,12 @@
 
 	.stretch {
 		align-items: stretch;
+	}
+
+	.stretch > :global(.column > *),
+	.stretch > :global(.column > .form > *) {
+		flex-grow: 1;
+		flex-shrink: 0;
 	}
 
 	div > :global(*),

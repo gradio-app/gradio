@@ -265,12 +265,7 @@
 		//@ts-ignore
 		config = data.config;
 		window.gradio_config = config;
-		// api_url =
-		// 	BUILD_MODE === "dev" || gradio_dev_mode === "dev"
-		// 		? `http://localhost:${
-		// 				typeof server_port === "number" ? server_port : 7860
-		// 			}`
-		// 		: host || space || src || location.origin;
+		const api_url = location.origin;
 		window.gradio_config = data.config;
 		config = data.config;
 
@@ -298,7 +293,7 @@
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
-				let url = new URL(`http://${host}/dev/reload`);
+				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
 					new_message_fn("Error reloading app", "error");
@@ -317,9 +312,16 @@
 						throw new Error("Could not resolve app config");
 					}
 
-					// config = app.config;
+					config = app.config;
 					window.__gradio_space__ = config.space_id;
 					await mount_custom_css(config.css);
+					await add_custom_html_head(config.head);
+					css_ready = true;
+					window.__is_colab__ = config.is_colab;
+					dispatch("loaded");
+					// // config = app.config;
+					// window.__gradio_space__ = config.space_id;
+					// await mount_custom_css(config.css);
 				});
 			}, 200);
 		}
