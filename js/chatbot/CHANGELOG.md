@@ -1,5 +1,23 @@
 # @gradio/chatbot
 
+## 0.14.0-beta.7
+
+### Features
+
+- [#9571](https://github.com/gradio-app/gradio/pull/9571) [`148345d`](https://github.com/gradio-app/gradio/commit/148345d107763754710505281ad70368ebc6f3ec) - Fix chatinterface embedding height issues.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.6
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/image@0.16.0-beta.6
+- @gradio/gallery@0.13.0-beta.6
+- @gradio/markdown@0.10.0-beta.4
+- @gradio/plot@0.7.0-beta.5
+
 ## 0.14.0-beta.6
 
 ### Features

@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.6.0-beta.4
+
+### Features
+
+- [#9483](https://github.com/gradio-app/gradio/pull/9483) [`8dc7c12`](https://github.com/gradio-app/gradio/commit/8dc7c12389311b60efcde1b9d3e3668a34d2dc00) - Send Streaming data over Websocket if possible. Also support base64 output format for images.  Thanks @freddyaboulton!
+
 ## 1.6.0-beta.3
 
 ### Features

@@ -1,5 +1,19 @@
 # @gradio/imageeditor
 
+## 0.11.0-beta.6
+
+### Features
+
+- [#9525](https://github.com/gradio-app/gradio/pull/9525) [`7c367b6`](https://github.com/gradio-app/gradio/commit/7c367b6cf0472d478671b7c7476e892b4c61c812) - Fix cut off in gr.ImageEditor.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/image@0.16.0-beta.6
+
 ## 0.11.0-beta.5
 
 ### Dependency updates
