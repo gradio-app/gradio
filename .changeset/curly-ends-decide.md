@@ -1,4 +1,5 @@
 ---
+"@gradio/tabs": minor
 "gradio": minor
 ---
 
