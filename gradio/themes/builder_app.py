@@ -441,6 +441,9 @@ with gr.Blocks(  # noqa: SIM117
             with gr.Row():
                 with gr.Column(scale=2):
                     chatbot = gr.Chatbot([("Hello", "Hi")], label="Chatbot")
+                    multimodal = gr.MultimodalTextbox(
+                        interactive=True, show_label=False
+                    )
                     chat_btn = gr.Button("Add messages")
 
                     chat_btn.click(

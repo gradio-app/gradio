@@ -68,6 +68,7 @@ class Monochrome(Base):
             button_secondary_border_color="*neutral_900",
             button_secondary_background_fill="white",
             button_secondary_background_fill_hover="white",
+            button_secondary_background_fill_dark="*neutral_700",
             button_secondary_border_color_hover="*neutral_400",
             button_secondary_text_color="*neutral_900",
             button_secondary_text_color_hover="*neutral_400",

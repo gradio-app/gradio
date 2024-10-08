@@ -186,7 +186,7 @@
 		justify-content: center;
 		align-items: center;
 		transition: var(--button-transition);
-		box-shadow: var(--button-shadow);
+		box-shadow: var(--button-primary-shadow);
 		text-align: center;
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
@@ -199,9 +199,10 @@
 	}
 	.calendar:hover {
 		background: var(--button-secondary-background-fill-hover);
+		box-shadow: var(--button-primary-shadow-hover);
 	}
 	.calendar:active {
-		box-shadow: var(--button-shadow-active);
+		box-shadow: var(--button-primary-shadow-active);
 	}
 	.datetime {
 		width: 0px;

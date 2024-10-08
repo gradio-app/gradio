@@ -436,10 +436,6 @@
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
-	.stop-button:active,
-	.submit-button:active {
-		box-shadow: var(--button-shadow-active);
-	}
 	.submit-button :global(svg) {
 		height: 22px;
 		width: 22px;

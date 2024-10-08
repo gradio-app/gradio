@@ -52,9 +52,12 @@ class Origin(Base):
             # Transition
             button_transition="none",
             # Shadows
-            button_shadow="*shadow_drop",
-            button_shadow_hover="*shadow_drop_lg",
-            button_shadow_active="*shadow_inset",
+            button_primary_shadow="*shadow_drop",
+            button_primary_shadow_hover="*shadow_drop_lg",
+            button_primary_shadow_active="*shadow_inset",
+            button_secondary_shadow="*shadow_drop",
+            button_secondary_shadow_hover="*shadow_drop_lg",
+            button_secondary_shadow_active="*shadow_inset",
             input_shadow="0 0 0 *shadow_spread transparent, *shadow_inset",
             input_shadow_focus="0 0 0 *shadow_spread *secondary_50, *shadow_inset",
             input_shadow_focus_dark="0 0 0 *shadow_spread *neutral_700, *shadow_inset",

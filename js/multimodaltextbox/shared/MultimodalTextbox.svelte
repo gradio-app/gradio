@@ -391,7 +391,7 @@
 	textarea {
 		flex-grow: 1;
 		outline: none !important;
-		background: var(--input-background-fill);
+		background: var(--block-background-fill);
 		padding: var(--input-padding);
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
@@ -449,12 +449,6 @@
 	.upload-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
-	}
-
-	.stop-button:active,
-	.upload-button:active,
-	.submit-button:active {
-		box-shadow: var(--button-shadow-active);
 	}
 
 	.submit-button :global(svg) {

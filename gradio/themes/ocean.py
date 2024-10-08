@@ -66,5 +66,8 @@ class Ocean(Base):
             checkbox_background_color_selected_dark="*primary_600",
             checkbox_label_text_color_selected_dark="*button_secondary_text_color",
             block_shadow="*shadow_drop_lg",
-            button_shadow="*shadow_drop_lg",
+            button_secondary_shadow_hover="*shadow_drop_lg",
+            button_primary_shadow_hover="0 1px 3px 0 *primary_200, 0 1px 2px -1px *primary_200",
+            button_secondary_shadow_dark="none",
+            button_primary_shadow_dark="none",
         )
