@@ -251,6 +251,11 @@
 		border: none;
 	}
 
+	.message-row :global(img) {
+		margin: var(--size-2);
+		max-height: 300px;
+	}
+
 	.file-pil {
 		display: block;
 		width: fit-content;
