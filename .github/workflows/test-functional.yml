@@ -37,7 +37,6 @@ jobs:
     name: "functional-test-SSR=${{ matrix.SSR }}"
     permissions:
       contents: read
-    name: "functional-test"
     runs-on: ubuntu-latest
     needs: changes
     strategy:
