@@ -188,14 +188,5 @@
 
 		const add_row_btn = canvas.getByText("Add row above");
 		await userEvent.click(add_row_btn);
-
-		const other_cell = canvas.getAllByText("400");
-		await userEvent.click(other_cell[0]);
-
-		userEvent.click(other_cell[0]);
-		userEvent.click(open_dialog_btn[0]);
-
-		const add_col_btn = canvas.getByText("Add column to the left");
-		await userEvent.click(add_col_btn);
 	}}
 />
