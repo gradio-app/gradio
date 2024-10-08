@@ -38,6 +38,7 @@
 
 <Template let:args>
 	<Chatbot
+		latex_delimiters={[{ left: "$$", right: "$$", display: true }]}
 		value={[
 			[
 				"Can you write a function in Python?",
@@ -86,7 +87,6 @@
 <Story
 	name="Chatbot with copy button"
 	args={{
-		latex_delimiters: [{ left: "$$", right: "$$", display: true }],
 		show_copy_button: true
 	}}
 />

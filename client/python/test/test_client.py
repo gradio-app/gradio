@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import pathlib
 import tempfile
 import time
@@ -16,7 +15,6 @@ import gradio as gr
 import httpx
 import huggingface_hub
 import pytest
-from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client, handle_file
@@ -30,7 +28,7 @@ from gradio_client.utils import (
     StatusUpdate,
 )
 
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+HF_TOKEN = huggingface_hub.get_token()
 
 
 @contextmanager
@@ -130,7 +128,7 @@ class TestClientPredictions:
         space_id = "gradio-tests/not-actually-private-space"
         api = huggingface_hub.HfApi()
         assert api.space_info(space_id).private
-        client = Client(space_id)
+        client = Client(space_id, hf_token=HF_TOKEN)
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -141,6 +139,7 @@ class TestClientPredictions:
         assert api.space_info(space_id).private
         client = Client(
             space_id,
+            hf_token=HF_TOKEN,
         )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
@@ -152,6 +151,7 @@ class TestClientPredictions:
         assert api.space_info(space_id).private
         client = Client(
             space_id,
+            hf_token=HF_TOKEN,
         )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
@@ -1017,6 +1017,7 @@ class TestAPIInfo:
     def test_private_space(self):
         client = Client(
             "gradio-tests/not-actually-private-space",
+            hf_token=HF_TOKEN,
         )
         assert len(client.endpoints) == 3
         assert len([e for e in client.endpoints.values() if e.is_valid]) == 2
@@ -1129,29 +1130,18 @@ class TestAPIInfo:
             outputs = info["named_endpoints"]["/predict"]["returns"]
 
             assert inputs[0]["type"]["type"] == "array"
-            assert inputs[0]["python_type"] == {
-                "type": "List[filepath]",
-                "description": "",
-            }
+            assert inputs[0]["python_type"]["type"] == "List[filepath]"
+
             assert isinstance(inputs[0]["example_input"], list)
             assert isinstance(inputs[0]["example_input"][0], dict)
 
-            assert inputs[1]["python_type"] == {
-                "type": "filepath",
-                "description": "",
-            }
+            assert inputs[1]["python_type"]["type"] == "filepath"
             assert isinstance(inputs[1]["example_input"], dict)
 
-            assert outputs[0]["python_type"] == {
-                "type": "List[filepath]",
-                "description": "",
-            }
+            assert outputs[0]["python_type"]["type"] == "List[filepath]"
             assert outputs[0]["type"]["type"] == "array"
 
-            assert outputs[1]["python_type"] == {
-                "type": "filepath",
-                "description": "",
-            }
+            assert outputs[1]["python_type"]["type"] == "filepath"
 
     def test_layout_components_in_output(self, hello_world_with_group):
         with connect(hello_world_with_group) as client:
@@ -1252,6 +1242,7 @@ class TestEndpoints:
     def test_upload(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload",
+            hf_token=HF_TOKEN,
         )
         response = MagicMock(status_code=200)
         response.json.return_value = [

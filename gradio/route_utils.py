@@ -700,6 +700,31 @@ def update_root_in_config(config: BlocksConfigDict, root: str) -> BlocksConfigDi
     return config
 
 
+def update_example_values_to_use_public_url(api_info: dict[str, Any]) -> dict[str, Any]:
+    """
+    Updates the example values in the api_info dictionary to use a public url
+    """
+
+    def _add_root_url(file_dict: dict):
+        default_value = file_dict.get("parameter_default")
+        if default_value is not None and client_utils.is_file_obj_with_url(
+            default_value
+        ):
+            if client_utils.is_http_url_like(default_value["url"]):
+                return file_dict
+            # If the default value's url is not already a full public url,
+            # we use the example_input url. This makes it so that the example
+            # value for images, audio, and video components pass SSRF checks.
+            default_value["url"] = file_dict["example_input"]["url"]
+        return file_dict
+
+    return client_utils.traverse(
+        api_info,
+        _add_root_url,
+        lambda d: isinstance(d, dict) and "parameter_default" in d,
+    )
+
+
 def compare_passwords_securely(input_password: str, correct_password: str) -> bool:
     return hmac.compare_digest(input_password.encode(), correct_password.encode())
 
