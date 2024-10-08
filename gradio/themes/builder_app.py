@@ -13,6 +13,8 @@ themes = [
     gr.themes.Monochrome,
     gr.themes.Glass,
     gr.themes.Origin,
+    gr.themes.Citrus,
+    gr.themes.Ocean,
 ]
 colors = gr.themes.Color.all
 sizes = gr.themes.Size.all
@@ -81,6 +83,7 @@ with gr.Blocks(  # noqa: SIM117
     theme=gr.themes.Base(),
     css=css,
     title="Gradio Theme Builder",
+    head="<style id='theme_css'></style>",
 ) as demo:
     with gr.Row():
         with gr.Column(scale=1, elem_id="controls", min_width=400):
@@ -327,6 +330,8 @@ with gr.Blocks(  # noqa: SIM117
                 interactive=True,
             )
 
+            gr.Interface(lambda x: x, "number", "textbox")
+
             with gr.Row():
                 slider1 = gr.Slider(label="Slider 1")
                 slider2 = gr.Slider(label="Slider 2")
@@ -436,6 +441,9 @@ with gr.Blocks(  # noqa: SIM117
             with gr.Row():
                 with gr.Column(scale=2):
                     chatbot = gr.Chatbot([("Hello", "Hi")], label="Chatbot")
+                    multimodal = gr.MultimodalTextbox(
+                        interactive=True, show_label=False
+                    )
                     chat_btn = gr.Button("Add messages")
 
                     chat_btn.click(
@@ -463,7 +471,6 @@ with gr.Blocks(  # noqa: SIM117
             None,
             None,
             js="""() => {
-                document.head.innerHTML += "<style id='theme_css'></style>";
                 let evt_listener = window.setTimeout(
                     () => {
                         load_theme_btn = document.querySelector('#load_theme');

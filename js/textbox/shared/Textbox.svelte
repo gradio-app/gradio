@@ -29,6 +29,7 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
+	export let root: string;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -40,6 +41,7 @@
 	const show_textbox_border = !submit_btn;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
+	$: can_submit = value !== "";
 
 	$: if (value === null) value = "";
 
@@ -111,7 +113,9 @@
 		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
-			dispatch("submit");
+			if (can_submit) {
+				dispatch("submit");
+			}
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -119,7 +123,9 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
-			dispatch("submit");
+			if (can_submit) {
+				dispatch("submit");
+			}
 		}
 	}
 
@@ -197,7 +203,7 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
 	<div class="input-container">
 		{#if lines === 1 && max_lines === 1}
@@ -298,6 +304,7 @@
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
 				on:click={handle_submit}
+				disabled={!can_submit}
 			>
 				{#if submit_btn === true}
 					<Send />
@@ -376,6 +383,7 @@
 	label.container.show_textbox_border textarea:focus {
 		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
+		background: var(--input-background-fill-focus);
 	}
 
 	input::placeholder,
@@ -435,9 +443,10 @@
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
-	.stop-button:active,
-	.submit-button:active {
-		box-shadow: var(--button-shadow-active);
+	.stop-button:disabled,
+	.submit-button:disabled {
+		background: var(--button-secondary-background-fill);
+		cursor: pointer;
 	}
 	.submit-button :global(svg) {
 		height: 22px;

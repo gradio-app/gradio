@@ -248,6 +248,7 @@ def from_model(
     elif p == "translation":
         inputs = components.Textbox(label="Input")
         outputs = components.Textbox(label="Translation")
+        postprocess = lambda x: x.translation_text  # noqa: E731
         examples = ["Hello, how are you?"]
         fn = client.translation
     # Example: facebook/bart-large-mnli

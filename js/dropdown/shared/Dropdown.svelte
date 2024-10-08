@@ -20,6 +20,7 @@
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
+	export let root: string;
 
 	let filter_input: HTMLElement;
 
@@ -204,7 +205,7 @@
 </script>
 
 <div class:container>
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		<div class="wrap-inner" class:show_options>
@@ -277,6 +278,7 @@
 	.wrap:focus-within {
 		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
+		background: var(--input-background-fill-focus);
 	}
 
 	.wrap-inner {
