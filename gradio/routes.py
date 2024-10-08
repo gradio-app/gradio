@@ -134,12 +134,6 @@ BUILD_PATH_LIB = cast(
     .joinpath("templates/frontend/assets")
     .as_posix(),  # type: ignore
 )
-SVELTE_PATH_LIB = cast(
-    DeveloperPath,
-    importlib.resources.files("gradio")
-    .joinpath("templates/node/build/client/_app")
-    .as_posix(),  # type: ignore
-)
 VERSION = get_package_version()
 XSS_SAFE_MIMETYPES = {
     "image/jpeg",
@@ -611,7 +605,9 @@ class App(FastAPI):
             req: fastapi.Request,
         ):
             if environment not in ["client", "server"]:
-                raise HTTPException(status_code=404, detail="Environment not supported.")
+                raise HTTPException(
+                    status_code=404, detail="Environment not supported."
+                )
             config = app.get_blocks().config
             components = config["components"]
             location = next(
