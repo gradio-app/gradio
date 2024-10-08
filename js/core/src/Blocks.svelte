@@ -49,6 +49,11 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: LayoutNode | undefined = undefined;
 
+	$: console.log("root", root);
+	$: console.log("layout", layout);
+	$: console.log("dependencies", dependencies);
+	$: console.log("components", components);
+
 	let {
 		layout: _layout,
 		targets,
