@@ -749,8 +749,9 @@ class ChatInterface(Blocks):
         previous_msg = previous_input[-1] if len(previous_input) else msg
         return history, msg, previous_msg, previous_input
 
-    def render(self) -> None:
+    def render(self) -> ChatInterface:
         # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
         if get_blocks_context() and not self.provided_chatbot:
             self.chatbot.height = 400
             super().render()
+        return self
