@@ -341,7 +341,14 @@
 		}
 	}
 
+	let active_cell: { row: number; col: number } | null = null;
+
 	async function handle_cell_click(i: number, j: number): Promise<void> {
+		if (active_cell && active_cell.row === i && active_cell.col === j) {
+			active_cell = null;
+		} else {
+			active_cell = { row: i, col: j };
+		}
 		if (dequal(editing, [i, j])) return;
 		header_edit = false;
 		selected_header = false;
@@ -469,6 +476,7 @@
 		header_edit = false;
 		selected_header = false;
 		selected = false;
+		active_cell = null;
 	}
 
 	function guess_delimitaor(
@@ -730,11 +738,6 @@
 			{/if}
 			<thead>
 				<tr>
-					{#if editable}
-						<th class="select-column">
-							<!-- todo: add checkbox for selecting rows -->
-						</th>
-					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
 							class:editing={header_edit === i}
@@ -814,11 +817,6 @@
 					<caption class="sr-only">{label}</caption>
 				{/if}
 				<tr slot="thead">
-					{#if editable}
-						<th class="select-column">
-							<!-- todo: add checkbox for selecting cols -->
-						</th>
-					{/if}
 					{#each _headers as { value, id }, i (id)}
 						<th
 							class:focus={header_edit === i || selected_header === i}
@@ -864,11 +862,6 @@
 				</tr>
 
 				<tr slot="tbody" let:item let:index class:row_odd={index % 2 === 0}>
-					{#if editable}
-						<td class="select-column">
-							<!-- todo: add checkbox for selecting cols -->
-						</td>
-					{/if}
 					{#each item as { value, id }, j (id)}
 						<td
 							tabindex="0"
@@ -878,6 +871,9 @@
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
 							class:focus={dequal(selected, [index, j])}
+							class:menu-active={active_cell_menu &&
+								active_cell_menu.row === index &&
+								active_cell_menu.col === j}
 						>
 							<div class="cell-wrap">
 								<EditableCell
@@ -896,6 +892,9 @@
 								{#if editable}
 									<button
 										class="cell-menu-button"
+										class:visible={active_cell &&
+											active_cell.row === index &&
+											active_cell.col === j}
 										on:click={(event) => toggle_cell_menu(event, index, j)}
 									>
 										⋮
@@ -1007,10 +1006,6 @@
 		border-color: var(--border-color-primary);
 	}
 
-	tr > .select-column + * {
-		border-left-width: 0;
-	}
-
 	th,
 	td {
 		--ring-color: transparent;
@@ -1028,8 +1023,10 @@
 	}
 
 	th.focus,
-	td.focus {
-		--ring-color: var(--color-accent);
+	td.focus,
+	td.menu-active {
+		border: 1px var(--color-accent);
+		z-index: 1;
 	}
 
 	tr:last-child td:first-child {
@@ -1119,16 +1116,12 @@
 		background-color: var(--color-bg-hover);
 	}
 
-	@media (hover: hover),
-		screen and (-ms-high-contrast: active),
-		(-ms-high-contrast: none) {
-		.cell-wrap:hover .cell-menu-button {
-			display: block;
-		}
+	.cell-menu-button.visible {
+		display: block;
 	}
 
-	@media (hover: none) {
-		.cell-menu-button {
+	@media (hover: hover) {
+		.cell-wrap:hover .cell-menu-button {
 			display: block;
 		}
 	}
