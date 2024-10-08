@@ -143,7 +143,7 @@
 	}
 
 	let scroll_after_component_load = false;
-	async function on_child_component_load(): void {
+	async function on_child_component_load(): Promise<void> {
 		if (scroll_after_component_load) {
 			await tick();
 			scroll_to_bottom();
