@@ -89,6 +89,7 @@ class ChatInterface(Blocks):
         head_paths: str | Path | Sequence[str | Path] | None = None,
         analytics_enabled: bool | None = None,
         autofocus: bool = True,
+        autoscroll: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
         fill_height: bool = True,
         delete_cache: tuple[int, int] | None = None,
@@ -121,6 +122,7 @@ class ChatInterface(Blocks):
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             autofocus: if True, autofocuses to the textbox when the page loads.
+            autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: if True, the chat interface will expand to the height of window.
             delete_cache: a tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
@@ -230,6 +232,7 @@ class ChatInterface(Blocks):
                     scale=1,
                     height=200 if fill_height else None,
                     type=self.type,
+                    autoscroll=autoscroll,
                     examples=examples_messages,
                 )
 

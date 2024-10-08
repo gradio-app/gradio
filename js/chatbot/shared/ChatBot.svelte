@@ -97,6 +97,7 @@
 	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let autoscroll = true;
 	export let theme_mode: "system" | "light" | "dark";
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
@@ -143,7 +144,9 @@
 
 	let on_child_component_load: (() => void) | null = null;
 
-	async function handle_value_update(): Promise<void> {
+	async function scroll_on_value_update(): Promise<void> {
+		if (!autoscroll) return;
+
 		await tick(); // Wait for the DOM to update so that the scrollHeight is correct
 
 		if (is_at_bottom()) {
@@ -158,10 +161,10 @@
 		}
 	}
 	onMount(() => {
-		handle_value_update();
+		scroll_on_value_update();
 	});
 	$: if (value || _components) {
-		handle_value_update();
+		scroll_on_value_update();
 	}
 
 	onMount(() => {
@@ -1079,17 +1082,17 @@
 		transform: translateX(-50%);
 		z-index: var(--layer-top);
 	}
-
 	.scroll-down-button-container :global(button) {
 		border-radius: 50%;
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		box-shadow: var(--shadow-drop);
 		transition:
-			box-shadow 0.3s ease,
-			transform 0.3s ease;
+			box-shadow 0.2s ease-in-out,
+			transform 0.2s ease-in-out;
 	}
-
 	.scroll-down-button-container :global(button:hover) {
-		box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+		box-shadow:
+			var(--shadow-drop),
+			0 2px 2px rgba(0, 0, 0, 0.05);
 		transform: translateY(-2px);
 	}
 </style>
