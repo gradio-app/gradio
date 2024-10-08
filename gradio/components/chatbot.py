@@ -164,6 +164,7 @@ class Chatbot(Component):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        autoscroll: bool = True,
         render: bool = True,
         key: int | str | None = None,
         height: int | str | None = 400,
@@ -197,6 +198,7 @@ class Chatbot(Component):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll.
@@ -236,6 +238,7 @@ class Chatbot(Component):
             self.data_model = ChatbotDataMessages
         else:
             self.data_model = ChatbotDataTuples
+        self.autoscroll = autoscroll
         self.height = height
         self.max_height = max_height
         self.min_height = min_height

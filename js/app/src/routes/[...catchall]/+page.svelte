@@ -115,7 +115,7 @@
 	let active_theme_mode: ThemeMode;
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
-		subscribe: writable({}).subscribe
+		subscribe: writable({}).subscribe,
 	};
 
 	$: if (config?.app_id) {
@@ -126,7 +126,7 @@
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING"
+		detail: "SLEEPING",
 	};
 
 	let app: ClientType = data.app;
@@ -144,7 +144,6 @@
 		//@ts-ignore
 		config = data.config;
 		window.gradio_config = config;
-
 		window.gradio_config = data.config;
 		config = data.config;
 
@@ -159,7 +158,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING"
+			detail: "RUNNING",
 		};
 
 		css_ready = true;
@@ -170,7 +169,7 @@
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(data.api_url);
-				let url = new URL(`http://${host}/dev/reload`);
+				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
 					new_message_fn("Error reloading app", "error");
@@ -182,14 +181,14 @@
 					app = await Client.connect(data.api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
-						events: ["data", "log", "status", "render"]
+						events: ["data", "log", "status", "render"],
 					});
 
 					if (!app.config) {
 						throw new Error("Could not resolve app config");
 					}
 
-					// config = app.config;
+					config = app.config;
 					window.__gradio_space__ = config.space_id;
 				});
 			}, 200);
@@ -208,8 +207,8 @@
 			new CustomEvent("render", {
 				bubbles: true,
 				cancelable: false,
-				composed: true
-			})
+				composed: true,
+			}),
 		);
 	}
 
@@ -220,7 +219,7 @@
 
 	async function mount_space_header(
 		space_id: string | null | undefined,
-		is_embed: boolean
+		is_embed: boolean,
 	): Promise<void> {
 		if (space_id && !is_embed && window.self === window.top) {
 			if (spaceheader) {
@@ -241,7 +240,7 @@
 
 		const url = new URL(window.location.toString());
 		const url_color_mode: ThemeMode | null = url.searchParams.get(
-			"__theme"
+			"__theme",
 		) as ThemeMode | null;
 		new_theme_mode = theme_mode || url_color_mode || "system";
 
@@ -261,7 +260,7 @@
 
 		function update_scheme(): "light" | "dark" {
 			let _theme: "light" | "dark" = window?.matchMedia?.(
-				"(prefers-color-scheme: dark)"
+				"(prefers-color-scheme: dark)",
 			).matches
 				? "dark"
 				: "light";
