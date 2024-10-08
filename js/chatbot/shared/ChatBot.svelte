@@ -22,14 +22,13 @@
 	} from "svelte";
 	import { Image } from "@gradio/image/shared";
 
-	import { Clear, Trash, Community } from "@gradio/icons";
+	import { Clear, Trash, Community, ScrollDownArrow } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
-	import ScrollDownIcon from "./ScrollDown.svelte";
 	import Pending from "./Pending.svelte";
 	import { ShareError } from "@gradio/utils";
 	import { Gradio } from "@gradio/utils";
@@ -389,7 +388,7 @@
 {#if show_scroll_button}
 	<div class="scroll-down-button-container">
 		<IconButton
-			Icon={ScrollDownIcon}
+			Icon={ScrollDownArrow}
 			label="Scroll down"
 			size="large"
 			on:click={scroll_to_bottom}
