@@ -903,6 +903,7 @@ FILE_DATA_FORMATS = [
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: Dict())",
+    "Dict(path: str | None (Path to a local file), url: str | None (Publicly available url or base64 encoded image), size: int | None (Size of image in bytes), orig_name: str | None (Original filename), mime_type: str | None (mime type of image), is_stream: bool (Can always be set to False), meta: Dict())",
 ]
 
 CURRENT_FILE_DATA_FORMAT = FILE_DATA_FORMATS[-1]
