@@ -14,6 +14,7 @@
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData, ValueData } from "@gradio/utils";
 	import MountComponents from "./MountComponents.svelte";
+	import { prefix_css } from "./css";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -47,8 +48,8 @@
 	export let username: string | null;
 	export let api_prefix = "";
 	export let max_file_size: number | undefined = undefined;
-	export let initial_layout: LayoutNode | undefined = undefined;
-
+	export let initial_layout: ComponentMeta | undefined = undefined;
+	export let css: string | null | undefined = null;
 	let {
 		layout: _layout,
 		targets,
@@ -61,10 +62,7 @@
 		scheduled_updates,
 		create_layout,
 		rerender_layout
-	} = create_components();
-
-	// @ts-ignore
-	$_layout = initial_layout;
+	} = create_components(initial_layout);
 
 	$: components, layout, dependencies, root, app, fill_height, target, run();
 
@@ -207,8 +205,10 @@
 		if ($scheduled_updates) {
 			_unsub = scheduled_updates.subscribe((updating) => {
 				if (!updating) {
-					trigger_api_call(dep_index, trigger_id, event_data);
-					unsub();
+					tick().then(() => {
+						trigger_api_call(dep_index, trigger_id, event_data);
+						unsub();
+					});
 				}
 			});
 		} else {
@@ -714,6 +714,9 @@
 <svelte:head>
 	{#if control_page_title}
 		<title>{title}</title>
+	{/if}
+	{#if css}
+		{@html `\<style\>${prefix_css(css, version)}</style>`}
 	{/if}
 </svelte:head>
 
