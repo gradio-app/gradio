@@ -1,5 +1,13 @@
 # website
 
+## 0.39.0-beta.8
+
+### Dependency updates
+
+- @gradio/tabitem@0.3.0-beta.4
+- @gradio/code@0.10.0-beta.7
+- @gradio/paramviewer@0.4.22-beta.4
+
 ## 0.39.0-beta.7
 
 ### Dependency updates
