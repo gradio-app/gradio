@@ -98,13 +98,13 @@ with demo:
             )
 
         def toggle_results_tab():
-            return gr.Tab("Results", visible=True)
+            return gr.Tab(visible=True)
 
-        correct_btn.click(
-            mark_correct,
-            [selected_card, results],
-            [results, correct_field, results_table],
-        )
+        # correct_btn.click(
+        #     mark_correct,
+        #     [selected_card, results],
+        #     [results, correct_field, results_table],
+        # )
 
         incorrect_btn.click(mark_incorrect, [selected_card, results], [results, incorrect_field, results_table])
 
