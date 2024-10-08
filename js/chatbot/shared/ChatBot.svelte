@@ -13,7 +13,6 @@
 
 	import { dequal } from "dequal/lite";
 	import {
-		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
 		type SvelteComponent,
@@ -23,7 +22,7 @@
 	} from "svelte";
 	import { Image } from "@gradio/image/shared";
 
-	import { Clear, Trash, Community } from "@gradio/icons";
+	import { Clear, Trash, Community, ScrollDownArrow } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
@@ -72,6 +71,7 @@
 	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let autoscroll = true;
 	export let theme_mode: "system" | "light" | "dark";
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
@@ -91,7 +91,8 @@
 	});
 
 	let div: HTMLDivElement;
-	let autoscroll: boolean;
+
+	let show_scroll_button = false;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -105,28 +106,64 @@
 		example_select: SelectData;
 	}>();
 
-	beforeUpdate(() => {
-		autoscroll =
-			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
-	});
-
-	async function scroll(): Promise<void> {
-		if (!div) return;
-		await tick();
-		requestAnimationFrame(() => {
-			if (autoscroll) {
-				div?.scrollTo(0, div.scrollHeight);
-			}
-		});
+	function is_at_bottom(): boolean {
+		return div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
 	}
+
+	function scroll_to_bottom(): void {
+		if (!div) return;
+		div.scrollTo(0, div.scrollHeight);
+		show_scroll_button = false;
+	}
+
+	let scroll_after_component_load = false;
+	function on_child_component_load(): void {
+		if (scroll_after_component_load) {
+			scroll_to_bottom();
+			scroll_after_component_load = false;
+		}
+	}
+
+	async function scroll_on_value_update(): Promise<void> {
+		if (!autoscroll) return;
+
+		if (is_at_bottom()) {
+			// Child components may be loaded asynchronously,
+			// so trigger the scroll again after they load.
+			scroll_after_component_load = true;
+
+			await tick(); // Wait for the DOM to update so that the scrollHeight is correct
+			scroll_to_bottom();
+		} else {
+			show_scroll_button = true;
+		}
+	}
+	onMount(() => {
+		scroll_on_value_update();
+	});
+	$: if (value || pending_message || _components) {
+		scroll_on_value_update();
+	}
+
+	onMount(() => {
+		function handle_scroll(): void {
+			if (is_at_bottom()) {
+				show_scroll_button = false;
+			} else {
+				scroll_after_component_load = false;
+			}
+		}
+
+		div?.addEventListener("scroll", handle_scroll);
+		return () => {
+			div?.removeEventListener("scroll", handle_scroll);
+		};
+	});
 
 	let image_preview_source: string;
 	let image_preview_source_alt: string;
 	let is_image_preview_open = false;
 
-	$: if (value || autoscroll || _components) {
-		scroll();
-	}
 	afterUpdate(() => {
 		if (!div) return;
 		div.querySelectorAll("img").forEach((n) => {
@@ -348,6 +385,17 @@
 	{/if}
 </div>
 
+{#if show_scroll_button}
+	<div class="scroll-down-button-container">
+		<IconButton
+			Icon={ScrollDownArrow}
+			label="Scroll down"
+			size="large"
+			on:click={scroll_to_bottom}
+		/>
+	</div>
+{/if}
+
 <style>
 	.placeholder-content {
 		display: flex;
@@ -559,5 +607,26 @@
 
 	.panel-wrap :global(.message-row:first-child) {
 		padding-top: calc(var(--spacing-xxl) * 2);
+	}
+
+	.scroll-down-button-container {
+		position: absolute;
+		bottom: 10px;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: var(--layer-top);
+	}
+	.scroll-down-button-container :global(button) {
+		border-radius: 50%;
+		box-shadow: var(--shadow-drop);
+		transition:
+			box-shadow 0.2s ease-in-out,
+			transform 0.2s ease-in-out;
+	}
+	.scroll-down-button-container :global(button:hover) {
+		box-shadow:
+			var(--shadow-drop),
+			0 2px 2px rgba(0, 0, 0, 0.05);
+		transform: translateY(-2px);
 	}
 </style>
