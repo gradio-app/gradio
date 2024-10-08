@@ -34,7 +34,7 @@ class Row(BlockContext, metaclass=ComponentMeta):
         height: int | str | None = None,
         max_height: int | str | None = None,
         min_height: int | str | None = None,
-        equal_height: bool = True,
+        equal_height: bool = False,
         show_progress: bool = False,
     ):
         """
