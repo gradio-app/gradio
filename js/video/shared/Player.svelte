@@ -117,7 +117,8 @@
 			bind:node={video}
 			data-testid={`${label}-player`}
 			{processingVideo}
-			on:load
+			on:loadstart
+			on:loadeddata
 			on:loadedmetadata
 		>
 			<track kind="captions" src={subtitle} default />
