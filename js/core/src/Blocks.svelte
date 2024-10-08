@@ -49,12 +49,7 @@
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: LayoutNode | undefined = undefined;
 
-	$: console.log("root", root);
-	$: console.log("layout", layout);
-	$: console.log("dependencies", dependencies);
-	$: console.log("components", components);
-
-	const {
+	let {
 		layout: _layout,
 		targets,
 		update_value,
@@ -68,28 +63,16 @@
 		rerender_layout
 	} = create_components();
 
-	$: create_layout({
-		components,
-		layout,
-		dependencies,
-		root: root + app.api_prefix,
-		app,
-		options: {
-			fill_height
-		}
-	});
+	// @ts-ignore
+	$_layout = initial_layout;
+
+	$: components, layout, dependencies, root, app, fill_height, target, run();
 
 	$: {
 		ready = !!$_layout;
 	}
 
 	async function run(): Promise<void> {
-		console.log("running run")
-		console.log("run() components", components);
-		console.log("run() layout", layout);
-		console.log("run() dependencies", dependencies);
-		console.log("run() root", root + api_prefix);
-		console.log("run() app", app);
 		await create_layout({
 			components,
 			layout,
@@ -738,17 +721,17 @@
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if $_layout && app.config}
-		<MountComponents
-			rootNode={$_layout}
-			{root}
-			{target}
-			{theme_mode}
-			on:mount={handle_mount}
-			{version}
-			{autoscroll}
-			{max_file_size}
-			client={app}
-		/>
+			<MountComponents
+				rootNode={$_layout}
+				{root}
+				{target}
+				{theme_mode}
+				on:mount={handle_mount}
+				{version}
+				{autoscroll}
+				{max_file_size}
+				client={app}
+			/>
 		{/if}
 	</div>
 
