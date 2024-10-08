@@ -15,7 +15,7 @@ import time
 import warnings
 import webbrowser
 from collections import defaultdict
-from collections.abc import AsyncIterator, Callable, Sequence, Set
+from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
 from pathlib import Path
 from types import ModuleType
 from typing import (
@@ -919,9 +919,14 @@ class BlocksConfig:
                 block_config["renderable"] = renderable._id
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
-                # .example_inputs() has been renamed .example_payload() but
-                # we use the old name for backwards compatibility with custom components
-                # created on Gradio 4.20.0 or earlier
+                if hasattr(block, "api_info_as_input"):
+                    block_config["api_info_as_input"] = block.api_info_as_input()  # type: ignore
+                else:
+                    block_config["api_info_as_input"] = block.api_info()  # type: ignore
+                if hasattr(block, "api_info_as_output"):
+                    block_config["api_info_as_output"] = block.api_info_as_output()  # type: ignore
+                else:
+                    block_config["api_info_as_output"] = block.api_info()  # type: ignore
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
 
@@ -982,9 +987,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
-        css: str | Path | None = None,
-        js: str | Path | None = None,
-        head: str | Path | None = None,
+        css: str | None = None,
+        css_paths: str | Path | Sequence[str | Path] | None = None,
+        js: str | None = None,
+        head: str | None = None,
+        head_paths: str | Path | Sequence[str | Path] | None = None,
         fill_height: bool = False,
         fill_width: bool = False,
         delete_cache: tuple[int, int] | None = None,
@@ -996,9 +1003,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
-            css: Custom css as a code string or pathlib.Path to a css file. This css will be included in the demo webpage.
-            js: Custom js as a code string or pathlib.Path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: Custom html to insert into the head of the demo webpage, either as a code string or a pathlib.Path to an html file. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            css: Custom css as a code string. This css will be included in the demo webpage.
+            css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
+            js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width. Only applies if this is the outermost `Blocks` in your Gradio app.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
@@ -1035,21 +1044,18 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.fill_height = fill_height
         self.fill_width = fill_width
         self.delete_cache = delete_cache
-        if isinstance(css, Path):
-            with open(css, encoding="utf-8") as css_file:
-                self.css = css_file.read()
-        else:
-            self.css = css
-        if isinstance(js, Path):
-            with open(js, encoding="utf-8") as js_file:
-                self.js = js_file.read()
-        else:
-            self.js = js
-        if isinstance(head, Path):
-            with open(head, encoding="utf-8") as head_file:
-                self.head = head_file.read()
-        else:
-            self.head = head
+        self.extra_startup_events: list[Callable[..., Coroutine[Any, Any, Any]]] = []
+        self.css = css or ""
+        css_paths = utils.none_or_singleton_to_list(css_paths)
+        for css_path in css_paths or []:
+            with open(css_path, encoding="utf-8") as css_file:
+                self.css += "\n" + css_file.read()
+        self.js = js or ""
+        self.head = head or ""
+        head_paths = utils.none_or_singleton_to_list(head_paths)
+        for head_path in head_paths or []:
+            with open(head_path, encoding="utf-8") as head_file:
+                self.head += "\n" + head_file.read()
         self.renderables: list[Renderable] = []
         self.state_holder: StateHolder
         self.custom_mount_path: str | None = None
@@ -2523,7 +2529,7 @@ Received inputs:
                 # will be cancelled just by stopping the server.
                 # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
                 # So we need to manually cancel them. See `self.close()`..
-                self.startup_events()
+                self.run_startup_events()
 
         self.is_sagemaker = (
             False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
@@ -2853,13 +2859,17 @@ Received inputs:
                     )[0]
                     component.load_event = dep.get_config()
 
-    def startup_events(self):
+    def run_startup_events(self):
         """Events that should be run when the app containing this block starts up."""
         self._queue.start()
         # So that processing can resume in case the queue was stopped
         self._queue.stopped = False
         self.is_running = True
         self.create_limiter()
+
+    async def run_extra_startup_events(self):
+        for startup_event in self.extra_startup_events:
+            await startup_event()
 
     def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """
@@ -2895,7 +2905,7 @@ Received inputs:
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
-                info = component["api_info"]
+                info = component.get("api_info_as_input", component.get("api_info"))
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
 
@@ -2940,7 +2950,7 @@ Received inputs:
                         "type": info,
                         "python_type": {
                             "type": python_type,
-                            "description": info.get("description", ""),
+                            "description": info.get("additional_description", ""),
                         },
                         "component": type.capitalize(),
                         "example_input": example,
@@ -2962,7 +2972,7 @@ Received inputs:
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
-                info = component["api_info"]
+                info = component.get("api_info_as_output", component["api_info"])
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["returns"].append(
