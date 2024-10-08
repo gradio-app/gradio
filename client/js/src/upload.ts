@@ -72,6 +72,7 @@ export class FileData {
 	is_stream?: boolean;
 	mime_type?: string;
 	alt_text?: string;
+	b64?: string;
 	readonly meta = { _type: "gradio.FileData" };
 
 	constructor({
@@ -82,7 +83,8 @@ export class FileData {
 		blob,
 		is_stream,
 		mime_type,
-		alt_text
+		alt_text,
+		b64
 	}: {
 		path: string;
 		url?: string;
@@ -92,6 +94,7 @@ export class FileData {
 		is_stream?: boolean;
 		mime_type?: string;
 		alt_text?: string;
+		b64?: string;
 	}) {
 		this.path = path;
 		this.url = url;
@@ -101,5 +104,6 @@ export class FileData {
 		this.is_stream = is_stream;
 		this.mime_type = mime_type;
 		this.alt_text = alt_text;
+		this.b64 = b64;
 	}
 }

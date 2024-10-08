@@ -41,7 +41,7 @@
 				The input value that is provided in the "{label}" <!--
 	-->{component}
 				component<!--
-	-->.
+	-->. {python_type.description}
 			</p>
 		</div>
 	{/each}

@@ -7,7 +7,7 @@ from gradio_client import media_data
 from gradio_client import utils as client_utils
 
 import gradio as gr
-from gradio.data_classes import FileData
+from gradio.components.image import ImageData
 from gradio.exceptions import Error
 
 
@@ -18,7 +18,7 @@ class TestImage:
         type: pil, file, filepath, numpy
         """
 
-        img = FileData(path="test/test_files/bus.png", orig_name="bus.png")
+        img = ImageData(path="test/test_files/bus.png", orig_name="bus.png")
         image_input = gr.Image()
 
         image_input = gr.Image(type="filepath")
@@ -68,7 +68,7 @@ class TestImage:
 
         with pytest.raises(Error):
             gr.Image().preprocess(
-                FileData(path="test/test_files/test.svg", orig_name="test.svg")
+                ImageData(path="test/test_files/test.svg", orig_name="test.svg")
             )
 
         string_source = gr.Image(sources="upload")
@@ -111,31 +111,31 @@ class TestImage:
         file_path = "test/test_files/rotated_image.jpeg"
         im = PIL.Image.open(file_path)  # type: ignore
         assert im.getexif().get(274) != 1
-        image = component.preprocess(FileData(path=file_path))
+        image = component.preprocess(ImageData(path=file_path))
         assert image == PIL.ImageOps.exif_transpose(im)  # type: ignore
 
     def test_image_format_parameter(self):
         component = gr.Image(type="filepath", format="jpeg")
         file_path = "test/test_files/bus.png"
         assert (image := component.postprocess(file_path))
-        assert image.path.endswith("png")
+        assert image.path.endswith("png")  # type: ignore
         assert (
             image := component.postprocess(
                 np.random.randint(0, 256, (100, 100, 3), dtype=np.uint8)
             )
         )
-        assert image.path.endswith("jpeg")
+        assert image.path.endswith("jpeg")  # type: ignore
 
         assert (
             image_pre := component.preprocess(
-                FileData(path=file_path, orig_name="bus.png")
+                ImageData(path=file_path, orig_name="bus.png")
             )
         )
         assert isinstance(image_pre, str)
         assert image_pre.endswith("png")
 
         image_pre = component.preprocess(
-            FileData(path="test/test_files/cheetah1.jpg", orig_name="cheetah1.jpg")
+            ImageData(path="test/test_files/cheetah1.jpg", orig_name="cheetah1.jpg")
         )
         assert isinstance(image_pre, str)
         assert image_pre.endswith("jpg")

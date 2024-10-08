@@ -331,11 +331,18 @@ class Component(ComponentBase, Block):
         """
         if self.data_model is not None:
             schema = self.data_model.model_json_schema()
-            schema.pop("description", None)
+            desc = schema.pop("description", None)
+            schema["additional_description"] = desc
             return schema
         raise NotImplementedError(
             f"The api_info method has not been implemented for {self.get_block_name()}"
         )
+
+    def api_info_as_input(self) -> dict[str, Any]:
+        return self.api_info()
+
+    def api_info_as_output(self) -> dict[str, Any]:
+        return self.api_info()
 
     def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
         """

@@ -1130,29 +1130,18 @@ class TestAPIInfo:
             outputs = info["named_endpoints"]["/predict"]["returns"]
 
             assert inputs[0]["type"]["type"] == "array"
-            assert inputs[0]["python_type"] == {
-                "type": "List[filepath]",
-                "description": "",
-            }
+            assert inputs[0]["python_type"]["type"] == "List[filepath]"
+
             assert isinstance(inputs[0]["example_input"], list)
             assert isinstance(inputs[0]["example_input"][0], dict)
 
-            assert inputs[1]["python_type"] == {
-                "type": "filepath",
-                "description": "",
-            }
+            assert inputs[1]["python_type"]["type"] == "filepath"
             assert isinstance(inputs[1]["example_input"], dict)
 
-            assert outputs[0]["python_type"] == {
-                "type": "List[filepath]",
-                "description": "",
-            }
+            assert outputs[0]["python_type"]["type"] == "List[filepath]"
             assert outputs[0]["type"]["type"] == "array"
 
-            assert outputs[1]["python_type"] == {
-                "type": "filepath",
-                "description": "",
-            }
+            assert outputs[1]["python_type"]["type"] == "filepath"
 
     def test_layout_components_in_output(self, hello_world_with_group):
         with connect(hello_world_with_group) as client:

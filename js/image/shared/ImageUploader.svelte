@@ -15,8 +15,9 @@
 	import ClearImage from "./ClearImage.svelte";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
+	import type { Base64File } from "./types";
 
-	export let value: null | FileData;
+	export let value: null | FileData | Base64File = null;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
@@ -59,6 +60,13 @@
 		img_blob: Blob | any,
 		event: "change" | "stream" | "upload"
 	): Promise<void> {
+		if (event === "stream") {
+			dispatch("stream", {
+				value: { url: img_blob } as Base64File,
+				is_value_data: true
+			});
+			return;
+		}
 		pending = true;
 		const f = await upload_input.load_files([
 			new File([img_blob], `image/${streaming ? "jpeg" : "png"}`)
@@ -68,8 +76,6 @@
 			value = f?.[0] || null;
 			await tick();
 			dispatch("change");
-		} else {
-			dispatch("stream", { value: f?.[0] || null, is_value_data: true });
 		}
 		pending = false;
 	}
