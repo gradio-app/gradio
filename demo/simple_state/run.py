@@ -11,7 +11,7 @@ with gr.Blocks() as demo:
     gr.Button("Add Items").click(add_items, [items_to_add, cart], cart)
 
     cart_size = gr.Number(label="Cart Size")
-    gr.Button("Get Cart Size").click(lambda cart: len(cart), cart, cart_size)
+    cart.change(lambda cart: len(cart), cart, cart_size)
 
 if __name__ == "__main__":
     demo.launch()
