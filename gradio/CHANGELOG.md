@@ -1,5 +1,20 @@
 # gradio
 
+## 5.0.0-beta.8
+
+### Features
+
+- [#9550](https://github.com/gradio-app/gradio/pull/9550) [`b0fedd7`](https://github.com/gradio-app/gradio/commit/b0fedd7ef718c0df797ec277db7e773543a70a4d) - Fix most flaky Python tests in `5.0-dev` branch.  Thanks @abidlabs!
+- [#9577](https://github.com/gradio-app/gradio/pull/9577) [`9f532e0`](https://github.com/gradio-app/gradio/commit/9f532e03a6b91b9a5592152c19b9b2611774cae7) - Equal height columns.  Thanks @aliabid94!
+- [#9570](https://github.com/gradio-app/gradio/pull/9570) [`e0ee3d5`](https://github.com/gradio-app/gradio/commit/e0ee3d5bb1020744cefa1abf66009fbf07da8cbe) - Update gr.ColorPicker UI.  Thanks @hannahblair!
+- [#9483](https://github.com/gradio-app/gradio/pull/9483) [`8dc7c12`](https://github.com/gradio-app/gradio/commit/8dc7c12389311b60efcde1b9d3e3668a34d2dc00) - Send Streaming data over Websocket if possible. Also support base64 output format for images.  Thanks @freddyaboulton!
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+- [#9571](https://github.com/gradio-app/gradio/pull/9571) [`148345d`](https://github.com/gradio-app/gradio/commit/148345d107763754710505281ad70368ebc6f3ec) - Fix chatinterface embedding height issues.  Thanks @aliabid94!
+- [#9525](https://github.com/gradio-app/gradio/pull/9525) [`7c367b6`](https://github.com/gradio-app/gradio/commit/7c367b6cf0472d478671b7c7476e892b4c61c812) - Fix cut off in gr.ImageEditor.  Thanks @hannahblair!
+- [#9522](https://github.com/gradio-app/gradio/pull/9522) [`3b71ed2`](https://github.com/gradio-app/gradio/commit/3b71ed21b7e2ecb67eb68fb946d25565169cb4df) - Api info fix.  Thanks @freddyaboulton!
+- [#9508](https://github.com/gradio-app/gradio/pull/9508) [`b260389`](https://github.com/gradio-app/gradio/commit/b26038932a64f024bd149a56b1539e9e75802f29) - Change caching to occur not at the creation of a `gr.Examples()` but when the Blocks is actually launched.  Thanks @aliabid94!
+- [#9524](https://github.com/gradio-app/gradio/pull/9524) [`cf39640`](https://github.com/gradio-app/gradio/commit/cf396404ec8052c7fbf5f045955028bc54a274a5) - Add `css_paths` and `head_paths` parameters.  Thanks @abidlabs!
+
 ## 5.0.0-beta.7
 
 ### Features
