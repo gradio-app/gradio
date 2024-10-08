@@ -84,8 +84,7 @@ function spawn_gradio_app(app, port, verbose) {
 				...process.env,
 				PYTHONUNBUFFERED: "true",
 				GRADIO_ANALYTICS_ENABLED: "False",
-				GRADIO_IS_E2E_TEST: "1",
-				PYTHONPATH: `${process.env.PYTHONPATH}:${ROOT}`
+				GRADIO_IS_E2E_TEST: "1"
 			}
 		});
 		_process.stdout.setEncoding("utf8");
