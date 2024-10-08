@@ -34,6 +34,7 @@ from gradio.components.chatbot import (
     TupleFormat,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
+from gradio.context import get_blocks_context
 from gradio.events import Dependency, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
@@ -211,6 +212,7 @@ class ChatInterface(Blocks):
                         example_message["icon"] = example_icons[index]
                     examples_messages.append(example_message)
 
+            self.provided_chatbot = chatbot is not None
             if chatbot:
                 if self.type != chatbot.type:
                     warnings.warn(
@@ -747,3 +749,10 @@ class ChatInterface(Blocks):
         history, msg = await self._delete_prev_fn(msg, history)
         previous_msg = previous_input[-1] if len(previous_input) else msg
         return history, msg, previous_msg, previous_input
+
+    def render(self) -> ChatInterface:
+        # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
+        if get_blocks_context() and not self.provided_chatbot:
+            self.chatbot.height = 400
+            super().render()
+        return self
