@@ -44,12 +44,14 @@ export async function wasm_proxied_fetch(
 		headers[key] = value;
 	});
 
+	const body = request.body ?? new Uint8Array(await request.arrayBuffer()); // request.body can't be read on FireFox, so fallback to arrayBuffer().
+
 	const response = await workerProxy.httpRequest({
 		path: url.pathname,
 		query_string: url.searchParams.toString(), // The `query_string` field in the ASGI spec must not contain the leading `?`.
 		method,
 		headers,
-		body: request.body
+		body
 	});
 	return new Response(response.body, {
 		status: response.status,
