@@ -25,6 +25,7 @@
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
+	import ScrollDownIcon from "./ScrollDown.svelte";
 	import Pending from "./Pending.svelte";
 	import MessageBox from "./MessageBox.svelte";
 	import { ShareError } from "@gradio/utils";
@@ -568,8 +569,14 @@
 </div>
 
 {#if show_scroll_button}
-	<!-- TODO: Apply design -->
-	<button class="scroll-button" on:click={scroll_to_bottom}>Scroll down</button>
+	<div class="scroll-down-button-container">
+		<IconButton
+			Icon={ScrollDownIcon}
+			label="Scroll down"
+			size="large"
+			on:click={scroll_to_bottom}
+		/>
+	</div>
 {/if}
 
 <style>
@@ -1063,5 +1070,26 @@
 		padding: 0;
 		border: none;
 		background: none;
+	}
+
+	.scroll-down-button-container {
+		position: absolute;
+		bottom: 10px;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: var(--layer-top);
+	}
+
+	.scroll-down-button-container :global(button) {
+		border-radius: 50%;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		transition:
+			box-shadow 0.3s ease,
+			transform 0.3s ease;
+	}
+
+	.scroll-down-button-container :global(button:hover) {
+		box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+		transform: translateY(-2px);
 	}
 </style>
