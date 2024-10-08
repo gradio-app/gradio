@@ -26,7 +26,8 @@
 		align-items: center;
 		z-index: var(--layer-2);
 		box-shadow: var(--block-label-shadow);
-		border: var(--block-label-border-width) solid var(--border-color-primary);
+		border: var(--block-label-border-width) solid
+			var(--block-label-border-color);
 		border-top: none;
 		border-left: none;
 		border-radius: var(--block-label-radius);
