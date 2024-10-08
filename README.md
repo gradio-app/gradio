@@ -28,7 +28,7 @@ Gradio is an open-source Python package that allows you to quickly **build** a d
 
 <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/gif-version.gif" style="padding-bottom: 10px">
 
-It just takes a few lines of Python to create a beautiful demo like the one above, so let's get started 💫
+It just takes a few lines of Python to create your own demo, so let's get started 💫
 
 ### Installation
 
