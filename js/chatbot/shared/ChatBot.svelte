@@ -143,7 +143,7 @@
 	}
 
 	let scroll_after_component_load = false;
-	async function on_child_component_load(): Promise<void> {
+	function on_child_component_load(): void {
 		if (scroll_after_component_load) {
 			scroll_to_bottom();
 			scroll_after_component_load = false;
@@ -175,6 +175,8 @@
 		function handle_scroll(): void {
 			if (is_at_bottom()) {
 				show_scroll_button = false;
+			} else {
+				scroll_after_component_load = false;
 			}
 		}
 
