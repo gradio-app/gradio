@@ -8,7 +8,7 @@ import builtins
 import functools
 import inspect
 import warnings
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator, Callable, Sequence
 from pathlib import Path
 from typing import Literal, Union, cast
 
@@ -34,6 +34,7 @@ from gradio.components.chatbot import (
     TupleFormat,
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
+from gradio.context import get_blocks_context
 from gradio.events import Dependency, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
@@ -81,11 +82,14 @@ class ChatInterface(Blocks):
         title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
-        css: str | Path | None = None,
-        js: str | Path | None = None,
-        head: str | Path | None = None,
+        css: str | None = None,
+        css_paths: str | Path | Sequence[str | Path] | None = None,
+        js: str | None = None,
+        head: str | None = None,
+        head_paths: str | Path | Sequence[str | Path] | None = None,
         analytics_enabled: bool | None = None,
         autofocus: bool = True,
+        autoscroll: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
         fill_height: bool = True,
         delete_cache: tuple[int, int] | None = None,
@@ -111,11 +115,14 @@ class ChatInterface(Blocks):
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
-            css: custom css as a code string or pathlib.Path to a css file. This css will be included in the demo webpage.
-            js: custom js as a code string or pathlib.Path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
-            head: custom html to insert into the head of the demo webpage, either as a code string or a pathlib.Path to an html file. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            css: Custom css as a code string. This css will be included in the demo webpage.
+            css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
+            js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
+            head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             autofocus: if True, autofocuses to the textbox when the page loads.
+            autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: if True, the chat interface will expand to the height of window.
             delete_cache: a tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
@@ -127,11 +134,13 @@ class ChatInterface(Blocks):
         super().__init__(
             analytics_enabled=analytics_enabled,
             mode="chat_interface",
-            css=css,
             title=title or "Gradio",
             theme=theme,
+            css=css,
+            css_paths=css_paths,
             js=js,
             head=head,
+            head_paths=head_paths,
             fill_height=fill_height,
             fill_width=fill_width,
             delete_cache=delete_cache,
@@ -205,6 +214,7 @@ class ChatInterface(Blocks):
                         example_message["icon"] = example_icons[index]
                     examples_messages.append(example_message)
 
+            self.provided_chatbot = chatbot is not None
             if chatbot:
                 if self.type != chatbot.type:
                     warnings.warn(
@@ -222,7 +232,8 @@ class ChatInterface(Blocks):
                     scale=1,
                     height=200 if fill_height else None,
                     type=self.type,
-                    examples=examples_messages,
+                    autoscroll=autoscroll,
+                    examples=examples_messages if not self.additional_inputs else None,
                 )
 
             with Group():
@@ -261,18 +272,27 @@ class ChatInterface(Blocks):
                     examples_fn = self._examples_stream_fn
                 else:
                     examples_fn = self._examples_fn
-                self.examples_handler = Examples(
-                    examples=examples,
-                    inputs=[self.textbox] + self.additional_inputs,
-                    outputs=self.chatbot,
-                    fn=examples_fn,
-                    cache_examples=self.cache_examples,
-                    cache_mode=self.cache_mode,
-                    _defer_caching=True,
-                    visible=False,
-                    preprocess=False,
-                    postprocess=True,
-                )
+                if self.examples and self.additional_inputs:
+                    self.examples_handler = Examples(
+                        examples=examples,
+                        inputs=[self.textbox] + self.additional_inputs,
+                        outputs=self.chatbot,
+                        fn=examples_fn,
+                        cache_examples=self.cache_examples,
+                        cache_mode=self.cache_mode,
+                    )
+                else:
+                    self.examples_handler = Examples(
+                        examples=examples,
+                        inputs=[self.textbox] + self.additional_inputs,
+                        outputs=self.chatbot,
+                        fn=examples_fn,
+                        cache_examples=self.cache_examples,
+                        cache_mode=self.cache_mode,
+                        visible=False,
+                        preprocess=False,
+                        postprocess=True,
+                    )
 
             any_unrendered_inputs = any(
                 not inp.is_rendered for inp in self.additional_inputs
@@ -282,10 +302,6 @@ class ChatInterface(Blocks):
                     for input_component in self.additional_inputs:
                         if not input_component.is_rendered:
                             input_component.render()
-
-            # The example caching must happen after the input components have rendered
-            if examples:
-                self.examples_handler._start_caching()
 
             self.saved_input = State()
             self.chatbot_state = (
@@ -335,7 +351,11 @@ class ChatInterface(Blocks):
             )
         )
 
-        if isinstance(self.chatbot, Chatbot) and self.examples:
+        if (
+            isinstance(self.chatbot, Chatbot)
+            and self.examples
+            and not self.additional_inputs
+        ):
             if self.cache_examples:
                 self.chatbot.example_select(
                     self.example_clicked,
@@ -535,9 +555,12 @@ class ChatInterface(Blocks):
                 history.append([message["text"], cast(str, response)])  # type: ignore
         else:
             for x in message.get("files", []):
-                history.append(
-                    {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
-                )
+                if isinstance(x, dict):
+                    history.append(
+                        {"role": "user", "content": cast(FileDataDict, x)}  # type: ignore
+                    )
+                else:
+                    history.append({"role": "user", "content": (x,)})  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
                 return
             else:
@@ -746,3 +769,10 @@ class ChatInterface(Blocks):
         history, msg = await self._delete_prev_fn(msg, history)
         previous_msg = previous_input[-1] if len(previous_input) else msg
         return history, msg, previous_msg, previous_input
+
+    def render(self) -> ChatInterface:
+        # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
+        if get_blocks_context() and not self.provided_chatbot:
+            self.chatbot.height = 400
+            super().render()
+        return self

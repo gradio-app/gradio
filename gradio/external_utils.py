@@ -9,7 +9,7 @@ import warnings
 
 import httpx
 import yaml
-from huggingface_hub import HfApi, InferenceClient
+from huggingface_hub import HfApi, ImageClassificationOutputElement, InferenceClient
 
 from gradio import components
 
@@ -89,8 +89,8 @@ def rows_to_cols(incoming_data: dict) -> dict[str, dict[str, dict[str, list[str]
 ##################
 
 
-def postprocess_label(scores: list[dict[str, str | float]]) -> dict:
-    return {c["label"]: c["score"] for c in scores}
+def postprocess_label(scores: list[ImageClassificationOutputElement]) -> dict:
+    return {c.label: c.score for c in scores}
 
 
 def postprocess_mask_tokens(scores: list[dict[str, str | float]]) -> dict:
