@@ -463,11 +463,6 @@
 		overflow-wrap: break-word;
 	}
 
-	.message-wrap > :global(.message :not(.image-button) img) {
-		margin: var(--size-2);
-		max-height: 200px;
-	}
-
 	.message-wrap :global(.message-row .md img) {
 		border-radius: var(--radius-xl);
 		margin: var(--size-2);
