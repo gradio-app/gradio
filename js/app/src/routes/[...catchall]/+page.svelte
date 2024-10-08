@@ -115,7 +115,7 @@
 	let active_theme_mode: ThemeMode;
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
-		subscribe: writable({}).subscribe
+		subscribe: writable({}).subscribe,
 	};
 
 	$: if (config?.app_id) {
@@ -133,121 +133,15 @@
 		// }
 		await mount_css(
 			config.root + config.api_prefix + "/theme.css?v=" + config.theme_hash,
-			document.head
+			document.head,
 		);
-		// if (!config.stylesheets) return;
-		// await Promise.all(
-		// 	config.stylesheets.map((stylesheet) => {
-		// 		let absolute_link =
-		// 			stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
-		// 		if (absolute_link) {
-		// 			return mount_css(stylesheet, document.head);
-		// 		}
-		// 		return fetch(config.root + "/" + stylesheet)
-		// 			.then((response) => response.text())
-		// 			.then((css_string) => {
-		// 				prefix_css(css_string, version);
-		// 			});
-		// 	}),
-		// );
-	}
-	async function add_custom_html_head(
-		head_string: string | null
-	): Promise<void> {
-		// if (head_string) {
-		// 	const parser = new DOMParser();
-		// 	const parsed_head_html = Array.from(
-		// 		parser.parseFromString(head_string, "text/html").head.children,
-		// 	);
-		// 	if (parsed_head_html) {
-		// 		for (let head_element of parsed_head_html) {
-		// 			let newElement = document.createElement(head_element.tagName);
-		// 			Array.from(head_element.attributes).forEach((attr) => {
-		// 				newElement.setAttribute(attr.name, attr.value);
-		// 			});
-		// 			newElement.textContent = head_element.textContent;
-		// 			if (
-		// 				newElement.tagName == "META" &&
-		// 				newElement.getAttribute("property")
-		// 			) {
-		// 				const domMetaList = Array.from(
-		// 					document.head.getElementsByTagName("meta") ?? [],
-		// 				);
-		// 				const matched = domMetaList.find((el) => {
-		// 					return (
-		// 						el.getAttribute("property") ==
-		// 							newElement.getAttribute("property") &&
-		// 						!el.isEqualNode(newElement)
-		// 					);
-		// 				});
-		// 				if (matched) {
-		// 					document.head.replaceChild(newElement, matched);
-		// 					continue;
-		// 				}
-		// 			}
-		// 			document.head.appendChild(newElement);
-		// 		}
-		// 	}
-		// }
-	}
-
-	function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
-		const force_light = window.__gradio_mode__ === "website";
-
-		let new_theme_mode: ThemeMode;
-		if (force_light) {
-			new_theme_mode = "light";
-		} else {
-			const url = new URL(window.location.toString());
-			const url_color_mode: ThemeMode | null = url.searchParams.get(
-				"__theme"
-			) as ThemeMode | null;
-			new_theme_mode = theme_mode || url_color_mode || "system";
-		}
-
-		if (new_theme_mode === "dark" || new_theme_mode === "light") {
-			apply_theme(target, new_theme_mode);
-		} else {
-			new_theme_mode = sync_system_theme(target);
-		}
-		return new_theme_mode;
-	}
-
-	function sync_system_theme(target: HTMLDivElement): "light" | "dark" {
-		const theme = update_scheme();
-		window
-			?.matchMedia("(prefers-color-scheme: dark)")
-			?.addEventListener("change", update_scheme);
-
-		function update_scheme(): "light" | "dark" {
-			let _theme: "light" | "dark" = window?.matchMedia?.(
-				"(prefers-color-scheme: dark)"
-			).matches
-				? "dark"
-				: "light";
-
-			apply_theme(target, _theme);
-			return _theme;
-		}
-		return theme;
-	}
-
-	function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
-		const dark_class_element = is_embed ? target.parentElement! : document.body;
-		const bg_element = is_embed ? target : target.parentElement!;
-		bg_element.style.background = "var(--body-background-fill)";
-		if (theme === "dark") {
-			dark_class_element.classList.add("dark");
-		} else {
-			dark_class_element.classList.remove("dark");
-		}
 	}
 
 	let status: SpaceStatus = {
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING"
+		detail: "SLEEPING",
 	};
 
 	let app: ClientType = data.app;
@@ -260,17 +154,12 @@
 	let gradio_dev_mode = "";
 
 	onMount(async () => {
-		// active_theme_mode = handle_theme_mode(wrapper);
+		active_theme_mode = handle_theme_mode(wrapper);
 
 		//@ts-ignore
 		config = data.config;
 		window.gradio_config = config;
-		// api_url =
-		// 	BUILD_MODE === "dev" || gradio_dev_mode === "dev"
-		// 		? `http://localhost:${
-		// 				typeof server_port === "number" ? server_port : 7860
-		// 			}`
-		// 		: host || space || src || location.origin;
+
 		window.gradio_config = data.config;
 		config = data.config;
 
@@ -285,7 +174,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING"
+			detail: "RUNNING",
 		};
 
 		// await mount_custom_css(config.css);
@@ -297,7 +186,7 @@
 
 		if (config.dev_mode) {
 			setTimeout(() => {
-				const { host } = new URL(api_url);
+				const { host } = new URL(data.api_url);
 				let url = new URL(`http://${host}/dev/reload`);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
@@ -307,10 +196,10 @@
 				});
 				stream.addEventListener("reload", async (event) => {
 					app.close();
-					app = await Client.connect(api_url, {
+					app = await Client.connect(data.api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
-						events: ["data", "log", "status", "render"]
+						events: ["data", "log", "status", "render"],
 					});
 
 					if (!app.config) {
@@ -337,8 +226,8 @@
 			new CustomEvent("render", {
 				bubbles: true,
 				cancelable: false,
-				composed: true
-			})
+				composed: true,
+			}),
 		);
 	}
 
@@ -349,7 +238,7 @@
 
 	async function mount_space_header(
 		space_id: string | null | undefined,
-		is_embed: boolean
+		is_embed: boolean,
 	): Promise<void> {
 		if (space_id && !is_embed && window.self === window.top) {
 			if (spaceheader) {
@@ -364,12 +253,61 @@
 	onDestroy(() => {
 		spaceheader?.remove();
 	});
+
+	function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
+		let new_theme_mode: ThemeMode;
+
+		const url = new URL(window.location.toString());
+		const url_color_mode: ThemeMode | null = url.searchParams.get(
+			"__theme",
+		) as ThemeMode | null;
+		new_theme_mode = theme_mode || url_color_mode || "system";
+
+		if (new_theme_mode === "dark" || new_theme_mode === "light") {
+			apply_theme(target, new_theme_mode);
+		} else {
+			new_theme_mode = sync_system_theme(target);
+		}
+		return new_theme_mode;
+	}
+
+	function sync_system_theme(target: HTMLDivElement): "light" | "dark" {
+		const theme = update_scheme();
+		window
+			?.matchMedia("(prefers-color-scheme: dark)")
+			?.addEventListener("change", update_scheme);
+
+		function update_scheme(): "light" | "dark" {
+			let _theme: "light" | "dark" = window?.matchMedia?.(
+				"(prefers-color-scheme: dark)",
+			).matches
+				? "dark"
+				: "light";
+
+			apply_theme(target, _theme);
+			return _theme;
+		}
+		return theme;
+	}
+
+	function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
+		const dark_class_element = is_embed ? target.parentElement! : document.body;
+		const bg_element = is_embed ? target : target.parentElement!;
+		bg_element.style.background = "var(--body-background-fill)";
+		if (theme === "dark") {
+			dark_class_element.classList.add("dark");
+		} else {
+			dark_class_element.classList.remove("dark");
+		}
+	}
 </script>
 
 <svelte:head>
 	<link rel="stylesheet" href={"./theme.css?v=" + config?.theme_hash} />
 
-	<style></style>
+	{#if config.head}
+		{@html config.head}
+	{/if}
 </svelte:head>
 
 <Embed

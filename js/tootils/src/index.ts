@@ -238,4 +238,7 @@ export async function go_to_testcase(
 ): Promise<void> {
 	const url = page.url();
 	await page.goto(`${url.substring(0, url.length - 1)}_${test_case}_testcase`);
+	if (process.env?.GRADIO_SSR_MODE?.toLowerCase() === "true") {
+		await page.waitForSelector("#svelte-announcer");
+	}
 }
