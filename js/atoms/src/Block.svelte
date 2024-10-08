@@ -17,7 +17,7 @@
 	export let overflow_behavior: "visible" | "auto" = "auto";
 	export let scale: number | null = null;
 	export let min_width = 0;
-	export let flex: boolean = false;
+	export let flex = false;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
