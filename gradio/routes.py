@@ -534,7 +534,7 @@ class App(FastAPI):
                 template = (
                     "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
-                gradio_api_info = api_info(False)
+                gradio_api_info = api_info(request)
                 return templates.TemplateResponse(
                     template,
                     {
@@ -557,13 +557,16 @@ class App(FastAPI):
 
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])
-        def api_info(all_endpoints: bool = False):
+        def api_info(request: fastapi.Request):
+            all_endpoints = request.query_params.get("all_endpoints", False)
             if all_endpoints:
                 if not app.all_app_info:
                     app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
                 return app.all_app_info
             if not app.api_info:
-                app.api_info = app.get_blocks().get_api_info()
+                api_info = cast(dict[str, Any], app.get_blocks().get_api_info())
+                api_info = route_utils.update_example_values_to_use_public_url(api_info)
+                app.api_info = api_info
             return app.api_info
 
         @app.get("/config/", dependencies=[Depends(login_check)])
