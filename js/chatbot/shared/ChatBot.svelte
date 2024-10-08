@@ -154,14 +154,13 @@
 	async function scroll_on_value_update(): Promise<void> {
 		if (!autoscroll) return;
 
-		await tick(); // Wait for the DOM to update so that the scrollHeight is correct
-
 		if (is_at_bottom()) {
-			scroll_to_bottom();
-
 			// Child components may be loaded asynchronously,
 			// so trigger the scroll again after they load.
 			scroll_after_component_load = true;
+
+			await tick(); // Wait for the DOM to update so that the scrollHeight is correct
+			scroll_to_bottom();
 		} else {
 			show_scroll_button = true;
 		}
