@@ -366,6 +366,7 @@ class App(FastAPI):
                     and not path.startswith("/gradio_api")
                     and path not in ["/config", "/login", "/favicon.ico"]
                     and not path.startswith("/theme")
+                    and not path.startswith("/static")
                 ):
                     if App.app_port is None:
                         App.app_port = request.url.port or int(
