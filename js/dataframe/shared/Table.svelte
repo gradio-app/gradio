@@ -1025,7 +1025,6 @@
 	th.focus,
 	td.focus,
 	td.menu-active {
-		border: 1px var(--color-accent);
 		z-index: 1;
 	}
 
