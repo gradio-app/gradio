@@ -26,7 +26,7 @@ demo = gr.Interface(
         [144, "multiply", 2.5],
         [0, "subtract", 1.2],
     ],
-    title="Toy Calculator!!",
+    title="Toy Calculator",
     description="Here's a sample toy calculator.",
 )
 
