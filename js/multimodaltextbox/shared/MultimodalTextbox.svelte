@@ -247,7 +247,7 @@
 >
 	<!-- svelte-ignore a11y-autofocus -->
 	<label class:container>
-		<BlockTitle {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 		{#if value.files.length > 0 || uploading}
 			<div
 				class="thumbnails scroll-hide"
