@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:changes
+feat:Equal height columns
