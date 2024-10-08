@@ -59,8 +59,8 @@
 		"new_row": "New row",
 		"add_row_above": "Add row above",
 		"add_row_below": "Add row below",
-		"add_column_left": "Add column left",
-		"add_column_right": "Add column right"
+		"add_column_left": "Add column to the left",
+		"add_column_right": "Add column to the right"
 	},
 	"dropdown": {
 		"dropdown": "Dropdown"
