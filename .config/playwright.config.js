@@ -56,7 +56,17 @@ const lite = defineConfig(base, {
 	],
 	workers: 1,
 	retries: 3,
-	timeout: 60000
+	timeout: 60000,
+	projects: [
+		{
+			name: "chromium",
+			use: { ...devices["Desktop Chrome"] }
+		},
+		{
+			name: "firefox",
+			use: { ...devices["Desktop Firefox"] }
+		}
+	]
 });
 
 export default !!process.env.GRADIO_E2E_TEST_LITE ? lite : normal;
