@@ -228,7 +228,7 @@ class ChatInterface(Blocks):
                     scale=1,
                     height=200 if fill_height else None,
                     type=self.type,
-                    examples=examples_messages,
+                    examples=examples_messages if not self.additional_inputs else None,
                 )
 
             with Group():
@@ -267,17 +267,27 @@ class ChatInterface(Blocks):
                     examples_fn = self._examples_stream_fn
                 else:
                     examples_fn = self._examples_fn
-                self.examples_handler = Examples(
-                    examples=examples,
-                    inputs=[self.textbox] + self.additional_inputs,
-                    outputs=self.chatbot,
-                    fn=examples_fn,
-                    cache_examples=self.cache_examples,
-                    cache_mode=self.cache_mode,
-                    visible=False,
-                    preprocess=False,
-                    postprocess=True,
-                )
+                if self.examples and self.additional_inputs:
+                    self.examples_handler = Examples(
+                        examples=examples,
+                        inputs=[self.textbox] + self.additional_inputs,
+                        outputs=self.chatbot,
+                        fn=examples_fn,
+                        cache_examples=self.cache_examples,
+                        cache_mode=self.cache_mode,
+                    )
+                else:
+                    self.examples_handler = Examples(
+                        examples=examples,
+                        inputs=[self.textbox] + self.additional_inputs,
+                        outputs=self.chatbot,
+                        fn=examples_fn,
+                        cache_examples=self.cache_examples,
+                        cache_mode=self.cache_mode,
+                        visible=False,
+                        preprocess=False,
+                        postprocess=True,
+                    )
 
             any_unrendered_inputs = any(
                 not inp.is_rendered for inp in self.additional_inputs
@@ -336,7 +346,7 @@ class ChatInterface(Blocks):
             )
         )
 
-        if isinstance(self.chatbot, Chatbot) and self.examples:
+        if isinstance(self.chatbot, Chatbot) and self.examples and not self.additional_inputs:
             if self.cache_examples:
                 self.chatbot.example_select(
                     self.example_clicked,
