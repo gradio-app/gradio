@@ -4,7 +4,7 @@
 	import type { Brush, Eraser } from "./shared/tools/Brush.svelte";
 	import type {
 		EditorData,
-		ImageBlobs
+		ImageBlobs,
 	} from "./shared/InteractiveImageEditor.svelte";
 
 	import type { Gradio, SelectData } from "@gradio/utils";
@@ -21,7 +21,7 @@
 	export let value: EditorData | null = {
 		background: null,
 		layers: [],
-		composite: null
+		composite: null,
 	};
 	export let label: string;
 	export let show_label: boolean;
@@ -41,7 +41,7 @@
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
-		"webcam"
+		"webcam",
 	];
 	export let interactive: boolean;
 	export let placeholder: string | undefined;
@@ -57,6 +57,7 @@
 	};
 	export let canvas_size: [number, number] | undefined;
 	export let show_fullscreen_button = true;
+	export let full_history: any = null;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -125,6 +126,7 @@
 	}
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
+	$: console.log("INDEX", { full_history });
 </script>
 
 {#if !interactive}
@@ -185,6 +187,7 @@
 		/>
 
 		<InteractiveImageEditor
+			on:history={(e) => (full_history = e.detail)}
 			bind:dragging
 			{canvas_size}
 			on:change={() => handle_history_change()}

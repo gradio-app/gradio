@@ -17,7 +17,7 @@
 	let hue_moving = false;
 
 	function handle_hue_down(
-		event: MouseEvent & { currentTarget: HTMLDivElement }
+		event: MouseEvent & { currentTarget: HTMLDivElement },
 	): void {
 		hue_rect = event.currentTarget.getBoundingClientRect();
 
@@ -35,6 +35,8 @@
 
 		color = hsva_to_rgba({ h: _hue, s: sl[0], v: sl[1], a: 1 });
 	}
+
+	$: console.log({ color });
 
 	function hsva_to_rgba(hsva: {
 		h: number;
@@ -69,7 +71,7 @@
 			h: hue * 1,
 			s: _x / sl_rect.width,
 			v: 1 - _y / sl_rect.height,
-			a: 1
+			a: 1,
 		};
 
 		sl = [_hsva.s, _hsva.v];
@@ -78,7 +80,7 @@
 	}
 
 	function handle_sl_down(
-		event: MouseEvent & { currentTarget: HTMLDivElement }
+		event: MouseEvent & { currentTarget: HTMLDivElement },
 	): void {
 		sl_moving = true;
 		sl_rect = event.currentTarget.getBoundingClientRect();
@@ -86,7 +88,7 @@
 	}
 
 	function handle_move(
-		event: MouseEvent & { currentTarget: EventTarget & Window }
+		event: MouseEvent & { currentTarget: EventTarget & Window },
 	): void {
 		if (sl_moving) update_color_from_mouse(event.clientX, event.clientY);
 		if (hue_moving) update_hue_from_mouse(event.clientX);
