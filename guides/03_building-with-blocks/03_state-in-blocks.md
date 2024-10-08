@@ -26,9 +26,8 @@ Notice how we do this with state:
 
 You can think of `gr.State` as an invisible Component that can store any kind of value. Here, `cart` is not visible in the frontend but is used for calculations.
 
-The `.change` listener for a state variable triggers after any event listener changes the value of a state variable. If the state variable holds a sequence (like a list, set, or dict), a change is triggered if any of the elements inside change. If it holds an object or primitive, a change is triggered if the hash of the stored value changes.  
+The `.change` listener for a state variable triggers after any event listener changes the value of a state variable. If the state variable holds a sequence (like a list, set, or dict), a change is triggered if any of the elements inside change. If it holds an object or primitive, a change is triggered if the **hash** of the  value changes. So if you define a custom class and create a `gr.State` variable that is an instance of that class, make sure that the the class includes a sensible `__hash__` implementation.
 
-The value of the State variable is cleared when the user refreshes the page.
-State is stored on the server for 60 minutes after the user closes the tab.
+The value of a session State variable is cleared when the user refreshes the page. The value is stored on in the app backend for 60 minutes after the user closes the tab (this can be configured by the `delete_cache` parameter in `gr.Blocks`).
 
 Learn more about `State` in the [docs](https://gradio.app/docs/gradio/state).
