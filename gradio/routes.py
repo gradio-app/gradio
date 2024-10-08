@@ -51,6 +51,7 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+from fastapi.websockets import WebSocket, WebSocketDisconnect
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
@@ -534,7 +535,7 @@ class App(FastAPI):
                 template = (
                     "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
-                gradio_api_info = api_info(False)
+                gradio_api_info = api_info(request)
                 return templates.TemplateResponse(
                     template,
                     {
@@ -557,13 +558,16 @@ class App(FastAPI):
 
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])
-        def api_info(all_endpoints: bool = False):
+        def api_info(request: fastapi.Request):
+            all_endpoints = request.query_params.get("all_endpoints", False)
             if all_endpoints:
                 if not app.all_app_info:
                     app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
                 return app.all_app_info
             if not app.api_info:
-                app.api_info = app.get_blocks().get_api_info()
+                api_info = cast(dict[str, Any], app.get_blocks().get_api_info())
+                api_info = route_utils.update_example_values_to_use_public_url(api_info)
+                app.api_info = api_info
             return app.api_info
 
         @app.get("/config/", dependencies=[Depends(login_check)])
@@ -735,6 +739,23 @@ class App(FastAPI):
             event.data = body
             event.signal.set()
             return {"msg": "success"}
+
+        @router.websocket("/stream/{event_id}")
+        async def websocket_endpoint(websocket: WebSocket, event_id: str):
+            await websocket.accept()
+            try:
+                while True:
+                    data = await websocket.receive_json()
+                    body = PredictBody(**data)
+                    event = app.get_blocks()._queue.event_ids_to_events[event_id]
+                    body_internal = PredictBodyInternal(
+                        **body.model_dump(), request=None
+                    )
+                    event.data = body_internal
+                    event.signal.set()
+                    await websocket.send_json({"msg": "success"})
+            except WebSocketDisconnect:
+                pass
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
@@ -1371,7 +1392,8 @@ class App(FastAPI):
         @router.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:
-                app.get_blocks().startup_events()
+                app.get_blocks().run_startup_events()
+                await app.get_blocks().run_extra_startup_events()
                 app.startup_events_triggered = True
                 return True
             return False
@@ -1601,9 +1623,10 @@ def mount_gradio_app(
     async def new_lifespan(app: FastAPI):
         async with old_lifespan(
             app
-        ):  # Instert the startup events inside the FastAPI context manager
+        ):  # Insert the startup events inside the FastAPI context manager
             async with gradio_app.router.lifespan_context(gradio_app):
-                gradio_app.get_blocks().startup_events()
+                gradio_app.get_blocks().run_startup_events()
+                await gradio_app.get_blocks().run_extra_startup_events()
                 yield
 
     app.router.lifespan_context = new_lifespan

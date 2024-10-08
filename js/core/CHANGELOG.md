@@ -2,6 +2,35 @@
 
 ## 0.1.0-beta.4
 
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.6
+
+## 0.1.0-beta.4
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/video@0.11.0-beta.5
+- @gradio/tabs@0.3.0-beta.3
+- @gradio/column@0.2.0-beta.1
+- @gradio/tabitem@0.3.0-beta.3
+- @gradio/code@0.10.0-beta.5
+- @gradio/paramviewer@0.4.22-beta.3
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/button@0.3.0-beta.5
+- @gradio/markdown@0.10.0-beta.3
+- @gradio/gallery@0.13.0-beta.5
+- @gradio/plot@0.7.0-beta.4
+- @gradio/file@0.10.0-beta.5
+- @gradio/checkbox@0.4.0-beta.3
+- @gradio/image@0.16.0-beta.5
+- @gradio/textbox@0.7.0-beta.3
+
+## 0.1.0-beta.4
+
 ### Features
 
 - [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots.  Thanks @pngwn!
