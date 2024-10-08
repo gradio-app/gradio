@@ -42,6 +42,7 @@
 	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let autoscroll = true;
 	export let _retryable = false;
 	export let _undoable = false;
 	export let latex_delimiters: {
@@ -145,6 +146,7 @@
 			{sanitize_html}
 			{bubble_full_width}
 			{line_breaks}
+			{autoscroll}
 			{layout}
 			{placeholder}
 			{examples}

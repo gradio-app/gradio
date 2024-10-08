@@ -35,6 +35,7 @@
 		pause: undefined;
 		end: undefined;
 		stop: undefined;
+		load: undefined;
 	}>();
 
 	$: value && dispatch("change", value);
@@ -70,7 +71,12 @@
 			on:pause
 			on:stop
 			on:end
-			on:load
+			on:loadedmetadata={() => {
+				// Deal with `<video>`'s `loadedmetadata` event as `VideoPreview`'s `load` event
+				// to represent not only the video is loaded but also the metadata is loaded
+				// so its dimensions (w/h) are known. This is used for Chatbot's auto scroll.
+				dispatch("load");
+			}}
 			mirror={false}
 			{label}
 			{loop}

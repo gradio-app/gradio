@@ -60,3 +60,4 @@ export { default as Warning } from "./Warning.svelte";
 export { default as Webcam } from "./Webcam.svelte";
 export { default as Spinner } from "./Spinner.svelte";
 export { default as Retry } from "./Retry.svelte";
+export { default as ScrollDownArrow } from "./ScrollDownArrow.svelte";

@@ -46,6 +46,7 @@ class TestChatbot:
             "height": 400,
             "max_height": None,
             "min_height": None,
+            "autoscroll": True,
             "proxy_url": None,
             "_selectable": False,
             "_retryable": False,
