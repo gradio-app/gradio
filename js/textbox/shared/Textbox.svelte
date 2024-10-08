@@ -383,6 +383,7 @@
 	label.container.show_textbox_border textarea:focus {
 		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
+		background: var(--input-background-fill-focus);
 	}
 
 	input::placeholder,
@@ -441,10 +442,6 @@
 	.stop-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
-	}
-	.stop-button:active,
-	.submit-button:active {
-		box-shadow: var(--button-shadow-active);
 	}
 	.stop-button:disabled,
 	.submit-button:disabled {
