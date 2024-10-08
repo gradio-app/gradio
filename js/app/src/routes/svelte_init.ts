@@ -17,5 +17,4 @@ if (is_browser) {
 	window.__gradio__svelte__internal = o;
 	window.__gradio__svelte__internal["globals"] = {};
 	window.globals = window;
-	// globalThis.globals = {};
 }

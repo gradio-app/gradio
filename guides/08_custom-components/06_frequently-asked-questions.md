@@ -1,12 +1,12 @@
 # Frequently Asked Questions
 
 ## What do I need to install before using Custom Components?
-Before using Custom Components, make sure you have Python 3.10+, Node.js v16.14+, npm 9+, and Gradio 4.0+ installed.
+Before using Custom Components, make sure you have Python 3.10+, Node.js v18+, npm 9+, and Gradio 4.0+ installed.
 
 ## Are custom components compatible between Gradio 4.0 and 5.0?
 
 Custom components built with Gradio 5.0 should be compatible with Gradio 4.0. If you built your custom component in Gradio 4.0 you will have to rebuild your component to be compatible with Gradio 5.0. Simply follow these steps:
-1. Update the `@gradio/preview` package. Cd into the `frontend` directory and run `npm update`.
+1. Update the `@gradio/preview` package. `cd` into the `frontend` directory and run `npm update`.
 2.  Modify the `dependencies` key in `pyproject.toml` to pin the maximum allowed Gradio version at version 5, e.g. `dependencies = ["gradio>=4.0,<6.0"]`.
 3. Run the build and publish commands
 
