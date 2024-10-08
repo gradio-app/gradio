@@ -86,6 +86,14 @@ class TestJSON:
             "O": 20,
         }
 
+    @pytest.mark.asyncio
+    async def test_dict_with_path_key_not_moved(self):
+        iface = gr.Interface(lambda x: x, "json", "json")
+        y_data = {"assets": {"path": "foo"}}
+        assert (
+            await iface.process_api(0, [y_data])
+        )["data"][0].model_dump() == y_data
+
     @pytest.mark.parametrize(
         "value, expected",
         [
