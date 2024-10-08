@@ -21,6 +21,7 @@
 	let old_value = value;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let root: string;
 
 	export let include_time = true;
 	$: if (value !== old_value) {
@@ -84,7 +85,7 @@
 	padding={true}
 >
 	<div class="label-content">
-		<BlockTitle {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 	</div>
 	<div class="timebox">
 		<input

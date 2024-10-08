@@ -24,6 +24,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
+	export let root: string;
 	export let gradio: Gradio<{
 		change: never;
 		input: never;
@@ -47,6 +48,7 @@
 	<Colorpicker
 		bind:value
 		bind:value_is_output
+		{root}
 		{label}
 		{info}
 		{show_label}

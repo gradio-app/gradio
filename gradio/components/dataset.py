@@ -48,7 +48,7 @@ class Dataset(Component):
     ):
         """
         Parameters:
-            label: The label for this component, appears above the component.
+            label: the label for this component, appears above the component.
             components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances. The following components are supported in a Dataset: Audio, Checkbox, CheckboxGroup, ColorPicker, Dataframe, Dropdown, File, HTML, Image, Markdown, Model3D, Number, Radio, Slider, Textbox, TimeSeries, Video
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels

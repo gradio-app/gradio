@@ -29,6 +29,7 @@
 	export let text_align: "left" | "right" | undefined = undefined;
 	export let autoscroll = true;
 	export let max_length: number | undefined = undefined;
+	export let root: string;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
@@ -197,7 +198,7 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
 	<div class="input-container">
 		{#if lines === 1 && max_lines === 1}

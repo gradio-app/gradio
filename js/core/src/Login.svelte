@@ -50,6 +50,7 @@
 		<Form>
 			<Block>
 				<Textbox
+					{root}
 					label="username"
 					lines={1}
 					show_label={true}
@@ -61,6 +62,7 @@
 
 			<Block>
 				<Textbox
+					{root}
 					label="password"
 					lines={1}
 					show_label={true}

@@ -33,6 +33,7 @@
 	export let interactive: boolean;
 	export let loading_status: LoadingStatus;
 	export let value_is_output = false;
+	export let root: string;
 
 	let range_input: HTMLInputElement;
 	let number_input: HTMLInputElement;
@@ -107,7 +108,7 @@
 	<div class="wrap">
 		<div class="head">
 			<label for={id}>
-				<BlockTitle {show_label} {info}>{label}</BlockTitle>
+				<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 			</label>
 			<div class="tab-like-container">
 				<input

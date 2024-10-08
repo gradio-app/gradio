@@ -68,7 +68,7 @@ class HighlightedText(Component):
             show_inline_category: If False, will not display span category label. Only applies if show_legend=False and interactive=False.
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.

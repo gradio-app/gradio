@@ -27,6 +27,7 @@
 	export let value_is_output = false;
 	export let interactive: boolean;
 	export let rtl = false;
+	export let root: string;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	const container = true;
@@ -72,7 +73,7 @@
 	{/if}
 
 	<label class:container>
-		<BlockTitle {show_label} info={undefined}>{label}</BlockTitle>
+		<BlockTitle {root} {show_label} info={undefined}>{label}</BlockTitle>
 
 		<input
 			data-testid="textbox"

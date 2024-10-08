@@ -46,6 +46,7 @@
 	export let autofocus = false;
 	export let autoscroll = true;
 	export let interactive: boolean;
+	export let root: string;
 	export let max_length: number | undefined = undefined;
 </script>
 
@@ -72,6 +73,7 @@
 		bind:value_is_output
 		{label}
 		{info}
+		{root}
 		{show_label}
 		{lines}
 		{type}
