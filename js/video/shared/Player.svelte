@@ -118,6 +118,7 @@
 			data-testid={`${label}-player`}
 			{processingVideo}
 			on:load
+			on:loadedmetadata
 		>
 			<track kind="captions" src={subtitle} default />
 		</Video>

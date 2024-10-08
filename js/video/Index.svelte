@@ -162,6 +162,7 @@
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.client.upload(...args)}
+			on:load
 		/>
 	</Block>
 {:else}
