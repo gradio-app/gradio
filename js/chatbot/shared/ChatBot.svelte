@@ -9,7 +9,6 @@
 
 	import { dequal } from "dequal/lite";
 	import {
-		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
 		type SvelteComponent,
@@ -116,7 +115,8 @@
 	});
 
 	let div: HTMLDivElement;
-	let autoscroll: boolean;
+
+	let show_scroll_button = false;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -130,28 +130,56 @@
 		example_select: SelectData;
 	}>();
 
-	beforeUpdate(() => {
-		autoscroll =
-			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
-	});
-
-	async function scroll(): Promise<void> {
-		if (!div) return;
-		await tick();
-		requestAnimationFrame(() => {
-			if (autoscroll) {
-				div?.scrollTo(0, div.scrollHeight);
-			}
-		});
+	function is_at_bottom(): boolean {
+		return div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
 	}
+
+	function scroll_to_bottom(): void {
+		if (!div) return;
+		div.scrollTo(0, div.scrollHeight);
+		show_scroll_button = false;
+	}
+
+	let on_child_component_load: (() => void) | null = null;
+
+	async function handle_value_update(): Promise<void> {
+		await tick(); // Wait for the DOM to update so that the scrollHeight is correct
+
+		if (is_at_bottom()) {
+			scroll_to_bottom();
+
+			// Child components may be loaded asynchronously,
+			// so we set the on:load event handler to trigger a scroll to bottom after they load.
+			on_child_component_load = scroll_to_bottom;
+		} else {
+			show_scroll_button = true;
+			on_child_component_load = null;
+		}
+	}
+	onMount(() => {
+		handle_value_update();
+	});
+	$: if (value || _components) {
+		handle_value_update();
+	}
+
+	onMount(() => {
+		function handle_scroll(): void {
+			if (is_at_bottom()) {
+				show_scroll_button = false;
+			}
+		}
+
+		div?.addEventListener("scroll", handle_scroll);
+		return () => {
+			div?.removeEventListener("scroll", handle_scroll);
+		};
+	});
 
 	let image_preview_source: string;
 	let image_preview_source_alt: string;
 	let is_image_preview_open = false;
 
-	$: if (value || autoscroll || _components) {
-		scroll();
-	}
 	afterUpdate(() => {
 		if (!div) return;
 		div.querySelectorAll("img").forEach((n) => {
@@ -414,7 +442,7 @@
 													{sanitize_html}
 													{render_markdown}
 													{line_breaks}
-													on:load={scroll}
+													on:load={on_child_component_load}
 													{root}
 												/>
 											</MessageBox>
@@ -425,7 +453,7 @@
 												{sanitize_html}
 												{render_markdown}
 												{line_breaks}
-												on:load={scroll}
+												on:load={on_child_component_load}
 												{root}
 											/>
 										{/if}
@@ -440,7 +468,7 @@
 											{i18n}
 											{upload}
 											{_fetch}
-											on:load={scroll}
+											on:load={on_child_component_load}
 										/>
 									{:else if message.type === "component" && message.content.component === "file"}
 										<a
@@ -538,6 +566,11 @@
 		</div>
 	{/if}
 </div>
+
+{#if show_scroll_button}
+	<!-- TODO: Apply design -->
+	<button class="scroll-button" on:click={scroll_to_bottom}>Scroll down</button>
+{/if}
 
 <style>
 	.hidden {
