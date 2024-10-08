@@ -91,10 +91,10 @@ function get_component_with_css(api_url, id, variant) {
 	  });
 	}
 
-	path = `${api_url}/custom_component/${id}/${variant}/index.js/${environment}`;
+	path = `${api_url}/custom_component/${id}/${environment}/${variant}/index.js`;
 
 	return Promise.all([
-		load_css(`${api_url}/custom_component/${id}/${variant}/style.css/${environment}`),
+		load_css(`${api_url}/custom_component/${id}/${environment}/${variant}/style.css`),
 		import(
 		  /* @vite-ignore */
 		  path

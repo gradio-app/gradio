@@ -134,6 +134,12 @@ BUILD_PATH_LIB = cast(
     .joinpath("templates/frontend/assets")
     .as_posix(),  # type: ignore
 )
+SVELTE_PATH_LIB = cast(
+    DeveloperPath,
+    importlib.resources.files("gradio")
+    .joinpath("templates/node/build/client/_app")
+    .as_posix(),  # type: ignore
+)
 VERSION = get_package_version()
 XSS_SAFE_MIMETYPES = {
     "image/jpeg",
@@ -596,14 +602,16 @@ class App(FastAPI):
             static_file = routes_safe_join(STATIC_PATH_LIB, UserProvidedPath(path))
             return FileResponse(static_file)
 
-        @router.get("/custom_component/{id}/{type}/{file_name}/{environment}")
+        @router.get("/custom_component/{id}/{environment}/{type}/{file_name}")
         def custom_component_path(
             id: str,
+            environment: Literal["client", "server"],
             type: str,
             file_name: str,
-            environment: Literal["client", "server"],
             req: fastapi.Request,
         ):
+            if environment not in ["client", "server"]:
+                raise HTTPException(status_code=404, detail="Environment not supported.")
             config = app.get_blocks().config
             components = config["components"]
             location = next(

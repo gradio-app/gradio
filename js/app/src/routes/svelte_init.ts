@@ -1,7 +1,7 @@
 import * as svelte from "svelte";
 const is_browser = typeof window !== "undefined";
-if(is_browser) {
-    const o = {
+if (is_browser) {
+	const o = {
 		SvelteComponent: svelte.SvelteComponent
 	};
 	for (const key in svelte) {
@@ -14,8 +14,8 @@ if(is_browser) {
 			o[key] = svelte[key];
 		}
 	}
-    window.__gradio__svelte__internal = o;
-    window.__gradio__svelte__internal["globals"] = {};
-    window.globals = window;
-    // globalThis.globals = {};
+	window.__gradio__svelte__internal = o;
+	window.__gradio__svelte__internal["globals"] = {};
+	window.globals = window;
+	// globalThis.globals = {};
 }
