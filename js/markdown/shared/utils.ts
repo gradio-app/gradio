@@ -14,27 +14,39 @@ import GithubSlugger from "github-slugger";
 const LINK_ICON_CODE = `<svg class="md-link-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>`;
 
 const COPY_ICON_CODE = `<svg
-xmlns="http://www.w3.org/2000/svg"
-width="100%"
-height="100%"
-viewBox="0 0 32 32"
-><path
-  fill="currentColor"
-  d="M28 10v18H10V10h18m0-2H10a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2Z"
-/><path fill="currentColor" d="M4 18H2V4a2 2 0 0 1 2-2h14v2H4Z" /></svg>`;
+	xmlns="http://www.w3.org/2000/svg"
+	viewBox="0 0 16 16"
+	color="currentColor"
+	aria-hidden="true"
+	width="16"
+	height="16"
+	><path
+		fill="currentColor"
+		d="M13.576 4.848v8.727H4.848V4.848zm0 -0.97H4.848a0.97 0.97 0 0 0 -0.97 0.97v8.727a0.97 0.97 0 0 0 0.97 0.97h8.727a0.97 0.97 0 0 0 0.97 -0.97V4.848a0.97 0.97 0 0 0 -0.97 -0.97"
+	/><path
+		fill="currentColor"
+		d="M1.939 8.727H0.97V1.939a0.97 0.97 0 0 1 0.97 -0.97h6.788v0.97H1.939Z"
+	/></svg>
+`;
+
 const CHECK_ICON_CODE = `<svg
-xmlns="http://www.w3.org/2000/svg"
-width="100%"
-height="100%"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="3"
-stroke-linecap="round"
-stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>`;
+  xmlns="http://www.w3.org/2000/svg"
+  width="16"
+  height="16"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  style="vertical-align: -0.125em;"
+>
+  <path d="M13 4.5L6 11.5L3 8.5" />
+</svg>`;
+
 const COPY_BUTTON_CODE = `<button title="copy" class="copy_code_button">
-<span class="copy-text">${COPY_ICON_CODE}</span>
-<span class="check">${CHECK_ICON_CODE}</span>
+  <span class="copy-text">${COPY_ICON_CODE}</span>
+  <span class="check">${CHECK_ICON_CODE}</span>
 </button>`;
 
 const escape_test = /[&<>"']/;

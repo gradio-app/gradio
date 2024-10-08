@@ -900,40 +900,6 @@
 		direction: ltr;
 	}
 
-	/* Copy button */
-	.message-wrap :global(div[class*="code_wrap"] > button) {
-		position: absolute;
-		top: var(--spacing-md);
-		right: var(--spacing-md);
-		z-index: 1;
-		cursor: pointer;
-		border-bottom-left-radius: var(--radius-sm);
-		padding: var(--spacing-md);
-		width: 25px;
-		height: 25px;
-	}
-
-	.message-wrap :global(code > button > span) {
-		position: absolute;
-		top: var(--spacing-md);
-		right: var(--spacing-md);
-		width: 12px;
-		height: 12px;
-	}
-	.message-wrap :global(.check) {
-		position: absolute;
-		top: 0;
-		right: 0;
-		opacity: 0;
-		z-index: var(--layer-top);
-		transition: opacity 0.2s;
-		background: var(--background-fill-primary);
-		padding: var(--size-1);
-		width: 100%;
-		height: 100%;
-		color: var(--body-text-color);
-	}
-
 	.message-wrap :global(pre) {
 		position: relative;
 	}
