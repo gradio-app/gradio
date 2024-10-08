@@ -54,7 +54,7 @@
 	$: console.log("dependencies", dependencies);
 	$: console.log("components", components);
 
-	let {
+	const {
 		layout: _layout,
 		targets,
 		update_value,
@@ -68,16 +68,28 @@
 		rerender_layout
 	} = create_components();
 
-	// @ts-ignore
-	$_layout = initial_layout;
-
-	$: components, layout, dependencies, root, app, fill_height, target, run();
+	$: create_layout({
+		components,
+		layout,
+		dependencies,
+		root: root + app.api_prefix,
+		app,
+		options: {
+			fill_height
+		}
+	});
 
 	$: {
 		ready = !!$_layout;
 	}
 
 	async function run(): Promise<void> {
+		console.log("running run")
+		console.log("run() components", components);
+		console.log("run() layout", layout);
+		console.log("run() dependencies", dependencies);
+		console.log("run() root", root + api_prefix);
+		console.log("run() app", app);
 		await create_layout({
 			components,
 			layout,
@@ -725,7 +737,7 @@
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
-		<!-- {#if $_layout} -->
+		{#if $_layout && app.config}
 		<MountComponents
 			rootNode={$_layout}
 			{root}
@@ -737,7 +749,7 @@
 			{max_file_size}
 			client={app}
 		/>
-		<!-- {/if} -->
+		{/if}
 	</div>
 
 	{#if show_footer}

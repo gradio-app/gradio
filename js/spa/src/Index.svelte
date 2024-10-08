@@ -335,7 +335,9 @@
 					window.__gradio_space__ = config.space_id;
 					await mount_custom_css(config.css);
 					await add_custom_html_head(config.head);
-					console.log("loaded!");
+					css_ready = true;
+					window.__is_colab__ = config.is_colab;
+					dispatch("loaded");
 				});
 			}, 200);
 		}
