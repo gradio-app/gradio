@@ -12,12 +12,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # - uses: actions/cache@v4
-    #   id: frontend-cache
-    #   with:
-    #     path: |
-    #       gradio/templates/*
-    #     key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
+    - uses: actions/cache@v4
+      id: frontend-cache
+      with:
+        path: |
+          gradio/templates/*
+        key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
     - name: Install pnpm
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # @v4
       with:
@@ -34,8 +34,7 @@ runs:
       shell: bash
       run: pnpm css
     - name: Build frontend
-      if: inputs.skip_build == 'false'
-      # && steps.frontend-cache.outputs.cache-hit != 'true'
+      if: inputs.skip_build == 'false' && steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
     - name: generate types
