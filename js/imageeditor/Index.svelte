@@ -29,7 +29,7 @@
 	export let root: string;
 	export let value_is_output = false;
 
-	export let height: number | undefined = 400;
+	export let height: number | undefined = 450;
 	export let width: number | undefined;
 
 	export let _selectable = false;

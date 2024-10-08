@@ -4,19 +4,14 @@
 	import { dequal } from "dequal/lite";
 	import { copy } from "@gradio/utils";
 	import { Upload } from "@gradio/upload";
-	import { BaseButton } from "@gradio/button";
+
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
-	import type {
-		Headers,
-		HeadersWithIDs,
-		Data,
-		Metadata,
-		Datatype
-	} from "./utils";
+	import type { Headers, HeadersWithIDs, Metadata, Datatype } from "./utils";
+	import CellMenu from "./CellMenu.svelte";
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
@@ -64,7 +59,7 @@
 	$: {
 		if (selected !== false) {
 			const [row, col] = selected;
-			if (!isNaN(row) && !isNaN(col)) {
+			if (!isNaN(row) && !isNaN(col) && data[row]) {
 				dispatch("select", {
 					index: [row, col],
 					value: get_data_at(row, col),
@@ -346,7 +341,14 @@
 		}
 	}
 
+	let active_cell: { row: number; col: number } | null = null;
+
 	async function handle_cell_click(i: number, j: number): Promise<void> {
+		if (active_cell && active_cell.row === i && active_cell.col === j) {
+			active_cell = null;
+		} else {
+			active_cell = { row: i, col: j };
+		}
 		if (dequal(editing, [i, j])) return;
 		header_edit = false;
 		selected_header = false;
@@ -410,35 +412,39 @@
 			return;
 		}
 
-		data.splice(
-			index ? index + 1 : data.length,
-			0,
-			Array(data[0].length)
-				.fill(0)
-				.map((_, i) => {
-					const _id = make_id();
+		const new_row = Array(data[0].length)
+			.fill(0)
+			.map((_, i) => {
+				const _id = make_id();
+				els[_id] = { cell: null, input: null };
+				return { id: _id, value: "" };
+			});
 
-					els[_id] = { cell: null, input: null };
-					return { id: _id, value: "" };
-				})
-		);
+		if (index !== undefined && index >= 0 && index <= data.length) {
+			data.splice(index, 0, new_row);
+		} else {
+			data.push(new_row);
+		}
 
 		data = data;
-		selected = [index ? index + 1 : data.length - 1, 0];
+		selected = [index !== undefined ? index : data.length - 1, 0];
 	}
 
 	$: (data || selected_header) && trigger_change();
 
-	async function add_col(): Promise<void> {
+	async function add_col(index?: number): Promise<void> {
 		parent.focus();
 		if (col_count[1] !== "dynamic") return;
+
+		const insert_index = index !== undefined ? index : data[0].length;
+
 		for (let i = 0; i < data.length; i++) {
 			const _id = make_id();
 			els[_id] = { cell: null, input: null };
-			data[i].push({ id: _id, value: "" });
+			data[i].splice(insert_index, 0, { id: _id, value: "" });
 		}
 
-		headers.push(`Header ${headers.length + 1}`);
+		headers.splice(insert_index, 0, `Header ${headers.length + 1}`);
 
 		data = data;
 		headers = headers;
@@ -446,13 +452,20 @@
 		await tick();
 
 		requestAnimationFrame(() => {
-			edit_header(headers.length - 1, true);
+			edit_header(insert_index, true);
 			const new_w = parent.querySelectorAll("tbody")[1].offsetWidth;
 			parent.querySelectorAll("table")[1].scrollTo({ left: new_w });
 		});
 	}
 
 	function handle_click_outside(event: Event): void {
+		if (
+			active_cell_menu &&
+			!(event.target as HTMLElement).closest(".cell-menu")
+		) {
+			active_cell_menu = null;
+		}
+
 		event.stopImmediatePropagation();
 		const [trigger] = event.composedPath() as HTMLElement[];
 		if (parent.contains(trigger)) {
@@ -463,6 +476,7 @@
 		header_edit = false;
 		selected_header = false;
 		selected = false;
+		active_cell = null;
 	}
 
 	function guess_delimitaor(
@@ -640,6 +654,56 @@
 			observer.disconnect();
 		};
 	});
+
+	let highlighted_column: number | null = null;
+
+	let active_cell_menu: {
+		row: number;
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+
+	function toggle_cell_menu(event: MouseEvent, row: number, col: number): void {
+		event.stopPropagation();
+		if (
+			active_cell_menu &&
+			active_cell_menu.row === row &&
+			active_cell_menu.col === col
+		) {
+			active_cell_menu = null;
+		} else {
+			const cell = (event.target as HTMLElement).closest("td");
+			if (cell) {
+				const rect = cell.getBoundingClientRect();
+				active_cell_menu = {
+					row,
+					col,
+					x: rect.right,
+					y: rect.bottom
+				};
+			}
+		}
+	}
+
+	function add_row_at(index: number, position: "above" | "below"): void {
+		const row_index = position === "above" ? index : index + 1;
+		add_row(row_index);
+		active_cell_menu = null;
+	}
+
+	function add_col_at(index: number, position: "left" | "right"): void {
+		const col_index = position === "left" ? index : index + 1;
+		add_col(col_index);
+		active_cell_menu = null;
+	}
+
+	onMount(() => {
+		document.addEventListener("click", handle_click_outside);
+		return () => {
+			document.removeEventListener("click", handle_click_outside);
+		};
+	});
 </script>
 
 <svelte:window
@@ -807,6 +871,9 @@
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
 							class:focus={dequal(selected, [index, j])}
+							class:menu-active={active_cell_menu &&
+								active_cell_menu.row === index &&
+								active_cell_menu.col === j}
 						>
 							<div class="cell-wrap">
 								<EditableCell
@@ -822,6 +889,17 @@
 									{clear_on_focus}
 									{root}
 								/>
+								{#if editable}
+									<button
+										class="cell-menu-button"
+										class:visible={active_cell &&
+											active_cell.row === index &&
+											active_cell.col === j}
+										on:click={(event) => toggle_cell_menu(event, index, j)}
+									>
+										⋮
+									</button>
+								{/if}
 							</div>
 						</td>
 					{/each}
@@ -829,63 +907,21 @@
 			</VirtualTable>
 		</Upload>
 	</div>
-	{#if editable}
-		<div class="controls-wrap">
-			{#if row_count[1] === "dynamic"}
-				<span class="button-wrap">
-					<BaseButton
-						variant="secondary"
-						size="sm"
-						on:click={(e) => (e.stopPropagation(), add_row())}
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							xmlns:xlink="http://www.w3.org/1999/xlink"
-							aria-hidden="true"
-							role="img"
-							width="1em"
-							height="1em"
-							preserveAspectRatio="xMidYMid meet"
-							viewBox="0 0 32 32"
-						>
-							<path
-								fill="currentColor"
-								d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
-							/>
-						</svg>
-						{i18n("dataframe.new_row")}
-					</BaseButton>
-				</span>
-			{/if}
-			{#if col_count[1] === "dynamic"}
-				<span class="button-wrap">
-					<BaseButton
-						variant="secondary"
-						size="sm"
-						on:click={(e) => (e.stopPropagation(), add_col())}
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							xmlns:xlink="http://www.w3.org/1999/xlink"
-							aria-hidden="true"
-							role="img"
-							width="1em"
-							height="1em"
-							preserveAspectRatio="xMidYMid meet"
-							viewBox="0 0 32 32"
-						>
-							<path
-								fill="currentColor"
-								d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
-							/>
-						</svg>
-						{i18n("dataframe.new_column")}
-					</BaseButton>
-				</span>
-			{/if}
-		</div>
-	{/if}
 </div>
+
+{#if active_cell_menu !== null}
+	<CellMenu
+		{i18n}
+		x={active_cell_menu.x}
+		y={active_cell_menu.y}
+		col={active_cell_menu.col}
+		row={active_cell_menu?.row ?? -1}
+		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
+		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
+		on_add_column_left={() => add_col_at(active_cell_menu?.col ?? -1, "left")}
+		on_add_column_right={() => add_col_at(active_cell_menu?.col ?? -1, "right")}
+	/>
+{/if}
 
 <style>
 	.button-wrap:hover svg {
@@ -956,7 +992,6 @@
 		top: 0;
 		left: 0;
 		z-index: var(--layer-1);
-		box-shadow: var(--shadow-drop);
 	}
 
 	tr {
@@ -976,7 +1011,6 @@
 		--ring-color: transparent;
 		position: relative;
 		outline: none;
-		box-shadow: inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 	}
 
@@ -989,8 +1023,9 @@
 	}
 
 	th.focus,
-	td.focus {
-		--ring-color: var(--color-accent);
+	td.focus,
+	td.menu-active {
+		z-index: 1;
 	}
 
 	tr:last-child td:first-child {
@@ -1039,21 +1074,12 @@
 	}
 
 	.cell-wrap {
+		position: relative;
 		display: flex;
 		align-items: center;
 		outline: none;
 		height: var(--size-full);
 		min-height: var(--size-9);
-	}
-
-	.controls-wrap {
-		display: flex;
-		justify-content: flex-end;
-		padding-top: var(--size-2);
-	}
-
-	.controls-wrap > * + * {
-		margin-left: var(--size-1);
 	}
 
 	.row_odd {
@@ -1066,5 +1092,36 @@
 
 	table {
 		border-collapse: separate;
+	}
+
+	.select-column {
+		width: var(--size-3);
+		text-align: center;
+		padding: var(--size-1);
+		border-right: none;
+	}
+
+	.cell-menu-button {
+		display: none;
+		background-color: var(--block-background-fill);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--block-radius);
+		width: var(--size-5);
+		margin-right: var(--spacing-sm);
+		z-index: var(--layer-2);
+	}
+
+	.cell-menu-button:hover {
+		background-color: var(--color-bg-hover);
+	}
+
+	.cell-menu-button.visible {
+		display: block;
+	}
+
+	@media (hover: hover) {
+		.cell-wrap:hover .cell-menu-button {
+			display: block;
+		}
 	}
 </style>

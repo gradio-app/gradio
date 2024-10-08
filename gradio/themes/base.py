@@ -188,7 +188,7 @@ class ThemeClass:
 
         try:
             space_info = api.space_info(name)
-        except huggingface_hub.utils._errors.RepositoryNotFoundError as e:
+        except huggingface_hub.utils.RepositoryNotFoundError as e:
             raise ValueError(f"The space {name} does not exist") from e
 
         assets = get_theme_assets(space_info)
@@ -698,8 +698,8 @@ class Base(ThemeClass):
         button_border_width_dark=None,
         button_shadow=None,
         button_shadow_active=None,
-        button_transform=None,
-        button_active_transform=None,
+        button_transform_hover=None,
+        button_transform_active=None,
         button_shadow_hover=None,
         button_transition=None,
         button_large_padding=None,
@@ -986,8 +986,8 @@ class Base(ThemeClass):
             button_small_text_size: The text size of a button set to "small" size.
             button_small_text_weight: The text weight of a button set to "small" size.
             button_transition: The transition animation duration of a button between regular, hover, and focused states.
-            button_transform: The transform animation of a button on hover.
-            button_active_transform: The transform animation of a button when pressed.
+            button_transform_hover: The transform animation of a button on hover.
+            button_transform_active: The transform animation of a button when pressed.
         """
 
         # Body
@@ -1638,7 +1638,7 @@ class Base(ThemeClass):
             self, "button_border_width", "*input_border_width"
         )
         self.button_border_width_dark = button_border_width_dark or getattr(
-            self, "button_border_width_dark", "*input_border_width"
+            self, "button_border_width_dark", None
         )
         self.button_shadow = button_shadow or getattr(self, "button_shadow", "none")
         self.button_shadow_active = button_shadow_active or getattr(
@@ -1714,19 +1714,17 @@ class Base(ThemeClass):
             or getattr(self, "button_cancel_text_color_hover_dark", "white")
         )
 
-        self.button_transform = button_transform or getattr(
-            self, "button_transform", "translateY(-0.5px)"
+        self.button_transform_hover = button_transform_hover or getattr(
+            self, "button_transform_hover", "none"
         )
-        self.button_active_transform = button_active_transform or getattr(
-            self, "button_active_transform", "translateY(-2px)"
+        self.button_transform_active = button_transform_active or getattr(
+            self, "button_transform_active", "none"
         )
         self.button_shadow_hover = button_shadow_hover or getattr(
             self, "button_shadow_hover", "none"
         )
         self.button_transition = button_transition or getattr(
-            self,
-            "button_transition",
-            "background-color 0.3s ease, border-color 0.3s ease",
+            self, "button_transition", "all 0.2s ease"
         )
 
         self.button_large_padding = button_large_padding or getattr(
@@ -1879,7 +1877,7 @@ class Base(ThemeClass):
             self, "button_small_text_size", "*text_sm"
         )
         self.button_small_text_weight = button_small_text_weight or getattr(
-            self, "button_small_text_weight", "600"
+            self, "button_small_text_weight", "400"
         )
 
         return self

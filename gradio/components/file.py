@@ -16,6 +16,7 @@ from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
+from gradio.exceptions import Error
 from gradio.utils import NamedString
 
 if TYPE_CHECKING:
@@ -27,7 +28,7 @@ class File(Component):
     """
     Creates a file component that allows uploading one or more generic files (when used as an input) or displaying generic files or URLs for download (as output).
 
-    Demo: zip_files, zip_to_json
+        Demo: zip_files, zip_to_json
     """
 
     EVENTS = [Events.change, Events.select, Events.clear, Events.upload, Events.delete]
@@ -60,7 +61,7 @@ class File(Component):
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -125,6 +126,12 @@ class File(Component):
     def _process_single_file(self, f: FileData) -> NamedString | bytes:
         file_name = f.path
         if self.type == "filepath":
+            if self.file_types and not client_utils.is_valid_file(
+                file_name, self.file_types
+            ):
+                raise Error(
+                    f"Invalid file type. Please upload a file that is one of these formats: {self.file_types}"
+                )
             file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
             file.name = file_name
             return NamedString(file_name)

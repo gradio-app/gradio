@@ -687,6 +687,23 @@ def get_extension(encoding: str) -> str | None:
     return extension
 
 
+def is_valid_file(file_path: str, file_types: list[str]) -> bool:
+    mime_type = get_mimetype(file_path)
+    if mime_type is None:
+        return False
+    for file_type in file_types:
+        if file_type == "file":
+            return True
+        if file_type.startswith("."):
+            file_type = file_type.lstrip(".").lower()
+            mime_type_split = mime_type.lower().split("/")
+            if file_type == mime_type_split[1]:
+                return True
+        elif mime_type.startswith(f"{file_type}/"):
+            return True
+    return False
+
+
 def encode_file_to_base64(f: str | Path):
     with open(f, "rb") as file:
         encoded_string = base64.b64encode(file.read())
@@ -883,6 +900,7 @@ def get_type(schema: dict):
 
 
 FILE_DATA_FORMATS = [
+    "Dict(path: str | None (Path to a local file), url: str | None (Publicly available url or base64 encoded image), size: int | None (Size of image in bytes), orig_name: str | None (Original filename), mime_type: str | None (mime type of image), is_stream: bool (Can always be set to False), meta: Dict())",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: Dict())",

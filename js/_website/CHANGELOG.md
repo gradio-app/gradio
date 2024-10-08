@@ -1,5 +1,33 @@
 # website
 
+## 0.39.0-beta.8
+
+### Dependency updates
+
+- @gradio/tabitem@0.3.0-beta.4
+- @gradio/code@0.10.0-beta.7
+- @gradio/paramviewer@0.4.22-beta.4
+
+## 0.39.0-beta.7
+
+### Dependency updates
+
+- @gradio/code@0.10.0-beta.6
+
+## 0.39.0-beta.6
+
+### Features
+
+- [#9460](https://github.com/gradio-app/gradio/pull/9460) [`7352a89`](https://github.com/gradio-app/gradio/commit/7352a89722da91461c32fd33588531f3edce9c48) - Playground requirements tab.  Thanks @whitphx!
+- [#9452](https://github.com/gradio-app/gradio/pull/9452) [`3ec8e63`](https://github.com/gradio-app/gradio/commit/3ec8e636766cc629444bc3cbc6b53deaf65f5ab1) - Expanding AI Playground Prompt for Qwen.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/tabs@0.3.0-beta.3
+- @gradio/tabitem@0.3.0-beta.3
+- @gradio/code@0.10.0-beta.5
+- @gradio/paramviewer@0.4.22-beta.3
+
 ## 0.39.0-beta.5
 
 ### Dependency updates
@@ -58,6 +86,17 @@
 - [#9213](https://github.com/gradio-app/gradio/pull/9213) [`ab4580b`](https://github.com/gradio-app/gradio/commit/ab4580bd5f755a07c9a9bd2a775220a9a2085f8c) - Remove grey background behind all components.  Thanks @hannahblair!
 - [#9206](https://github.com/gradio-app/gradio/pull/9206) [`bdbcf7b`](https://github.com/gradio-app/gradio/commit/bdbcf7b0e374c0769178767a1502cd310312278b) - Cloudflare migration.  Thanks @aliabd!
 - [#9156](https://github.com/gradio-app/gradio/pull/9156) [`8deeeb6`](https://github.com/gradio-app/gradio/commit/8deeeb6d1b83296e5174c2891b80fb317991289e) - File access security guide.  Thanks @freddyaboulton!
+
+## 0.39.1
+
+### Features
+
+- [#9379](https://github.com/gradio-app/gradio/pull/9379) [`0cad5f3`](https://github.com/gradio-app/gradio/commit/0cad5f348a846024b95b92fb48f88137ccfcd589) - Testing CI.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.9.1
+- @gradio/paramviewer@0.4.22
 
 ## 0.39.0
 

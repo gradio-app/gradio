@@ -14,7 +14,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type {
 		Message,
-		SuggestionMessage,
+		ExampleMessage,
 		TupleFormat,
 		NormalisedMessage
 	} from "./types";
@@ -42,6 +42,7 @@
 	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let autoscroll = true;
 	export let _retryable = false;
 	export let _undoable = false;
 	export let latex_delimiters: {
@@ -56,7 +57,7 @@
 		error: string;
 		like: LikeData;
 		clear_status: LoadingStatus;
-		suggestion_select: SelectData;
+		example_select: SelectData;
 		retry: UndoRetryData;
 		undo: UndoRetryData;
 		clear: null;
@@ -76,7 +77,7 @@
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
 	export let placeholder: string | null = null;
-	export let suggestions: SuggestionMessage[] | null = null;
+	export let examples: ExampleMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
 </script>
 
@@ -91,6 +92,7 @@
 	{min_height}
 	{max_height}
 	allow_overflow={true}
+	flex={true}
 	overflow_behavior="auto"
 >
 	{#if loading_status}
@@ -133,8 +135,7 @@
 			on:like={(e) => gradio.dispatch("like", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
-			on:suggestion_select={(e) =>
-				gradio.dispatch("suggestion_select", e.detail)}
+			on:example_select={(e) => gradio.dispatch("example_select", e.detail)}
 			on:retry={(e) => gradio.dispatch("retry", e.detail)}
 			on:undo={(e) => gradio.dispatch("undo", e.detail)}
 			on:clear={() => {
@@ -145,9 +146,10 @@
 			{sanitize_html}
 			{bubble_full_width}
 			{line_breaks}
+			{autoscroll}
 			{layout}
 			{placeholder}
-			{suggestions}
+			{examples}
 			{_retryable}
 			{_undoable}
 			upload={(...args) => gradio.client.upload(...args)}
@@ -167,6 +169,7 @@
 		align-items: start;
 		width: 100%;
 		height: 100%;
+		flex-grow: 1;
 	}
 
 	:global(.progress-text) {

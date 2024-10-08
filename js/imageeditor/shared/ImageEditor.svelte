@@ -289,6 +289,9 @@
 			set_tool("bg");
 		}
 		dispatch("clear");
+
+		let _size = (canvas_size ? canvas_size : crop_size) || [800, 600];
+		editor_context.reset(true, _size);
 	}
 
 	onMount(() => {
@@ -359,36 +362,33 @@
 		on:remove_image={handle_remove}
 		on:save={handle_save}
 	/>
-	<div class="wrap" bind:this={canvas_wrap}>
+	<div class="container">
+		<div class="wrap" bind:this={canvas_wrap}>
+			<div bind:this={pixi_target} class="stage-wrap" class:bg={!bg}></div>
+		</div>
+		<div class="tools-wrap">
+			<slot />
+		</div>
 		<div
-			bind:this={pixi_target}
-			class="stage-wrap"
-			class:bg={!bg}
-			style:transform="translate({$position_spring.x}px, {$position_spring.y}px)"
+			class="canvas"
+			class:no-border={!bg && $active_tool === "bg" && !history}
+			style:width="{$crop[2] * $editor_box.child_width + 1}px"
+			style:height="{$crop[3] * $editor_box.child_height + 1}px"
+			style:top="{$crop[1] * $editor_box.child_height +
+				($editor_box.child_top - $editor_box.parent_top) -
+				0.5}px"
+			style:left="{$crop[0] * $editor_box.child_width +
+				($editor_box.child_left - $editor_box.parent_left) -
+				0.5}px"
 		></div>
 	</div>
-	<div class="tools-wrap">
-		<slot />
-	</div>
-	<div
-		class="canvas"
-		class:no-border={!bg && $active_tool === "bg" && !history}
-		style:width="{$crop[2] * $editor_box.child_width + 1}px"
-		style:height="{$crop[3] * $editor_box.child_height + 1}px"
-		style:top="{$crop[1] * $editor_box.child_height +
-			($editor_box.child_top - $editor_box.parent_top) -
-			0.5}px"
-		style:left="{$crop[0] * $editor_box.child_width +
-			($editor_box.child_left - $editor_box.parent_left) -
-			0.5}px"
-	></div>
 </div>
 
 <style>
 	.wrap {
 		display: flex;
 		width: 100%;
-		height: 90%;
+		height: 100%;
 		position: relative;
 		justify-content: center;
 	}
@@ -399,15 +399,21 @@
 		border-radius: var(--radius-md);
 	}
 
+	.container {
+		position: relative;
+		margin: var(--spacing-md);
+	}
+
 	.no-border {
 		border: none;
 	}
 
 	.stage-wrap {
-		margin: var(--size-8);
 		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
 		overflow: hidden;
+		height: fit-content;
+		width: auto;
 	}
 
 	.tools-wrap {
@@ -418,6 +424,8 @@
 		border: 1px solid var(--block-border-color);
 		border-radius: var(--radius-sm);
 		margin: var(--spacing-xxl) 0 var(--spacing-xxl) 0;
+		width: fit-content;
+		margin: 0 auto;
 	}
 
 	.image-container {

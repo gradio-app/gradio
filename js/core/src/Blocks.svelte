@@ -329,7 +329,7 @@
 					submit_map.has(dep_index) &&
 					dep.inputs.some((id) => get_stream_state(id) === "open")
 				) {
-					await app.post_data(
+					await app.send_ws_message(
 						// @ts-ignore
 						`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_index).event_id()}`,
 						{ ...payload, session_hash: app.session_hash },
@@ -621,11 +621,10 @@
 				const deps = $targets[id]?.[data];
 				deps?.forEach((dep_id) => {
 					if (submit_map.has(dep_id)) {
-						app.post_data(
-							// @ts-ignore
-							`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}/close`,
-							{},
-						);
+						// @ts-ignore
+						const url = `${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}`;
+						app.post_data(`${url}/close`, {});
+						app.close_ws(url);
 					}
 				});
 			} else {
@@ -721,19 +720,19 @@
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
-		<!-- {#if $_layout} -->
-		<MountComponents
-			rootNode={$_layout}
-			{root}
-			{target}
-			{theme_mode}
-			on:mount={handle_mount}
-			{version}
-			{autoscroll}
-			{max_file_size}
-			client={app}
-		/>
-		<!-- {/if} -->
+		{#if $_layout && app.config}
+			<MountComponents
+				rootNode={$_layout}
+				{root}
+				{target}
+				{theme_mode}
+				on:mount={handle_mount}
+				{version}
+				{autoscroll}
+				{max_file_size}
+				client={app}
+			/>
+		{/if}
 	</div>
 
 	{#if show_footer}

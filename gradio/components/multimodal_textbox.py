@@ -14,6 +14,7 @@ from typing_extensions import NotRequired
 from gradio.components.base import Component, FormComponent
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -93,8 +94,8 @@ class MultimodalTextbox(FormComponent):
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
-            label: The label for this component. Appears above the component and is also used as the header if there is a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            info: additional component description.
+            label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
+            info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -112,6 +113,7 @@ class MultimodalTextbox(FormComponent):
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
+            stop_btn: If True, will show a stop button (useful for streaming demos). If a string, will use that string as the stop button text.
         """
         self.file_types = file_types
         self.file_count = file_count
@@ -158,6 +160,12 @@ class MultimodalTextbox(FormComponent):
         """
         if payload is None:
             return None
+        if self.file_types is not None:
+            for f in payload.files:
+                if not client_utils.is_valid_file(f.path, self.file_types):
+                    raise Error(
+                        f"Invalid file type: {f.mime_type}. Please upload a file that is one of these formats: {self.file_types}"
+                    )
         return {
             "text": payload.text,
             "files": [f.path for f in payload.files],

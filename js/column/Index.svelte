@@ -17,7 +17,7 @@
 
 <div
 	id={elem_id}
-	class={elem_classes.join(" ")}
+	class="column {elem_classes.join(' ')}"
 	class:gap
 	class:compact={variant === "compact"}
 	class:panel={variant === "panel"}
@@ -69,5 +69,7 @@
 	.panel {
 		border: solid var(--panel-border-width) var(--panel-border-color);
 		border-radius: var(--container-radius);
+		background: var(--panel-background-fill);
+		padding: var(--spacing-lg);
 	}
 </style>
