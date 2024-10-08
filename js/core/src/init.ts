@@ -10,7 +10,6 @@ import { load_component } from "virtual:component-loader";
 import type { client_return } from "@gradio/client";
 import { create_loading_status_store } from "./stores";
 import { _ } from "svelte-i18n";
-import { tick } from "svelte";
 
 export interface UpdateTransaction {
 	id: number;
@@ -329,7 +328,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		});
 		pending_updates = [];
 		update_scheduled = false;
-		tick().then(() => update_scheduled_store.set(false));
+		update_scheduled_store.set(false);
 	}
 
 	function update_value(updates: UpdateTransaction[] | undefined): void {

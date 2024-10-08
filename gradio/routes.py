@@ -366,6 +366,7 @@ class App(FastAPI):
                     and not path.startswith("/gradio_api")
                     and path not in ["/config", "/login"]
                     and not path.startswith("/theme")
+                    and not path.startswith("/static")
                 ):
                     if App.app_port is None:
                         App.app_port = request.url.port or int(
@@ -638,6 +639,10 @@ class App(FastAPI):
 
             return FileResponse(path, headers=headers)
 
+        @app.get("/assets/{path:path}")
+        def build_resource(path: str):
+            build_file = routes_safe_join(BUILD_PATH_LIB, UserProvidedPath(path))
+            return FileResponse(build_file)
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
             build_file = routes_safe_join(BUILD_PATH_LIB, UserProvidedPath(path))
