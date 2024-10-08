@@ -91,6 +91,7 @@
 	{min_height}
 	{max_height}
 	allow_overflow={true}
+	flex={true}
 	overflow_behavior="auto"
 >
 	{#if loading_status}
@@ -166,6 +167,7 @@
 		align-items: start;
 		width: 100%;
 		height: 100%;
+		flex-grow: 1;
 	}
 
 	:global(.progress-text) {
