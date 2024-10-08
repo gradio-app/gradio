@@ -55,8 +55,12 @@
 	},
 	"dataframe": {
 		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",
-		"new_column": "New column",
-		"new_row": "New row"
+		"new_column": "Add column",
+		"new_row": "New row",
+		"add_row_above": "Add row above",
+		"add_row_below": "Add row below",
+		"add_column_left": "Add column to the left",
+		"add_column_right": "Add column to the right"
 	},
 	"dropdown": {
 		"dropdown": "Dropdown"
