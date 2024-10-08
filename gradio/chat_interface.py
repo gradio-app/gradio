@@ -346,7 +346,11 @@ class ChatInterface(Blocks):
             )
         )
 
-        if isinstance(self.chatbot, Chatbot) and self.examples and not self.additional_inputs:
+        if (
+            isinstance(self.chatbot, Chatbot)
+            and self.examples
+            and not self.additional_inputs
+        ):
             if self.cache_examples:
                 self.chatbot.example_select(
                     self.example_clicked,
@@ -551,8 +555,7 @@ class ChatInterface(Blocks):
                         {"role": "user", "content": cast(FileDataDict, x)}  # type: ignore
                     )
                 else:
-                    history.append(
-                        {"role": "user", "content": (x,)})  # type: ignore
+                    history.append({"role": "user", "content": (x,)})  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
                 return
             else:
