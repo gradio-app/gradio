@@ -495,7 +495,7 @@ class Interface(Blocks):
             )  # type: ignore
             input_component_column = None
 
-            with Row(equal_height=False):
+            with Row():
                 if self.interface_type in [
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.INPUT_ONLY,
