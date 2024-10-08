@@ -643,10 +643,6 @@ class App(FastAPI):
         def build_resource(path: str):
             build_file = routes_safe_join(BUILD_PATH_LIB, UserProvidedPath(path))
             return FileResponse(build_file)
-        @app.get("/assets/{path:path}")
-        def build_resource(path: str):
-            build_file = routes_safe_join(BUILD_PATH_LIB, UserProvidedPath(path))
-            return FileResponse(build_file)
 
         @app.get("/favicon.ico")
         async def favicon():
