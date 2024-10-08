@@ -6,10 +6,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence, TypedDict
 
 import gradio_client.utils as client_utils
+from gradio_client import handle_file
 from gradio_client.documentation import document
 from pydantic import Field
 from typing_extensions import NotRequired
 
+from gradio import processing_utils
 from gradio.components.base import Component, FormComponent
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
@@ -57,8 +59,13 @@ class MultimodalTextbox(FormComponent):
         self,
         value: dict[str, str | list] | Callable | None = None,
         *,
+        sources: list[Literal["file", "microphone"]]
+        | Literal["file", "microphone"]
+        | None = None,
+        type: Literal["numpy", "filepath"] = "numpy",
         file_types: list[str] | None = None,
         file_count: Literal["single", "multiple", "directory"] = "single",
+        format: Literal["wav", "mp3"] = "wav",
         lines: int = 1,
         max_lines: int = 20,
         placeholder: str | None = None,
@@ -69,6 +76,8 @@ class MultimodalTextbox(FormComponent):
         show_label: bool | None = None,
         container: bool = True,
         scale: int | None = None,
+        min_length: int | None = None,
+        max_length: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
@@ -108,8 +117,26 @@ class MultimodalTextbox(FormComponent):
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
+            min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
+            max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
+            sources: A list of sources for the component. Can be 'file' or 'microphone'. By default, both sources are enabled.
         """
+        valid_sources: list[Literal["file", "microphone"]] = ["file", "microphone"]
+        if sources is None:
+            self.sources = valid_sources
+        elif isinstance(sources, str) and sources in valid_sources:
+            self.sources = [sources]
+        elif isinstance(sources, list):
+            self.sources = sources
+        else:
+            raise ValueError(
+                f"`sources` must be a list consisting of elements in {valid_sources}")
+
+        for source in self.sources:
+            if source not in valid_sources:
+                raise ValueError(f"`sources` must a list consisting of elements in {valid_sources}")
+
         self.file_types = file_types
         self.file_count = file_count
         if value is None:
@@ -119,6 +146,10 @@ class MultimodalTextbox(FormComponent):
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
             )
         self.lines = lines
+        self.format = format
+        self.type = type
+        self.min_length = min_length
+        self.max_length = max_length
         self.max_lines = max(lines, max_lines)
         self.placeholder = placeholder
         self.submit_btn = submit_btn
@@ -145,6 +176,18 @@ class MultimodalTextbox(FormComponent):
         self.rtl = rtl
         self.text_align = text_align
 
+    def example_payload(self) -> Any:
+        return MultimodalData(
+            text="Example text",
+            files=[handle_file("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav")] # type: ignore
+        )
+
+    def example_value(self) -> Any:
+        return {
+            "text": "Example text",
+            "files": ["https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"]
+        }
+
     def preprocess(self, payload: MultimodalData | None) -> MultimodalValue | None:
         """
         Parameters:
@@ -152,6 +195,44 @@ class MultimodalTextbox(FormComponent):
         Returns:
             Passes text value and list of file(s) as a {dict} into the function.
         """
+        files = []
+        for file_data in payload.files: # type: ignore
+            if not file_data.path:
+                raise ValueError("FileData path missing")
+
+            temp_file_path = Path(file_data.path)
+            output_file_name = str(
+            temp_file_path.with_name(f"{temp_file_path.stem}{temp_file_path.suffix}")
+            )
+
+            # Assuming audio_from_file can handle both audio files and Blobs
+            sample_rate, data = processing_utils.audio_from_file(temp_file_path)
+
+            duration = len(data) / sample_rate
+            if self.min_length is not None and duration < self.min_length:
+                raise ValueError(
+                    f"Audio is too short, and must be at least {self.min_length} seconds"
+                    )
+            if self.max_length is not None and duration > self.max_length:
+                raise ValueError(
+                    f"Audio is too long, and must be at most {self.max_length} seconds"
+                    )
+
+            if self.type == "numpy":
+                files.append((sample_rate, data))
+            elif self.type == "filepath":
+                output_file = str(Path(output_file_name).with_suffix(f".{self.format}"))
+                processing_utils.audio_to_file(
+                    sample_rate, data, output_file, format=self.format
+                    )
+                files.append(output_file)
+            else:
+                raise ValueError(
+                    "Unknown type: "
+                    + str(self.type)
+                    + ". Please choose from: 'numpy', 'filepath'."
+                )
+
         if payload is None:
             return None
         return {
@@ -164,7 +245,7 @@ class MultimodalTextbox(FormComponent):
         Parameters:
             value: Expects a {dict} with "text" and "files", both optional. The files array is a list of file paths or URLs.
         Returns:
-            The value to display in the multimodal textbox. Files information as a list of FileData objects.
+            The value to display in the multimodal textbox. Files information as a list of FileData objects (including audio).
         """
         if value is None:
             return MultimodalData(text="", files=[])
@@ -173,17 +254,33 @@ class MultimodalTextbox(FormComponent):
                 f"MultimodalTextbox expects a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
             )
         text = value.get("text", "")
+        files = []
         if "files" in value and isinstance(value["files"], list):
-            files = [
-                file
-                if isinstance(file, FileData)
-                else FileData(
-                    path=file,
-                    orig_name=Path(file).name,
-                    mime_type=client_utils.get_mimetype(file),
-                )
-                for file in value["files"]
-            ]
+            for file in value["files"]:
+                if isinstance(file, FileData):
+                    files.append(file)
+                elif isinstance(file, tuple):
+                    sample_rate, data = file
+                    file_path = processing_utils.save_audio_to_cache(
+                        data, sample_rate, format=self.format, cache_dir=self.GRADIO_CACHE
+                    )
+                    files.append(FileData(path=file_path, orig_name=Path(file_path).name))
+                elif isinstance(file, (str, Path)):
+                    if isinstance(file, Path):
+                        file = str(file)
+                    try:
+                        file_path = file
+                        files.append(
+                            FileData(
+                                path=file_path,
+                                orig_name=Path(file_path).name,
+                                mime_type=client_utils.get_mimetype(file_path),
+                                )
+                            )
+                    except Exception as e:
+                        print(f"Error processing file: {e}")
+                else:
+                    print(f"Unsupported file type: {type(file)}")
         else:
             files = []
         if not isinstance(text, str):
