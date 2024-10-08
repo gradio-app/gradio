@@ -22,6 +22,5 @@
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"i18n-ally.localesPaths": [
 		"js/spa/src/lang"
-	],
-	"vitest.disableWorkspaceWarning": true
+	]
 }
