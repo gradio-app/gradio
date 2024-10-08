@@ -42,6 +42,7 @@
 	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let autoscroll = true;
 	export let _retryable = false;
 	export let _undoable = false;
 	export let latex_delimiters: {
@@ -91,6 +92,7 @@
 	{min_height}
 	{max_height}
 	allow_overflow={true}
+	flex={true}
 	overflow_behavior="auto"
 >
 	{#if loading_status}
@@ -144,6 +146,7 @@
 			{sanitize_html}
 			{bubble_full_width}
 			{line_breaks}
+			{autoscroll}
 			{layout}
 			{placeholder}
 			{examples}
@@ -166,6 +169,7 @@
 		align-items: start;
 		width: 100%;
 		height: 100%;
+		flex-grow: 1;
 	}
 
 	:global(.progress-text) {

@@ -14,6 +14,7 @@
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData, ValueData } from "@gradio/utils";
 	import MountComponents from "./MountComponents.svelte";
+	import { prefix_css } from "./css";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -47,8 +48,8 @@
 	export let username: string | null;
 	export let api_prefix = "";
 	export let max_file_size: number | undefined = undefined;
-	export let initial_layout: LayoutNode | undefined = undefined;
-
+	export let initial_layout: ComponentMeta | undefined = undefined;
+	export let css: string | null | undefined = null;
 	let {
 		layout: _layout,
 		targets,
@@ -61,10 +62,7 @@
 		scheduled_updates,
 		create_layout,
 		rerender_layout
-	} = create_components();
-
-	// @ts-ignore
-	$_layout = initial_layout;
+	} = create_components(initial_layout);
 
 	$: components, layout, dependencies, root, app, fill_height, target, run();
 
@@ -207,8 +205,10 @@
 		if ($scheduled_updates) {
 			_unsub = scheduled_updates.subscribe((updating) => {
 				if (!updating) {
-					trigger_api_call(dep_index, trigger_id, event_data);
-					unsub();
+					tick().then(() => {
+						trigger_api_call(dep_index, trigger_id, event_data);
+						unsub();
+					});
 				}
 			});
 		} else {
@@ -329,7 +329,7 @@
 					submit_map.has(dep_index) &&
 					dep.inputs.some((id) => get_stream_state(id) === "open")
 				) {
-					await app.post_data(
+					await app.send_ws_message(
 						// @ts-ignore
 						`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_index).event_id()}`,
 						{ ...payload, session_hash: app.session_hash }
@@ -620,11 +620,10 @@
 				const deps = $targets[id]?.[data];
 				deps?.forEach((dep_id) => {
 					if (submit_map.has(dep_id)) {
-						app.post_data(
-							// @ts-ignore
-							`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}/close`,
-							{}
-						);
+						// @ts-ignore
+						const url = `${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_id).event_id()}`;
+						app.post_data(`${url}/close`, {});
+						app.close_ws(url);
 					}
 				});
 			} else {
@@ -716,23 +715,26 @@
 	{#if control_page_title}
 		<title>{title}</title>
 	{/if}
+	{#if css}
+		{@html `\<style\>${prefix_css(css, version)}</style>`}
+	{/if}
 </svelte:head>
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
-		<!-- {#if $_layout} -->
-		<MountComponents
-			rootNode={$_layout}
-			{root}
-			{target}
-			{theme_mode}
-			on:mount={handle_mount}
-			{version}
-			{autoscroll}
-			{max_file_size}
-			client={app}
-		/>
-		<!-- {/if} -->
+		{#if $_layout && app.config}
+			<MountComponents
+				rootNode={$_layout}
+				{root}
+				{target}
+				{theme_mode}
+				on:mount={handle_mount}
+				{version}
+				{autoscroll}
+				{max_file_size}
+				client={app}
+			/>
+		{/if}
 	</div>
 
 	{#if show_footer}

@@ -131,10 +131,14 @@
 	let css_text_stylesheet: HTMLStyleElement | null = null;
 	async function mount_custom_css(css_string: string | null): Promise<void> {
 		if (css_string) {
-			css_text_stylesheet = prefix_css(
+			if (!css_text_stylesheet) {
+				css_text_stylesheet = document.createElement("style");
+				document.head.appendChild(css_text_stylesheet);
+			}
+			css_text_stylesheet.textContent = prefix_css(
 				css_string,
 				version,
-				css_text_stylesheet || undefined
+				css_text_stylesheet
 			);
 		}
 		await mount_css(
@@ -334,6 +338,10 @@
 					config = app.config;
 					window.__gradio_space__ = config.space_id;
 					await mount_custom_css(config.css);
+					await add_custom_html_head(config.head);
+					css_ready = true;
+					window.__is_colab__ = config.is_colab;
+					dispatch("loaded");
 				});
 			}, 200);
 		}

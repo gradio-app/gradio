@@ -1,5 +1,32 @@
 # @gradio/core
 
+## 0.1.0-beta.5
+
+### Features
+
+- [#9483](https://github.com/gradio-app/gradio/pull/9483) [`8dc7c12`](https://github.com/gradio-app/gradio/commit/8dc7c12389311b60efcde1b9d3e3668a34d2dc00) - Send Streaming data over Websocket if possible. Also support base64 output format for images.  Thanks @freddyaboulton!
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/tabitem@0.3.0-beta.4
+- @gradio/code@0.10.0-beta.7
+- @gradio/paramviewer@0.4.22-beta.4
+- @gradio/video@0.11.0-beta.6
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/image@0.16.0-beta.6
+- @gradio/gallery@0.13.0-beta.6
+- @gradio/markdown@0.10.0-beta.4
+- @gradio/plot@0.7.0-beta.5
+- @gradio/column@0.2.0-beta.2
+- @gradio/button@0.3.0-beta.6
+- @gradio/textbox@0.7.0-beta.4
+- @gradio/checkbox@0.4.0-beta.4
+- @gradio/file@0.10.0-beta.6
+
 ## 0.1.0-beta.4
 
 ### Dependency updates

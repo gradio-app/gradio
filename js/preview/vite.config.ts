@@ -1,5 +1,12 @@
 import { defineConfig } from "vite";
-import { cpSync } from "fs";
+import { cpSync, write } from "fs";
+import { join } from "node:path";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const dir = require.resolve("./package.json");
+
+const template_dir = join(dir, "..", "..", "..", "gradio", "templates");
 
 export default defineConfig({
 	build: {
@@ -20,6 +27,13 @@ export function copy_files() {
 		name: "copy_files",
 		writeBundle() {
 			cpSync("./src/examine.py", "dist/examine.py");
+			cpSync("./src/register.mjs", join(template_dir, "register.mjs"));
+			cpSync("./src/hooks.mjs", join(template_dir, "hooks.mjs"));
+			cpSync(
+				join(template_dir, "frontend", "assets", "svelte"),
+				join(template_dir, "node", "build", "client", "_app"),
+				{ recursive: true }
+			);
 		}
 	};
 }
