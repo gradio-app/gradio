@@ -173,14 +173,10 @@
 		z-index: var(--layer-top);
 		transition: opacity 0.2s;
 		background: var(--code-background-fill);
-		width: 100%;
-		height: 100%;
 		color: var(--body-text-color);
 		position: absolute;
-		top: 5px;
-		left: 5px;
-		width: 20px;
-		height: 20px;
+		top: var(--size-1-5);
+		left: var(--size-1-5);
 	}
 
 	span :global(p:not(:first-child)) {
