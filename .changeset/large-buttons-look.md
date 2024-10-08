@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Update gr.Datafrom UI with action popover
+feat:Update gr.Dataframe UI with action popover
