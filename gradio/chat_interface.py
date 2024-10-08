@@ -536,9 +536,13 @@ class ChatInterface(Blocks):
                 history.append([message["text"], cast(str, response)])  # type: ignore
         else:
             for x in message.get("files", []):
-                history.append(
-                    {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
-                )
+                if isinstance(x, dict):
+                    history.append(
+                        {"role": "user", "content": cast(FileDataDict, x)}  # type: ignore
+                    )
+                else:
+                    history.append(
+                        {"role": "user", "content": (x,)})  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
                 return
             else:
