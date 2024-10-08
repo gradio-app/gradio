@@ -29,7 +29,14 @@ import uuid
 import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from collections.abc import Callable, Iterable, Iterator, MutableMapping, Sequence, Hashable
+from collections.abc import (
+    Callable,
+    Hashable,
+    Iterable,
+    Iterator,
+    MutableMapping,
+    Sequence,
+)
 from contextlib import contextmanager
 from functools import wraps
 from io import BytesIO
