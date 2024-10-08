@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { HTMLImgAttributes } from "svelte/elements";
-	import { createEventDispatcher } from "svelte";
 
 	interface Props extends HTMLImgAttributes {
 		"data-testid"?: string;
