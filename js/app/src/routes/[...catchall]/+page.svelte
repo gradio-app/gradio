@@ -115,7 +115,7 @@
 	let active_theme_mode: ThemeMode;
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
-		subscribe: writable({}).subscribe,
+		subscribe: writable({}).subscribe
 	};
 
 	$: if (config?.app_id) {
@@ -126,7 +126,7 @@
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING",
+		detail: "SLEEPING"
 	};
 
 	let app: ClientType = data.app;
@@ -158,7 +158,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING",
+			detail: "RUNNING"
 		};
 
 		css_ready = true;
@@ -181,7 +181,7 @@
 					app = await Client.connect(data.api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
-						events: ["data", "log", "status", "render"],
+						events: ["data", "log", "status", "render"]
 					});
 
 					if (!app.config) {
@@ -207,8 +207,8 @@
 			new CustomEvent("render", {
 				bubbles: true,
 				cancelable: false,
-				composed: true,
-			}),
+				composed: true
+			})
 		);
 	}
 
@@ -219,7 +219,7 @@
 
 	async function mount_space_header(
 		space_id: string | null | undefined,
-		is_embed: boolean,
+		is_embed: boolean
 	): Promise<void> {
 		if (space_id && !is_embed && window.self === window.top) {
 			if (spaceheader) {

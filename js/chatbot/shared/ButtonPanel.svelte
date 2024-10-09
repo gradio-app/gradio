@@ -23,7 +23,7 @@
 	export let layout: "bubble" | "panel";
 
 	function is_all_text(
-		message: NormalisedMessage[] | NormalisedMessage,
+		message: NormalisedMessage[] | NormalisedMessage
 	): message is TextMessage[] | TextMessage {
 		return (
 			(Array.isArray(message) &&
