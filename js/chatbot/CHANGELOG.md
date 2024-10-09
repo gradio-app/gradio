@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.14.0-beta.9
+
+### Fixes
+
+- [#9600](https://github.com/gradio-app/gradio/pull/9600) [`9f71086`](https://github.com/gradio-app/gradio/commit/9f71086036339bfdd14f3aab29729041a01fc2d4) - Ensure undo/try shows for final bot message in gr.Chatbot.  Thanks @hannahblair!
+
 ## 0.14.0-beta.8
 
 ### Features
