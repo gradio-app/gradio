@@ -70,21 +70,34 @@
 		return `a component of type ${message.content.component ?? "unknown"}`;
 	}
 
-	function get_button_panel_props(): any {
-		return {
-			show: show_like || show_retry || show_undo || show_copy_button,
-			handle_action,
-			likeable: show_like,
-			_retryable: show_retry,
-			_undoable: show_undo,
-			disable: generating,
-			show_copy_button,
-			message: msg_format === "tuples" ? messages[0] : messages,
-			position: role === "user" ? "right" : "left",
-			avatar: avatar_img,
-			layout
-		};
-	}
+	type ButtonPanelProps = {
+		show: boolean;
+		handle_action: (selected: string | null) => void;
+		likeable: boolean;
+		show_retry: boolean;
+		show_undo: boolean;
+		disable: boolean;
+		show_copy_button: boolean;
+		message: NormalisedMessage[] | NormalisedMessage;
+		position: "left" | "right";
+		layout: "bubble" | "panel";
+		avatar: FileData | null;
+	};
+
+	let button_panel_props: ButtonPanelProps;
+	$: button_panel_props = {
+		show: show_like || show_retry || show_undo || show_copy_button,
+		handle_action,
+		likeable: show_like,
+		show_retry,
+		show_undo,
+		disable: generating,
+		show_copy_button,
+		message: msg_format === "tuples" ? messages[0] : messages,
+		position: role === "user" ? "right" : "left",
+		avatar: avatar_img,
+		layout
+	};
 </script>
 
 <div
@@ -194,14 +207,14 @@
 			</div>
 
 			{#if layout === "panel"}
-				<ButtonPanel {...get_button_panel_props()} />
+				<ButtonPanel {...button_panel_props} />
 			{/if}
 		{/each}
 	</div>
 </div>
 
 {#if layout === "bubble"}
-	<ButtonPanel {...get_button_panel_props()} />
+	<ButtonPanel {...button_panel_props} />
 {/if}
 
 <style>
