@@ -158,38 +158,25 @@
 	}
 
 	span :global(div[class*="code_wrap"] > button) {
-		position: absolute;
-		top: var(--spacing-sm);
-		right: var(--spacing-sm);
 		z-index: 1;
 		cursor: pointer;
 		border-bottom-left-radius: var(--radius-sm);
-		padding: 5px;
 		padding: var(--spacing-md);
 		width: 25px;
 		height: 25px;
-	}
-
-	span :global(code > button > span) {
 		position: absolute;
-		top: var(--spacing-sm);
-		right: var(--spacing-sm);
-		width: 12px;
-		height: 12px;
+		right: 0;
 	}
 
 	span :global(.check) {
-		position: absolute;
-		top: 0;
-		right: 0;
 		opacity: 0;
 		z-index: var(--layer-top);
 		transition: opacity 0.2s;
-		background: var(--background-fill-primary);
-		padding: var(--size-1);
-		width: 100%;
-		height: 100%;
+		background: var(--code-background-fill);
 		color: var(--body-text-color);
+		position: absolute;
+		top: var(--size-1-5);
+		left: var(--size-1-5);
 	}
 
 	span :global(p:not(:first-child)) {

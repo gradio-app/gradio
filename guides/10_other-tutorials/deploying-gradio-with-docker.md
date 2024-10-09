@@ -35,7 +35,7 @@ This app creates a simple interface that greets the user by name.
 Next, we'll create a Dockerfile to specify how our app should be built and run in a Docker container. Create a file named `Dockerfile` in the same directory as your app with the following content:
 
 ```dockerfile
-FROM python:3.8-slim
+FROM python:3.10-slim
 
 WORKDIR /usr/src/app
 COPY . .
@@ -47,7 +47,7 @@ CMD ["python", "app.py"]
 ```
 
 This Dockerfile performs the following steps:
-- Starts from a Python 3.8 slim image.
+- Starts from a Python 3.10 slim image.
 - Sets the working directory and copies the app into the container.
 - Installs Gradio (you should install all other requirements as well).
 - Exposes port 7860 (Gradio's default port).
