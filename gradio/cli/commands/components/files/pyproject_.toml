@@ -19,7 +19,7 @@ keywords = [
   "<<template>>"
 ]
 # Add dependencies here
-dependencies = ["gradio>=4.0,<5.0"]
+dependencies = ["gradio>=4.0,<6.0"]
 classifiers = [
   'Development Status :: 3 - Alpha',
   'Operating System :: OS Independent',

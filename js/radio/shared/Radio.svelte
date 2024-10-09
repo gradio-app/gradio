@@ -69,6 +69,7 @@
 	label.selected {
 		background: var(--checkbox-label-background-fill-selected);
 		color: var(--checkbox-label-text-color-selected);
+		border-color: var(--checkbox-label-border-color-selected);
 	}
 
 	label > * + * {
