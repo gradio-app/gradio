@@ -314,7 +314,7 @@ class ChatInterface(Blocks):
 
     def _setup_events(self) -> None:
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
-        submit_triggers = [self.textbox.submit]
+        submit_triggers = [self.textbox.submit, self.chatbot.retry]
 
         submit_event = (
             self.textbox.submit(
@@ -343,12 +343,12 @@ class ChatInterface(Blocks):
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
             )
-            .then(
-                lambda: update(value=None, interactive=True),
-                None,
-                self.textbox,
-                show_api=False,
-            )
+        )
+        submit_event.then(
+            lambda: update(value=None, interactive=True),
+            None,
+            self.textbox,
+            show_api=False,
         )
 
         if (
@@ -381,7 +381,6 @@ class ChatInterface(Blocks):
                         Literal["full", "minimal", "hidden"], self.show_progress
                     ),
                 )
-        self._setup_stop_events(submit_triggers, submit_event)
 
         retry_event = (
             self.chatbot.retry(
@@ -415,13 +414,14 @@ class ChatInterface(Blocks):
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
             )
-            .then(
-                lambda: update(interactive=True),
-                outputs=[self.textbox],
-                show_api=False,
-            )
         )
-        self._setup_stop_events([self.chatbot.retry], retry_event)
+        retry_event.then(
+            lambda: update(interactive=True),
+            outputs=[self.textbox],
+            show_api=False,
+        )
+
+        self._setup_stop_events(submit_triggers, [submit_event, retry_event])
 
         self.chatbot.undo(
             self._undo_msg,
@@ -432,7 +432,7 @@ class ChatInterface(Blocks):
         )
 
     def _setup_stop_events(
-        self, event_triggers: list[Callable], event_to_cancel: Dependency
+        self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
     ) -> None:
         textbox_component = MultimodalTextbox if self.multimodal else Textbox
         if self.is_generator:
@@ -450,22 +450,23 @@ class ChatInterface(Blocks):
                     show_api=False,
                     queue=False,
                 )
-            event_to_cancel.then(
-                async_lambda(
-                    lambda: textbox_component(
-                        submit_btn=original_submit_btn, stop_btn=False
-                    )
-                ),
-                None,
-                [self.textbox],
-                show_api=False,
-                queue=False,
-            )
+            for event_to_cancel in events_to_cancel:
+                event_to_cancel.then(
+                    async_lambda(
+                        lambda: textbox_component(
+                            submit_btn=original_submit_btn, stop_btn=False
+                        )
+                    ),
+                    None,
+                    [self.textbox],
+                    show_api=False,
+                    queue=False,
+                )
             self.textbox.stop(
                 None,
                 None,
                 None,
-                cancels=event_to_cancel,
+                cancels=events_to_cancel,
                 show_api=False,
             )
 
