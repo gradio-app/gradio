@@ -16,7 +16,7 @@ for (const test_case of cases) {
 			await go_to_testcase(page, test_case);
 		}
 		const submit_button = page.locator(".submit-button");
-		const textbox = page.getByPlaceholder("Type a message...");
+		const textbox = page.getByTestId("textbox").first();
 
 		await textbox.fill("hello");
 		await submit_button.click();
@@ -39,11 +39,11 @@ for (const test_case of cases) {
 		await expect(expected_text_el_1).toBeVisible();
 		await expect(page.locator(".bot.message")).toHaveCount(2);
 
-		await page.getByLabel("undo button").click();
+		await page.getByLabel("undo").first().click();
 		await expect(page.locator(".bot.message")).toHaveCount(1);
 		await expect(textbox).toHaveValue("hi");
 
-		await page.getByLabel("retry button").click();
+		await page.getByLabel("retry").first().click();
 		const expected_text_el_2 = page.locator(".bot p", {
 			hasText: "Run 3 - You typed: hello"
 		});
@@ -59,7 +59,7 @@ for (const test_case of cases) {
 		});
 		await expect(expected_text_el_3).toBeVisible();
 		await expect(page.locator(".bot.message")).toHaveCount(2);
-		await page.getByLabel("clear button").click();
+		await page.getByLabel("clear").first().click();
 		await expect(page.locator(".bot.message")).toHaveCount(0);
 	});
 
@@ -69,7 +69,7 @@ for (const test_case of cases) {
 		if (cases.slice(1).includes(test_case)) {
 			await go_to_testcase(page, test_case);
 		}
-		const textbox = page.getByPlaceholder("Type a message...");
+		const textbox = page.getByTestId("textbox").first();
 		const submit_button = page.locator(".submit-button");
 		await textbox.fill("hi");
 

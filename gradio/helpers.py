@@ -376,6 +376,10 @@ class Examples:
                         outputs=self.outputs,  # type: ignore
                         show_api=False,
                     )
+        else:
+            warnings.warn(
+                f"If an Examples object is created outside a Blocks Context, make sure to call `examples.dataset.render()`{'and `examples.create()`' if self.cache_examples else ''} to render the examples in the interface."
+            )
 
     async def _postprocess_output(self, output) -> list:
         """
