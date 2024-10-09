@@ -20,5 +20,6 @@ export const redirects = {
 	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface",
 	"/using_hugging_face_integrations": "/guides/using-hugging-face-integrations",
 	"/main/guides/object-detection-from-webcam":
-		"/main/guides/object-detection-from-webcam-with-webrtc"
+		"/main/guides/object-detection-from-webcam-with-webrtc",
+	"/4.44.1/docs/gradio/logoutbutton": "/4.44.1/docs/gradio/loginbutton",
 };
