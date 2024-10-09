@@ -32,6 +32,7 @@ const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
 export default defineConfig(({ mode }) => {
 	const production = mode === "production";
 	const development = mode === "development";
+	console.log(mode);
 	return {
 		// plugins: [],
 		server: {
@@ -85,7 +86,7 @@ export default defineConfig(({ mode }) => {
 		},
 		ssr: {
 			noExternal: ["@gradio/*", "@huggingface/space-header"],
-			external: ["svelte", "svelte/*"]
+			external: mode === "development" ? [] : ["svelte", "svelte/*"]
 		},
 		optimizeDeps: {
 			exclude: [
@@ -98,18 +99,16 @@ export default defineConfig(({ mode }) => {
 		},
 		plugins: [
 			sveltekit(),
-			// resolve_svelte(development),
-			// 	generate_dev_entry({
-			// 		enable: !development && mode !== "test"
-			// 	}),
-			// 	inject_ejs(),
-			// 	generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
-			// 	handle_ce_css(),
+
 			inject_component_loader({ mode }),
 			{
 				name: "resolve_svelte",
 				enforce: "pre",
 				resolveId(id, importer, options) {
+					if (development) {
+						return null;
+					}
+
 					if (!options?.ssr) {
 						if (id === "svelte" || id === "svelte/internal") {
 							return { id: "../../../svelte/svelte.js", external: true };
