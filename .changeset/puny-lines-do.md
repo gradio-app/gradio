@@ -1,5 +1,6 @@
 ---
 "@gradio/chatbot": minor
+"@gradio/dataframe": minor
 "gradio": minor
 ---
 
