@@ -39,8 +39,5 @@ test("shows the results tab when results > 0", async ({ page }) => {
 		.getByRole("textbox")
 		.press("Enter");
 
-	await page.getByText("New row").click();
-
-	await page.waitForTimeout(1000);
 	await page.getByText("Start Practice").dblclick();
 });

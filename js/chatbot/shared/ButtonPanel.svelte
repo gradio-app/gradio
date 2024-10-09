@@ -71,6 +71,7 @@
 					label="Retry"
 					on:click={() => handle_action("retry")}
 					disabled={generating}
+					label="Retry"
 				/>
 			{/if}
 			{#if show_undo}
@@ -79,6 +80,7 @@
 					Icon={Undo}
 					on:click={() => handle_action("undo")}
 					disabled={generating}
+					label="Undo"
 				/>
 			{/if}
 			{#if likeable}
