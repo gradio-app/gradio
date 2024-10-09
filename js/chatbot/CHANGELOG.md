@@ -1,5 +1,147 @@
 # @gradio/chatbot
 
+## 0.14.0-beta.9
+
+### Fixes
+
+- [#9600](https://github.com/gradio-app/gradio/pull/9600) [`9f71086`](https://github.com/gradio-app/gradio/commit/9f71086036339bfdd14f3aab29729041a01fc2d4) - Ensure undo/try shows for final bot message in gr.Chatbot.  Thanks @hannahblair!
+
+## 0.14.0-beta.8
+
+### Features
+
+- [#9593](https://github.com/gradio-app/gradio/pull/9593) [`cc61fe7`](https://github.com/gradio-app/gradio/commit/cc61fe7047ac61779a61cce52c666400b9517daa) - Some more chatbot fixes.  Thanks @dawoodkhan82!
+- [#9582](https://github.com/gradio-app/gradio/pull/9582) [`43a7f42`](https://github.com/gradio-app/gradio/commit/43a7f420d8ac34c7f7fa71d6e630a4c8618d3780) - Chatbot autoscroll.  Thanks @whitphx!
+- [#9598](https://github.com/gradio-app/gradio/pull/9598) [`ffc33fa`](https://github.com/gradio-app/gradio/commit/ffc33facaec1bcc92add5892afb86b7b5ba037d4) - Fix markdown code copy/check button in gr.Chatbot.  Thanks @hannahblair!
+- [#9499](https://github.com/gradio-app/gradio/pull/9499) [`17e6c84`](https://github.com/gradio-app/gradio/commit/17e6c84d6b11651cd03c1d47caec85de62030ea0) - Fix `gr.Chatbot` panels layout.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/image@0.16.0-beta.7
+- @gradio/video@0.11.0-beta.7
+- @gradio/markdown@0.10.0-beta.5
+- @gradio/gallery@0.13.0-beta.7
+- @gradio/plot@0.7.0-beta.6
+
+## 0.14.0-beta.7
+
+### Features
+
+- [#9571](https://github.com/gradio-app/gradio/pull/9571) [`148345d`](https://github.com/gradio-app/gradio/commit/148345d107763754710505281ad70368ebc6f3ec) - Fix chatinterface embedding height issues.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.6
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/image@0.16.0-beta.6
+- @gradio/gallery@0.13.0-beta.6
+- @gradio/markdown@0.10.0-beta.4
+- @gradio/plot@0.7.0-beta.5
+
+## 0.14.0-beta.6
+
+### Features
+
+- [#9488](https://github.com/gradio-app/gradio/pull/9488) [`4e6a47f`](https://github.com/gradio-app/gradio/commit/4e6a47f5a29cb885d5bc01a79ca4cc45d298f0b1) - Fixes: Chatbot examples for custom chatbot + rename `suggestions` -> `examples`.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/video@0.11.0-beta.5
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+- @gradio/markdown@0.10.0-beta.3
+- @gradio/gallery@0.13.0-beta.5
+- @gradio/plot@0.7.0-beta.4
+- @gradio/image@0.16.0-beta.5
+
+## 0.14.0-beta.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/upload@0.13.0-beta.4
+- @gradio/markdown@0.10.0-beta.2
+- @gradio/image@0.16.0-beta.4
+- @gradio/video@0.11.0-beta.4
+- @gradio/wasm@0.14.0-beta.3
+- @gradio/plot@0.7.0-beta.3
+- @gradio/gallery@0.13.0-beta.4
+
+## 0.14.0-beta.4
+
+### Features
+
+- [#9453](https://github.com/gradio-app/gradio/pull/9453) [`56dbf77`](https://github.com/gradio-app/gradio/commit/56dbf77671012015efd3c745bc33e5074ab7158f) - Chatbot bug fixes.  Thanks @dawoodkhan82!
+
+## 0.14.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/video@0.11.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/gallery@0.13.0-beta.3
+- @gradio/image@0.16.0-beta.3
+
+## 0.14.0-beta.2
+
+### Features
+
+- [#9359](https://github.com/gradio-app/gradio/pull/9359) [`50c3a7f`](https://github.com/gradio-app/gradio/commit/50c3a7f1541f632853a96f3d979ebeef6ad82869) - Small tweak to how thoughts are shown in `gr.Chatbot`.  Thanks @abidlabs!
+- [#9323](https://github.com/gradio-app/gradio/pull/9323) [`06babda`](https://github.com/gradio-app/gradio/commit/06babda0395fd3fbd323c1c3cb33704ecfd6deb0) - Disable liking user message in chatbot by default but make it configurable.  Thanks @freddyaboulton!
+- [#8966](https://github.com/gradio-app/gradio/pull/8966) [`8e52b6a`](https://github.com/gradio-app/gradio/commit/8e52b6a3e75957462bc7fdbf6ff9c280084d5f08) - Chatbot Examples.  Thanks @dawoodkhan82!
+- [#9261](https://github.com/gradio-app/gradio/pull/9261) [`73647a0`](https://github.com/gradio-app/gradio/commit/73647a07b0439efabe3dd218ff6c366ffa3b84a0) - Move icons into `IconButtonWrapper`.  Thanks @hannahblair!
+- [#9316](https://github.com/gradio-app/gradio/pull/9316) [`4338f29`](https://github.com/gradio-app/gradio/commit/4338f29bce2430d765f20070d1823ecc19d940cb) - 9227 chatinterface retry bug.  Thanks @freddyaboulton!
+- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate.  Thanks @abidlabs!
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/gallery@0.13.0-beta.2
+- @gradio/upload@0.13.0-beta.2
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/markdown@0.10.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/plot@0.6.5-beta.2
+- @gradio/image@0.16.0-beta.2
+- @gradio/video@0.11.0-beta.2
+
+## 0.14.0-beta.1
+
+### Features
+
+- [#9201](https://github.com/gradio-app/gradio/pull/9201) [`5492e74`](https://github.com/gradio-app/gradio/commit/5492e742b1f1fa618208cce523f50ad22a6e86f1) - Move buttons from chat_interface into Chatbot.  Thanks @freddyaboulton!
+- [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.1
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/image@0.16.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/markdown@0.9.4-beta.1
+- @gradio/wasm@0.13.1-beta.1
+- @gradio/theme@0.3.0-beta.1
+- @gradio/gallery@0.13.0-beta.1
+- @gradio/plot@0.6.5-beta.1
+
 ## 0.13.1
 
 ### Features

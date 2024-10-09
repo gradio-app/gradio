@@ -31,6 +31,13 @@ export interface ComponentMessage extends Message {
 	content: ComponentData;
 }
 
+export interface ExampleMessage {
+	icon?: FileData;
+	display_text?: string;
+	text: string;
+	files?: FileData[];
+}
+
 export type message_data =
 	| string
 	| { file: FileData | FileData[]; alt_text: string | null }

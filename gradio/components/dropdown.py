@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component, FormComponent
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -66,8 +68,8 @@ class Dropdown(FormComponent):
             allow_custom_value: If True, allows user to enter a custom value that is not in the list of choices.
             max_choices: maximum number of choices that can be selected. If None, no limit is enforced.
             filterable: If True, user will be able to type into the dropdown and filter the choices by typing. Can only be set to False if `allow_custom_value` is False.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            info: additional component description.
+            label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
+            info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -160,15 +162,26 @@ class Dropdown(FormComponent):
         Returns:
             Passes the value of the selected dropdown choice as a `str | int | float` or its index as an `int` into the function, depending on `type`. Or, if `multiselect` is True, passes the values of the selected dropdown choices as a list of correspoding values/indices instead.
         """
+        if payload is None:
+            return None
+
+        choice_values = [value for _, value in self.choices]
+        if not self.allow_custom_value:
+            if isinstance(payload, list):
+                for value in payload:
+                    if value not in choice_values:
+                        raise Error(
+                            f"Value: {value} is not in the list of choices: {choice_values}"
+                        )
+            elif payload not in choice_values:
+                raise Error(
+                    f"Value: {payload} is not in the list of choices: {choice_values}"
+                )
+
         if self.type == "value":
             return payload
         elif self.type == "index":
-            choice_values = [value for _, value in self.choices]
-            if payload is None:
-                return None
-            elif self.multiselect:
-                if not isinstance(payload, list):
-                    raise TypeError("Multiselect dropdown payload must be a list")
+            if isinstance(payload, list):
                 return [
                     choice_values.index(choice) if choice in choice_values else None
                     for choice in payload

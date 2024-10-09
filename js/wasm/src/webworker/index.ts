@@ -140,7 +140,11 @@ async def _call_asgi_app_from_js(app_id, scope, receive, send):
 
 	async def rcv():
 			event = await receive()
-			return event.to_py()
+			py_event = event.to_py()
+			if "body" in py_event:
+					if isinstance(py_event["body"], memoryview):
+							py_event["body"] = py_event["body"].tobytes()
+			return py_event
 
 	async def snd(event):
 			await send(event)
@@ -166,16 +170,6 @@ import anyio.to_thread
 anyio.to_thread.run_sync = mocked_anyio_to_thread_run_sync
 	`);
 	console.debug("Async libraries are mocked.");
-
-	console.debug("Setting matplotlib backend.");
-	updateProgress("Setting matplotlib backend");
-	// Ref: https://github.com/streamlit/streamlit/blob/1.22.0/lib/streamlit/web/bootstrap.py#L111
-	// This backend setting is required to use matplotlib in Wasm environment.
-	await pyodide.runPythonAsync(`
-import matplotlib
-matplotlib.use("agg")
-`);
-	console.debug("matplotlib backend is set.");
 
 	console.debug("Setting up Python utility functions.");
 	updateProgress("Setting up Python utility functions");
@@ -229,6 +223,22 @@ async function initializeApp(
 	updateProgress("Installing packages");
 	await micropip.install.callKwargs(options.requirements, { keep_going: true });
 	console.debug("Packages are installed.");
+
+	if (options.requirements.includes("matplotlib")) {
+		console.debug("Setting matplotlib backend.");
+		updateProgress("Setting matplotlib backend");
+		// Ref: https://github.com/pyodide/pyodide/issues/561#issuecomment-1992613717
+		// This backend setting is required to use matplotlib in Wasm environment.
+		await pyodide.runPythonAsync(`
+try:
+	import matplotlib
+	matplotlib.use("agg")
+except ImportError:
+	pass
+`);
+		console.debug("matplotlib backend is set.");
+	}
+
 	updateProgress("App is now loaded");
 }
 
@@ -434,12 +444,15 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 						.callKwargs(requirements, { keep_going: true })
 						.then(() => {
 							if (requirements.includes("matplotlib")) {
-								// Ref: https://github.com/streamlit/streamlit/blob/1.22.0/lib/streamlit/web/bootstrap.py#L111
+								// Ref: https://github.com/pyodide/pyodide/issues/561#issuecomment-1992613717
 								// This backend setting is required to use matplotlib in Wasm environment.
 								return pyodide.runPythonAsync(`
-									import matplotlib
-									matplotlib.use("agg")
-								`);
+try:
+	import matplotlib
+	matplotlib.use("agg")
+except ImportError:
+	pass
+`);
 							}
 						})
 						.then(() => {

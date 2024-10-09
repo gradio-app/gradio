@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import fnmatch
 import os
-import warnings
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 class FileExplorerData(GradioRootModel):
     # The outer list is the list of files selected, and the inner list
     # is the path to the file as a list, split by the os.sep.
-    root: List[List[str]]
+    root: list[list[str]]
 
 
 @document()
@@ -51,14 +51,15 @@ class FileExplorer(Component):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        height: int | float | str | None = None,
+        height: int | str | None = None,
+        max_height: int | str | None = 500,
+        min_height: int | str | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
-        root: None = None,
     ):
         """
         Parameters:
@@ -67,7 +68,7 @@ class FileExplorer(Component):
             file_count: Whether to allow single or multiple files to be selected. If "single", the component will return a single absolute file path as a string. If "multiple", the component will return a list of absolute file paths as a list of strings.
             root_dir: Path to root directory to select files from. If not provided, defaults to current working directory.
             ignore_glob: The glob-style, case-sensitive pattern that will be used to exclude files from the list. For example, "*.py" will exclude all .py files from the list. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -82,12 +83,6 @@ class FileExplorer(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
-        if root is not None:
-            warnings.warn(
-                "The `root` parameter has been deprecated. Please use `root_dir` instead."
-            )
-            root_dir = root
-            self._constructor_args[0]["root_dir"] = root
         self.root_dir = DeveloperPath(os.path.abspath(root_dir))
         self.glob = glob
         self.ignore_glob = ignore_glob
@@ -98,6 +93,8 @@ class FileExplorer(Component):
             )
         self.file_count = file_count
         self.height = height
+        self.max_height = max_height
+        self.min_height = min_height
 
         super().__init__(
             label=label,
