@@ -1,10 +1,59 @@
 # @self/component-test
 
+## 0.2.0-beta.7
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.7
+- @self/build@0.1.0-beta.3
+
+## 0.2.0-beta.6
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.6
+
+## 0.2.0-beta.5
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.5
+
+## 0.2.0-beta.4
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.4
+
+## 0.2.0-beta.3
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.3
+
+## 0.2.0-beta.2
+
+### Features
+
+- [#9311](https://github.com/gradio-app/gradio/pull/9311) [`c4afdcd`](https://github.com/gradio-app/gradio/commit/c4afdcdb1f1f80c5f95ab45d527236e9364ace82) - Added max lines and overflow scrollbar for `gr.Code`.  Thanks @micpst!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.2
+- @self/build@0.1.0-beta.2
+
 ## 0.1.1
 
 ### Features
 
 - [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+- [#9204](https://github.com/gradio-app/gradio/pull/9204) [`3c73f00`](https://github.com/gradio-app/gradio/commit/3c73f00e3016b16917ebfe0bad390f2dff683457) - 🔡 Update default core Gradio font.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.1
+
+## 0.1.1-beta.0
 
 ### Fixes
 

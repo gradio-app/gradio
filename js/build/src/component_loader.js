@@ -2,8 +2,10 @@
 
 const request_map = {};
 
+const is_browser = typeof window !== "undefined";
+
 export function load_component({ api_url, name, id, variant }) {
-	const comps = window.__GRADIO__CC__;
+	const comps = is_browser && window.__GRADIO__CC__;
 
 	const _component_map = {
 		// eslint-disable-next-line no-undef
@@ -59,6 +61,9 @@ export function load_component({ api_url, name, id, variant }) {
 }
 
 function load_css(url) {
+	if(!is_browser) {
+		return Promise.resolve();
+	}
 	return new Promise((resolve, reject) => {
 		const link = document.createElement("link");
 		link.rel = "stylesheet";
@@ -70,12 +75,32 @@ function load_css(url) {
 }
 
 function get_component_with_css(api_url, id, variant) {
-	return Promise.all([
+	const environment = is_browser ? "client": "server";
+	let path;
+	if (environment === "server") {
+	  // uncomment when we make gradio cc build support ssr
+	  //path = await (await fetch(`${api_url}/custom_component/${id}/${variant}/index.js/server`)).text();
+	  return Promise.all([
 		load_css(`${api_url}/custom_component/${id}/${variant}/style.css`),
 		import(
-			/* @vite-ignore */ `${api_url}/custom_component/${id}/${variant}/index.js`
+		  /* @vite-ignore */
+		  "@gradio/fallback"
 		)
-	]).then(([_, module]) => {
+	  ]).then(([_, module]) => {
 		return module;
-	});
-}
+	  });
+	}
+
+	path = `${api_url}/custom_component/${id}/${environment}/${variant}/index.js`;
+
+	return Promise.all([
+		load_css(`${api_url}/custom_component/${id}/${environment}/${variant}/style.css`),
+		import(
+		  /* @vite-ignore */
+		  path
+		)
+	  ]).then(([_, module]) => {
+		return module;
+	  });
+
+  }

@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 import operator
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from gradio_client.documentation import document
 
@@ -24,7 +25,7 @@ class LabelConfidence(GradioModel):
 
 class LabelData(GradioModel):
     label: Optional[Union[str, int, float]] = None
-    confidences: Optional[List[LabelConfidence]] = None
+    confidences: Optional[list[LabelConfidence]] = None
 
 
 @document()
@@ -63,7 +64,7 @@ class Label(Component):
         Parameters:
             value: Default value to show in the component. If a str or number is provided, simply displays the string or number. If a {Dict[str, float]} of classes and confidences is provided, displays the top class on top and the `num_top_classes` below, along with their confidence bars. If callable, the function will be called whenever the app loads to set the initial value of the component.
             num_top_classes: number of most confident classes to show.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.

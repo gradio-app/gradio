@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { createEventDispatcher, afterUpdate, tick } from "svelte";
-	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
+	import {
+		BlockLabel,
+		Empty,
+		IconButton,
+		ShareButton,
+		IconButtonWrapper
+	} from "@gradio/atoms";
 	import type { FileData, Client } from "@gradio/client";
 	import { Video, Download } from "@gradio/icons";
 	import { uploadToHuggingFace } from "@gradio/utils";
@@ -29,6 +35,7 @@
 		pause: undefined;
 		end: undefined;
 		stop: undefined;
+		load: undefined;
 	}>();
 
 	$: value && dispatch("change", value);
@@ -51,54 +58,58 @@
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if value === null || value.url === undefined}
+{#if !value || value.url === undefined}
 	<Empty unpadded_box={true} size="large"><Video /></Empty>
 {:else}
 	{#key value.url}
 		<Player
 			src={value.url}
 			subtitle={subtitle?.url}
+			is_stream={value.is_stream}
 			{autoplay}
 			on:play
 			on:pause
 			on:stop
 			on:end
-			on:load
+			on:loadedmetadata={() => {
+				// Deal with `<video>`'s `loadedmetadata` event as `VideoPreview`'s `load` event
+				// to represent not only the video is loaded but also the metadata is loaded
+				// so its dimensions (w/h) are known. This is used for Chatbot's auto scroll.
+				dispatch("load");
+			}}
 			mirror={false}
 			{label}
 			{loop}
 			interactive={false}
 			{upload}
+			{i18n}
 		/>
 	{/key}
-	<div class="icon-buttons" data-testid="download-div">
-		{#if show_download_button}
-			<DownloadLink href={value.url} download={value.orig_name || value.path}>
-				<IconButton Icon={Download} label="Download" />
-			</DownloadLink>
-		{/if}
-		{#if show_share_button}
-			<ShareButton
-				{i18n}
-				on:error
-				on:share
-				{value}
-				formatter={async (value) => {
-					if (!value) return "";
-					let url = await uploadToHuggingFace(value.data, "url");
-					return url;
-				}}
-			/>
-		{/if}
+	<div data-testid="download-div">
+		<IconButtonWrapper>
+			{#if show_download_button}
+				<DownloadLink
+					href={value.is_stream
+						? value.url?.replace("playlist.m3u8", "playlist-file")
+						: value.url}
+					download={value.orig_name || value.path}
+				>
+					<IconButton Icon={Download} label="Download" />
+				</DownloadLink>
+			{/if}
+			{#if show_share_button}
+				<ShareButton
+					{i18n}
+					on:error
+					on:share
+					{value}
+					formatter={async (value) => {
+						if (!value) return "";
+						let url = await uploadToHuggingFace(value.data, "url");
+						return url;
+					}}
+				/>
+			{/if}
+		</IconButtonWrapper>
 	</div>
 {/if}
-
-<style>
-	.icon-buttons {
-		display: flex;
-		position: absolute;
-		top: 6px;
-		right: 6px;
-		gap: var(--size-1);
-	}
-</style>

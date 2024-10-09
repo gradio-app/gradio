@@ -13,28 +13,22 @@ import GithubSlugger from "github-slugger";
 
 const LINK_ICON_CODE = `<svg class="md-link-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>`;
 
-const COPY_ICON_CODE = `<svg
-xmlns="http://www.w3.org/2000/svg"
-width="100%"
-height="100%"
-viewBox="0 0 32 32"
-><path
-  fill="currentColor"
-  d="M28 10v18H10V10h18m0-2H10a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2Z"
-/><path fill="currentColor" d="M4 18H2V4a2 2 0 0 1 2-2h14v2H4Z" /></svg>`;
-const CHECK_ICON_CODE = `<svg
-xmlns="http://www.w3.org/2000/svg"
-width="100%"
-height="100%"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="3"
-stroke-linecap="round"
-stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>`;
+const COPY_ICON_CODE = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" color="currentColor" aria-hidden="true" aria-label="Copy" stroke-width="1.3" width="15" height="15">
+  <path fill="currentColor" d="M12.728 4.545v8.182H4.545V4.545zm0 -0.909H4.545a0.909 0.909 0 0 0 -0.909 0.909v8.182a0.909 0.909 0 0 0 0.909 0.909h8.182a0.909 0.909 0 0 0 0.909 -0.909V4.545a0.909 0.909 0 0 0 -0.909 -0.909"/>
+  <path fill="currentColor" d="M1.818 8.182H0.909V1.818a0.909 0.909 0 0 1 0.909 -0.909h6.364v0.909H1.818Z"/>
+</svg>
+
+`;
+
+const CHECK_ICON_CODE = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" aria-hidden="true" aria-label="Copied" fill="none" stroke="currentColor" stroke-width="1.3">
+  <path d="m13.813 4.781 -7.438 7.438 -3.188 -3.188"/>
+</svg>
+`;
+
 const COPY_BUTTON_CODE = `<button title="copy" class="copy_code_button">
-<span class="copy-text">${COPY_ICON_CODE}</span>
-<span class="check">${CHECK_ICON_CODE}</span>
+  <span class="copy-text">${COPY_ICON_CODE}</span>
+  <span class="check">${CHECK_ICON_CODE}</span>
 </button>`;
 
 const escape_test = /[&<>"']/;

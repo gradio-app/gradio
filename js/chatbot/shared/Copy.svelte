@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { Copy, Check } from "@gradio/icons";
+	import { IconButton } from "@gradio/atoms";
 
 	let copied = false;
 	export let value: string;
@@ -44,36 +45,8 @@
 	});
 </script>
 
-<button
+<IconButton
 	on:click={handle_copy}
-	class="action"
-	title="copy"
-	aria-label={copied ? "Copied message" : "Copy message"}
->
-	{#if !copied}
-		<Copy />
-	{/if}
-	{#if copied}
-		<Check />
-	{/if}
-</button>
-
-<style>
-	button {
-		position: relative;
-		top: 0;
-		right: 0;
-		cursor: pointer;
-		color: var(--body-text-color-subdued);
-		margin-right: 5px;
-	}
-
-	button:hover {
-		color: var(--body-text-color);
-	}
-
-	.action {
-		width: var(--size-4);
-		height: var(--size-4);
-	}
-</style>
+	label={copied ? "Copied message" : "Copy message"}
+	Icon={copied ? Check : Copy}
+/>

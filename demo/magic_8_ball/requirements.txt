@@ -1,0 +1,7 @@
+git+https://github.com/huggingface/parler-tts.git
+accelerate
+spaces
+torch
+pydub
+transformers
+huggingface_hub

@@ -20,14 +20,26 @@ $ pip install --upgrade gradio
 
 ## Defining a chat function
 
-When working with `gr.ChatInterface()`, the first thing you should do is define your chat function. Your chat function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order).
+When working with `gr.ChatInterface()`, the first thing you should do is define your chat function. Your chat function should take two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
 
 - `message`: a `str` representing the user's input.
-- `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`.
+- `history`: If you set `type="messages"` in gr.ChatInterface, the history will be a list of dictionaries with `role` and `content` keys. Please see the chatbot [docs](/docs/gradio/chatbot) for an in-depth explanation of the chatbot format. 
+
+Here is an example value of the `history`:
+
+```python
+[
+    {"role": "user", "content": "What is the capital of France"},
+    {"role": "assistant", "content": "Paris"}
+]
+```
+
 
 Your function should return a single string response, which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
 
-Let's take a look at a few examples.
+Tip: It's strongly recommended to set type="messages" in gr.ChatInterface. Setting type="tuples" is deprecated and will be removed in a future version of Gradio.
+
+Let's take a look at a few example applications.
 
 ## Example: a chatbot that responds yes or no
 
@@ -47,7 +59,7 @@ Now, we can plug this into `gr.ChatInterface()` and call the `.launch()` method 
 ```python
 import gradio as gr
 
-gr.ChatInterface(random_response).launch()
+gr.ChatInterface(random_response, type="messages").launch()
 ```
 
 That's it! Here's our running demo, try it out:
@@ -63,12 +75,12 @@ import random
 import gradio as gr
 
 def alternatingly_agree(message, history):
-    if len(history) % 2 == 0:
+    if len([h for h in history if h['role'] == "assistant"]) % 2 == 0:
         return f"Yes, I do think that '{message}'"
     else:
         return "I don't think so"
 
-gr.ChatInterface(alternatingly_agree).launch()
+gr.ChatInterface(alternatingly_agree, type="messages").launch()
 ```
 
 ## Streaming chatbots
@@ -84,7 +96,7 @@ def slow_echo(message, history):
         time.sleep(0.3)
         yield "You typed: " + message[: i+1]
 
-gr.ChatInterface(slow_echo).launch()
+gr.ChatInterface(slow_echo, type="messages").launch()
 ```
 
 
@@ -96,7 +108,7 @@ If you're familiar with Gradio's `Interface` class, the `gr.ChatInterface` inclu
 
 - add a title and description above your chatbot using `title` and `description` arguments.
 - add a theme or custom css using `theme` and `css` arguments respectively.
-- add `examples` and even enable `cache_examples`, which make it easier for users to try it out .
+- add `examples` and even enable `cache_examples`, which make it easier for users to try it out. `examples` can be customized by adding `display_icon` or `display_text` keys to each example.
 - You can change the text or disable each of the buttons that appear in the chatbot interface: `submit_btn`, `retry_btn`, `undo_btn`, `clear_btn`.
 
 If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `ChatInterface`, then you can pass in your own chatbot or textbox as well. Here's an example of how we can use these parameters:
@@ -112,12 +124,13 @@ def yes_man(message, history):
 
 gr.ChatInterface(
     yes_man,
+    type="messages",
     chatbot=gr.Chatbot(height=300),
     textbox=gr.Textbox(placeholder="Ask me a yes or no question", container=False, scale=7),
     title="Yes Man",
     description="Ask Yes Man any question",
     theme="soft",
-    examples=["Hello", "Am I cool?", "Are tomatoes vegetables?"],
+    examples=[{"text": "Hello"}, {"text": "Am I cool?"}, {"text": "Are tomatoes vegetables?"}],
     cache_examples=True,
     retry_btn=None,
     undo_btn="Delete Previous",
@@ -130,6 +143,7 @@ In particular, if you'd like to add a "placeholder" for your chat interface, whi
 ```python
 gr.ChatInterface(
     yes_man,
+    type="messages",
     chatbot=gr.Chatbot(placeholder="<strong>Your Personal Yes-Man</strong><br>Ask Me Anything"),
 ...
 ```
@@ -143,13 +157,12 @@ You may want to add multimodal capability to your chatbot. For example, you may 
 
 ```python
 import gradio as gr
-import time
 
 def count_files(message, history):
     num_files = len(message["files"])
     return f"You uploaded {num_files} files"
 
-demo = gr.ChatInterface(fn=count_files, examples=[{"text": "Hello", "files": []}], title="Echo Bot", multimodal=True)
+demo = gr.ChatInterface(fn=count_files, type="messages", examples=[{"text": "Hello", "files": []}], title="Echo Bot", multimodal=True)
 
 demo.launch()
 ```
@@ -162,7 +175,7 @@ Tip: If you'd like to customize the UI/UX of the textbox for your multimodal cha
 
 You may want to add additional parameters to your chatbot and expose them to your users through the Chatbot UI. For example, suppose you want to add a textbox for a system prompt, or a slider that sets the number of tokens in the chatbot's response. The `ChatInterface` class supports an `additional_inputs` parameter which can be used to add additional input components.
 
-The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have _not_ already been rendered, then the components will appear underneath the chatbot (and any examples) within a `gr.Accordion()`. You can set the label of this accordion using the `additional_inputs_accordion_name` parameter.
+The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have _not_ already been rendered, then the components will appear underneath the chatbot within a `gr.Accordion()`. You can set the label of this accordion using the `additional_inputs_accordion_name` parameter.
 
 Here's a complete example:
 
@@ -185,7 +198,7 @@ with gr.Blocks() as demo:
     slider = gr.Slider(10, 100, render=False)
 
     gr.ChatInterface(
-        echo, additional_inputs=[system_prompt, slider]
+        echo, additional_inputs=[system_prompt, slider], type="messages"
     )
 
 demo.launch()
@@ -193,7 +206,7 @@ demo.launch()
 
 If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/creating-a-custom-chatbot-with-blocks).
 
-## Using Gradio Components inside the Chatbot
+## Displaying Files or Components in the Chatbot
 
 The `Chatbot` component supports using many of the core Gradio components (such as `gr.Image`, `gr.Plot`, `gr.Audio`, and `gr.HTML`) inside of the chatbot. Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example:
 
@@ -207,11 +220,33 @@ def fake(message, history):
         return "Please provide the name of an artist"
 
 gr.ChatInterface(
-    fake, 
+    fake,
+    type="messages",
     textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
     chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
 ).launch()
 ```
+
+You can also return a dictionary with a `path` key that points to a local file or a publicly available URL.
+
+```py
+import gradio as gr
+
+def fake(message, history):
+    if message.strip():
+        return {"role": "assistant", "content": {"path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"}}
+    else:
+        return "Please provide the name of an artist"
+
+gr.ChatInterface(
+    fake,
+    type="messages",
+    textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
+    chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
+).launch()
+```
+
+ See the chatbot [docs](/docs/gradio/chatbot#behavior) for an explanation how.
 
 ## Using your chatbot via an API
 
@@ -237,14 +272,16 @@ llm = ChatOpenAI(temperature=1.0, model='gpt-3.5-turbo-0613')
 
 def predict(message, history):
     history_langchain_format = []
-    for human, ai in history:
-        history_langchain_format.append(HumanMessage(content=human))
-        history_langchain_format.append(AIMessage(content=ai))
+    for msg in history:
+        if msg['role'] == "user":
+            history_langchain_format.append(HumanMessage(content=msg['content']))
+        elif msg['role'] == "assistant":
+            history_langchain_format.append(AIMessage(content=msg['content']))
     history_langchain_format.append(HumanMessage(content=message))
     gpt_response = llm(history_langchain_format)
     return gpt_response.content
 
-gr.ChatInterface(predict).launch()
+gr.ChatInterface(predict, type="messages").launch()
 ```
 
 ## A streaming example using `openai`
@@ -260,10 +297,9 @@ client = OpenAI(api_key=api_key)
 
 def predict(message, history):
     history_openai_format = []
-    for human, assistant in history:
-        history_openai_format.append({"role": "user", "content": human })
-        history_openai_format.append({"role": "assistant", "content":assistant})
-    history_openai_format.append({"role": "user", "content": message})
+    for msg in history:
+        history_openai_format.append(msg)
+    history_openai_format.append(message)
   
     response = client.chat.completions.create(model='gpt-3.5-turbo',
     messages= history_openai_format,
@@ -276,7 +312,7 @@ def predict(message, history):
               partial_message = partial_message + chunk.choices[0].delta.content
               yield partial_message
 
-gr.ChatInterface(predict).launch()
+gr.ChatInterface(predict, type="messages").launch()
 ```
 
 **Handling Concurrent Users with Threads**
@@ -305,7 +341,7 @@ def predict(message, history, request: gr.Request):
     
     ...
 
-gr.ChatInterface(predict).launch()
+gr.ChatInterface(predict, type="messages").launch()
 ```
 
 ## Example using a local, open-source LLM with Hugging Face
@@ -331,7 +367,7 @@ class StopOnTokens(StoppingCriteria):
         return False
 
 def predict(message, history):
-    history_transformer_format = history + [[message, ""]]
+    history_transformer_format = list(zip(history[:-1], history[1:])) + [[message, ""]]
     stop = StopOnTokens()
 
     messages = "".join(["".join(["\n<human>:"+item[0], "\n<bot>:"+item[1]])

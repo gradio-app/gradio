@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Any, Callable
+from typing import Any
 
 from gradio_client.documentation import document
 
@@ -17,8 +18,7 @@ class State(Component):
     EVENTS = [Events.change]
     """
     Special hidden component that stores session state across runs of the demo by the
-    same user. The value of the State variable is cleared when the user refreshes the page.
-    The state state is stored on the server for 60 minutes after the user closes the tab.
+    same user. Can attach .change listeners that trigger when the state changes.
     Demos: interface_state, blocks_simple_squares, state_cleanup
     Guides: real-time-speech-recognition
     """

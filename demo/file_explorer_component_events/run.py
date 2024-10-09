@@ -24,7 +24,7 @@ with gr.Blocks() as demo:
     ignore_txt_in_glob.select(lambda s: gr.FileExplorer(ignore_glob="*.txt" if s else None),
                             inputs=[ignore_txt_in_glob], outputs=[fe])
 
-    dd.select(lambda s: gr.FileExplorer(root=s), inputs=[dd], outputs=[fe])
+    dd.select(lambda s: gr.FileExplorer(root_dir=s), inputs=[dd], outputs=[fe])
     run.click(lambda s: ",".join(s) if isinstance(s, list) else s, inputs=[fe], outputs=[textbox])
     fe.change(lambda num: num + 1, inputs=total_changes, outputs=total_changes)
 

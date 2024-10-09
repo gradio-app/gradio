@@ -4,7 +4,7 @@
 	fill="none"
 	stroke="currentColor"
 	aria-hidden="true"
-	stroke-width="2"
+	stroke-width="1.5"
 	stroke-linecap="round"
 	stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg
 >

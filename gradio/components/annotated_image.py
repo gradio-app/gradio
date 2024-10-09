@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 import gradio_client.utils as client_utils
 import numpy as np
@@ -28,7 +29,7 @@ class Annotation(GradioModel):
 
 class AnnotatedImageData(GradioModel):
     image: FileData
-    annotations: List[Annotation]
+    annotations: list[Annotation]
 
 
 @document()
@@ -78,10 +79,10 @@ class AnnotatedImage(Component):
             value: Tuple of base image and list of (annotation, label) pairs.
             format: Format used to save images before it is returned to the front end, such as 'jpeg' or 'png'. This parameter only takes effect when the base image is returned from the prediction function as a numpy array or a PIL Image. The format should be supported by the PIL library.
             show_legend: If True, will show a legend of the annotations.
-            height: The height of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
+            width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
             color_map: A dictionary mapping labels to colors. The colors must be specified as hex codes.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.

@@ -4,17 +4,14 @@ from __future__ import annotations
 
 import dataclasses
 import warnings
+from collections.abc import Iterable, Sequence
 from io import BytesIO
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Iterable,
-    List,
     Literal,
     Optional,
-    Sequence,
-    Tuple,
     Union,
     cast,
 )
@@ -50,14 +47,14 @@ class EditorExampleValue(TypedDict):
 
 class EditorData(GradioModel):
     background: Optional[FileData] = None
-    layers: List[FileData] = []
+    layers: list[FileData] = []
     composite: Optional[FileData] = None
     id: Optional[str] = None
 
 
 class EditorDataBlobs(GradioModel):
     background: Optional[bytes]
-    layers: List[Union[bytes, None]]
+    layers: list[Union[bytes, None]]
     composite: Optional[bytes]
 
 
@@ -70,7 +67,7 @@ class BlobData(TypedDict):
 
 class AcceptBlobs(GradioModel):
     data: BlobData
-    files: List[Tuple[str, bytes]]
+    files: list[tuple[str, bytes]]
 
 
 @document()
@@ -187,12 +184,12 @@ class ImageEditor(Component):
         """
         Parameters:
             value: Optional initial image(s) to populate the image editor. Should be a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be a callable, in which case the function will be called whenever the app loads to set the initial value of the component.
-            height: The height of the component container, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the component container, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image files or numpy arrays, but will affect the displayed images.
+            width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image files or numpy arrays, but will affect the displayed images.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
             sources: List of sources that can be used to set the background image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
             type: The format the images are converted to before being passed into the prediction function. "numpy" converts the images to numpy arrays with shape (height, width, 3) and values from 0 to 255, "pil" converts the images to PIL image objects, "filepath" passes images as str filepaths to temporary copies of the images.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.

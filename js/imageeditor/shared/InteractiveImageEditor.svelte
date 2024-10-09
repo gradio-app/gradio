@@ -44,14 +44,19 @@
 	export let transforms: "crop"[] = ["crop"];
 	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
-	export let status: "pending" | "complete" | "error" = "complete";
+	export let status:
+		| "pending"
+		| "complete"
+		| "error"
+		| "generating"
+		| "streaming" = "complete";
 	export let canvas_size: [number, number] | undefined;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let dragging: boolean;
 	export let placeholder: string | undefined = undefined;
-	export let height = 400;
+	export let height = 450;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;

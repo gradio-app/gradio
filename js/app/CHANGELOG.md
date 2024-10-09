@@ -1,6 +1,78 @@
 # @self/app
 
-## 1.40.1
+## 1.41.0-beta.7
+
+### Features
+
+- [#9590](https://github.com/gradio-app/gradio/pull/9590) [`e853c41`](https://github.com/gradio-app/gradio/commit/e853c413583d91186aef3aceb0849d0ec0494834) - SSR e2e + fixes.  Thanks @pngwn!
+- [#9482](https://github.com/gradio-app/gradio/pull/9482) [`bd6c5f2`](https://github.com/gradio-app/gradio/commit/bd6c5f237b0631d86273c7684c3bf2b1011992a3) - Fix custom component CLI on main/5.0.  Thanks @freddyaboulton!
+- [#9576](https://github.com/gradio-app/gradio/pull/9576) [`430a26a`](https://github.com/gradio-app/gradio/commit/430a26a4fbcbabb5e9ddb6173bf658a00960e88e) - Fix reload mode.  Thanks @freddyaboulton!
+- [#9592](https://github.com/gradio-app/gradio/pull/9592) [`24fe222`](https://github.com/gradio-app/gradio/commit/24fe222fd17583d04dd31aebf60b649224e8382f) - Fix favicon in ssr mode.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.6
+- @self/build@0.1.0-beta.3
+
+## 1.41.0-beta.6
+
+### Dependency updates
+
+- @gradio/client@1.6.0-beta.4
+- @gradio/core@0.1.0-beta.5
+
+## 1.41.0-beta.5
+
+### Features
+
+- [#9428](https://github.com/gradio-app/gradio/pull/9428) [`a17c7b6`](https://github.com/gradio-app/gradio/commit/a17c7b6e01bcee88b57a5231d0ff876f79adb8b1) - Ensure media queries work for SSR mode.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.4
+
+## 1.41.0-beta.4
+
+### Dependency updates
+
+- @gradio/wasm@0.14.0-beta.3
+- @gradio/core@0.1.0-beta.4
+
+## 1.41.0-beta.3
+
+### Features
+
+- [#9427](https://github.com/gradio-app/gradio/pull/9427) [`b672deb`](https://github.com/gradio-app/gradio/commit/b672deb240e1934f3cde6d257dbe93e3fa8b1857) - fix css.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.1.0-beta.3
+
+## 1.41.0-beta.2
+
+### Features
+
+- [#9412](https://github.com/gradio-app/gradio/pull/9412) [`c2c2fd9`](https://github.com/gradio-app/gradio/commit/c2c2fd989348f826566773c07c0e0bda200199ff) - fix SSR apps on spaces.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@1.6.0-beta.3
+- @gradio/core@0.1.0-beta.3
+
+## 1.41.0-beta.1
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/wasm@0.14.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/core@0.1.0-beta.2
+- @self/build@0.1.0-beta.2
+
+## 1.40.1-beta.0
 
 ### Fixes
 

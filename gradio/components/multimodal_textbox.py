@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
 
 import gradio_client.utils as client_utils
 from gradio_client.documentation import document
@@ -13,6 +14,7 @@ from typing_extensions import NotRequired
 from gradio.components.base import Component, FormComponent
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -20,12 +22,12 @@ if TYPE_CHECKING:
 
 class MultimodalData(GradioModel):
     text: str
-    files: List[FileData] = Field(default_factory=list)
+    files: list[FileData] = Field(default_factory=list)
 
 
 class MultimodalPostprocess(TypedDict):
     text: str
-    files: List[FileData]
+    files: NotRequired[list[FileData]]
 
 
 class MultimodalValue(TypedDict):
@@ -51,11 +53,12 @@ class MultimodalTextbox(FormComponent):
         Events.submit,
         Events.focus,
         Events.blur,
+        Events.stop,
     ]
 
     def __init__(
         self,
-        value: dict[str, str | list] | Callable | None = None,
+        value: str | dict[str, str | list] | Callable | None = None,
         *,
         file_types: list[str] | None = None,
         file_count: Literal["single", "multiple", "directory"] = "single",
@@ -81,17 +84,18 @@ class MultimodalTextbox(FormComponent):
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         submit_btn: str | bool | None = True,
+        stop_btn: str | bool | None = False,
     ):
         """
         Parameters:
-            value: Default value to show in MultimodalTextbox. A dictionary of the form {"text": "sample text", "files": [{path: "files/file.jpg", orig_name: "file.jpg", url: "http://image_url.jpg", size: 100}]}. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value to show in MultimodalTextbox. A string value, or a dictionary of the form {"text": "sample text", "files": [{path: "files/file.jpg", orig_name: "file.jpg", url: "http://image_url.jpg", size: 100}]}. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
-            label: The label for this component. Appears above the component and is also used as the header if there is a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            info: additional component description.
+            label: the label for this component, displayed above the component if `show_label` is `True` and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component corresponds to.
+            info: additional component description, appears below the label in smaller font. Supports markdown / HTML syntax.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -109,6 +113,7 @@ class MultimodalTextbox(FormComponent):
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
+            stop_btn: If True, will show a stop button (useful for streaming demos). If a string, will use that string as the stop button text.
         """
         self.file_types = file_types
         self.file_count = file_count
@@ -122,6 +127,7 @@ class MultimodalTextbox(FormComponent):
         self.max_lines = max(lines, max_lines)
         self.placeholder = placeholder
         self.submit_btn = submit_btn
+        self.stop_btn = stop_btn
         self.autofocus = autofocus
         self.autoscroll = autoscroll
 
@@ -154,12 +160,18 @@ class MultimodalTextbox(FormComponent):
         """
         if payload is None:
             return None
+        if self.file_types is not None:
+            for f in payload.files:
+                if not client_utils.is_valid_file(f.path, self.file_types):
+                    raise Error(
+                        f"Invalid file type: {f.mime_type}. Please upload a file that is one of these formats: {self.file_types}"
+                    )
         return {
             "text": payload.text,
             "files": [f.path for f in payload.files],
         }
 
-    def postprocess(self, value: MultimodalValue | None) -> MultimodalData:
+    def postprocess(self, value: MultimodalValue | str | None) -> MultimodalData:
         """
         Parameters:
             value: Expects a {dict} with "text" and "files", both optional. The files array is a list of file paths or URLs.
@@ -168,15 +180,17 @@ class MultimodalTextbox(FormComponent):
         """
         if value is None:
             return MultimodalData(text="", files=[])
-        if not isinstance(value, dict):
+        if not isinstance(value, (dict, str)):
             raise ValueError(
-                f"MultimodalTextbox expects a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
+                f"MultimodalTextbox expects a string or a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
             )
+        if isinstance(value, str):
+            return MultimodalData(text=value, files=[])
         text = value.get("text", "")
         if "files" in value and isinstance(value["files"], list):
             files = [
-                file
-                if isinstance(file, FileData)
+                cast(FileData, file)
+                if isinstance(file, FileData | dict)
                 else FileData(
                     path=file,
                     orig_name=Path(file).name,

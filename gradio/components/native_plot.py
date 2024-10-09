@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import json
 import warnings
+from collections.abc import Callable, Sequence, Set
 from typing import (
     TYPE_CHECKING,
-    AbstractSet,
     Any,
-    Callable,
-    Dict,
-    List,
     Literal,
-    Sequence,
 )
 
 import pandas as pd
@@ -25,9 +21,9 @@ if TYPE_CHECKING:
 
 
 class PlotData(GradioModel):
-    columns: List[str]
-    data: List[List[Any]]
-    datatypes: Dict[str, Literal["quantitative", "nominal", "temporal"]]
+    columns: list[str]
+    data: list[list[Any]]
+    datatypes: dict[str, Literal["quantitative", "nominal", "temporal"]]
     mark: str
 
 
@@ -59,6 +55,7 @@ class NativePlot(Component):
         y_lim: list[float] | None = None,
         x_label_angle: float = 0,
         y_label_angle: float = 0,
+        x_axis_labels_visible: bool = True,
         caption: str | None = None,
         sort: Literal["x", "y", "-x", "-y"] | list[str] | None = None,
         height: int | None = None,
@@ -68,7 +65,7 @@ class NativePlot(Component):
         scale: int | None = None,
         min_width: int = 160,
         every: Timer | float | None = None,
-        inputs: Component | Sequence[Component] | AbstractSet[Component] | None = None,
+        inputs: Component | Sequence[Component] | Set[Component] | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -94,6 +91,7 @@ class NativePlot(Component):
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             x_label_angle: The angle of the x-axis labels in degrees offset clockwise.
             y_label_angle: The angle of the y-axis labels in degrees offset clockwise.
+            x_axis_labels_visible: Whether the x-axis labels should be visible. Can be hidden when many x-axis labels are present.
             caption: The (optional) caption to display below the plot.
             sort: The sorting order of the x values, if x column is type string/category. Can be "x", "y", "-x", "-y", or list of strings that represent the order of the categories.
             height: The height of the plot in pixels.
@@ -124,6 +122,7 @@ class NativePlot(Component):
         self.y_lim = y_lim
         self.x_label_angle = x_label_angle
         self.y_label_angle = y_label_angle
+        self.x_axis_labels_visible = x_axis_labels_visible
         self.caption = caption
         self.sort = sort
         self.height = height

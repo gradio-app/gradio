@@ -73,6 +73,7 @@ export default [
 			"js/spa/test/**/*",
 			"**/*vite.config.ts",
 			"**/_website/**/*",
+			"**/app/**/*",
 			"**/_spaces-test/**/*",
 			"**/preview/test/**/*",
 			"**/component-test/**/*",

@@ -87,6 +87,7 @@ export async function resolve_config(
 		return { ...config, path } as Config;
 	} else if (endpoint) {
 		const config_url = join_urls(endpoint, CONFIG_URL);
+
 		const response = await this.fetch(config_url, {
 			headers,
 			credentials: "include"
@@ -204,10 +205,11 @@ export function determine_protocol(endpoint: string): {
 	}
 
 	// default to secure if no protocol is provided
+
 	return {
 		ws_protocol: "wss",
 		http_protocol: "https:",
-		host: endpoint
+		host: new URL(endpoint).host
 	};
 }
 

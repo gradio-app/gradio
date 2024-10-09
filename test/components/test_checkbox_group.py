@@ -11,11 +11,14 @@ class TestCheckboxGroup:
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
         assert checkboxes_input.postprocess(["a", "c"]) == ["a", "c"]
+        with pytest.raises(gr.Error):
+            checkboxes_input.preprocess(["d"])
 
         checkboxes_input = gr.CheckboxGroup(["a", "b"], type="index")
         assert checkboxes_input.preprocess(["a"]) == [0]
         assert checkboxes_input.preprocess(["a", "b"]) == [0, 1]
-        assert checkboxes_input.preprocess(["a", "b", "c"]) == [0, 1, None]
+        with pytest.raises(gr.Error):
+            checkboxes_input.preprocess(["a", "b", "c"])
 
         # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
         # so we need to test that case as well

@@ -52,7 +52,25 @@ test("selecting altair should show altair plot and pressing clear should clear o
 	await expect(altair).toHaveCount(0);
 });
 
-test("switching between all 3 plot types and pressing submit should update output component to corresponding plot type", async ({
+test("selecting bokeh should show bokeh plot and pressing clear should clear output", async ({
+	page
+}) => {
+	await page.getByLabel("Plot Type").click();
+	await page.getByRole("option", { name: "bokeh" }).click();
+	await page.getByLabel("Month").click();
+	await page.getByRole("option", { name: "January" }).click();
+	await page.getByLabel("Social Distancing?").check();
+
+	await page.click("text=Submit");
+
+	const altair = await page.getByTestId("bokeh");
+	await expect(altair).toHaveCount(1);
+
+	await page.getByRole("button", { name: "Clear" }).click();
+	await expect(altair).toHaveCount(0);
+});
+
+test("switching between all 4 plot types and pressing submit should update output component to corresponding plot type", async ({
 	page
 }) => {
 	//Matplotlib
@@ -82,4 +100,12 @@ test("switching between all 3 plot types and pressing submit should update outpu
 	await page.click("text=Submit");
 	const altair = await page.getByTestId("altair");
 	await expect(altair).toHaveCount(1);
+
+	//Bokeh
+	await page.getByLabel("Plot Type").click();
+	await page.getByRole("option", { name: "Bokeh" }).click();
+
+	await page.click("text=Submit");
+	const bokeh = await page.getByTestId("bokeh");
+	await expect(bokeh).toHaveCount(1);
 });

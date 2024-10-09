@@ -20,7 +20,7 @@
 		flex-wrap: wrap;
 		gap: var(--form-gap-width);
 		box-shadow: var(--block-shadow);
-		border: var(--block-border-width) solid var(--border-color-primary);
+		border: var(--block-border-width) solid var(--block-border-color);
 		border-radius: var(--block-radius);
 		background: var(--border-color-primary);
 		overflow-y: hidden;

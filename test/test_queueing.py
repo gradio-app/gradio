@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
+from gradio.route_utils import API_PREFIX
 
 
 class TestQueueing:
@@ -45,14 +46,14 @@ class TestQueueing:
 
         sizes = []
         while job4.status().code.value != "FINISHED":
-            queue_status = test_client.get("/queue/status").json()
+            queue_status = test_client.get(f"{API_PREFIX}/queue/status").json()
             queue_size = queue_status["queue_size"]
             if len(sizes) == 0 or queue_size != sizes[-1]:
                 sizes.append(queue_size)
             time.sleep(0.01)
 
         time.sleep(0.1)
-        queue_status = test_client.get("/queue/status").json()
+        queue_status = test_client.get(f"{API_PREFIX}/queue/status").json()
         queue_size = queue_status["queue_size"]
         if queue_size != sizes[-1]:
             sizes.append(queue_size)

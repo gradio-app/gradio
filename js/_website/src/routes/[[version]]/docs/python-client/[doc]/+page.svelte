@@ -238,7 +238,7 @@
 					href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
 				>
 				{#if all_headers.headers && all_headers.headers.length > 0}
-					<ul class="text-slate-700 text-lg leading-6">
+					<ul class="text-slate-700 text-lg leading-6 list-none">
 						{#each all_headers.headers as header}
 							<li>
 								<a

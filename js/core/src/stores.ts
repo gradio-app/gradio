@@ -2,7 +2,7 @@ import { type Writable, writable, get } from "svelte/store";
 
 export interface LoadingStatus {
 	eta: number | null;
-	status: "pending" | "error" | "complete" | "generating";
+	status: "pending" | "error" | "complete" | "generating" | "streaming";
 	queue: boolean;
 	queue_position: number | null;
 	queue_size?: number;
@@ -10,6 +10,7 @@ export interface LoadingStatus {
 	message?: string | null;
 	scroll_to_output?: boolean;
 	show_progress?: "full" | "minimal" | "hidden";
+	time_limit?: number | null | undefined;
 	progress?: {
 		progress: number | null;
 		index: number | null;
@@ -48,7 +49,8 @@ export function create_loading_status_store(): LoadingStatusStore {
 		position = null,
 		eta = null,
 		message = null,
-		progress
+		progress,
+		time_limit = null
 	}: {
 		fn_index: LoadingStatus["fn_index"];
 		status: LoadingStatus["status"];
@@ -58,6 +60,7 @@ export function create_loading_status_store(): LoadingStatusStore {
 		eta?: LoadingStatus["eta"];
 		message?: LoadingStatus["message"];
 		progress?: LoadingStatus["progress"];
+		time_limit?: LoadingStatus["time_limit"];
 	}): void {
 		const outputs = fn_outputs[fn_index];
 		const inputs = fn_inputs[fn_index];

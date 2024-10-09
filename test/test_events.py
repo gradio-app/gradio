@@ -37,7 +37,7 @@ class TestEvent:
         client = TestClient(app)
 
         resp = client.post(
-            f"{demo.local_url}run/predict",
+            f"{demo.local_api_url}run/predict",
             json={"fn_index": 0, "data": [], "event_data": {"index": 1, "value": None}},
         )
         assert resp.status_code == 200
@@ -111,6 +111,7 @@ class TestEvent:
             (num1._id, "change"),
             (num2._id, "change"),
             (num3._id, "change"),
+            (0, "load"),
         ]
 
     def test_load_chaining(self):
@@ -184,6 +185,21 @@ def test_event_pyi_file_matches_source_code():
     assert segment
     sig = inspect.signature(gr.Button.click)
     for param in sig.parameters.values():
-        if param.name == "block":
+        if param.name in ["block", "time_limit", "stream_every", "like_user_message"]:
             continue
         assert param.name in segment
+
+    code = (
+        Path(__file__).parent / ".." / "gradio" / "components" / "image.pyi"
+    ).read_text()
+    mod = ast.parse(code)
+    segment = None
+    for node in ast.walk(mod):
+        if isinstance(node, ast.FunctionDef) and node.name == "stream":
+            segment = ast.get_source_segment(code, node)
+
+    # This would fail if Image no longer has a stream method
+    assert segment
+    sig = inspect.signature(gr.Image.stream)
+    for param in ["time_limit", "stream_every"]:
+        assert param in segment

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Literal, Sequence
+from collections.abc import Sequence
+from typing import Any, Literal
 
 from gradio_client.documentation import document
 
@@ -47,7 +48,7 @@ class Dataset(Component):
     ):
         """
         Parameters:
-            label: The label for this component, appears above the component.
+            label: the label for this component, appears above the component.
             components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances. The following components are supported in a Dataset: Audio, Checkbox, CheckboxGroup, ColorPicker, Dataframe, Dropdown, File, HTML, Image, Markdown, Model3D, Number, Radio, Slider, Textbox, TimeSeries, Video
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
@@ -99,7 +100,7 @@ class Dataset(Component):
         self.samples: list[list] = []
         for example in self.raw_samples:
             self.samples.append([])
-            for component, ex in zip(self._components, example):
+            for component, ex in zip(self._components, example, strict=False):
                 # If proxy_url is set, that means it is being loaded from an external Gradio app
                 # which means that the example has already been processed.
                 if self.proxy_url is None:

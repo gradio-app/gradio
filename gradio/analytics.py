@@ -16,7 +16,6 @@ from packaging.version import Version
 
 import gradio
 from gradio import wasm_utils
-from gradio.context import Context
 from gradio.utils import core_gradio_components, get_package_version
 
 # For testability, we import the pyfetch function into this module scope and define a fallback coroutine object to be patched in tests.
@@ -67,7 +66,6 @@ def _do_analytics_request(topic: str, data: dict[str, Any]) -> None:
 
 
 def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = get_local_ip_address()
     try:
         _send_telemetry_in_thread(
             topic=topic,
@@ -80,8 +78,6 @@ def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
 
 
 async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = await get_local_ip_address_wasm()
-
     # We use urllib.parse.urlencode to encode the data as a form.
     # Ref: https://docs.python.org/3/library/urllib.request.html#urllib-examples
     body = urllib.parse.urlencode(data).encode("ascii")
@@ -114,53 +110,6 @@ def version_check():
         warnings.warn("package URL does not contain version info.")
     except Exception:
         pass
-
-
-def get_local_ip_address() -> str:
-    """
-    Gets the public IP address or returns the string "No internet connection" if unable
-    to obtain it or the string "Analytics disabled" if a user has disabled analytics.
-    Does not make a new request if the IP address has already been obtained in the
-    same Python session.
-    """
-    if not analytics_enabled():
-        return "Analytics disabled"
-
-    if Context.ip_address is None:
-        try:
-            ip_address = httpx.get(
-                "https://checkip.amazonaws.com/", timeout=3
-            ).text.strip()
-        except (httpx.ConnectError, httpx.ReadTimeout):
-            ip_address = "No internet connection"
-        Context.ip_address = ip_address
-    else:
-        ip_address = Context.ip_address
-    return ip_address
-
-
-async def get_local_ip_address_wasm() -> str:
-    """The Wasm-compatible version of get_local_ip_address()."""
-    if not analytics_enabled():
-        return "Analytics disabled"
-
-    if Context.ip_address is None:
-        try:
-            response = await asyncio.wait_for(
-                pyodide_pyfetch(
-                    # The API used by the normal version (`get_local_ip_address()`), `https://checkip.amazonaws.com/``, blocks CORS requests, so here we use a different API.
-                    "https://api.ipify.org"
-                ),
-                timeout=5,
-            )
-            response_text: str = await response.string()  # type: ignore
-            ip_address = response_text.strip()
-        except (asyncio.TimeoutError, OSError):
-            ip_address = "No internet connection"
-        Context.ip_address = ip_address
-    else:
-        ip_address = Context.ip_address
-    return ip_address
 
 
 def initiated_analytics(data: dict[str, Any]) -> None:
@@ -232,8 +181,6 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         "is_sagemaker": blocks.is_sagemaker,
         "using_auth": blocks.auth is not None,
         "dev_mode": blocks.dev_mode,
-        "show_api": blocks.show_api,
-        "show_error": blocks.show_error,
         "inputs": get_inputs_outputs(
             blocks.mode, blocks.input_components, inputs_telemetry
         ),

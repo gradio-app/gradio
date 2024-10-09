@@ -16,7 +16,7 @@ You can [read the Guide to Blocks first](https://gradio.app/blocks-and-event-lis
 
 ## A Simple Chatbot Demo
 
-Let's start with recreating the simple demo above. As you may have noticed, our bot simply randomly responds "How are you?", "I love you", or "I'm very hungry" to any input. Here's the code to create this with Gradio:
+Let's start with recreating the simple demo above. As you may have noticed, our bot simply randomly responds "How are you?", "Today is a great day", or "I'm very hungry" to any input. Here's the code to create this with Gradio:
 
 $code_chatbot_simple
 
@@ -32,53 +32,32 @@ Of course, in practice, you would replace `respond()` with your own more complex
 
 $demo_chatbot_simple
 
+Tip: For better type hinting and auto-completion in your IDE, you can use the `gr.ChatMessage` dataclass:
+
+```python
+from gradio import ChatMessage
+
+def chat_function(message, history):
+    history.append(ChatMessage(role="user", content=message))
+    history.append(ChatMessage(role="assistant", content="Hello, how can I help you?"))
+    return history
+```
+
 ## Add Streaming to your Chatbot
 
 There are several ways we can improve the user experience of the chatbot above. First, we can stream responses so the user doesn't have to wait as long for a message to be generated. Second, we can have the user message appear immediately in the chat history, while the chatbot's response is being generated. Here's the code to achieve that:
 
 $code_chatbot_streaming
 
-You'll notice that when a user submits their message, we now _chain_ three event events with `.then()`:
+You'll notice that when a user submits their message, we now _chain_ two event events with `.then()`:
 
-1. The first method `user()` updates the chatbot with the user message and clears the input field. This method also makes the input field non interactive so that the user can't send another message while the chatbot is responding. Because we want this to happen instantly, we set `queue=False`, which would skip any queue had it been enabled. The chatbot's history is appended with `(user_message, None)`, the `None` signifying that the bot has not responded.
+1. The first method `user()` updates the chatbot with the user message and clears the input field. Because we want this to happen instantly, we set `queue=False`, which would skip any queue had it been enabled. The chatbot's history is appended with `{"role": "user", "content": user_message}`.
 
-2. The second method, `bot()` updates the chatbot history with the bot's response. Instead of creating a new message, we just replace the previously-created `None` message with the bot's response. Finally, we construct the message character by character and `yield` the intermediate outputs as they are being constructed. Gradio automatically turns any function with the `yield` keyword [into a streaming output interface](/guides/key-features/#iterative-outputs).
+2. The second method, `bot()` updates the chatbot history with the bot's response. Finally, we construct the message character by character and `yield` the intermediate outputs as they are being constructed. Gradio automatically turns any function with the `yield` keyword [into a streaming output interface](/guides/key-features/#iterative-outputs).
 
-3. The third method makes the input field interactive again so that users can send another message to the bot.
 
 Of course, in practice, you would replace `bot()` with your own more complex function, which might call a pretrained model or an API, to generate a response.
 
-Finally, we enable queuing by running `demo.queue()`, which is required for streaming intermediate outputs. You can try the improved chatbot by scrolling to the demo at the top of this page.
-
-## Liking / Disliking Chat Messages
-
-Once you've created your `gr.Chatbot`, you can add the ability for users to like or dislike messages. This can be useful if you would like users to vote on a bot's responses or flag inappropriate results. 
-
-To add this functionality to your Chatbot, simply attach a `.like()` event to your Chatbot. A chatbot that has the `.like()` event will automatically feature a thumbs-up icon and a thumbs-down icon next to every bot message. 
-
-The `.like()` method requires you to pass in a function that is called when a user clicks on these icons. In your function, you should have an argument whose type is `gr.LikeData`. Gradio will automatically supply the parameter to this argument with an object that contains information about the liked or disliked message. Here's a simplistic example of how you can have users like or dislike chat messages:
-
-```py
-import gradio as gr
-
-def greet(history, input):
-    return history + [(input, "Hello, " + input)]
-
-def vote(data: gr.LikeData):
-    if data.liked:
-        print("You upvoted this response: " + data.value["value"])
-    else:
-        print("You downvoted this response: " + data.value["value"])
-    
-
-with gr.Blocks() as demo:
-    chatbot = gr.Chatbot()
-    textbox = gr.Textbox()
-    textbox.submit(greet, [chatbot, textbox], [chatbot])
-    chatbot.like(vote, None, None)  # Adding this line causes the like/dislike icons to appear in your chatbot
-    
-demo.launch()
-```
 
 ## Adding Markdown, Images, Audio, or Videos
 
@@ -86,19 +65,19 @@ The `gr.Chatbot` component supports a subset of markdown including bold, italics
 
 ```py
 def bot(history):
-    response = "**That's cool!**"
-    history[-1][1] = response
+    response = {"role": "assistant", "content": "**That's cool!**"}
+    history.append(response)
     return history
 ```
 
-In addition, it can handle media files, such as images, audio, and video. You can use the `MultimodalTextbox` component to easily upload all types of media files to your chatbot. To pass in a media file, we must pass in the file as a tuple of two strings, like this: `(filepath, alt_text)`. The `alt_text` is optional, so you can also just pass in a tuple with a single element `(filepath,)`, like this:
+In addition, it can handle media files, such as images, audio, and video. You can use the `MultimodalTextbox` component to easily upload all types of media files to your chatbot. To pass in a media file, we must pass in the file a dictionary with a `path` key pointing to a local file and an `alt_text` key. The `alt_text` is optional, so you can also just pass in a tuple with a single element `{"path": "filepath"}`, like this:
 
 ```python
 def add_message(history, message):
     for x in message["files"]:
-        history.append(((x["path"],), None))  
+        history.append({"role": "user", "content": {"path": x}})
     if message["text"] is not None:
-        history.append((message["text"], None))
+        history.append({"role": "user", "content": message["text"]})
     return history, gr.MultimodalTextbox(value=None, interactive=False, file_types=["image"])
 ```
 

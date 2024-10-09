@@ -6,8 +6,8 @@ import dataclasses
 import inspect
 import warnings
 from collections import defaultdict
+from collections.abc import Callable
 from functools import lru_cache
-from typing import Callable
 
 classes_to_document = defaultdict(list)
 classes_inherit_documentation = {}

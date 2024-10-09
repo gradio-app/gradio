@@ -8,8 +8,9 @@ import os
 import re
 import tempfile
 import warnings
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal
+from typing import TYPE_CHECKING, Literal
 
 import httpx
 import huggingface_hub
@@ -23,7 +24,6 @@ from gradio import components, external_utils, utils
 from gradio.context import Context
 from gradio.exceptions import (
     GradioVersionIncompatibleError,
-    ModelNotFoundError,
     TooManyRequestsError,
 )
 from gradio.processing_utils import save_base64_to_cache, to_binary
@@ -36,40 +36,32 @@ if TYPE_CHECKING:
 @document()
 def load(
     name: str,
-    src: str | None = None,
-    hf_token: str | Literal[False] | None = None,
-    alias: str | None = None,
+    src: Callable[[str, str | None], Blocks]
+    | Literal["models", "spaces"]
+    | None = None,
+    token: str | None = None,
+    hf_token: str | None = None,
     **kwargs,
 ) -> Blocks:
     """
-    Constructs a demo from a Hugging Face repo. Can accept model repos (if src is "models") or Space repos (if src is "spaces"). The input
-    and output components are automatically loaded from the repo. Note that if a Space is loaded, certain high-level attributes of the Blocks (e.g.
-    custom `css`, `js`, and `head` attributes) will not be loaded.
+    Constructs a Gradio app automatically from a Hugging Face model/Space repo name or a 3rd-party API provider. Note that if a Space repo is loaded, certain high-level attributes of the Blocks (e.g. custom `css`, `js`, and `head` attributes) will not be loaded.
     Parameters:
-        name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
-        src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
-        hf_token: optional access token for loading private Hugging Face Hub models or spaces. Will default to the locally saved token if not provided. Pass `token=False` if you don't want to send your token to the server. Find your token here: https://huggingface.co/settings/tokens.  Warning: only provide a token if you are loading a trusted private Space as it can be read by the Space you are loading.
-        alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
+        name: the name of the model (e.g. "google/vit-base-patch16-224") or Space (e.g. "flax-community/spanish-gpt2"). This is the first parameter passed into the `src` function. Can also be formatted as {src}/{repo name} (e.g. "models/google/vit-base-patch16-224") if `src` is not provided.
+        src: function that accepts a string model `name` and a string or None `token` and returns a Gradio app. Alternatively, this parameter takes one of two strings for convenience: "models" (for loading a Hugging Face model through the Inference API) or "spaces" (for loading a Hugging Face Space). If None, uses the prefix of the `name` parameter to determine `src`.
+        token: optional token that is passed as the second parameter to the `src` function. For Hugging Face repos, uses the local HF token when loading models but not Spaces (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find HF tokens here: https://huggingface.co/settings/tokens.
+        kwargs: additional keyword parameters to pass into the `src` function. If `src` is "models" or "Spaces", these parameters are passed into the `gr.Interface` or `gr.ChatInterface` constructor.
     Returns:
-        a Gradio Blocks object for the given model
+        a Gradio Blocks app for the given model
     Example:
         import gradio as gr
         demo = gr.load("gradio/question-answering", src="spaces")
         demo.launch()
     """
-    return load_blocks_from_repo(
-        name=name, src=src, hf_token=hf_token, alias=alias, **kwargs
-    )
-
-
-def load_blocks_from_repo(
-    name: str,
-    src: str | None = None,
-    hf_token: str | Literal[False] | None = None,
-    alias: str | None = None,
-    **kwargs,
-) -> Blocks:
-    """Creates and returns a Blocks instance from a Hugging Face model or Space repo."""
+    if hf_token is not None and token is None:
+        token = hf_token
+        warnings.warn(
+            "The `hf_token` parameter is deprecated. Please use the equivalent `token` parameter instead."
+        )
     if src is None:
         # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
         tokens = name.split("/")
@@ -77,18 +69,34 @@ def load_blocks_from_repo(
             raise ValueError(
                 "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
             )
-        src = tokens[0]
+        src = tokens[0]  # type: ignore
         name = "/".join(tokens[1:])
+    if src in ["huggingface", "models", "spaces"]:
+        return load_blocks_from_huggingface(
+            name=name, src=src, hf_token=token, **kwargs
+        )
+    elif isinstance(src, Callable):
+        return src(name, token, **kwargs)
+    else:
+        raise ValueError(
+            "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a function that accepts a model name (and optionally, a token), and returns a Gradio app."
+        )
 
+
+def load_blocks_from_huggingface(
+    name: str,
+    src: str,
+    hf_token: str | Literal[False] | None = None,
+    alias: str | None = None,
+    **kwargs,
+) -> Blocks:
+    """Creates and returns a Blocks instance from a Hugging Face model or Space repo."""
     factory_methods: dict[str, Callable] = {
         # for each repo type, we have a method that returns the Interface given the model name & optionally an hf_token
         "huggingface": from_model,
         "models": from_model,
         "spaces": from_spaces,
     }
-    if src.lower() not in factory_methods:
-        raise ValueError(f"parameter: src must be one of {factory_methods.keys()}")
-
     if hf_token is not None and hf_token is not False:
         if Context.hf_token is not None and Context.hf_token != hf_token:
             warnings.warn(
@@ -96,33 +104,23 @@ def load_blocks_from_repo(
             )
         Context.hf_token = hf_token
 
+    if src == "spaces" and hf_token is None:
+        hf_token = False  # Since Spaces can read the token, we don't want to pass it in unless the user explicitly provides it
     blocks: gradio.Blocks = factory_methods[src](name, hf_token, alias, **kwargs)
     return blocks
 
 
 def from_model(
     model_name: str, hf_token: str | Literal[False] | None, alias: str | None, **kwargs
-):
-    model_url = f"https://huggingface.co/{model_name}"
-    api_url = f"https://api-inference.huggingface.co/models/{model_name}"
-    print(f"Fetching model from: {model_url}")
-
-    headers = (
-        {} if hf_token in [False, None] else {"Authorization": f"Bearer {hf_token}"}
-    )
-    response = httpx.request("GET", api_url, headers=headers)
-    if response.status_code != 200:
-        raise ModelNotFoundError(
-            f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `hf_token` parameter."
-        )
-    p = response.json().get("pipeline_tag")
-
-    headers["X-Wait-For-Model"] = "true"
+) -> Blocks:
+    headers = {"X-Wait-For-Model": "true"}
     client = huggingface_hub.InferenceClient(
         model=model_name, headers=headers, token=hf_token
     )
+    p, tags = external_utils.get_model_info(model_name, hf_token)
 
     # For tasks that are not yet supported by the InferenceClient
+    api_url = f"https://api-inference.huggingface.co/models/{model_name}"
     GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(  # noqa: N806
         Path(tempfile.gettempdir()) / "gradio"
     )
@@ -163,20 +161,6 @@ def from_model(
             "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
         ]
         fn = client.automatic_speech_recognition
-    # example model: microsoft/DialoGPT-medium
-    elif p == "conversational":
-        inputs = [
-            components.Textbox(render=False),
-            components.State(render=False),
-        ]
-        outputs = [
-            components.Chatbot(render=False),
-            components.State(render=False),
-        ]
-        examples = [["Hello World"]]
-        preprocess = external_utils.chatbot_preprocess
-        postprocess = external_utils.chatbot_postprocess
-        fn = client.conversational
     # example model: julien-c/distilbert-feature-extraction
     elif p == "feature-extraction":
         inputs = components.Textbox(label="Input")
@@ -238,6 +222,18 @@ def from_model(
         fn = client.text_classification
     # Example: gpt2
     elif p == "text-generation":
+        # Example: meta-llama/Meta-Llama-3-8B-Instruct
+        if tags and "conversational" in tags:
+            from gradio import ChatInterface
+
+            fn = external_utils.conversational_wrapper(client)
+            examples = [
+                "What is the capital of Pakistan?",
+                "Tell me a joke about calculus.",
+                "Explain gravity to a 5-year-old.",
+                "What were the main causes of World War I?",
+            ]
+            return ChatInterface(fn, type="messages", examples=examples)
         inputs = components.Textbox(label="Text")
         outputs = inputs
         examples = ["Once upon a time"]
@@ -252,6 +248,7 @@ def from_model(
     elif p == "translation":
         inputs = components.Textbox(label="Input")
         outputs = components.Textbox(label="Translation")
+        postprocess = lambda x: x.translation_text  # noqa: E731
         examples = ["Hello, how are you?"]
         fn = client.translation
     # Example: facebook/bart-large-mnli
@@ -397,7 +394,7 @@ def from_model(
 
 
 def from_spaces(
-    space_name: str, hf_token: str | None, alias: str | None, **kwargs
+    space_name: str, hf_token: str | None | Literal[False], alias: str | None, **kwargs
 ) -> Blocks:
     space_url = f"https://huggingface.co/spaces/{space_name}"
 
@@ -444,7 +441,7 @@ def from_spaces(
         return from_spaces_blocks(space=space_name, hf_token=hf_token)
 
 
-def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
+def from_spaces_blocks(space: str, hf_token: str | None | Literal[False]) -> Blocks:
     client = Client(
         space,
         hf_token=hf_token,
@@ -479,7 +476,7 @@ def from_spaces_interface(
     model_name: str,
     config: dict,
     alias: str | None,
-    hf_token: str | None,
+    hf_token: str | None | Literal[False],
     iframe_url: str,
     **kwargs,
 ) -> Interface:

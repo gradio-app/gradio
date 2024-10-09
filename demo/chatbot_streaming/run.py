@@ -3,18 +3,18 @@ import random
 import time
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot()
+    chatbot = gr.Chatbot(type="messages")
     msg = gr.Textbox()
     clear = gr.Button("Clear")
 
-    def user(user_message, history):
-        return "", history + [[user_message, None]]
+    def user(user_message, history: list):
+        return "", history + [{"role": "user", "content": user_message}]
 
-    def bot(history):
+    def bot(history: list):
         bot_message = random.choice(["How are you?", "I love you", "I'm very hungry"])
-        history[-1][1] = ""
+        history.append({"role": "assistant", "content": ""})
         for character in bot_message:
-            history[-1][1] += character
+            history[-1]['content'] += character
             time.sleep(0.05)
             yield history
 

@@ -66,6 +66,6 @@ test(".dark styles are applied corrently", async ({ page }) => {
 	);
 	await expect(page.locator(".darktest h3")).toHaveCSS(
 		"color",
-		"rgb(31, 41, 55)"
+		"rgb(39, 39, 42)"
 	);
 });

@@ -5,6 +5,7 @@ def echo(message, history):
 
 demo = gr.ChatInterface(
     fn=echo,
+    type="messages",
     examples=[{"text": "hello"}, {"text": "hola"}, {"text": "merhaba"}],
     title="Echo Bot",
     multimodal=True,

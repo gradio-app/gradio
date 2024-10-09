@@ -1,26 +1,29 @@
 <script lang="ts">
 	import { afterUpdate, createEventDispatcher } from "svelte";
-	import { _, number } from "svelte-i18n";
+	import { _ } from "svelte-i18n";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
 	import type { KeyUpData, SelectData, I18nFormatter } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
+	type Item = string | number;
+
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: string | number | (string | number)[] | undefined = [];
-	let old_value: string | number | (string | number)[] | undefined = [];
+	export let value: Item | Item[] | undefined = [];
+	let old_value: typeof value = [];
 	export let value_is_output = false;
 	export let max_choices: number | null = null;
-	export let choices: [string, string | number][];
-	let old_choices: [string, string | number][];
+	export let choices: [string, Item][];
+	let old_choices: typeof choices;
 	export let disabled = false;
 	export let show_label: boolean;
 	export let container = true;
 	export let allow_custom_value = false;
 	export let filterable = true;
 	export let i18n: I18nFormatter;
+	export let root: string;
 
 	let filter_input: HTMLElement;
 	let input_text = "";
@@ -218,7 +221,7 @@
 </script>
 
 <label class:container>
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		<div class="wrap-inner" class:show_options>

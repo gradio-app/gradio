@@ -29,6 +29,7 @@
 	export let value_is_output = false;
 	export let language = "";
 	export let lines = 5;
+	export let max_lines: number | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -36,6 +37,8 @@
 	export let show_label = true;
 	export let loading_status: LoadingStatus;
 	export let scale: number | null = null;
+	export let min_width: number | undefined = undefined;
+	export let wrap_lines = false;
 
 	export let interactive: boolean;
 
@@ -51,19 +54,17 @@
 		value_is_output = false;
 	});
 	$: value, handle_change();
-
-	const is_browser = typeof window !== "undefined";
-	const default_lines = interactive ? lines : 10.35;
 </script>
 
 <Block
-	height={is_browser ? undefined : default_lines * 25 + 4}
+	height={max_lines && "fit-content"}
 	variant={"solid"}
 	padding={false}
 	{elem_id}
 	{elem_classes}
 	{visible}
 	{scale}
+	{min_width}
 >
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
@@ -72,7 +73,9 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
-	<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
+	{#if show_label}
+		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
+	{/if}
 
 	{#if !value && !interactive}
 		<Empty unpadded_box={true} size="large">
@@ -85,7 +88,9 @@
 			bind:value
 			{language}
 			{lines}
+			{max_lines}
 			{dark_mode}
+			{wrap_lines}
 			readonly={!interactive}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}

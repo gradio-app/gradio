@@ -6,6 +6,8 @@
 	export let highlighted_code: string;
 	export let url_version: string;
 
+	import WHEEL from "$lib/json/wheel.json";
+
 	$: url_version;
 </script>
 

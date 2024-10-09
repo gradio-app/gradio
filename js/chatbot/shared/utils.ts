@@ -1,4 +1,5 @@
 import type { FileData } from "@gradio/client";
+import type { ComponentType, SvelteComponent } from "svelte";
 import { uploadToHuggingFace } from "@gradio/utils";
 import type {
 	TupleFormat,
@@ -6,9 +7,11 @@ import type {
 	ComponentData,
 	TextMessage,
 	NormalisedMessage,
-	Message
+	Message,
+	MessageRole
 } from "../types";
-
+import type { LoadedComponent } from "../../core/src/types";
+import { Gradio } from "@gradio/utils";
 export const format_chat_for_sharing = async (
 	chat: [string | FileData | null, string | FileData | null][]
 ): Promise<string> => {
@@ -63,6 +66,11 @@ export const format_chat_for_sharing = async (
 		)
 		.join("\n");
 };
+
+export interface UndoRetryData {
+	index: number | [number, number];
+	value: string | FileData | ComponentData;
+}
 
 const redirect_src_url = (src: string, root: string): string =>
 	src.replace('src="/file', `src="${root}file`);
@@ -161,4 +169,92 @@ export function is_component_message(
 	message: NormalisedMessage
 ): message is ComponentMessage {
 	return message.type === "component";
+}
+
+export function is_last_bot_message(
+	messages: NormalisedMessage[],
+	all_messages: NormalisedMessage[]
+): boolean {
+	const is_bot = messages[messages.length - 1].role === "assistant";
+	const last_index = messages[messages.length - 1].index;
+	// use JSON.stringify to handle both the number and tuple cases
+	// when msg_format is tuples, last_index is an array and when it is messages, it is a number
+	const is_last =
+		JSON.stringify(last_index) ===
+		JSON.stringify(all_messages[all_messages.length - 1].index);
+	return is_last && is_bot;
+}
+
+export function group_messages(
+	messages: NormalisedMessage[],
+	msg_format: "messages" | "tuples"
+): NormalisedMessage[][] {
+	const groupedMessages: NormalisedMessage[][] = [];
+	let currentGroup: NormalisedMessage[] = [];
+	let currentRole: MessageRole | null = null;
+
+	for (const message of messages) {
+		if (msg_format === "tuples") {
+			currentRole = null;
+		}
+
+		if (!(message.role === "assistant" || message.role === "user")) {
+			continue;
+		}
+		if (message.role === currentRole) {
+			currentGroup.push(message);
+		} else {
+			if (currentGroup.length > 0) {
+				groupedMessages.push(currentGroup);
+			}
+			currentGroup = [message];
+			currentRole = message.role;
+		}
+	}
+
+	if (currentGroup.length > 0) {
+		groupedMessages.push(currentGroup);
+	}
+
+	return groupedMessages;
+}
+
+export async function load_components(
+	component_names: string[],
+	_components: Record<string, ComponentType<SvelteComponent>>,
+	load_component: Gradio["load_component"]
+): Promise<Record<string, ComponentType<SvelteComponent>>> {
+	let names: string[] = [];
+	let components: ReturnType<typeof load_component>["component"][] = [];
+
+	component_names.forEach((component_name) => {
+		if (_components[component_name] || component_name === "file") {
+			return;
+		}
+
+		const { name, component } = load_component(component_name, "base");
+		names.push(name);
+		components.push(component);
+		component_name;
+	});
+
+	const loaded_components: LoadedComponent[] = await Promise.all(components);
+	loaded_components.forEach((component, i) => {
+		_components[names[i]] = component.default;
+	});
+
+	return _components;
+}
+
+export function get_components_from_messages(
+	messages: NormalisedMessage[] | null
+): string[] {
+	if (!messages) return [];
+	let components: Set<string> = new Set();
+	messages.forEach((message) => {
+		if (message.type === "component") {
+			components.add(message.content.component);
+		}
+	});
+	return Array.from(components);
 }

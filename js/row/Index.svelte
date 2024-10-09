@@ -11,6 +11,22 @@
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let gradio: Gradio | undefined = undefined;
 	export let show_progress = false;
+	export let height: number | string | undefined;
+	export let min_height: number | string | undefined;
+	export let max_height: number | string | undefined;
+
+	const get_dimension = (
+		dimension_value: string | number | undefined
+	): string | undefined => {
+		if (dimension_value === undefined) {
+			return undefined;
+		}
+		if (typeof dimension_value === "number") {
+			return dimension_value + "px";
+		} else if (typeof dimension_value === "string") {
+			return dimension_value;
+		}
+	};
 </script>
 
 <div
@@ -19,8 +35,11 @@
 	class:unequal-height={equal_height === false}
 	class:stretch={equal_height}
 	class:hide={!visible}
+	style:height={get_dimension(height)}
+	style:max-height={get_dimension(max_height)}
+	style:min-height={get_dimension(min_height)}
 	id={elem_id}
-	class={elem_classes.join(" ")}
+	class="row {elem_classes.join(' ')}"
 >
 	{#if loading_status && show_progress && gradio}
 		<StatusTracker
@@ -65,6 +84,12 @@
 
 	.stretch {
 		align-items: stretch;
+	}
+
+	.stretch > :global(.column > *),
+	.stretch > :global(.column > .form > *) {
+		flex-grow: 1;
+		flex-shrink: 0;
 	}
 
 	div > :global(*),

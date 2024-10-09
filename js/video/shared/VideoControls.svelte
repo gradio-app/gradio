@@ -1,11 +1,14 @@
 <script lang="ts">
-	import { Undo, Trim } from "@gradio/icons";
+	import { Undo, Trim, Clear } from "@gradio/icons";
 	import VideoTimeline from "./VideoTimeline.svelte";
 	import { trimVideo } from "./utils";
 	import { FFmpeg } from "@ffmpeg/ffmpeg";
 	import loadFfmpeg from "./utils";
 	import { onMount } from "svelte";
 	import { format_time } from "@gradio/utils";
+	import { IconButton } from "@gradio/atoms";
+	import { ModifyUpload } from "@gradio/upload";
+	import type { FileData } from "@gradio/client";
 
 	export let videoElement: HTMLVideoElement;
 
@@ -15,6 +18,11 @@
 	export let handle_reset_value: () => void;
 	export let handle_trim_video: (videoBlob: Blob) => void;
 	export let processingVideo = false;
+	export let i18n: (key: string) => string;
+	export let value: FileData | null = null;
+	export let show_download_button = false;
+	export let handle_clear: () => void = () => {};
+	export let has_change_history = false;
 
 	let ffmpeg: FFmpeg;
 
@@ -41,7 +49,7 @@
 	};
 </script>
 
-<div class="container">
+<div class="container" class:hidden={mode !== "edit"}>
 	{#if mode === "edit"}
 		<div class="timeline-wrapper">
 			<VideoTimeline
@@ -60,61 +68,60 @@
 				aria-label="duration of selected region in seconds"
 				class:hidden={loadingTimeline}>{format_time(trimmedDuration)}</time
 			>
+			<div class="edit-buttons">
+				<button
+					class:hidden={loadingTimeline}
+					class="text-button"
+					on:click={() => {
+						mode = "";
+						processingVideo = true;
+						trimVideo(ffmpeg, dragStart, dragEnd, videoElement)
+							.then((videoBlob) => {
+								handle_trim_video(videoBlob);
+							})
+							.then(() => {
+								processingVideo = false;
+							});
+					}}>Trim</button
+				>
+				<button
+					class="text-button"
+					class:hidden={loadingTimeline}
+					on:click={toggleTrimmingMode}>Cancel</button
+				>
+			</div>
 		{:else}
 			<div />
 		{/if}
-
-		<div class="settings-wrapper">
-			{#if showRedo && mode === ""}
-				<button
-					class="action icon"
-					disabled={processingVideo}
-					aria-label="Reset video to initial value"
-					on:click={() => {
-						handle_reset_value();
-						mode = "";
-					}}
-				>
-					<Undo />
-				</button>
-			{/if}
-
-			{#if interactive}
-				{#if mode === ""}
-					<button
-						disabled={processingVideo}
-						class="action icon"
-						aria-label="Trim video to selection"
-						on:click={toggleTrimmingMode}
-					>
-						<Trim />
-					</button>
-				{:else}
-					<button
-						class:hidden={loadingTimeline}
-						class="text-button"
-						on:click={() => {
-							mode = "";
-							processingVideo = true;
-							trimVideo(ffmpeg, dragStart, dragEnd, videoElement)
-								.then((videoBlob) => {
-									handle_trim_video(videoBlob);
-								})
-								.then(() => {
-									processingVideo = false;
-								});
-						}}>Trim</button
-					>
-					<button
-						class="text-button"
-						class:hidden={loadingTimeline}
-						on:click={toggleTrimmingMode}>Cancel</button
-					>
-				{/if}
-			{/if}
-		</div>
 	</div>
 </div>
+
+<ModifyUpload
+	{i18n}
+	on:clear={() => handle_clear()}
+	download={show_download_button ? value?.url : null}
+>
+	{#if showRedo && mode === ""}
+		<IconButton
+			Icon={Undo}
+			label="Reset video to initial value"
+			disabled={processingVideo || !has_change_history}
+			on:click={() => {
+				handle_reset_value();
+				mode = "";
+			}}
+		/>
+	{/if}
+
+	{#if interactive && mode === ""}
+		<IconButton
+			Icon={Trim}
+			label="Trim video to selection"
+			disabled={processingVideo}
+			on:click={toggleTrimmingMode}
+		/>
+	{/if}
+</ModifyUpload>
 
 <style>
 	.container {
@@ -132,10 +139,7 @@
 		justify-content: center;
 		width: 100%;
 	}
-	.settings-wrapper {
-		display: flex;
-		justify-self: self-end;
-	}
+
 	.text-button {
 		border: 1px solid var(--neutral-400);
 		border-radius: var(--radius-sm);
@@ -148,9 +152,6 @@
 		padding: 0 5px;
 		margin-left: 5px;
 	}
-	.hidden {
-		display: none;
-	}
 
 	.text-button:hover,
 	.text-button:focus {
@@ -159,17 +160,26 @@
 	}
 
 	.controls {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 		margin: var(--spacing-lg);
 		overflow: hidden;
-		text-align: left;
+	}
+
+	.edit-buttons {
+		display: flex;
+		gap: var(--spacing-sm);
 	}
 
 	@media (max-width: 320px) {
 		.controls {
-			display: flex;
-			flex-wrap: wrap;
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.edit-buttons {
+			margin-top: var(--spacing-sm);
 		}
 
 		.controls * {
@@ -180,29 +190,13 @@
 			margin-left: 0;
 		}
 	}
-	.action {
-		width: var(--size-5);
-		width: var(--size-5);
-		color: var(--neutral-400);
-		margin-left: var(--spacing-md);
-	}
-
-	.action:disabled {
-		cursor: not-allowed;
-		color: var(--border-color-accent-subdued);
-	}
-
-	.action:disabled:hover {
-		color: var(--border-color-accent-subdued);
-	}
-
-	.icon:hover,
-	.icon:focus {
-		color: var(--color-accent);
-	}
 
 	.container {
 		display: flex;
 		flex-direction: column;
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>

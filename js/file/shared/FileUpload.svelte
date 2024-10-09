@@ -21,6 +21,7 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let uploading = false;
 
 	async function handle_upload({
 		detail
@@ -53,7 +54,7 @@
 <BlockLabel {show_label} Icon={File} float={!value} label={label || "File"} />
 
 {#if value && (Array.isArray(value) ? value.length > 0 : true)}
-	<ModifyUpload {i18n} on:clear={handle_clear} absolute />
+	<ModifyUpload {i18n} on:clear={handle_clear} />
 	<FilePreview
 		{i18n}
 		on:select
@@ -71,6 +72,7 @@
 		{max_file_size}
 		{root}
 		bind:dragging
+		bind:uploading
 		on:error
 		{stream_handler}
 		{upload}
