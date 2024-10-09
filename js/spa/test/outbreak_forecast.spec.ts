@@ -23,7 +23,7 @@ test("selecting plotly should show plotly plot and pressing clear should clear o
 	page
 }) => {
 	await page.getByLabel("Plot Type").click();
-	await page.getByRole("option", { name: "Plotly" }).click();
+	await page.getByRole("option", { name: /plotly/i }).click();
 	await page.getByLabel("Month").click();
 	await page.getByRole("option", { name: "January" }).click();
 	await page.getByLabel("Social Distancing?").check();
@@ -94,7 +94,8 @@ test("switching between all 4 plot types and pressing submit should update outpu
 	await page.getByRole("option", { name: "Plotly" }).click();
 
 	await page.click("text=Submit");
-	await expect(page.locator(".js-plotly-plot")).toHaveCount(1);
+	const plotly = page.getByTestId("plotly");
+	await expect(plotly).toHaveCount(1);
 
 	//Altair
 	await page.getByLabel("Plot Type").click();
