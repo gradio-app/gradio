@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix asdasdasd
+fix:Fix duplicate attribute error
