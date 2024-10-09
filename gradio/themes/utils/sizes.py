@@ -65,6 +65,17 @@ radius_lg = Size(
     xxl="24px",
 )
 
+radius_xxl = Size(
+    xxs="6px",
+    xs="8px",
+    sm="10px",
+    md="20px",
+    lg="24px",
+    xl="28px",
+    xxl="32px",
+    name="radius_xxl",
+)
+
 spacing_sm = Size(
     name="spacing_sm",
     xxs="1px",

@@ -60,9 +60,9 @@ class Default(Base):
             stat_background_fill="linear-gradient(to right, *primary_400, *primary_200)",
             stat_background_fill_dark="linear-gradient(to right, *primary_400, *primary_600)",
             checkbox_label_background_fill="*background_fill_primary",
-            checkbox_label_background_fill_dark="*background_fill_primary",
+            checkbox_label_background_fill_dark="*neutral_800",
             checkbox_label_background_fill_hover="*background_fill_secondary",
-            checkbox_label_background_fill_hover_dark="*background_fill_secondary",
+            checkbox_label_background_fill_hover_dark="*checkbox_label_background_fill",
             # Primary Button
             button_primary_background_fill="*primary_500",
             button_primary_background_fill_dark="*primary_600",
