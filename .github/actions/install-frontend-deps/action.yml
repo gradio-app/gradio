@@ -34,7 +34,8 @@ runs:
       shell: bash
       run: pnpm css
     - name: Build frontend
-      if: inputs.skip_build == 'false' && steps.frontend-cache.outputs.cache-hit != 'true'
+      if: inputs.skip_build == 'false'
+      # && steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
     - name: generate types
