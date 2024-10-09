@@ -93,7 +93,7 @@ test("test stopping generation", async ({ page }) => {
 	const submit_button = page.locator(".submit-button");
 	const textbox = page.getByPlaceholder("Type a message...");
 
-	const long_string = "abc".repeat(1000) + "end";
+	const long_string = "abc".repeat(1000);
 
 	await textbox.fill(long_string);
 	await submit_button.click();
@@ -104,5 +104,13 @@ test("test stopping generation", async ({ page }) => {
 	await stop_button.click();
 
 	await expect(page.locator(".bot.message").first()).toContainText("abc");
-	await expect(page.locator(".bot.message").first()).not.toContainText("end");
+
+	const current_content = await page
+		.locator(".bot.message")
+		.first()
+		.textContent();
+	await page.waitForTimeout(1000);
+	const new_content = await page.locator(".bot.message").first().textContent();
+	await expect(current_content).toBe(new_content);
+	await expect(new_content!.length).toBeLessThan(3000);
 });
