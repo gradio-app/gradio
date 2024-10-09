@@ -138,7 +138,7 @@ class Examples:
         self.cache_examples = False
         if cache_examples is None:
             if (
-                os.getenv("GRADIO_CACHE_EXAMPLES", "").lower() == "true"
+                os.getenv("GRADIO_CACHE_EXAMPLES", "").lower() in ["true", "lazy"]
                 and fn is not None
                 and outputs is not None
             ):
