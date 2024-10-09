@@ -22,6 +22,7 @@ const theme_token_path = join(
 const config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
+
 	preprocess: [
 		vitePreprocess(),
 		sveltePreprocess({
@@ -30,6 +31,9 @@ const config = {
 			}
 		})
 	],
+	vitePlugin: {
+		hot: process.env.NODE_ENV === "development"
+	},
 
 	kit: {
 		// adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.
