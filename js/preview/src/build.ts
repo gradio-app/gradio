@@ -58,9 +58,9 @@ export async function make_build({
 				component_config.optimizeDeps = m.default.optimizeDeps || {};
 			}
 
-			const exports: string[][] = [
-				["component", pkg.exports["."] as string],
-				["example", pkg.exports["./example"] as string]
+			const exports: (string | any)[][] = [
+				["component", pkg.exports["."] as object],
+				["example", pkg.exports["./example"] as object]
 			].filter(([_, path]) => !!path);
 
 			for (const [entry, path] of exports) {
@@ -78,9 +78,9 @@ export async function make_build({
 						build: {
 							target: component_config.build.target,
 							emptyOutDir: true,
-							outDir: join(template_dir, entry),
+							outDir: join(template_dir, entry as string),
 							lib: {
-								entry: join(source_dir, path),
+								entry: join(source_dir, (path as any).gradio),
 								fileName: "index.js",
 								formats: ["es"]
 							},

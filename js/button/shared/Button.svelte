@@ -70,18 +70,15 @@
 		transition: var(--button-transition);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
-		box-shadow: var(--button-shadow);
 	}
 
 	button:hover {
 		transform: var(--button-transform-hover);
-		box-shadow: var(--button-shadow-hover);
 	}
 
 	button:active,
 	a:active {
 		transform: var(--button-transform-active);
-		box-shadow: var(--button-shadow-active);
 	}
 
 	button[disabled],
@@ -100,6 +97,7 @@
 		border: var(--button-border-width) solid var(--button-primary-border-color);
 		background: var(--button-primary-background-fill);
 		color: var(--button-primary-text-color);
+		box-shadow: var(--button-primary-shadow);
 	}
 	.primary:hover,
 	.primary[disabled] {
@@ -109,6 +107,10 @@
 
 	.primary:hover {
 		border-color: var(--button-primary-border-color-hover);
+		box-shadow: var(--button-primary-shadow-hover);
+	}
+	.primary:active {
+		box-shadow: var(--button-primary-shadow-active);
 	}
 
 	.primary[disabled] {
@@ -120,12 +122,7 @@
 			var(--button-secondary-border-color);
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
-	}
-
-	.huggingface {
-		border: var(--button-border-width) solid
-			var(--button-secondary-border-color);
-		background: var(--background-fill-primary);
+		box-shadow: var(--button-secondary-shadow);
 	}
 
 	.secondary:hover,
@@ -136,6 +133,10 @@
 
 	.secondary:hover {
 		border-color: var(--button-secondary-border-color-hover);
+		box-shadow: var(--button-secondary-shadow-hover);
+	}
+	.secondary:active {
+		box-shadow: var(--button-secondary-shadow-active);
 	}
 
 	.secondary[disabled] {
@@ -146,6 +147,7 @@
 		background: var(--button-cancel-background-fill);
 		color: var(--button-cancel-text-color);
 		border: var(--button-border-width) solid var(--button-cancel-border-color);
+		box-shadow: var(--button-secondary-shadow);
 	}
 
 	.stop:hover,
@@ -155,6 +157,10 @@
 
 	.stop:hover {
 		border-color: var(--button-cancel-border-color-hover);
+		box-shadow: var(--button-secondary-shadow-hover);
+	}
+	.stop:active {
+		box-shadow: var(--button-secondary-shadow-active);
 	}
 
 	.stop[disabled] {
@@ -181,5 +187,11 @@
 	}
 	.button-icon.right-padded {
 		margin-right: var(--spacing-xl);
+	}
+
+	.huggingface {
+		border: var(--button-border-width) solid
+			var(--button-secondary-border-color);
+		background: var(--background-fill-primary);
 	}
 </style>

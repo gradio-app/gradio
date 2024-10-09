@@ -41,6 +41,17 @@ export default defineConfig(({ mode }) => {
 		resolve: {
 			conditions: ["gradio"]
 		},
+		build: {
+			rollupOptions: {
+				external: [
+					"/svelte/svelte.js",
+					"/svelte/svelte-submodules.js",
+					"./svelte/svelte-submodules.js",
+					"./svelte/svelte.js"
+				]
+			},
+			minify: false
+		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
@@ -73,23 +84,45 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		ssr: {
-			noExternal: ["@gradio/*", "@huggingface/space-header"]
+			noExternal: ["@gradio/*", "@huggingface/space-header"],
+			external: ["svelte", "svelte/*"]
 		},
-
 		optimizeDeps: {
-			exclude: ["@gradio/*"]
+			exclude: [
+				"@gradio/*",
+				"svelte",
+				"svelte/*",
+				"./svelte/svelte-submodules.js",
+				"./svelte/svelte.js"
+			]
 		},
 		plugins: [
 			sveltekit(),
 			// resolve_svelte(development),
-
 			// 	generate_dev_entry({
 			// 		enable: !development && mode !== "test"
 			// 	}),
 			// 	inject_ejs(),
 			// 	generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			// 	handle_ce_css(),
-			inject_component_loader({ mode })
+			inject_component_loader({ mode }),
+			{
+				name: "resolve_svelte",
+				enforce: "pre",
+				resolveId(id, importer, options) {
+					if (!options?.ssr) {
+						if (id === "svelte" || id === "svelte/internal") {
+							return { id: "../../../svelte/svelte.js", external: true };
+						}
+						if (id.startsWith("svelte/")) {
+							return {
+								id: "../../../svelte/svelte-submodules.js",
+								external: true
+							};
+						}
+					}
+				}
+			}
 		]
 	};
 });
