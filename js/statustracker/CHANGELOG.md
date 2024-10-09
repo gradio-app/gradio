@@ -1,5 +1,11 @@
 # @gradio/statustracker
 
+## 0.8.1
+
+### Features
+
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+
 ## 0.8.0
 
 ### Features
