@@ -366,6 +366,7 @@ class App(FastAPI):
                     and not path.startswith("/gradio_api")
                     and path not in ["/config", "/login", "/favicon.ico"]
                     and not path.startswith("/theme")
+                    and not path.startswith("/svelte")
                     and not path.startswith("/static")
                 ):
                     if App.app_port is None:
@@ -508,6 +509,15 @@ class App(FastAPI):
         # Main Routes
         ###############
 
+        @app.get("/svelte/{path:path}")
+        def _(path: str):
+            svelte_path = Path(BUILD_PATH_LIB) / "svelte"
+            return FileResponse(
+                routes_safe_join(
+                    DeveloperPath(str(svelte_path)), UserProvidedPath(path)
+                )
+            )
+
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
@@ -587,10 +597,18 @@ class App(FastAPI):
             static_file = routes_safe_join(STATIC_PATH_LIB, UserProvidedPath(path))
             return FileResponse(static_file)
 
-        @router.get("/custom_component/{id}/{type}/{file_name}")
+        @router.get("/custom_component/{id}/{environment}/{type}/{file_name}")
         def custom_component_path(
-            id: str, type: str, file_name: str, req: fastapi.Request
+            id: str,
+            environment: Literal["client", "server"],
+            type: str,
+            file_name: str,
+            req: fastapi.Request,
         ):
+            if environment not in ["client", "server"]:
+                raise HTTPException(
+                    status_code=404, detail="Environment not supported."
+                )
             config = app.get_blocks().config
             components = config["components"]
             location = next(
@@ -621,6 +639,10 @@ class App(FastAPI):
                 DeveloperPath(str(Path(module_path).parent)),
                 UserProvidedPath(requested_path),
             )
+
+            # Uncomment when we support custom component SSR
+            # if environment == "server":
+            #     return PlainTextResponse(path)
 
             key = f"{id}-{type}-{file_name}"
 
