@@ -39,18 +39,8 @@
 	}`;
 
 	function reload() {
-		if (browser) {
-			if (is_docs) {
-				window.location.href = docs_url;
-			}
-			if (is_guide) {
-				window.location.href = guide_url;
-			}
-		}
+		goto(is_docs ? docs_url : guide_url);
 	}
-
-	$: browser && is_docs && goto(docs_url);
-	$: browser && is_docs && goto(docs_url);
 </script>
 
 <svelte:head>
