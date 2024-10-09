@@ -70,7 +70,19 @@
 		return `a component of type ${message.content.component ?? "unknown"}`;
 	}
 
-	$: button_panel_props = {
+	type ButtonPanelProps = {
+		show: boolean;
+		handle_action: (selected: string | null) => void;
+		likeable: boolean;
+		show_retry: boolean;
+		show_undo: boolean;
+		disable: boolean;
+		show_copy_button: boolean;
+		message: NormalisedMessage[];
+		position: "left" | "right";
+	};
+
+	$: button_panel_props: ButtonPanelProps = {
 		show: show_like || show_retry || show_undo || show_copy_button,
 		handle_action,
 		likeable: show_like,
