@@ -1,7 +1,7 @@
 ---
-"@gradio/lite": minor
-"@gradio/wasm": minor
-"gradio": minor
+"@gradio/lite": patch
+"@gradio/wasm": patch
+"gradio": patch
 ---
 
-feat:Fix Lite to work on FireFox
+fix:Fix Lite to work on FireFox
