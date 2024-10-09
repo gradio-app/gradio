@@ -879,40 +879,41 @@
 							}}
 						>
 							<div class="cell-wrap">
-								<EditableCell
-									bind:value={_headers[i].value}
-									bind:el={els[id].input}
-									{latex_delimiters}
-									{line_breaks}
-									edit={header_edit === i}
-									on:keydown={end_header_edit}
-									on:dblclick={() => edit_header(i)}
-									{select_on_focus}
-									header
-									{root}
-								/>
-
-								<!-- TODO: fix -->
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<!-- svelte-ignore a11y-no-static-element-interactions-->
-								<div
-									class:sorted={sort_by === i}
-									class:des={sort_by === i && sort_direction === "des"}
-									class="sort-button {sort_direction} "
-									on:click={(event) => {
-										event.stopPropagation();
-										handle_sort(i);
-									}}
-								>
-									<svg
-										width="1em"
-										height="1em"
-										viewBox="0 0 9 7"
-										fill="none"
-										xmlns="http://www.w3.org/2000/svg"
+								<div class="header-content">
+									<EditableCell
+										bind:value={_headers[i].value}
+										bind:el={els[id].input}
+										{latex_delimiters}
+										{line_breaks}
+										edit={header_edit === i}
+										on:keydown={end_header_edit}
+										on:dblclick={() => edit_header(i)}
+										{select_on_focus}
+										header
+										{root}
+									/>
+									<!-- TODO: fix -->
+									<!-- svelte-ignore a11y-click-events-have-key-events -->
+									<!-- svelte-ignore a11y-no-static-element-interactions-->
+									<div
+										class:sorted={sort_by === i}
+										class:des={sort_by === i && sort_direction === "des"}
+										class="sort-button {sort_direction}"
+										on:click={(event) => {
+											event.stopPropagation();
+											handle_sort(i);
+										}}
 									>
-										<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
-									</svg>
+										<svg
+											width="1em"
+											height="1em"
+											viewBox="0 0 9 7"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
+										</svg>
+									</div>
 								</div>
 
 								{#if editable}
@@ -1162,9 +1163,19 @@
 		position: relative;
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
 		outline: none;
 		height: var(--size-full);
 		min-height: var(--size-9);
+		overflow: hidden;
+	}
+
+	.header-content {
+		display: flex;
+		align-items: center;
+		overflow: hidden;
+		flex-grow: 1;
+		min-width: 0;
 	}
 
 	.row_odd {
@@ -1187,11 +1198,15 @@
 	}
 
 	.cell-menu-button {
+		flex-shrink: 0;
 		display: none;
 		background-color: var(--block-background-fill);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--block-radius);
 		width: var(--size-5);
+		height: var(--size-5);
+		min-width: var(--size-5);
+		padding: 0;
 		margin-right: var(--spacing-sm);
 		z-index: var(--layer-2);
 	}
@@ -1201,6 +1216,18 @@
 	}
 
 	.cell-menu-button.visible {
-		display: block;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	th .cell-wrap {
+		padding-right: var(--spacing-sm);
+	}
+
+	th .header-content {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 </style>
