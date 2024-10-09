@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Fixes website build
+feat:fixes to website

@@ -2,4 +2,4 @@
 "@self/app": minor
 ---
 
-feat:fix css
+feat:fix devmode
