@@ -5,15 +5,16 @@
 
 	export let x: number;
 	export let y: number;
-	export let on_add_row_above: (index: number) => void;
-	export let on_add_row_below: (index: number) => void;
-	export let on_add_column_left: (index: number) => void;
-	export let on_add_column_right: (index: number) => void;
+	export let on_add_row_above: () => void;
+	export let on_add_row_below: () => void;
+	export let on_add_column_left: () => void;
+	export let on_add_column_right: () => void;
 	export let row: number;
-	export let col: number;
 
 	export let i18n: I18nFormatter;
 	let menu_element: HTMLDivElement;
+
+	$: is_header = row === -1;
 
 	onMount(() => {
 		position_menu();
@@ -43,19 +44,21 @@
 </script>
 
 <div bind:this={menu_element} class="cell-menu">
-	<button on:click={() => on_add_row_above(row)}>
-		<Arrow transform="rotate(-90 12 12)" />
-		{i18n("dataframe.add_row_above")}
-	</button>
-	<button on:click={() => on_add_row_below(row)}>
-		<Arrow transform="rotate(90 12 12)" />
-		{i18n("dataframe.add_row_below")}
-	</button>
-	<button on:click={() => on_add_column_left(col)}>
+	{#if !is_header}
+		<button on:click={() => on_add_row_above()}>
+			<Arrow transform="rotate(-90 12 12)" />
+			{i18n("dataframe.add_row_above")}
+		</button>
+		<button on:click={() => on_add_row_below()}>
+			<Arrow transform="rotate(90 12 12)" />
+			{i18n("dataframe.add_row_below")}
+		</button>
+	{/if}
+	<button on:click={() => on_add_column_left()}>
 		<Arrow transform="rotate(180 12 12)" />
 		{i18n("dataframe.add_column_left")}
 	</button>
-	<button on:click={() => on_add_column_right(col + 1)}>
+	<button on:click={() => on_add_column_right()}>
 		<Arrow transform="rotate(0 12 12)" />
 		{i18n("dataframe.add_column_right")}
 	</button>
