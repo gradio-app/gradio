@@ -90,7 +90,7 @@ All unspecified version segments (`x`) refer to latest.
 
 | Software | Version(s)            | Operating System(s)               |
 | -------- | --------------------- | --------------------------------- |
-| Python   | `3.8.x`               | `ubuntu-latest`, `windows-latest` |
+| Python   | `3.10.x`              | `ubuntu-latest`, `windows-latest` |
 | Node     | `18.x.x`              | `ubuntu-latest`                   |
 | Browser  | `playwright-chrome-x` | `ubuntu-latest`                   |
 

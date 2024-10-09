@@ -1,7 +1,8 @@
 # Frequently Asked Questions
 
 ## What do I need to install before using Custom Components?
-Before using Custom Components, make sure you have Python 3.10+, Node.js v18+, npm 9+, and Gradio 4.0+ installed.
+
+Before using Custom Components, make sure you have Python 3.10+, Node.js v18+, npm 9+, and Gradio 4.0+ (preferably Gradio 5.0+) installed.
 
 ## Are custom components compatible between Gradio 4.0 and 5.0?
 
