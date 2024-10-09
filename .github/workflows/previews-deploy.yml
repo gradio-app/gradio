@@ -104,7 +104,11 @@ jobs:
           tar -xzf ./gradio-lite-tar/gradio-lite-*.tgz -C ./gradio-lite-files
           aws s3 cp ./gradio-lite-files/package/ s3://gradio-lite-previews/${{ needs.changes.outputs.sha }}/ --recursive
       - name: Install Hub Client Library
-        run: pip install huggingface-hub==0.23.2
+        run: |
+          python -m pip install --upgrade virtualenv
+          python -m virtualenv venv
+          . venv/bin/activate
+          pip install huggingface-hub==0.23.2
         # temporary, but ensures the script cannot be modified in a PR
       - name: Get deploy scripts
         run: |
