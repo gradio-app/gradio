@@ -180,7 +180,7 @@ async function generate_imports(
 			fs.readFileSync(join(component.frontend_dir, "package.json"), "utf-8")
 		);
 
-		const exports: Record<string, string | undefined> = {
+		const exports: Record<string, any | undefined> = {
 			component: pkg.exports["."],
 			example: pkg.exports["./example"]
 		};
@@ -192,13 +192,13 @@ async function generate_imports(
 
 		const example = exports.example
 			? `example: () => import("/@fs/${to_posix(
-					join(component.frontend_dir, exports.example)
+					join(component.frontend_dir, exports.example.gradio)
 				)}"),\n`
 			: "";
 		return `${acc}"${component.component_class_id}": {
 			${example}
 			component: () => import("/@fs/${to_posix(
-				join(component.frontend_dir, exports.component)
+				join(component.frontend_dir, exports.component.gradio)
 			)}")
 			},\n`;
 	}, "");

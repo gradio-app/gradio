@@ -67,3 +67,19 @@ test("test generators properly trigger state changes", async ({ page }) => {
 		"Success Box 1 added"
 	);
 });
+
+test("test state change for custom hashes", async ({ page }) => {
+	await expect(page.getByLabel("Custom State Changes").first()).toHaveValue(
+		"0"
+	);
+	await page.getByRole("button", { name: "Set State to 10" }).click();
+	await expect(page.getByLabel("Custom State Clicks").first()).toHaveValue("1");
+	await expect(page.getByLabel("Custom State Changes").first()).toHaveValue(
+		"1"
+	);
+	await page.getByRole("button", { name: "Set State to 10" }).click();
+	await expect(page.getByLabel("Custom State Clicks").first()).toHaveValue("2");
+	await expect(page.getByLabel("Custom State Changes").first()).toHaveValue(
+		"1"
+	);
+});
