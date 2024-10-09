@@ -1,5 +1,20 @@
 # @self/app
 
+## 1.41.1
+
+### Features
+
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+- [#9616](https://github.com/gradio-app/gradio/pull/9616) [`ca7cd79`](https://github.com/gradio-app/gradio/commit/ca7cd79e7bdbc50570372c19391083a0f6501576) - fix devmode.  Thanks @pngwn!
+
+### Fixes
+
+- [#9630](https://github.com/gradio-app/gradio/pull/9630) [`2eaa066`](https://github.com/gradio-app/gradio/commit/2eaa0667e1d1a0edd1089bf8c3ffa3f563b9bca2) - Fix duplicate attribute error.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.1.1
+
 ## 1.41.0
 
 ### Features

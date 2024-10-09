@@ -1,5 +1,11 @@
 # @gradio/plot
 
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
 ## 0.7.0
 
 ### Features

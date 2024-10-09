@@ -1,5 +1,26 @@
 # @gradio/core
 
+## 0.1.1
+
+### Features
+
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/code@0.10.1
+- @gradio/paramviewer@0.5.1
+- @gradio/video@0.11.1
+- @gradio/statustracker@0.8.1
+- @gradio/gallery@0.13.1
+- @gradio/markdown@0.10.1
+- @gradio/plot@0.7.1
+- @gradio/textbox@0.7.1
+- @gradio/column@0.2.0
+- @gradio/checkbox@0.4.1
+- @gradio/file@0.10.1
+- @gradio/image@0.16.1
+
 ## 0.1.0
 
 ### Features

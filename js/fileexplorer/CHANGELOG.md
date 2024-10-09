@@ -1,5 +1,13 @@
 # @gradio/fileexplorer
 
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+- @gradio/checkbox@0.4.1
+- @gradio/file@0.10.1
+
 ## 0.5.0
 
 ### Features
