@@ -1,5 +1,7 @@
 ---
 "@gradio/chatbot": patch
+"@gradio/lite": patch
+"@self/app": patch
 "gradio": patch
 ---
 
