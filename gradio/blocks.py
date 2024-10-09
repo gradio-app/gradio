@@ -391,7 +391,9 @@ class Block:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
                 )
-            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+            except (
+                AttributeError
+            ):  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 
@@ -2316,7 +2318,7 @@ Received inputs:
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
-            ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 18+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+            ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
