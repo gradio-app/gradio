@@ -23,7 +23,7 @@
 	export let layout: "bubble" | "panel";
 
 	function is_all_text(
-		message: NormalisedMessage[] | NormalisedMessage
+		message: NormalisedMessage[] | NormalisedMessage,
 	): message is TextMessage[] | TextMessage {
 		return (
 			(Array.isArray(message) &&
@@ -71,7 +71,6 @@
 					label="Retry"
 					on:click={() => handle_action("retry")}
 					disabled={generating}
-					label="Retry"
 				/>
 			{/if}
 			{#if show_undo}
@@ -80,7 +79,6 @@
 					Icon={Undo}
 					on:click={() => handle_action("undo")}
 					disabled={generating}
-					label="Undo"
 				/>
 			{/if}
 			{#if likeable}
