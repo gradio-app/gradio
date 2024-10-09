@@ -115,7 +115,7 @@
 	let active_theme_mode: ThemeMode;
 	let intersecting: ReturnType<typeof create_intersection_store> = {
 		register: () => {},
-		subscribe: writable({}).subscribe
+		subscribe: writable({}).subscribe,
 	};
 
 	$: if (config?.app_id) {
@@ -126,7 +126,7 @@
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING"
+		detail: "SLEEPING",
 	};
 
 	let app: ClientType = data.app;
@@ -139,7 +139,7 @@
 	let gradio_dev_mode = "";
 
 	onMount(async () => {
-		active_theme_mode = handle_theme_mode(wrapper);
+		// active_theme_mode = handle_theme_mode(wrapper);
 
 		//@ts-ignore
 		config = data.config;
@@ -158,7 +158,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING"
+			detail: "RUNNING",
 		};
 
 		css_ready = true;
@@ -181,7 +181,7 @@
 					app = await Client.connect(data.api_url, {
 						status_callback: handle_status,
 						with_null_state: true,
-						events: ["data", "log", "status", "render"]
+						events: ["data", "log", "status", "render"],
 					});
 
 					if (!app.config) {
@@ -207,8 +207,8 @@
 			new CustomEvent("render", {
 				bubbles: true,
 				cancelable: false,
-				composed: true
-			})
+				composed: true,
+			}),
 		);
 	}
 
@@ -219,7 +219,7 @@
 
 	async function mount_space_header(
 		space_id: string | null | undefined,
-		is_embed: boolean
+		is_embed: boolean,
 	): Promise<void> {
 		if (space_id && !is_embed && window.self === window.top) {
 			if (spaceheader) {
@@ -235,52 +235,52 @@
 		spaceheader?.remove();
 	});
 
-	function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
-		let new_theme_mode: ThemeMode;
+	// function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
+	// 	let new_theme_mode: ThemeMode;
 
-		const url = new URL(window.location.toString());
-		const url_color_mode: ThemeMode | null = url.searchParams.get(
-			"__theme"
-		) as ThemeMode | null;
-		new_theme_mode = theme_mode || url_color_mode || "system";
+	// 	const url = new URL(window.location.toString());
+	// 	const url_color_mode: ThemeMode | null = url.searchParams.get(
+	// 		"__theme"
+	// 	) as ThemeMode | null;
+	// 	new_theme_mode = theme_mode || url_color_mode || "system";
 
-		if (new_theme_mode === "dark" || new_theme_mode === "light") {
-			apply_theme(target, new_theme_mode);
-		} else {
-			new_theme_mode = sync_system_theme(target);
-		}
-		return new_theme_mode;
-	}
+	// 	if (new_theme_mode === "dark" || new_theme_mode === "light") {
+	// 		apply_theme(target, new_theme_mode);
+	// 	} else {
+	// 		new_theme_mode = sync_system_theme(target);
+	// 	}
+	// 	return new_theme_mode;
+	// }
 
-	function sync_system_theme(target: HTMLDivElement): "light" | "dark" {
-		const theme = update_scheme();
-		window
-			?.matchMedia("(prefers-color-scheme: dark)")
-			?.addEventListener("change", update_scheme);
+	// function sync_system_theme(target: HTMLDivElement): "light" | "dark" {
+	// 	const theme = update_scheme();
+	// 	window
+	// 		?.matchMedia("(prefers-color-scheme: dark)")
+	// 		?.addEventListener("change", update_scheme);
 
-		function update_scheme(): "light" | "dark" {
-			let _theme: "light" | "dark" = window?.matchMedia?.(
-				"(prefers-color-scheme: dark)"
-			).matches
-				? "dark"
-				: "light";
+	// 	function update_scheme(): "light" | "dark" {
+	// 		let _theme: "light" | "dark" = window?.matchMedia?.(
+	// 			"(prefers-color-scheme: dark)"
+	// 		).matches
+	// 			? "dark"
+	// 			: "light";
 
-			apply_theme(target, _theme);
-			return _theme;
-		}
-		return theme;
-	}
+	// 		apply_theme(target, _theme);
+	// 		return _theme;
+	// 	}
+	// 	return theme;
+	// }
 
-	function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
-		const dark_class_element = is_embed ? target.parentElement! : document.body;
-		const bg_element = is_embed ? target : target.parentElement!;
-		bg_element.style.background = "var(--body-background-fill)";
-		if (theme === "dark") {
-			dark_class_element.classList.add("dark");
-		} else {
-			dark_class_element.classList.remove("dark");
-		}
-	}
+	// function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
+	// 	const dark_class_element = is_embed ? target.parentElement! : document.body;
+	// 	const bg_element = is_embed ? target : target.parentElement!;
+	// 	bg_element.style.background = "var(--body-background-fill)";
+	// 	if (theme === "dark") {
+	// 		dark_class_element.classList.add("dark");
+	// 	} else {
+	// 		dark_class_element.classList.remove("dark");
+	// 	}
+	// }
 </script>
 
 <svelte:head>
