@@ -1,5 +1,19 @@
 # @gradio/plot
 
+## 0.7.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix plots
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/icons@0.8.0
+- @gradio/statustracker@0.8.0
+- @gradio/theme@0.3.0
+- @gradio/utils@0.7.0
+
 ## 0.7.0-beta.6
 
 ### Dependency updates

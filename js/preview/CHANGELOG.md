@@ -1,5 +1,16 @@
 # @gradio/preview
 
+## 0.12.0
+
+### Features
+
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix custom component CLI on main/5.0
+
+### Fixes
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix package.json `exports` of @gradio/preview
+
 ## 0.12.0-beta.1
 
 ### Features

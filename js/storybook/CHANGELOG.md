@@ -1,5 +1,11 @@
 # @self/storybook
 
+## 0.7.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - 🔡 Update default core Gradio font
+
 ## 0.7.0-beta.1
 
 ### Features
