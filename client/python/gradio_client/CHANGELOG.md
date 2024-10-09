@@ -1,5 +1,44 @@
 # gradio_client
 
+## 1.4.0-beta.5
+
+### Features
+
+- [#9589](https://github.com/gradio-app/gradio/pull/9589) [`477f45c`](https://github.com/gradio-app/gradio/commit/477f45cb43be957684eb392e3d62c09490c22391) - Only move files to the cache that have a meta key.  Thanks @freddyaboulton!
+
+## 1.4.0-beta.4
+
+### Features
+
+- [#9550](https://github.com/gradio-app/gradio/pull/9550) [`b0fedd7`](https://github.com/gradio-app/gradio/commit/b0fedd7ef718c0df797ec277db7e773543a70a4d) - Fix most flaky Python tests in `5.0-dev` branch.  Thanks @abidlabs!
+- [#9483](https://github.com/gradio-app/gradio/pull/9483) [`8dc7c12`](https://github.com/gradio-app/gradio/commit/8dc7c12389311b60efcde1b9d3e3668a34d2dc00) - Send Streaming data over Websocket if possible. Also support base64 output format for images.  Thanks @freddyaboulton!
+- [#9522](https://github.com/gradio-app/gradio/pull/9522) [`3b71ed2`](https://github.com/gradio-app/gradio/commit/3b71ed21b7e2ecb67eb68fb946d25565169cb4df) - Api info fix.  Thanks @freddyaboulton!
+
+## 1.4.0-beta.3
+
+### Fixes
+
+- [#9431](https://github.com/gradio-app/gradio/pull/9431) [`7065e11`](https://github.com/gradio-app/gradio/commit/7065e11e465fcdfe14688bd6ca2aeed0a25fcc36) - Check for `file_types` parameter in the backend.  Thanks @dawoodkhan82!
+
+## 1.4.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+## 1.4.0-beta.1
+
+### Features
+
+- [#9200](https://github.com/gradio-app/gradio/pull/9200) [`2e179d3`](https://github.com/gradio-app/gradio/commit/2e179d35be6ed60a5a6bfc7303178d63e41781ad) - prefix api routes.  Thanks @pngwn!
+
+## 1.4.0-beta.0
+
+### Features
+
+- [#9140](https://github.com/gradio-app/gradio/pull/9140) [`c054ec8`](https://github.com/gradio-app/gradio/commit/c054ec85e49ab102b15afd305583ee394151d16c) - Drop python 3.8 and 3.9.  Thanks @abidlabs!
+- [#8941](https://github.com/gradio-app/gradio/pull/8941) [`97a7bf6`](https://github.com/gradio-app/gradio/commit/97a7bf66a79179d1b91a3199d68e5c11216ca500) - Streaming inputs for 5.0.  Thanks @freddyaboulton!
+
 ## 1.3.0
 
 ### Features

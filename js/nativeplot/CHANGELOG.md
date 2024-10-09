@@ -1,10 +1,76 @@
 # @gradio/nativeplot
 
-## 0.3.2
+## 0.4.0-beta.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+
+## 0.4.0-beta.6
+
+### Features
+
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+
+## 0.4.0-beta.5
+
+### Features
+
+- [#9497](https://github.com/gradio-app/gradio/pull/9497) [`d826faa`](https://github.com/gradio-app/gradio/commit/d826faa8c2584cf0772d4e66b4073e33b83f3a00) - Hide x axis labels.  Thanks @aliabid94!
+
+## 0.4.0-beta.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/icons@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
+## 0.4.0-beta.3
+
+### Features
+
+- [#9464](https://github.com/gradio-app/gradio/pull/9464) [`3ac5d9c`](https://github.com/gradio-app/gradio/commit/3ac5d9c972576d82bc365a6532e6e12f55441a30) - Fix plots.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.4.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/icons@0.8.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.3.2-beta.1
 
 ### Features
 
 - [#9187](https://github.com/gradio-app/gradio/pull/9187) [`5bf00b7`](https://github.com/gradio-app/gradio/commit/5bf00b7524ebf399b48719120a49d15bb21bd65c) - make all component SSR compatible.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/icons@0.8.0-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+- @gradio/theme@0.3.0-beta.1
+
+## 0.3.2
 
 ### Fixes
 

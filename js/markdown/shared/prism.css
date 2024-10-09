@@ -66,7 +66,7 @@ th {
 	border: none;
 	border-radius: var(--radius-md);
 	background: var(--code-background-fill);
-	padding: var(--spacing-lg) var(--spacing-xl);
+	padding: var(--spacing-xxl);
 	font-family: var(--font-mono);
 	/* font-size: var(--text-sm) !important; */
 	display: block;

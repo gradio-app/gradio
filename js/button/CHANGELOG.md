@@ -1,5 +1,70 @@
 # @gradio/button
 
+## 0.3.0-beta.7
+
+### Features
+
+- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0.  Thanks @allisonwhilden!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+
+## 0.3.0-beta.6
+
+### Dependency updates
+
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+
+## 0.3.0-beta.5
+
+### Features
+
+- [#9496](https://github.com/gradio-app/gradio/pull/9496) [`1647ebd`](https://github.com/gradio-app/gradio/commit/1647ebddc3e2ed6fc143a62629409e32afcc5801) - UI theme fixes.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+
+## 0.3.0-beta.4
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.4
+
+## 0.3.0-beta.3
+
+### Fixes
+
+- [#9405](https://github.com/gradio-app/gradio/pull/9405) [`bf27ff4`](https://github.com/gradio-app/gradio/commit/bf27ff4ac8ada33ea03dd26d5c1c1115aa1f318a) - Center icon in button when no text is present.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/client@1.6.0-beta.3
+
+## 0.3.0-beta.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.3.0-beta.1
+
+### Features
+
+- [#9167](https://github.com/gradio-app/gradio/pull/9167) [`e9e737e`](https://github.com/gradio-app/gradio/commit/e9e737eeeb61d0bbf43277c75b6ffed8b34aa445) - Redesign `gr.Button()`.  Thanks @hannahblair!
+- [#9254](https://github.com/gradio-app/gradio/pull/9254) [`03f3735`](https://github.com/gradio-app/gradio/commit/03f3735fba1fd4f1978b5431af9e67de3b6e7945) - Adds a "huggingface" button variant, and makes it the default for `gr.LoginButton` and `gr.DuplicateButton`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+
 ## 0.2.51
 
 ### Fixes

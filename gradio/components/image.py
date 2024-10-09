@@ -3,24 +3,49 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence, cast
+from typing import TYPE_CHECKING, Any, Literal, Optional, cast
 
 import numpy as np
 import PIL.Image
 from gradio_client import handle_file
 from gradio_client.documentation import document
 from PIL import ImageOps
+from pydantic import ConfigDict, Field
 
 from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
-from gradio.data_classes import FileData
+from gradio.data_classes import GradioModel
 from gradio.events import Events
+from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
 
 PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
+
+
+class ImageData(GradioModel):
+    path: Optional[str] = Field(default=None, description="Path to a local file")
+    url: Optional[str] = Field(
+        default=None, description="Publicly available url or base64 encoded image"
+    )
+    size: Optional[int] = Field(default=None, description="Size of image in bytes")
+    orig_name: Optional[str] = Field(default=None, description="Original filename")
+    mime_type: Optional[str] = Field(default=None, description="mime type of image")
+    is_stream: bool = Field(default=False, description="Can always be set to False")
+    meta: dict = {"_type": "gradio.FileData"}
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "For input, either path or url must be provided. For output, path is always provided."
+        }
+    )
+
+
+class Base64ImageData(GradioModel):
+    url: str = Field(description="base64 encoded image")
 
 
 @document()
@@ -41,7 +66,7 @@ class Image(StreamingInput, Component):
         Events.input,
     ]
 
-    data_model = FileData
+    data_model = ImageData
 
     def __init__(
         self,
@@ -81,13 +106,13 @@ class Image(StreamingInput, Component):
         """
         Parameters:
             value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            format: File format (e.g. "png" or "gif") to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
-            height: The height of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning. This parameter has no effect on SVG or GIF files. If set to None, the image_mode will be inferred from the image file.
+            format: File format (e.g. "png" or "gif"). Used to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image). The format should be supported by the PIL library. Applies both when this component is used as an input or output. This parameter has no effect on SVG files.
+            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
+            width: The width of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. This has no effect on the preprocessed image file or numpy array, but will affect the displayed image.
+            image_mode: The pixel format and color depth that the image should be loaded and preprocessed as. "RGB" will load the image as a color image, or "L" as black-and-white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning. This parameter has no effect on SVG or GIF files. If set to None, the image_mode will be inferred from the image file type (e.g. "RGBA" for a .png image, "RGB" in most other cases).
             sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard. If None, defaults to ["upload", "webcam", "clipboard"] if streaming is False, otherwise defaults to ["webcam"].
             type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned. To support animated GIFs in input, the `type` should be set to "filepath" or "pil".
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -97,7 +122,7 @@ class Image(StreamingInput, Component):
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
-            streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
+            streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'. If the component is an output component, will automatically convert images to base64.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
@@ -163,7 +188,7 @@ class Image(StreamingInput, Component):
         )
 
     def preprocess(
-        self, payload: FileData | None
+        self, payload: ImageData | None
     ) -> np.ndarray | PIL.Image.Image | str | None:
         """
         Parameters:
@@ -173,6 +198,17 @@ class Image(StreamingInput, Component):
         """
         if payload is None:
             return payload
+        if payload.url and payload.url.startswith("data:"):
+            if self.type == "pil":
+                return image_utils.decode_base64_to_image(payload.url)
+            elif self.type == "numpy":
+                return image_utils.decode_base64_to_image_array(payload.url)
+            elif self.type == "filepath":
+                return image_utils.decode_base64_to_file(
+                    payload.url, self.GRADIO_CACHE, self.format
+                )
+        if payload.path is None:
+            raise ValueError("Image path is None.")
         file_path = Path(payload.path)
         if payload.orig_name:
             p = Path(payload.orig_name)
@@ -185,9 +221,14 @@ class Image(StreamingInput, Component):
             suffix = "webp"
 
         if suffix.lower() == "svg":
-            return str(file_path)
+            if self.type == "filepath":
+                return str(file_path)
+            raise Error("SVG files are not supported as input images.")
 
         im = PIL.Image.open(file_path)
+        if self.type == "filepath" and (self.image_mode in [None, im.mode]):
+            return str(file_path)
+
         exif = im.getexif()
         # 274 is the code for image rotation and 1 means "correct orientation"
         if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
@@ -212,7 +253,7 @@ class Image(StreamingInput, Component):
 
     def postprocess(
         self, value: np.ndarray | PIL.Image.Image | str | Path | None
-    ) -> FileData | None:
+    ) -> ImageData | Base64ImageData | None:
         """
         Parameters:
             value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
@@ -222,10 +263,29 @@ class Image(StreamingInput, Component):
         if value is None:
             return None
         if isinstance(value, str) and value.lower().endswith(".svg"):
-            return FileData(path=value, orig_name=Path(value).name)
+            return ImageData(path=value, orig_name=Path(value).name)
+        if self.streaming:
+            if isinstance(value, np.ndarray):
+                return Base64ImageData(
+                    url=image_utils.encode_image_array_to_base64(value)
+                )
+            elif isinstance(value, PIL.Image.Image):
+                return Base64ImageData(url=image_utils.encode_image_to_base64(value))
+            elif isinstance(value, (Path, str)):
+                return Base64ImageData(
+                    url=image_utils.encode_image_file_to_base64(value)
+                )
+
         saved = image_utils.save_image(value, self.GRADIO_CACHE, self.format)
         orig_name = Path(saved).name if Path(saved).exists() else None
-        return FileData(path=saved, orig_name=orig_name)
+        return ImageData(path=saved, orig_name=orig_name)
+
+    def api_info_as_output(self) -> dict[str, Any]:
+        if self.streaming == "base64":
+            schema = Base64ImageData.model_json_schema()
+            schema.pop("description", None)
+            return schema
+        return self.api_info()
 
     def check_streamable(self):
         if self.streaming and self.sources != ["webcam"]:

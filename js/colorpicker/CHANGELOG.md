@@ -1,5 +1,54 @@
 # @gradio/colorpicker
 
+## 0.4.0-beta.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+
+## 0.4.0-beta.4
+
+### Features
+
+- [#9570](https://github.com/gradio-app/gradio/pull/9570) [`e0ee3d5`](https://github.com/gradio-app/gradio/commit/e0ee3d5bb1020744cefa1abf66009fbf07da8cbe) - Update gr.ColorPicker UI.  Thanks @hannahblair!
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.4
+
+## 0.3.13-beta.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.3
+- @gradio/atoms@0.9.0-beta.3
+
+## 0.3.13-beta.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.2
+
+## 0.3.13-beta.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.0-beta.2
+- @gradio/statustracker@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.3.13-beta.1
+
+### Dependency updates
+
+- @gradio/atoms@0.8.1-beta.1
+- @gradio/statustracker@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
 ## 0.3.13
 
 ### Fixes

@@ -16,7 +16,8 @@
 		"record": "录制",
 		"no_microphone": "找不到麦克风",
 		"pause": "暂停",
-		"play": "播放"
+		"play": "播放",
+		"waiting": "等待"
 	},
 	"blocks": {
 		"connection_can_break": "在移动设备上，如果此标签页失去焦点或设备休眠，连接可能会中断，导致您在队列中失去位置。",

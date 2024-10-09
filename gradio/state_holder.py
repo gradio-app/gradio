@@ -4,8 +4,9 @@ import datetime
 import os
 import threading
 from collections import OrderedDict
+from collections.abc import Iterator
 from copy import copy, deepcopy
-from typing import TYPE_CHECKING, Any, Iterator
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
