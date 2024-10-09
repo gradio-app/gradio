@@ -368,7 +368,7 @@ class ChatInterface(Blocks):
                     self.example_clicked,
                     [self.chatbot],
                     [self.chatbot, self.saved_input],
-                    show_api=False
+                    show_api=False,
                 ).then(
                     submit_fn,
                     [self.saved_input, self.chatbot],
