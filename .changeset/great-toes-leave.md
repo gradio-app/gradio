@@ -7,4 +7,4 @@
 "gradio": minor
 ---
 
-feat:dark mode
+feat:Fix dark mode detection and container height
