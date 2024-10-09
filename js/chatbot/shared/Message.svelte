@@ -80,6 +80,8 @@
 		show_copy_button: boolean;
 		message: NormalisedMessage[] | NormalisedMessage;
 		position: "left" | "right";
+		layout: "bubble" | "panel";
+		avatar: FileData | null;
 	};
 
 	let button_panel_props: ButtonPanelProps;
