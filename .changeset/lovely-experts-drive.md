@@ -1,5 +1,5 @@
 ---
-"@self/app": minor
+"@self/app": patch
 ---
 
 feat:fix devmode
