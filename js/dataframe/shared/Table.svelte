@@ -480,6 +480,8 @@
 		selected_header = false;
 		selected = false;
 		active_cell = null;
+		active_cell_menu = null;
+		active_header_menu = null;
 	}
 
 	function guess_delimitaor(
@@ -693,12 +695,14 @@
 		const row_index = position === "above" ? index : index + 1;
 		add_row(row_index);
 		active_cell_menu = null;
+		active_header_menu = null;
 	}
 
 	function add_col_at(index: number, position: "left" | "right"): void {
 		const col_index = position === "left" ? index : index + 1;
 		add_col(col_index);
 		active_cell_menu = null;
+		active_header_menu = null;
 	}
 
 	onMount(() => {
