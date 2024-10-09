@@ -28,20 +28,17 @@
 		tick().then(() => dispatch("select", { value: name, index: tab_index }));
 </script>
 
-<div
-	id={elem_id}
-	class="tabitem {elem_classes.join(' ')}"
-	style:display={$selected_tab === id && visible ? "block" : "none"}
-	role="tabpanel"
->
-	<Column>
-		<slot />
-	</Column>
-</div>
+{#if $selected_tab === id && visible}
+	<div id={elem_id} class="tabitem {elem_classes.join(' ')}" role="tabpanel">
+		<Column>
+			<slot />
+		</Column>
+	</div>
+{/if}
 
 <style>
 	div {
-		display: flex;
+		display: block;
 		position: relative;
 		border: none;
 		border-radius: var(--radius-sm);

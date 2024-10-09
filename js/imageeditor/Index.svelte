@@ -224,6 +224,7 @@
 			upload={(...args) => gradio.client.upload(...args)}
 			stream_handler={(...args) => gradio.client.stream(...args)}
 			{placeholder}
+			{full_history}
 		></InteractiveImageEditor>
 	</Block>
 {/if}
