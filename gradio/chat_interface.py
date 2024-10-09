@@ -360,14 +360,14 @@ class ChatInterface(Blocks):
                 self.chatbot.example_select(
                     self.example_clicked,
                     [self.chatbot],
-                    [self.chatbot],
+                    [self.chatbot, self.saved_input],
                     show_api=False,
                 )
             else:
                 self.chatbot.example_select(
                     self.example_clicked,
                     [self.chatbot],
-                    [self.chatbot],
+                    [self.chatbot, self.saved_input],
                     show_api=False,
                 ).then(
                     submit_fn,
@@ -680,9 +680,12 @@ class ChatInterface(Blocks):
             self._append_multimodal_history(message, None, history)
         else:
             message = x.value["text"]
-            self._append_history(history, message)
+            if self.type == "tuples":
+                history.append([message, None])
+            else:
+                history.append({"role": "user", "content": message})
         self.saved_input.value = message
-        return history
+        return history, message
 
     def _process_example(
         self, message: ExampleMessage | str, response: MessageDict | str | None
@@ -764,7 +767,7 @@ class ChatInterface(Blocks):
         previous_input: list[str | MultimodalPostprocess],
         history: list[MessageDict] | TupleFormat,
     ):
-        msg = previous_input.pop()
+        msg = previous_input.pop() if previous_input else None
 
         history, msg = await self._delete_prev_fn(msg, history)
         previous_msg = previous_input[-1] if len(previous_input) else msg
