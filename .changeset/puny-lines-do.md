@@ -1,7 +1,7 @@
 ---
-"@gradio/chatbot": minor
-"@gradio/dataframe": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"@gradio/dataframe": patch
+"gradio": patch
 ---
 
 feat:Fix `retry` and `undo` reactivity in gr.Chatbot
