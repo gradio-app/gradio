@@ -7,3 +7,10 @@
 </script>
 
 <slot></slot>
+
+<style>
+	:global(body) {
+		background: var(--body-background-fill);
+		color: var(--body-text-color);
+	}
+</style>
