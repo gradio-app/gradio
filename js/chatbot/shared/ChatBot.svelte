@@ -291,15 +291,15 @@
 						>
 					</div>
 				{/if}
-				{@const show_like =
-					role === "user" ? likeable && like_user_message : likeable}
-				{@const show_retry = _retryable && is_last_bot_message(messages, value)}
-				{@const show_undo = _undoable && is_last_bot_message(messages, value)}
 				<Message
+					{role}
+					{value}
+					show_like={role === "user" ? likeable && like_user_message : likeable}
+					show_retry={_retryable && is_last_bot_message(messages, value)}
+					show_undo={_undoable && is_last_bot_message(messages, value)}
 					{messages}
 					{opposite_avatar_img}
 					{avatar_img}
-					{role}
 					{layout}
 					{dispatch}
 					{i18n}
@@ -315,14 +315,10 @@
 					{render_markdown}
 					{rtl}
 					{i}
-					{value}
 					{latex_delimiters}
 					{_components}
 					{generating}
 					{msg_format}
-					{show_like}
-					{show_retry}
-					{show_undo}
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					{scroll}
