@@ -460,10 +460,13 @@
 
 	function handle_click_outside(event: Event): void {
 		if (
-			active_cell_menu &&
-			!(event.target as HTMLElement).closest(".cell-menu")
+			(active_cell_menu &&
+				!(event.target as HTMLElement).closest(".cell-menu")) ||
+			(active_header_menu &&
+				!(event.target as HTMLElement).closest(".cell-menu"))
 		) {
 			active_cell_menu = null;
+			active_header_menu = null;
 		}
 
 		event.stopImmediatePropagation();
@@ -477,6 +480,8 @@
 		selected_header = false;
 		selected = false;
 		active_cell = null;
+		active_cell_menu = null;
+		active_header_menu = null;
 	}
 
 	function guess_delimitaor(
@@ -690,12 +695,14 @@
 		const row_index = position === "above" ? index : index + 1;
 		add_row(row_index);
 		active_cell_menu = null;
+		active_header_menu = null;
 	}
 
 	function add_col_at(index: number, position: "left" | "right"): void {
 		const col_index = position === "left" ? index : index + 1;
 		add_col(col_index);
 		active_cell_menu = null;
+		active_header_menu = null;
 	}
 
 	onMount(() => {
@@ -704,6 +711,55 @@
 			document.removeEventListener("click", handle_click_outside);
 		};
 	});
+
+	let active_button: {
+		type: "header" | "cell";
+		row?: number;
+		col: number;
+	} | null = null;
+
+	function toggle_header_button(col: number): void {
+		if (active_button?.type === "header" && active_button.col === col) {
+			active_button = null;
+		} else {
+			active_button = { type: "header", col };
+		}
+	}
+
+	function toggle_cell_button(row: number, col: number): void {
+		if (
+			active_button?.type === "cell" &&
+			active_button.row === row &&
+			active_button.col === col
+		) {
+			active_button = null;
+		} else {
+			active_button = { type: "cell", row, col };
+		}
+	}
+
+	let active_header_menu: {
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+
+	function toggle_header_menu(event: MouseEvent, col: number): void {
+		event.stopPropagation();
+		if (active_header_menu && active_header_menu.col === col) {
+			active_header_menu = null;
+		} else {
+			const header = (event.target as HTMLElement).closest("th");
+			if (header) {
+				const rect = header.getBoundingClientRect();
+				active_header_menu = {
+					col,
+					x: rect.right,
+					y: rect.bottom
+				};
+			}
+		}
+	}
 </script>
 
 <svelte:window
@@ -822,40 +878,58 @@
 							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
 							style="width: var(--cell-width-{i});"
+							on:click={() => {
+								toggle_header_button(i);
+							}}
 						>
 							<div class="cell-wrap">
-								<EditableCell
-									bind:value={_headers[i].value}
-									bind:el={els[id].input}
-									{latex_delimiters}
-									{line_breaks}
-									edit={header_edit === i}
-									on:keydown={end_header_edit}
-									on:dblclick={() => edit_header(i)}
-									{select_on_focus}
-									header
-									{root}
-								/>
-
-								<!-- TODO: fix -->
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<!-- svelte-ignore a11y-no-static-element-interactions-->
-								<div
-									class:sorted={sort_by === i}
-									class:des={sort_by === i && sort_direction === "des"}
-									class="sort-button {sort_direction} "
-									on:click={() => handle_sort(i)}
-								>
-									<svg
-										width="1em"
-										height="1em"
-										viewBox="0 0 9 7"
-										fill="none"
-										xmlns="http://www.w3.org/2000/svg"
+								<div class="header-content">
+									<EditableCell
+										bind:value={_headers[i].value}
+										bind:el={els[id].input}
+										{latex_delimiters}
+										{line_breaks}
+										edit={header_edit === i}
+										on:keydown={end_header_edit}
+										on:dblclick={() => edit_header(i)}
+										{select_on_focus}
+										header
+										{root}
+									/>
+									<!-- TODO: fix -->
+									<!-- svelte-ignore a11y-click-events-have-key-events -->
+									<!-- svelte-ignore a11y-no-static-element-interactions-->
+									<div
+										class:sorted={sort_by === i}
+										class:des={sort_by === i && sort_direction === "des"}
+										class="sort-button {sort_direction}"
+										on:click={(event) => {
+											event.stopPropagation();
+											handle_sort(i);
+										}}
 									>
-										<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
-									</svg>
+										<svg
+											width="1em"
+											height="1em"
+											viewBox="0 0 9 7"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
+										</svg>
+									</div>
 								</div>
+
+								{#if editable}
+									<button
+										class="cell-menu-button"
+										class:visible={active_button?.type === "header" &&
+											active_button.col === i}
+										on:click={(event) => toggle_header_menu(event, i)}
+									>
+										⋮
+									</button>
+								{/if}
 							</div>
 						</th>
 					{/each}
@@ -866,7 +940,10 @@
 						<td
 							tabindex="0"
 							on:touchstart={() => start_edit(index, j)}
-							on:click={() => handle_cell_click(index, j)}
+							on:click={() => {
+								handle_cell_click(index, j);
+								toggle_cell_button(index, j);
+							}}
 							on:dblclick={() => start_edit(index, j)}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
@@ -892,9 +969,9 @@
 								{#if editable}
 									<button
 										class="cell-menu-button"
-										class:visible={active_cell &&
-											active_cell.row === index &&
-											active_cell.col === j}
+										class:visible={active_button?.type === "cell" &&
+											active_button.row === index &&
+											active_button.col === j}
 										on:click={(event) => toggle_cell_menu(event, index, j)}
 									>
 										⋮
@@ -920,6 +997,19 @@
 		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
 		on_add_column_left={() => add_col_at(active_cell_menu?.col ?? -1, "left")}
 		on_add_column_right={() => add_col_at(active_cell_menu?.col ?? -1, "right")}
+	/>
+{/if}
+
+{#if active_header_menu !== null}
+	<CellMenu
+		{i18n}
+		x={active_header_menu.x}
+		y={active_header_menu.y}
+		col={active_header_menu.col}
+		row={-1}
+		on_add_column_left={() => add_col_at(active_header_menu?.col ?? -1, "left")}
+		on_add_column_right={() =>
+			add_col_at(active_header_menu?.col ?? -1, "right")}
 	/>
 {/if}
 
@@ -1077,9 +1167,19 @@
 		position: relative;
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
 		outline: none;
 		height: var(--size-full);
 		min-height: var(--size-9);
+		overflow: hidden;
+	}
+
+	.header-content {
+		display: flex;
+		align-items: center;
+		overflow: hidden;
+		flex-grow: 1;
+		min-width: 0;
 	}
 
 	.row_odd {
@@ -1102,11 +1202,15 @@
 	}
 
 	.cell-menu-button {
+		flex-shrink: 0;
 		display: none;
 		background-color: var(--block-background-fill);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--block-radius);
 		width: var(--size-5);
+		height: var(--size-5);
+		min-width: var(--size-5);
+		padding: 0;
 		margin-right: var(--spacing-sm);
 		z-index: var(--layer-2);
 	}
@@ -1116,12 +1220,18 @@
 	}
 
 	.cell-menu-button.visible {
-		display: block;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
-	@media (hover: hover) {
-		.cell-wrap:hover .cell-menu-button {
-			display: block;
-		}
+	th .cell-wrap {
+		padding-right: var(--spacing-sm);
+	}
+
+	th .header-content {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 </style>
