@@ -114,6 +114,8 @@ const config = {
 				"*",
 				`/${version}/docs`,
 				`/${version}/guides`,
+				`/4.44.1/docs`,
+				`/4.44.1/guides`,
 				`/main/docs`,
 				`/main/guides`,
 				`/docs/js`,
