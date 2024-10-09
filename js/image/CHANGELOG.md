@@ -1,5 +1,11 @@
 # @gradio/image
 
+## 0.16.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
 ## 0.16.0
 
 ### Features
