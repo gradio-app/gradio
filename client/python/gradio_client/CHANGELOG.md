@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.4.0-beta.5
+
+### Features
+
+- [#9589](https://github.com/gradio-app/gradio/pull/9589) [`477f45c`](https://github.com/gradio-app/gradio/commit/477f45cb43be957684eb392e3d62c09490c22391) - Only move files to the cache that have a meta key.  Thanks @freddyaboulton!
+
 ## 1.4.0-beta.4
 
 ### Features
