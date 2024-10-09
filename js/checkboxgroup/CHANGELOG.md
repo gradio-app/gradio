@@ -1,5 +1,16 @@
 # @gradio/checkboxgroup
 
+## 0.6.0-beta.5
+
+### Features
+
+- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0.  Thanks @allisonwhilden!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/atoms@0.9.0-beta.5
+
 ## 0.6.0-beta.4
 
 ### Features

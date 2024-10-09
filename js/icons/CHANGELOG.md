@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.8.0-beta.4
+
+### Features
+
+- [#9582](https://github.com/gradio-app/gradio/pull/9582) [`43a7f42`](https://github.com/gradio-app/gradio/commit/43a7f420d8ac34c7f7fa71d6e630a4c8618d3780) - Chatbot autoscroll.  Thanks @whitphx!
+
 ## 0.8.0-beta.3
 
 ### Features

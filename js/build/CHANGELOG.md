@@ -1,5 +1,11 @@
 # @self/build
 
+## 0.1.0-beta.3
+
+### Features
+
+- [#9482](https://github.com/gradio-app/gradio/pull/9482) [`bd6c5f2`](https://github.com/gradio-app/gradio/commit/bd6c5f237b0631d86273c7684c3bf2b1011992a3) - Fix custom component CLI on main/5.0.  Thanks @freddyaboulton!
+
 ## 0.1.0-beta.2
 
 ### Features

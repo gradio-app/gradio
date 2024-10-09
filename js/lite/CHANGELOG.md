@@ -4,6 +4,14 @@
 
 ### Dependency updates
 
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/core@0.1.0-beta.6
+- @self/build@0.1.0-beta.3
+
+## 4.43.0-beta.3
+
+### Dependency updates
+
 - @gradio/atoms@0.9.0-beta.4
 - @gradio/core@0.1.0-beta.5
 

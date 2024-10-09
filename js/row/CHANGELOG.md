@@ -2,6 +2,12 @@
 
 ## 0.2.0-beta.3
 
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+
+## 0.2.0-beta.3
+
 ### Features
 
 - [#9577](https://github.com/gradio-app/gradio/pull/9577) [`9f532e0`](https://github.com/gradio-app/gradio/commit/9f532e03a6b91b9a5592152c19b9b2611774cae7) - Equal height columns.  Thanks @aliabid94!

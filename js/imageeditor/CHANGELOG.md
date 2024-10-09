@@ -1,5 +1,15 @@
 # @gradio/imageeditor
 
+## 0.11.0-beta.7
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/statustracker@0.8.0-beta.5
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+- @gradio/image@0.16.0-beta.7
+
 ## 0.11.0-beta.6
 
 ### Features

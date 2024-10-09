@@ -1,5 +1,15 @@
 # @self/tootils
 
+## 0.7.0-beta.5
+
+### Features
+
+- [#9590](https://github.com/gradio-app/gradio/pull/9590) [`e853c41`](https://github.com/gradio-app/gradio/commit/e853c413583d91186aef3aceb0849d0ec0494834) - SSR e2e + fixes.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+
 ## 0.6.5-beta.4
 
 ### Dependency updates
