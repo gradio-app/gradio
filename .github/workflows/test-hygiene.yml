@@ -23,7 +23,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Generate Notebooks
         run: |
-          python -m pip install --upgrade virtualenv
           python -m virtualenv venv
           . venv/bin/activate
           pip install nbformat && python scripts/generate_notebooks.py
