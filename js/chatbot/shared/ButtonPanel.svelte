@@ -68,6 +68,7 @@
 			{#if show_retry}
 				<IconButton
 					Icon={Retry}
+					label="Retry"
 					on:click={() => handle_action("retry")}
 					disabled={generating}
 					label="Retry"
@@ -75,6 +76,7 @@
 			{/if}
 			{#if show_undo}
 				<IconButton
+					label="Undo"
 					Icon={Undo}
 					on:click={() => handle_action("undo")}
 					disabled={generating}
