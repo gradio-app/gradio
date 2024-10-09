@@ -15,6 +15,8 @@
 	export let i18n: I18nFormatter;
 	let menu_element: HTMLDivElement;
 
+	$: is_header = row === -1;
+
 	onMount(() => {
 		position_menu();
 	});
@@ -43,14 +45,16 @@
 </script>
 
 <div bind:this={menu_element} class="cell-menu">
-	<button on:click={() => on_add_row_above(row)}>
-		<Arrow transform="rotate(-90 12 12)" />
-		{i18n("dataframe.add_row_above")}
-	</button>
-	<button on:click={() => on_add_row_below(row)}>
-		<Arrow transform="rotate(90 12 12)" />
-		{i18n("dataframe.add_row_below")}
-	</button>
+	{#if !is_header}
+		<button on:click={() => on_add_row_above(row)}>
+			<Arrow transform="rotate(-90 12 12)" />
+			{i18n("dataframe.add_row_above")}
+		</button>
+		<button on:click={() => on_add_row_below(row)}>
+			<Arrow transform="rotate(90 12 12)" />
+			{i18n("dataframe.add_row_below")}
+		</button>
+	{/if}
 	<button on:click={() => on_add_column_left(col)}>
 		<Arrow transform="rotate(180 12 12)" />
 		{i18n("dataframe.add_column_left")}

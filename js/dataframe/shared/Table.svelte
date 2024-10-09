@@ -460,10 +460,13 @@
 
 	function handle_click_outside(event: Event): void {
 		if (
-			active_cell_menu &&
-			!(event.target as HTMLElement).closest(".cell-menu")
+			(active_cell_menu &&
+				!(event.target as HTMLElement).closest(".cell-menu")) ||
+			(active_header_menu &&
+				!(event.target as HTMLElement).closest(".cell-menu"))
 		) {
 			active_cell_menu = null;
+			active_header_menu = null;
 		}
 
 		event.stopImmediatePropagation();
@@ -704,6 +707,55 @@
 			document.removeEventListener("click", handle_click_outside);
 		};
 	});
+
+	let active_button: {
+		type: "header" | "cell";
+		row?: number;
+		col: number;
+	} | null = null;
+
+	function toggle_header_button(col: number): void {
+		if (active_button?.type === "header" && active_button.col === col) {
+			active_button = null;
+		} else {
+			active_button = { type: "header", col };
+		}
+	}
+
+	function toggle_cell_button(row: number, col: number): void {
+		if (
+			active_button?.type === "cell" &&
+			active_button.row === row &&
+			active_button.col === col
+		) {
+			active_button = null;
+		} else {
+			active_button = { type: "cell", row, col };
+		}
+	}
+
+	let active_header_menu: {
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+
+	function toggle_header_menu(event: MouseEvent, col: number): void {
+		event.stopPropagation();
+		if (active_header_menu && active_header_menu.col === col) {
+			active_header_menu = null;
+		} else {
+			const header = (event.target as HTMLElement).closest("th");
+			if (header) {
+				const rect = header.getBoundingClientRect();
+				active_header_menu = {
+					col,
+					x: rect.right,
+					y: rect.bottom
+				};
+			}
+		}
+	}
 </script>
 
 <svelte:window
@@ -822,6 +874,9 @@
 							class:focus={header_edit === i || selected_header === i}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
 							style="width: var(--cell-width-{i});"
+							on:click={() => {
+								toggle_header_button(i);
+							}}
 						>
 							<div class="cell-wrap">
 								<EditableCell
@@ -844,7 +899,10 @@
 									class:sorted={sort_by === i}
 									class:des={sort_by === i && sort_direction === "des"}
 									class="sort-button {sort_direction} "
-									on:click={() => handle_sort(i)}
+									on:click={(event) => {
+										event.stopPropagation();
+										handle_sort(i);
+									}}
 								>
 									<svg
 										width="1em"
@@ -856,6 +914,17 @@
 										<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
 									</svg>
 								</div>
+
+								{#if editable}
+									<button
+										class="cell-menu-button"
+										class:visible={active_button?.type === "header" &&
+											active_button.col === i}
+										on:click={(event) => toggle_header_menu(event, i)}
+									>
+										⋮
+									</button>
+								{/if}
 							</div>
 						</th>
 					{/each}
@@ -866,7 +935,10 @@
 						<td
 							tabindex="0"
 							on:touchstart={() => start_edit(index, j)}
-							on:click={() => handle_cell_click(index, j)}
+							on:click={() => {
+								handle_cell_click(index, j);
+								toggle_cell_button(index, j);
+							}}
 							on:dblclick={() => start_edit(index, j)}
 							style:width="var(--cell-width-{j})"
 							style={styling?.[index]?.[j] || ""}
@@ -892,9 +964,9 @@
 								{#if editable}
 									<button
 										class="cell-menu-button"
-										class:visible={active_cell &&
-											active_cell.row === index &&
-											active_cell.col === j}
+										class:visible={active_button?.type === "cell" &&
+											active_button.row === index &&
+											active_button.col === j}
 										on:click={(event) => toggle_cell_menu(event, index, j)}
 									>
 										⋮
@@ -920,6 +992,19 @@
 		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
 		on_add_column_left={() => add_col_at(active_cell_menu?.col ?? -1, "left")}
 		on_add_column_right={() => add_col_at(active_cell_menu?.col ?? -1, "right")}
+	/>
+{/if}
+
+{#if active_header_menu !== null}
+	<CellMenu
+		{i18n}
+		x={active_header_menu.x}
+		y={active_header_menu.y}
+		col={active_header_menu.col}
+		row={-1}
+		on_add_column_left={() => add_col_at(active_header_menu?.col ?? -1, "left")}
+		on_add_column_right={() =>
+			add_col_at(active_header_menu?.col ?? -1, "right")}
 	/>
 {/if}
 
@@ -1117,11 +1202,5 @@
 
 	.cell-menu-button.visible {
 		display: block;
-	}
-
-	@media (hover: hover) {
-		.cell-wrap:hover .cell-menu-button {
-			display: block;
-		}
 	}
 </style>
