@@ -4,7 +4,8 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let variant: "primary" | "secondary" | "stop" = "secondary";
+	export let variant: "primary" | "secondary" | "stop" | "huggingface" =
+		"secondary";
 	export let size: "sm" | "lg" = "lg";
 	export let value: string | null = null;
 	export let link: string | null = null;
@@ -49,7 +50,12 @@
 		{disabled}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon.url} alt={`${value} icon`} />
+			<img
+				class="button-icon"
+				class:right-padded={value}
+				src={icon.url}
+				alt={`${value} icon`}
+			/>
 		{/if}
 		<slot />
 	</button>
@@ -62,21 +68,17 @@
 		justify-content: center;
 		align-items: center;
 		transition: var(--button-transition);
-		box-shadow: var(--button-shadow);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
 	}
 
-	button:hover,
-	button[disabled],
-	a:hover,
-	a.disabled {
-		box-shadow: var(--button-shadow-hover);
+	button:hover {
+		transform: var(--button-transform-hover);
 	}
 
 	button:active,
 	a:active {
-		box-shadow: var(--button-shadow-active);
+		transform: var(--button-transform-active);
 	}
 
 	button[disabled],
@@ -84,6 +86,7 @@
 		opacity: 0.5;
 		filter: grayscale(30%);
 		cursor: not-allowed;
+		transform: none;
 	}
 
 	.hidden {
@@ -94,12 +97,24 @@
 		border: var(--button-border-width) solid var(--button-primary-border-color);
 		background: var(--button-primary-background-fill);
 		color: var(--button-primary-text-color);
+		box-shadow: var(--button-primary-shadow);
 	}
 	.primary:hover,
 	.primary[disabled] {
-		border-color: var(--button-primary-border-color-hover);
 		background: var(--button-primary-background-fill-hover);
 		color: var(--button-primary-text-color-hover);
+	}
+
+	.primary:hover {
+		border-color: var(--button-primary-border-color-hover);
+		box-shadow: var(--button-primary-shadow-hover);
+	}
+	.primary:active {
+		box-shadow: var(--button-primary-shadow-active);
+	}
+
+	.primary[disabled] {
+		border-color: var(--button-primary-border-color);
 	}
 
 	.secondary {
@@ -107,26 +122,49 @@
 			var(--button-secondary-border-color);
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
+		box-shadow: var(--button-secondary-shadow);
 	}
 
 	.secondary:hover,
 	.secondary[disabled] {
-		border-color: var(--button-secondary-border-color-hover);
 		background: var(--button-secondary-background-fill-hover);
 		color: var(--button-secondary-text-color-hover);
 	}
 
+	.secondary:hover {
+		border-color: var(--button-secondary-border-color-hover);
+		box-shadow: var(--button-secondary-shadow-hover);
+	}
+	.secondary:active {
+		box-shadow: var(--button-secondary-shadow-active);
+	}
+
+	.secondary[disabled] {
+		border-color: var(--button-secondary-border-color);
+	}
+
 	.stop {
-		border: var(--button-border-width) solid var(--button-cancel-border-color);
 		background: var(--button-cancel-background-fill);
 		color: var(--button-cancel-text-color);
+		border: var(--button-border-width) solid var(--button-cancel-border-color);
+		box-shadow: var(--button-secondary-shadow);
 	}
 
 	.stop:hover,
 	.stop[disabled] {
-		border-color: var(--button-cancel-border-color-hover);
 		background: var(--button-cancel-background-fill-hover);
-		color: var(--button-cancel-text-color-hover);
+	}
+
+	.stop:hover {
+		border-color: var(--button-cancel-border-color-hover);
+		box-shadow: var(--button-secondary-shadow-hover);
+	}
+	.stop:active {
+		box-shadow: var(--button-secondary-shadow-active);
+	}
+
+	.stop[disabled] {
+		border-color: var(--button-cancel-border-color);
 	}
 
 	.sm {
@@ -146,6 +184,14 @@
 	.button-icon {
 		width: var(--text-xl);
 		height: var(--text-xl);
+	}
+	.button-icon.right-padded {
 		margin-right: var(--spacing-xl);
+	}
+
+	.huggingface {
+		border: var(--button-border-width) solid
+			var(--button-secondary-border-color);
+		background: var(--background-fill-primary);
 	}
 </style>

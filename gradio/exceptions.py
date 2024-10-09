@@ -102,3 +102,7 @@ class ComponentDefinitionError(NotImplementedError):
 
 class InvalidPathError(ValueError):
     pass
+
+
+class ChecksumMismatchError(Exception):
+    pass

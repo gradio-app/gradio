@@ -10,7 +10,7 @@
 	import { Upload } from "@gradio/upload";
 	import { Webcam } from "@gradio/image";
 	import { type I18nFormatter } from "@gradio/utils";
-	import { IconButton } from "@gradio/atoms";
+	import { default as IconButton } from "./IconButton.svelte";
 	import { type Client } from "@gradio/client";
 
 	import { add_bg_color, add_bg_image } from "./sources";

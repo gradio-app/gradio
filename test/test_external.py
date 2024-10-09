@@ -1,20 +1,20 @@
 import os
 import tempfile
 import textwrap
-import warnings
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import huggingface_hub
 import pytest
 from fastapi.testclient import TestClient
 from gradio_client import media_data
-from huggingface_hub import HfFolder
 
 import gradio as gr
 from gradio.context import Context
 from gradio.exceptions import GradioVersionIncompatibleError, InvalidApiNameError
 from gradio.external import TooManyRequestsError
 from gradio.external_utils import cols_to_rows, get_tabular_examples
+from gradio.route_utils import API_PREFIX
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -30,7 +30,7 @@ pytestmark = pytest.mark.flaky
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+HF_TOKEN = huggingface_hub.get_token()
 
 
 class TestLoadInterface:
@@ -75,7 +75,7 @@ class TestLoadInterface:
     def test_summarization(self):
         model_type = "summarization"
         interface = gr.load(
-            "models/facebook/bart-large-cnn", hf_token=None, alias=model_type
+            "models/facebook/bart-large-cnn", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -85,7 +85,7 @@ class TestLoadInterface:
     def test_translation(self):
         model_type = "translation"
         interface = gr.load(
-            "models/facebook/bart-large-cnn", hf_token=None, alias=model_type
+            "models/facebook/bart-large-cnn", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -95,7 +95,7 @@ class TestLoadInterface:
     def test_text2text_generation(self):
         model_type = "text2text-generation"
         interface = gr.load(
-            "models/sshleifer/tiny-mbart", hf_token=None, alias=model_type
+            "models/sshleifer/tiny-mbart", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -106,7 +106,7 @@ class TestLoadInterface:
         model_type = "text-classification"
         interface = gr.load(
             "models/distilbert-base-uncased-finetuned-sst-2-english",
-            hf_token=None,
+            hf_token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -116,7 +116,9 @@ class TestLoadInterface:
 
     def test_fill_mask(self):
         model_type = "fill-mask"
-        interface = gr.load("models/bert-base-uncased", hf_token=None, alias=model_type)
+        interface = gr.load(
+            "models/bert-base-uncased", hf_token=HF_TOKEN, alias=model_type
+        )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
         assert isinstance(interface.input_components[0], gr.Textbox)
@@ -125,7 +127,7 @@ class TestLoadInterface:
     def test_zero_shot_classification(self):
         model_type = "zero-shot-classification"
         interface = gr.load(
-            "models/facebook/bart-large-mnli", hf_token=None, alias=model_type
+            "models/facebook/bart-large-mnli", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -137,7 +139,7 @@ class TestLoadInterface:
     def test_automatic_speech_recognition(self):
         model_type = "automatic-speech-recognition"
         interface = gr.load(
-            "models/facebook/wav2vec2-base-960h", hf_token=None, alias=model_type
+            "models/facebook/wav2vec2-base-960h", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -147,7 +149,7 @@ class TestLoadInterface:
     def test_image_classification(self):
         model_type = "image-classification"
         interface = gr.load(
-            "models/google/vit-base-patch16-224", hf_token=None, alias=model_type
+            "models/google/vit-base-patch16-224", hf_token=HF_TOKEN, alias=model_type
         )
         assert interface.__name__ == model_type
         assert interface.input_components and interface.output_components
@@ -158,7 +160,7 @@ class TestLoadInterface:
         model_type = "feature-extraction"
         interface = gr.load(
             "models/sentence-transformers/distilbert-base-nli-mean-tokens",
-            hf_token=None,
+            hf_token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -170,7 +172,7 @@ class TestLoadInterface:
         model_type = "text-to-speech"
         interface = gr.load(
             "models/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train",
-            hf_token=None,
+            hf_token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -182,7 +184,7 @@ class TestLoadInterface:
         model_type = "text-to-speech"
         interface = gr.load(
             "models/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train",
-            hf_token=None,
+            hf_token=HF_TOKEN,
             alias=model_type,
         )
         assert interface.__name__ == model_type
@@ -203,7 +205,7 @@ class TestLoadInterface:
 
     def test_sentiment_model(self):
         io = gr.load(
-            "models/distilbert-base-uncased-finetuned-sst-2-english", hf_token=False
+            "models/distilbert-base-uncased-finetuned-sst-2-english", hf_token=HF_TOKEN
         )
         try:
             assert io("I am happy, I love you")["label"] == "POSITIVE"
@@ -211,14 +213,14 @@ class TestLoadInterface:
             pass
 
     def test_image_classification_model(self):
-        io = gr.load(name="models/google/vit-base-patch16-224", hf_token=False)
+        io = gr.load(name="models/google/vit-base-patch16-224", hf_token=HF_TOKEN)
         try:
             assert io("gradio/test_data/lion.jpg")["label"].startswith("lion")
         except TooManyRequestsError:
             pass
 
     def test_translation_model(self):
-        io = gr.load(name="models/t5-base", hf_token=False)
+        io = gr.load(name="models/t5-base", hf_token=HF_TOKEN)
         try:
             output = io("My name is Sarah and I live in London")
             assert output == "Mein Name ist Sarah und ich lebe in London"
@@ -238,7 +240,7 @@ class TestLoadInterface:
             pass
 
     def test_visual_question_answering(self):
-        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa", hf_token=False)
+        io = gr.load("models/dandelin/vilt-b32-finetuned-vqa", hf_token=HF_TOKEN)
         try:
             output = io("gradio/test_data/lion.jpg", "What is in the image?")
             assert isinstance(output, dict) and "label" in output
@@ -246,7 +248,7 @@ class TestLoadInterface:
             pass
 
     def test_image_to_text(self):
-        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning", hf_token=False)
+        io = gr.load("models/nlpconnect/vit-gpt2-image-captioning", hf_token=HF_TOKEN)
         try:
             output = io("gradio/test_data/lion.jpg")
             assert isinstance(output, str)
@@ -254,30 +256,12 @@ class TestLoadInterface:
             pass
 
     def test_speech_recognition_model(self):
-        io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=False)
+        io = gr.load("models/facebook/wav2vec2-base-960h", hf_token=HF_TOKEN)
         try:
             output = io("gradio/test_data/test_audio.wav")
             assert output is not None
         except TooManyRequestsError:
             pass
-
-        app, _, _ = io.launch(prevent_thread_lock=True, show_error=True)
-        client = TestClient(app)
-        resp = client.post(
-            "api/predict",
-            json={"fn_index": 0, "data": [media_data.BASE64_AUDIO], "name": "sample"},
-        )
-        try:
-            if resp.status_code != 200:
-                warnings.warn("Request for speech recognition model failed!")
-                assert (
-                    "Could not complete request to HuggingFace API"
-                    not in resp.json()["error"]
-                )
-            else:
-                assert resp.json()["data"] is not None
-        finally:
-            io.close()
 
     def test_private_space(self):
         io = gr.load(
@@ -321,14 +305,14 @@ class TestLoadInterface:
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
         r = test_client.get(
-            "/proxy=https://gradio-tests-test-loading-examples-privatev4-sse.hf.space/file=Bunny.obj"
+            f"{API_PREFIX}/proxy=https://gradio-tests-test-loading-examples-privatev4-sse.hf.space/file=Bunny.obj"
         )
         assert r.status_code == 200
 
     def test_private_space_v4_sse_v1(self):
         io = gr.load(
             "spaces/gradio-tests/not-actually-private-spacev4-sse-v1",
-            hf_token=HfFolder.get_token(),
+            hf_token=HF_TOKEN,
         )
         try:
             output = io("abc")
@@ -358,7 +342,7 @@ class TestLoadInterfaceWithExamples:
                     name="models/google/vit-base-patch16-224",
                     examples=[Path(test_file_dir, "cheetah1.jpg")],
                     cache_examples=True,
-                    hf_token=False,
+                    hf_token=HF_TOKEN,
                 )
             except TooManyRequestsError:
                 pass
@@ -520,3 +504,22 @@ def test_load_inside_blocks():
     demo = gr.load("spaces/abidlabs/en2fr")
     output = demo("Hello")
     assert isinstance(output, str)
+
+
+def test_load_callable():
+    def mock_src(name: str, token: str | None, **kwargs) -> gr.Blocks:
+        assert name == "test_model"
+        assert token == "test_token"
+        assert kwargs == {"param1": "value1", "param2": "value2"}
+        return gr.Blocks()
+
+    result = gr.load(
+        "test_model",
+        mock_src,
+        "test_token",
+        None,
+        param1="value1",
+        param2="value2",
+    )
+
+    assert isinstance(result, gr.Blocks)

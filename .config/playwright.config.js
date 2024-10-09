@@ -14,8 +14,8 @@ const base = defineConfig({
 			]
 		}
 	},
-	expect: { timeout: 15000 },
-	timeout: 30000,
+	expect: { timeout: 10000 },
+	timeout: 10000,
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined,
@@ -51,7 +51,8 @@ const lite = defineConfig(base, {
 		"**/file_component_events.spec.ts",
 		"**/kitchen_sink.spec.ts",
 		"**/gallery_component_events.spec.ts",
-		"**/image_remote_url.spec.ts" // To detect the bugs on Lite fixed in https://github.com/gradio-app/gradio/pull/8011 and https://github.com/gradio-app/gradio/pull/8026
+		"**/image_remote_url.spec.ts", // To detect the bugs on Lite fixed in https://github.com/gradio-app/gradio/pull/8011 and https://github.com/gradio-app/gradio/pull/8026
+		"**/outbreak_forecast.spec.ts" // To test matplotlib on Lite
 	],
 	workers: 1,
 	retries: 3,

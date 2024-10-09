@@ -7,12 +7,11 @@ test("when using an iterative function the UI should update over time as iterati
 	const start_button = await page.locator("button", {
 		hasText: /Start Iterating/
 	});
-	const textbox = await page.getByLabel("Iterative Output");
 
 	let output_values: string[] = [];
 	let last_output_value = "";
 	let interval = setInterval(async () => {
-		let value = await textbox.inputValue();
+		let value = await page.getByLabel("Iterative Output").inputValue();
 		if (value !== last_output_value) {
 			output_values.push(value);
 			last_output_value = value;
@@ -20,7 +19,7 @@ test("when using an iterative function the UI should update over time as iterati
 	}, 100);
 
 	await start_button.click();
-	await expect(textbox).toHaveValue("8");
+	await expect(page.getByLabel("Iterative Output")).toHaveValue("8");
 	clearInterval(interval);
 	for (let i = 1; i < 8; i++) {
 		expect(output_values).toContain(i.toString());
