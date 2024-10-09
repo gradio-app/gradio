@@ -78,7 +78,7 @@ def line_plot_fn(dataset):
             x="year",
             y="life_expect",
             color="country",
-            title="Life expectancy for countries",
+            title="Life Expectancy for Countries",
             stroke_dash="cluster",
             x_lim=[1950, 2010],
             tooltip=["country", "life_expect"],
@@ -93,11 +93,12 @@ with gr.Blocks() as line_plot:
             dataset = gr.Dropdown(
                 choices=["stocks", "climate", "seattle_weather", "gapminder"],
                 value="stocks",
+                label="Choose Dataset"
             )
         with gr.Column():
-            plot = gr.LinePlot()
+            plot = gr.Plot(label="Line Plot will appear here")  # Initialize with placeholder
     dataset.change(line_plot_fn, inputs=dataset, outputs=plot)
-    line_plot.load(fn=line_plot_fn, inputs=dataset, outputs=plot)
+    line_plot.load(fn=line_plot_fn, inputs=dataset, outputs=plot)  # Render the plot on page load
 
 if __name__ == "__main__":
     line_plot.launch()
