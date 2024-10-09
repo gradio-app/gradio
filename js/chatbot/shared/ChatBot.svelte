@@ -260,7 +260,7 @@
 				<Community />
 			</IconButton>
 		{/if}
-		<IconButton Icon={Trash} on:click={() => dispatch("clear")}></IconButton>
+		<IconButton Icon={Trash} label="Clear" on:click={() => dispatch("clear")}></IconButton>
 		{#if show_copy_all_button}
 			<CopyAll {value} />
 		{/if}
