@@ -70,21 +70,19 @@
 		return `a component of type ${message.content.component ?? "unknown"}`;
 	}
 
-	function get_button_panel_props(): any {
-		return {
-			show: show_like || show_retry || show_undo || show_copy_button,
-			handle_action,
-			likeable: show_like,
-			_retryable: show_retry,
-			_undoable: show_undo,
-			disable: generating,
-			show_copy_button,
-			message: msg_format === "tuples" ? messages[0] : messages,
-			position: role === "user" ? "right" : "left",
-			avatar: avatar_img,
-			layout
-		};
-	}
+	$: button_panel_props = {
+		show: show_like || show_retry || show_undo || show_copy_button,
+		handle_action,
+		likeable: show_like,
+		show_retry,
+		show_undo,
+		disable: generating,
+		show_copy_button,
+		message: msg_format === "tuples" ? messages[0] : messages,
+		position: role === "user" ? "right" : "left",
+		avatar: avatar_img,
+		layout
+	};
 </script>
 
 <div
@@ -194,14 +192,14 @@
 			</div>
 
 			{#if layout === "panel"}
-				<ButtonPanel {...get_button_panel_props()} />
+				<ButtonPanel {...button_panel_props} />
 			{/if}
 		{/each}
 	</div>
 </div>
 
 {#if layout === "bubble"}
-	<ButtonPanel {...get_button_panel_props()} />
+	<ButtonPanel {...button_panel_props} />
 {/if}
 
 <style>

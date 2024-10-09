@@ -10,8 +10,8 @@
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 
 	export let likeable: boolean;
-	export let _retryable: boolean;
-	export let _undoable: boolean;
+	export let show_retry: boolean;
+	export let show_undo: boolean;
 	export let show_copy_button: boolean;
 	export let show: boolean;
 	export let message: NormalisedMessage | NormalisedMessage[];
@@ -65,14 +65,14 @@
 					<IconButton Icon={DownloadIcon} />
 				</DownloadLink>
 			{/if}
-			{#if _retryable}
+			{#if show_retry}
 				<IconButton
 					Icon={Retry}
 					on:click={() => handle_action("retry")}
 					disabled={disable}
 				/>
 			{/if}
-			{#if _undoable}
+			{#if show_undo}
 				<IconButton
 					Icon={Undo}
 					on:click={() => handle_action("undo")}
