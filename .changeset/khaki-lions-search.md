@@ -1,6 +1,6 @@
 ---
-"@gradio/button": minor
-"gradio": minor
+"@gradio/button": patch
+"gradio": patch
 ---
 
-feat:Fix `gr.LoginButotn`
+fix:Fix `gr.LoginButton`
