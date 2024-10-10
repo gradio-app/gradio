@@ -4,6 +4,13 @@
 
 ### Dependency updates
 
+- @gradio/wasm@0.14.1
+- @gradio/core@0.1.1
+
+## 0.1.0
+
+### Dependency updates
+
 - @gradio/core@0.1.1
 
 ## 0.1.0
