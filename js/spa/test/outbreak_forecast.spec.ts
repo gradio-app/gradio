@@ -1,4 +1,4 @@
-import { test, expect } from "@self/tootils";
+import { test, expect, is_lite } from "@self/tootils";
 
 test("selecting matplotlib should show matplotlib image and pressing clear should clear output", async ({
 	page
@@ -24,8 +24,8 @@ test("selecting plotly should show plotly plot and pressing clear should clear o
 	browserName
 }) => {
 	test.fixme(
-		browserName === "firefox",
-		"Plotly component can't be located on FireFox in the CI env for some reason"
+		browserName === "firefox" && is_lite,
+		"Plotly component can't be located on Lite on FireFox in the CI env for some reason"
 	);
 
 	await page.getByLabel("Plot Type").click();
@@ -84,8 +84,8 @@ test("switching between all 4 plot types and pressing submit should update outpu
 	browserName
 }) => {
 	test.fixme(
-		browserName === "firefox",
-		"Plotly component can't be located on FireFox in the CI env for some reason"
+		browserName === "firefox" && is_lite,
+		"Plotly component can't be located on Lite on FireFox in the CI env for some reason"
 	);
 
 	//Matplotlib

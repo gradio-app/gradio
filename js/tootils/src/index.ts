@@ -21,7 +21,7 @@ const ROOT_DIR = path.resolve(
 	"../../../.."
 );
 
-const is_lite = !!process.env.GRADIO_E2E_TEST_LITE;
+export const is_lite = !!process.env.GRADIO_E2E_TEST_LITE;
 
 const test_normal = base.extend<{ setup: void }>({
 	setup: [
