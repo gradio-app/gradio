@@ -17,7 +17,7 @@
 	export let message: NormalisedMessage | NormalisedMessage[];
 	export let position: "right" | "left";
 	export let avatar: FileData | null;
-	export let disable: boolean;
+	export let generating: boolean;
 
 	export let handle_action: (selected: string | null) => void;
 	export let layout: "bubble" | "panel";
@@ -68,15 +68,17 @@
 			{#if show_retry}
 				<IconButton
 					Icon={Retry}
+					label="Retry"
 					on:click={() => handle_action("retry")}
-					disabled={disable}
+					disabled={generating}
 				/>
 			{/if}
 			{#if show_undo}
 				<IconButton
+					label="Undo"
 					Icon={Undo}
 					on:click={() => handle_action("undo")}
-					disabled={disable}
+					disabled={generating}
 				/>
 			{/if}
 			{#if likeable}

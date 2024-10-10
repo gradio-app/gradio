@@ -4,6 +4,7 @@ export declare class Client {
     app_reference: string;
     options: ClientOptions;
     config: Config | undefined;
+    api_prefix: string;
     api_info: ApiInfo<JsApiData> | undefined;
     api_map: Record<string, number>;
     session_hash: string;
@@ -20,6 +21,8 @@ export declare class Client {
     heartbeat_event: EventSource | null;
     abort_controller: AbortController | null;
     stream_instance: EventSource | null;
+    current_payload: any;
+    ws_map: Record<string, WebSocket | "failed">;
     fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
     stream(url: URL): EventSource;
     view_api: () => Promise<ApiInfo<JsApiData>>;
@@ -37,6 +40,7 @@ export declare class Client {
     _resolve_hearbeat(_config: Config): Promise<void>;
     static connect(app_reference: string, options?: ClientOptions): Promise<Client>;
     close(): void;
+    set_current_payload(payload: any): void;
     static duplicate(app_reference: string, options?: DuplicateOptions): Promise<Client>;
     private _resolve_config;
     private config_success;
@@ -47,6 +51,9 @@ export declare class Client {
     }): Promise<unknown>;
     set_cookies(raw_cookies: string): void;
     private prepare_return_obj;
+    private connect_ws;
+    send_ws_message(url: string, data: any): Promise<void>;
+    close_ws(url: string): Promise<void>;
 }
 /**
  * @deprecated This method will be removed in v1.0. Use `Client.connect()` instead.
