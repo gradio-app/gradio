@@ -993,6 +993,8 @@
 		y={active_cell_menu.y}
 		col={active_cell_menu.col}
 		row={active_cell_menu?.row ?? -1}
+		{col_count}
+		{row_count}
 		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
 		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
 		on_add_column_left={() => add_col_at(active_cell_menu?.col ?? -1, "left")}
@@ -1007,6 +1009,8 @@
 		y={active_header_menu.y}
 		col={active_header_menu.col}
 		row={-1}
+		{col_count}
+		{row_count}
 		on_add_column_left={() => add_col_at(active_header_menu?.col ?? -1, "left")}
 		on_add_column_right={() =>
 			add_col_at(active_header_menu?.col ?? -1, "right")}
@@ -1063,6 +1067,8 @@
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 		border-spacing: 0;
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--table-radius);
 	}
 
 	div:not(.no-wrap) td {
@@ -1194,13 +1200,6 @@
 		border-collapse: separate;
 	}
 
-	.select-column {
-		width: var(--size-3);
-		text-align: center;
-		padding: var(--size-1);
-		border-right: none;
-	}
-
 	.cell-menu-button {
 		flex-shrink: 0;
 		display: none;
@@ -1233,5 +1232,27 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	th.focus,
+	td.focus,
+	td.menu-active {
+		--ring-color: var(--color-accent);
+		position: relative;
+		z-index: 2;
+	}
+
+	th.focus::after,
+	td.focus::after,
+	td.menu-active::after {
+		content: "";
+		position: absolute;
+		top: -1px;
+		left: -1px;
+		right: -1px;
+		bottom: -1px;
+		pointer-events: none;
+		border: 2px solid var(--ring-color);
+		z-index: 3;
 	}
 </style>
