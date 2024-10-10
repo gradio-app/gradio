@@ -136,13 +136,19 @@
 		Array.from(tab_nav_el.querySelectorAll("button")).forEach((item) => {
 			const tab_rect = item.getBoundingClientRect();
 			const tab_menu_rect = tab_nav_el.getBoundingClientRect();
-			is_overflowing =
-				tab_rect.right > tab_menu_rect.right ||
-				tab_rect.left < tab_menu_rect.left;
+			const index = [...tab_nav_el.children].indexOf(item);
+			const tab = tabs[index];
 
-			if (is_overflowing) {
+			is_overflowing = !!(
+				(tab_rect.right > tab_menu_rect.right ||
+					tab_rect.left < tab_menu_rect.left) &&
+				tab &&
+				tab.visible
+			);
+
+			if (is_overflowing && tab && tab.visible) {
 				overflow_items.push(item as HTMLElement);
-			} else {
+			} else if (tab && tab.visible) {
 				nav_items.push(item as HTMLElement);
 			}
 		});
@@ -163,24 +169,26 @@
 		<div class="tab-wrapper">
 			<div class="tab-container" bind:this={tab_nav_el} role="tablist">
 				{#each tabs as t, i (t.id)}
-					<button
-						role="tab"
-						class:selected={t.id === $selected_tab}
-						aria-selected={t.id === $selected_tab}
-						aria-controls={t.elem_id}
-						disabled={!t.interactive}
-						aria-disabled={!t.interactive}
-						id={t.elem_id ? t.elem_id + "-button" : null}
-						data-tab-id={t.id}
-						on:click={() => {
-							if (t.id !== $selected_tab) {
-								change_tab(t.id);
-								dispatch("select", { value: t.name, index: i });
-							}
-						}}
-					>
-						{t.name}
-					</button>
+					{#if t.visible}
+						<button
+							role="tab"
+							class:selected={t.id === $selected_tab}
+							aria-selected={t.id === $selected_tab}
+							aria-controls={t.elem_id}
+							disabled={!t.interactive}
+							aria-disabled={!t.interactive}
+							id={t.elem_id ? t.elem_id + "-button" : null}
+							data-tab-id={t.id}
+							on:click={() => {
+								if (t.id !== $selected_tab) {
+									change_tab(t.id);
+									dispatch("select", { value: t.name, index: i });
+								}
+							}}
+						>
+							{t.name}
+						</button>
+					{/if}
 				{/each}
 			</div>
 			<span
