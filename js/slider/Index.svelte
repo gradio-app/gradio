@@ -184,6 +184,7 @@
 		outline: none;
 		border-radius: var(--radius-xl);
 		min-width: var(--size-28);
+		background: transparent;
 	}
 
 	/* webkit track */
