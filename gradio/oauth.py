@@ -36,7 +36,6 @@ def attach_oauth(app: fastapi.FastAPI):
     # If the app is running in a Space, OAuth is enabled normally. Otherwise, we mock the "real" routes to make the
     # user log in with a fake user profile - without any calls to hf.co.
 
-    print(">", get_space(), get_space() is not None)
     if get_space() is not None:
         _add_oauth_routes(app)
     else:

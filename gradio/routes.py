@@ -461,9 +461,7 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (
-                callable(app.auth) and app.auth.__call__(username, password)
-            ):  # type: ignore
+            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
@@ -491,7 +489,6 @@ class App(FastAPI):
         # It allows users to "Sign in with HuggingFace". Otherwise, add the default
         # logout route.
         if app.blocks is not None and app.blocks.expects_oauth:
-            print(">>>> OAuth routes enabled.")
             attach_oauth(app)
         else:
 

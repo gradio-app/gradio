@@ -190,8 +190,14 @@
 	}
 
 	.huggingface {
-		border: var(--button-border-width) solid
-			var(--button-secondary-border-color);
-		background: var(--background-fill-primary);
+		background: black;
+		color: white;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.huggingface {
+			background-color: white;
+			color: black;
+		}
 	}
 </style>
