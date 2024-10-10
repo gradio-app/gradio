@@ -559,6 +559,7 @@ class Video(StreamingOutput, Component):
                 # Need to set orig_name so that downloaded file has correct
                 # extension
                 "orig_name": "video-stream.mp4",
+                "meta": {"_type": "gradio.FileData"},
             }
         }
         if value is None:
