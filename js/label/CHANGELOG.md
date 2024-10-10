@@ -1,5 +1,11 @@
 # @gradio/label
 
+## 0.4.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
 ## 0.3.13-beta.5
 
 ### Dependency updates

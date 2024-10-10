@@ -7,11 +7,20 @@ export const prerender = true;
 const DOCS_BUCKET = "https://gradio-docs-json.s3.us-west-2.amazonaws.com";
 const VERSION = version.version;
 
+let cache = new Map();
+
 async function load_release_docs(
 	version: string
 ): Promise<typeof import("$lib/json/docs.json")> {
+	if (cache.has(version)) {
+		return cache.get(version);
+	}
 	let docs_json = await fetch(`${DOCS_BUCKET}/${version}/docs.json`);
-	return await docs_json.json();
+
+	let json = await docs_json.json();
+	cache.set(version, json);
+
+	return json;
 }
 
 async function load_main_docs(): Promise<typeof import("$lib/json/docs.json")> {

@@ -260,7 +260,8 @@
 				<Community />
 			</IconButton>
 		{/if}
-		<IconButton Icon={Trash} on:click={() => dispatch("clear")}></IconButton>
+		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
+		></IconButton>
 		{#if show_copy_all_button}
 			<CopyAll {value} />
 		{/if}
@@ -491,8 +492,10 @@
 		padding-top: var(--spacing-xxl);
 	}
 
-	:global(.dark) .bubble-wrap {
-		background: var(--background-fill-secondary);
+	@media (prefers-color-scheme: dark) {
+		.bubble-wrap {
+			background: var(--background-fill-secondary);
+		}
 	}
 
 	.message-wrap {

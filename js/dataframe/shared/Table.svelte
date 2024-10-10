@@ -991,7 +991,6 @@
 		{i18n}
 		x={active_cell_menu.x}
 		y={active_cell_menu.y}
-		col={active_cell_menu.col}
 		row={active_cell_menu?.row ?? -1}
 		{col_count}
 		{row_count}
@@ -1007,7 +1006,6 @@
 		{i18n}
 		x={active_header_menu.x}
 		y={active_header_menu.y}
-		col={active_header_menu.col}
 		row={-1}
 		{col_count}
 		{row_count}
