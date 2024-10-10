@@ -9,11 +9,11 @@
 </div>
 
 <style>
-	div {
+	:global(.md) {
 		margin-bottom: var(--spacing-lg);
 		color: var(--block-info-text-color);
-		font-weight: var(--block-info-text-weight);
-		font-size: var(--block-info-text-size);
+		font-weight: var(--block-info-text-weight) !important;
+		font-size: var(--block-info-text-size) !important;
 		line-height: var(--line-sm);
 	}
 </style>
