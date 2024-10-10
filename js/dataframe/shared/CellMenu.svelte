@@ -10,11 +10,15 @@
 	export let on_add_column_left: () => void;
 	export let on_add_column_right: () => void;
 	export let row: number;
+	export let col_count: [number, "fixed" | "dynamic"];
+	export let row_count: [number, "fixed" | "dynamic"];
 
 	export let i18n: I18nFormatter;
 	let menu_element: HTMLDivElement;
 
 	$: is_header = row === -1;
+	$: can_add_rows = row_count[1] === "dynamic";
+	$: can_add_columns = col_count[1] === "dynamic";
 
 	onMount(() => {
 		position_menu();
@@ -44,7 +48,7 @@
 </script>
 
 <div bind:this={menu_element} class="cell-menu">
-	{#if !is_header}
+	{#if !is_header && can_add_rows}
 		<button on:click={() => on_add_row_above()}>
 			<Arrow transform="rotate(-90 12 12)" />
 			{i18n("dataframe.add_row_above")}
@@ -54,14 +58,16 @@
 			{i18n("dataframe.add_row_below")}
 		</button>
 	{/if}
-	<button on:click={() => on_add_column_left()}>
-		<Arrow transform="rotate(180 12 12)" />
-		{i18n("dataframe.add_column_left")}
-	</button>
-	<button on:click={() => on_add_column_right()}>
-		<Arrow transform="rotate(0 12 12)" />
-		{i18n("dataframe.add_column_right")}
-	</button>
+	{#if can_add_columns}
+		<button on:click={() => on_add_column_left()}>
+			<Arrow transform="rotate(180 12 12)" />
+			{i18n("dataframe.add_column_left")}
+		</button>
+		<button on:click={() => on_add_column_right()}>
+			<Arrow transform="rotate(0 12 12)" />
+			{i18n("dataframe.add_column_right")}
+		</button>
+	{/if}
 </div>
 
 <style>
