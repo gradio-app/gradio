@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 import fastapi
 from fastapi.responses import RedirectResponse
 from huggingface_hub import HfFolder, whoami
-from starlette.datastructures import URL
 
 from gradio.utils import get_space
 
@@ -24,6 +23,8 @@ MAX_REDIRECTS = 2
 
 
 def attach_oauth(app: fastapi.FastAPI):
+    from gradio.route_utils import API_PREFIX
+
     try:
         from starlette.middleware.sessions import SessionMiddleware
     except ImportError as e:
@@ -35,12 +36,13 @@ def attach_oauth(app: fastapi.FastAPI):
     # Add `/login/huggingface`, `/login/callback` and `/logout` routes to enable OAuth in the Gradio app.
     # If the app is running in a Space, OAuth is enabled normally. Otherwise, we mock the "real" routes to make the
     # user log in with a fake user profile - without any calls to hf.co.
+    router = fastapi.APIRouter(prefix=API_PREFIX)
+    app.include_router(router)
 
-    print(">", get_space(), get_space() is not None)
     if get_space() is not None:
-        _add_oauth_routes(app)
+        _add_oauth_routes(router)
     else:
-        _add_mocked_oauth_routes(app)
+        _add_mocked_oauth_routes(router)
 
     # Session Middleware requires a secret key to sign the cookies. Let's use a hash
     # of the OAuth secret key to make it unique to the Space + updated in case OAuth
@@ -187,9 +189,13 @@ def _add_mocked_oauth_routes(app: fastapi.APIRouter) -> None:
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
+        from gradio.route_utils import API_PREFIX
+
         request.session.pop("oauth_info", None)
-        logout_url = URL("/").include_query_params(**request.query_params)
-        return RedirectResponse(url=logout_url, status_code=302)
+        logout_url = str(request.url).replace(
+            f"{API_PREFIX}/logout", "/"
+        )  # preserve query params
+        return RedirectResponse(url=logout_url)
 
 
 def _generate_redirect_uri(request: fastapi.Request) -> str:
