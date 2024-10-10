@@ -76,7 +76,7 @@
 		likeable: boolean;
 		show_retry: boolean;
 		show_undo: boolean;
-		disable: boolean;
+		generating: boolean;
 		show_copy_button: boolean;
 		message: NormalisedMessage[] | NormalisedMessage;
 		position: "left" | "right";
@@ -91,7 +91,7 @@
 		likeable: show_like,
 		show_retry,
 		show_undo,
-		disable: generating,
+		generating,
 		show_copy_button,
 		message: msg_format === "tuples" ? messages[0] : messages,
 		position: role === "user" ? "right" : "left",
