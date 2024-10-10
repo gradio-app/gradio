@@ -48,25 +48,20 @@ export function bootstrap_custom_element(
 		controller: GradioAppController | null = null;
 
 		connectedCallback(): void {
-			// At the time of connectedCallback, the child elements of the custom element are not yet parsed,
-			// so we need to defer the initialization to the next frame.
-			// Ref: https://stackoverflow.com/q/70949141/13103190
-			window.requestAnimationFrame(() => {
-				const gradioComponentOptions = this.parseGradioComponentOptions();
-				const gradioLiteAppOptions = this.parseGradioLiteAppOptions();
+			const gradioComponentOptions = this.parseGradioComponentOptions();
+			const gradioLiteAppOptions = this.parseGradioLiteAppOptions();
 
-				this.innerHTML = "";
+			this.innerHTML = "";
 
-				this.controller = create({
-					target: this, // Same as `js/spa/src/main.ts`
-					code: gradioLiteAppOptions.code,
-					requirements: gradioLiteAppOptions.requirements,
-					files: gradioLiteAppOptions.files,
-					entrypoint: gradioLiteAppOptions.entrypoint,
-					playground: this.hasAttribute("playground"),
-					layout: this.getAttribute("layout"),
-					...gradioComponentOptions
-				});
+			this.controller = create({
+				target: this, // Same as `js/spa/src/main.ts`
+				code: gradioLiteAppOptions.code,
+				requirements: gradioLiteAppOptions.requirements,
+				files: gradioLiteAppOptions.files,
+				entrypoint: gradioLiteAppOptions.entrypoint,
+				playground: this.hasAttribute("playground"),
+				layout: this.getAttribute("layout"),
+				...gradioComponentOptions
 			});
 		}
 
