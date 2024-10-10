@@ -1,5 +1,22 @@
 # @self/component-test
 
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/video@0.11.1
+
+## 0.2.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - 🔡 Update default core Gradio font
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Added max lines and overflow scrollbar for `gr.Code`
+
+### Dependencies
+
+- @gradio/video@0.11.0
+
 ## 0.2.0-beta.7
 
 ### Dependency updates

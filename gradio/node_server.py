@@ -139,7 +139,7 @@ def start_node_process(
         f"Cannot start Node server on any port in the range {server_ports[0]}-{server_ports[-1]}."
     )
     print(
-        "Please install Node 18 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
+        "Please install Node 20 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
     )
     print(
         "You can explicitly specify a port by setting the environment variable GRADIO_NODE_PORT."
