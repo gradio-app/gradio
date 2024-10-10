@@ -82,7 +82,7 @@ for (const test_case of cases) {
 		);
 		const api_recorder = await page.locator("#api-recorder");
 		await api_recorder.click();
-		const n_calls = test_case.includes("non_stream") ? 3 : 5;
+		const n_calls = test_case.includes("non_stream") ? 4 : 6;
 		await expect(page.locator("#num-recorded-api-calls")).toContainText(
 			`🪄 Recorded API Calls [${n_calls}]`
 		);
@@ -104,6 +104,7 @@ test("test stopping generation", async ({ page }) => {
 	await stop_button.click();
 
 	await expect(page.locator(".bot.message").first()).toContainText("abc");
+	await page.waitForTimeout(1000);
 
 	const current_content = await page
 		.locator(".bot.message")
