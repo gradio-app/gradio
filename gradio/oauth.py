@@ -97,6 +97,7 @@ def _add_oauth_routes(app: fastapi.APIRouter) -> None:
         """Endpoint that redirects to HF OAuth page."""
         # Define target (where to redirect after login)
         redirect_uri = _generate_redirect_uri(request)
+        print(">>>>", redirect_uri)
         return await oauth.huggingface.authorize_redirect(request, redirect_uri)  # type: ignore
 
     @app.get("/login/callback")
