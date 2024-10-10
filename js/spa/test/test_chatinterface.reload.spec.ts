@@ -5,21 +5,20 @@ import { join } from "path";
 
 let _process;
 
-const demo_file = "chat_demo.py";
-
 test.beforeAll(() => {
 	const demo = `
-import gradio as gr
-    
-def greet(msg, history):
-    return "Hello"
+	import gradio as gr
+		
+	def greet(msg, history):
+		return "Hello"
 
-demo = gr.ChatInterface(fn=greet)
+	demo = gr.ChatInterface(fn=greet)
 
-if __name__ == "__main__":
-    demo.launch()
-`;
-	spawnSync(`echo '${demo}' > ${join(process.cwd(), demo_file)}`, {
+	if __name__ == "__main__":
+		demo.launch()
+	`;
+	// write contents of demo to a local 'run.py' file
+	spawnSync(`echo '${demo}' > ${join(process.cwd(), "run.py")}`, {
 		shell: true,
 		stdio: "pipe",
 		env: {
@@ -31,7 +30,7 @@ if __name__ == "__main__":
 
 test.afterAll(() => {
 	if (_process) kill_process(_process);
-	spawnSync(`rm  ${join(process.cwd(), demo_file)}`, {
+	spawnSync(`rm  ${join(process.cwd(), "run.py")}`, {
 		shell: true,
 		stdio: "pipe",
 		env: {
@@ -49,25 +48,26 @@ test("gradio dev mode correctly reloads a stateful ChatInterface demo", async ({
 	try {
 		const { _process: server_process, port: port } =
 			await launch_app_background(
-				`gradio ${join(process.cwd(), demo_file)}`,
+				`gradio ${join(process.cwd(), "run.py")}`,
 				process.cwd()
 			);
 		_process = server_process;
 		console.log("Connected to port", port);
 		const demo = `
-import gradio as gr
+		import gradio as gr
 
-def greet(msg, history):
-    return f"You typed: {msg}"
+		def greet(msg, history):
+			return f"You typed: {msg}"
 
-demo = gr.ChatInterface(fn=greet, textbox=gr.Textbox(label="foo", placeholder="Type a message..."))
+		demo = gr.ChatInterface(fn=greet, textbox=gr.Textbox(label="foo", placeholder="Type a message..."))
 
-if __name__ == "__main__":
-    demo.launch()
-`;
+		if __name__ == "__main__":
+			demo.launch()
+		`;
+		// write contents of demo to a local 'run.py' file
 		await page.goto(`http://localhost:${port}`);
 		await page.waitForTimeout(2000);
-		spawnSync(`echo '${demo}' > ${join(process.cwd(), demo_file)}`, {
+		spawnSync(`echo '${demo}' > ${join(process.cwd(), "run.py")}`, {
 			shell: true,
 			stdio: "pipe",
 			env: {
@@ -75,12 +75,12 @@ if __name__ == "__main__":
 				PYTHONUNBUFFERED: "true"
 			}
 		});
+
 		await expect(page.getByLabel("foo")).toBeVisible();
-		const textbox = page.getByPlaceholder("Type a message...");
-		const submit_button = page.getByRole("button", { name: "Submit" });
+		const textbox = page.getByTestId("textbox").first();
 
 		await textbox.fill("hello");
-		await submit_button.click();
+		await textbox.press("Enter");
 
 		await expect(textbox).toHaveValue("");
 		const response = page.locator(".bot  p", {
