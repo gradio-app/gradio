@@ -95,7 +95,13 @@ if wasm_utils.IS_WASM:
         ) -> httpx.Response:
             url = str(request.url)
             method = request.method
+
             headers = dict(request.headers)
+            # User-agent header is automatically set by the browser.
+            # More importantly, setting it causes an error on FireFox where a preflight request is made and it leads to a CORS error.
+            # Maybe related to https://bugzilla.mozilla.org/show_bug.cgi?id=1629921
+            del headers["user-agent"]
+
             body = None if method in ["GET", "HEAD"] else await request.aread()
             response = await pyodide.http.pyfetch(
                 url, method=method, headers=headers, body=body

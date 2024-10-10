@@ -11,12 +11,14 @@ async function error_modal_showed(page) {
 test("File component properly dispatches load event for the single file case.", async ({
 	page
 }) => {
-	await page
-		.getByRole("button", { name: "Drop File Here - or - Click to Upload" })
-		.first()
-		.click();
-	const uploader = await page.locator("input[type=file]").first();
-	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
+	const [fileChooser] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page
+			.getByRole("button", { name: "Drop File Here - or - Click to Upload" })
+			.first()
+			.click()
+	]);
+	await fileChooser.setFiles(["./test/files/cheetah1.jpg"]);
 
 	await expect(page.getByLabel("# Load Upload Single File")).toHaveValue("1");
 
