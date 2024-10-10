@@ -1,5 +1,15 @@
 # @gradio/textbox
 
+## 0.7.1
+
+### Features
+
+- [#9626](https://github.com/gradio-app/gradio/pull/9626) [`ec95b02`](https://github.com/gradio-app/gradio/commit/ec95b0212b3ce2bf1a14af92fcd40d15052dd672) - Fix stopping chat interface when stop button is clicked.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
 ## 0.7.0
 
 ### Features

@@ -1,5 +1,11 @@
 # @gradio/dataset
 
+## 0.3.1
+
+### Dependency updates
+
+- @gradio/textbox@0.7.1
+
 ## 0.2.5-beta.7
 
 ### Dependency updates

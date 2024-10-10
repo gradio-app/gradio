@@ -1,5 +1,11 @@
 # @gradio/simpleimage
 
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
 ## 0.8.0
 
 ### Features
