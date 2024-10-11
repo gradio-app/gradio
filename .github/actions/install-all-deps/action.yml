@@ -57,9 +57,7 @@ runs:
     - name: Install uv
       shell: bash
       run: |
-        . ${{ env.VENV_ACTIVATE }}
-        python -m pip install uv
-
+        curl -LsSf https://astral.sh/uv/install.sh | sh
     # - uses: actions/cache@v4
     #   id: cache
     #   with:
@@ -77,14 +75,14 @@ runs:
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        uv python -m pip install -r test/requirements.txt
-        uv python -m pip install -r client/python/test/requirements.txt
+        uv pip install -r test/requirements.txt
+        uv pip install -r client/python/test/requirements.txt
     - name: Install Gradio and Client Libraries Locally (Linux)
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        uv python -m pip install -e client/python
-        uv python -m pip install -e ".[oauth]"
+        uv pip install -e client/python
+        uv pip install -e ".[oauth]"
     - name: install-frontend
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
