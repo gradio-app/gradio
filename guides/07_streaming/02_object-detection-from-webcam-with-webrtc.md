@@ -66,6 +66,7 @@ We'll also apply custom CSS to center the webcam and slider on the page.
 
 ```python
 import gradio as gr
+from gradio_webrtc import WebRTC
 
 css = """.my-group {max-width: 600px !important; max-height: 600px !important;}
          .my-column {display: flex !important; justify-content: center !important; align-items: center !important;}"""
