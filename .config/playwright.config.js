@@ -56,7 +56,18 @@ const lite = defineConfig(base, {
 	],
 	workers: 1,
 	retries: 3,
-	timeout: 60000
+	timeout: 60000,
+	projects: [
+		{
+			name: "chromium",
+			use: { ...devices["Desktop Chrome"] }
+		},
+		{
+			name: "firefox",
+			use: { ...devices["Desktop Firefox"] },
+			testIgnore: "**/kitchen_sink.*" // This test requires the camera permission but it's not supported on FireFox: https://github.com/microsoft/playwright/issues/11714
+		}
+	]
 });
 
 export default !!process.env.GRADIO_E2E_TEST_LITE ? lite : normal;
