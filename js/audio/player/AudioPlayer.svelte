@@ -5,6 +5,8 @@
 	import WaveSurfer from "wavesurfer.js";
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
+	import StreamingAudio from "./StreamingAudio.svelte";
+	import WaveformWrapper from "../shared/waveform_wrapper.ts";
 	import { Empty } from "@gradio/atoms";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 	import type { FileData } from "@gradio/client";
@@ -67,6 +69,7 @@
 	};
 
 	$: if (!value?.is_stream && container !== undefined && container !== null) {
+		console.log("creating waveform value", value);
 		if (waveform !== undefined) waveform.destroy();
 		container.innerHTML = "";
 		create_waveform();
@@ -101,6 +104,7 @@
 		}
 	});
 	$: waveform?.on("pause", () => {
+		console.log("pause");
 		playing = false;
 		dispatch("pause");
 	});
@@ -156,7 +160,9 @@
 			hls.loadSource(value.url);
 			hls.attachMedia(audio_player);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				if (waveform_settings.autoplay) audio_player.play();
+				if (waveform_settings.autoplay) {
+					audio_player.play();
+				}
 			});
 			hls.on(Hls.Events.ERROR, function (event, data) {
 				console.error("HLS error:", event, data);
@@ -199,18 +205,49 @@
 			}
 		});
 	});
+
+	$: console.log("stream active", stream_active);
+
+	function make_waveform(stream_active: boolean): void {
+		if (stream_active) {
+			console.log("here stream active");
+			waveform = new WaveformWrapper(audio_player);
+			console.log("created waveform", waveform);
+			waveform?.on("finish", () => {
+			if (loop) {
+				waveform?.play();
+			} else {
+				playing = false;
+				dispatch("stop");
+			}
+		});
+		waveform?.on("pause", () => {
+			console.log("pause");
+			playing = false;
+			dispatch("pause");
+		});
+		waveform?.on("play", () => {
+			playing = true;
+			dispatch("play");
+		});
+	}
+	}
+
+	$: make_waveform(stream_active);
+
+
 </script>
 
 <audio
 	class="standard-player"
-	class:hidden={!(value && value.is_stream)}
-	controls
+	class:hidden={true}
 	autoplay={waveform_settings.autoplay}
 	on:load
 	bind:this={audio_player}
 	on:ended={() => dispatch("stop")}
 	on:play={() => dispatch("play")}
 />
+
 {#if value === null}
 	<Empty size="small">
 		<Music />
@@ -258,7 +295,29 @@
 		/>
 		<!-- {/if} -->
 	</div>
+{:else if stream_active}
+	<StreamingAudio
+		audio_source={audio_player}
+	/>
+	<WaveformControls
+		{container}
+		waveform={waveform}
+		{playing}
+		{audio_duration}
+		{i18n}
+		{interactive}
+		{handle_trim_audio}
+		bind:mode
+		bind:trimDuration
+		bind:show_volume_slider
+		show_redo={interactive}
+		{handle_reset_value}
+		{waveform_options}
+		{trim_region_settings}
+		{editable}
+/>
 {/if}
+
 
 <style>
 	.component-wrapper {
