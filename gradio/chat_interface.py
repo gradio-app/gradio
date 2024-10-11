@@ -466,7 +466,7 @@ class ChatInterface(Blocks):
                 None,
                 None,
                 None,
-                cancels=events_to_cancel,
+                cancels=events_to_cancel,  # type: ignore
                 show_api=False,
             )
 

@@ -339,6 +339,7 @@ class Audio(
             "path": output_id,
             "is_stream": True,
             "orig_name": "audio-stream.mp3",
+            "meta": {"_type": "gradio.FileData"},
         }
         if value is None:
             return None, output_file
