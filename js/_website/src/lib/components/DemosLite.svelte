@@ -312,15 +312,6 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 		}
 
 		controller.install(cleanupRequirements(current_demo.requirements));
-		controller.install([
-			"numpy",
-			"pandas",
-			"matplotlib",
-			"plotly",
-			"transformers_js_py",
-			"requests",
-			"pillow"
-		]);
 	}
 	$: if (mounted) {
 		// When the selected demo changes, we need to call controller.install() immediately without debouncing.
@@ -331,16 +322,7 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 	}
 	$: if (mounted) {
 		debounced_install &&
-			debounced_install(cleanupRequirements(requirementsStr.split("\n"))) &&
-			debounced_install([
-				"numpy",
-				"pandas",
-				"matplotlib",
-				"plotly",
-				"transformers_js_py",
-				"requests",
-				"pillow"
-			]);
+			debounced_install(cleanupRequirements(requirementsStr.split("\n")));
 	}
 
 	let position = 0.5;
