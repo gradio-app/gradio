@@ -1,5 +1,16 @@
 # @self/app
 
+## 1.41.2
+
+### Fixes
+
+- [#9669](https://github.com/gradio-app/gradio/pull/9669) [`70998ea`](https://github.com/gradio-app/gradio/commit/70998ea75276e677595447ac36b67e1152e589a2) - fix height in iframe.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/wasm@0.14.1
+- @gradio/core@0.1.1
+
 ## 1.41.1
 
 ### Features
