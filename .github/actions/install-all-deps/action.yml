@@ -54,6 +54,12 @@ runs:
       run: |
         python -m pip install --upgrade virtualenv
         python -m virtualenv venv
+    - name: Install uv
+      shell: bash
+      run: |
+        . ${{ env.VENV_ACTIVATE }}
+        python -m pip install uv
+
     # - uses: actions/cache@v4
     #   id: cache
     #   with:
