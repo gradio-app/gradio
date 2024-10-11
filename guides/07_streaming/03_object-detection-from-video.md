@@ -1,4 +1,4 @@
-# Object Detection from a Webcam Stream
+# Streaming Object Detection from Video
 
 Tags: VISION, STREAMING, VIDEO
 
@@ -113,9 +113,9 @@ def stream_object_detection(video, conf_threshold):
         n_frames += 1
 ```
 
-1. **Reading from the Webcam**
+1. **Reading from the Video**
 
-One of the industry standards for creating videos in python is OpenCV so we will use it in this video.
+One of the industry standards for creating videos in python is OpenCV so we will use it in this app.
 
 The `cap` variable is how we will read from the input video. Whenever we call `cap.read()`, we are reading the next frame in the video.
 
@@ -144,6 +144,8 @@ In order for streaming to work, we have to set `streaming=True` in the output vi
 to autoplay is not necessary but it's a better experience for users.
 
 ```python
+import gradio as gr
+
 with gr.Blocks() as app:
     gr.HTML(
         """
@@ -169,6 +171,8 @@ with gr.Blocks() as app:
         inputs=[video, conf_threshold],
         outputs=[output_video],
     )
+
+
 ```
 
 
