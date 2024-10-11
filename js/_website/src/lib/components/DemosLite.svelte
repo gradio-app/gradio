@@ -190,7 +190,10 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 
 	function handle_user_query_key_down(e: KeyboardEvent): void {
 		if (e.key === "Enter") {
-			generate_code(user_query, selected_demo.name);
+			run_as_update = false;
+			suspend_and_resume_auto_run(() =>
+				generate_code(user_query, selected_demo.name)
+			);
 		}
 	}
 
@@ -317,12 +320,24 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 		// When the selected demo changes, we need to call controller.install() immediately without debouncing.
 		on_demo_selected(current_selection);
 	}
-	$: if (mounted) {
+
+	let run_as_update = true;
+	$: if (mounted && run_as_update) {
 		debounced_run_code && debounced_run_code(code);
 	}
-	$: if (mounted) {
+	$: if (mounted && run_as_update) {
 		debounced_install &&
 			debounced_install(cleanupRequirements(requirementsStr.split("\n")));
+	}
+	async function suspend_and_resume_auto_run(inner_fn: () => unknown | Promise<unknown>) {
+		run_as_update = false;
+		try {
+			await inner_fn();
+			await controller.install(cleanupRequirements(requirementsStr.split("\n")));
+			await controller.run_code(code);
+		} finally {
+			run_as_update = true;
+		}
 	}
 
 	let position = 0.5;
@@ -637,7 +652,7 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 						{#if generated}
 							<button
 								on:click={() => {
-									generate_code(user_query, selected_demo.name);
+									suspend_and_resume_auto_run(() => generate_code(user_query, selected_demo.name));
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
 							>
