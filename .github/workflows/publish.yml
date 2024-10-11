@@ -26,6 +26,10 @@ jobs:
         with:
           python_version: "3.10"
           skip_build: "false"
+      - uses: listendev/action@v0.11
+        with:
+          jwt: ${{ secrets.LSTN }}
+          ci: only
       - name: Build packages
         run: |
           . venv/bin/activate
