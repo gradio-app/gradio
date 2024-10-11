@@ -65,6 +65,8 @@ The Gradio demo is straightforward, but we'll implement a few specific features:
 We'll also apply custom CSS to center the webcam and slider on the page.
 
 ```python
+import gradio as gr
+
 css = """.my-group {max-width: 600px !important; max-height: 600px !important;}
          .my-column {display: flex !important; justify-content: center !important; align-items: center !important;}"""
 
