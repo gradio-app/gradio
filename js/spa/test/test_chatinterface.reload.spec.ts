@@ -3,11 +3,12 @@ import { spawnSync } from "node:child_process";
 import { launch_app_background, kill_process } from "./utils";
 import { join } from "path";
 
+const demo_file = "chat_demo.py";
 let _process;
 
 test.beforeAll(() => {
 	const demo = `
-	import gradio as gr
+import gradio as gr
 		
 	def greet(msg, history):
 		return "Hello"
@@ -18,7 +19,7 @@ test.beforeAll(() => {
 		demo.launch()
 	`;
 	// write contents of demo to a local 'run.py' file
-	spawnSync(`echo '${demo}' > ${join(process.cwd(), "run.py")}`, {
+	spawnSync(`echo '${demo}' > ${join(process.cwd(), demo_file)}`, {
 		shell: true,
 		stdio: "pipe",
 		env: {
@@ -30,7 +31,7 @@ test.beforeAll(() => {
 
 test.afterAll(() => {
 	if (_process) kill_process(_process);
-	spawnSync(`rm  ${join(process.cwd(), "run.py")}`, {
+	spawnSync(`rm  ${join(process.cwd(), demo_file)}`, {
 		shell: true,
 		stdio: "pipe",
 		env: {
@@ -48,7 +49,7 @@ test("gradio dev mode correctly reloads a stateful ChatInterface demo", async ({
 	try {
 		const { _process: server_process, port: port } =
 			await launch_app_background(
-				`gradio ${join(process.cwd(), "run.py")}`,
+				`gradio ${join(process.cwd(), demo_file)}`,
 				process.cwd()
 			);
 		_process = server_process;
@@ -67,7 +68,7 @@ test("gradio dev mode correctly reloads a stateful ChatInterface demo", async ({
 		// write contents of demo to a local 'run.py' file
 		await page.goto(`http://localhost:${port}`);
 		await page.waitForTimeout(2000);
-		spawnSync(`echo '${demo}' > ${join(process.cwd(), "run.py")}`, {
+		spawnSync(`echo '${demo}' > ${join(process.cwd(), demo_file)}`, {
 			shell: true,
 			stdio: "pipe",
 			env: {
