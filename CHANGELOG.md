@@ -1,5 +1,11 @@
 # gradio
 
+## 5.0.2
+
+### Fixes
+
+- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox.  Thanks @whitphx!
+
 ## 5.0.1
 
 ### Features
