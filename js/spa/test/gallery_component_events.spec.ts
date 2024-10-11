@@ -33,12 +33,14 @@ test("Gallery select event returns the right value and the download button works
 test("Gallery click-to-upload, upload and change events work correctly", async ({
 	page
 }) => {
-	await page
-		.getByRole("button", { name: "Drop Media Here - or - Click to Upload" })
-		.first()
-		.click();
-	const uploader = await page.locator("input[type=file]").first();
-	await uploader.setInputFiles([
+	const [fileChooser] = await Promise.all([
+		page.waitForEvent("filechooser"),
+		page
+			.getByRole("button", { name: "Drop Media Here - or - Click to Upload" })
+			.first()
+			.click()
+	]);
+	await fileChooser.setFiles([
 		"./test/files/cheetah1.jpg",
 		"./test/files/cheetah1.jpg"
 	]);
