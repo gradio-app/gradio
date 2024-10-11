@@ -45,6 +45,10 @@ jobs:
     if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
+      - uses: listendev/action@v0.11
+        with:
+          jwt: ${{ secrets.LSTN }}
+          ci: only
       - name: install dependencies
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
