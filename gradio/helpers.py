@@ -1036,6 +1036,7 @@ def skip() -> dict:
 
 def log_message(
     message: str,
+    title: str,
     level: Literal["info", "warning"] = "info",
     duration: float | None = 10,
     visible: bool = True,
@@ -1053,13 +1054,13 @@ def log_message(
             warnings.warn(message)
         return
     blocks._queue.log_message(
-        event_id=event_id, log=message, level=level, duration=duration, visible=visible
+        event_id=event_id, title=title, log=message, level=level, duration=duration, visible=visible
     )
 
 
 @document(documentation_group="modals")
 def Warning(  # noqa: N802
-    message: str = "Warning issued.", duration: float | None = 10, visible: bool = True
+    title: str = "Warning", message: str = "Warning issued.", duration: float | None = 10, visible: bool = True
 ):
     """
     This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
@@ -1078,12 +1079,13 @@ def Warning(  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, level="warning", duration=duration, visible=visible)
+    log_message(title, message, level="warning", duration=duration, visible=visible)
 
 
 @document(documentation_group="modals")
 def Info(  # noqa: N802
     message: str = "Info issued.",
+    title: str = "Info",
     duration: float | None = 10,
     visible: bool = True,
 ):
@@ -1092,6 +1094,7 @@ def Info(  # noqa: N802
     Demos: blocks_chained_events
     Parameters:
         message: The info message to be displayed to the user. Can be HTML, which will be rendered in the modal.
+        title: The title to be displayed to the user. Can be HTML, which will be rendered in the modal.
         duration: The duration in seconds that the info message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
         visible: Whether the error message should be displayed in the UI.
     Example:
@@ -1104,4 +1107,4 @@ def Info(  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, level="info", duration=duration, visible=visible)
+    log_message(title, message, level="info", duration=duration, visible=visible)

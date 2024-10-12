@@ -394,6 +394,7 @@ class Queue:
         self,
         event_id: str,
         log: str,
+        title: str,
         level: Literal["info", "warning"],
         duration: float | None = 10,
         visible: bool = True,
@@ -402,6 +403,7 @@ class Queue:
         for event in events:
             if event._id == event_id:
                 log_message = LogMessage(
+                    title=title,
                     log=log,
                     level=level,
                     duration=duration,

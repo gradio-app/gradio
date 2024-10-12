@@ -5,6 +5,7 @@
 	import { fade } from "svelte/transition";
 	import type { ToastMessage } from "./types";
 
+	export let title = "";
 	export let message = "";
 	export let type: ToastMessage["type"];
 	export let id: number;
@@ -27,7 +28,7 @@
 			}
 		}
 	});
-
+	$: title = DOMPurify.sanitize(title);
 	$: message = DOMPurify.sanitize(message);
 
 	$: display = visible;
@@ -73,7 +74,7 @@
 	</div>
 
 	<div class="toast-details {type}">
-		<div class="toast-title {type}">{type}</div>
+		<div class="toast-title {type}">{@html title}</div>
 		<div class="toast-text {type}">
 			{@html message}
 		</div>
