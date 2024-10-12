@@ -68,7 +68,7 @@
 
 	$: if (value === null) value = { text: "", files: [] };
 	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
-	$: can_submit = value.text !== "" || value.files.length > 0;
+	$: can_submit = value.text !== "";
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
