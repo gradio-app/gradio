@@ -349,7 +349,10 @@
 				);
 			} catch (e) {
 				const fn_index = 0; // Mock value for fn_index
-				messages = [new_message("Error", String(e), fn_index, "error"), ...messages];
+				messages = [
+					new_message("Error", String(e), fn_index, "error"),
+					...messages
+				];
 				loading_status.update({
 					status: "error",
 					fn_index,

@@ -1054,13 +1054,21 @@ def log_message(
             warnings.warn(message)
         return
     blocks._queue.log_message(
-        event_id=event_id, title=title, log=message, level=level, duration=duration, visible=visible
+        event_id=event_id,
+        title=title,
+        log=message,
+        level=level,
+        duration=duration,
+        visible=visible,
     )
 
 
 @document(documentation_group="modals")
 def Warning(  # noqa: N802
-    title: str = "Warning", message: str = "Warning issued.", duration: float | None = 10, visible: bool = True
+    title: str = "Warning",
+    message: str = "Warning issued.",
+    duration: float | None = 10,
+    visible: bool = True,
 ):
     """
     This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
