@@ -24,8 +24,8 @@ jobs:
       - name: Generate Notebooks
         run: |
           python3 -m venv venv
-          echo ".venv" >> .gitignore
-          source .venv/bin/activate
+          echo "venv" >> .gitignore
+          source venv/bin/activate
           pip install nbformat && python scripts/generate_notebooks.py
       - name: Print Git Status
         run: echo $(git status) && echo $(git diff)
