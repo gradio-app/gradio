@@ -24,7 +24,10 @@ jobs:
       - name: Generate Notebooks
         run: |
           python3 -m venv venv
-          echo "venv" >> .gitignore
+          if ! grep -q "^venv/$" .gitignore; then
+            echo "venv/" >> .gitignore
+            echo "" >> .gitignore  # Ensure there's a newline at the end
+          fi
           source venv/bin/activate
           pip install nbformat && python scripts/generate_notebooks.py
       - name: Print Git Status
