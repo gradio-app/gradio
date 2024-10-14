@@ -1,6 +1,6 @@
 ---
-"@gradio/audio": minor
-"gradio": minor
+"@gradio/audio": patch
+"gradio": patch
 ---
 
-feat:Streaming audio display
+fix:Streaming audio display
