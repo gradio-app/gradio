@@ -17,9 +17,7 @@ test("change events work as expected", async ({ page }) => {
 	await expect(change_text).toContainText("1");
 
 	await page.getByLabel("Draw button").first().click();
-	const canvas = page.locator("canvas").first();
-	await canvas.waitFor({ state: 'attached' });
-	await canvas.waitFor({ state: 'visible' });
+	const canvas = page.locator("#image_editor canvas").first();
 	await canvas.click({ position: { x: 100, y: 100 } });
 	await expect(change_text).toContainText("2");
 
@@ -40,7 +38,7 @@ test("input events work as expected", async ({ page }) => {
 	await expect(input_text).toContainText("1");
 
 	await page.getByLabel("Draw button").first().click();
-	const canvas = page.locator("canvas").first();
+	const canvas = page.locator("#image_editor canvas").first();
 	await canvas.click({ position: { x: 100, y: 100 } });
 	await expect(input_text).toContainText("2");
 
@@ -57,7 +55,7 @@ test("apply events work as expected", async ({ page }) => {
 	const apply_button = page.getByLabel("Save changes").first();
 
 	await page.getByLabel("Draw button").first().click();
-	const canvas = page.locator("canvas").first();
+	const canvas = page.locator("#image_editor canvas").first();
 	await canvas.click({ position: { x: 100, y: 100 } });
 	await apply_button.click();
 	await expect(apply_text).toContainText("1");
