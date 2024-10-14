@@ -16,7 +16,12 @@
 | [Guides](https://gradio.app/guides/)
 | [Getting Started](https://gradio.app/getting_started/)
 | [Examples](demo/)
-| [中文](readme_files/zh-cn#readme)
+
+</div>
+
+<div align="center">
+
+English | [中文](readme_files/zh-cn#readme)
 
 </div>
 

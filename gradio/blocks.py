@@ -391,9 +391,7 @@ class Block:
                 return client_utils.synchronize_async(
                     processing_utils.async_move_files_to_cache, data, self
                 )
-            except (
-                AttributeError
-            ):  # Can be raised if this function is called before the Block is fully initialized.
+            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
 
@@ -2541,7 +2539,7 @@ Received inputs:
             if self.is_colab:
                 if not quiet:
                     print(
-                        "Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "Running Gradio in a Colab notebook requires sharing enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             elif self.is_kaggle:
