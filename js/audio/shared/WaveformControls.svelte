@@ -25,8 +25,6 @@
 	export let show_volume_slider = false;
 	export let editable = true;
 
-	$: console.log("waveform", waveform);
-
 	export let trimDuration = 0;
 
 	let playbackSpeeds = [0.5, 1, 1.5, 2];

@@ -6,7 +6,7 @@
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import StreamingAudio from "./StreamingAudio.svelte";
-	import WaveformWrapper from "../shared/waveform_wrapper.ts";
+	import WaveformWrapper from "../shared/waveform_wrapper";
 	import { Empty } from "@gradio/atoms";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 	import type { FileData } from "@gradio/client";
@@ -33,7 +33,7 @@
 	export let handle_reset_value: () => void = () => {};
 
 	let container: HTMLDivElement;
-	let waveform: WaveSurfer | undefined;
+	let waveform: WaveSurfer | WaveformWrapper | undefined;
 	let playing = false;
 
 	let timeRef: HTMLTimeElement;
@@ -66,63 +66,22 @@
 				return waveform.load(resolved_src);
 			}
 		});
+		attach_waveform_events(waveform);
 	};
 
 	$: if (!value?.is_stream && container !== undefined && container !== null) {
-		console.log("creating waveform value", value);
 		if (waveform !== undefined) waveform.destroy();
 		container.innerHTML = "";
 		create_waveform();
 		playing = false;
 	}
 
-	$: waveform?.on("decode", (duration: any) => {
-		audio_duration = duration;
-		durationRef && (durationRef.textContent = format_time(duration));
-	});
-
-	$: waveform?.on(
-		"timeupdate",
-		(currentTime: any) =>
-			timeRef && (timeRef.textContent = format_time(currentTime))
-	);
-
-	$: waveform?.on("ready", () => {
-		if (!waveform_settings.autoplay) {
-			waveform?.stop();
-		} else {
-			waveform?.play();
-		}
-	});
-
-	$: waveform?.on("finish", () => {
-		if (loop) {
-			waveform?.play();
-		} else {
-			playing = false;
-			dispatch("stop");
-		}
-	});
-	$: waveform?.on("pause", () => {
-		console.log("pause");
-		playing = false;
-		dispatch("pause");
-	});
-	$: waveform?.on("play", () => {
-		playing = true;
-		dispatch("play");
-	});
-
-	$: waveform?.on("load", () => {
-		dispatch("load");
-	});
-
 	const handle_trim_audio = async (
 		start: number,
 		end: number
 	): Promise<void> => {
 		mode = "";
-		const decodedData = waveform?.getDecodedData();
+		const decodedData = (waveform as undefined | WaveSurfer)?.getDecodedData();
 		if (decodedData)
 			await process_audio(
 				decodedData,
@@ -206,14 +165,29 @@
 		});
 	});
 
-	$: console.log("stream active", stream_active);
+	function attach_waveform_events(
+		waveform: WaveformWrapper | WaveSurfer
+	): void {
+		waveform.on("decode", (duration: any) => {
+			audio_duration = duration;
+			durationRef && (durationRef.textContent = format_time(duration));
+		});
 
-	function make_waveform(stream_active: boolean): void {
-		if (stream_active) {
-			console.log("here stream active");
-			waveform = new WaveformWrapper(audio_player);
-			console.log("created waveform", waveform);
-			waveform?.on("finish", () => {
+		waveform.on(
+			"timeupdate",
+			(currentTime: any) =>
+				timeRef && (timeRef.textContent = format_time(currentTime))
+		);
+
+		waveform.on("ready", () => {
+			if (!waveform_settings.autoplay) {
+				waveform?.stop();
+			} else {
+				waveform?.play();
+			}
+		});
+
+		waveform.on("finish", () => {
 			if (loop) {
 				waveform?.play();
 			} else {
@@ -221,21 +195,29 @@
 				dispatch("stop");
 			}
 		});
-		waveform?.on("pause", () => {
-			console.log("pause");
+		waveform.on("pause", () => {
 			playing = false;
 			dispatch("pause");
 		});
-		waveform?.on("play", () => {
+
+		waveform.on("play", () => {
 			playing = true;
 			dispatch("play");
 		});
+
+		waveform.on("load", () => {
+			dispatch("load");
+		});
 	}
+
+	function make_waveform(stream_active: boolean): void {
+		if (stream_active) {
+			waveform = new WaveformWrapper(audio_player);
+			attach_waveform_events(waveform);
+		}
 	}
 
 	$: make_waveform(stream_active);
-
-
 </script>
 
 <audio
@@ -296,12 +278,10 @@
 		<!-- {/if} -->
 	</div>
 {:else if stream_active}
-	<StreamingAudio
-		audio_source={audio_player}
-	/>
+	<StreamingAudio audio_source={audio_player} />
 	<WaveformControls
 		{container}
-		waveform={waveform}
+		{waveform}
 		{playing}
 		{audio_duration}
 		{i18n}
@@ -315,9 +295,8 @@
 		{waveform_options}
 		{trim_region_settings}
 		{editable}
-/>
+	/>
 {/if}
-
 
 <style>
 	.component-wrapper {
