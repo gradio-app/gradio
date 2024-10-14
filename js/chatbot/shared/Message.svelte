@@ -184,7 +184,7 @@
 							{i18n}
 							{upload}
 							{_fetch}
-							on:load={scroll}
+							on:load={() => scroll()}
 						/>
 					{:else if message.type === "component" && message.content.component === "file"}
 						<a
