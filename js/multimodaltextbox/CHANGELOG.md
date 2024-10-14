@@ -1,5 +1,11 @@
 # @gradio/multimodaltextbox
 
+## 0.7.0
+
+### Features
+
+- [#9677](https://github.com/gradio-app/gradio/pull/9677) [`3a19e69`](https://github.com/gradio-app/gradio/commit/3a19e690ef8de12c4494429d52988b863065eed3) - Revert text disable.  Thanks @whitphx!
+
 ## 0.6.2
 
 ### Dependency updates

@@ -1,5 +1,15 @@
 # @gradio/chatbot
 
+## 0.15.0
+
+### Features
+
+- [#9660](https://github.com/gradio-app/gradio/pull/9660) [`3407b50`](https://github.com/gradio-app/gradio/commit/3407b505c706cd8e2bbe03603a5ff825f2d0a08a) - Chat Interface Functional test Fix + Chat Examples Center.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#9676](https://github.com/gradio-app/gradio/pull/9676) [`fd0264f`](https://github.com/gradio-app/gradio/commit/fd0264f3358ef848690eceacb75481212dceecf0) - Fix Audio in Chatbot bug.  Thanks @freddyaboulton!
+
 ## 0.14.2
 
 ### Dependency updates
