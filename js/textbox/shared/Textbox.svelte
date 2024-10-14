@@ -203,7 +203,7 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
-	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="input-container">
 		{#if lines === 1 && max_lines === 1}
