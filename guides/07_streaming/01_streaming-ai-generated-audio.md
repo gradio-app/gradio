@@ -17,6 +17,8 @@ Just like the classic Magic 8 Ball, a user should ask it a question orally and t
 First let's define the UI and put placeholders for all the python logic.
 
 ```python
+import gradio as gr
+
 with gr.Blocks() as block:
     gr.HTML(
         f"""

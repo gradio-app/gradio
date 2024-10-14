@@ -111,5 +111,10 @@ with gr.Blocks() as demo:
         outputs=[output_video],
     )
 
+    gr.Examples(
+        examples=["3285790-hd_1920_1080_30fps.mp4"],
+        inputs=[video],
+    )
+
 if __name__ == "__main__":
     demo.launch()
