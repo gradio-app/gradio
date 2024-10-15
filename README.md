@@ -27,9 +27,7 @@ English | [中文](readme_files/zh-cn#readme)
 
 # Gradio: Build Machine Learning Web Apps — in Python
 
-
-
-Gradio is an open-source Python package that allows you to quickly **build** a demo or web application for your machine learning model, API, or any arbitrary Python function. You can then **share** a link to your demo or web application in just a few seconds using Gradio's built-in sharing features. *No JavaScript, CSS, or web hosting experience needed!*
+Gradio is an open-source Python package designed to help you quickly **build**  demos or web applications for your machine learning models, APIs, or any arbitrary Python functions. With Gradio, you can effortlessly **share** a link to your demo or web application in just seconds, thanks to its built-in sharing features. There's no need for any *prior experience* in JavaScript, CSS, or web hosting. Gradio **simplifies** the process, making it **accessible** for everyone. Whether you're showcasing a model or testing an idea, Gradio streamlines your workflow and enhances *collaboration*.
 
 <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/gif-version.gif" style="padding-bottom: 10px">
 
