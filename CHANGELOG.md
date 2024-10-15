@@ -1,5 +1,39 @@
 # gradio
 
+## 5.1.0
+
+### Features
+
+- [#9662](https://github.com/gradio-app/gradio/pull/9662) [`b1c5a68`](https://github.com/gradio-app/gradio/commit/b1c5a68f9003b77b5c70b641100f7db339295180) - Tweak message shown in Colab notebooks.  Thanks @abidlabs!
+- [#9656](https://github.com/gradio-app/gradio/pull/9656) [`8f6626c`](https://github.com/gradio-app/gradio/commit/8f6626cd0e5a0c24e1966fbc3e28185c18a04b61) - Fix streaming Audio/Video Output.  Thanks @freddyaboulton!
+- [#9660](https://github.com/gradio-app/gradio/pull/9660) [`3407b50`](https://github.com/gradio-app/gradio/commit/3407b505c706cd8e2bbe03603a5ff825f2d0a08a) - Chat Interface Functional test Fix + Chat Examples Center.  Thanks @dawoodkhan82!
+- [#9677](https://github.com/gradio-app/gradio/pull/9677) [`3a19e69`](https://github.com/gradio-app/gradio/commit/3a19e690ef8de12c4494429d52988b863065eed3) - Revert text disable.  Thanks @whitphx!
+
+### Fixes
+
+- [#9676](https://github.com/gradio-app/gradio/pull/9676) [`fd0264f`](https://github.com/gradio-app/gradio/commit/fd0264f3358ef848690eceacb75481212dceecf0) - Fix Audio in Chatbot bug.  Thanks @freddyaboulton!
+
+## 5.0.2
+
+### Fixes
+
+- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox.  Thanks @whitphx!
+
+## 5.0.1
+
+### Features
+
+- [#9632](https://github.com/gradio-app/gradio/pull/9632) [`9b58ab0`](https://github.com/gradio-app/gradio/commit/9b58ab00b78bedd892c221559b4b54a9211b4969) - bump to node 20.  Thanks @pngwn!
+- [#9626](https://github.com/gradio-app/gradio/pull/9626) [`ec95b02`](https://github.com/gradio-app/gradio/commit/ec95b0212b3ce2bf1a14af92fcd40d15052dd672) - Fix stopping chat interface when stop button is clicked.  Thanks @aliabid94!
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+- [#9623](https://github.com/gradio-app/gradio/pull/9623) [`5923c67`](https://github.com/gradio-app/gradio/commit/5923c679136cca68731393d5e4f3bd338e651f44) - Fix Chatbot Examples Error.  Thanks @freddyaboulton!
+- [#9614](https://github.com/gradio-app/gradio/pull/9614) [`5d98550`](https://github.com/gradio-app/gradio/commit/5d985509b4b71aa4aa6b28acc38fe83c278dbbfa) - Fix `retry` and `undo` reactivity in gr.Chatbot.  Thanks @hannahblair!
+- [#9619](https://github.com/gradio-app/gradio/pull/9619) [`1f3ee97`](https://github.com/gradio-app/gradio/commit/1f3ee97d10415bf7dfa693746517cf97897049b7) - Fix Functional Tests.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#9630](https://github.com/gradio-app/gradio/pull/9630) [`2eaa066`](https://github.com/gradio-app/gradio/commit/2eaa0667e1d1a0edd1089bf8c3ffa3f563b9bca2) - Fix duplicate attribute error.  Thanks @pngwn!
+
 ## 5.0.0-beta.10
 
 ### Fixes

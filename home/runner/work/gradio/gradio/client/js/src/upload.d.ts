@@ -10,10 +10,11 @@ export declare class FileData {
     is_stream?: boolean;
     mime_type?: string;
     alt_text?: string;
+    b64?: string;
     readonly meta: {
         _type: string;
     };
-    constructor({ path, url, orig_name, size, blob, is_stream, mime_type, alt_text }: {
+    constructor({ path, url, orig_name, size, blob, is_stream, mime_type, alt_text, b64 }: {
         path: string;
         url?: string;
         orig_name?: string;
@@ -22,5 +23,6 @@ export declare class FileData {
         is_stream?: boolean;
         mime_type?: string;
         alt_text?: string;
+        b64?: string;
     });
 }

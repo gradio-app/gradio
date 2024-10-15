@@ -1001,7 +1001,6 @@
 		{i18n}
 		x={active_cell_menu.x}
 		y={active_cell_menu.y}
-		col={active_cell_menu.col}
 		row={active_cell_menu?.row ?? -1}
 		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
 		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
@@ -1015,8 +1014,9 @@
 		{i18n}
 		x={active_header_menu.x}
 		y={active_header_menu.y}
-		col={active_header_menu.col}
 		row={-1}
+		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
+		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
 		on_add_column_left={() => add_col_at(active_header_menu?.col ?? -1, "left")}
 		on_add_column_right={() =>
 			add_col_at(active_header_menu?.col ?? -1, "right")}

@@ -1,5 +1,23 @@
 # @gradio/dataframe
 
+## 0.11.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+- @gradio/button@0.3.1
+
+## 0.11.1
+
+### Features
+
+- [#9614](https://github.com/gradio-app/gradio/pull/9614) [`5d98550`](https://github.com/gradio-app/gradio/commit/5d985509b4b71aa4aa6b28acc38fe83c278dbbfa) - Fix `retry` and `undo` reactivity in gr.Chatbot.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+- @gradio/markdown@0.10.1
+
 ## 0.11.0
 
 ### Features

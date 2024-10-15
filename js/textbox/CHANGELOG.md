@@ -1,5 +1,21 @@
 # @gradio/textbox
 
+## 0.8.0
+
+### Features
+
+- [#9677](https://github.com/gradio-app/gradio/pull/9677) [`3a19e69`](https://github.com/gradio-app/gradio/commit/3a19e690ef8de12c4494429d52988b863065eed3) - Revert text disable.  Thanks @whitphx!
+
+## 0.7.1
+
+### Features
+
+- [#9626](https://github.com/gradio-app/gradio/pull/9626) [`ec95b02`](https://github.com/gradio-app/gradio/commit/ec95b0212b3ce2bf1a14af92fcd40d15052dd672) - Fix stopping chat interface when stop button is clicked.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
 ## 0.7.0
 
 ### Features
