@@ -25,6 +25,17 @@ English | [中文](readme_files/zh-cn#readme)
 
 </div>
 
+<div>
+
+<div align="center">
+
+Support Gradio 5 launch on Product Hunt:
+
+<a href="https://www.producthunt.com/posts/gradio-5-0?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-gradio&#0045;5&#0045;0" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=501906&theme=light" alt="Gradio&#0032;5&#0046;0 - the&#0032;easiest&#0032;way&#0032;to&#0032;build&#0032;AI&#0032;web&#0032;apps | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
+</div>
+
+
 # Gradio: Build Machine Learning Web Apps — in Python
 
 
