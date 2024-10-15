@@ -110,10 +110,12 @@ class Dropdown(FormComponent):
             )
         self.type = type
         self.multiselect = multiselect
-        if not multiselect and choices and value == FIRST_CHOICE:
-            value = self.choices[0][1]
+
+        if value == FIRST_CHOICE:
+            value = self.choices[0][1] if self.choices and not multiselect else None
         if multiselect and isinstance(value, str):
             value = [value]
+
         if not multiselect and max_choices is not None:
             warnings.warn(
                 "The `max_choices` parameter is ignored when `multiselect` is False."
