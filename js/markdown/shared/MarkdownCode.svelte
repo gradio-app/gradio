@@ -3,7 +3,6 @@
 	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
-	import sanitize_server from "sanitize-html";
 	import Amuchina from "amuchina";
 	import "./prism.css";
 
@@ -32,7 +31,17 @@
 	const amuchina = new Amuchina();
 	const is_browser = typeof window !== "undefined";
 
-	let sanitize = is_browser ? sanitize_browser : sanitize_server;
+	let sanitize: (arg0: string) => string;
+	function resolve_sanitze(is_browser: boolean): (arg0: string) => string {
+		if (is_browser) {
+			sanitize = sanitize_browser;
+		}
+		import("sanitize-html").then((sanitize_server) => {
+			sanitize = sanitize_server.default || sanitize_server;
+		});
+	}
+
+	$: resolve_sanitze(is_browser);
 
 	function sanitize_browser(source: string): string {
 		const node = new DOMParser().parseFromString(source, "text/html");
