@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Restore light/dark custom setting
+fix:Restore light/dark custom setting
