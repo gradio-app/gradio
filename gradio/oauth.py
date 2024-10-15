@@ -55,7 +55,7 @@ def attach_oauth(app: fastapi.FastAPI):
     )
 
 
-def _add_oauth_routes(app: fastapi.APIRouter) -> None:
+def _add_oauth_routes(app: fastapi.FastAPI) -> None:
     """Add OAuth routes to the FastAPI app (login, callback handler and logout)."""
     try:
         from authlib.integrations.base_client.errors import MismatchingStateError
@@ -154,7 +154,7 @@ def _add_oauth_routes(app: fastapi.APIRouter) -> None:
         return _redirect_to_target(request)
 
 
-def _add_mocked_oauth_routes(app: fastapi.APIRouter) -> None:
+def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     """Add fake oauth routes if Gradio is run locally and OAuth is enabled.
 
     Clicking on a gr.LoginButton will have the same behavior as in a Space (i.e. gets redirected in a new tab) but
