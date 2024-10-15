@@ -1409,10 +1409,13 @@ def error_payload(
     content: dict[str, bool | str | float | None] = {"error": None}
     show_error = show_error or isinstance(error, Error)
     if show_error:
-        content["error"] = str(error)
-    if isinstance(error, Error):
-        content["duration"] = error.duration
-        content["visible"] = error.visible
+        if isinstance(error, Error):
+            content["error"] = error.message
+            content["duration"] = error.duration
+            content["visible"] = error.visible
+            content["title"] = error.title
+        else:
+            content["error"] = str(error)
     return content
 
 
