@@ -45,7 +45,6 @@ if TYPE_CHECKING:
 class _Keywords(Enum):
     NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
-    FIRST_CHOICE = "FIRST_CHOICE"  # Used to automatically select the first choice in the `gr.Dropdown` component
 
 
 class ComponentBase(ABC, metaclass=ComponentMeta):
