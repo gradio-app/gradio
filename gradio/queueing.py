@@ -646,7 +646,7 @@ class Queue:
                         event,
                         ProcessCompletedMessage(
                             output=content,
-                            title=content["title"],  # type: ignore
+                            title=content.get("title", "Error"),  # type: ignore
                             success=False,
                         ),
                     )
