@@ -24,11 +24,11 @@ class ProgressMessage(BaseMessage):
 
 class LogMessage(BaseMessage):
     msg: Literal[ServerMessage.log] = ServerMessage.log  # type: ignore
-    title: str
     log: str
     level: Literal["info", "warning"]
     duration: Optional[float] = 10
     visible: bool = True
+    title: str
 
 
 class EstimationMessage(BaseMessage):
@@ -45,9 +45,9 @@ class ProcessStartsMessage(BaseMessage):
 
 class ProcessCompletedMessage(BaseMessage):
     msg: Literal[ServerMessage.process_completed] = ServerMessage.process_completed  # type: ignore
-    title: Optional[str] = None
     output: dict
     success: bool
+    title: Optional[str] = None
 
 
 class ProcessGeneratingMessage(BaseMessage):

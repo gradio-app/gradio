@@ -403,11 +403,11 @@ class Queue:
         for event in events:
             if event._id == event_id:
                 log_message = LogMessage(
-                    title=title,
                     log=log,
                     level=level,
                     duration=duration,
                     visible=visible,
+                    title=title
                 )
                 self.send_message(event, log_message)
 
