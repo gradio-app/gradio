@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix `gr.LoginButton`
+fix:Fix the behavior of `gr.LoginButton` locally and on Spaces
