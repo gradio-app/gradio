@@ -190,14 +190,12 @@
 	}
 
 	.huggingface {
-		background: black;
+		background: rgb(20, 28, 46);
 		color: white;
 	}
 
-	@media (prefers-color-scheme: dark) {
-		.huggingface {
-			background-color: white;
-			color: black;
-		}
+	.huggingface:hover {
+		background: rgb(40, 48, 66);
+		color: white;
 	}
 </style>
