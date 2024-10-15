@@ -1,7 +1,23 @@
 import gradio as gr
+from dataclasses import dataclass
+
+
+@dataclass
+class State:
+    apply: int = 0
+    change: int = 0
+    input: int = 0
+    upload: int = 0
+
+
+def update_event(state, event):
+    setattr(state, event, getattr(state, event) + 1)
+    return state, getattr(state, event)
+
 
 def predict(im):
     return im["composite"]
+
 
 with gr.Blocks() as demo:
     with gr.Group():
@@ -14,6 +30,7 @@ with gr.Blocks() as demo:
             im_preview = gr.Image()
     with gr.Group():
         with gr.Row():
+            state = gr.State(State())
 
             n_upload = gr.Label(
                 0,
@@ -38,16 +55,28 @@ with gr.Blocks() as demo:
     clear_btn = gr.Button("Clear", elem_id="clear")
 
     im.upload(
-        lambda x: int(x) + 1, outputs=n_upload, inputs=n_upload, show_progress="hidden"
+        lambda x: update_event(x, "upload"),
+        outputs=[state, n_upload],
+        inputs=state,
+        show_progress="hidden",
     )
     im.change(
-        lambda x: int(x) + 1, outputs=n_change, inputs=n_change, show_progress="hidden"
+        lambda x: update_event(x, "change"),
+        outputs=[state, n_change],
+        inputs=state,
+        show_progress="hidden",
     )
     im.input(
-        lambda x: int(x) + 1, outputs=n_input, inputs=n_input, show_progress="hidden"
+        lambda x: update_event(x, "input"),
+        outputs=[state, n_input],
+        inputs=state,
+        show_progress="hidden",
     )
     im.apply(
-        lambda x: int(x) + 1, outputs=n_apply, inputs=n_apply, show_progress="hidden"
+        lambda x: update_event(x, "apply"),
+        outputs=[state, n_apply],
+        inputs=state,
+        show_progress="hidden",
     )
     im.change(predict, outputs=im_preview, inputs=im, show_progress="hidden")
     clear_btn.click(
