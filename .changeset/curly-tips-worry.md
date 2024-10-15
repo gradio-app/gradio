@@ -1,6 +1,6 @@
 ---
-"@gradio/imageeditor": minor
-"gradio": minor
+"@gradio/imageeditor": patch
+"gradio": patch
 ---
 
-feat:Fix functional tests pt 2
+fix:Fix functional tests pt 2
