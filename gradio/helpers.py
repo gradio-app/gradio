@@ -764,7 +764,7 @@ class Progress(Iterable):
                 self.iterables.append(new_iterable)
                 callback(self.iterables)
                 return self
-            length = len(iterable) if hasattr(iterable, "__len__") else None  # type: ignore
+            length = len(iterable) if hasattr(iterable, "__len__") else total  # type: ignore
             self.iterables.append(
                 TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
             )
