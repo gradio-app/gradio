@@ -8,12 +8,20 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
-from gradio.components.base import Component, FormComponent, _Keywords
+from gradio.components.base import Component, FormComponent
 from gradio.events import Events
 from gradio.exceptions import Error
 
 if TYPE_CHECKING:
     from gradio.components import Timer
+
+
+class FirstChoice:
+    # This sentinel is used to indicate that the first choice should be selected by default.
+    pass
+
+
+FIRST_CHOICE = FirstChoice()
 
 
 @document()
@@ -36,9 +44,15 @@ class Dropdown(FormComponent):
     def __init__(
         self,
         choices: Sequence[str | int | float | tuple[str, str | int | float]]
-        | Literal[_Keywords.FIRST_CHOICE] | None = None,
+        | None = None,
         *,
-        value: str | int | float | Sequence[str | int | float] | Callable | None = None,
+        value: str
+        | int
+        | float
+        | Sequence[str | int | float]
+        | Callable
+        | FirstChoice
+        | None = FIRST_CHOICE,
         type: Literal["value", "index"] = "value",
         multiselect: bool | None = None,
         allow_custom_value: bool = False,
@@ -62,7 +76,7 @@ class Dropdown(FormComponent):
         """
         Parameters:
             choices: a list of string or numeric options to choose from. An option can also be a tuple of the form (name, value), where name is the displayed name of the dropdown choice and value is the value to be passed to the function, or returned by the function.
-            value: default value initially selected in dropdown. If `multiselect` is true, this should be list, otherwise a single string or number. By default, the first choice is initally selected. If set to None, no value is initally selected. If a callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: the value selected in dropdown. If `multiselect` is true, this should be list, otherwise a single string or number. By default, the first choice is initally selected. If set to None, no value is initally selected. If a callable, the function will be called whenever the app loads to set the initial value of the component.
             type: type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             multiselect: if True, multiple choices can be selected.
             allow_custom_value: if True, allows user to enter a custom value that is not in the list of choices.
@@ -83,7 +97,7 @@ class Dropdown(FormComponent):
             render: if False, component will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
         self.choices = (
-            # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
+            # Although we expect choices to be a list of tuples, it can be a list of lists if the Gradio app
             # is loaded with gr.load() since Python tuples are converted to lists in JSON.
             [tuple(c) if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
             if choices
@@ -96,6 +110,8 @@ class Dropdown(FormComponent):
             )
         self.type = type
         self.multiselect = multiselect
+        if not multiselect and choices and value == FIRST_CHOICE:
+            value = self.choices[0][1]
         if multiselect and isinstance(value, str):
             value = [value]
         if not multiselect and max_choices is not None:
