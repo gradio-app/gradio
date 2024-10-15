@@ -646,6 +646,7 @@ class Queue:
                         event,
                         ProcessCompletedMessage(
                             output=content,
+                            title=content["title"],  # type: ignore
                             success=False,
                         ),
                     )

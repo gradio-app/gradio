@@ -521,9 +521,10 @@
 							MESSAGE_QUOTE_RE,
 							(_, b) => b
 						);
+						const _title = status.title ?? "Error";
 						messages = [
 							new_message(
-								"Error",
+								_title,
 								_message,
 								fn_index,
 								"error",

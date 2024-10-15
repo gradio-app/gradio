@@ -45,6 +45,7 @@ class ProcessStartsMessage(BaseMessage):
 
 class ProcessCompletedMessage(BaseMessage):
     msg: Literal[ServerMessage.process_completed] = ServerMessage.process_completed  # type: ignore
+    title: Optional[str] = None
     output: dict
     success: bool
 

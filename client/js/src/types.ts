@@ -352,6 +352,7 @@ export interface Status {
 	size?: number;
 	position?: number;
 	eta?: number;
+	title?: string;
 	message?: string;
 	progress_data?: {
 		progress: number | null;
