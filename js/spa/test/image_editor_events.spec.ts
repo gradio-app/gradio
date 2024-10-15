@@ -15,7 +15,7 @@ test("change events work as expected", async ({ page }) => {
 
 	const change_text = page.locator("#change h2");
 	await expect(change_text).toContainText("1");
-	await page.waitForTimeout(500);
+	await page.waitForTimeout(1000);
 
 	await page.getByLabel("Draw button").first().click();
 	await page.getByLabel("Draw button").first().click();
@@ -38,7 +38,7 @@ test("input events work as expected", async ({ page }) => {
 
 	const input_text = page.locator("#input h2");
 	await expect(input_text).toContainText("1");
-	await page.waitForTimeout(500);
+	await page.waitForTimeout(1000);
 
 	await page.getByLabel("Draw button").first().click();
 	await page.getByLabel("Draw button").first().click();
