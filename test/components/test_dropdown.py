@@ -22,6 +22,7 @@ class TestDropdown:
         dropdown = gr.Dropdown(choices=["a", "b"], type="index")
         assert dropdown.preprocess("a") == 0
         assert dropdown.preprocess("b") == 1
+        assert dropdown.value == "a"
         with pytest.raises(gr.Error):
             dropdown.preprocess("c")
 
