@@ -5,6 +5,7 @@
 	import { fade } from "svelte/transition";
 	import type { ToastMessage } from "./types";
 
+	export let title = "";
 	export let message = "";
 	export let type: ToastMessage["type"];
 	export let id: number;
@@ -27,9 +28,7 @@
 			}
 		}
 	});
-
 	$: message = DOMPurify.sanitize(message);
-
 	$: display = visible;
 	$: duration = duration || null;
 
@@ -73,7 +72,7 @@
 	</div>
 
 	<div class="toast-details {type}">
-		<div class="toast-title {type}">{type}</div>
+		<div class="toast-title {type}">{title}</div>
 		<div class="toast-text {type}">
 			{@html message}
 		</div>
@@ -211,7 +210,6 @@
 		font-weight: var(--weight-bold);
 		font-size: var(--text-lg);
 		line-height: var(--line-sm);
-		text-transform: capitalize;
 	}
 
 	.toast-title.error {

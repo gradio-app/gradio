@@ -342,6 +342,7 @@ export function handle_message(
 					type: "update",
 					status: {
 						queue,
+						title: data.output.title as string,
 						message: data.output.error as string,
 						visible: data.output.visible as boolean,
 						duration: data.output.duration as number,
