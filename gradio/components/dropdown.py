@@ -16,12 +16,14 @@ if TYPE_CHECKING:
     from gradio.components import Timer
 
 
-class FirstChoice:
-    # This sentinel is used to indicate that the first choice should be selected by default.
+class DefaultValue:
+    # This sentinel is used to indicate that if the value is not explicitly set,
+    # the first choice should be selected in the dropdown if multiselect is False,
+    # and an empty list should be selected if multiselect is True.
     pass
 
 
-FIRST_CHOICE = FirstChoice()
+DEFAULT_VALUE = DefaultValue()
 
 
 @document()
@@ -51,8 +53,8 @@ class Dropdown(FormComponent):
         | float
         | Sequence[str | int | float]
         | Callable
-        | FirstChoice
-        | None = FIRST_CHOICE,
+        | DefaultValue
+        | None = DEFAULT_VALUE,
         type: Literal["value", "index"] = "value",
         multiselect: bool | None = None,
         allow_custom_value: bool = False,
@@ -111,8 +113,13 @@ class Dropdown(FormComponent):
         self.type = type
         self.multiselect = multiselect
 
-        if value == FIRST_CHOICE:
-            value = self.choices[0][1] if self.choices and not multiselect else None
+        if value == DEFAULT_VALUE:
+            if multiselect:
+                value = []
+            elif self.choices:
+                value = self.choices[0][1]
+            else:
+                value = None
         if multiselect and isinstance(value, str):
             value = [value]
 
