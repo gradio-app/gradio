@@ -1077,7 +1077,7 @@ def Warning(  # noqa: N802
         message: The warning message to be displayed to the user. Can be HTML, which will be rendered in the modal.
         duration: The duration in seconds that the warning message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
         visible: Whether the error message should be displayed in the UI.
-        title: The title to be displayed to the user. Can be HTML, which will be rendered in the modal.
+        title: The title to be displayed to the user at the top of the modal.
     Example:
         import gradio as gr
         def hello_world():
@@ -1088,7 +1088,9 @@ def Warning(  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, title=title, level="warning", duration=duration, visible=visible)
+    log_message(
+        message, title=title, level="warning", duration=duration, visible=visible
+    )
 
 
 @document(documentation_group="modals")
@@ -1105,7 +1107,7 @@ def Info(  # noqa: N802
         message: The info message to be displayed to the user. Can be HTML, which will be rendered in the modal.
         duration: The duration in seconds that the info message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
         visible: Whether the error message should be displayed in the UI.
-        title: The title to be displayed to the user. Can be HTML, which will be rendered in the modal.
+        title: The title to be displayed to the user at the top of the modal.
     Example:
         import gradio as gr
         def hello_world():

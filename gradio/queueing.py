@@ -407,7 +407,7 @@ class Queue:
                     level=level,
                     duration=duration,
                     visible=visible,
-                    title=title
+                    title=title,
                 )
                 self.send_message(event, log_message)
 

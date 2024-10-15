@@ -87,6 +87,7 @@ class Error(Exception):
             message: The error message to be displayed to the user. Can be HTML, which will be rendered in the modal.
             duration: The duration in seconds to display the error message. If None or 0, the error message will be displayed until the user closes it.
             visible: Whether the error message should be displayed in the UI.
+            title: The title to be displayed to the user at the top of the error modal.
         """
         self.title = title
         self.message = message

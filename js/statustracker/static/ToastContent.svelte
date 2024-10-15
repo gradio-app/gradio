@@ -28,9 +28,7 @@
 			}
 		}
 	});
-	$: title = DOMPurify.sanitize(title);
 	$: message = DOMPurify.sanitize(message);
-
 	$: display = visible;
 	$: duration = duration || null;
 
@@ -74,7 +72,7 @@
 	</div>
 
 	<div class="toast-details {type}">
-		<div class="toast-title {type}">{@html title}</div>
+		<div class="toast-title {type}">{title}</div>
 		<div class="toast-text {type}">
 			{@html message}
 		</div>
@@ -212,7 +210,6 @@
 		font-weight: var(--weight-bold);
 		font-size: var(--text-lg);
 		line-height: var(--line-sm);
-		text-transform: capitalize;
 	}
 
 	.toast-title.error {
