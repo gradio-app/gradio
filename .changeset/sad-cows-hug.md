@@ -1,4 +1,5 @@
 ---
+"@gradio/dropdown": minor
 "gradio": minor
 ---
 
