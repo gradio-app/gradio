@@ -41,7 +41,6 @@
 	const show_textbox_border = !submit_btn;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
-	$: can_submit = value !== "";
 
 	$: if (value === null) value = "";
 
@@ -113,9 +112,7 @@
 		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
-			if (can_submit) {
-				dispatch("submit");
-			}
+			dispatch("submit");
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -123,9 +120,7 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
-			if (can_submit) {
-				dispatch("submit");
-			}
+			dispatch("submit");
 		}
 	}
 
@@ -304,7 +299,6 @@
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
 				on:click={handle_submit}
-				disabled={!can_submit}
 			>
 				{#if submit_btn === true}
 					<Send />
@@ -447,6 +441,10 @@
 	.submit-button:disabled {
 		background: var(--button-secondary-background-fill);
 		cursor: pointer;
+	}
+	.stop-button:active,
+	.submit-button:active {
+		box-shadow: var(--button-shadow-active);
 	}
 	.submit-button :global(svg) {
 		height: 22px;

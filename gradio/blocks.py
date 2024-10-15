@@ -2539,7 +2539,7 @@ Received inputs:
             if self.is_colab:
                 if not quiet:
                     print(
-                        "Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "Running Gradio in a Colab notebook requires sharing enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             elif self.is_kaggle:
