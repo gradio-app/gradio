@@ -38,7 +38,7 @@ It just takes a few lines of Python to create your own demo, so let's get starte
 **Prerequisite**: Gradio 5 requires [Python 3.10 or higher](https://www.python.org/downloads/)
 
 
-We recommend installing Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
+We recommend installing Gradio by using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
 
 ```
 pip install --upgrade gradio
