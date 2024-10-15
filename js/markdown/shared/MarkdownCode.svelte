@@ -32,7 +32,7 @@
 	const is_browser = typeof window !== "undefined";
 
 	let sanitize: (arg0: string) => string;
-	function resolve_sanitze(is_browser: boolean): (arg0: string) => string {
+	function resolve_sanitze(is_browser: boolean): void {
 		if (is_browser) {
 			sanitize = sanitize_browser;
 		}
