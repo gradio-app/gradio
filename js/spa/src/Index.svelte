@@ -319,7 +319,7 @@
 				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
-					new_message_fn("Error reloading app", "error");
+					new_message_fn("Error", "Error reloading app", "error");
 					// @ts-ignore
 					console.error(JSON.parse(e.data));
 				});
@@ -400,7 +400,7 @@
 		}
 	};
 
-	let new_message_fn: (message: string, type: string) => void;
+	let new_message_fn: (title: string, message: string, type: string) => void;
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);

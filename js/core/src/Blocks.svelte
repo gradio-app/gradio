@@ -152,6 +152,7 @@
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
 	function new_message(
+		title: string,
 		message: string,
 		fn_index: number,
 		type: ToastMessage["type"],
@@ -159,6 +160,7 @@
 		visible = true
 	): ToastMessage & { fn_index: number } {
 		return {
+			title,
 			message,
 			fn_index,
 			type,
@@ -169,10 +171,11 @@
 	}
 
 	export function add_new_message(
+		title: string,
 		message: string,
 		type: ToastMessage["type"]
 	): void {
-		messages = [new_message(message, -1, type), ...messages];
+		messages = [new_message(title, message, -1, type), ...messages];
 	}
 
 	let _error_id = -1;
@@ -241,7 +244,7 @@
 		if (inputs_waiting.length > 0) {
 			for (const input of inputs_waiting) {
 				if (dep.inputs.includes(input)) {
-					add_new_message(WAITING_FOR_INPUTS_MESSAGE, "warning");
+					add_new_message("Warning", WAITING_FOR_INPUTS_MESSAGE, "warning");
 					return;
 				}
 			}
@@ -346,7 +349,10 @@
 				);
 			} catch (e) {
 				const fn_index = 0; // Mock value for fn_index
-				messages = [new_message(String(e), fn_index, "error"), ...messages];
+				messages = [
+					new_message("Error", String(e), fn_index, "error"),
+					...messages
+				];
 				loading_status.update({
 					status: "error",
 					fn_index,
@@ -413,9 +419,9 @@
 			}
 
 			function handle_log(msg: LogMessage): void {
-				const { log, fn_index, level, duration, visible } = msg;
+				const { title, log, fn_index, level, duration, visible } = msg;
 				messages = [
-					new_message(log, fn_index, level, duration, visible),
+					new_message(title, log, fn_index, level, duration, visible),
 					...messages
 				];
 			}
@@ -463,7 +469,7 @@
 				) {
 					showed_duplicate_message = true;
 					messages = [
-						new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
+						new_message("Warning", DUPLICATE_MESSAGE, fn_index, "warning"),
 						...messages
 					];
 				}
@@ -475,7 +481,7 @@
 				) {
 					showed_mobile_warning = true;
 					messages = [
-						new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
+						new_message("Warning", MOBILE_QUEUE_WARNING, fn_index, "warning"),
 						...messages
 					];
 				}
@@ -503,7 +509,7 @@
 				if (status.broken && is_mobile_device && user_left_page) {
 					window.setTimeout(() => {
 						messages = [
-							new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+							new_message("Error", MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
 							...messages
 						];
 					}, 0);
@@ -515,8 +521,10 @@
 							MESSAGE_QUOTE_RE,
 							(_, b) => b
 						);
+						const _title = status.title ?? "Error";
 						messages = [
 							new_message(
+								_title,
 								_message,
 								fn_index,
 								"error",
@@ -612,8 +620,10 @@
 			if (event === "share") {
 				const { title, description } = data as ShareData;
 				trigger_share(title, description);
-			} else if (event === "error" || event === "warning") {
-				messages = [new_message(data, -1, event), ...messages];
+			} else if (event === "error") {
+				messages = [new_message("Error", data, -1, event), ...messages];
+			} else if (event === "warning") {
+				messages = [new_message("Warning", data, -1, event), ...messages];
 			} else if (event == "clear_status") {
 				update_status(id, "complete", data);
 			} else if (event == "close_stream") {

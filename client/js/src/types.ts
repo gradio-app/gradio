@@ -329,6 +329,7 @@ export type GradioEvent = {
 
 export interface Log {
 	log: string;
+	title: string;
 	level: "warning" | "info";
 }
 export interface Render {
@@ -351,6 +352,7 @@ export interface Status {
 	size?: number;
 	position?: number;
 	eta?: number;
+	title?: string;
 	message?: string;
 	progress_data?: {
 		progress: number | null;
