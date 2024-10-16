@@ -285,7 +285,11 @@
 					<div class="image-preview">
 						<img src={image_preview_source} alt={image_preview_source_alt} />
 						<IconButtonWrapper>
-							<IconButton Icon={Clear} on:click={() => is_image_preview_open = false} label={"Clear"} />
+							<IconButton
+								Icon={Clear}
+								on:click={() => (is_image_preview_open = false)}
+								label={"Clear"}
+							/>
 						</IconButtonWrapper>
 					</div>
 				{/if}
