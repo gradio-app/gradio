@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.3.1
+
+### Fixes
+
+- [#9728](https://github.com/gradio-app/gradio/pull/9728) [`d0b2ce8`](https://github.com/gradio-app/gradio/commit/d0b2ce8c0f150f0b636ad7d2226f7c8c61401996) - Ensure tabs render in SSR mode and reduce time it takes for them to render.  Thanks @pngwn!
+
 ## 0.3.0
 
 ### Features

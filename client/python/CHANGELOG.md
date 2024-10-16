@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.4.1
+
+### Fixes
+
+- [#9678](https://github.com/gradio-app/gradio/pull/9678) [`a25a26e`](https://github.com/gradio-app/gradio/commit/a25a26e208c3f3675ba857a889553c7ccc95e866) - Fix: `file_types` checking bug.  Thanks @jasongzy!
+
 ## 1.4.0-beta.5
 
 ### Features

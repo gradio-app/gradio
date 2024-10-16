@@ -1,5 +1,18 @@
 # @self/spa
 
+## 0.2.0
+
+### Features
+
+- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error.  Thanks @ABucket!
+
+### Dependency updates
+
+- @gradio/client@1.7.0
+- @gradio/wasm@0.14.2
+- @self/build@0.1.1
+- @gradio/core@0.2.0
+
 ## 0.1.0
 
 ### Dependency updates
