@@ -166,6 +166,13 @@ export class WorkerProxy extends EventTarget {
 				);
 				break;
 			}
+			case "modules-auto-loaded": {
+				this.dispatchEvent(
+					new CustomEvent("modules-auto-loaded", {
+						detail: msg.data.packages
+					})
+				);
+			}
 		}
 	}
 
