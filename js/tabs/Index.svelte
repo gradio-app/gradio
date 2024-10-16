@@ -9,6 +9,14 @@
 
 	const dispatch = createEventDispatcher();
 
+	interface Tab {
+		name: string;
+		id: string | number;
+		elem_id: string | undefined;
+		visible: boolean;
+		interactive: boolean;
+	}
+
 	export let visible = true;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
