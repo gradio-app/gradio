@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Fix Lite dependencies
+fix:Fix Lite dependencies
