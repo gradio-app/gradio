@@ -33,6 +33,9 @@ runs:
     - name: Build Css
       shell: bash
       run: pnpm css
+    - name: Create packages
+      shell: bash
+      run: pnpm package
     - name: Build frontend
       if: inputs.skip_build == 'false'
       # && steps.frontend-cache.outputs.cache-hit != 'true'
