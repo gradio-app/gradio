@@ -394,6 +394,15 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "run-python-code": {
 					unload_local_modules();
 
+					console.debug(`Auto install the requirements`);
+					const loadedPackages = await pyodide.loadPackagesFromImports(
+						msg.data.code
+					);
+					if (loadedPackages.length > 0) {
+						onModulesAutoLoaded(loadedPackages);
+					}
+					console.debug("Modules are auto-loaded.", loadedPackages);
+
 					await run_code(appId, getAppHomeDir(appId), msg.data.code);
 
 					const replyMessage: ReplyMessageSuccess = {
