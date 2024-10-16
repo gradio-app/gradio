@@ -18,6 +18,7 @@ test("change events work as expected", async ({ page }) => {
 	await expect(change_text).toContainText("1");
 
 	await page.getByLabel("Erase button").first().click();
+	await page.getByLabel("Erase button").first().click();
 	await canvas.click({ position: { x: 100, y: 100 } });
 	await expect(change_text).toContainText("2");
 
@@ -34,6 +35,7 @@ test("input events work as expected", async ({ page }) => {
 	await canvas.click({ position: { x: 100, y: 100 } });
 	await expect(input_text).toContainText("1");
 
+	await page.getByLabel("Erase button").first().click();
 	await page.getByLabel("Erase button").first().click();
 	await canvas.click({ position: { x: 100, y: 100 } });
 	await expect(input_text).toContainText("2");
@@ -53,6 +55,7 @@ test("apply events work as expected", async ({ page }) => {
 	await apply_button.click();
 	await expect(apply_text).toContainText("1");
 
+	await page.getByLabel("Erase button").first().click();
 	await page.getByLabel("Erase button").first().click();
 	await canvas.click({ position: { x: 100, y: 100 } });
 
