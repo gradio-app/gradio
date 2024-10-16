@@ -7,7 +7,8 @@
 		setContext,
 		createEventDispatcher,
 		onMount,
-		onDestroy
+		onDestroy,
+		tick
 	} from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
@@ -153,10 +154,19 @@
 
 		nav_items.forEach((item) => tab_nav_el.appendChild(item));
 		overflow_items.forEach((item) => overflow_nav.appendChild(item));
+		overflow_has_selected_tab = handle_overflow_has_selected_tab($selected_tab);
+	}
 
-		overflow_has_selected_tab = tabs.some(
+	$: overflow_has_selected_tab =
+		handle_overflow_has_selected_tab($selected_tab);
+
+	function handle_overflow_has_selected_tab(
+		selected_tab: number | string | false
+	): boolean {
+		if (selected_tab === false || !overflow_nav) return false;
+		return tabs.some(
 			(t) =>
-				t.id === $selected_tab &&
+				t.id === selected_tab &&
 				overflow_nav.contains(document.querySelector(`[data-tab-id="${t.id}"]`))
 		);
 	}
