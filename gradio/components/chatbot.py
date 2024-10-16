@@ -449,7 +449,6 @@ class Chatbot(Component):
         elif isinstance(chat_message, FileData):
             return FileMessage(file=chat_message)
         elif isinstance(chat_message, ComponentMessage):
-            # in the case where components are part of a streaming response
             return chat_message
         elif isinstance(chat_message, GradioComponent):
             chat_message.unrender()

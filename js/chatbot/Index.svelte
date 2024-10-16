@@ -92,7 +92,7 @@
 	{min_height}
 	{max_height}
 	allow_overflow={true}
-	flex={visible}
+	flex={true}
 	overflow_behavior="auto"
 >
 	{#if loading_status}
