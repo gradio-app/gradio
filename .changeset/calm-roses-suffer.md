@@ -1,6 +1,6 @@
 ---
-"@gradio/wasm": minor
-"gradio": minor
+"@gradio/wasm": patch
+"gradio": patch
 ---
 
 feat:Fix Lite dependencies
