@@ -1,5 +1,14 @@
 # website
 
+## 0.40.1
+
+### Dependency updates
+
+- @gradio/tabs@0.3.1
+- @gradio/code@0.10.3
+- @gradio/paramviewer@0.5.2
+- @gradio/tabitem@0.3.1
+
 ## 0.40.0
 
 ### Features
