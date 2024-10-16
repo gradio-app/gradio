@@ -11,34 +11,34 @@ test("upload events work as expected", async ({ page }) => {
 test("change events work as expected", async ({ page }) => {
 	const change_text = page.locator("#change h2");
 
-	await page.getByLabel("Draw button").first().click();
-	await page.getByLabel("Draw button").first().click();
-	const canvas = page.locator("canvas").first();
+	await page.getByLabel("Draw button").click();
+	await page.getByLabel("Draw button").click();
+	const canvas = page.locator("canvas");
 	await canvas.click({ position: { x: 100, y: 100 } });
 	await expect(change_text).toContainText("1");
 
-	await page.getByLabel("Erase button").first().click();
-	await page.locator("canvas").click({ position: { x: 50, y: 50 } });
+	await page.getByLabel("Erase button").click();
+	await canvas.click({ position: { x: 50, y: 50 } });
 	await expect(change_text).toContainText("2");
 
-	await page.getByLabel("Clear canvas").first().click();
+	await page.getByLabel("Clear canvas").click();
 	await expect(change_text).toContainText("3");
 });
 
 test("input events work as expected", async ({ page }) => {
 	const input_text = page.locator("#input h2");
 
-	await page.getByLabel("Draw button").first().click();
-	await page.getByLabel("Draw button").first().click();
-	const canvas = page.locator("canvas").first();
+	await page.getByLabel("Draw button").click();
+	await page.getByLabel("Draw button").click();
+	const canvas = page.locator("canvas");
 	await canvas.click({ position: { x: 100, y: 100 } });
 	await expect(input_text).toContainText("1");
 
-	await page.getByLabel("Erase button").first().click();
-	await page.locator("canvas").click({ position: { x: 50, y: 50 } });
+	await page.getByLabel("Erase button").click();
+	await canvas.click({ position: { x: 50, y: 50 } });
 	await expect(input_text).toContainText("2");
 
-	await page.getByLabel("Clear canvas").first().click();
+	await page.getByLabel("Clear canvas").click();
 	await expect(input_text).toContainText("3");
 });
 
