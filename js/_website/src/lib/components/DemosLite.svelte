@@ -198,7 +198,7 @@
 	let controller: {
 		run_code: (code: string) => Promise<void>;
 		install: (requirements: string[]) => Promise<void>;
-	};
+	} & EventTarget;
 
 	function debounce<T extends any[]>(
 		func: (...args: T) => Promise<unknown>,
@@ -250,6 +250,14 @@
 			const debounce_timeout = 1000;
 			debounced_run_code = debounce(controller.run_code, debounce_timeout);
 			debounced_install = debounce(controller.install, debounce_timeout);
+
+			controller.addEventListener("modules-auto-loaded", (event) => {
+				console.debug("Modules auto-loaded", event);
+				const packages = (event as CustomEvent).detail as { name: string }[];
+				const packageNames = packages.map((pkg) => pkg.name);
+				selected_demo.requirements =
+					selected_demo.requirements.concat(packageNames);
+			});
 
 			mounted = true;
 		} catch (error) {
