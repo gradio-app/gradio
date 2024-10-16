@@ -56,7 +56,7 @@ jobs:
       - name: build the wasm module
         run: pnpm --filter @gradio/wasm build
       - name: format check
-        run: pnpm format:check
+        run: pnpm package && pnpm format:check
       - name: lint
         run: pnpm lint
       - name: typecheck
