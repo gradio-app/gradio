@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix chatbot component streaming bug
+fix:Fix chatbot component streaming bug and visible bug
