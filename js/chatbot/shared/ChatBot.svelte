@@ -595,4 +595,37 @@
 			0 2px 2px rgba(0, 0, 0, 0.05);
 		transform: translateY(-2px);
 	}
+
+	.image-preview {
+		position: absolute;
+		z-index: 999;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: rgba(0, 0, 0, 0.9);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.image-preview :global(svg) {
+		stroke: white;
+	}
+	.image-preview-close-button {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		background: none;
+		border: none;
+		font-size: 1.5em;
+		cursor: pointer;
+		height: 30px;
+		width: 30px;
+		padding: 3px;
+		background: var(--bg-color);
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--button-secondary-border-color);
+		border-radius: var(--radius-lg);
+	}
 </style>

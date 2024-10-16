@@ -439,6 +439,7 @@ class Chatbot(Component):
         | FileDataDict
         | FileData
         | GradioComponent
+        | ComponentMessage
         | None,
     ) -> str | FileMessage | ComponentMessage | None:
         if chat_message is None:
@@ -447,6 +448,9 @@ class Chatbot(Component):
             return chat_message
         elif isinstance(chat_message, FileData):
             return FileMessage(file=chat_message)
+        elif isinstance(chat_message, ComponentMessage):
+            # in the case where components are part of a streaming response
+            return chat_message
         elif isinstance(chat_message, GradioComponent):
             chat_message.unrender()
             component = import_component_and_data(type(chat_message).__name__)
