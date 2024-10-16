@@ -5,4 +5,4 @@
 "website": minor
 ---
 
-feat:Lite auto load modules
+feat:Lite auto-load imported modules with `pyodide.loadPackagesFromImports`
