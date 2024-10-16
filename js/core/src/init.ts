@@ -296,7 +296,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 					...c,
 					props: {
 						...c.props,
-						id: c.id
+						id: c.props.id || c.id
 					}
 				})) || [];
 			const child_tab_items = instance.children?.filter(
