@@ -56,7 +56,6 @@ test("apply events work as expected", async ({ page }) => {
 	await expect(apply_text).toContainText("1");
 
 	await page.getByLabel("Erase button").first().click();
-	await page.getByLabel("Erase button").first().click();
 	await canvas.click({ position: { x: 100, y: 100 } });
 
 	await apply_button.click();
