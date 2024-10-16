@@ -15,7 +15,7 @@
 
 	interface Tab {
 		name: string;
-		id: object;
+		id: string | number;
 		elem_id: string | undefined;
 		visible: boolean;
 		interactive: boolean;
@@ -24,7 +24,7 @@
 	export let visible = true;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let selected: number | string | object;
+	export let selected: number | string;
 	export let inital_tabs: Tab[];
 
 	let tabs: Tab[] = inital_tabs;
@@ -36,8 +36,12 @@
 	let tab_nav_el: HTMLElement;
 	let overflow_nav: HTMLElement;
 
-	const selected_tab = writable<false | object | number | string>(false);
-	const selected_tab_index = writable<number>(0);
+	const selected_tab = writable<false | number | string>(
+		selected || tabs[0]?.id || false
+	);
+	const selected_tab_index = writable<number>(
+		tabs.findIndex((t) => t.id === selected) || 0
+	);
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
@@ -73,20 +77,19 @@
 		selected_tab_index
 	});
 
-	function change_tab(id: object | string | number): void {
+	function change_tab(id: string | number): void {
 		const tab_to_activate = tabs.find((t) => t.id === id);
 		if (
 			tab_to_activate &&
 			tab_to_activate.interactive &&
-			tab_to_activate.visible
+			tab_to_activate.visible &&
+			$selected_tab !== tab_to_activate.id
 		) {
 			selected = id;
 			$selected_tab = id;
 			$selected_tab_index = tabs.findIndex((t) => t.id === id);
 			dispatch("change");
 			overflow_menu_open = false;
-		} else {
-			console.warn("Attempted to select a non-interactive or hidden tab.");
 		}
 	}
 
