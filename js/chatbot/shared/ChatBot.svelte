@@ -433,6 +433,7 @@
 		transition: var(--button-transition);
 		max-width: var(--size-56);
 		width: 100%;
+		justify-content: center;
 	}
 
 	.example:hover {
