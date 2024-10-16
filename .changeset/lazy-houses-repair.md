@@ -1,7 +1,7 @@
 ---
-"@gradio/core": minor
-"@gradio/tabs": minor
-"gradio": minor
+"@gradio/core": patch
+"@gradio/tabs": patch
+"gradio": patch
 ---
 
-feat:SSR tabs
+fix:Ensure tabs render in SSR mode and reduce time it takes for them to render.
