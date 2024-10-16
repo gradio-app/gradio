@@ -88,7 +88,7 @@ class ThemeClass:
         dark_css_code = (
             "\n:root .dark {\n"
             + "\n".join([f"  --{attr}: {val};" for attr, val in dark_css.items()])
-            + "\n}\n}"
+            + "\n}"
         )
 
         font_css = "\n".join(self._font_css)
