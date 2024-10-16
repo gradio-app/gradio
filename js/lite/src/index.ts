@@ -35,31 +35,31 @@ export class GradioAppController extends EventTarget {
 		});
 	}
 
-	run_code(code: string): Promise<void> {
+	run_code = (code: string): Promise<void> => {
 		return this.lite_svelte_app.run_code(code);
-	}
-	run_file(path: string): Promise<void> {
+	};
+	run_file = (path: string): Promise<void> => {
 		return this.lite_svelte_app.run_file(path);
-	}
-	write(
+	};
+	write = (
 		path: string,
 		data: string | ArrayBufferView,
 		opts: any
-	): Promise<void> {
+	): Promise<void> => {
 		return this.lite_svelte_app.write(path, data, opts);
-	}
-	rename(old_path: string, new_path: string): Promise<void> {
+	};
+	rename = (old_path: string, new_path: string): Promise<void> => {
 		return this.lite_svelte_app.rename(old_path, new_path);
-	}
-	unlink(path: string): Promise<void> {
+	};
+	unlink = (path: string): Promise<void> => {
 		return this.lite_svelte_app.unlink(path);
-	}
-	install(requirements: string[]): Promise<void> {
+	};
+	install = (requirements: string[]): Promise<void> => {
 		return this.lite_svelte_app.install(requirements);
-	}
-	unmount(): void {
+	};
+	unmount = (): void => {
 		this.lite_svelte_app.$destroy();
-	}
+	};
 }
 
 export interface Options {
