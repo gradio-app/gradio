@@ -8,7 +8,8 @@
 	"license": "ISC",
 	"dependencies": {
 		"@gradio/icons": "workspace:^",
-		"@gradio/utils": "workspace:^"
+		"@gradio/utils": "workspace:^",
+		"@gradio/markdown": "workspace:^"
 	},
 	"peerDependencies": {
 		"svelte": "^4.0.0"

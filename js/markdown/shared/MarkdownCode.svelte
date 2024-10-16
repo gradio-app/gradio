@@ -3,8 +3,7 @@
 	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
-	import sanitize_server from "sanitize-html";
-	import Amuchina from "amuchina";
+	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
 
 	export let chatbot = true;
@@ -28,52 +27,6 @@
 		line_breaks,
 		latex_delimiters
 	});
-
-	const amuchina = new Amuchina();
-	const is_browser = typeof window !== "undefined";
-
-	let sanitize = is_browser ? sanitize_browser : sanitize_server;
-
-	function sanitize_browser(source: string): string {
-		const node = new DOMParser().parseFromString(source, "text/html");
-		walk_nodes(node.body, "A", (node) => {
-			if (node instanceof HTMLElement && "target" in node) {
-				if (is_external_url(node.getAttribute("href"))) {
-					node.setAttribute("target", "_blank");
-					node.setAttribute("rel", "noopener noreferrer");
-				}
-			}
-		});
-
-		return amuchina.sanitize(node).body.innerHTML;
-	}
-
-	function walk_nodes(
-		node: Node | null | HTMLElement,
-		test: string | ((node: Node | HTMLElement) => boolean),
-		callback: (node: Node | HTMLElement) => void
-	): void {
-		if (
-			node &&
-			((typeof test === "string" && node.nodeName === test) ||
-				(typeof test === "function" && test(node)))
-		) {
-			callback(node);
-		}
-		const children = node?.childNodes || [];
-		for (let i = 0; i < children.length; i++) {
-			// @ts-ignore
-			walk_nodes(children[i], test, callback);
-		}
-	}
-
-	const is_external_url = (link: string | null): boolean => {
-		try {
-			return !!link && new URL(link).origin !== new URL(root).origin;
-		} catch (e) {
-			return false;
-		}
-	};
 
 	function escapeRegExp(string: string): string {
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -106,7 +59,7 @@
 		}
 
 		if (sanitize_html && sanitize) {
-			parsedValue = sanitize(parsedValue);
+			parsedValue = sanitize(parsedValue, root);
 		}
 
 		return parsedValue;
