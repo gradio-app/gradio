@@ -290,6 +290,27 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			);
 		}
 
+		if (instance.type === "tabs") {
+			instance.children =
+				instance?.children?.map((c) => ({
+					...c,
+					props: {
+						...c.props,
+						id: c.id
+					}
+				})) || [];
+			const child_tab_items = instance.children?.filter(
+				(child) => child.type === "tabitem"
+			);
+			console.log(child_tab_items);
+			instance.props.inital_tabs = child_tab_items?.map((child) => ({
+				label: child.props.label,
+				id: child.props.id,
+				visible: child.props.visible,
+				interactive: child.props.interactive
+			}));
+		}
+
 		return instance;
 	}
 
