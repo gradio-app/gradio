@@ -284,12 +284,9 @@
 				{#if is_image_preview_open}
 					<div class="image-preview">
 						<img src={image_preview_source} alt={image_preview_source_alt} />
-						<button
-							class="image-preview-close-button"
-							on:click={() => {
-								is_image_preview_open = false;
-							}}><Clear /></button
-						>
+						<IconButtonWrapper>
+							<IconButton Icon={Clear} on:click={() => is_image_preview_open = false} label={"Clear"} />
+						</IconButtonWrapper>
 					</div>
 				{/if}
 				<Message
@@ -604,28 +601,9 @@
 		width: 100%;
 		height: 100%;
 		overflow: auto;
-		background-color: rgba(0, 0, 0, 0.9);
+		background-color: var(--background-fill-secondary);
 		display: flex;
 		justify-content: center;
 		align-items: center;
-	}
-	.image-preview :global(svg) {
-		stroke: white;
-	}
-	.image-preview-close-button {
-		position: absolute;
-		top: 10px;
-		right: 10px;
-		background: none;
-		border: none;
-		font-size: 1.5em;
-		cursor: pointer;
-		height: 30px;
-		width: 30px;
-		padding: 3px;
-		background: var(--bg-color);
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--button-secondary-border-color);
-		border-radius: var(--radius-lg);
 	}
 </style>
