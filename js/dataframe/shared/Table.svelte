@@ -56,8 +56,10 @@
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
 
+	let last_selected: [number, number] | null = null;
+
 	$: {
-		if (selected !== false) {
+		if (selected !== false && !dequal(selected, last_selected)) {
 			const [row, col] = selected;
 			if (!isNaN(row) && !isNaN(col) && data[row]) {
 				dispatch("select", {
@@ -65,6 +67,7 @@
 					value: get_data_at(row, col),
 					row_value: data[row].map((d) => d.value)
 				});
+				last_selected = selected;
 			}
 		}
 	}
@@ -353,9 +356,11 @@
 		header_edit = false;
 		selected_header = false;
 		editing = false;
-		selected = [i, j];
-		await tick();
-		parent.focus();
+		if (!dequal(selected, [i, j])) {
+			selected = [i, j];
+			await tick();
+			parent.focus();
+		}
 	}
 
 	type SortDirection = "asc" | "des";
@@ -478,7 +483,7 @@
 		editing = false;
 		header_edit = false;
 		selected_header = false;
-		selected = false;
+		reset_selection();
 		active_cell = null;
 		active_cell_menu = null;
 		active_header_menu = null;
@@ -759,6 +764,11 @@
 				};
 			}
 		}
+	}
+
+	function reset_selection(): void {
+		selected = false;
+		last_selected = null;
 	}
 </script>
 
