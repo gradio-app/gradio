@@ -1,5 +1,13 @@
-<script context="module">
+<script context="module" lang="ts">
 	export const TABS = {};
+
+	export interface Tab {
+		name: string;
+		id: string | number;
+		elem_id: string | undefined;
+		visible: boolean;
+		interactive: boolean;
+	}
 </script>
 
 <script lang="ts">
@@ -13,20 +21,13 @@
 	import { writable } from "svelte/store";
 	import type { SelectData } from "@gradio/utils";
 
-	interface Tab {
-		name: string;
-		id: object;
-		elem_id: string | undefined;
-		visible: boolean;
-		interactive: boolean;
-	}
-
 	export let visible = true;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
-	export let selected: number | string | object;
+	export let selected: number | string;
+	export let inital_tabs: Tab[] = [];
 
-	let tabs: Tab[] = [];
+	let tabs: Tab[] = inital_tabs;
 	let overflow_menu_open = false;
 	let overflow_menu: HTMLElement;
 
@@ -35,8 +36,12 @@
 	let tab_nav_el: HTMLElement;
 	let overflow_nav: HTMLElement;
 
-	const selected_tab = writable<false | object | number | string>(false);
-	const selected_tab_index = writable<number>(0);
+	const selected_tab = writable<false | number | string>(
+		selected || tabs[0]?.id || false
+	);
+	const selected_tab_index = writable<number>(
+		tabs.findIndex((t) => t.id === selected) || 0
+	);
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
@@ -72,20 +77,19 @@
 		selected_tab_index
 	});
 
-	function change_tab(id: object | string | number): void {
+	function change_tab(id: string | number): void {
 		const tab_to_activate = tabs.find((t) => t.id === id);
 		if (
 			tab_to_activate &&
 			tab_to_activate.interactive &&
-			tab_to_activate.visible
+			tab_to_activate.visible &&
+			$selected_tab !== tab_to_activate.id
 		) {
 			selected = id;
 			$selected_tab = id;
 			$selected_tab_index = tabs.findIndex((t) => t.id === id);
 			dispatch("change");
 			overflow_menu_open = false;
-		} else {
-			console.warn("Attempted to select a non-interactive or hidden tab.");
 		}
 	}
 
@@ -149,10 +153,19 @@
 
 		nav_items.forEach((item) => tab_nav_el.appendChild(item));
 		overflow_items.forEach((item) => overflow_nav.appendChild(item));
+		overflow_has_selected_tab = handle_overflow_has_selected_tab($selected_tab);
+	}
 
-		overflow_has_selected_tab = tabs.some(
+	$: overflow_has_selected_tab =
+		handle_overflow_has_selected_tab($selected_tab);
+
+	function handle_overflow_has_selected_tab(
+		selected_tab: number | string | false
+	): boolean {
+		if (selected_tab === false || !overflow_nav) return false;
+		return tabs.some(
 			(t) =>
-				t.id === $selected_tab &&
+				t.id === selected_tab &&
 				overflow_nav.contains(document.querySelector(`[data-tab-id="${t.id}"]`))
 		);
 	}

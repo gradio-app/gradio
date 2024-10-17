@@ -211,7 +211,8 @@ const ignore_list = [
 	"tooltip",
 	"upload",
 	"utils",
-	"wasm"
+	"wasm",
+	"sanitize"
 ];
 function generate_component_imports(): string {
 	const exports = readdirSync(join(__dirname, "..", ".."))

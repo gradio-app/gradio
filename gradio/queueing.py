@@ -394,6 +394,7 @@ class Queue:
         self,
         event_id: str,
         log: str,
+        title: str,
         level: Literal["info", "warning"],
         duration: float | None = 10,
         visible: bool = True,
@@ -406,6 +407,7 @@ class Queue:
                     level=level,
                     duration=duration,
                     visible=visible,
+                    title=title,
                 )
                 self.send_message(event, log_message)
 
@@ -644,6 +646,7 @@ class Queue:
                         event,
                         ProcessCompletedMessage(
                             output=content,
+                            title=content.get("title", "Error"),  # type: ignore
                             success=False,
                         ),
                     )
