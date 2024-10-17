@@ -190,8 +190,12 @@
 	}
 
 	.huggingface {
-		border: var(--button-border-width) solid
-			var(--button-secondary-border-color);
-		background: var(--background-fill-primary);
+		background: rgb(20, 28, 46);
+		color: white;
+	}
+
+	.huggingface:hover {
+		background: rgb(40, 48, 66);
+		color: white;
 	}
 </style>

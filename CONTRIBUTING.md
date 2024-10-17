@@ -24,7 +24,7 @@ There are a few ways to install and run Gradio.
 bash scripts/install_gradio.sh
 ```
 
-- Build the front end
+- Build the Frontend
 
 ```
 bash scripts/build_frontend.sh
@@ -273,7 +273,7 @@ and navigate to `http://localhost:8000` in your browser. The demo page `index.ht
 
 ## 📮 Submitting PRs
 
-All PRs should be against `main`, and ideally should address an open issue, unless the change is small. Direct commits to main are blocked, and PRs require an approving review to merge into main. By convention, the Gradio maintainers will review PRs when:
+All PRs should be submitted against `main`, and ideally should address an open issue, unless the change is small. Direct commits to main are blocked, and PRs require an approving review to merge into main. By convention, the Gradio maintainers will review PRs when:
 
 - An initial review has been requested
 - A clear, descriptive title has been assigned to the PR
@@ -281,7 +281,7 @@ All PRs should be against `main`, and ideally should address an open issue, unle
 
  🧹 We ask that you make sure initial CI checks are passing before requesting a review. One of the Gradio maintainers will merge the PR when all the checks are passing.  You can safely ignore the Vercel and Spaces checks, which only run under maintainers' pull requests.  
 
-Don't forget the format your code before pushing:
+Don't forget to format your code before pushing:
 
 ```
 bash scripts/format_backend.sh

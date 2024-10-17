@@ -625,6 +625,9 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
+      '@gradio/markdown':
+        specifier: workspace:^
+        version: link:../markdown
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
@@ -1669,6 +1672,9 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
+      '@gradio/sanitize':
+        specifier: workspace:^
+        version: link:../sanitize
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
@@ -1684,9 +1690,6 @@ importers:
       '@types/prismjs':
         specifier: 1.26.4
         version: 1.26.4
-      amuchina:
-        specifier: ^1.0.12
-        version: 1.0.12
       dom-parser:
         specifier: ^1.1.5
         version: 1.1.5
@@ -1711,9 +1714,6 @@ importers:
       prismjs:
         specifier: 1.29.0
         version: 1.29.0
-      sanitize-html:
-        specifier: ^2.13.0
-        version: 2.13.0
       svelte:
         specifier: ^4.0.0
         version: 4.2.15
@@ -1721,9 +1721,6 @@ importers:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
-      '@types/sanitize-html':
-        specifier: ^2.13.0
-        version: 2.13.0
 
   js/model3D:
     dependencies:
@@ -2033,6 +2030,19 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+
+  js/sanitize:
+    dependencies:
+      amuchina:
+        specifier: ^1.0.12
+        version: 1.0.12
+      sanitize-html:
+        specifier: ^2.13.0
+        version: 2.13.0
+    devDependencies:
+      '@types/sanitize-html':
+        specifier: ^2.13.0
+        version: 2.13.0
 
   js/simpledropdown:
     dependencies:
