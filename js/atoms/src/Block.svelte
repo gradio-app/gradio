@@ -19,6 +19,8 @@
 	export let min_width = 0;
 	export let flex = false;
 
+	if (!visible) flex = false;
+
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
 	const get_dimension = (

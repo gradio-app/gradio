@@ -284,12 +284,13 @@
 				{#if is_image_preview_open}
 					<div class="image-preview">
 						<img src={image_preview_source} alt={image_preview_source_alt} />
-						<button
-							class="image-preview-close-button"
-							on:click={() => {
-								is_image_preview_open = false;
-							}}><Clear /></button
-						>
+						<IconButtonWrapper>
+							<IconButton
+								Icon={Clear}
+								on:click={() => (is_image_preview_open = false)}
+								label={"Clear"}
+							/>
+						</IconButtonWrapper>
 					</div>
 				{/if}
 				<Message
@@ -594,5 +595,19 @@
 			var(--shadow-drop),
 			0 2px 2px rgba(0, 0, 0, 0.05);
 		transform: translateY(-2px);
+	}
+
+	.image-preview {
+		position: absolute;
+		z-index: 999;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: var(--background-fill-secondary);
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 </style>
