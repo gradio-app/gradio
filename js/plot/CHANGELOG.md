@@ -1,5 +1,12 @@
 # @gradio/plot
 
+## 0.7.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/atoms@0.9.2
+
 ## 0.7.2
 
 ### Dependency updates
