@@ -1,5 +1,17 @@
 # gradio
 
+## 5.2.2
+
+### Features
+
+- [#9746](https://github.com/gradio-app/gradio/pull/9746) [`5015abb`](https://github.com/gradio-app/gradio/commit/5015abbd78434754931c2b09d9f603f212c4566d) - fix `@gradio/sanitize` exports.  Thanks @pngwn!
+
+### Fixes
+
+- [#9654](https://github.com/gradio-app/gradio/pull/9654) [`cd7dab7`](https://github.com/gradio-app/gradio/commit/cd7dab7ba5c81983f133dfa9e90ac6f92ac4fa1f) - Improve select event behaviour in gr.Dataframe.  Thanks @hannahblair!
+- [#9700](https://github.com/gradio-app/gradio/pull/9700) [`2932e06`](https://github.com/gradio-app/gradio/commit/2932e067d5716a0f3939bfa3f310db8cdcf565c1) - Fix API info bug.  Thanks @freddyaboulton!
+- [#9738](https://github.com/gradio-app/gradio/pull/9738) [`2ade59b`](https://github.com/gradio-app/gradio/commit/2ade59b95d4c3610a1a461cc95f020fbf9627305) - Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API.  Thanks @whitphx!
+
 ## 5.2.1
 
 ### Fixes

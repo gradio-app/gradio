@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.12.1
+
+### Fixes
+
+- [#9707](https://github.com/gradio-app/gradio/pull/9707) [`8d848dd`](https://github.com/gradio-app/gradio/commit/8d848dd1e46751a9c5bf26245158add47be44834) - Add a port timeout detection feature for gradio/preview.  Thanks @achilou!
+
 ## 0.12.0
 
 ### Features
