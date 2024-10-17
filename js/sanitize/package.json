@@ -22,11 +22,15 @@
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
-			"browser": "./dist/browser.js",
-			"import": "./dist/server.js",
-			"default": "./dist/server.js"
-		},
-		"./package.json": "./package.json"
+			"browser": {
+				"development": "./browser.ts",
+				"default": "./dist/browser.js"
+			},
+			"default": {
+				"development": "./server.ts",
+				"default": "./dist/server.js"
+			}
+		}
 	},
 	"scripts": {
 		"package": "svelte-package --input=. --cwd=../../.config/"
