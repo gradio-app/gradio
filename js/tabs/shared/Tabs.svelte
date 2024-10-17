@@ -1,5 +1,13 @@
-<script context="module">
+<script context="module" lang="ts">
 	export const TABS = {};
+
+	export interface Tab {
+		name: string;
+		id: string | number;
+		elem_id: string | undefined;
+		visible: boolean;
+		interactive: boolean;
+	}
 </script>
 
 <script lang="ts">
@@ -7,20 +15,11 @@
 		setContext,
 		createEventDispatcher,
 		onMount,
-		onDestroy,
-		tick
+		onDestroy
 	} from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
 	import type { SelectData } from "@gradio/utils";
-
-	interface Tab {
-		name: string;
-		id: string | number;
-		elem_id: string | undefined;
-		visible: boolean;
-		interactive: boolean;
-	}
 
 	export let visible = true;
 	export let elem_id = "";
