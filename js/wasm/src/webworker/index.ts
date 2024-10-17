@@ -80,15 +80,6 @@ async function initializeEnvironment(
 	updateProgress("Loading Gradio wheels");
 	await pyodide.loadPackage(["ssl", "setuptools"]);
 	await micropip.add_mock_package("ffmpy", "0.3.0");
-	await micropip.install.callKwargs(
-		[
-			"typing-extensions>=4.8.0", // Typing extensions needs to be installed first otherwise the versions from the pyodide lockfile is used which is incompatible with the latest fastapi.
-			"markdown-it-py[linkify]~=2.2.0", // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
-			"anyio==3.*", // `fastapi` depends on `anyio>=3.4.0,<5` so its 4.* can be installed, but it conflicts with the anyio version `httpx` depends on, `==3.*`. Seems like micropip can't resolve it for now, so we explicitly install the compatible version of the library here.
-			"fastapi<0.111.0" // `fastapi==0.111.0` added `ujson` as a dependency, but it's not available on Pyodide yet.
-		],
-		{ keep_going: true }
-	);
 	await micropip.install.callKwargs(gradioWheelUrls, {
 		keep_going: true
 	});
@@ -140,7 +131,11 @@ async def _call_asgi_app_from_js(app_id, scope, receive, send):
 
 	async def rcv():
 			event = await receive()
-			return event.to_py()
+			py_event = event.to_py()
+			if "body" in py_event:
+					if isinstance(py_event["body"], memoryview):
+							py_event["body"] = py_event["body"].tobytes()
+			return py_event
 
 	async def snd(event):
 			await send(event)
@@ -166,16 +161,6 @@ import anyio.to_thread
 anyio.to_thread.run_sync = mocked_anyio_to_thread_run_sync
 	`);
 	console.debug("Async libraries are mocked.");
-
-	console.debug("Setting matplotlib backend.");
-	updateProgress("Setting matplotlib backend");
-	// Ref: https://github.com/streamlit/streamlit/blob/1.22.0/lib/streamlit/web/bootstrap.py#L111
-	// This backend setting is required to use matplotlib in Wasm environment.
-	await pyodide.runPythonAsync(`
-import matplotlib
-matplotlib.use("agg")
-`);
-	console.debug("matplotlib backend is set.");
 
 	console.debug("Setting up Python utility functions.");
 	updateProgress("Setting up Python utility functions");
@@ -229,6 +214,22 @@ async function initializeApp(
 	updateProgress("Installing packages");
 	await micropip.install.callKwargs(options.requirements, { keep_going: true });
 	console.debug("Packages are installed.");
+
+	if (options.requirements.includes("matplotlib")) {
+		console.debug("Setting matplotlib backend.");
+		updateProgress("Setting matplotlib backend");
+		// Ref: https://github.com/pyodide/pyodide/issues/561#issuecomment-1992613717
+		// This backend setting is required to use matplotlib in Wasm environment.
+		await pyodide.runPythonAsync(`
+try:
+	import matplotlib
+	matplotlib.use("agg")
+except ImportError:
+	pass
+`);
+		console.debug("matplotlib backend is set.");
+	}
+
 	updateProgress("App is now loaded");
 }
 
@@ -434,12 +435,15 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 						.callKwargs(requirements, { keep_going: true })
 						.then(() => {
 							if (requirements.includes("matplotlib")) {
-								// Ref: https://github.com/streamlit/streamlit/blob/1.22.0/lib/streamlit/web/bootstrap.py#L111
+								// Ref: https://github.com/pyodide/pyodide/issues/561#issuecomment-1992613717
 								// This backend setting is required to use matplotlib in Wasm environment.
 								return pyodide.runPythonAsync(`
-									import matplotlib
-									matplotlib.use("agg")
-								`);
+try:
+	import matplotlib
+	matplotlib.use("agg")
+except ImportError:
+	pass
+`);
 							}
 						})
 						.then(() => {

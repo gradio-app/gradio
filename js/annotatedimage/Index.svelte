@@ -2,7 +2,13 @@
 	import type { Gradio, SelectData } from "@gradio/utils";
 
 	import { onMount } from "svelte";
-	import { Block, BlockLabel, Empty, IconButton } from "@gradio/atoms";
+	import {
+		Block,
+		BlockLabel,
+		Empty,
+		IconButton,
+		IconButtonWrapper
+	} from "@gradio/atoms";
 	import { Image, Maximize, Minimize } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -159,7 +165,7 @@
 			<Empty size="large" unpadded_box={true}><Image /></Empty>
 		{:else}
 			<div class="image-container" bind:this={image_container}>
-				<div class="icon-buttons">
+				<IconButtonWrapper>
 					{#if !is_full_screen && show_fullscreen_button}
 						<IconButton
 							Icon={Maximize}
@@ -175,7 +181,7 @@
 							on:click={toggle_full_screen}
 						/>
 					{/if}
-				</div>
+				</IconButtonWrapper>
 
 				<img
 					class="base-image"
@@ -285,14 +291,5 @@
 		cursor: pointer;
 		border-radius: var(--radius-sm);
 		padding: var(--spacing-sm);
-	}
-
-	.icon-buttons {
-		display: flex;
-		position: absolute;
-		top: 6px;
-		right: 6px;
-		gap: var(--size-1);
-		z-index: 1;
 	}
 </style>

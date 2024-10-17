@@ -481,14 +481,17 @@ describe("get_component", () => {
 		const id = "test-random";
 		const variant = "component";
 		const handlers = [
-			http.get(`${api_url}/custom_component/${id}/${variant}/style.css`, () => {
-				return new HttpResponse('console.log("boo")', {
-					status: 200,
-					headers: {
-						"Content-Type": "text/css"
-					}
-				});
-			})
+			http.get(
+				`${api_url}/custom_component/${id}/client/${variant}/style.css`,
+				() => {
+					return new HttpResponse('console.log("boo")', {
+						status: 200,
+						headers: {
+							"Content-Type": "text/css"
+						}
+					});
+				}
+			)
 		];
 
 		// vi.mock calls are always hoisted out of the test function to the top of the file
@@ -498,7 +501,7 @@ describe("get_component", () => {
 		});
 
 		vi.mock(
-			`example.com/custom_component/test-random/component/index.js`,
+			`example.com/custom_component/test-random/client/component/index.js`,
 			async () => {
 				mock();
 				return {

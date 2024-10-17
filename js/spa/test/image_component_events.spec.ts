@@ -25,7 +25,7 @@ test("Image events are dispatched correctly. Downloading the file works and has 
 	await page.getByLabel("Download").click();
 	const download = await downloadPromise;
 	// PIL converts from .jpg to .jpeg
-	await expect(download.suggestedFilename()).toBe("cheetah1.jpeg");
+	await expect(download.suggestedFilename()).toBe("cheetah1.jpg");
 
 	await page.getByLabel("Remove Image").click();
 	await expect(clear_counter).toHaveValue("1");
@@ -95,11 +95,6 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 	});
 
 	await page.getByLabel("Paste from clipboard").click();
-	await Promise.all([
-		page.waitForResponse(
-			(resp) => resp.url().includes("/clipboard.png") && resp.status() === 200
-		)
-	]);
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });

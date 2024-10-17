@@ -9,9 +9,20 @@ import warnings
 
 import httpx
 import yaml
-from huggingface_hub import InferenceClient
+from huggingface_hub import HfApi, ImageClassificationOutputElement, InferenceClient
 
 from gradio import components
+
+
+def get_model_info(model_name, hf_token=None):
+    hf_api = HfApi(token=hf_token)
+    print(f"Fetching model from: https://huggingface.co/{model_name}")
+
+    model_info = hf_api.model_info(model_name)
+    pipeline = model_info.pipeline_tag
+    tags = model_info.tags
+    return pipeline, tags
+
 
 ##################
 # Helper functions for processing tabular data
@@ -78,8 +89,8 @@ def rows_to_cols(incoming_data: dict) -> dict[str, dict[str, dict[str, list[str]
 ##################
 
 
-def postprocess_label(scores: list[dict[str, str | float]]) -> dict:
-    return {c["label"]: c["score"] for c in scores}
+def postprocess_label(scores: list[ImageClassificationOutputElement]) -> dict:
+    return {c.label: c.score for c in scores}
 
 
 def postprocess_mask_tokens(scores: list[dict[str, str | float]]) -> dict:
@@ -115,6 +126,17 @@ def text_generation_wrapper(client: InferenceClient):
         return input + client.text_generation(input)
 
     return text_generation_inner
+
+
+def conversational_wrapper(client: InferenceClient):
+    def chat_fn(message, history):
+        if not history:
+            history = []
+        history.append({"role": "user", "content": message})
+        result = client.chat_completion(history)
+        return result.choices[0].message.content
+
+    return chat_fn
 
 
 def encode_to_base64(r: httpx.Response) -> str:
@@ -204,6 +226,7 @@ def chatbot_postprocess(response):
         zip(
             response["conversation"]["past_user_inputs"],
             response["conversation"]["generated_responses"],
+            strict=False,
         )
     )
     return chatbot_history, response

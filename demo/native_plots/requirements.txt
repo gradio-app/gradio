@@ -1,1 +1,2 @@
 vega_datasets
+pandas

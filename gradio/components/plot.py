@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Literal, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
 
@@ -64,7 +65,7 @@ class Plot(Component):
         Parameters:
             value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, altair, or bokeh figure, or a callable. If callable, the function will be called whenever the app loads to set the initial value of the component.
             format: File format in which to send matplotlib plots to the front end, such as 'jpg' or 'png'.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             show_label: if True, will display label.
@@ -128,18 +129,16 @@ class Plot(Component):
         Returns:
             PlotData: A dataclass containing the plot data as a JSON string, as well as the type of chart and the plotting library.
         """
-        import matplotlib.figure
-
         if value is None:
             return None
         if isinstance(value, PlotData):
             return value
-        if isinstance(value, (ModuleType, matplotlib.figure.Figure)):  # type: ignore
+        if isinstance(value, ModuleType) or "matplotlib" in value.__module__:
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(value, self.format)
         elif "bokeh" in value.__module__:
             dtype = "bokeh"
-            from bokeh.embed import json_item  # type: ignore
+            from bokeh.embed import json_item
 
             out_y = json.dumps(json_item(value))
         else:

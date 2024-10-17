@@ -1,5 +1,17 @@
 # @gradio/group
 
+## 0.2.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Redesign `gr.Button()`
+
+## 0.2.0-beta.1
+
+### Features
+
+- [#9167](https://github.com/gradio-app/gradio/pull/9167) [`e9e737e`](https://github.com/gradio-app/gradio/commit/e9e737eeeb61d0bbf43277c75b6ffed8b34aa445) - Redesign `gr.Button()`.  Thanks @hannahblair!
+
 ## 0.1.3
 
 ### Fixes

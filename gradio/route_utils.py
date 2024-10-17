@@ -9,10 +9,11 @@ import os
 import pickle
 import re
 import shutil
-import sys
 import threading
+import uuid
 from collections import deque
-from contextlib import AsyncExitStack, asynccontextmanager
+from collections.abc import AsyncGenerator, Callable
+from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
 from pathlib import Path
@@ -20,13 +21,8 @@ from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncContextManager,
-    AsyncGenerator,
     BinaryIO,
-    Callable,
-    List,
     Optional,
-    Tuple,
     Union,
 )
 from urllib.parse import urlparse
@@ -46,19 +42,21 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from gradio import processing_utils, utils
 from gradio.data_classes import (
     BlocksConfigDict,
+    MediaStreamChunk,
     PredictBody,
     PredictBodyInternal,
 )
 from gradio.exceptions import Error
-from gradio.helpers import EventData
 from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
+    from gradio.helpers import EventData
     from gradio.routes import App
 
 
 config_lock = threading.Lock()
+API_PREFIX = "/gradio_api"
 
 
 class Obj:
@@ -160,6 +158,7 @@ class Request:
             username: The username of the logged in user (if auth is enabled)
             session_hash: The session hash of the current session. It is unique for each page load.
         """
+
         self.request = request
         self.username = username
         self.session_hash: str | None = session_hash
@@ -290,6 +289,8 @@ def prepare_event_data(
     blocks: Blocks,
     body: PredictBodyInternal,
 ) -> EventData:
+    from gradio.helpers import EventData
+
     target = body.trigger_id
     event_data = EventData(
         blocks.blocks.get(target) if target else None,
@@ -341,16 +342,15 @@ async def call_process_api(
         iterator = app.iterators.get(event_id) if event_id is not None else None
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
-            pending_streams: dict[int, list] = (
+            pending_streams: dict[int, MediaStream] = (
                 app.get_blocks().pending_streams[session_hash].get(run_id, {})
             )
             for stream in pending_streams.values():
-                stream.append(None)
+                stream.end_stream()
         raise
 
     if batch_in_single_out:
         output["data"] = output["data"][0]
-
     return output
 
 
@@ -420,6 +420,7 @@ class GradioUploadFile(UploadFile):
     ) -> None:
         super().__init__(file, size=size, filename=filename, headers=headers)
         self.sha = hashlib.sha256()
+        self.sha.update(processing_utils.hash_seed)
 
 
 @python_dataclass(frozen=True)
@@ -521,7 +522,7 @@ class GradioMultiPartParser:
         self.stream = stream
         self.max_files = max_files
         self.max_fields = max_fields
-        self.items: List[Tuple[str, Union[str, UploadFile]]] = []
+        self.items: list[tuple[str, Union[str, UploadFile]]] = []
         self.upload_id = upload_id
         self.upload_progress = upload_progress
         self._current_files = 0
@@ -531,9 +532,9 @@ class GradioMultiPartParser:
         self._current_partial_header_value: bytes = b""
         self._current_part = MultipartPart()
         self._charset = ""
-        self._file_parts_to_write: List[Tuple[MultipartPart, bytes]] = []
-        self._file_parts_to_finish: List[MultipartPart] = []
-        self._files_to_close_on_error: List[_TemporaryFileWrapper] = []
+        self._file_parts_to_write: list[tuple[MultipartPart, bytes]] = []
+        self._file_parts_to_finish: list[MultipartPart] = []
+        self._files_to_close_on_error: list[_TemporaryFileWrapper] = []
 
     def on_part_begin(self) -> None:
         self._current_part = MultipartPart()
@@ -682,7 +683,7 @@ class GradioMultiPartParser:
 
 
 def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
-    for file, dest in zip(files, destinations):
+    for file, dest in zip(files, destinations, strict=False):
         shutil.move(file, dest)
 
 
@@ -692,12 +693,36 @@ def update_root_in_config(config: BlocksConfigDict, root: str) -> BlocksConfigDi
     root url has changed, all of the urls in the config that correspond to component
     file urls are updated to use the new root url.
     """
-    with config_lock:
-        previous_root = config.get("root")
-        if previous_root is None or previous_root != root:
-            config["root"] = root
-            config = processing_utils.add_root_url(config, root, previous_root)  # type: ignore
+    previous_root = config.get("root")
+    if previous_root is None or previous_root != root:
+        config["root"] = root
+        config = processing_utils.add_root_url(config, root, previous_root)  # type: ignore
     return config
+
+
+def update_example_values_to_use_public_url(api_info: dict[str, Any]) -> dict[str, Any]:
+    """
+    Updates the example values in the api_info dictionary to use a public url
+    """
+
+    def _add_root_url(file_dict: dict):
+        default_value = file_dict.get("parameter_default")
+        if default_value is not None and client_utils.is_file_obj_with_url(
+            default_value
+        ):
+            if client_utils.is_http_url_like(default_value["url"]):
+                return file_dict
+            # If the default value's url is not already a full public url,
+            # we use the example_input url. This makes it so that the example
+            # value for images, audio, and video components pass SSRF checks.
+            default_value["url"] = file_dict["example_input"]["url"]
+        return file_dict
+
+    return client_utils.traverse(
+        api_info,
+        _add_root_url,
+        lambda d: isinstance(d, dict) and "parameter_default" in d,
+    )
 
 
 def compare_passwords_securely(input_password: str, correct_password: str) -> bool:
@@ -737,6 +762,7 @@ class CustomCORSMiddleware:
     def __init__(
         self,
         app: ASGIApp,
+        strict_cors: bool = True,
     ) -> None:
         self.app = app
         self.all_methods = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
@@ -747,9 +773,12 @@ class CustomCORSMiddleware:
         }
         self.simple_headers = {"Access-Control-Allow-Credentials": "true"}
         # Any of these hosts suggests that the Gradio app is running locally.
-        # Note: "null" is a special case that happens if a Gradio app is running
-        # as an embedded web component in a local static webpage.
-        self.localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
+        self.localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0"]
+        if not strict_cors or os.getenv("GRADIO_LOCAL_DEV_MODE") is not None:  # type: ignore
+            # Note: "null" is a special case that happens if a Gradio app is running
+            # as an embedded web component in a local static webpage. However, it can
+            # also be used maliciously for CSRF attacks, so it is not allowed by default.
+            self.localhost_aliases.append("null")
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -801,6 +830,7 @@ class CustomCORSMiddleware:
         host = request_headers["Host"]
         host_name = get_hostname(host)
         origin_name = get_hostname(origin)
+
         return (
             host_name not in self.localhost_aliases
             or origin_name in self.localhost_aliases
@@ -864,20 +894,15 @@ async def _delete_state(app: App):
 @asynccontextmanager
 async def _delete_state_handler(app: App):
     """When the server launches, regularly delete expired state."""
-    # The stop event needs to get the current event loop for python 3.8
-    # but the loop parameter is deprecated for 3.8+
-    if sys.version_info < (3, 10):
-        loop = asyncio.get_running_loop()
-        app.stop_event = asyncio.Event(loop=loop)
     asyncio.create_task(_delete_state(app))
     yield
 
 
 def create_lifespan_handler(
-    user_lifespan: Callable[[App], AsyncContextManager] | None,
+    user_lifespan: Callable[[App], AbstractAsyncContextManager] | None,
     frequency: int | None = 1,
     age: int | None = 1,
-) -> Callable[[App], AsyncContextManager]:
+) -> Callable[[App], AbstractAsyncContextManager]:
     """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
 
     @asynccontextmanager
@@ -891,3 +916,25 @@ def create_lifespan_handler(
             yield
 
     return _handler
+
+
+class MediaStream:
+    def __init__(self, desired_output_format: str | None = None):
+        self.segments: list[MediaStreamChunk] = []
+        self.combined_file: str | None = None
+        self.ended = False
+        self.segment_index = 0
+        self.playlist = "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:EVENT\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:4\n#EXT-X-MEDIA-SEQUENCE:0\n"
+        self.max_duration = 5
+        self.desired_output_format = desired_output_format
+
+    async def add_segment(self, data: MediaStreamChunk | None):
+        if not data:
+            return
+
+        segment_id = str(uuid.uuid4())
+        self.segments.append({"id": segment_id, **data})
+        self.max_duration = max(self.max_duration, data["duration"]) + 1
+
+    def end_stream(self):
+        self.ended = True

@@ -8,7 +8,7 @@
 [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/tests-js.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/tests-js.yml)
  [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
-![Python version](https://img.shields.io/badge/python-3.8+-important)
+![Python version](https://img.shields.io/badge/python-3.10+-important)
 [![Twitter follow](https://img.shields.io/twitter/follow/gradio?style=social&label=follow)](https://twitter.com/gradio)
 
 [Website](https://gradio.app)
@@ -16,8 +16,22 @@
 | [Guides](https://gradio.app/guides/)
 | [Getting Started](https://gradio.app/getting_started/)
 | [Examples](demo/)
-| [中文](readme_files/zh-cn#readme)
 
+</div>
+
+<div align="center">
+
+English | [中文](readme_files/zh-cn#readme)
+
+</div>
+
+<div>
+
+<div align="center">
+<span>
+<a href="https://www.producthunt.com/posts/gradio-5-0?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-gradio&#0045;5&#0045;0" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=501906&theme=light" alt="Gradio&#0032;5&#0046;0 - the&#0032;easiest&#0032;way&#0032;to&#0032;build&#0032;AI&#0032;web&#0032;apps | Product Hunt" style="width: 150px; height: 54px;" width="150" height="54" /></a>
+<a href="https://trendshift.io/repositories/2145" target="_blank"><img src="https://trendshift.io/api/badge/repositories/2145" alt="gradio-app%2Fgradio | Trendshift" style="width: 150px; height: 55px;" width="150" height="55"/></a>
+</span>
 </div>
 
 # Gradio: Build Machine Learning Web Apps — in Python
@@ -26,19 +40,19 @@
 
 Gradio is an open-source Python package that allows you to quickly **build** a demo or web application for your machine learning model, API, or any arbitrary Python function. You can then **share** a link to your demo or web application in just a few seconds using Gradio's built-in sharing features. *No JavaScript, CSS, or web hosting experience needed!*
 
-<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/lcm-screenshot-3.gif" style="padding-bottom: 10px">
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/gif-version.gif" style="padding-bottom: 10px">
 
-It just takes a few lines of Python to create a beautiful demo like the one above, so let's get started 💫
+It just takes a few lines of Python to create your own demo, so let's get started 💫
 
 ### Installation
 
-**Prerequisite**: Gradio requires [Python 3.8 or higher](https://www.python.org/downloads/)
+**Prerequisite**: Gradio 5 supports [Python 3.10 - 3.12](https://www.python.org/downloads/).
 
 
 We recommend installing Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
 
 ```
-pip install gradio
+pip install --upgrade gradio
 ```
 
 

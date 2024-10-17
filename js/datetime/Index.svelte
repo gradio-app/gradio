@@ -21,6 +21,7 @@
 	let old_value = value;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	export let root: string;
 
 	export let include_time = true;
 	$: if (value !== old_value) {
@@ -84,7 +85,7 @@
 	padding={true}
 >
 	<div class="label-content">
-		<BlockTitle {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 	</div>
 	<div class="timebox">
 		<input
@@ -186,7 +187,7 @@
 		justify-content: center;
 		align-items: center;
 		transition: var(--button-transition);
-		box-shadow: var(--button-shadow);
+		box-shadow: var(--button-primary-shadow);
 		text-align: center;
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
@@ -199,9 +200,10 @@
 	}
 	.calendar:hover {
 		background: var(--button-secondary-background-fill-hover);
+		box-shadow: var(--button-primary-shadow-hover);
 	}
 	.calendar:active {
-		box-shadow: var(--button-shadow-active);
+		box-shadow: var(--button-primary-shadow-active);
 	}
 	.datetime {
 		width: 0px;

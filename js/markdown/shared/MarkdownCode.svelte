@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { afterUpdate, onMount } from "svelte";
-	import DOMPurify from "isomorphic-dompurify";
+	import { afterUpdate } from "svelte";
 	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
-
+	import { sanitize } from "@gradio/sanitize";
 	import "./prism.css";
 
 	export let chatbot = true;
@@ -27,23 +26,6 @@
 		header_links,
 		line_breaks,
 		latex_delimiters
-	});
-
-	const is_external_url = (link: string | null): boolean => {
-		try {
-			return !!link && new URL(link).origin !== new URL(root).origin;
-		} catch (e) {
-			return false;
-		}
-	};
-
-	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
-		if ("target" in node) {
-			if (is_external_url(node.getAttribute("href"))) {
-				node.setAttribute("target", "_blank");
-				node.setAttribute("rel", "noopener noreferrer");
-			}
-		}
 	});
 
 	function escapeRegExp(string: string): string {
@@ -76,8 +58,8 @@
 			);
 		}
 
-		if (sanitize_html) {
-			parsedValue = DOMPurify.sanitize(parsedValue);
+		if (sanitize_html && sanitize) {
+			parsedValue = sanitize(parsedValue, root);
 		}
 
 		return parsedValue;
@@ -129,38 +111,25 @@
 	}
 
 	span :global(div[class*="code_wrap"] > button) {
-		position: absolute;
-		top: var(--spacing-sm);
-		right: var(--spacing-sm);
 		z-index: 1;
 		cursor: pointer;
 		border-bottom-left-radius: var(--radius-sm);
-		padding: 5px;
 		padding: var(--spacing-md);
 		width: 25px;
 		height: 25px;
-	}
-
-	span :global(code > button > span) {
 		position: absolute;
-		top: var(--spacing-sm);
-		right: var(--spacing-sm);
-		width: 12px;
-		height: 12px;
+		right: 0;
 	}
 
 	span :global(.check) {
-		position: absolute;
-		top: 0;
-		right: 0;
 		opacity: 0;
 		z-index: var(--layer-top);
 		transition: opacity 0.2s;
-		background: var(--background-fill-primary);
-		padding: var(--size-1);
-		width: 100%;
-		height: 100%;
+		background: var(--code-background-fill);
 		color: var(--body-text-color);
+		position: absolute;
+		top: var(--size-1-5);
+		left: var(--size-1-5);
 	}
 
 	span :global(p:not(:first-child)) {
@@ -187,5 +156,9 @@
 
 	span.md :global(.md-header-anchor > svg) {
 		color: var(--body-text-color-subdued);
+	}
+
+	span :global(table) {
+		word-break: break-word;
 	}
 </style>

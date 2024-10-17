@@ -1,6 +1,90 @@
 # @gradio/atoms
 
-## 0.8.1
+## 0.9.2
+
+### Fixes
+
+- [#9730](https://github.com/gradio-app/gradio/pull/9730) [`39a0e8c`](https://github.com/gradio-app/gradio/commit/39a0e8c2fb038eb0afc213fa6290c9b2acee7941) - Fix chatbot component streaming bug and visible bug.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/markdown@0.10.3
+
+## 0.9.1
+
+### Fixes
+
+- [#9711](https://github.com/gradio-app/gradio/pull/9711) [`7134fc2`](https://github.com/gradio-app/gradio/commit/7134fc272e9e60be4b80dfd294ff8926d5995188) - Custom component fixes.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/markdown@0.10.2
+
+## 0.9.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Adding new themes to Gradio 5.0
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Improve Icon Button consistency
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Centre components within `Block` when height and width are set
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Move icons into `IconButtonWrapper`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Allow `info=` to render markdown
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix chatinterface embedding height issues
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate
+
+### Dependencies
+
+- @gradio/icons@0.8.0
+- @gradio/utils@0.7.0
+
+## 0.9.0-beta.5
+
+### Features
+
+- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0.  Thanks @allisonwhilden!
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.4
+
+## 0.9.0-beta.4
+
+### Features
+
+- [#9521](https://github.com/gradio-app/gradio/pull/9521) [`06ef22e`](https://github.com/gradio-app/gradio/commit/06ef22e83cdd27e7afb381396d153d9db3dea16e) - Allow `info=` to render markdown.  Thanks @dawoodkhan82!
+- [#9571](https://github.com/gradio-app/gradio/pull/9571) [`148345d`](https://github.com/gradio-app/gradio/commit/148345d107763754710505281ad70368ebc6f3ec) - Fix chatinterface embedding height issues.  Thanks @aliabid94!
+
+## 0.9.0-beta.3
+
+### Features
+
+- [#9504](https://github.com/gradio-app/gradio/pull/9504) [`d054262`](https://github.com/gradio-app/gradio/commit/d054262f611d5f1eb1a1c936db7152347a891f8e) - Centre components within `Block` when height and width are set.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.3
+
+## 0.9.0-beta.2
+
+### Features
+
+- [#9261](https://github.com/gradio-app/gradio/pull/9261) [`73647a0`](https://github.com/gradio-app/gradio/commit/73647a07b0439efabe3dd218ff6c366ffa3b84a0) - Move icons into `IconButtonWrapper`.  Thanks @hannahblair!
+- [#9313](https://github.com/gradio-app/gradio/pull/9313) [`1fef9d9`](https://github.com/gradio-app/gradio/commit/1fef9d9a26f0ebce4de18c486702661f6539b1c6) - Standardize `height` across components and add `max_height` and `min_height` parameters where appropriate.  Thanks @abidlabs!
+- [#9250](https://github.com/gradio-app/gradio/pull/9250) [`350b0a5`](https://github.com/gradio-app/gradio/commit/350b0a5cafb9176f914f62e7c90de51d4352cc77) - Improve Icon Button consistency.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+
+## 0.8.1-beta.1
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.1
+- @gradio/utils@0.7.0-beta.1
+
+## 0.8.1-beta.0
 
 ### Fixes
 
@@ -8,8 +92,8 @@
 
 ### Dependency updates
 
-- @gradio/utils@0.6.1
-- @gradio/icons@0.7.2
+- @gradio/utils@0.7.0-beta.0
+- @gradio/icons@0.8.0-beta.0
 
 ## 0.8.0
 
