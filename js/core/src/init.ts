@@ -302,7 +302,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			const child_tab_items = instance.children?.filter(
 				(child) => child.type === "tabitem"
 			);
-			instance.props.inital_tabs = child_tab_items?.map((child) => ({
+			instance.props.initial_tabs = child_tab_items?.map((child) => ({
 				label: child.props.label,
 				id: child.props.id,
 				visible: child.props.visible,

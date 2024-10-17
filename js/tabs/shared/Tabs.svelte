@@ -8,7 +8,7 @@
 		createEventDispatcher,
 		onMount,
 		onDestroy,
-		tick
+		tick,
 	} from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
@@ -26,22 +26,24 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let selected: number | string;
-	export let inital_tabs: Tab[];
+	export let initial_tabs: Tab[];
 
-	let tabs: Tab[] = inital_tabs;
+	let tabs: Tab[] = [...initial_tabs];
+	let visible_tabs: Tab[] = [...tabs];
+	let overflow_tabs: Tab[] = [];
 	let overflow_menu_open = false;
 	let overflow_menu: HTMLElement;
 
 	$: has_tabs = tabs.length > 0;
+	$: console.log("tabs", tabs);
 
-	let tab_nav_el: HTMLElement;
-	let overflow_nav: HTMLElement;
+	let tab_nav_size: DOMRect;
 
 	const selected_tab = writable<false | number | string>(
-		selected || tabs[0]?.id || false
+		selected || tabs[0]?.id || false,
 	);
 	const selected_tab_index = writable<number>(
-		tabs.findIndex((t) => t.id === selected) || 0
+		tabs.findIndex((t) => t.id === selected) || 0,
 	);
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -50,6 +52,7 @@
 
 	let is_overflowing = false;
 	let overflow_has_selected_tab = false;
+	let tab_els: Record<string | number, HTMLElement> = {};
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
@@ -75,7 +78,7 @@
 			}
 		},
 		selected_tab,
-		selected_tab_index
+		selected_tab_index,
 	});
 
 	function change_tab(id: string | number): void {
@@ -95,17 +98,18 @@
 	}
 
 	$: tabs, selected !== null && change_tab(selected);
+	$: tabs, tab_nav_size, tab_els, handle_menu_overflow();
 
 	onMount(() => {
-		handle_menu_overflow();
+		// handle_menu_overflow();
 
-		window.addEventListener("resize", handle_menu_overflow);
+		// window.addEventListener("resize", handle_menu_overflow);
 		window.addEventListener("click", handle_outside_click);
 	});
 
 	onDestroy(() => {
 		if (typeof window === "undefined") return;
-		window.removeEventListener("resize", handle_menu_overflow);
+		// window.removeEventListener("resize", handle_menu_overflow);
 		window.removeEventListener("click", handle_outside_click);
 	});
 
@@ -119,70 +123,88 @@
 		}
 	}
 
-	function handle_menu_overflow(): void {
-		if (!tab_nav_el) {
+	async function handle_menu_overflow(): Promise<void> {
+		if (!tab_nav_size) {
 			console.error("Menu elements not found");
 			return;
 		}
+		console.log("boo");
 
-		let all_items: HTMLElement[] = [];
+		await tick();
 
-		[tab_nav_el, overflow_nav].forEach((menu) => {
-			Array.from(menu.querySelectorAll("button")).forEach((item) =>
-				all_items.push(item as HTMLElement)
-			);
-		});
+		let _visible_tabs: Tab[] = [];
+		let _overflow_tabs: Tab[] = [];
 
-		all_items.forEach((item) => tab_nav_el.appendChild(item));
+		let max_width = tab_nav_size.width;
+		let cumulative_width = 0;
+		console.log({ max_width });
+		const tab_sizes = get_tab_sizes(tabs, tab_els);
+		console.log({ tab_sizes });
+		tabs.forEach((tab, index) => {
+			// const tab_menu_rect = tab_nav_el.getBoundingClientRect();
+			const tab_rect = tab_sizes[tab.id];
+			console.log({
+				index,
+				tab_rect,
+				cumulative_width,
+				max_width,
+				comparison: tab_rect?.right > max_width,
+			});
+			if (!tab_rect && tab.visible) {
+				_overflow_tabs.push(tab);
+				return;
+			} else if (!tab.visible) {
+				return;
+			}
 
-		const nav_items: HTMLElement[] = [];
-		const overflow_items: HTMLElement[] = [];
+			let overflowing = !!(tab_rect.right > max_width && tab && tab.visible);
 
-		Array.from(tab_nav_el.querySelectorAll("button")).forEach((item) => {
-			const tab_rect = item.getBoundingClientRect();
-			const tab_menu_rect = tab_nav_el.getBoundingClientRect();
-			const index = [...tab_nav_el.children].indexOf(item);
-			const tab = tabs[index];
-
-			is_overflowing = !!(
-				(tab_rect.right > tab_menu_rect.right ||
-					tab_rect.left < tab_menu_rect.left) &&
-				tab &&
-				tab.visible
-			);
-
-			if (is_overflowing && tab && tab.visible) {
-				overflow_items.push(item as HTMLElement);
+			if (overflowing && tab && tab.visible) {
+				_overflow_tabs.push(tab);
 			} else if (tab && tab.visible) {
-				nav_items.push(item as HTMLElement);
+				_visible_tabs.push(tab);
 			}
 		});
 
-		nav_items.forEach((item) => tab_nav_el.appendChild(item));
-		overflow_items.forEach((item) => overflow_nav.appendChild(item));
+		if (JSON.stringify(_overflow_tabs) !== JSON.stringify(overflow_tabs)) {
+			overflow_tabs = _overflow_tabs;
+		}
+		if (JSON.stringify(_visible_tabs) !== JSON.stringify(visible_tabs)) {
+			visible_tabs = _visible_tabs;
+		}
+
 		overflow_has_selected_tab = handle_overflow_has_selected_tab($selected_tab);
+		console.log({ overflow_tabs, visible_tabs, is_overflowing });
+		is_overflowing = overflow_tabs.length > 0;
 	}
 
 	$: overflow_has_selected_tab =
 		handle_overflow_has_selected_tab($selected_tab);
 
 	function handle_overflow_has_selected_tab(
-		selected_tab: number | string | false
+		selected_tab: number | string | false,
 	): boolean {
-		if (selected_tab === false || !overflow_nav) return false;
-		return tabs.some(
-			(t) =>
-				t.id === selected_tab &&
-				overflow_nav.contains(document.querySelector(`[data-tab-id="${t.id}"]`))
-		);
+		if (selected_tab === false) return false;
+		return overflow_tabs.some((t) => t.id === selected_tab);
+	}
+
+	function get_tab_sizes(
+		tabs: Tab[],
+		tab_els: Record<string | number, HTMLElement>,
+	): Record<string | number, DOMRect> {
+		const tab_sizes: Record<string | number, DOMRect> = {};
+		tabs.forEach((tab) => {
+			tab_sizes[tab.id] = tab_els[tab.id]?.getBoundingClientRect();
+		});
+		return tab_sizes;
 	}
 </script>
 
 {#if has_tabs}
 	<div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
 		<div class="tab-wrapper">
-			<div class="tab-container" bind:this={tab_nav_el} role="tablist">
-				{#each tabs as t, i (t.id)}
+			<div class="tab-container" bind:contentRect={tab_nav_size} role="tablist">
+				{#each visible_tabs as t, i (t.id)}
 					{#if t.visible}
 						<button
 							role="tab"
@@ -193,6 +215,7 @@
 							aria-disabled={!t.interactive}
 							id={t.elem_id ? t.elem_id + "-button" : null}
 							data-tab-id={t.id}
+							bind:this={tab_els[t.id]}
 							on:click={() => {
 								if (t.id !== $selected_tab) {
 									change_tab(t.id);
@@ -217,11 +240,16 @@
 				>
 					<OverflowIcon />
 				</button>
-				<div
-					class="overflow-dropdown"
-					bind:this={overflow_nav}
-					class:hide={!overflow_menu_open}
-				/>
+				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
+					{#each overflow_tabs as t}
+						<button
+							on:click={() => change_tab(t.id)}
+							class:selected={t.id === $selected_tab}
+						>
+							{t.name}
+						</button>
+					{/each}
+				</div>
 			</span>
 		</div>
 	</div>
