@@ -55,6 +55,7 @@
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
+			console.log({ tab });
 			let index = tabs.findIndex((t) => t.id === tab.id);
 			if (index !== -1) {
 				tabs[index] = { ...tabs[index], ...tab };

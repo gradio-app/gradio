@@ -1,4 +1,5 @@
 import { writable, type Writable, get } from "svelte/store";
+
 import type {
 	ComponentMeta,
 	Dependency,
@@ -27,6 +28,7 @@ const raf = is_browser
  * Create a store with the layout and a map of targets
  * @returns A store with the layout and a map of targets
  */
+let has_run = false;
 export function create_components(initial_layout: ComponentMeta | undefined): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
@@ -152,8 +154,12 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			{} as { [id: number]: ComponentMeta }
 		);
 
+		console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++");
+		console.log("BEFORE WALK LAYOUT");
+		console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++");
 		await walk_layout(layout, root);
-
+		console.log("AFTER WALK LAYOUT");
+		has_run = true;
 		layout_store.set(_rootNode);
 		set_event_specific_args(dependencies);
 	}
@@ -290,24 +296,36 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			);
 		}
 
-		if (instance.type === "tabs") {
-			instance.children =
-				instance?.children?.map((c) => ({
+		if (instance.type === "tabs" && !has_run) {
+			const children = node.children?.map((c) => instance_map[c.id]);
+
+			const tab_items_props =
+				children?.map((c) => ({
 					...c,
 					props: {
 						...c.props,
 						id: c.props.id || c.id
 					}
 				})) || [];
-			const child_tab_items = instance.children?.filter(
+			const child_tab_items = tab_items_props.filter(
 				(child) => child.type === "tabitem"
 			);
+
 			instance.props.initial_tabs = child_tab_items?.map((child) => ({
 				label: child.props.label,
 				id: child.props.id,
 				visible: child.props.visible,
 				interactive: child.props.interactive
 			}));
+
+			console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++");
+			console.log("FIRST RUN");
+			console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++");
+		} else {
+			console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++");
+			console.log("NOT FIRST RUN");
+			console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++");
+			instance.props.initial_tabs = [];
 		}
 
 		return instance;
