@@ -1,5 +1,24 @@
 # @gradio/markdown
 
+## 0.10.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/atoms@0.9.2
+
+## 0.10.2
+
+### Fixes
+
+- [#9711](https://github.com/gradio-app/gradio/pull/9711) [`7134fc2`](https://github.com/gradio-app/gradio/commit/7134fc272e9e60be4b80dfd294ff8926d5995188) - Custom component fixes.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/sanitize@0.1.1
+- @gradio/statustracker@0.9.0
+
 ## 0.10.1
 
 ### Dependency updates

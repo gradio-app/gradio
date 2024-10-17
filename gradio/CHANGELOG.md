@@ -1,5 +1,32 @@
 # gradio
 
+## 5.2.1
+
+### Fixes
+
+- [#9730](https://github.com/gradio-app/gradio/pull/9730) [`39a0e8c`](https://github.com/gradio-app/gradio/commit/39a0e8c2fb038eb0afc213fa6290c9b2acee7941) - Fix chatbot component streaming bug and visible bug.  Thanks @freddyaboulton!
+
+## 5.2.0
+
+### Features
+
+- [#9712](https://github.com/gradio-app/gradio/pull/9712) [`bad46f3`](https://github.com/gradio-app/gradio/commit/bad46f3e8c1b6e94ccb8c936fe6a0e1c1e6f87f8) - Set min FastAPI version.  Thanks @freddyaboulton!
+- [#9699](https://github.com/gradio-app/gradio/pull/9699) [`ea2367c`](https://github.com/gradio-app/gradio/commit/ea2367ccb1b75827a086d1c19e2a4595d7a5aa0f) - allow setting initial value of `gr.Dropdown` to `None` to designate that no value should be initially selected.  Thanks @abidlabs!
+- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error.  Thanks @ABucket!
+
+### Fixes
+
+- [#9716](https://github.com/gradio-app/gradio/pull/9716) [`3c7f2ad`](https://github.com/gradio-app/gradio/commit/3c7f2ad15f80724bbc5c88c24621e6a078d2bb97) - Restore light/dark custom setting.  Thanks @aliabid94!
+- [#9719](https://github.com/gradio-app/gradio/pull/9719) [`7ec57cb`](https://github.com/gradio-app/gradio/commit/7ec57cb018a97270cd00c6e1aa5558e378855c53) - Fix Lite dependencies.  Thanks @whitphx!
+- [#9711](https://github.com/gradio-app/gradio/pull/9711) [`7134fc2`](https://github.com/gradio-app/gradio/commit/7134fc272e9e60be4b80dfd294ff8926d5995188) - Custom component fixes.  Thanks @freddyaboulton!
+- [#9659](https://github.com/gradio-app/gradio/pull/9659) [`b1a0f6d`](https://github.com/gradio-app/gradio/commit/b1a0f6db0d6900cb4089f4d5809a5f1d5e2609ee) - Fix the behavior of `gr.LoginButton` locally and on Spaces.  Thanks @abidlabs!
+- [#9693](https://github.com/gradio-app/gradio/pull/9693) [`c45b466`](https://github.com/gradio-app/gradio/commit/c45b46652d49e0a8a5d8217bbbc6ddbe4b4e91f0) - Fix progress bar compatibility with generators.  Thanks @brody715!
+- [#9728](https://github.com/gradio-app/gradio/pull/9728) [`d0b2ce8`](https://github.com/gradio-app/gradio/commit/d0b2ce8c0f150f0b636ad7d2226f7c8c61401996) - Ensure tabs render in SSR mode and reduce time it takes for them to render.  Thanks @pngwn!
+- [#9709](https://github.com/gradio-app/gradio/pull/9709) [`31418ef`](https://github.com/gradio-app/gradio/commit/31418ef388a2dc524069ee230c2735a4beaf55f1) - fix table type check.  Thanks @hannahblair!
+- [#9731](https://github.com/gradio-app/gradio/pull/9731) [`ea283e7`](https://github.com/gradio-app/gradio/commit/ea283e739849dcbb1c49c04d4c756d3cb2d72dbb) - fix css syntax error.  Thanks @pngwn!
+- [#9652](https://github.com/gradio-app/gradio/pull/9652) [`35bebf3`](https://github.com/gradio-app/gradio/commit/35bebf38eb0f61fe8e4f032ee093e92355baeecb) - Hide default slider background.  Thanks @hannahblair!
+- [#9678](https://github.com/gradio-app/gradio/pull/9678) [`a25a26e`](https://github.com/gradio-app/gradio/commit/a25a26e208c3f3675ba857a889553c7ccc95e866) - Fix: `file_types` checking bug.  Thanks @jasongzy!
+
 ## 5.1.0
 
 ### Features
