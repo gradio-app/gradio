@@ -15,7 +15,7 @@
 	import type { SelectData } from "@gradio/utils";
 
 	interface Tab {
-		name: string;
+		label: string;
 		id: string | number;
 		elem_id: string | undefined;
 		visible: boolean;
@@ -29,15 +29,14 @@
 	export let initial_tabs: Tab[];
 
 	let tabs: Tab[] = [...initial_tabs];
-	let visible_tabs: Tab[] = [...tabs];
+	let visible_tabs: Tab[] = [...initial_tabs];
 	let overflow_tabs: Tab[] = [];
 	let overflow_menu_open = false;
 	let overflow_menu: HTMLElement;
 
 	$: has_tabs = tabs.length > 0;
-	$: console.log("tabs", tabs);
 
-	let tab_nav_size: DOMRect;
+	let tab_nav_el: HTMLDivElement;
 
 	const selected_tab = writable<false | number | string>(
 		selected || tabs[0]?.id || false,
@@ -98,20 +97,7 @@
 	}
 
 	$: tabs, selected !== null && change_tab(selected);
-	$: tabs, tab_nav_size, tab_els, handle_menu_overflow();
-
-	onMount(() => {
-		// handle_menu_overflow();
-
-		// window.addEventListener("resize", handle_menu_overflow);
-		window.addEventListener("click", handle_outside_click);
-	});
-
-	onDestroy(() => {
-		if (typeof window === "undefined") return;
-		// window.removeEventListener("resize", handle_menu_overflow);
-		window.removeEventListener("click", handle_outside_click);
-	});
+	$: tabs, tab_nav_el, tab_els, handle_menu_overflow();
 
 	function handle_outside_click(event: MouseEvent): void {
 		if (
@@ -124,57 +110,30 @@
 	}
 
 	async function handle_menu_overflow(): Promise<void> {
-		if (!tab_nav_size) {
-			console.error("Menu elements not found");
-			return;
-		}
-		console.log("boo");
+		if (!tab_nav_el) return;
 
 		await tick();
-
-		let _visible_tabs: Tab[] = [];
-		let _overflow_tabs: Tab[] = [];
+		const tab_nav_size = tab_nav_el.getBoundingClientRect();
 
 		let max_width = tab_nav_size.width;
-		let cumulative_width = 0;
-		console.log({ max_width });
 		const tab_sizes = get_tab_sizes(tabs, tab_els);
-		console.log({ tab_sizes });
-		tabs.forEach((tab, index) => {
-			// const tab_menu_rect = tab_nav_el.getBoundingClientRect();
+		let last_visible_index = 0;
+		const offset = tab_nav_size.left;
+
+		for (let i = tabs.length - 1; i >= 0; i--) {
+			const tab = tabs[i];
 			const tab_rect = tab_sizes[tab.id];
-			console.log({
-				index,
-				tab_rect,
-				cumulative_width,
-				max_width,
-				comparison: tab_rect?.right > max_width,
-			});
-			if (!tab_rect && tab.visible) {
-				_overflow_tabs.push(tab);
-				return;
-			} else if (!tab.visible) {
-				return;
+			if (!tab_rect) continue;
+			if (tab_rect.right - offset < max_width) {
+				last_visible_index = i;
+				break;
 			}
-
-			let overflowing = !!(tab_rect.right > max_width && tab && tab.visible);
-
-			if (overflowing && tab && tab.visible) {
-				_overflow_tabs.push(tab);
-			} else if (tab && tab.visible) {
-				_visible_tabs.push(tab);
-			}
-		});
-
-		if (JSON.stringify(_overflow_tabs) !== JSON.stringify(overflow_tabs)) {
-			overflow_tabs = _overflow_tabs;
 		}
-		if (JSON.stringify(_visible_tabs) !== JSON.stringify(visible_tabs)) {
-			visible_tabs = _visible_tabs;
-		}
+
+		overflow_tabs = tabs.slice(last_visible_index + 1);
+		visible_tabs = tabs.slice(0, last_visible_index + 1);
 
 		overflow_has_selected_tab = handle_overflow_has_selected_tab($selected_tab);
-		console.log({ overflow_tabs, visible_tabs, is_overflowing });
 		is_overflowing = overflow_tabs.length > 0;
 	}
 
@@ -200,10 +159,24 @@
 	}
 </script>
 
+<svelte:window
+	on:resize={handle_menu_overflow}
+	on:click={handle_outside_click}
+/>
+
 {#if has_tabs}
 	<div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
 		<div class="tab-wrapper">
-			<div class="tab-container" bind:contentRect={tab_nav_size} role="tablist">
+			<div class="tab-container visually-hidden" aria-hidden="true">
+				{#each tabs as t, i (t.id)}
+					{#if t.visible}
+						<button bind:this={tab_els[t.id]}>
+							{t.label}
+						</button>
+					{/if}
+				{/each}
+			</div>
+			<div class="tab-container" bind:this={tab_nav_el} role="tablist">
 				{#each visible_tabs as t, i (t.id)}
 					{#if t.visible}
 						<button
@@ -215,15 +188,14 @@
 							aria-disabled={!t.interactive}
 							id={t.elem_id ? t.elem_id + "-button" : null}
 							data-tab-id={t.id}
-							bind:this={tab_els[t.id]}
 							on:click={() => {
 								if (t.id !== $selected_tab) {
 									change_tab(t.id);
-									dispatch("select", { value: t.name, index: i });
+									dispatch("select", { value: t.label, index: i });
 								}
 							}}
 						>
-							{t.name}
+							{t.label}
 						</button>
 					{/if}
 				{/each}
@@ -246,7 +218,7 @@
 							on:click={() => change_tab(t.id)}
 							class:selected={t.id === $selected_tab}
 						>
-							{t.name}
+							{t.label}
 						</button>
 					{/each}
 				</div>
@@ -307,7 +279,7 @@
 		color: var(--body-text-color);
 		font-weight: var(--section-header-text-weight);
 		font-size: var(--section-header-text-size);
-		transition: all 0.2s ease-out;
+		transition: background-color color 0.2s ease-out;
 		background-color: transparent;
 		height: 100%;
 		display: flex;
@@ -401,5 +373,17 @@
 
 	.overflow-item-selected :global(svg) {
 		color: var(--color-accent);
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 </style>

@@ -17,6 +17,7 @@
 		getContext(TABS) as any;
 
 	let tab_index: number;
+	$: console.log({ selected_tab, id, visible, interactive });
 
 	$: tab_index = register_tab({ name, id, elem_id, visible, interactive });
 

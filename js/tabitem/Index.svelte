@@ -15,6 +15,8 @@
 	}>;
 	export let visible = true;
 	export let interactive = true;
+
+	$: console.log({ visible });
 </script>
 
 <TabItem

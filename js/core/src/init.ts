@@ -337,7 +337,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 					else if (update.value instanceof Set)
 						new_value = new Set(update.value);
 					else if (Array.isArray(update.value)) new_value = [...update.value];
-					else if (update.value === null) new_value = null;
+					else if (update.value == null) new_value = null;
 					else if (typeof update.value === "object")
 						new_value = { ...update.value };
 					else new_value = update.value;
