@@ -25,7 +25,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let selected: number | string;
-	export let inital_tabs: Tab[];
+	export let inital_tabs: Tab[] = [];
 
 	let tabs: Tab[] = inital_tabs;
 	let overflow_menu_open = false;

@@ -13,7 +13,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let selected: number | string;
-	export let inital_tabs: Tab[];
+	export let inital_tabs: Tab[] = [];
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
