@@ -2,7 +2,7 @@ aiofiles>=22.0,<24.0
 anyio>=3.0,<5.0
 fastapi>=0.115.2,<1.0
 ffmpy
-gradio_client==1.4.0
+gradio_client==1.4.1
 httpx>=0.24.1
 huggingface_hub>=0.25.1
 Jinja2<4.0
@@ -17,7 +17,7 @@ python-multipart>=0.0.9  # required for fastapi forms
 pydub
 pyyaml>=5.0,<7.0
 semantic_version~=2.0
-starlette>=0.40.0,<1.0
+starlette>=0.40.0,<1.0; sys.platform != 'emscripten'
 typing_extensions~=4.0
 urllib3~=2.0; sys.platform == 'emscripten'  # urllib3 is used for Lite support. Version spec can be omitted because urllib3==2.1.0 is prebuilt for Pyodide and urllib>=2.2.0 supports Pyodide as well.
 uvicorn>=0.14.0; sys.platform != 'emscripten'

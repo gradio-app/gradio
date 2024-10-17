@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.14.2
+
+### Fixes
+
+- [#9719](https://github.com/gradio-app/gradio/pull/9719) [`7ec57cb`](https://github.com/gradio-app/gradio/commit/7ec57cb018a97270cd00c6e1aa5558e378855c53) - Fix Lite dependencies.  Thanks @whitphx!
+
 ## 0.14.1
 
 ### Fixes
