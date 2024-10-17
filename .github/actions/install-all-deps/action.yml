@@ -58,6 +58,7 @@ runs:
       shell: bash
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
     # - uses: actions/cache@v4
     #   id: cache
     #   with:
