@@ -1,7 +1,7 @@
 ---
-"@gradio/tabs": minor
-"gradio": minor
-"website": minor
+"@gradio/tabs": patch
+"gradio": patch
+"website": patch
 ---
 
-feat:Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API
+fix:Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API
