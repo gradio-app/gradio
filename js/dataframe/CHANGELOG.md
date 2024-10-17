@@ -1,5 +1,30 @@
 # @gradio/dataframe
 
+## 0.11.4
+
+### Dependency updates
+
+- @gradio/markdown@0.10.3
+- @gradio/statustracker@0.9.1
+- @gradio/upload@0.13.3
+- @gradio/button@0.3.3
+- @gradio/atoms@0.9.2
+
+## 0.11.3
+
+### Fixes
+
+- [#9709](https://github.com/gradio-app/gradio/pull/9709) [`31418ef`](https://github.com/gradio-app/gradio/commit/31418ef388a2dc524069ee230c2735a4beaf55f1) - fix table type check.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/markdown@0.10.2
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/button@0.3.2
+
 ## 0.11.2
 
 ### Dependency updates

@@ -57,7 +57,7 @@ test("Audio drag-and-drop displays a warning when the file is of the wrong mime 
 		"audio_sample.wav"
 	);
 	const toast = page.getByTestId("toast-body");
-	expect(toast).toContainText("warning");
+	expect(toast).toContainText("Warning");
 });
 
 test.skip("Play, Pause, and stop events work correctly.", async ({ page }) => {
