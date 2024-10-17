@@ -8,7 +8,7 @@ It just takes a few lines of Python to create a demo like the one above, so let'
 
 ## Installation
 
-**Prerequisite**: Gradio requires [Python 3.10 or higher](https://www.python.org/downloads/).
+**Prerequisite**: Gradio 5 supports [Python 3.10 - 3.12](https://www.python.org/downloads/).
 
 
 We recommend installing Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
