@@ -15,14 +15,12 @@
 	}>;
 	export let visible = true;
 	export let interactive = true;
-
-	$: console.log({ visible });
 </script>
 
 <TabItem
 	{elem_id}
 	{elem_classes}
-	name={label}
+	{label}
 	{visible}
 	{interactive}
 	{id}
