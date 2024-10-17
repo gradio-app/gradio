@@ -1,5 +1,21 @@
 # @gradio/statustracker
 
+## 0.9.1
+
+### Dependency updates
+
+- @gradio/atoms@0.9.2
+
+## 0.9.0
+
+### Features
+
+- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error.  Thanks @ABucket!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+
 ## 0.8.1
 
 ### Features

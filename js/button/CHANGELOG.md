@@ -1,5 +1,22 @@
 # @gradio/button
 
+## 0.3.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.3
+
+## 0.3.2
+
+### Fixes
+
+- [#9659](https://github.com/gradio-app/gradio/pull/9659) [`b1a0f6d`](https://github.com/gradio-app/gradio/commit/b1a0f6db0d6900cb4089f4d5809a5f1d5e2609ee) - Fix the behavior of `gr.LoginButton` locally and on Spaces.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+
 ## 0.3.1
 
 ### Dependency updates
