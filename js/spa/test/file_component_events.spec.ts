@@ -2,7 +2,7 @@ import { test, expect, drag_and_drop_file } from "@self/tootils";
 
 async function error_modal_showed(page) {
 	const toast = page.getByTestId("toast-body");
-	expect(toast).toContainText("error");
+	expect(toast).toContainText("Error");
 	const close = page.getByTestId("toast-close");
 	await close.click();
 	await expect(page.getByTestId("toast-body")).toHaveCount(0);

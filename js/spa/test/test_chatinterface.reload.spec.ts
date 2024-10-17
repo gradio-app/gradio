@@ -10,13 +10,13 @@ test.beforeAll(() => {
 	const demo = `
 import gradio as gr
 		
-	def greet(msg, history):
-		return "Hello"
+def greet(msg, history):
+	return "Hello"
 
-	demo = gr.ChatInterface(fn=greet)
+demo = gr.ChatInterface(fn=greet)
 
-	if __name__ == "__main__":
-		demo.launch()
+if __name__ == "__main__":
+	demo.launch()
 	`;
 	// write contents of demo to a local 'run.py' file
 	spawnSync(`echo '${demo}' > ${join(process.cwd(), demo_file)}`, {
@@ -55,15 +55,15 @@ test("gradio dev mode correctly reloads a stateful ChatInterface demo", async ({
 		_process = server_process;
 		console.log("Connected to port", port);
 		const demo = `
-		import gradio as gr
+import gradio as gr
 
-		def greet(msg, history):
-			return f"You typed: {msg}"
+def greet(msg, history):
+	return f"You typed: {msg}"
 
-		demo = gr.ChatInterface(fn=greet, textbox=gr.Textbox(label="foo", placeholder="Type a message..."))
+demo = gr.ChatInterface(fn=greet, textbox=gr.Textbox(label="foo", placeholder="Type a message..."))
 
-		if __name__ == "__main__":
-			demo.launch()
+if __name__ == "__main__":
+	demo.launch()
 		`;
 		// write contents of demo to a local 'run.py' file
 		await page.goto(`http://localhost:${port}`);
