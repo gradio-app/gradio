@@ -1,4 +1,5 @@
 ---
+"@gradio/atoms": patch
 "@gradio/chatbot": patch
 "gradio": patch
 ---
