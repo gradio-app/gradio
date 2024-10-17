@@ -1,5 +1,19 @@
 # @gradio/dataframe
 
+## 0.11.5
+
+### Fixes
+
+- [#9654](https://github.com/gradio-app/gradio/pull/9654) [`cd7dab7`](https://github.com/gradio-app/gradio/commit/cd7dab7ba5c81983f133dfa9e90ac6f92ac4fa1f) - Improve select event behaviour in gr.Dataframe.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/markdown@0.10.4
+- @gradio/button@0.3.4
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.9.3
+- @gradio/upload@0.13.4
+
 ## 0.11.4
 
 ### Dependency updates
