@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { BaseCode as Code, BaseWidget as CodeWidget } from "@gradio/code";
-	import { BaseTabs as Tabs } from "@gradio/tabs";
+	import { BaseTabs as Tabs, type Tab } from "@gradio/tabs";
 	import { BaseTabItem as TabItem } from "@gradio/tabitem";
 	import Slider from "./Slider.svelte";
 	import Fullscreen from "./icons/Fullscreen.svelte";
@@ -447,8 +447,23 @@
 		}
 	}
 
-	const TABS = ["Code", "Packages"] as const;
-	let selected_tab: (typeof TABS)[number] = "Code";
+	const TABS: Tab[] = [
+		{
+			name: "Code",
+			id: "code",
+			visible: true,
+			interactive: true,
+			elem_id: "code"
+		},
+		{
+			name: "Packages",
+			id: "packages",
+			visible: true,
+			interactive: true,
+			elem_id: "packages"
+		}
+	] as const;
+	let selected_tab: (typeof TABS)[number]["id"] = "code";
 	let generate_placeholders = [
 		"What do you want to build?",
 		"What do you want to build? e.g. 'An image to audio app'",
@@ -524,11 +539,16 @@
 					<div
 						class="mt-1 flex-1 flex flex-col relative overflow-scroll code-scroll"
 					>
-						<Tabs selected={selected_tab} elem_classes={["editor-tabs"]}>
+						<Tabs
+							inital_tabs={TABS}
+							selected={selected_tab}
+							elem_classes={["editor-tabs"]}
+						>
 							<TabItem
-								name={TABS[0]}
-								visible
-								interactive
+								id={TABS[0].id}
+								name={TABS[0].name}
+								visible={TABS[0].visible}
+								interactive={TABS[0].interactive}
 								elem_classes={["editor-tabitem"]}
 							>
 								<div class="flex-1">
@@ -543,9 +563,10 @@
 								</div>
 							</TabItem>
 							<TabItem
-								name={TABS[1]}
-								visible
-								interactive
+								id={TABS[1].id}
+								name={TABS[1].name}
+								visible={TABS[1].visible}
+								interactive={TABS[1].interactive}
 								elem_classes={["editor-tabitem"]}
 							>
 								<div class="flex-1">
