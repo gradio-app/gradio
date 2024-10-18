@@ -871,7 +871,7 @@ class Client:
             )
         elif r.status_code == 429:
             raise utils.TooManyRequestsError(
-                f"Too many requests to the API, please try again later."
+                "Too many requests to the API, please try again later."
             ) from None
         else:  # to support older versions of Gradio
             r = httpx.get(
