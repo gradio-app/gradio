@@ -1,5 +1,21 @@
 # gradio
 
+## 5.3.0
+
+### Features
+
+- [#9746](https://github.com/gradio-app/gradio/pull/9746) [`5015abb`](https://github.com/gradio-app/gradio/commit/5015abbd78434754931c2b09d9f603f212c4566d) - fix `@gradio/sanitize` exports.  Thanks @pngwn!
+- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue.  Thanks @aliabd!
+
+### Fixes
+
+- [#9754](https://github.com/gradio-app/gradio/pull/9754) [`36a5076`](https://github.com/gradio-app/gradio/commit/36a50769095081a0e77f04f513d47a2e9d4531ba) - Update client.py: raise error on 429 get_config.  Thanks @Pendrokar!
+- [#9767](https://github.com/gradio-app/gradio/pull/9767) [`16895e8`](https://github.com/gradio-app/gradio/commit/16895e862871839db762f6318622a5a64b9d5199) - Fixes #9742.  Thanks @crypdick!
+- [#9654](https://github.com/gradio-app/gradio/pull/9654) [`cd7dab7`](https://github.com/gradio-app/gradio/commit/cd7dab7ba5c81983f133dfa9e90ac6f92ac4fa1f) - Improve select event behaviour in gr.Dataframe.  Thanks @hannahblair!
+- [#9700](https://github.com/gradio-app/gradio/pull/9700) [`2932e06`](https://github.com/gradio-app/gradio/commit/2932e067d5716a0f3939bfa3f310db8cdcf565c1) - Fix API info bug.  Thanks @freddyaboulton!
+- [#9738](https://github.com/gradio-app/gradio/pull/9738) [`2ade59b`](https://github.com/gradio-app/gradio/commit/2ade59b95d4c3610a1a461cc95f020fbf9627305) - Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API.  Thanks @whitphx!
+- [#9762](https://github.com/gradio-app/gradio/pull/9762) [`bcb7d15`](https://github.com/gradio-app/gradio/commit/bcb7d15a8aef1cf1b873ba3d039fbec91432c5b2) - Add a `.clear` event to the `gr.Chatbot` component.  Thanks @abidlabs!
+
 ## 5.2.1
 
 ### Fixes
