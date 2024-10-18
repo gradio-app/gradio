@@ -10,7 +10,7 @@
 	const dispatch = createEventDispatcher();
 
 	interface Tab {
-		name: string;
+		label: string;
 		id: string | number;
 		elem_id: string | undefined;
 		visible: boolean;
@@ -21,7 +21,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let selected: number | string;
-	export let initial_tabs: Tab[];
+	export let initial_tabs: Tab[] = [];
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
