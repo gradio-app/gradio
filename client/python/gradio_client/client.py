@@ -869,9 +869,13 @@ class Client:
             raise AuthenticationError(
                 f"Could not load {self.src} as credentials were not provided. Please login."
             )
+        elif r.status_code == 429:
+            raise utils.TooManyRequestsError(
+                "Too many requests to the API, please try again later."
+            ) from None
         else:  # to support older versions of Gradio
             r = httpx.get(
-                self.src_prefixed,
+                self.src,
                 headers=self.headers,
                 cookies=self.cookies,
                 verify=self.ssl_verify,
