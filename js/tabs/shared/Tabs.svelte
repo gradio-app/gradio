@@ -2,7 +2,7 @@
 	export const TABS = {};
 
 	export interface Tab {
-		name: string;
+		label: string;
 		id: string | number;
 		elem_id: string | undefined;
 		visible: boolean;
@@ -11,12 +11,7 @@
 </script>
 
 <script lang="ts">
-	import {
-		setContext,
-		createEventDispatcher,
-		onMount,
-		onDestroy
-	} from "svelte";
+	import { setContext, createEventDispatcher, tick } from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
 	import type { SelectData } from "@gradio/utils";
