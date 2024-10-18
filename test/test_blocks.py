@@ -704,6 +704,21 @@ class TestBlocksPostprocessing:
             )
 
     @pytest.mark.asyncio
+    async def test_no_warning_if_func_has_no_outputs(self):
+        """
+        Ensures that if a function has no outputs, no warning is raised.
+        """
+        with gr.Blocks() as demo:
+            button = gr.Button()
+
+            def no_return():
+                pass
+
+            button.click(no_return, input=[], output=[])
+        with pytest.warns(None) as record:
+            await demo.postprocess_data(demo.fns[0], predictions=[], state=None)
+
+    @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
         def infer(x):
             return x
