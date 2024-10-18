@@ -29,14 +29,10 @@ English | [中文](readme_files/zh-cn#readme)
 
 <div align="center">
 <span>
-<a href="https://www.producthunt.com/posts/gradio-5-0?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-gradio&#0045;5&#0045;0" target="_blank">
-<img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=501906&theme=light" alt="Gradio&#0032;5&#0046;0 - the&#0032;easiest&#0032;way&#0032;to&#0032;build&#0032;AI&#0032;web&#0032;apps | Product Hunt" style="width: 150px; height: 54px;" width="150" height="54" />
-</a>
-&nbsp;
+<a href="https://www.producthunt.com/posts/gradio-5-0?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-gradio&#0045;5&#0045;0" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=501906&theme=light" alt="Gradio&#0032;5&#0046;0 - the&#0032;easiest&#0032;way&#0032;to&#0032;build&#0032;AI&#0032;web&#0032;apps | Product Hunt" style="width: 150px; height: 54px;" width="150" height="54" /></a>
 <a href="https://trendshift.io/repositories/2145" target="_blank"><img src="https://trendshift.io/api/badge/repositories/2145" alt="gradio-app%2Fgradio | Trendshift" style="width: 150px; height: 55px;" width="150" height="55"/></a>
 </span>
 </div>
-
 
 # Gradio: Build Machine Learning Web Apps — in Python
 
@@ -50,7 +46,7 @@ It just takes a few lines of Python to create your own demo, so let's get starte
 
 ### Installation
 
-**Prerequisite**: Gradio 5 requires [Python 3.10 or higher](https://www.python.org/downloads/)
+**Prerequisite**: Gradio 5 supports [Python 3.10 - 3.12](https://www.python.org/downloads/).
 
 
 We recommend installing Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
