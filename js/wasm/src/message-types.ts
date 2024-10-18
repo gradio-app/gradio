@@ -1,4 +1,5 @@
 import type { ASGIScope } from "./asgi-types";
+import type { PackageData } from "pyodide";
 
 export interface EmscriptenFile {
 	data: string | ArrayBufferView;
@@ -113,4 +114,11 @@ export interface OutMessageProgressUpdate extends OutMessageBase {
 		log: string;
 	};
 }
-export type OutMessage = OutMessageProgressUpdate;
+export interface OutMessageModulesAutoLoaded extends OutMessageBase {
+	type: "modules-auto-loaded";
+	data: {
+		packages: PackageData[];
+	};
+}
+
+export type OutMessage = OutMessageProgressUpdate | OutMessageModulesAutoLoaded;
