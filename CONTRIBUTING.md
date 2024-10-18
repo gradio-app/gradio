@@ -22,7 +22,7 @@ Generally speaking, contributing to Gradio involves four steps:
 
 You can watch this short video walkthrough of how to contribute, or keep reading below:
 
-<a href="https://www.youtube.com/watch?v=YTjwTe5Yurs&ab_channel=HuggingFace">
+<a href="https://www.youtube.com/watch?v=YTjwTe5Yurs&ab_channel=HuggingFace" target="_blank">
 <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/contributing-video-screenshot.png" style="width:100%">
 </a>
 
