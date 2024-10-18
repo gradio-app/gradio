@@ -625,6 +625,9 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
+      '@gradio/markdown-code':
+        specifier: workspace:^
+        version: link:../markdown-code
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
@@ -744,9 +747,9 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
-      '@gradio/markdown':
+      '@gradio/markdown-code':
         specifier: workspace:^
-        version: link:../markdown
+        version: link:../markdown-code
       '@gradio/plot':
         specifier: workspace:^
         version: link:../plot
@@ -1166,9 +1169,9 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
-      '@gradio/markdown':
+      '@gradio/markdown-code':
         specifier: workspace:^
-        version: link:../markdown
+        version: link:../markdown-code
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
@@ -1669,27 +1672,37 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
-      '@gradio/sanitize':
+      '@gradio/markdown-code':
         specifier: workspace:^
-        version: link:../sanitize
+        version: link:../markdown-code
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
+    devDependencies:
+      '@gradio/preview':
+        specifier: workspace:^
+        version: link:../preview
+
+  js/markdown-code:
+    dependencies:
+      '@gradio/sanitize':
+        specifier: workspace:^
+        version: link:../sanitize
       '@types/dompurify':
         specifier: ^3.0.2
-        version: 3.0.2
+        version: 3.0.5
       '@types/katex':
         specifier: ^0.16.0
         version: 0.16.0
       '@types/prismjs':
         specifier: 1.26.4
         version: 1.26.4
-      dom-parser:
-        specifier: ^1.1.5
-        version: 1.1.5
       github-slugger:
         specifier: ^2.0.0
         version: 2.0.0
@@ -6382,9 +6395,6 @@ packages:
 
   dom-accessibility-api@0.6.3:
     resolution: {integrity: sha512-7ZgogeTnjuHbo+ct10G9Ffp0mif17idi0IyWNVA/wcwcm7NPOD/WEHVP3n7n3MhXqxoIYm8d6MuZohYWIZ4T3w==}
-
-  dom-parser@1.1.5:
-    resolution: {integrity: sha512-lCiFG48ZUzGXjKN0qhSkxD/i3ndyV6I37zQ3W2VFYLjF1ob8A+QgSsM7Ps2UT0d3LpJxLMmMHiJJ34z5hkKLiA==}
 
   dom-serializer@1.4.1:
     resolution: {integrity: sha512-VHwB3KfrcOOkelEG2ZOfxqLZdfkil8PtJi4P8N2MMXucZq2yLp75ClViUlOVwyoHEDjYU433Aq+5zWP61+RGag==}
@@ -13274,7 +13284,7 @@ snapshots:
       util: 0.12.5
       util-deprecate: 1.0.2
       watchpack: 2.4.1
-      ws: 8.17.0(bufferutil@4.0.7)
+      ws: 8.18.0(bufferutil@4.0.7)
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -15054,8 +15064,6 @@ snapshots:
   dom-accessibility-api@0.5.16: {}
 
   dom-accessibility-api@0.6.3: {}
-
-  dom-parser@1.1.5: {}
 
   dom-serializer@1.4.1:
     dependencies:

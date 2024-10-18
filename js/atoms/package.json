@@ -8,6 +8,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"@gradio/icons": "workspace:^",
+		"@gradio/markdown-code": "workspace:^",
 		"@gradio/utils": "workspace:^"
 	},
 	"peerDependencies": {
