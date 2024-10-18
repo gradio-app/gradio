@@ -147,6 +147,7 @@ class Chatbot(Component):
         Events.retry,
         Events.undo,
         Events.example_select,
+        Events.clear,
     ]
 
     def __init__(
