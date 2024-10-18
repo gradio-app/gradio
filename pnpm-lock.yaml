@@ -625,9 +625,6 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
-      '@gradio/markdown':
-        specifier: workspace:^
-        version: link:../markdown
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
