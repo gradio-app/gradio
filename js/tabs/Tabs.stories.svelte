@@ -10,8 +10,8 @@
 	<Tabs {...args}>
 		<TabItem
 			id="tab-1"
-			gradio={{ select: {} }}
 			label="Image Tab"
+			gradio={undefined}
 			visible
 			interactive
 			elem_classes={["editor-tabitem"]}
@@ -24,8 +24,8 @@
 		</TabItem>
 		<TabItem
 			id="tab-2"
-			gradio={{ select: {} }}
 			label="Hidden Tab"
+			gradio={undefined}
 			visible={false}
 			interactive
 			elem_classes={["editor-tabitem"]}
@@ -34,8 +34,8 @@
 		</TabItem>
 		<TabItem
 			id="tab-3"
-			gradio={{ select: {} }}
 			label="Visible Tab"
+			gradio={undefined}
 			visible
 			interactive
 			elem_classes={["editor-tabitem"]}
