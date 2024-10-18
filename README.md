@@ -2,7 +2,7 @@
 
 <div align="center">
 <a href="https://gradio.app">
-<img src="readme_files/gradio.svg" alt="gradio" width=300>
+<img src="readme_files/gradio.svg" alt="gradio" width=350>
 </a>
 </div>
 
