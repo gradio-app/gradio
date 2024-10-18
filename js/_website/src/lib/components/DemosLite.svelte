@@ -28,18 +28,18 @@
 	async function* streamFromWorker(
 		query: string,
 		system_prompt: string,
-		signal: AbortSignal,
+		signal: AbortSignal
 	) {
 		const response = await fetch(workerUrl, {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/json",
+				"Content-Type": "application/json"
 			},
 			body: JSON.stringify({
 				query: query,
-				SYSTEM_PROMPT: system_prompt,
+				SYSTEM_PROMPT: system_prompt
 			}),
-			signal,
+			signal
 		});
 
 		if (response.status == 429) {
@@ -122,7 +122,7 @@
 		for await (const chunk of streamFromWorker(
 			query,
 			SYSTEM_PROMPT.SYSTEM,
-			abortController.signal,
+			abortController.signal
 		)) {
 			if (chunk.choices && chunk.choices.length > 0) {
 				const content = chunk.choices[0].delta.content;
@@ -133,18 +133,18 @@
 						"# Describe your app above, and the LLM will generate the code here.";
 					demos[queried_index].code = demos[queried_index].code.replaceAll(
 						"```python\n",
-						"",
+						""
 					);
 					demos[queried_index].code = demos[queried_index].code.replaceAll(
 						"```\n",
-						"",
+						""
 					);
 					demos[queried_index].code = demos[queried_index].code.replaceAll(
 						"```",
-						"",
+						""
 					);
 					demos[queried_index].code = addShowErrorToLaunch(
-						demos[queried_index].code,
+						demos[queried_index].code
 					);
 				}
 			}
@@ -184,7 +184,7 @@
 		name: "Blank",
 		dir: "Blank",
 		code: "",
-		requirements: [],
+		requirements: []
 	};
 
 	function clear_code() {
@@ -202,7 +202,7 @@
 
 	function debounce<T extends any[]>(
 		func: (...args: T) => Promise<unknown>,
-		timeout: number,
+		timeout: number
 	): (...args: T) => void {
 		let timer: any;
 		return function (...args: any) {
@@ -245,7 +245,7 @@
 				themeMode: null,
 				autoScroll: false,
 				controlPageTitle: false,
-				appMode: true,
+				appMode: true
 			});
 			const debounce_timeout = 1000;
 			debounced_run_code = debounce(controller.run_code, debounce_timeout);
@@ -296,7 +296,7 @@
 			"plotly",
 			"transformers_js_py",
 			"requests",
-			"pillow",
+			"pillow"
 		]);
 	}
 	$: if (mounted) {
@@ -316,7 +316,7 @@
 				"plotly",
 				"transformers_js_py",
 				"requests",
-				"pillow",
+				"pillow"
 			]);
 	}
 
@@ -348,7 +348,7 @@
 	function show_dialog(
 		current_demos: typeof demos,
 		original_demos: typeof demos,
-		has_shared: boolean,
+		has_shared: boolean
 	) {
 		let changes =
 			!(JSON.stringify(current_demos) === JSON.stringify(original_demos)) &&
@@ -382,7 +382,7 @@
 		const base_URL = "https://huggingface.co/new-space";
 		const params = new URLSearchParams({
 			name: "new-space",
-			sdk: "gradio",
+			sdk: "gradio"
 		});
 		const encoded_content = code.trimStart();
 		params.append("files[0][path]", "app.py");
@@ -453,15 +453,15 @@
 			id: "code",
 			visible: true,
 			interactive: true,
-			elem_id: "code",
+			elem_id: "code"
 		},
 		{
 			name: "Packages",
 			id: "packages",
 			visible: true,
 			interactive: true,
-			elem_id: "packages",
-		},
+			elem_id: "packages"
+		}
 	] as const;
 	let selected_tab: (typeof TABS)[number]["id"] = "code";
 	let generate_placeholders = [
@@ -469,7 +469,7 @@
 		"What do you want to build? e.g. 'An image to audio app'",
 		"What do you want to build? e.g. 'Demo with event listeners'",
 		"What do you want to build? e.g. 'A tax calculator'",
-		"What do you want to build? e.g. 'Streaming audio'",
+		"What do you want to build? e.g. 'Streaming audio'"
 	];
 
 	let update_placeholders = [
@@ -477,7 +477,7 @@
 		"What do you want to change? e.g. 'Add a title and description'",
 		"What do you want to change? e.g. 'Replace buttons with listeners'",
 		"What do you want to change? e.g. 'Add a cool animation with JS'",
-		"What do you want to change? e.g. 'Add examples'",
+		"What do you want to change? e.g. 'Add examples'"
 	];
 
 	let current_placeholder_index = 0;

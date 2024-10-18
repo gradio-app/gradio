@@ -15,7 +15,7 @@
 		setContext,
 		createEventDispatcher,
 		onMount,
-		onDestroy,
+		onDestroy
 	} from "svelte";
 	import OverflowIcon from "./OverflowIcon.svelte";
 	import { writable } from "svelte/store";
@@ -38,10 +38,10 @@
 	let tab_nav_el: HTMLDivElement;
 
 	const selected_tab = writable<false | number | string>(
-		selected || tabs[0]?.id || false,
+		selected || tabs[0]?.id || false
 	);
 	const selected_tab_index = writable<number>(
-		tabs.findIndex((t) => t.id === selected) || 0,
+		tabs.findIndex((t) => t.id === selected) || 0
 	);
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -76,7 +76,7 @@
 			}
 		},
 		selected_tab,
-		selected_tab_index,
+		selected_tab_index
 	});
 
 	function change_tab(id: string | number): void {
@@ -140,7 +140,7 @@
 		handle_overflow_has_selected_tab($selected_tab);
 
 	function handle_overflow_has_selected_tab(
-		selected_tab: number | string | false,
+		selected_tab: number | string | false
 	): boolean {
 		if (selected_tab === false) return false;
 		return overflow_tabs.some((t) => t.id === selected_tab);
@@ -148,7 +148,7 @@
 
 	function get_tab_sizes(
 		tabs: Tab[],
-		tab_els: Record<string | number, HTMLElement>,
+		tab_els: Record<string | number, HTMLElement>
 	): Record<string | number, DOMRect> {
 		const tab_sizes: Record<string | number, DOMRect> = {};
 		tabs.forEach((tab) => {
