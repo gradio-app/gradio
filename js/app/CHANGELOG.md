@@ -1,5 +1,12 @@
 # @self/app
 
+## 1.42.1
+
+### Dependency updates
+
+- @self/build@0.2.0
+- @gradio/core@0.2.0
+
 ## 1.42.0
 
 ### Features
