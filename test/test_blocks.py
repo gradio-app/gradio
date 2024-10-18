@@ -8,6 +8,7 @@ import random
 import sys
 import time
 import uuid
+import warnings
 from concurrent.futures import wait
 from contextlib import contextmanager
 from functools import partial
@@ -714,9 +715,14 @@ class TestBlocksPostprocessing:
             def no_return():
                 pass
 
-            button.click(no_return, input=[], output=[])
-        with pytest.warns(None) as record:
-            await demo.postprocess_data(demo.fns[0], predictions=[], state=None)
+            button.click(
+                no_return,
+                inputs=None,
+                outputs=None,
+            )
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            await demo.postprocess_data(demo.fns[0], predictions=None, state=None)  # type: ignore
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
