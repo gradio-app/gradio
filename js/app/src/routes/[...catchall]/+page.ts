@@ -31,7 +31,7 @@ export async function load({
 		throw new Error("No config found");
 	}
 
-	const { create_layout, layout } = create_components();
+	const { create_layout, layout } = create_components(undefined);
 
 	await create_layout({
 		app,
