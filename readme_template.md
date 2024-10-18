@@ -1,5 +1,7 @@
 <div align="center">
-[<img src="readme_files/gradio.svg" alt="gradio" width=400>](https://gradio.app)<br>
+<a href="https://gradio.app">
+<img src="readme_files/gradio.svg" alt="gradio" width=400>
+</a>
 </div>
 
 <div align="center">
