@@ -1744,6 +1744,10 @@ Received inputs:
         [{received}]"""
                 )
             else:
+                if len(predictions) == 1 and predictions[0] is None:
+                    # do not throw error if the function did not return anything
+                    # https://github.com/gradio-app/gradio/issues/9742
+                    return
                 warnings.warn(
                     f"""A function{name} returned too many output values (needed: {len(dep_outputs)}, returned: {len(predictions)}). Ignoring extra values.
     Output components:
