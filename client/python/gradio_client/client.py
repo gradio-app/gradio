@@ -875,7 +875,7 @@ class Client:
             ) from None
         else:  # to support older versions of Gradio
             r = httpx.get(
-                self.src_prefixed,
+                self.src,
                 headers=self.headers,
                 cookies=self.cookies,
                 verify=self.ssl_verify,
