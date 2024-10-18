@@ -5,7 +5,7 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 
-	import MarkdownCode from "./MarkdownCode.svelte";
+	import { MarkdownCode } from "@gradio/markdown-code";
 
 	export let elem_classes: string[] = [];
 	export let visible = true;

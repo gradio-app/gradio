@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { MarkdownCode } from "@gradio/markdown";
+	import { MarkdownCode } from "@gradio/markdown-code";
 
 	export let edit: boolean;
 	export let value: string | number = "";
