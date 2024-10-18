@@ -8,4 +8,4 @@
 "website": patch
 ---
 
-fix:Fix tab visibility
+fix:Ensures tabs with visible set to false are not visible.
