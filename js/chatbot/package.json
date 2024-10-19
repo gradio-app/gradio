@@ -11,7 +11,7 @@
 		"@gradio/client": "workspace:^",
 		"@gradio/gallery": "workspace:^",
 		"@gradio/icons": "workspace:^",
-		"@gradio/markdown": "workspace:^",
+		"@gradio/markdown-code": "workspace:^",
 		"@gradio/plot": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/theme": "workspace:^",
