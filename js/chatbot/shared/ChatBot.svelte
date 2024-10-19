@@ -323,7 +323,7 @@
 					show_undo={_undoable && is_last_bot_message(messages, value)}
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					{scroll}
+					scroll={() => {}}
 				/>
 			{/each}
 			{#if pending_message}
