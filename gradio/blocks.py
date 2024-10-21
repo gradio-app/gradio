@@ -386,13 +386,9 @@ class Block:
         if client_utils.is_http_url_like(url_or_file_path):
             return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
         else:
-            data = {"path": url_or_file_path, "meta": {"_type": "gradio.FileData"}}
-            try:
-                return client_utils.synchronize_async(
-                    processing_utils.async_move_files_to_cache, data, self
-                )
-            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
-                return data
+            processing_utils._check_allowed(url_or_file_path, check_in_upload_folder=False)
+            utils.set_static_paths([url_or_file_path])
+            return FileData(path=url_or_file_path, url=f"{API_PREFIX}/file={url_or_file_path}").model_dump()
 
 
 class BlockContext(Block):
