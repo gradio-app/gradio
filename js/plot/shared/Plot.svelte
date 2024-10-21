@@ -4,7 +4,6 @@
 	import { Empty } from "@gradio/atoms";
 	import type { ThemeMode } from "js/core/src/components/types";
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
 
 	export let value;
 	let _value;
@@ -39,7 +38,7 @@
 		let type = value?.type;
 		if (type !== _type) {
 			PlotComponent = null;
-		}			
+		}
 		if (type && type in plotTypeMapping && is_browser) {
 			if (loadedPlotTypeMapping[type]) {
 				PlotComponent = loadedPlotTypeMapping[type];
