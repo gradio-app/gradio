@@ -5,6 +5,7 @@ import dataclasses
 import hashlib
 import inspect
 import json
+import mimetypes
 import os
 import random
 import secrets
@@ -386,9 +387,20 @@ class Block:
         if client_utils.is_http_url_like(url_or_file_path):
             return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
         else:
-            processing_utils._check_allowed(url_or_file_path, check_in_upload_folder=False)
-            utils.set_static_paths([url_or_file_path])
-            return FileData(path=url_or_file_path, url=f"{API_PREFIX}/file={url_or_file_path}").model_dump()
+            processing_utils._check_allowed(
+                url_or_file_path, check_in_upload_folder=False
+            )
+            # only set svgs as static paths if the block is not running
+            if mimetypes.guess_type(url_or_file_path)[0] == "image/svg+xml":
+                if (
+                    blocks := LocalContext.blocks.get()
+                ) is None or not blocks.is_running:
+                    utils.set_static_paths([url_or_file_path])
+            else:
+                utils.set_static_paths([url_or_file_path])
+            return FileData(
+                path=url_or_file_path, url=f"{API_PREFIX}/file={url_or_file_path}"
+            ).model_dump()
 
 
 class BlockContext(Block):
