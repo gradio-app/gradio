@@ -1,0 +1,124 @@
+{
+	"3D_model": {
+		"3d_model": "3D-malli"
+	},
+	"annotated_image": {
+		"annotated_image": "Annotoitu kuva"
+	},
+	"audio": {
+		"allow_recording_access": "Ole hyvä ja anna selaimelle ja sivustolle pääsy mikrofoniin.",
+		"audio": "Audio",
+		"record_from_microphone": "Äänitä mikrofonia",
+		"stop_recording": "Lopeta äänitys",
+		"no_device_support": "Medialaitteita ei voitu käyttää. Tarkista, että yhteys on salattu (https), paikallinen (localhost), tai ssl_verify on saanut voimassa olevan SSL-sertifikaatin. Tarkista, että olet antanut selaimelle pääsyn medialaitteeseen.",
+		"stop": "Stop",
+		"resume": "Jatka",
+		"record": "Äänitä",
+		"no_microphone": "Ei mikrofonia käytössä",
+		"pause": "Pause",
+		"play": "Play",
+		"waiting": "Odotetaan"
+	},
+	"blocks": {
+		"connection_can_break": "Mobiililaitteella yhteys voi katketa, jos vaihdat välilehteä tai laite menee lepotilaa. Tällöin menetät paikkasi jonossa.",
+		"long_requests_queue": "Spacessa on ruuhkaa ja jono on pitkä. Kopioi tämä Space hypätäksesi jonon ohi.",
+		"lost_connection": "Yhteys katkesi sivulta poistumisen seurauksena. Liitytään takaisin jonoon...",
+		"waiting_for_inputs": "Odotetaan latauksen valmistumista, ole hyvä ja yritä uudelleen."
+	},
+	"checkbox": {
+		"checkbox": "Valintaruutu",
+		"checkbox_group": "Valintaruuturyhmä"
+	},
+	"code": {
+		"code": "Koodi"
+	},
+	"color_picker": {
+		"color_picker": "Värivalitsin"
+	},
+	"common": {
+		"built_with": "tehty",
+		"built_with_gradio": "tehty Gradiolla",
+		"clear": "Poista",
+		"download": "Lataa",
+		"edit": "Muokkaa",
+		"empty": "Tyhjennä",
+		"error": "Virhe",
+		"hosted_on": "Hostattu",
+		"loading": "Ladataan",
+		"logo": "logo",
+		"or": "tai",
+		"remove": "Poista",
+		"share": "Jaa",
+		"submit": "Suorita",
+		"undo": "Kumoa",
+		"no_devices": "Laitetta ei löytynyt"
+	},
+	"dataframe": {
+		"incorrect_format": "Yhteensopimaton tiedostomuoto, vain CSV- ja TSV-tiedostoja tuetaan.",
+		"new_column": "Lisää sarake",
+		"new_row": "Lisää rivi",
+		"add_row_above": "Lisää rivi yläpuolelle",
+		"add_row_below": "Lisää rivi alle",
+		"add_column_left": "Lisää sarake vasemmalle",
+		"add_column_right": "Lisää sarake oikealle"
+	},
+	"dropdown": {
+		"dropdown": "Pudotusvalikko"
+	},
+	"errors": {
+		"build_error": "tapahtui virhe",
+		"config_error": "virhe asetuksissa",
+		"contact_page_author": "Kerro ylläpitäjälle virheestä.",
+		"no_app_file": "sovellustiedosto puuttuu",
+		"runtime_error": "ohjelman suorituksen aikana tapahtui virhe",
+		"space_not_working": "\"Space ei toimi, koska\" {0}",
+		"space_paused": "tila on tauolla",
+		"use_via_api": "Käytä rajapinnan kautta"
+	},
+	"file": {
+		"uploading": "Ladataan..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "Korostettu teksti"
+	},
+	"image": {
+		"allow_webcam_access": "Ole hyvä ja anna lupa web-kameran käyttöön.",
+		"brush_color": "Siveltimen väri",
+		"brush_radius": "Siveltimen koko",
+		"image": "Kuva",
+		"remove_image": "Poista kuva",
+		"select_brush_color": "Valitse siveltimen väri",
+		"start_drawing": "Aloita piirtäminen",
+		"use_brush": "Käytä sivellintä"
+	},
+	"label": {
+		"label": "Tunniste"
+	},
+	"login": {
+		"enable_cookies": "Jos käytät Hugging Face Spacea Incognito-tilassa, sinun on otettava käyttöön kolmansien osapuolten evästeet..",
+		"incorrect_credentials": "Käyttäjätietoja ei löytynyt",
+		"login": "Kirjaudu sisään"
+	},
+	"number": {
+		"number": "Numero"
+	},
+	"plot": {
+		"plot": "Kuvaaja"
+	},
+	"radio": {
+		"radio": "Radio"
+	},
+	"slider": {
+		"slider": "Säädin"
+	},
+	"upload_text": {
+		"click_to_upload": "Lataa palvelimelle",
+		"drop_audio": "Vedä audiotiedosto tähän",
+		"drop_csv": "Vedä CSV tähän",
+		"drop_file": "Vedä tiedosto tähän",
+		"drop_image": "Vedä kuva tähän",
+		"drop_video": "Vedä video tähän",
+		"drop_gallery": "Vedä media tähän",
+		"paste_clipboard": "Liitä leikepöydältä"
+	}
+}
