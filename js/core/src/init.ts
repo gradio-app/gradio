@@ -296,15 +296,17 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			const tab_items_props =
 				node.children?.map((c) => {
 					const instance = instance_map[c.id];
-					instance.props.id = c.id;
+					// console.log("tabs", JSON.stringify(instance.props, null, 2));
+					instance.props.id ??= c.id;
 					return {
 						type: instance.type,
 						props: {
 							...(instance.props as any),
-							id: instance.props.id || c.id
+							id: instance.props.id
 						}
 					};
 				}) || [];
+
 			const child_tab_items = tab_items_props.filter(
 				(child) => child.type === "tabitem"
 			);
