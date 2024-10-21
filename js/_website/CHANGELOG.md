@@ -1,5 +1,31 @@
 # website
 
+## 0.40.2
+
+### Dependency updates
+
+- @gradio/code@0.10.4
+- @gradio/paramviewer@0.5.3
+
+## 0.40.1
+
+### Dependency updates
+
+- @gradio/tabs@0.3.1
+- @gradio/code@0.10.3
+- @gradio/paramviewer@0.5.2
+- @gradio/tabitem@0.3.1
+
+## 0.40.0
+
+### Features
+
+- [#9635](https://github.com/gradio-app/gradio/pull/9635) [`67e4044`](https://github.com/gradio-app/gradio/commit/67e4044c9ca8358eceeb1fa72fa415df03397d20) - Add website banner for gradio 5.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.10.2
+
 ## 0.39.1
 
 ### Features
