@@ -1,4 +1,5 @@
 ---
+"@gradio/chatbot": patch
 "@gradio/core": patch
 "@gradio/sanitize": patch
 "@gradio/tabitem": patch
