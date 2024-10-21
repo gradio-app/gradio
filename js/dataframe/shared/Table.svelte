@@ -705,10 +705,41 @@
 		active_header_menu = null;
 	}
 
+	let active_header_menu: {
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+
+	function toggle_header_menu(event: MouseEvent, col: number): void {
+		event.stopPropagation();
+		if (active_header_menu && active_header_menu.col === col) {
+			active_header_menu = null;
+		} else {
+			const header = (event.target as HTMLElement).closest("th");
+			if (header) {
+				const rect = header.getBoundingClientRect();
+				active_header_menu = {
+					col,
+					x: rect.right,
+					y: rect.bottom
+				};
+			}
+		}
+	}
+
+	function handle_resize(): void {
+		active_cell_menu = null;
+		active_header_menu = null;
+		set_cell_widths();
+	}
+
 	onMount(() => {
 		document.addEventListener("click", handle_click_outside);
+		window.addEventListener("resize", handle_resize);
 		return () => {
 			document.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("resize", handle_resize);
 		};
 	});
 
@@ -735,29 +766,6 @@
 			active_button = null;
 		} else {
 			active_button = { type: "cell", row, col };
-		}
-	}
-
-	let active_header_menu: {
-		col: number;
-		x: number;
-		y: number;
-	} | null = null;
-
-	function toggle_header_menu(event: MouseEvent, col: number): void {
-		event.stopPropagation();
-		if (active_header_menu && active_header_menu.col === col) {
-			active_header_menu = null;
-		} else {
-			const header = (event.target as HTMLElement).closest("th");
-			if (header) {
-				const rect = header.getBoundingClientRect();
-				active_header_menu = {
-					col,
-					x: rect.right,
-					y: rect.bottom
-				};
-			}
 		}
 	}
 </script>
@@ -923,8 +931,6 @@
 								{#if editable}
 									<button
 										class="cell-menu-button"
-										class:visible={active_button?.type === "header" &&
-											active_button.col === i}
 										on:click={(event) => toggle_header_menu(event, i)}
 									>
 										⋮
@@ -969,9 +975,6 @@
 								{#if editable}
 									<button
 										class="cell-menu-button"
-										class:visible={active_button?.type === "cell" &&
-											active_button.row === index &&
-											active_button.col === j}
 										on:click={(event) => toggle_cell_menu(event, index, j)}
 									>
 										⋮
@@ -1009,6 +1012,8 @@
 		row={-1}
 		{col_count}
 		{row_count}
+		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
+		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
 		on_add_column_left={() => add_col_at(active_header_menu?.col ?? -1, "left")}
 		on_add_column_right={() =>
 			add_col_at(active_header_menu?.col ?? -1, "right")}
@@ -1065,8 +1070,6 @@
 		line-height: var(--line-md);
 		font-family: var(--font-mono);
 		border-spacing: 0;
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--table-radius);
 	}
 
 	div:not(.no-wrap) td {
@@ -1086,6 +1089,7 @@
 		top: 0;
 		left: 0;
 		z-index: var(--layer-1);
+		box-shadow: var(--shadow-drop);
 	}
 
 	tr {
@@ -1105,6 +1109,7 @@
 		--ring-color: transparent;
 		position: relative;
 		outline: none;
+		box-shadow: inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 	}
 
@@ -1117,9 +1122,8 @@
 	}
 
 	th.focus,
-	td.focus,
-	td.menu-active {
-		z-index: 1;
+	td.focus {
+		--ring-color: var(--color-accent);
 	}
 
 	tr:last-child td:first-child {
@@ -1168,10 +1172,8 @@
 	}
 
 	.cell-wrap {
-		position: relative;
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
 		outline: none;
 		height: var(--size-full);
 		min-height: var(--size-9);
@@ -1184,6 +1186,12 @@
 		overflow: hidden;
 		flex-grow: 1;
 		min-width: 0;
+	}
+
+	.controls-wrap {
+		display: flex;
+		justify-content: flex-end;
+		padding-top: var(--size-2);
 	}
 
 	.row_odd {
@@ -1216,41 +1224,15 @@
 		background-color: var(--color-bg-hover);
 	}
 
-	.cell-menu-button.visible {
+	td.focus .cell-menu-button {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-	}
-
-	th .cell-wrap {
-		padding-right: var(--spacing-sm);
 	}
 
 	th .header-content {
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-	}
-
-	th.focus,
-	td.focus,
-	td.menu-active {
-		--ring-color: var(--color-accent);
-		position: relative;
-		z-index: 2;
-	}
-
-	th.focus::after,
-	td.focus::after,
-	td.menu-active::after {
-		content: "";
-		position: absolute;
-		top: -1px;
-		left: -1px;
-		right: -1px;
-		bottom: -1px;
-		pointer-events: none;
-		border: 2px solid var(--ring-color);
-		z-index: 3;
 	}
 </style>
