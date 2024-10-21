@@ -86,9 +86,9 @@ class ThemeClass:
             + "\n}"
         )
         dark_css_code = (
-            "@media (prefers-color-scheme: dark) {\n:root {\n"
+            "\n:root .dark {\n"
             + "\n".join([f"  --{attr}: {val};" for attr, val in dark_css.items()])
-            + "\n}\n}"
+            + "\n}"
         )
 
         font_css = "\n".join(self._font_css)

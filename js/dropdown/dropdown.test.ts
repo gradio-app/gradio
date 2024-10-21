@@ -273,7 +273,7 @@ describe("Dropdown", () => {
 			{
 				show_label: true,
 				loading_status,
-				value: "",
+				value: "apple",
 				allow_custom_value: false,
 				label: "Dropdown",
 				choices: [
@@ -303,7 +303,7 @@ describe("Dropdown", () => {
 			{
 				show_label: true,
 				loading_status,
-				value: "",
+				value: "apple",
 				allow_custom_value: true,
 				label: "Dropdown",
 				choices: [
@@ -333,7 +333,7 @@ describe("Dropdown", () => {
 			{
 				show_label: true,
 				loading_status,
-				value: "",
+				value: "apple",
 				allow_custom_value: false,
 				label: "Dropdown",
 				choices: [
@@ -377,7 +377,7 @@ describe("Dropdown", () => {
 			{
 				show_label: true,
 				loading_status,
-				value: "",
+				value: "apple_internal_value",
 				allow_custom_value: false,
 				label: "Dropdown",
 				choices: [
@@ -477,6 +477,7 @@ describe("Dropdown", () => {
 			show_label: true,
 			loading_status,
 			allow_custom_value: false,
+			value: "apple_internal_value",
 			label: "Dropdown",
 			choices: [
 				["apple_choice", "apple_internal_value"],
@@ -491,7 +492,7 @@ describe("Dropdown", () => {
 		await expect(item.value).toBe("apple_choice");
 	});
 
-	test("ensure dropdown works when initial value is undefined and allow custom value is set", async () => {
+	test("ensure dropdown works when initial value is undefined and allow_custom_value is true", async () => {
 		const { getByLabelText } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
@@ -508,6 +509,6 @@ describe("Dropdown", () => {
 		const item: HTMLInputElement = getByLabelText(
 			"Dropdown"
 		) as HTMLInputElement;
-		await expect(item.value).toBe("apple_choice");
+		await expect(item.value).toBe("");
 	});
 });

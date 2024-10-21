@@ -1,5 +1,25 @@
 # @gradio/textbox
 
+## 0.8.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/atoms@0.9.2
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+
+## 0.8.0
+
+### Features
+
+- [#9677](https://github.com/gradio-app/gradio/pull/9677) [`3a19e69`](https://github.com/gradio-app/gradio/commit/3a19e690ef8de12c4494429d52988b863065eed3) - Revert text disable.  Thanks @whitphx!
+
 ## 0.7.1
 
 ### Features
