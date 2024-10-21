@@ -8,8 +8,10 @@ css = """
 }
 
 .cool-col {
+    background-color: red;
     animation-name: animation;
     animation-duration: 4s;
+    animation-delay: 2s;
     animation-iteration-count: infinite;
     border-radius: 10px;
     padding: 20px;
@@ -68,7 +70,10 @@ css = """
 with gr.Blocks(css=css) as demo:
     with gr.Column(elem_classes="cool-col"):
         gr.Markdown("### Gradio Demo with Custom CSS", elem_classes="darktest")
-        gr.Markdown(elem_classes="markdown", value="Resize the browser window to see the CSS media query in action.")
+        gr.Markdown(
+            elem_classes="markdown",
+            value="Resize the browser window to see the CSS media query in action.",
+        )
 
 if __name__ == "__main__":
     demo.launch()

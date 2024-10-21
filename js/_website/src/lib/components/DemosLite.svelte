@@ -540,7 +540,7 @@
 						class="mt-1 flex-1 flex flex-col relative overflow-scroll code-scroll"
 					>
 						<Tabs
-							inital_tabs={TABS}
+							initial_tabs={TABS}
 							selected={selected_tab}
 							elem_classes={["editor-tabs"]}
 						>

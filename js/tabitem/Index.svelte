@@ -10,9 +10,11 @@
 	export let elem_classes: string[] = [];
 	export let label: string;
 	export let id: string | number;
-	export let gradio: Gradio<{
-		select: SelectData;
-	}>;
+	export let gradio:
+		| Gradio<{
+				select: SelectData;
+		  }>
+		| undefined;
 	export let visible = true;
 	export let interactive = true;
 </script>
@@ -20,11 +22,11 @@
 <TabItem
 	{elem_id}
 	{elem_classes}
-	name={label}
+	{label}
 	{visible}
 	{interactive}
 	{id}
-	on:select={({ detail }) => gradio.dispatch("select", detail)}
+	on:select={({ detail }) => gradio?.dispatch("select", detail)}
 >
 	<slot />
 </TabItem>

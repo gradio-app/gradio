@@ -43,6 +43,8 @@
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
+	const is_browser = typeof window !== "undefined";
+
 	async function update_components(): Promise<void> {
 		_components = await load_components(
 			get_components_from_messages(value),
@@ -323,7 +325,7 @@
 					show_undo={_undoable && is_last_bot_message(messages, value)}
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					{scroll}
+					scroll={is_browser ? scroll : () => {}}
 				/>
 			{/each}
 			{#if pending_message}

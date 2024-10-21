@@ -71,7 +71,7 @@ test("recording audio", async ({ page }) => {
 		permissions: ["microphone"]
 	});
 
-	await page.getByText("Interface").click();
+	await page.getByRole("tab", { name: "Interface" }).click();
 	await page.getByLabel("Record audio").click();
 
 	context.grantPermissions(["microphone"]);
