@@ -317,16 +317,6 @@
 		width: var(--size-full);
 	}
 
-	.hidden {
-		display: none;
-		position: absolute;
-		flex-grow: 0;
-	}
-
-	.hidden :global(svg) {
-		display: none;
-	}
-
 	.center {
 		display: flex;
 		justify-content: center;
@@ -337,6 +327,16 @@
 		justify-content: center;
 		align-items: center;
 	}
+	.hidden {
+		display: none;
+		position: absolute;
+		flex-grow: 0;
+	}
+
+	.hidden :global(svg) {
+		display: none;
+	}
+
 	.disable_click {
 		cursor: default;
 	}
