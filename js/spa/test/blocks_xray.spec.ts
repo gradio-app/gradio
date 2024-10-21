@@ -7,7 +7,8 @@ test("renders the correct elements", async ({ page }) => {
 	const checkboxes = await page.getByTestId("checkbox-group");
 	await expect(checkboxes).toContainText("Covid Malaria Lung Cancer");
 
-	const tabs = await page.locator("button", { hasText: /X-ray|CT Scan/ });
+	// const tabs = await page.locator("button", { hasText: /X-ray|CT Scan/ });
+	const tabs = await page.getByRole("tab", { name: /X-ray|CT Scan/ });
 	await expect(tabs).toHaveCount(2);
 });
 
