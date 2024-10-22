@@ -24,6 +24,7 @@ from urllib.parse import urlparse
 import aiofiles
 import httpx
 import numpy as np
+import safehttpx as sh
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
@@ -416,9 +417,13 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
     parsed_url = urlparse(url)
     hostname = parsed_url.hostname
 
-    response = await async_get_with_secure_transport(
-        url, trust_hostname=hostname in PUBLIC_HOSTNAME_WHITELIST
+    response = await sh.get(
+        url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST
     )
+
+    # response = await async_get_with_secure_transport(
+    #     url, trust_hostname=hostname in PUBLIC_HOSTNAME_WHITELIST
+    # )
 
     while response.is_redirect:
         redirect_url = response.headers["Location"]
@@ -427,7 +432,7 @@ async def async_ssrf_protected_download(url: str, cache_dir: str) -> str:
         if not redirect_parsed.hostname:
             redirect_url = f"{parsed_url.scheme}://{hostname}{redirect_url}"
 
-        response = await async_get_with_secure_transport(redirect_url)
+        response = await sh.get(redirect_url)
 
     if response.status_code != 200:
         raise Exception(f"Failed to download file. Status code: {response.status_code}")
