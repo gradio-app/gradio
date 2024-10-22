@@ -91,7 +91,11 @@ def load(
 
         with gr.Blocks(fill_height=True) as demo:
             if user_provides_token is True:
-                textbox = gr.Textbox(type="password", label="Token", info="Enter your token and press enter.")
+                textbox = gr.Textbox(
+                    type="password",
+                    label="Token",
+                    info="Enter your token and press enter.",
+                )
             else:
                 textbox = user_provides_token
 
@@ -102,6 +106,7 @@ def load(
                 return load_blocks_from_huggingface(
                     name=name, src=src, hf_token=token_value, **kwargs
                 )
+
         return demo
 
 
