@@ -7,6 +7,7 @@
 
 	export let value;
 	export let colors: string[] = [];
+	export let show_label: boolean;
 	export let theme_mode: ThemeMode;
 	export let caption: string;
 	export let bokeh_version: string | null;
@@ -48,6 +49,7 @@
 		{value}
 		{colors}
 		{theme_mode}
+		{show_label}
 		{caption}
 		{bokeh_version}
 		{show_actions_button}
