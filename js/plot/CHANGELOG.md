@@ -1,5 +1,17 @@
 # @gradio/plot
 
+## 0.8.0
+
+### Features
+
+- [#9781](https://github.com/gradio-app/gradio/pull/9781) [`7579e92`](https://github.com/gradio-app/gradio/commit/7579e92971e67be3ae81dd00a3acfbb58dd9ba27) - Allow smoother plot changes.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+
 ## 0.7.3
 
 ### Dependency updates
