@@ -79,13 +79,16 @@ def load(
         raise ValueError(
             "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a function that accepts a model name (and optionally, a token), and returns a Gradio app."
         )
-
-    if not user_provides_token:
+    
+    def create_blocks():
         if isinstance(src, Callable):
             return src(name, token, **kwargs)
         return load_blocks_from_huggingface(
             name=name, src=src, hf_token=token, **kwargs
         )
+
+    if not user_provides_token:
+        return create_blocks()
     else:
         import gradio as gr
 
@@ -99,13 +102,7 @@ def load(
             else:
                 textbox = user_provides_token
 
-            @gr.render(inputs=[textbox], triggers=[textbox.submit])
-            def create(token_value):
-                if isinstance(src, Callable):
-                    return src(name, token_value, **kwargs)
-                return load_blocks_from_huggingface(
-                    name=name, src=src, hf_token=token_value, **kwargs
-                )
+            gr.render(inputs=[textbox], triggers=[textbox.submit])(create_blocks)()
 
         return demo
 
