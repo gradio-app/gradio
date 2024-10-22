@@ -167,8 +167,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(svelte@4.2.15)
       svelte-preprocess:
-        specifier: ^5.1.4
-        version: 5.1.4(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.5.4)
+        specifier: ^6.0.3
+        version: 6.0.3(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.5.4)
       tailwindcss:
         specifier: ^3.4.3
         version: 3.4.3
@@ -591,6 +591,9 @@ importers:
       '@sveltejs/adapter-node':
         specifier: ^5.2.2
         version: 5.2.2(@sveltejs/kit@2.5.20(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.15)(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))))
+      svelte-preprocess:
+        specifier: ^6.0.3
+        version: 6.0.3(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.5.4)
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^3.0.0
@@ -9578,6 +9581,43 @@ packages:
       sugarss: ^2.0.0 || ^3.0.0 || ^4.0.0
       svelte: ^3.23.0 || ^4.0.0-next.0 || ^4.0.0 || ^5.0.0-next.0
       typescript: '>=3.9.5 || ^4.0.0 || ^5.0.0'
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+      coffeescript:
+        optional: true
+      less:
+        optional: true
+      postcss:
+        optional: true
+      postcss-load-config:
+        optional: true
+      pug:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      typescript:
+        optional: true
+
+  svelte-preprocess@6.0.3:
+    resolution: {integrity: sha512-PLG2k05qHdhmRG7zR/dyo5qKvakhm8IJ+hD2eFRQmMLHp7X3eJnjeupUtvuRpbNiF31RjVw45W+abDwHEmP5OA==}
+    engines: {node: '>= 18.0.0'}
+    peerDependencies:
+      '@babel/core': ^7.10.2
+      coffeescript: ^2.5.1
+      less: ^3.11.3 || ^4.0.0
+      postcss: ^7 || ^8
+      postcss-load-config: '>=3'
+      pug: ^3.0.0
+      sass: ^1.26.8
+      stylus: '>=0.55'
+      sugarss: ^2.0.0 || ^3.0.0 || ^4.0.0
+      svelte: ^4.0.0 || ^5.0.0-next.100 || ^5.0.0
+      typescript: ^5.0.0
     peerDependenciesMeta:
       '@babel/core':
         optional: true
@@ -18711,6 +18751,19 @@ snapshots:
       magic-string: 0.30.10
       sorcery: 0.11.0
       strip-indent: 3.0.0
+      svelte: 4.2.15
+    optionalDependencies:
+      '@babel/core': 7.24.5
+      coffeescript: 2.7.0
+      postcss: 8.4.38
+      postcss-load-config: 4.0.2(postcss@8.4.38)
+      pug: 3.0.2
+      sass: 1.66.1
+      sugarss: 4.0.1(postcss@8.4.38)
+      typescript: 5.5.4
+
+  svelte-preprocess@6.0.3(@babel/core@7.24.5)(coffeescript@2.7.0)(postcss-load-config@4.0.2(postcss@8.4.38))(postcss@8.4.38)(pug@3.0.2)(sass@1.66.1)(sugarss@4.0.1(postcss@8.4.38))(svelte@4.2.15)(typescript@5.5.4):
+    dependencies:
       svelte: 4.2.15
     optionalDependencies:
       '@babel/core': 7.24.5
