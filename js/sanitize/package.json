@@ -23,11 +23,11 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"browser": {
-				"development": "./browser.ts",
+				"gradio": "./browser.ts",
 				"default": "./dist/browser.js"
 			},
 			"default": {
-				"development": "./server.ts",
+				"gradio": "./server.ts",
 				"default": "./dist/server.js"
 			}
 		},
