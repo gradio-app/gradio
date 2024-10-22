@@ -1079,11 +1079,11 @@ def set_static_paths(paths: list[str | Path]) -> None:
     """
     Set the static paths to be served by the gradio app.
 
-    Static files are not moved to the gradio cache and are served directly from the file system.
+    Static files are are served directly from the file system instead of being copied. They are served to users with The Content-Disposition HTTP header set to "inline"
+    when sending these files to users. This indicates that the file should be displayed directly in the browser window if possible.
     This function is useful when you want to serve files that you know will not be modified during the lifetime of the gradio app (like files used in gr.Examples).
     By setting static paths, your app will launch faster and it will consume less disk space.
     Calling this function will set the static paths for all gradio applications defined in the same interpreter session until it is called again or the session ends.
-    To clear out the static paths, call this function with an empty list.
 
     Parameters:
         paths: List of filepaths or directory names to be served by the gradio app. If it is a directory name, ALL files located within that directory will be considered static and not moved to the gradio cache. This also means that ALL files in that directory will be accessible over the network.

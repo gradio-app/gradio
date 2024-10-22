@@ -13,11 +13,13 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let selected: number | string;
-	export let inital_tabs: Tab[] = [];
-	export let gradio: Gradio<{
-		change: never;
-		select: SelectData;
-	}>;
+	export let initial_tabs: Tab[] = [];
+	export let gradio:
+		| Gradio<{
+				change: never;
+				select: SelectData;
+		  }>
+		| undefined;
 
 	$: dispatch("prop_change", { selected });
 </script>
@@ -27,9 +29,9 @@
 	{elem_id}
 	{elem_classes}
 	bind:selected
-	on:change={() => gradio.dispatch("change")}
-	on:select={(e) => gradio.dispatch("select", e.detail)}
-	{inital_tabs}
+	on:change={() => gradio?.dispatch("change")}
+	on:select={(e) => gradio?.dispatch("select", e.detail)}
+	{initial_tabs}
 >
 	<slot />
 </Tabs>
