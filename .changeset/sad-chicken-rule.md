@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:update button varaint of hugginface
+fix:update docstring for the the "variant" parameter in `gr.Button`
