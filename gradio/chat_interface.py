@@ -215,6 +215,7 @@ class ChatInterface(Blocks):
                     examples_messages.append(example_message)
 
             self.provided_chatbot = chatbot is not None
+
             if chatbot:
                 if self.type != chatbot.type:
                     warnings.warn(
@@ -225,7 +226,15 @@ class ChatInterface(Blocks):
                 self.chatbot = cast(
                     Chatbot, get_component_instance(chatbot, render=True)
                 )
-                self.chatbot.examples = examples_messages
+                if self.chatbot.examples and examples_messages:
+                    warnings.warn(
+                        "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
+                    )
+                self.chatbot.examples = (
+                    examples_messages
+                    if not self._additional_inputs_in_examples()
+                    else None
+                )
             else:
                 self.chatbot = Chatbot(
                     label="Chatbot",
@@ -233,7 +242,9 @@ class ChatInterface(Blocks):
                     height=200 if fill_height else None,
                     type=self.type,
                     autoscroll=autoscroll,
-                    examples=examples_messages if not self.additional_inputs else None,
+                    examples=examples_messages
+                    if not self._additional_inputs_in_examples()
+                    else None,
                 )
 
             with Group():
@@ -272,7 +283,7 @@ class ChatInterface(Blocks):
                     examples_fn = self._examples_stream_fn
                 else:
                     examples_fn = self._examples_fn
-                if self.examples and self.additional_inputs:
+                if self.examples and self._additional_inputs_in_examples():
                     self.examples_handler = Examples(
                         examples=examples,
                         inputs=[self.textbox] + self.additional_inputs,
@@ -716,6 +727,13 @@ class ChatInterface(Blocks):
                     {"role": "assistant", "content": response},
                 ]
         return result
+
+    def _additional_inputs_in_examples(self):
+        if self.examples is not None:
+            for example in self.examples:
+                if isinstance(example, list) and len(example) > 1:
+                    return True
+        return False
 
     async def _examples_fn(
         self, message: ExampleMessage | str, *args
