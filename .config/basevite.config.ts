@@ -33,7 +33,9 @@ export default defineConfig(({ mode }) => {
 		server: {
 			port: 9876
 		},
-
+		resolve: {
+			conditions: ["gradio"]
+		},
 		build: {
 			sourcemap: false,
 			target: "esnext",
