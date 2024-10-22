@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:update button varaint of hugginface
+fix:update button varaint of hugginface
