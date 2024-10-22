@@ -350,6 +350,7 @@ export function submit(
 						} else if (type === "log") {
 							fire_event({
 								type: "log",
+								title: data.title,
 								log: data.log,
 								level: data.level,
 								endpoint: _endpoint,
@@ -485,6 +486,7 @@ export function submit(
 						} else if (type === "log") {
 							fire_event({
 								type: "log",
+								title: data.title,
 								log: data.log,
 								level: data.level,
 								endpoint: _endpoint,
@@ -645,6 +647,7 @@ export function submit(
 									} else if (type === "log") {
 										fire_event({
 											type: "log",
+											title: data.title,
 											log: data.log,
 											level: data.level,
 											endpoint: _endpoint,

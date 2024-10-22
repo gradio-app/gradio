@@ -51,6 +51,8 @@ jobs:
           python_version: "3.10"
           test: true
       - run: pnpm exec playwright install chromium firefox
+      - name: build essential packages
+        run: pnpm --filter @gradio/utils --filter @gradio/theme package
       - name: Run Lite E2E tests
         run: |
           . venv/bin/activate

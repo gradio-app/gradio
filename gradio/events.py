@@ -800,7 +800,7 @@ class Events:
     )
     clear = EventListener(
         "clear",
-        doc="This listener is triggered when the user clears the {{ component }} using the X button for the component.",
+        doc="This listener is triggered when the user clears the {{ component }} using the clear button for the component.",
     )
     play = EventListener(
         "play",

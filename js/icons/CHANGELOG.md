@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.8.1
+
+### Fixes
+
+- [#9758](https://github.com/gradio-app/gradio/pull/9758) [`38701a9`](https://github.com/gradio-app/gradio/commit/38701a99710f9484dade8a93c5bf3a43ea30a0d3) - Fix icons not showing in Safari.  Thanks @hannahblair!
+
 ## 0.8.0
 
 ### Features

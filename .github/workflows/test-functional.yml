@@ -57,6 +57,8 @@ jobs:
           python -m pip install -r demo/outbreak_forecast/requirements.txt
           python -m pip install -r demo/stream_video_out/requirements.txt
       - run: pnpm exec playwright install chromium firefox
+      - name: build essential packages
+        run: pnpm --filter @gradio/utils --filter @gradio/theme package
       - name: run browser tests
         env:
           GRADIO_SSR_MODE: ${{ matrix.ssr }}
@@ -67,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-screenshots
+          name: playwright-screenshots-SSR-${{ matrix.ssr }}
           path: |
             ./test-results
       - name: run browser component tests
@@ -82,6 +84,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: reload-mode-playwright-screenshots
+          name: reload-mode-playwright-screenshots-SSR-${{ matrix.ssr }}
           path: |
             ./test-results
