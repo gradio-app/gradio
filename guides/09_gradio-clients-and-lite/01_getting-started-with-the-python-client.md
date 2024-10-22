@@ -30,7 +30,7 @@ The Gradio client works with any hosted Gradio app! Although the Client is mostl
 
 If you already have a recent version of `gradio`, then the `gradio_client` is included as a dependency. But note that this documentation reflects the latest version of the `gradio_client`, so upgrade if you're not sure!
 
-The lightweight `gradio_client` package can be installed from pip (or pip3) and is tested to work with [**Python 3.10 - 3.12**]:
+The lightweight `gradio_client` package can be installed from pip (or pip3) and is tested to work with **Python versions 3.10 or higher**:
 
 ```bash
 $ pip install --upgrade gradio_client
