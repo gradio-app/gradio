@@ -26,7 +26,7 @@
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
-	import { MarkdownCode as Markdown } from "@gradio/markdown";
+	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
@@ -42,6 +42,8 @@
 	export let load_component: Gradio["load_component"];
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
+
+	const is_browser = typeof window !== "undefined";
 
 	async function update_components(): Promise<void> {
 		_components = await load_components(
@@ -323,7 +325,7 @@
 					show_undo={_undoable && is_last_bot_message(messages, value)}
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					{scroll}
+					scroll={is_browser ? scroll : () => {}}
 				/>
 			{/each}
 			{#if pending_message}

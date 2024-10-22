@@ -3,50 +3,65 @@
 ![GitHub issues by-label](https://img.shields.io/github/issues/gradio-app/gradio/good%20first%20issue?color=fe7c01&link=https%3A%2F%2Fgithub.com%2Fgradio-app%2Fgradio%2Fissues%3Fq%3Dis%253Aopen%2Bis%253Aissue%2Blabel%253A%2522good%2Bfirst%2Bissue%2522)
 
 
-More than 200 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like to be the next contributor! 
+More than 300 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like to be the next contributor! 
 
-Prerequisites:
+**Prerequisites**:
 
 - [Python 3.10+](https://www.python.org/downloads/)
 - [Node.js v16.14+](https://nodejs.dev/en/download/package-manager/) (only needed if you are making changes to the frontend)
 - [pnpm 8.1+](https://pnpm.io/8.x/installation) (only needed if you are making changes to the frontend)
- 
-## 🏡 Setup for local development
+
+**Steps to Contribute**:
+
+Generally speaking, contributing to Gradio involves four steps:
+
+1. Identify a good issue to contribute to (such as any of the issues [tagged with "good first issue"]())
+2. Setup Gradio locally
+3. Understand the structure of the codebase & make the changes to the codebase locally
+4. Open a pull request (PR) to upstream your changes to the Gradio repository
+
+You can watch this short video walkthrough of how to contribute, or keep reading below:
+
+<a href="https://www.youtube.com/watch?v=YTjwTe5Yurs&ab_channel=HuggingFace" target="_blank">
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/contributing-video-screenshot.png" style="width:100%">
+</a>
+
+## 🏡 Setup Gradio locally
 
 There are a few ways to install and run Gradio.
 
-### 🛠️ Install Gradio locally from `main`
+### 🛠️ Install Gradio from `main`
 
 - Clone this repo
-- Navigate to the repo directory and (from the root directory) run
+- Navigate to the repo directory and run:
 
 ```bash
 bash scripts/install_gradio.sh
 ```
 
-- Build the Frontend
+- Run the frontend (only required if you are making changes to the frontend and would like to preview them)
 
+```bash
+bash scripts/run_frontend.sh
 ```
-bash scripts/build_frontend.sh
-```
 
--  Install development requirements
+-  Install test requirements (only required if you want to run tests locally)
 
-(Note that it is highly recommended to use a virtual environment running **Python 3.9** since the versions of Gradio's dependencies are pinned)
+(Note that it is highly recommended to use a virtual environment running **Python 3.10** since the versions of Gradio's dependencies are pinned)
 
-```
+```bash
 bash scripts/install_test_requirements.sh
 ```
 
 If you have a different Python version and conflicting packages during the installation, please first run:
 
-```
+```bash
 bash scripts/create_test_requirements.sh
 ```
 
 ### 📦 Using dev containers
 
-You can alternatively use dev containers. This is supported on all platforms (macOS/Windows/Linux), as well as on GitHub Codespaces. 
+Instead of installing Gradio locally, you can alternatively use dev containers. This is supported on all platforms (macOS/Windows/Linux), as well as on GitHub Codespaces. 
 
 Prerequisites:
 
@@ -73,11 +88,10 @@ If you're a newcomer to Gradio, we recommend getting familiar with the overall s
   - `/gradio/interface.py`: contains the Python source code for the core `Interface` class
   - `/gradio/blocks.py`: contains the Python source code for the core `Blocks` class
   - `/gradio/components/`: the directory that contains the Python source code for all of the Gradio components.
-- `/js`: contains the HTML/JS/CSS source code for the library ([start here for frontend changes](/js/README.md))
-  - `/js/_website`: contains the code for the Gradio website (www.gradio.app). See the README in the `/js/_website` folder for more details
 - `/test`: contains Python unit tests for the library
-- `/demo`: contains demos that are used in the documentation, you can find `Gradio` examples over here.
-
+- `/js`: contains the HTML/JS/CSS source code for the library, including the fronted code for each component in a separate directory
+  - `/js/_website`: contains the code for the Gradio website (www.gradio.app). See the README in the `/js/_website` folder for more details
+- `/guides`: the written guides and tutorials that are found on Gradio's website.
 
 ## 🚀 Run a Gradio app
 
@@ -104,8 +118,8 @@ This will start the backend server in reload mode, which will watch for changes 
 
 If you're making frontend changes, start the frontend server:
 
-```
-pnpm dev
+```bash
+bash scripts/run_frontend.sh
 ```
 
 This will open a separate browser tab. By default, Gradio will launch this on port 9876. Any changes to the frontend will also reload automatically in the browser. For more information about developing in the frontend, you can refer to [js/README.md](js/README.md).
