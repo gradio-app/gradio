@@ -79,7 +79,7 @@ def load(
         raise ValueError(
             "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a function that accepts a model name (and optionally, a token), and returns a Gradio app."
         )
-    
+
     def create_blocks():
         if isinstance(src, Callable):
             return src(name, token, **kwargs)
