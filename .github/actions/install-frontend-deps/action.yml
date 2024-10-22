@@ -13,7 +13,8 @@ runs:
   using: "composite"
   steps:
     - uses: actions/cache@v4
-      id: frontend-cache
+      id: frontend-core-cache
+      if: inputs.skip_build == 'false' || inputs.build_lite == 'true'
       with:
         path: |
           gradio/templates/**
@@ -38,10 +39,6 @@ runs:
       if: inputs.skip_build == 'false' && steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
-    - name: generate types
-      if: inputs.skip_build == 'false' || inputs.build_lite == 'true'
-      shell: bash
-      run: pnpm package
     - name: Build frontend lite
       if: inputs.build_lite == 'true' && steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
