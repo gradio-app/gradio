@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.4.2
+
+### Fixes
+
+- [#9754](https://github.com/gradio-app/gradio/pull/9754) [`36a5076`](https://github.com/gradio-app/gradio/commit/36a50769095081a0e77f04f513d47a2e9d4531ba) - Update client.py: raise error on 429 get_config.  Thanks @Pendrokar!
+
 ## 1.4.1
 
 ### Fixes
