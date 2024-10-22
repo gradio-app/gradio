@@ -35,8 +35,8 @@ if TYPE_CHECKING:
 
 @document()
 def load(
-    name: str,
-    src: Callable[[str, str | None], Blocks]
+    name: str | None = None,
+    src: Callable[[str | None, str | None], Blocks]
     | Literal["models", "spaces"]
     | None = None,
     token: str | None = None,
@@ -63,6 +63,10 @@ def load(
             "The `hf_token` parameter is deprecated. Please use the equivalent `token` parameter instead."
         )
     if src is None:
+        if name is None:
+            raise ValueError(
+                "Either `src` parameter must be provided, or `name` must be provided."
+            )
         # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
         tokens = name.split("/")
         if len(tokens) <= 1:
@@ -72,6 +76,10 @@ def load(
         src = tokens[0]  # type: ignore
         name = "/".join(tokens[1:])
     if src in ["huggingface", "models", "spaces"]:
+        if name is None:
+            raise ValueError(
+                "The `name` parameter must be provided when loading a model or Space from Hugging Face."
+            )
         return load_blocks_from_huggingface(
             name=name, src=src, hf_token=token, **kwargs
         )
