@@ -1,5 +1,56 @@
 # website
 
+## 0.40.3
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+- [#9738](https://github.com/gradio-app/gradio/pull/9738) [`2ade59b`](https://github.com/gradio-app/gradio/commit/2ade59b95d4c3610a1a461cc95f020fbf9627305) - Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/tabs@0.3.2
+- @gradio/tabitem@0.3.2
+- @gradio/code@0.10.5
+- @gradio/paramviewer@0.5.4
+
+## 0.40.2
+
+### Dependency updates
+
+- @gradio/code@0.10.4
+- @gradio/paramviewer@0.5.3
+
+## 0.40.1
+
+### Dependency updates
+
+- @gradio/tabs@0.3.1
+- @gradio/code@0.10.3
+- @gradio/paramviewer@0.5.2
+- @gradio/tabitem@0.3.1
+
+## 0.40.0
+
+### Features
+
+- [#9635](https://github.com/gradio-app/gradio/pull/9635) [`67e4044`](https://github.com/gradio-app/gradio/commit/67e4044c9ca8358eceeb1fa72fa415df03397d20) - Add website banner for gradio 5.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.10.2
+
+## 0.39.1
+
+### Features
+
+- [#9615](https://github.com/gradio-app/gradio/pull/9615) [`204f3e1`](https://github.com/gradio-app/gradio/commit/204f3e13e110fc0528032a102c9521057e18919d) - fixes to website.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/code@0.10.1
+- @gradio/paramviewer@0.5.1
+
 ## 0.39.0
 
 ### Features

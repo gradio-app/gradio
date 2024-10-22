@@ -1,5 +1,53 @@
 # @gradio/lite
 
+## 4.43.2
+
+### Dependency updates
+
+- @gradio/atoms@0.10.0
+- @self/build@0.2.0
+- @gradio/core@0.2.1
+
+## 4.43.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.2
+
+## 4.43.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/wasm@0.14.2
+- @self/build@0.1.1
+- @gradio/core@0.2.0
+
+## 4.43.2
+
+### Fixes
+
+- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/wasm@0.14.1
+- @gradio/core@0.1.1
+
+## 4.43.1
+
+### Features
+
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+
+### Fixes
+
+- [#9630](https://github.com/gradio-app/gradio/pull/9630) [`2eaa066`](https://github.com/gradio-app/gradio/commit/2eaa0667e1d1a0edd1089bf8c3ffa3f563b9bca2) - Fix duplicate attribute error.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/core@0.1.1
+
 ## 4.43.0
 
 ### Features

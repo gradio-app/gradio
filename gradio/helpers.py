@@ -764,7 +764,7 @@ class Progress(Iterable):
                 self.iterables.append(new_iterable)
                 callback(self.iterables)
                 return self
-            length = len(iterable) if hasattr(iterable, "__len__") else None  # type: ignore
+            length = len(iterable) if hasattr(iterable, "__len__") else total  # type: ignore
             self.iterables.append(
                 TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
             )
@@ -1036,6 +1036,7 @@ def skip() -> dict:
 
 def log_message(
     message: str,
+    title: str,
     level: Literal["info", "warning"] = "info",
     duration: float | None = 10,
     visible: bool = True,
@@ -1053,13 +1054,21 @@ def log_message(
             warnings.warn(message)
         return
     blocks._queue.log_message(
-        event_id=event_id, log=message, level=level, duration=duration, visible=visible
+        event_id=event_id,
+        log=message,
+        title=title,
+        level=level,
+        duration=duration,
+        visible=visible,
     )
 
 
 @document(documentation_group="modals")
 def Warning(  # noqa: N802
-    message: str = "Warning issued.", duration: float | None = 10, visible: bool = True
+    message: str = "Warning issued.",
+    duration: float | None = 10,
+    visible: bool = True,
+    title: str = "Warning",
 ):
     """
     This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
@@ -1068,6 +1077,7 @@ def Warning(  # noqa: N802
         message: The warning message to be displayed to the user. Can be HTML, which will be rendered in the modal.
         duration: The duration in seconds that the warning message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
         visible: Whether the error message should be displayed in the UI.
+        title: The title to be displayed to the user at the top of the modal.
     Example:
         import gradio as gr
         def hello_world():
@@ -1078,7 +1088,9 @@ def Warning(  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, level="warning", duration=duration, visible=visible)
+    log_message(
+        message, title=title, level="warning", duration=duration, visible=visible
+    )
 
 
 @document(documentation_group="modals")
@@ -1086,6 +1098,7 @@ def Info(  # noqa: N802
     message: str = "Info issued.",
     duration: float | None = 10,
     visible: bool = True,
+    title: str = "Info",
 ):
     """
     This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is gray by default and has the heading: "Info." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.
@@ -1094,6 +1107,7 @@ def Info(  # noqa: N802
         message: The info message to be displayed to the user. Can be HTML, which will be rendered in the modal.
         duration: The duration in seconds that the info message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
         visible: Whether the error message should be displayed in the UI.
+        title: The title to be displayed to the user at the top of the modal.
     Example:
         import gradio as gr
         def hello_world():
@@ -1104,4 +1118,4 @@ def Info(  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, level="info", duration=duration, visible=visible)
+    log_message(message, title=title, level="info", duration=duration, visible=visible)

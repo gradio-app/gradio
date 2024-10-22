@@ -1,5 +1,17 @@
 # @self/build
 
+## 0.2.0
+
+### Features
+
+- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue.  Thanks @aliabd!
+
+## 0.1.1
+
+### Fixes
+
+- [#9711](https://github.com/gradio-app/gradio/pull/9711) [`7134fc2`](https://github.com/gradio-app/gradio/commit/7134fc272e9e60be4b80dfd294ff8926d5995188) - Custom component fixes.  Thanks @freddyaboulton!
+
 ## 0.1.0
 
 ### Features

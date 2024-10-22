@@ -6,6 +6,7 @@ import hashlib
 import ipaddress
 import json
 import logging
+import mimetypes
 import os
 import shutil
 import socket
@@ -95,7 +96,13 @@ if wasm_utils.IS_WASM:
         ) -> httpx.Response:
             url = str(request.url)
             method = request.method
+
             headers = dict(request.headers)
+            # User-agent header is automatically set by the browser.
+            # More importantly, setting it causes an error on FireFox where a preflight request is made and it leads to a CORS error.
+            # Maybe related to https://bugzilla.mozilla.org/show_bug.cgi?id=1629921
+            del headers["user-agent"]
+
             body = None if method in ["GET", "HEAD"] else await request.aread()
             response = await pyodide.http.pyfetch(
                 url, method=method, headers=headers, body=body
@@ -652,6 +659,14 @@ async def async_move_files_to_cache(
         keep_in_cache: If True, the file will not be deleted from cache when the server is shut down.
     """
 
+    def _mark_svg_as_safe(payload: FileData):
+        # If the app has not launched, this path can be considered an "allowed path"
+        # This is mainly so that svg files can be displayed inline for button/chatbot icons
+        if (
+            (blocks := LocalContext.blocks.get()) is None or not blocks.is_running
+        ) and (mimetypes.guess_type(payload.path)[0] == "image/svg+xml"):
+            utils.set_static_paths([payload.path])
+
     async def _move_to_cache(d: dict):
         payload = FileData(**d)
         # If the gradio app developer is returning a URL from
@@ -689,7 +704,7 @@ async def async_move_files_to_cache(
         else:
             url = f"{url_prefix}{payload.path}"
         payload.url = url
-
+        _mark_svg_as_safe(payload)
         return payload.model_dump()
 
     if isinstance(data, (GradioRootModel, GradioModel)):

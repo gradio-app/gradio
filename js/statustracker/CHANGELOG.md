@@ -1,5 +1,34 @@
 # @gradio/statustracker
 
+## 0.9.2
+
+### Dependency updates
+
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+
+## 0.9.1
+
+### Dependency updates
+
+- @gradio/atoms@0.9.2
+
+## 0.9.0
+
+### Features
+
+- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error.  Thanks @ABucket!
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+
+## 0.8.1
+
+### Features
+
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+
 ## 0.8.0
 
 ### Features
