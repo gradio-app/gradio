@@ -121,7 +121,7 @@
 				bind:this={datetime}
 				bind:value={datevalue}
 				on:input={() => {
-					const date = new Date(datevalue);
+					const date = new Date(datevalue + "T00:00:00");
 					entered_value = format_date(date);
 					submit_values();
 				}}
