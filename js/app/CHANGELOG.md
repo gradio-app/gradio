@@ -1,5 +1,16 @@
 # @self/app
 
+## 1.42.1
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @self/build@0.2.0
+- @gradio/core@0.2.1
+
 ## 1.42.0
 
 ### Features

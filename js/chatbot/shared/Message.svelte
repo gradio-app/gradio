@@ -226,18 +226,13 @@
 	/* avatar styles */
 	.avatar-container {
 		flex-shrink: 0;
-		width: 35px;
-		height: 35px;
 		border-radius: 50%;
 		border: 1px solid var(--border-color-primary);
 		overflow: hidden;
 	}
 
 	.avatar-container :global(img) {
-		width: 100%;
-		height: 100%;
 		object-fit: cover;
-		padding: 6px;
 	}
 
 	/* message wrapper */
@@ -264,7 +259,7 @@
 		border: none;
 	}
 
-	.message-row :global(img) {
+	.message-row :not(.avatar-container) :global(img) {
 		margin: var(--size-2);
 		max-height: 300px;
 	}

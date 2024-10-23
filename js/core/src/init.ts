@@ -1,4 +1,5 @@
 import { writable, type Writable, get } from "svelte/store";
+
 import type {
 	ComponentMeta,
 	Dependency,
@@ -27,6 +28,7 @@ const raf = is_browser
  * Create a store with the layout and a map of targets
  * @returns A store with the layout and a map of targets
  */
+let has_run = new Set<number>();
 export function create_components(initial_layout: ComponentMeta | undefined): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
@@ -290,19 +292,26 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			);
 		}
 
-		if (instance.type === "tabs") {
-			instance.children =
-				instance?.children?.map((c) => ({
-					...c,
-					props: {
-						...c.props,
-						id: c.props.id || c.id
-					}
-				})) || [];
-			const child_tab_items = instance.children?.filter(
+		if (instance.type === "tabs" && !instance.props.initial_tabs) {
+			const tab_items_props =
+				node.children?.map((c) => {
+					const instance = instance_map[c.id];
+					// console.log("tabs", JSON.stringify(instance.props, null, 2));
+					instance.props.id ??= c.id;
+					return {
+						type: instance.type,
+						props: {
+							...(instance.props as any),
+							id: instance.props.id
+						}
+					};
+				}) || [];
+
+			const child_tab_items = tab_items_props.filter(
 				(child) => child.type === "tabitem"
 			);
-			instance.props.inital_tabs = child_tab_items?.map((child) => ({
+
+			instance.props.initial_tabs = child_tab_items?.map((child) => ({
 				label: child.props.label,
 				id: child.props.id,
 				visible: child.props.visible,
@@ -337,7 +346,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 					else if (update.value instanceof Set)
 						new_value = new Set(update.value);
 					else if (Array.isArray(update.value)) new_value = [...update.value];
-					else if (update.value === null) new_value = null;
+					else if (update.value == null) new_value = null;
 					else if (typeof update.value === "object")
 						new_value = { ...update.value };
 					else new_value = update.value;

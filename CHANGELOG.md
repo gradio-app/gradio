@@ -1,5 +1,27 @@
 # gradio
 
+## 5.3.0
+
+### Features
+
+- [#9746](https://github.com/gradio-app/gradio/pull/9746) [`5015abb`](https://github.com/gradio-app/gradio/commit/5015abbd78434754931c2b09d9f603f212c4566d) - fix `@gradio/sanitize` exports.  Thanks @pngwn!
+- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue.  Thanks @aliabd!
+- [#9781](https://github.com/gradio-app/gradio/pull/9781) [`7579e92`](https://github.com/gradio-app/gradio/commit/7579e92971e67be3ae81dd00a3acfbb58dd9ba27) - Allow smoother plot changes.  Thanks @aliabid94!
+
+### Fixes
+
+- [#9770](https://github.com/gradio-app/gradio/pull/9770) [`47b5565`](https://github.com/gradio-app/gradio/commit/47b556523db3b63d6a9c2f9f69e8632bfa4ddff6) - Fix broken image select.  Thanks @aliabid94!
+- [#9754](https://github.com/gradio-app/gradio/pull/9754) [`36a5076`](https://github.com/gradio-app/gradio/commit/36a50769095081a0e77f04f513d47a2e9d4531ba) - Update client.py: raise error on 429 get_config.  Thanks @Pendrokar!
+- [#9780](https://github.com/gradio-app/gradio/pull/9780) [`a72e1a9`](https://github.com/gradio-app/gradio/commit/a72e1a97686601bf72c7df5e7e066a532bbb7f38) - Streaming Markdown in chatbot Component Fix.  Thanks @dawoodkhan82!
+- [#9767](https://github.com/gradio-app/gradio/pull/9767) [`16895e8`](https://github.com/gradio-app/gradio/commit/16895e862871839db762f6318622a5a64b9d5199) - Fixes #9742.  Thanks @crypdick!
+- [#9654](https://github.com/gradio-app/gradio/pull/9654) [`cd7dab7`](https://github.com/gradio-app/gradio/commit/cd7dab7ba5c81983f133dfa9e90ac6f92ac4fa1f) - Improve select event behaviour in gr.Dataframe.  Thanks @hannahblair!
+- [#9700](https://github.com/gradio-app/gradio/pull/9700) [`2932e06`](https://github.com/gradio-app/gradio/commit/2932e067d5716a0f3939bfa3f310db8cdcf565c1) - Fix API info bug.  Thanks @freddyaboulton!
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+- [#9758](https://github.com/gradio-app/gradio/pull/9758) [`38701a9`](https://github.com/gradio-app/gradio/commit/38701a99710f9484dade8a93c5bf3a43ea30a0d3) - Fix icons not showing in Safari.  Thanks @hannahblair!
+- [#9738](https://github.com/gradio-app/gradio/pull/9738) [`2ade59b`](https://github.com/gradio-app/gradio/commit/2ade59b95d4c3610a1a461cc95f020fbf9627305) - Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API.  Thanks @whitphx!
+- [#9762](https://github.com/gradio-app/gradio/pull/9762) [`bcb7d15`](https://github.com/gradio-app/gradio/commit/bcb7d15a8aef1cf1b873ba3d039fbec91432c5b2) - Add a `.clear` event to the `gr.Chatbot` component.  Thanks @abidlabs!
+- [#9765](https://github.com/gradio-app/gradio/pull/9765) [`df34f58`](https://github.com/gradio-app/gradio/commit/df34f58c3db12abb3965af8ea83a1bbd25c22be7) - Fixes bug where SVG icons could not be used in Buttons/Chatbots.  Thanks @freddyaboulton!
+
 ## 5.2.1
 
 ### Fixes
