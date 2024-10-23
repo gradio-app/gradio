@@ -473,14 +473,14 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 
 	const TABS: Tab[] = [
 		{
-			name: "Code",
+			label: "Code",
 			id: "code",
 			visible: true,
 			interactive: true,
 			elem_id: "code"
 		},
 		{
-			name: "Packages",
+			label: "Packages",
 			id: "packages",
 			visible: true,
 			interactive: true,
@@ -570,7 +570,7 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 						>
 							<TabItem
 								id={TABS[0].id}
-								name={TABS[0].name}
+								label={TABS[0].label}
 								visible={TABS[0].visible}
 								interactive={TABS[0].interactive}
 								elem_classes={["editor-tabitem"]}
@@ -588,7 +588,7 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 							</TabItem>
 							<TabItem
 								id={TABS[1].id}
-								name={TABS[1].name}
+								label={TABS[1].label}
 								visible={TABS[1].visible}
 								interactive={TABS[1].interactive}
 								elem_classes={["editor-tabitem"]}
