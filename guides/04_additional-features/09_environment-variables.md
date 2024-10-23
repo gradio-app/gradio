@@ -147,7 +147,7 @@ Environment variables in Gradio provide a way to customize your applications and
 
 ### 16. `GRADIO_NODE_SERVER_NAME`
 
-- **Description**: Defines the host name for the Gradio node server.
+- **Description**: Defines the host name for the Gradio node server. (Only applies if `ssr_mode` is set to `True`.)
 - **Default**: `GRADIO_SERVER_NAME` if it is set, otherwise `"127.0.0.1"`
 - **Example**:
   ```sh
