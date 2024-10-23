@@ -41,7 +41,7 @@ export class WorkerProxy extends EventTarget {
 		// HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
 		// Read the comment in `cross-origin-worker.ts` for the detail.
 		const workerMaker = new Worker(
-			new URL("../webworker/webworker.js", import.meta.url),
+			new URL("../dist/webworker/webworker.js", import.meta.url),
 			{
 				/* @vite-ignore */ shared: sharedWorkerMode // `@vite-ignore` is needed to avoid an error `Vite is unable to parse the worker options as the value is not static.`
 			}

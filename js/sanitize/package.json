@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/sanitize",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -22,9 +22,14 @@
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
-			"browser": "./dist/browser.js",
-			"import": "./dist/server.js",
-			"default": "./dist/server.js"
+			"browser": {
+				"gradio": "./browser.ts",
+				"default": "./dist/browser.js"
+			},
+			"default": {
+				"gradio": "./server.ts",
+				"default": "./dist/server.js"
+			}
 		},
 		"./package.json": "./package.json"
 	},

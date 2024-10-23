@@ -26,7 +26,7 @@
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
-	import { MarkdownCode as Markdown } from "@gradio/markdown";
+	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
@@ -42,6 +42,8 @@
 	export let load_component: Gradio["load_component"];
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
+
+	const is_browser = typeof window !== "undefined";
 
 	async function update_components(): Promise<void> {
 		_components = await load_components(
@@ -284,12 +286,13 @@
 				{#if is_image_preview_open}
 					<div class="image-preview">
 						<img src={image_preview_source} alt={image_preview_source_alt} />
-						<button
-							class="image-preview-close-button"
-							on:click={() => {
-								is_image_preview_open = false;
-							}}><Clear /></button
-						>
+						<IconButtonWrapper>
+							<IconButton
+								Icon={Clear}
+								on:click={() => (is_image_preview_open = false)}
+								label={"Clear"}
+							/>
+						</IconButtonWrapper>
 					</div>
 				{/if}
 				<Message
@@ -322,7 +325,7 @@
 					show_undo={_undoable && is_last_bot_message(messages, value)}
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					{scroll}
+					scroll={is_browser ? scroll : () => {}}
 				/>
 			{/each}
 			{#if pending_message}
@@ -594,5 +597,19 @@
 			var(--shadow-drop),
 			0 2px 2px rgba(0, 0, 0, 0.05);
 		transform: translateY(-2px);
+	}
+
+	.image-preview {
+		position: absolute;
+		z-index: 999;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: var(--background-fill-secondary);
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 </style>
