@@ -15,7 +15,7 @@ import type {
 import { determine_protocol } from "./init_helpers";
 
 export const RE_SPACE_NAME = /^[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+$/;
-export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}$/;
+export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}.*$/;
 
 export async function process_endpoint(
 	app_reference: string,
@@ -58,7 +58,7 @@ export async function process_endpoint(
 			determine_protocol(_app_reference);
 
 		return {
-			space_id: host.replace(".hf.space", ""),
+			space_id: host.split("/")[0].replace(".hf.space", ""),
 			ws_protocol,
 			http_protocol,
 			host

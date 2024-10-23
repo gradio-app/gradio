@@ -486,6 +486,18 @@ describe("process_endpoint", () => {
 		expect(response.space_id).toBe("hmb-hello-world");
 		expect(response.host).toBe("hmb-hello-world.hf.space");
 	});
+
+	it("handles huggingface subpath urls", async () => {
+		const app_reference =
+			"https://pngwn-pr-demos-test.hf.space/demo/audio_debugger/";
+		const response = await process_endpoint(app_reference);
+		expect(response.space_id).toBe("pngwn-pr-demos-test");
+		expect(response.host).toBe(
+			"pngwn-pr-demos-test.hf.space/demo/audio_debugger"
+		);
+
+		expect(response.http_protocol).toBe("https:");
+	});
 });
 
 describe("join_urls", () => {
