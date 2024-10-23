@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:support spaces served on subpaths
+fix:support gradio apps on spaces served on subpaths
