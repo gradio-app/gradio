@@ -22,7 +22,16 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_SERVER_NAME="0.0.0.0"
   ```
 
-### 3. `GRADIO_ANALYTICS_ENABLED`
+### 3. `GRADIO_NUM_PORTS`
+
+- **Description**: Defines the number of ports to try when starting the Gradio server.
+- **Default**: `100`
+- **Example**:
+  ```bash
+  export GRADIO_NUM_PORTS=200
+  ```
+
+### 4. `GRADIO_ANALYTICS_ENABLED`
 
 - **Description**: Whether Gradio should provide 
 - **Default**: `"True"`
@@ -32,7 +41,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_ANALYTICS_ENABLED="True"
   ```
 
-### 4. `GRADIO_DEBUG`
+### 5. `GRADIO_DEBUG`
 
 - **Description**: Enables or disables debug mode in Gradio. If debug mode is enabled, the main thread does not terminate allowing error messages to be printed in environments such as Google Colab.
 - **Default**: `0`
@@ -41,7 +50,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_DEBUG=1
   ```
 
-### 5. `GRADIO_FLAGGING_MODE`
+### 6. `GRADIO_FLAGGING_MODE`
 
 - **Description**: Controls whether users can flag inputs/outputs in the Gradio interface. See [the Guide on flagging](/guides/using-flagging) for more details.
 - **Default**: `"manual"`
@@ -51,7 +60,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_FLAGGING_MODE="never"
   ```
 
-### 6. `GRADIO_TEMP_DIR`
+### 7. `GRADIO_TEMP_DIR`
 
 - **Description**: Specifies the directory where temporary files created by Gradio are stored.
 - **Default**: System default temporary directory
@@ -60,7 +69,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_TEMP_DIR="/path/to/temp"
   ```
 
-### 7. `GRADIO_ROOT_PATH`
+### 8. `GRADIO_ROOT_PATH`
 
 - **Description**: Sets the root path for the Gradio application. Useful if running Gradio [behind a reverse proxy](/guides/running-gradio-on-your-web-server-with-nginx).
 - **Default**: `""`
@@ -69,7 +78,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_ROOT_PATH="/myapp"
   ```
 
-### 8. `GRADIO_SHARE`
+### 9. `GRADIO_SHARE`
 
 - **Description**: Enables or disables sharing the Gradio app.
 - **Default**: `"False"`
@@ -79,7 +88,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_SHARE="True"
   ```
 
-### 9. `GRADIO_ALLOWED_PATHS`
+### 10. `GRADIO_ALLOWED_PATHS`
 
 - **Description**: Sets a list of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app. Multiple items can be specified by separating items with commas.
 - **Default**: `""`
@@ -88,7 +97,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_ALLOWED_PATHS="/mnt/sda1,/mnt/sda2"
   ```
 
-### 10. `GRADIO_BLOCKED_PATHS`
+### 11. `GRADIO_BLOCKED_PATHS`
 
 - **Description**: Sets a list of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default. Multiple items can be specified by separating items with commas.
 - **Default**: `""`
@@ -97,7 +106,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_BLOCKED_PATHS="/users/x/gradio_app/admin,/users/x/gradio_app/keys"
   ```
 
-### 11. `FORWARDED_ALLOW_IPS`
+### 12. `FORWARDED_ALLOW_IPS`
 
 - **Description**: This is not a Gradio-specific environment variable, but rather one used in server configurations, specifically `uvicorn` which is used by Gradio internally. This environment variable is useful when deploying applications behind a reverse proxy. It defines a list of IP addresses that are trusted to forward traffic to your application. When set, the application will trust the `X-Forwarded-For` header from these IP addresses to determine the original IP address of the user making the request. This means that if you use the `gr.Request` [object's](https://www.gradio.app/docs/gradio/request) `client.host` property, it will correctly get the user's IP address instead of the IP address of the reverse proxy server. Note that only trusted IP addresses (i.e. the IP addresses of your reverse proxy servers) should be added, as any server with these IP addresses can modify the `X-Forwarded-For` header and spoof the client's IP address.
 - **Default**: `"127.0.0.1"`
@@ -106,7 +115,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export FORWARDED_ALLOW_IPS="127.0.0.1,192.168.1.100"
   ```
 
-### 12. `GRADIO_CACHE_EXAMPLES`
+### 13. `GRADIO_CACHE_EXAMPLES`
 
 - **Description**: Whether or not to cache examples by default in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()` when no explicit argument is passed for the `cache_examples` parameter. You can set this environment variable to either the string "true" or "false".
 - **Default**: `"false"`
@@ -116,7 +125,7 @@ Environment variables in Gradio provide a way to customize your applications and
   ```
 
 
-### 13. `GRADIO_CACHE_MODE`
+### 14. `GRADIO_CACHE_MODE`
 
 - **Description**: How to cache examples. Only applies if `cache_examples` is set to `True` either via enviornment variable or by an explicit parameter, AND no no explicit argument is passed for the `cache_mode` parameter in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`. Can be set to either the strings "lazy" or "eager." If "lazy", examples are cached after their first use for all users of the app. If "eager", all examples are cached at app launch.
 
@@ -127,7 +136,7 @@ Environment variables in Gradio provide a way to customize your applications and
   ```
 
 
-### 14. `GRADIO_EXAMPLES_CACHE`
+### 15. `GRADIO_EXAMPLES_CACHE`
 
 - **Description**:  If you set `cache_examples=True` in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`, Gradio will run your prediction function and save the results to disk. By default, this is in the `.gradio/cached_examples//` subdirectory within your app's working directory. You can customize the location of cached example files created by Gradio by setting the environment variable `GRADIO_EXAMPLES_CACHE` to an absolute path or a path relative to your working directory.
 - **Default**: `".gradio/cached_examples/"`
@@ -136,7 +145,23 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_EXAMPLES_CACHE="custom_cached_examples/"
   ```
 
+### 16. `GRADIO_NODE_SERVER_NAME`
 
+- **Description**: Defines the host name for the Gradio node server. (Only applies if `ssr_mode` is set to `True`.)
+- **Default**: `GRADIO_SERVER_NAME` if it is set, otherwise `"127.0.0.1"`
+- **Example**:
+  ```sh
+  export GRADIO_NODE_SERVER_NAME="0.0.0.0"
+  ```
+
+### 17. `GRADIO_NODE_NUM_PORTS`
+
+- **Description**: Defines the number of ports to try when starting the Gradio node server. (Only applies if `ssr_mode` is set to `True`.)
+- **Default**: `100`
+- **Example**:
+  ```sh
+  export GRADIO_NODE_NUM_PORTS=200
+  ```
 
 ## How to Set Environment Variables
 
