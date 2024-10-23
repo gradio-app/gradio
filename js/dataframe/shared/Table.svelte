@@ -710,29 +710,6 @@
 		active_header_menu = null;
 	}
 
-	let active_header_menu: {
-		col: number;
-		x: number;
-		y: number;
-	} | null = null;
-
-	function toggle_header_menu(event: MouseEvent, col: number): void {
-		event.stopPropagation();
-		if (active_header_menu && active_header_menu.col === col) {
-			active_header_menu = null;
-		} else {
-			const header = (event.target as HTMLElement).closest("th");
-			if (header) {
-				const rect = header.getBoundingClientRect();
-				active_header_menu = {
-					col,
-					x: rect.right,
-					y: rect.bottom
-				};
-			}
-		}
-	}
-
 	function handle_resize(): void {
 		active_cell_menu = null;
 		active_header_menu = null;
@@ -771,6 +748,29 @@
 			active_button = null;
 		} else {
 			active_button = { type: "cell", row, col };
+		}
+	}
+
+	let active_header_menu: {
+		col: number;
+		x: number;
+		y: number;
+	} | null = null;
+
+	function toggle_header_menu(event: MouseEvent, col: number): void {
+		event.stopPropagation();
+		if (active_header_menu && active_header_menu.col === col) {
+			active_header_menu = null;
+		} else {
+			const header = (event.target as HTMLElement).closest("th");
+			if (header) {
+				const rect = header.getBoundingClientRect();
+				active_header_menu = {
+					col,
+					x: rect.right,
+					y: rect.bottom
+				};
+			}
 		}
 	}
 
