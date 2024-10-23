@@ -182,13 +182,6 @@ export function determine_protocol(endpoint: string): {
 	if (endpoint.startsWith("http")) {
 		const { protocol, host, pathname } = new URL(endpoint);
 
-		if (host.endsWith("hf.space")) {
-			return {
-				ws_protocol: "wss",
-				host: host,
-				http_protocol: protocol as "http:" | "https:"
-			};
-		}
 		return {
 			ws_protocol: protocol === "https:" ? "wss" : "ws",
 			http_protocol: protocol as "http:" | "https:",
