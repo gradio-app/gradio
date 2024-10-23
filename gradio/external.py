@@ -42,7 +42,7 @@ def load(
     | None = None,
     token: str | None = None,
     hf_token: str | None = None,
-    accept_token: bool | Textbox = False,
+    accept_token: bool = False,
     **kwargs,
 ) -> Blocks:
     """
