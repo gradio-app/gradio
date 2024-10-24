@@ -15,7 +15,7 @@
 [官网](https://gradio.app)
 | [文档](https://gradio.app/docs/)
 | [指南](https://gradio.app/guides/)
-| [开始](https://gradio.app/getting_started/)]
+| [开始](https://gradio.app/getting_started/)
 | [样例](../../demo/)
 | [English](https://github.com/gradio-app/gradio#readme)
 
