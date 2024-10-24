@@ -356,9 +356,9 @@
 		<div class="wrap" bind:this={canvas_wrap}>
 			<div bind:this={pixi_target} class="stage-wrap" class:bg={!bg}></div>
 		</div>
-		<div class="tools-wrap">
-			<slot />
-		</div>
+		<!-- <div class="tools-wrap"> -->
+		<slot />
+		<!-- </div> -->
 		<div
 			class="canvas"
 			class:no-border={!bg && $active_tool === "bg" && !history}
@@ -404,18 +404,6 @@
 		overflow: hidden;
 		height: fit-content;
 		width: auto;
-	}
-
-	.tools-wrap {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		padding: 0 var(--spacing-xl) 0 0;
-		border: 1px solid var(--block-border-color);
-		border-radius: var(--radius-sm);
-		margin: var(--spacing-xxl) 0 var(--spacing-xxl) 0;
-		width: fit-content;
-		margin: 0 auto;
 	}
 
 	.image-container {
