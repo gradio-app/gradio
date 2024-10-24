@@ -18,8 +18,10 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 # By default, the local server will try to open on localhost, port 7860.
 # If that is not available, then it will try 7861, 7862, ... 7959.
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
-TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
-LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+TRY_NUM_PORTS = int(os.getenv("GRADIO_NODE_NUM_PORTS", "100"))
+LOCALHOST_NAME = os.getenv(
+    "GRADIO_NODE_SERVER_NAME", os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+)
 
 
 def start_node_server(
