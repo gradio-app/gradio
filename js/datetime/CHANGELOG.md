@@ -1,5 +1,16 @@
 # @gradio/datetime
 
+## 0.2.5
+
+### Fixes
+
+- [#9825](https://github.com/gradio-app/gradio/pull/9825) [`f15808e`](https://github.com/gradio-app/gradio/commit/f15808eff361cdbba5237d1deb8b60128bc844e4) - fix: use system timezone in gr.DateTime with include_time=False.  Thanks @lcian!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+
 ## 0.2.4
 
 ### Dependency updates
