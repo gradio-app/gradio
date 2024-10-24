@@ -1,6 +1,6 @@
 ---
-"@gradio/chatbot": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"gradio": patch
 ---
 
-feat:Make sure Tool accordion closed if now the last assistant message
+fix:Make sure Tool accordion closed if now the last assistant message
