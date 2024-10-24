@@ -229,38 +229,40 @@
 	{sources}
 	crop_constraint={!!crop_constraint}
 >
-	<Tools {i18n}>
-		<Layers layer_files={value?.layers || null} enable_layers={layers} />
+	<div class="tools-wrap">
+		<Tools {i18n}>
+			<Layers layer_files={value?.layers || null} enable_layers={layers} />
 
-		<Sources
-			bind:dragging
-			{i18n}
-			{root}
-			{sources}
-			{upload}
-			{stream_handler}
-			bind:bg
-			bind:active_mode
-			background_file={value?.background || value?.composite || null}
-		></Sources>
+			<Sources
+				bind:dragging
+				{i18n}
+				{root}
+				{sources}
+				{upload}
+				{stream_handler}
+				bind:bg
+				bind:active_mode
+				background_file={value?.background || value?.composite || null}
+			></Sources>
 
-		{#if transforms.includes("crop")}
-			<Crop {crop_constraint} />
-		{/if}
-		{#if brush}
-			<Brush
-				color_mode={brush.color_mode}
-				default_color={brush.default_color}
-				default_size={brush.default_size}
-				colors={brush.colors}
-				mode="draw"
-			/>
-		{/if}
+			{#if transforms.includes("crop")}
+				<Crop {crop_constraint} />
+			{/if}
+			{#if brush}
+				<Brush
+					color_mode={brush.color_mode}
+					default_color={brush.default_color}
+					default_size={brush.default_size}
+					colors={brush.colors}
+					mode="draw"
+				/>
+			{/if}
 
-		{#if brush && eraser}
-			<Brush default_size={eraser.default_size} mode="erase" />
-		{/if}
-	</Tools>
+			{#if brush && eraser}
+				<Brush default_size={eraser.default_size} mode="erase" />
+			{/if}
+		</Tools>
+	</div>
 
 	{#if !bg && !history && active_mode !== "webcam" && status !== "error"}
 		<div class="empty wrap" style:height={`${editor_height}px`}>
@@ -327,5 +329,19 @@
 
 	.or {
 		color: var(--body-text-color-subdued);
+	}
+
+	.tools-wrap {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 0 var(--spacing-xl) 0 0;
+		border: 1px solid var(--block-border-color);
+		border-radius: var(--radius-sm);
+		margin: var(--spacing-xxl) 0 var(--spacing-xxl) 0;
+		width: fit-content;
+		margin: 0 auto;
+		position: sticky;
+		bottom: 10px;
 	}
 </style>
