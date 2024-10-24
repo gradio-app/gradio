@@ -14,9 +14,12 @@ if (
 
 export function mount_css(url: string, target: HTMLElement): Promise<void> {
 	const base = new URL(import.meta.url).origin;
-	const _url = new URL(url, base).href;
+	var _url = url;
+	if (window.location.origin !== base) {
+		// Serving assets over a CDN, generate absolute url
+		_url = new URL(url, base).href;
+	}
 	const existing_link = document.querySelector(`link[href='${_url}']`);
-
 	if (existing_link) return Promise.resolve();
 
 	const link = document.createElement("link");
