@@ -165,8 +165,8 @@
 	on:click={handle_outside_click}
 />
 
-{#if has_tabs}
-	<div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
+<div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
+	{#if has_tabs}
 		<div class="tab-wrapper">
 			<div class="tab-container visually-hidden" aria-hidden="true">
 				{#each tabs as t, i (t.id)}
@@ -225,14 +225,16 @@
 				</div>
 			</span>
 		</div>
-	</div>
-{/if}
-
-<slot />
+	{/if}
+	<slot />
+</div>
 
 <style>
 	.tabs {
 		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: var(--layout-gap);
 	}
 
 	.hide {
