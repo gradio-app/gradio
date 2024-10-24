@@ -426,7 +426,6 @@ def from_spaces(
     headers = {}
     if hf_token not in [False, None]:
         headers["Authorization"] = f"Bearer {hf_token}"
-
     iframe_url = (
         httpx.get(
             f"https://huggingface.co/api/spaces/{space_name}/host", headers=headers
@@ -440,15 +439,23 @@ def from_spaces(
             f"Could not find Space: {space_name}. If it is a private or gated Space, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `hf_token` parameter."
         )
 
-    r = httpx.get(iframe_url, headers=headers)
+    config_request = httpx.get(iframe_url + "/config", headers=headers)
+    if config_request.status_code == 404:
+        r = httpx.get(iframe_url, headers=headers)
 
-    result = re.search(
-        r"window.gradio_config = (.*?);[\s]*</script>", r.text
-    )  # some basic regex to extract the config
-    try:
-        config = json.loads(result.group(1))  # type: ignore
-    except AttributeError as ae:
-        raise ValueError(f"Could not load the Space: {space_name}") from ae
+        result = re.search(
+            r"window.gradio_config = (.*?);[\s]*</script>", r.text
+        )  # some basic regex to extract the config
+        try:
+            config = json.loads(result.group(1))  # type: ignore
+        except AttributeError as ae:
+            raise ValueError(f"Could not load the Space: {space_name}") from ae
+    elif config_request.status_code == 200:
+        config = config_request.json()
+    else:
+        raise ValueError(
+            f"Could not load the Space: {space_name} because the config could not be fetched."
+        )
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
         return from_spaces_interface(
             space_name, config, alias, hf_token, iframe_url, **kwargs
