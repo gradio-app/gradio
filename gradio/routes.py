@@ -576,7 +576,8 @@ class App(FastAPI):
                     app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
                 return app.all_app_info
             if not app.api_info:
-                api_info = cast(dict[str, Any], app.get_blocks().get_api_info())
+                api_info = utils.safe_deepcopy(app.get_blocks().get_api_info())
+                api_info = cast(dict[str, Any], api_info)
                 api_info = route_utils.update_example_values_to_use_public_url(api_info)
                 app.api_info = api_info
             return app.api_info
@@ -1553,7 +1554,7 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
-        ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 18+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+        ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
     Example:

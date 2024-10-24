@@ -5,7 +5,7 @@
 	import type { FileData, Client } from "@gradio/client";
 	import type { NormalisedMessage } from "../types";
 	import MessageBox from "./MessageBox.svelte";
-	import { MarkdownCode as Markdown } from "@gradio/markdown";
+	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import ButtonPanel from "./ButtonPanel.svelte";
@@ -184,7 +184,7 @@
 							{i18n}
 							{upload}
 							{_fetch}
-							on:load={scroll}
+							on:load={() => scroll()}
 						/>
 					{:else if message.type === "component" && message.content.component === "file"}
 						<a
@@ -226,18 +226,13 @@
 	/* avatar styles */
 	.avatar-container {
 		flex-shrink: 0;
-		width: 35px;
-		height: 35px;
 		border-radius: 50%;
 		border: 1px solid var(--border-color-primary);
 		overflow: hidden;
 	}
 
 	.avatar-container :global(img) {
-		width: 100%;
-		height: 100%;
 		object-fit: cover;
-		padding: 6px;
 	}
 
 	/* message wrapper */
@@ -264,7 +259,7 @@
 		border: none;
 	}
 
-	.message-row :global(img) {
+	.message-row :not(.avatar-container) :global(img) {
 		margin: var(--size-2);
 		max-height: 300px;
 	}

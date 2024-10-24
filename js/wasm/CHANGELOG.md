@@ -1,5 +1,17 @@
 # @gradio/wasm
 
+## 0.14.2
+
+### Fixes
+
+- [#9719](https://github.com/gradio-app/gradio/pull/9719) [`7ec57cb`](https://github.com/gradio-app/gradio/commit/7ec57cb018a97270cd00c6e1aa5558e378855c53) - Fix Lite dependencies.  Thanks @whitphx!
+
+## 0.14.1
+
+### Fixes
+
+- [#9528](https://github.com/gradio-app/gradio/pull/9528) [`9004b11`](https://github.com/gradio-app/gradio/commit/9004b110640bdb54995343a870bf080ee15da02d) - Fix Lite to work on FireFox.  Thanks @whitphx!
+
 ## 0.14.0
 
 ### Features

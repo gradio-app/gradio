@@ -65,5 +65,5 @@ test("Video drag-and-drop displays a warning when the file is of the wrong mime 
 		"file_test.ogg"
 	);
 	const toast = page.getByTestId("toast-body");
-	expect(toast).toContainText("warning");
+	expect(toast).toContainText("Warning");
 });
