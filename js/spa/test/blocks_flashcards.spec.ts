@@ -26,7 +26,7 @@ test("shows the results tab when results > 0", async ({ page }) => {
 	await page
 		.getByRole("button", { name: "front back" })
 		.getByRole("button")
-		.nth(3)
+		.nth(4)
 		.dblclick();
 	await page
 		.getByRole("button", { name: "front back" })
