@@ -68,7 +68,7 @@
 		<li>
 			<span class="wrap">
 				<Checkbox
-					disabled={!interactive}
+					disabled={!interactive || !valid}
 					value={(type === "file" || file_count === "single"
 						? selected_files
 						: selected_folders
