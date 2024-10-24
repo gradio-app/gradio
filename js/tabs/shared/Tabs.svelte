@@ -158,8 +158,8 @@
 	}
 </script>
 
-{#if has_tabs}
-	<div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
+<div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
+	{#if has_tabs}
 		<div class="tab-wrapper">
 			<div class="tab-container" bind:this={tab_nav_el} role="tablist">
 				{#each tabs as t, i (t.id)}
@@ -202,14 +202,16 @@
 				/>
 			</span>
 		</div>
-	</div>
-{/if}
-
-<slot />
+	{/if}
+	<slot />
+</div>
 
 <style>
 	.tabs {
 		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: var(--layout-gap);
 	}
 
 	.hide {
