@@ -293,6 +293,7 @@ class ChatInterface(Blocks):
                         cache_mode=self.cache_mode,
                     )
                 else:
+                    print("Hit Invisible gr.Examples!!!!!!!")
                     self.examples_handler = Examples(
                         examples=examples,
                         inputs=[self.textbox] + self.additional_inputs,
@@ -365,7 +366,7 @@ class ChatInterface(Blocks):
         if (
             isinstance(self.chatbot, Chatbot)
             and self.examples
-            and not self.additional_inputs
+            and not self._additional_inputs_in_examples()
         ):
             if self.cache_examples:
                 self.chatbot.example_select(
@@ -685,6 +686,7 @@ class ChatInterface(Blocks):
             yield history_with_input
 
     def example_clicked(self, x: SelectData, history):
+        print("Example Clicked", x)
         if self.cache_examples:
             return self.examples_handler.load_from_cache(x.index)[0].root
         if self.multimodal:
