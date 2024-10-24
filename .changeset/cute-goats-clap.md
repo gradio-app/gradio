@@ -1,6 +1,6 @@
 ---
-"@gradio/tabs": minor
-"gradio": minor
+"@gradio/tabs": patch
+"gradio": patch
 ---
 
-feat:Fix Tabs in Rows
+fix:Fix Tabs in Rows
