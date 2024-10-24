@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/statustracker",
-	"version": "0.9.2",
+	"version": "0.9.3",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "./index.ts",

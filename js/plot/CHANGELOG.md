@@ -1,5 +1,12 @@
 # @gradio/plot
 
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+
 ## 0.8.0
 
 ### Features

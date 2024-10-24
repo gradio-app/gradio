@@ -2,6 +2,13 @@
 
 ## 0.3.2
 
+### Dependency updates
+
+- @gradio/tabs@0.3.2
+- @gradio/column@0.2.0
+
+## 0.3.2
+
 ### Fixes
 
 - [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!

@@ -2,6 +2,28 @@
 
 ## 0.2.1
 
+### Dependency updates
+
+- @gradio/code@0.10.6
+- @gradio/paramviewer@0.5.5
+- @gradio/tabitem@0.3.2
+- @gradio/tabs@0.3.2
+- @gradio/video@0.11.6
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/gallery@0.13.6
+- @gradio/plot@0.8.1
+- @gradio/upload@0.13.5
+- @gradio/button@0.3.5
+- @gradio/column@0.2.0
+- @gradio/textbox@0.8.4
+- @gradio/checkbox@0.4.5
+- @gradio/file@0.10.6
+- @gradio/image@0.16.6
+
+## 0.2.1
+
 ### Fixes
 
 - [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!

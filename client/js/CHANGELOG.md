@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 1.7.1
+
+### Fixes
+
+- [#9814](https://github.com/gradio-app/gradio/pull/9814) [`6505d42`](https://github.com/gradio-app/gradio/commit/6505d4289a3e3d27d9133b1c8af41697fdc1476d) - support gradio apps on spaces served on subpaths.  Thanks @pngwn!
+
 ## 1.7.0
 
 ### Features
