@@ -731,8 +731,15 @@ class ChatInterface(Blocks):
     def _additional_inputs_in_examples(self):
         if self.examples is not None:
             for example in self.examples:
-                if isinstance(example, list) and len(example) > 1:
-                    return True
+                for idx, example_for_input in enumerate(example):
+                    if example_for_input is not None:
+                        try:
+                            if idx > 0:
+                                return True
+                            else:
+                                continue
+                        except IndexError:
+                            return False
         return False
 
     async def _examples_fn(
