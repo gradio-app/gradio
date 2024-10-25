@@ -256,20 +256,19 @@ docs = organize_docs(docs)
 gradio_docs = docs["docs"]["gradio"]
 
 SYSTEM_PROMPT = """
-Generate code for using the Gradio python library. 
+Generate code for using the Gradio python library.
 
 The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
 
-RULES: 
+RULES:
 Only respond with code, not text.
 Only respond with valid Python syntax.
-Never include backticks in your response such as ``` or ```python. 
-Never use any external library aside from: gradio, numpy, pandas, plotly, transformers_js and matplotlib.
+Never include backticks in your response such as ``` or ```python.
 Do not include any code that is not necessary for the app to run.
-Respond with a full Gradio app. 
+Respond with a full Gradio app.
 Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
 Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
-
+Make sure the code includes all necessary imports.
 
 
 Here's an example of a valid response:
