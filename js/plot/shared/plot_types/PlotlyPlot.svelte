@@ -4,6 +4,7 @@
 	import { afterUpdate, createEventDispatcher } from "svelte";
 
 	export let value;
+	export let show_label: boolean;
 
 	$: plot = value?.plot;
 
@@ -34,9 +35,14 @@
 		plotObj.responsive = true;
 		plotObj.layout.autosize = true;
 
-		plotObj.layout.title
-			? (plotObj.layout.margin = { autoexpand: true })
-			: (plotObj.layout.margin = { l: 0, r: 0, b: 0, t: 0 });
+		if (plotObj.layout.margin == undefined) {
+			plotObj.layout.margin = {};
+		}
+		if (plotObj.layout.title && show_label) {
+			// so title does not get cut off by label
+			plotObj.layout.margin.t = Math.max(100, plotObj.layout.margin.t || 0);
+		}
+		plotObj.layout.margin.autoexpand = true;
 
 		Plotly.react(plot_div, plotObj.data, plotObj.layout, plotObj.config);
 		Plotly.Plots.resize(plot_div);
