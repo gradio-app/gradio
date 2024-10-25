@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/multimodaltextbox",
-	"version": "0.7.3",
+	"version": "0.7.4",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

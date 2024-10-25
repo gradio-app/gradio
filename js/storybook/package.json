@@ -1,6 +1,6 @@
 {
 	"name": "@self/storybook",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

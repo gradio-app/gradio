@@ -1,5 +1,16 @@
 # @gradio/plot
 
+## 0.9.0
+
+### Features
+
+- [#9805](https://github.com/gradio-app/gradio/pull/9805) [`78e3b51`](https://github.com/gradio-app/gradio/commit/78e3b517af97dd11a3a0465bd34360b9bd8945c1) - Allow setting plotly margins.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+
 ## 0.8.0
 
 ### Features
