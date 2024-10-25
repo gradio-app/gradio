@@ -1,5 +1,15 @@
 # @self/component-test
 
+## 0.3.0
+
+### Features
+
+- [#9794](https://github.com/gradio-app/gradio/pull/9794) [`70bda3b`](https://github.com/gradio-app/gradio/commit/70bda3bb187a7219f4707344cf47edd0a021da19) - fix storybook build.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/video@0.11.6
+
 ## 0.2.5
 
 ### Dependency updates
