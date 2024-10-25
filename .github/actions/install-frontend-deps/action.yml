@@ -25,7 +25,7 @@ runs:
       with:
         path: |
           js/lite/dist/**
-        key: gradio-lib-front-end-lite-${{ hashFiles('js/**', 'client/js/**', 'gradio/**')}}
+        key: gradio-lib-front-end-lite-${{ hashFiles('js/**', 'client/js/**', 'gradio/**', 'requirements.txt')}}
     - name: Install pnpm
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # @v4
       with:
