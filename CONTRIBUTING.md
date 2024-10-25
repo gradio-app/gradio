@@ -340,5 +340,11 @@ bash scripts/build_frontend.sh
 ```
 ---
 
+```FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory``` when running `scripts/build_frontend.sh`.
+
+Run `scripts/build_frontend.sh` with the environment variable `NODE_OPTIONS=--max_old_space_size=2048` to increase the heap size.
+
+---
+
 _Could these guidelines be clearer? Feel free to open a PR to help us facilitate open-source contributions!_
 
