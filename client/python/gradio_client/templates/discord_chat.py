@@ -65,7 +65,6 @@ async def chat(ctx, prompt: str):
         return
     try:
         message = await ctx.send("Creating thread...")
-
         thread = await message.create_thread(name=prompt)
         loop = asyncio.get_running_loop()
         client = await loop.run_in_executor(None, get_client, None)
@@ -74,7 +73,7 @@ async def chat(ctx, prompt: str):
 
         try:
             job.result()
-            response = job.outputs()[-1]
+            response = str(job.outputs()[-1])  # Convert to string
             await thread.send(truncate_response(response))
             thread_to_client[thread.id] = client
             thread_to_user[thread.id] = ctx.author.id
@@ -84,7 +83,7 @@ async def chat(ctx, prompt: str):
             )
 
     except Exception as e:
-        print(f"{e}")
+        log_error(e)  # Log the error for debugging
 
 
 async def continue_chat(message):
@@ -104,7 +103,7 @@ async def continue_chat(message):
             )
 
     except Exception as e:
-        print(f"Error: {e}")
+        log_error(e)
 
 
 @bot.event
@@ -119,7 +118,7 @@ async def on_message(message):
                 await bot.process_commands(message)
 
     except Exception as e:
-        print(f"Error: {e}")
+        log_error(e)  # Log the error for debugging
 
 
 # running in thread
@@ -191,3 +190,8 @@ with gr.Blocks() as demo:
     )
 
 demo.launch()
+
+
+def log_error(e):
+    print(f"Error: {e}")  # Simple logging to console
+    # Consider adding more sophisticated logging here, e.g., to a file or monitoring system
