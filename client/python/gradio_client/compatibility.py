@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Callable
 
 import httpx
 import huggingface_hub
@@ -76,34 +76,36 @@ class EndpointV3Compatibility:
     def make_cancel(self, helper: Communicator | None = None):  # noqa: ARG002 (needed so that both endpoints classes have the same api)
         return None
 
-    def make_predict(self, helper: Communicator | None = None):
+    def make_predict(self, helper: Communicator | None = None) -> Callable:
         def _predict(*data) -> tuple:
-            data = json.dumps(
-                {
-                    "data": data,
-                    "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
-                }
-            )
-            hash_data = json.dumps(
-                {
-                    "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
-                }
-            )
-            if self.use_ws:
-                result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
-                if "error" in result:
-                    raise ValueError(result["error"])
-            else:
-                response = httpx.post(
-                    self.client.api_url,
-                    headers=self.client.headers,
-                    json=data,
-                    verify=self.client.ssl_verify,
-                    **self.client.httpx_kwargs,
-                )
-                result = json.loads(response.content.decode("utf-8"))
+            # Serialize data for the request
+            data = json.dumps({
+                "data": data,
+                "fn_index": self.fn_index,
+                "session_hash": self.client.session_hash,
+            })
+            hash_data = json.dumps({
+                "fn_index": self.fn_index,
+                "session_hash": self.client.session_hash,
+            })
+            try:
+                if self.use_ws:
+                    result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
+                else:
+                    response = httpx.post(
+                        self.client.api_url,
+                        headers=self.client.headers,
+                        json=data,
+                        verify=self.client.ssl_verify,
+                        **self.client.httpx_kwargs,
+                    )
+                    response.raise_for_status()  # Raise an error for bad responses
+                    result = response.json()  # Directly parse JSON response
+            except httpx.HTTPStatusError as e:
+                raise ValueError(f"HTTP error occurred: {e.response.text}") from e
+            except Exception as e:
+                raise ValueError(f"An error occurred: {str(e)}") from e
+            
             try:
                 output = result["data"]
             except KeyError as ke:
@@ -256,7 +258,7 @@ class EndpointV3Compatibility:
                 s.deserialize(
                     d,
                     save_dir=self.client.output_dir,
-                    hf_token=self.client.hf_token,
+                    hf_token=self.client.hf_token if isinstance(self.client.hf_token, str) else None,
                     root_url=self.root_url,
                 )
                 for s, d in zip(self.deserializers, data, strict=False)
