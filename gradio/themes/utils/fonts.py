@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import textwrap
 from collections.abc import Iterable
 
@@ -73,6 +74,8 @@ class GoogleFont(Font):
         self.weights = weights
 
     def stylesheet(self) -> dict:
+        if "GOOGLE_FONTS_OPT_OUT" in os.environ.keys():
+            return {}
         url = f'https://fonts.googleapis.com/css2?family={self.name.replace(" ", "+")}:wght@{";".join(str(weight) for weight in self.weights)}&display=swap'
         return {"url": url, "css": None}
 
