@@ -4,7 +4,10 @@ import shutil
 import pathlib
 from typing import Any
 
-from hatchling.builders.hooks.plugin.interface import BuildHookInterface
+try:
+    from hatchling.builders.hooks.plugin.interface import BuildHookInterface
+except ImportError:
+    raise ImportError("Please install the 'hatchling' package.")
 
 
 def copy_js_code(root: str | pathlib.Path):
@@ -27,17 +30,12 @@ def copy_js_code(root: str | pathlib.Path):
         ):
 
             def ignore(s, names):
-                ignored = []
-                for n in names:
-                    if (
-                        n.startswith("CHANGELOG")
-                        or n.startswith("README.md")
-                        or n.startswith("node_modules")
-                        or ".test." in n
-                        or ".stories." in n
-                        or ".spec." in n
-                    ):
-                        ignored.append(n)
+                ignored_patterns = {
+                    "CHANGELOG",
+                    "README.md",
+                    "node_modules",
+                }
+                ignored = [n for n in names if any(n.startswith(pattern) for pattern in ignored_patterns) or ".test." in n or ".stories." in n or ".spec." in n]
                 return ignored
 
             shutil.copytree(
@@ -56,7 +54,7 @@ def copy_js_code(root: str | pathlib.Path):
 
 class BuildHook(BuildHookInterface):
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
-        copy_js_code(self.root)
+        copy_js_code(pathlib.Path(self.root))
 
 
 if __name__ == "__main__":
