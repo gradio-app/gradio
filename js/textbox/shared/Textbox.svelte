@@ -198,102 +198,102 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
-    <BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
-    <div class="textbox-container">
-        <div class="input-container">
-            {#if lines === 1 && max_lines === 1}
-                <input
-                    data-testid="textbox"
-                    type={type}
-                    class="scroll-hide"
-                    dir={rtl ? "rtl" : "ltr"}
-                    bind:value
-                    bind:this={el}
-                    {placeholder}
-                    {disabled}
-                    {autofocus}
-                    maxlength={max_length}
-                    on:keypress={handle_keypress}
-                    on:blur
-                    on:select={handle_select}
-                    on:focus
-                    style={text_align ? "text-align: " + text_align : ""}
-                />
-            {:else}
-                <textarea
-                    data-testid="textbox"
-                    use:text_area_resize={value}
-                    class="scroll-hide"
-                    dir={rtl ? "rtl" : "ltr"}
-                    class:no-label={!show_label && (submit_btn || stop_btn)}
-                    bind:value
-                    bind:this={el}
-                    {placeholder}
-                    rows={lines}
-                    {disabled}
-                    {autofocus}
-                    maxlength={max_length}
-                    on:keypress={handle_keypress}
-                    on:blur
-                    on:select={handle_select}
-                    on:focus
-                    on:scroll={handle_scroll}
-                    style={text_align ? "text-align: " + text_align : ""}
-                />
-            {/if}
+	<div class="textbox-container">
+		<div class="input-container">
+			{#if lines === 1 && max_lines === 1}
+				<input
+					data-testid="textbox"
+					{type}
+					class="scroll-hide"
+					dir={rtl ? "rtl" : "ltr"}
+					bind:value
+					bind:this={el}
+					{placeholder}
+					{disabled}
+					{autofocus}
+					maxlength={max_length}
+					on:keypress={handle_keypress}
+					on:blur
+					on:select={handle_select}
+					on:focus
+					style={text_align ? "text-align: " + text_align : ""}
+				/>
+			{:else}
+				<textarea
+					data-testid="textbox"
+					use:text_area_resize={value}
+					class="scroll-hide"
+					dir={rtl ? "rtl" : "ltr"}
+					class:no-label={!show_label && (submit_btn || stop_btn)}
+					bind:value
+					bind:this={el}
+					{placeholder}
+					rows={lines}
+					{disabled}
+					{autofocus}
+					maxlength={max_length}
+					on:keypress={handle_keypress}
+					on:blur
+					on:select={handle_select}
+					on:focus
+					on:scroll={handle_scroll}
+					style={text_align ? "text-align: " + text_align : ""}
+				/>
+			{/if}
 
-            {#if submit_btn}
-                <button
-                    class="submit-button"
-                    class:padded-button={submit_btn !== true}
-                    on:click={handle_submit}
-                >
-                    {#if submit_btn === true}
-                        <Send />
-                    {:else}
-                        {submit_btn}
-                    {/if}
-                </button>
-            {/if}
+			{#if submit_btn}
+				<button
+					class="submit-button"
+					class:padded-button={submit_btn !== true}
+					on:click={handle_submit}
+				>
+					{#if submit_btn === true}
+						<Send />
+					{:else}
+						{submit_btn}
+					{/if}
+				</button>
+			{/if}
 
-            {#if stop_btn}
-                <button
-                    class="stop-button"
-                    class:padded-button={stop_btn !== true}
-                    on:click={handle_stop}
-                >
-                    {#if stop_btn === true}
-                        <Square fill="none" stroke_width={2.5} />
-                    {:else}
-                        {stop_btn}
-                    {/if}
-                </button>
-            {/if}
-        </div>
+			{#if stop_btn}
+				<button
+					class="stop-button"
+					class:padded-button={stop_btn !== true}
+					on:click={handle_stop}
+				>
+					{#if stop_btn === true}
+						<Square fill="none" stroke_width={2.5} />
+					{:else}
+						{stop_btn}
+					{/if}
+				</button>
+			{/if}
+		</div>
 
-        {#if show_copy_button}
-            {#if copied}
-                <button
-                    in:fade={{ duration: 300 }}
-                    class="copy-button"
-                    aria-label="Copied"
-                    aria-roledescription="Text copied"
-                >
-                    <Check />
-                </button>
-            {:else}
-                <button
-                    on:click={handle_copy}
-                    class="copy-button"
-                    aria-label="Copy"
-                    aria-roledescription="Copy text"
-                >
-                    <Copy />
-                </button>
-            {/if}
-        {/if}
-    </div>
+		{#if show_copy_button}
+			{#if copied}
+				<button
+					in:fade={{ duration: 300 }}
+					class="copy-button"
+					aria-label="Copied"
+					aria-roledescription="Text copied"
+				>
+					<Check />
+				</button>
+			{:else}
+				<button
+					on:click={handle_copy}
+					class="copy-button"
+					aria-label="Copy"
+					aria-roledescription="Copy text"
+				>
+					<Copy />
+				</button>
+			{/if}
+		{/if}
+	</div>
 </label>
 
 <style>
@@ -302,15 +302,15 @@
 		width: 100%;
 	}
 	.textbox-container {
-        position: relative;
-        width: 100%;
-    }
-    .input-container {
-        display: flex;
-        position: relative;
-        align-items: flex-end;
-        width: 100%;
-    }
+		position: relative;
+		width: 100%;
+	}
+	.input-container {
+		display: flex;
+		position: relative;
+		align-items: flex-end;
+		width: 100%;
+	}
 	input,
 	textarea {
 		flex-grow: 1;
