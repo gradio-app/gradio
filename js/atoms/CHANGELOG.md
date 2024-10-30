@@ -1,5 +1,15 @@
 # @gradio/atoms
 
+## 0.10.1
+
+### Fixes
+
+- [#9651](https://github.com/gradio-app/gradio/pull/9651) [`1163a37`](https://github.com/gradio-app/gradio/commit/1163a372a61cf84d110160c1711892b9b689d1d3) - Fixes component info font size.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.2.1
+
 ## 0.10.0
 
 ### Features

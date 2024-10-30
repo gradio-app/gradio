@@ -1,6 +1,6 @@
 {
 	"name": "@self/component-test",
-	"version": "0.2.5",
+	"version": "0.3.0",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
