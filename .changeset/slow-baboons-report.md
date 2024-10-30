@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Make sure Tool accordion closed if now the last assistant message
+fix:Make sure the Tool accordion is closed if it is not the last message
