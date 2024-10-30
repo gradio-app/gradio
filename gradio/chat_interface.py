@@ -733,13 +733,10 @@ class ChatInterface(Blocks):
             for example in self.examples:
                 for idx, example_for_input in enumerate(example):
                     if example_for_input is not None:
-                        try:
-                            if idx > 0:
-                                return True
-                            else:
-                                continue
-                        except IndexError:
-                            return False
+                        if idx > 0:
+                            return True
+                        else:
+                            continue
         return False
 
     async def _examples_fn(
