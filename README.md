@@ -171,11 +171,13 @@ Keep learning about Gradio sequentially using the Gradio Guides, which include e
 Or, if you already know the basics and are looking for something specific, you can search the more [technical API documentation](https://www.gradio.app/docs/).
 
 
-
-
 ## Questions?
 
 If you'd like to report a bug or have a feature request, please create an [issue on GitHub](https://github.com/gradio-app/gradio/issues/new/choose). For general questions about usage, we are available on [our Discord server](https://discord.com/invite/feTf9x3ZSB) and happy to help.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=gradio-app/gradio&type=Date)](https://star-history.com/#gradio-app)
 
 If you like Gradio, please leave us a ⭐ on GitHub!
 
