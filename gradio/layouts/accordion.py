@@ -20,7 +20,7 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
             gr.Markdown("lorem ipsum")
     """
 
-    EVENTS = []
+    EVENTS = ["expand", "collapse"]
 
     def __init__(
         self,
