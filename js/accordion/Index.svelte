@@ -26,8 +26,8 @@
 		{...loading_status}
 	/>
 
-	<Accordion 
-		{label} 
+	<Accordion
+		{label}
 		bind:open
 		on:expand={() => gradio.dispatch("expand")}
 		on:collapse={() => gradio.dispatch("collapse")}

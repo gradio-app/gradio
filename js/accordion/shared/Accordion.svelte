@@ -4,12 +4,12 @@
 		expand: void;
 		collapse: void;
 	}>();
-	
+
 	export let open = true;
 	export let label = "";
 </script>
 
-<button 
+<button
 	on:click={() => {
 		open = !open;
 		if (open) {
@@ -17,8 +17,8 @@
 		} else {
 			dispatch("collapse");
 		}
-	}} 
-	class="label-wrap" 
+	}}
+	class="label-wrap"
 	class:open
 >
 	<span>{label}</span>
