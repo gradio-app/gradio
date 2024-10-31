@@ -72,6 +72,7 @@ class LoginButton(Button):
         if get_blocks_context():
             self.activate()
         else:
+            print("LoginButton Initiated!!!")
             warnings.warn(
                 "LoginButton created outside of a Blocks context. May not work unless you call its `activate()` method manually."
             )

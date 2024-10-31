@@ -365,10 +365,12 @@ class App(FastAPI):
                     getattr(blocks, "node_process", None) is not None
                     and blocks.node_port is not None
                     and not path.startswith("/gradio_api")
-                    and path not in ["/config", "/login", "/logout", "/login_check", "/login/huggingface", "/favicon.ico"]
+                    and path not in ["/config", "/login", "/logout", "/login_check", "/login/huggingface", "/favicon.ico", "/static/fonts"]
                     and not path.startswith("/theme")
                     and not path.startswith("/svelte")
                     and not path.startswith("/static")
+                    and not path.startswith("/login")
+                    and not path.startswith("/logout")
                 ):
                     if App.app_port is None:
                         App.app_port = request.url.port or int(
