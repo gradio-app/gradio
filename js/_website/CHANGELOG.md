@@ -1,5 +1,19 @@
 # website
 
+## 0.41.0
+
+### Features
+
+- [#9811](https://github.com/gradio-app/gradio/pull/9811) [`7b6bd31`](https://github.com/gradio-app/gradio/commit/7b6bd3188199af1eac8f8d6d21b15a0bdc3d5619) - Fix the tab names in the playground.  Thanks @whitphx!
+- [#9647](https://github.com/gradio-app/gradio/pull/9647) [`7cce63e`](https://github.com/gradio-app/gradio/commit/7cce63e29f274b9fbd6c779914adeaab08ea60f7) - Ask LLM to generate the requirements.txt in the playground.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/tabs@0.3.3
+- @gradio/tabitem@0.3.3
+- @gradio/code@0.10.6
+- @gradio/paramviewer@0.5.5
+
 ## 0.40.3
 
 ### Fixes

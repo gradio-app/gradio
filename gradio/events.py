@@ -923,3 +923,11 @@ class Events:
         callback=lambda block: setattr(block, "_retryable", True),
         config_data=lambda: {"_retryable": False},
     )
+    expand = EventListener(
+        "expand",
+        doc="This listener is triggered when the {{ component }} is expanded.",
+    )
+    collapse = EventListener(
+        "collapse",
+        doc="This listener is triggered when the {{ component }} is collapsed.",
+    )
