@@ -47,7 +47,7 @@
 	export let x_axis_labels_visible = true;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
-	export let tooltip: "axis" | "none" | "all" = "axis";
+	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
 	function reformat_sort(
 		_sort: typeof sort
 	):
@@ -115,7 +115,7 @@
 	function reformat_data(data: PlotData): {
 		[x: string]: string | number;
 	}[] {
-		if (tooltip == "all") {
+		if (tooltip == "all" || Array.isArray(tooltip)) {
 			return data.data.map((row) => {
 				const obj: { [x: string]: string | number } = {};
 				data.columns.forEach((col, i) => {
@@ -451,7 +451,11 @@
 												? []
 												: value?.columns
 														.filter(
-															(col) => col !== x && col !== y && col !== color
+															(col) =>
+																col !== x &&
+																col !== y &&
+																col !== color &&
+																(tooltip === "all" || tooltip.includes(col))
 														)
 														.map((column) => ({
 															field: column,
