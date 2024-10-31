@@ -198,6 +198,23 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
+	{#if show_label && show_copy_button}
+		{#if copied}
+			<button
+				in:fade={{ duration: 300 }}
+				class="copy-button"
+				aria-label="Copied"
+				aria-roledescription="Text copied"><Check /></button
+			>
+		{:else}
+			<button
+				on:click={handle_copy}
+				class="copy-button"
+				aria-label="Copy"
+				aria-roledescription="Copy text"><Copy /></button
+			>
+		{/if}
+	{/if}
 	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
 	<div class="input-container">
@@ -256,23 +273,6 @@
 				/>
 			{/if}
 		{:else}
-			{#if show_label && show_copy_button}
-				{#if copied}
-					<button
-						in:fade={{ duration: 300 }}
-						class="copy-button"
-						aria-label="Copied"
-						aria-roledescription="Text copied"><Check /></button
-					>
-				{:else}
-					<button
-						on:click={handle_copy}
-						class="copy-button"
-						aria-label="Copy"
-						aria-roledescription="Copy text"><Copy /></button
-					>
-				{/if}
-			{/if}
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={value}
@@ -392,7 +392,7 @@
 		right: var(--block-label-margin);
 		align-items: center;
 		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--border-color-primary);
 		border-top: none;
 		border-right: none;
 		border-radius: var(--block-label-right-radius);

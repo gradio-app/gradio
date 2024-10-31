@@ -1,5 +1,11 @@
 # @gradio/sanitize
 
+## 0.1.3
+
+### Features
+
+- [#9792](https://github.com/gradio-app/gradio/pull/9792) [`d2b56a4`](https://github.com/gradio-app/gradio/commit/d2b56a4c0457c1d5f30a9bbef2572049e47de312) - more fix.  Thanks @pngwn!
+
 ## 0.1.2
 
 ### Features
