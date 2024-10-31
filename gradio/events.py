@@ -786,11 +786,11 @@ def on(
         show_api=show_api,
         trigger_mode=trigger_mode,
         connection="stream"
-        if any(t.connection == "stream" for t in triggers_typed)
+        if any(t.connection == "stream" for t in (triggers_typed or []))
         else "sse",
         event_specific_args=[
             a
-            for t in triggers_typed
+            for t in (triggers_typed or [])
             for a in cast(list[str], t.event_specific_args or [])
         ],
         time_limit=time_limit,
