@@ -353,6 +353,7 @@ class App(FastAPI):
             async def conditional_routing_middleware(
                 request: fastapi.Request, call_next
             ):
+                print("SSR MODE::: ", request.url.path)
                 custom_mount_path = blocks.custom_mount_path
                 path = (
                     request.url.path.replace(blocks.custom_mount_path or "", "")
@@ -364,7 +365,7 @@ class App(FastAPI):
                     getattr(blocks, "node_process", None) is not None
                     and blocks.node_port is not None
                     and not path.startswith("/gradio_api")
-                    and path not in ["/config", "/login", "/logout", "/login_check", "/favicon.ico"]
+                    and path not in ["/config", "/login", "/logout", "/login_check", "/login/huggingface", "/favicon.ico"]
                     and not path.startswith("/theme")
                     and not path.startswith("/svelte")
                     and not path.startswith("/static")
