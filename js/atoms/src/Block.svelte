@@ -35,8 +35,6 @@
 			return dimension_value;
 		}
 	};
-
-	$: console.log(scale);
 </script>
 
 <svelte:element
