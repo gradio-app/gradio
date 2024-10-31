@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Testing Login SSR
+fix:Fixes LoginButton for SSR
