@@ -35,6 +35,8 @@
 			return dimension_value;
 		}
 	};
+
+	$: console.log(scale);
 </script>
 
 <svelte:element
@@ -59,6 +61,7 @@
 	style:flex-grow={scale}
 	style:min-width={`calc(min(${min_width}px, 100%))`}
 	style:border-width="var(--block-border-width)"
+	class:auto-margin={scale === null}
 >
 	<slot />
 </svelte:element>
@@ -74,6 +77,9 @@
 		background: var(--block-background-fill);
 		width: 100%;
 		line-height: var(--line-sm);
+	}
+
+	.auto-margin {
 		margin-left: auto;
 		margin-right: auto;
 	}
