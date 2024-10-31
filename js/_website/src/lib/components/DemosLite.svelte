@@ -149,6 +149,29 @@
 				}
 			}
 		}
+
+		const system_prompt_requirements_txt = `User gives Python code.
+You return the required package list in the format of \`requirements.txt\` for pip.
+You exclude \`gradio\` from the package list because it's already installed in the user's environment.
+You only return the content of \`requirements.txt\`, without any other texts or messages.`;
+		const query_requirements_txt = demos[queried_index].code;
+		let generated_requirements_txt = "";
+		for await (const chunk of streamFromWorker(
+			query_requirements_txt,
+			system_prompt_requirements_txt,
+			abortController.signal
+		)) {
+			if (chunk.choices && chunk.choices.length > 0) {
+				const content = chunk.choices[0].delta.content;
+				if (content) {
+					generated_requirements_txt += content;
+				}
+			}
+		}
+		demos[queried_index].requirements = generated_requirements_txt
+			.split("\n")
+			.filter((r) => r.trim() !== "");
+
 		generated = true;
 		if (selected_demo.name === demo_name) {
 			highlight_changes(code_to_compare, demos[queried_index].code);
@@ -167,7 +190,10 @@
 
 	function handle_user_query_key_down(e: KeyboardEvent): void {
 		if (e.key === "Enter") {
-			generate_code(user_query, selected_demo.name);
+			run_as_update = false;
+			suspend_and_resume_auto_run(() =>
+				generate_code(user_query, selected_demo.name)
+			);
 		}
 	}
 
@@ -289,35 +315,33 @@
 		}
 
 		controller.install(cleanupRequirements(current_demo.requirements));
-		controller.install([
-			"numpy",
-			"pandas",
-			"matplotlib",
-			"plotly",
-			"transformers_js_py",
-			"requests",
-			"pillow"
-		]);
 	}
 	$: if (mounted) {
 		// When the selected demo changes, we need to call controller.install() immediately without debouncing.
 		on_demo_selected(current_selection);
 	}
-	$: if (mounted) {
+
+	let run_as_update = true;
+	$: if (mounted && run_as_update) {
 		debounced_run_code && debounced_run_code(code);
 	}
-	$: if (mounted) {
+	$: if (mounted && run_as_update) {
 		debounced_install &&
-			debounced_install(cleanupRequirements(requirementsStr.split("\n"))) &&
-			debounced_install([
-				"numpy",
-				"pandas",
-				"matplotlib",
-				"plotly",
-				"transformers_js_py",
-				"requests",
-				"pillow"
-			]);
+			debounced_install(cleanupRequirements(requirementsStr.split("\n")));
+	}
+	async function suspend_and_resume_auto_run(
+		inner_fn: () => unknown | Promise<unknown>
+	) {
+		run_as_update = false;
+		try {
+			await inner_fn();
+			await controller.install(
+				cleanupRequirements(requirementsStr.split("\n"))
+			);
+			await controller.run_code(code);
+		} finally {
+			run_as_update = true;
+		}
 	}
 
 	let position = 0.5;
@@ -449,14 +473,14 @@
 
 	const TABS: Tab[] = [
 		{
-			name: "Code",
+			label: "Code",
 			id: "code",
 			visible: true,
 			interactive: true,
 			elem_id: "code"
 		},
 		{
-			name: "Packages",
+			label: "Packages",
 			id: "packages",
 			visible: true,
 			interactive: true,
@@ -546,7 +570,7 @@
 						>
 							<TabItem
 								id={TABS[0].id}
-								name={TABS[0].name}
+								label={TABS[0].label}
 								visible={TABS[0].visible}
 								interactive={TABS[0].interactive}
 								elem_classes={["editor-tabitem"]}
@@ -564,7 +588,7 @@
 							</TabItem>
 							<TabItem
 								id={TABS[1].id}
-								name={TABS[1].name}
+								label={TABS[1].label}
 								visible={TABS[1].visible}
 								interactive={TABS[1].interactive}
 								elem_classes={["editor-tabitem"]}
@@ -653,7 +677,9 @@
 						{#if generated}
 							<button
 								on:click={() => {
-									generate_code(user_query, selected_demo.name);
+									suspend_and_resume_auto_run(() =>
+										generate_code(user_query, selected_demo.name)
+									);
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
 							>
