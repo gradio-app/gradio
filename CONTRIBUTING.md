@@ -20,6 +20,8 @@ Generally speaking, contributing to Gradio involves four steps:
 3. Understand the structure of the codebase & make the changes to the codebase locally
 4. Open a pull request (PR) to upstream your changes to the Gradio repository
 
+**Note:** We welcome meaningful contributions that solve real issues and improve the codebase. Please avoid opening PRs with content generated primarily by AI language models. All contributions should demonstrate clear understanding of the problem being solved and be consistent with the relevant sections of the Gradio codebase.
+
 You can watch this short video walkthrough of how to contribute, or keep reading below:
 
 <a href="https://www.youtube.com/watch?v=YTjwTe5Yurs&ab_channel=HuggingFace" target="_blank">
