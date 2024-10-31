@@ -123,21 +123,20 @@
 				});
 				return obj;
 			});
-		} else {
-			let x_index = data.columns.indexOf(x);
-			let y_index = data.columns.indexOf(y);
-			let color_index = color ? data.columns.indexOf(color) : null;
-			return data.data.map((row) => {
-				const obj = {
-					[x]: row[x_index],
-					[y]: row[y_index]
-				};
-				if (color && color_index !== null) {
-					obj[color] = row[color_index];
-				}
-				return obj;
-			});
 		}
+		let x_index = data.columns.indexOf(x);
+		let y_index = data.columns.indexOf(y);
+		let color_index = color ? data.columns.indexOf(color) : null;
+		return data.data.map((row) => {
+			const obj = {
+				[x]: row[x_index],
+				[y]: row[y_index]
+			};
+			if (color && color_index !== null) {
+				obj[color] = row[color_index];
+			}
+			return obj;
+		});
 	}
 	$: _data = value ? reformat_data(value) : [];
 
