@@ -150,7 +150,7 @@
 						{#if message.metadata.title}
 							<MessageBox
 								title={message.metadata.title}
-								expanded={is_last_bot_message(messages, value)}
+								expanded={is_last_bot_message([message], value)}
 							>
 								<Markdown
 									message={message.content}
