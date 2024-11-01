@@ -383,7 +383,7 @@ class DownloadData(EventData):
             return f"Downloaded file: {download_data.file.path}"
         with gr.Blocks() as demo:
             files = gr.File()
-            label = gr.Label()
+            textbox = gr.Textbox()
             files.download(on_download, None, label)
         demo.launch()
     """
