@@ -595,8 +595,11 @@ class App(FastAPI):
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
-            static_file = routes_safe_join(STATIC_PATH_LIB, UserProvidedPath(path))
-            return FileResponse(static_file)
+            if path.startswith(("fonts/ui-sans-serif/", "fonts/system-ui/")):
+                return Response(status_code=200)
+            else:
+                static_file = routes_safe_join(STATIC_PATH_LIB, UserProvidedPath(path))
+                return FileResponse(static_file)
 
         @router.get("/custom_component/{id}/{environment}/{type}/{file_name}")
         def custom_component_path(
