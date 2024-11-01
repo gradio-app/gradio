@@ -9,7 +9,11 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"typeRoots": ["node_modules/@types", "./app.d.ts"]
+		"typeRoots": ["node_modules/@types", "./app.d.ts"],
+		"moduleResolution": "bundler",
+		"module": "esnext",
+		"customConditions": ["gradio"],
+		"target": "es2022"
 	}
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
 	//

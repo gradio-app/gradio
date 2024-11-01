@@ -1,5 +1,51 @@
 # @self/app
 
+## 1.43.0
+
+### Features
+
+- [#9794](https://github.com/gradio-app/gradio/pull/9794) [`70bda3b`](https://github.com/gradio-app/gradio/commit/70bda3bb187a7219f4707344cf47edd0a021da19) - fix storybook build.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@1.7.1
+- @gradio/core@0.2.1
+
+## 1.42.1
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @self/build@0.2.0
+- @gradio/core@0.2.1
+
+## 1.42.0
+
+### Features
+
+- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error.  Thanks @ABucket!
+
+### Dependency updates
+
+- @gradio/client@1.7.0
+- @gradio/wasm@0.14.2
+- @self/build@0.1.1
+- @gradio/core@0.2.0
+
+## 1.41.2
+
+### Fixes
+
+- [#9669](https://github.com/gradio-app/gradio/pull/9669) [`70998ea`](https://github.com/gradio-app/gradio/commit/70998ea75276e677595447ac36b67e1152e589a2) - fix height in iframe.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/wasm@0.14.1
+- @gradio/core@0.1.1
+
 ## 1.41.1
 
 ### Features

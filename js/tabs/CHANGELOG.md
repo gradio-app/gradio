@@ -1,5 +1,24 @@
 # @gradio/tabs
 
+## 0.3.3
+
+### Fixes
+
+- [#9836](https://github.com/gradio-app/gradio/pull/9836) [`a4e70f3`](https://github.com/gradio-app/gradio/commit/a4e70f3c428d7a43e31b63d296e9c4c73b09eda8) - Fix Tabs in Rows.  Thanks @aliabid94!
+
+## 0.3.2
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+- [#9738](https://github.com/gradio-app/gradio/pull/9738) [`2ade59b`](https://github.com/gradio-app/gradio/commit/2ade59b95d4c3610a1a461cc95f020fbf9627305) - Export `Tabs` type from `@gradio/tabs` and fix the Playground to be compatible with the new Tabs API.  Thanks @whitphx!
+
+## 0.3.1
+
+### Fixes
+
+- [#9728](https://github.com/gradio-app/gradio/pull/9728) [`d0b2ce8`](https://github.com/gradio-app/gradio/commit/d0b2ce8c0f150f0b636ad7d2226f7c8c61401996) - Ensure tabs render in SSR mode and reduce time it takes for them to render.  Thanks @pngwn!
+
 ## 0.3.0
 
 ### Features

@@ -1,5 +1,44 @@
 # @gradio/textbox
 
+## 0.8.4
+
+### Fixes
+
+- [#9831](https://github.com/gradio-app/gradio/pull/9831) [`767643f`](https://github.com/gradio-app/gradio/commit/767643fdeccb1ae1481e1d79034317082144b371) - Fix a bug in example textbox rendering when it is initially invisible.  Thanks @cornzz!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+
+## 0.8.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+
+## 0.8.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/atoms@0.9.2
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+
+## 0.8.0
+
+### Features
+
+- [#9677](https://github.com/gradio-app/gradio/pull/9677) [`3a19e69`](https://github.com/gradio-app/gradio/commit/3a19e690ef8de12c4494429d52988b863065eed3) - Revert text disable.  Thanks @whitphx!
+
 ## 0.7.1
 
 ### Features

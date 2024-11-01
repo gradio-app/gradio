@@ -1,5 +1,38 @@
 # @gradio/simpletextbox
 
+## 0.3.5
+
+### Fixes
+
+- [#9831](https://github.com/gradio-app/gradio/pull/9831) [`767643f`](https://github.com/gradio-app/gradio/commit/767643fdeccb1ae1481e1d79034317082144b371) - Fix a bug in example textbox rendering when it is initially invisible.  Thanks @cornzz!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+
+## 0.3.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+
+## 0.3.3
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+- @gradio/atoms@0.9.2
+
+## 0.3.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+
 ## 0.3.1
 
 ### Dependency updates

@@ -1,5 +1,70 @@
 # @gradio/dataframe
 
+## 0.12.1
+
+### Features
+
+- [#9649](https://github.com/gradio-app/gradio/pull/9649) [`b1b81c9`](https://github.com/gradio-app/gradio/commit/b1b81c9e1c10c2c14a5cb0661d2503259ece1a1b) - Hide option to add row/col when count is fixed in dataframe.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.2.1
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/upload@0.13.5
+- @gradio/button@0.3.5
+
+## 0.12.0
+
+### Features
+
+- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue.  Thanks @aliabd!
+
+### Fixes
+
+- [#9654](https://github.com/gradio-app/gradio/pull/9654) [`cd7dab7`](https://github.com/gradio-app/gradio/commit/cd7dab7ba5c81983f133dfa9e90ac6f92ac4fa1f) - Improve select event behaviour in gr.Dataframe.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/button@0.3.4
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/markdown-code@0.2.0
+- @gradio/upload@0.13.4
+
+## 0.11.4
+
+### Dependency updates
+
+- @gradio/markdown@0.10.3
+- @gradio/statustracker@0.9.1
+- @gradio/upload@0.13.3
+- @gradio/button@0.3.3
+- @gradio/atoms@0.9.2
+
+## 0.11.3
+
+### Fixes
+
+- [#9709](https://github.com/gradio-app/gradio/pull/9709) [`31418ef`](https://github.com/gradio-app/gradio/commit/31418ef388a2dc524069ee230c2735a4beaf55f1) - fix table type check.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/markdown@0.10.2
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/button@0.3.2
+
+## 0.11.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+- @gradio/button@0.3.1
+
 ## 0.11.1
 
 ### Features

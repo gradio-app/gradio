@@ -1,5 +1,46 @@
 # @gradio/atoms
 
+## 0.10.1
+
+### Fixes
+
+- [#9651](https://github.com/gradio-app/gradio/pull/9651) [`1163a37`](https://github.com/gradio-app/gradio/commit/1163a372a61cf84d110160c1711892b9b689d1d3) - Fixes component info font size.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/markdown-code@0.2.1
+
+## 0.10.0
+
+### Features
+
+- [#9756](https://github.com/gradio-app/gradio/pull/9756) [`92f337c`](https://github.com/gradio-app/gradio/commit/92f337cc85d545060ea343f1cee85c22b85f6444) - Fix website build issue.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/icons@0.8.1
+- @gradio/markdown-code@0.2.0
+
+## 0.9.2
+
+### Fixes
+
+- [#9730](https://github.com/gradio-app/gradio/pull/9730) [`39a0e8c`](https://github.com/gradio-app/gradio/commit/39a0e8c2fb038eb0afc213fa6290c9b2acee7941) - Fix chatbot component streaming bug and visible bug.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/markdown@0.10.3
+
+## 0.9.1
+
+### Fixes
+
+- [#9711](https://github.com/gradio-app/gradio/pull/9711) [`7134fc2`](https://github.com/gradio-app/gradio/commit/7134fc272e9e60be4b80dfd294ff8926d5995188) - Custom component fixes.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/markdown@0.10.2
+
 ## 0.9.0
 
 ### Features

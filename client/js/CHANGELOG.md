@@ -1,5 +1,17 @@
 # @gradio/client
 
+## 1.7.1
+
+### Fixes
+
+- [#9814](https://github.com/gradio-app/gradio/pull/9814) [`6505d42`](https://github.com/gradio-app/gradio/commit/6505d4289a3e3d27d9133b1c8af41697fdc1476d) - support gradio apps on spaces served on subpaths.  Thanks @pngwn!
+
+## 1.7.0
+
+### Features
+
+- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error.  Thanks @ABucket!
+
 ## 1.6.0
 
 ### Features

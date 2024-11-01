@@ -364,10 +364,12 @@ class App(FastAPI):
                     getattr(blocks, "node_process", None) is not None
                     and blocks.node_port is not None
                     and not path.startswith("/gradio_api")
-                    and path not in ["/config", "/login", "/favicon.ico"]
+                    and path not in ["/config", "/favicon.ico"]
                     and not path.startswith("/theme")
                     and not path.startswith("/svelte")
                     and not path.startswith("/static")
+                    and not path.startswith("/login")
+                    and not path.startswith("/logout")
                 ):
                     if App.app_port is None:
                         App.app_port = request.url.port or int(
@@ -461,9 +463,7 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (
-                callable(app.auth) and app.auth.__call__(username, password)
-            ):  # type: ignore
+            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
@@ -578,7 +578,8 @@ class App(FastAPI):
                     app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
                 return app.all_app_info
             if not app.api_info:
-                api_info = cast(dict[str, Any], app.get_blocks().get_api_info())
+                api_info = utils.safe_deepcopy(app.get_blocks().get_api_info())
+                api_info = cast(dict[str, Any], api_info)
                 api_info = route_utils.update_example_values_to_use_public_url(api_info)
                 app.api_info = api_info
             return app.api_info
