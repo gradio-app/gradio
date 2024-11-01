@@ -41,6 +41,7 @@
 		select: SelectData;
 		clear_status: LoadingStatus;
 		delete: FileData;
+		download: FileData;
 	}>;
 	export let file_count: "single" | "multiple" | "directory";
 	export let file_types: string[] = ["file"];
@@ -82,6 +83,7 @@
 	{#if !interactive}
 		<File
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
+			on:download={({ detail }) => gradio.dispatch("download", detail)}
 			selectable={_selectable}
 			{value}
 			{label}
