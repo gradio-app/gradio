@@ -1,7 +1,7 @@
 import gradio as gr
 from gradio import ChatMessage
 from transformers import load_tool, ReactCodeAgent, HfEngine  # type: ignore
-from utils import stream_from_transformers_agent
+from transformers.agents import stream_to_gradio
 
 # Import tool from Hub
 image_generation_tool = load_tool("m-ric/text-to-image")
@@ -13,7 +13,7 @@ agent = ReactCodeAgent(tools=[image_generation_tool], llm_engine=llm_engine)
 def interact_with_agent(prompt, messages):
     messages.append(ChatMessage(role="user", content=prompt))
     yield messages
-    for msg in stream_from_transformers_agent(agent, prompt):
+    for msg in stream_to_gradio(agent, prompt):
         messages.append(msg)
         yield messages
     yield messages

@@ -36,7 +36,7 @@ We'll start by importing the necessary classes from transformers and gradio.
 import gradio as gr
 from gradio import ChatMessage
 from transformers import load_tool, ReactCodeAgent, HfEngine
-from utils import stream_from_transformers_agent
+from transformers.agents import stream_to_gradio
 
 # Import tool from Hub
 image_generation_tool = load_tool("m-ric/text-to-image")
@@ -47,13 +47,13 @@ llm_engine = HfEngine("meta-llama/Meta-Llama-3-70B-Instruct")
 agent = ReactCodeAgent(tools=[image_generation_tool], llm_engine=llm_engine)
 ```
 
-Then we'll build the UI. The bulk of the logic is handled by `stream_from_transformers_agent`. We won't cover it in this guide because it will soon be merged to transformers but you can see its source code [here](https://huggingface.co/spaces/gradio/agent_chatbot/blob/main/utils.py).
+Then we'll build the UI:
 
 ```python
 def interact_with_agent(prompt, messages):
     messages.append(ChatMessage(role="user", content=prompt))
     yield messages
-    for msg in stream_from_transformers_agent(agent, prompt):
+    for msg in stream_to_gradio(agent, prompt):
         messages.append(msg)
         yield messages
     yield messages
