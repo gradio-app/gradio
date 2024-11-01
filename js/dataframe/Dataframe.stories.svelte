@@ -181,12 +181,16 @@
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 
-		const cell = canvas.getByText("200");
-		userEvent.click(cell);
-		const open_dialog_btn = canvas.getAllByText("⋮");
-		await userEvent.click(open_dialog_btn[0]);
+		const cell_400 = canvas.getAllByRole("cell")[5];
+		userEvent.click(cell_400);
+
+		const open_dialog_btn = within(cell_400).getByText("⋮");
+		await userEvent.click(open_dialog_btn);
 
 		const add_row_btn = canvas.getByText("Add row above");
 		await userEvent.click(add_row_btn);
+
+		const new_cell = canvas.getAllByRole("cell")[9];
+		userEvent.click(new_cell);
 	}}
 />
