@@ -1,5 +1,11 @@
 # @gradio/markdown-code
 
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/sanitize@0.1.3
+
 ## 0.2.0
 
 ### Features
