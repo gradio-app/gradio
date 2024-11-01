@@ -384,7 +384,7 @@ class DownloadData(EventData):
         with gr.Blocks() as demo:
             files = gr.File()
             textbox = gr.Textbox()
-            files.download(on_download, None, label)
+            files.download(on_download, None, textbox)
         demo.launch()
     """
 
