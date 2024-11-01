@@ -371,6 +371,31 @@ class UndoData(EventData):
         """
 
 
+@document()
+class DownloadData(EventData):
+    """
+    The gr.DownloadData class is a subclass of gr.EventData that specifically carries information about the `.download()` event. When gr.DownloadData
+    is added as a type hint to an argument of an event listener method, a gr.DownloadData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def on_download(download_data: gr.DownloadData):
+            return f"Downloaded file: {download_data.file.path}"
+        with gr.Blocks() as demo:
+            files = gr.File()
+            textbox = gr.Textbox()
+            files.download(on_download, None, textbox)
+        demo.launch()
+    """
+
+    def __init__(self, target: Block | None, data: FileDataDict):
+        super().__init__(target, data)
+        self.file: FileData = FileData(**data)
+        """
+        The file that was downloaded, as a FileData object.
+        """
+
+
 @dataclasses.dataclass
 class EventListenerMethod:
     block: Block | None
@@ -930,4 +955,8 @@ class Events:
     collapse = EventListener(
         "collapse",
         doc="This listener is triggered when the {{ component }} is collapsed.",
+    )
+    download = EventListener(
+        "download",
+        doc="This listener is triggered when the user downloads a file from the {{ component }}. Uses event data gradio.DownloadData to carry information about the downloaded file as a FileData object. See EventData documentation on how to use this event data",
     )
