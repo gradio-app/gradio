@@ -68,7 +68,7 @@
 		<li>
 			<span class="wrap">
 				{#if type === "folder" && file_count === "single"}
-					<span class="no-checkbox"></span>
+					<span class="no-checkbox" aria-hidden="true"></span>
 				{:else}
 					<Checkbox
 						disabled={!interactive}
