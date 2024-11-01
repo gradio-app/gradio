@@ -136,6 +136,7 @@ class SourceFileReloader(BaseReloader):
         watch_dirs: list[str],
         watch_module_name: str,
         demo_file: str,
+        watch_module: ModuleType,
         stop_event: threading.Event,
         demo_name: str = "demo",
     ) -> None:
@@ -146,6 +147,7 @@ class SourceFileReloader(BaseReloader):
         self.stop_event = stop_event
         self.demo_name = demo_name
         self.demo_file = Path(demo_file)
+        self.watch_module = watch_module
 
     @property
     def running_app(self) -> App:
@@ -259,7 +261,11 @@ def watchfn(reloader: SourceFileReloader):
     mtimes = {}
     # Need to import the module in this thread so that the
     # module is available in the namespace of this thread
-    module = importlib.import_module(reloader.watch_module_name)
+    module = reloader.watch_module
+    no_reload_source_code = _remove_no_reload_codeblocks(str(reloader.demo_file))
+    exec(no_reload_source_code, module.__dict__)
+    sys.modules[reloader.watch_module_name] = module
+
     while reloader.should_watch():
         changed = get_changes()
         if changed:
