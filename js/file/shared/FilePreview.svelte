@@ -9,7 +9,7 @@
 		select: SelectData;
 		change: FileData[] | FileData;
 		delete: FileData;
-        download: FileData;
+		download: FileData;
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable = false;
@@ -57,10 +57,10 @@
 		dispatch("change", normalized_files);
 	}
 
-    function handle_download(file: FileData): void {
-        dispatch("download", file);
-    }
-	
+	function handle_download(file: FileData): void {
+		dispatch("download", file);
+	}
+
 	const is_browser = typeof window !== "undefined";
 </script>
 
