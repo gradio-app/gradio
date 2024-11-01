@@ -95,7 +95,7 @@ class NativePlot(Component):
             x_axis_labels_visible: Whether the x-axis labels should be visible. Can be hidden when many x-axis labels are present.
             caption: The (optional) caption to display below the plot.
             sort: The sorting order of the x values, if x column is type string/category. Can be "x", "y", "-x", "-y", or list of strings that represent the order of the categories.
-            tooltip: The tooltip to display when hovering on a point. "axis" shows the values for the axis columns, "all" shows all column values, and "none" shows no tooltips. Can also provide a list of strings representing columns to show in the tooltip.
+            tooltip: The tooltip to display when hovering on a point. "axis" shows the values for the axis columns, "all" shows all column values, and "none" shows no tooltips. Can also provide a list of strings representing columns to show in the tooltip, which will be displayed along with axis values.
             height: The height of the plot in pixels.
             label: The (optional) label to display on the top left corner of the plot.
             show_label: Whether the label should be displayed.
