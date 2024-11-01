@@ -13,7 +13,10 @@
 	export let visible = true;
 	export let open = true;
 	export let loading_status: LoadingStatus;
-	export let gradio: Gradio;
+	export let gradio: Gradio<{
+		expand: never;
+		collapse: never;
+	}>;
 </script>
 
 <Block {elem_id} {elem_classes} {visible}>
@@ -23,7 +26,12 @@
 		{...loading_status}
 	/>
 
-	<Accordion {label} bind:open>
+	<Accordion
+		{label}
+		bind:open
+		on:expand={() => gradio.dispatch("expand")}
+		on:collapse={() => gradio.dispatch("collapse")}
+	>
 		<Column>
 			<slot />
 		</Column>
