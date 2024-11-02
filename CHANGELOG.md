@@ -1,5 +1,30 @@
 # gradio
 
+## 5.4.0
+
+### Features
+
+- [#9834](https://github.com/gradio-app/gradio/pull/9834) [`febbed6`](https://github.com/gradio-app/gradio/commit/febbed6db1c1f33cab52bf0d0bbe31fc4ba65305) - Pin multipart version to fix issues with yanking.  Thanks @aliabd!
+- [#9792](https://github.com/gradio-app/gradio/pull/9792) [`d2b56a4`](https://github.com/gradio-app/gradio/commit/d2b56a4c0457c1d5f30a9bbef2572049e47de312) - more fix.  Thanks @pngwn!
+- [#9795](https://github.com/gradio-app/gradio/pull/9795) [`ff5be45`](https://github.com/gradio-app/gradio/commit/ff5be457dc2ed901f3de1493bdbcb80ec341207a) - Use `safehttpx.get()` instead of `async_get_with_secure_transport()`.  Thanks @abidlabs!
+- [#9807](https://github.com/gradio-app/gradio/pull/9807) [`5e89b6d`](https://github.com/gradio-app/gradio/commit/5e89b6d23a872e62e795f5bac969837b0d05de50) - Allow accepting user-provided-tokens in `gr.load`.  Thanks @abidlabs!
+- [#9819](https://github.com/gradio-app/gradio/pull/9819) [`160b27c`](https://github.com/gradio-app/gradio/commit/160b27c0d1f92f487cb91b311edfa3aa9e8af561) - Update requirements.txt to allow pillow 11.x.  Thanks @bob-jones-cs!
+- [#9649](https://github.com/gradio-app/gradio/pull/9649) [`b1b81c9`](https://github.com/gradio-app/gradio/commit/b1b81c9e1c10c2c14a5cb0661d2503259ece1a1b) - Hide option to add row/col when count is fixed in dataframe.  Thanks @hannahblair!
+- [#9805](https://github.com/gradio-app/gradio/pull/9805) [`78e3b51`](https://github.com/gradio-app/gradio/commit/78e3b517af97dd11a3a0465bd34360b9bd8945c1) - Allow setting plotly margins.  Thanks @aliabid94!
+
+### Fixes
+
+- [#9831](https://github.com/gradio-app/gradio/pull/9831) [`767643f`](https://github.com/gradio-app/gradio/commit/767643fdeccb1ae1481e1d79034317082144b371) - Fix a bug in example textbox rendering when it is initially invisible.  Thanks @cornzz!
+- [#9836](https://github.com/gradio-app/gradio/pull/9836) [`a4e70f3`](https://github.com/gradio-app/gradio/commit/a4e70f3c428d7a43e31b63d296e9c4c73b09eda8) - Fix Tabs in Rows.  Thanks @aliabid94!
+- [#9769](https://github.com/gradio-app/gradio/pull/9769) [`3b9ed29`](https://github.com/gradio-app/gradio/commit/3b9ed299e9ffd7df834299cfcd547be0e844e1bb) - Fix avatar image placement in Chatbot.  Thanks @hannahblair!
+- [#9757](https://github.com/gradio-app/gradio/pull/9757) [`f971ca6`](https://github.com/gradio-app/gradio/commit/f971ca6ab53100693152bb3f975fa753a6e29e3b) - added audioop-lts module to support pydub for python3.13+.  Thanks @samy-FERGUI!
+- [#9651](https://github.com/gradio-app/gradio/pull/9651) [`1163a37`](https://github.com/gradio-app/gradio/commit/1163a372a61cf84d110160c1711892b9b689d1d3) - Fixes component info font size.  Thanks @dawoodkhan82!
+- [#9814](https://github.com/gradio-app/gradio/pull/9814) [`6505d42`](https://github.com/gradio-app/gradio/commit/6505d4289a3e3d27d9133b1c8af41697fdc1476d) - support gradio apps on spaces served on subpaths.  Thanks @pngwn!
+- [#9806](https://github.com/gradio-app/gradio/pull/9806) [`b538bda`](https://github.com/gradio-app/gradio/commit/b538bdaa067a01a1ac404356062086c9dc7001b5) - update docstring for the the "variant" parameter in `gr.Button`.  Thanks @fadingNA!
+- [#9815](https://github.com/gradio-app/gradio/pull/9815) [`90d9d14`](https://github.com/gradio-app/gradio/commit/90d9d1451860d99fc7b74d5105543f5e71c4b6b9) - use different env var for node port range.  Thanks @pngwn!
+- [#9825](https://github.com/gradio-app/gradio/pull/9825) [`f15808e`](https://github.com/gradio-app/gradio/commit/f15808eff361cdbba5237d1deb8b60128bc844e4) - fix: use system timezone in gr.DateTime with include_time=False.  Thanks @lcian!
+- [#9783](https://github.com/gradio-app/gradio/pull/9783) [`caf3650`](https://github.com/gradio-app/gradio/commit/caf3650482970cf649ec17d1a2d7d43651b37a04) - Exclude python-multipart 0.0.13.  Thanks @whitphx!
+
 ## 5.3.0
 
 ### Features
