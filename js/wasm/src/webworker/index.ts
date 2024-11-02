@@ -106,8 +106,6 @@ os.link = lambda src, dst: None
 
 	console.debug("Defining a ASGI wrapper function.");
 	updateProgress("Defining a ASGI wrapper function");
-	// TODO: Unlike Streamlit, user's code is executed in the global scope,
-	//       so we should not define this function in the global scope.
 	await pyodide.runPythonAsync(`
 # Based on Shiny's App.call_pyodide().
 # https://github.com/rstudio/py-shiny/blob/v0.3.3/shiny/_app.py#L224-L258
