@@ -9,7 +9,7 @@ with gr.Blocks() as demo:
         x="Horsepower",
         y="Miles_per_Gallon",
         color="Origin",
-        tooltip="Name",
+        tooltip=["Name"],
         title="Car Data",
         y_title="Miles per Gallon",
         color_legend_title="Origin of Car",
