@@ -65,6 +65,7 @@
 		{bokeh_version}
 		{show_actions_button}
 		{gradio}
+		{show_label}
 		{_selectable}
 		{x_lim}
 		on:change={() => gradio.dispatch("change")}
