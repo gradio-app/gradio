@@ -197,9 +197,22 @@ def _remove_no_reload_codeblocks(file_path: str):
             and expr.test.attr == "NO_RELOAD"
         )
 
+    def _is_if_name_main(expr: ast.AST) -> bool:
+        """Find the if __name__ == '__main__': block."""
+        return (
+            isinstance(expr, ast.If)
+            and isinstance(expr.test, ast.Compare)
+            and isinstance(expr.test.left, ast.Name)
+            and expr.test.left.id == "__name__"
+            and len(expr.test.ops) == 1
+            and isinstance(expr.test.ops[0], ast.Eq)
+            and isinstance(expr.test.comparators[0], ast.Constant)
+            and expr.test.comparators[0].s == "__main__"
+        )
+
     # Find the positions of the code blocks to load
     for node in ast.walk(tree):
-        if _is_gr_no_reload(node):
+        if _is_gr_no_reload(node) or _is_if_name_main(node):
             assert isinstance(node, ast.If)  # noqa: S101
             node.body = [ast.Pass(lineno=node.lineno, col_offset=node.col_offset)]
 
