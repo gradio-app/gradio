@@ -28,6 +28,8 @@ from pydantic import (
     GetJsonSchemaHandler,
     RootModel,
     ValidationError,
+    ValidationInfo,
+    model_validator,
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
@@ -219,13 +221,26 @@ class FileData(GradioModel):
         meta: Additional metadata used internally (should not be changed).
     """
 
-    path: str  # server filepath
-    url: Optional[str] = None  # normalised server url
-    size: Optional[int] = None  # size in bytes
-    orig_name: Optional[str] = None  # original filename
+    path: str
+    url: Optional[str] = None
+    size: Optional[int] = None
+    orig_name: Optional[str] = None
     mime_type: Optional[str] = None
     is_stream: bool = False
     meta: dict = {"_type": "gradio.FileData"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_python(cls, v, info: ValidationInfo):
+        if (
+            info.context
+            and info.context.get("validate_meta")
+            and v.get("meta", {}) != {"_type": "gradio.FileData"}
+        ):
+            raise ValueError(
+                "The 'meta' field must be explicitly provided in the input data and be equal to {'_type': 'gradio.FileData'}."
+            )
+        return v
 
     @property
     def is_none(self) -> bool:

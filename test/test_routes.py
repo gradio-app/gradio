@@ -339,6 +339,7 @@ class TestRoutes:
                     {
                         "path": file_response.json()[0],
                         "size": os.path.getsize("test/test_files/alphabet.txt"),
+                        "meta": {"_type": "gradio.FileData"},
                     }
                 ],
                 "fn_index": 0,
