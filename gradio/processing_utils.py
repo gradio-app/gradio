@@ -513,9 +513,7 @@ def move_files_to_cache(
     if isinstance(data, (GradioRootModel, GradioModel)):
         data = data.model_dump()
 
-    return client_utils.traverse(
-        data, _move_to_cache, client_utils.is_file_obj_with_meta
-    )
+    return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
 
 
 def _check_allowed(path: str | Path, check_in_upload_folder: bool):
@@ -635,7 +633,7 @@ async def async_move_files_to_cache(
     if isinstance(data, (GradioRootModel, GradioModel)):
         data = data.model_dump()
     return await client_utils.async_traverse(
-        data, _move_to_cache, client_utils.is_file_obj_with_meta
+        data, _move_to_cache, client_utils.is_file_obj
     )
 
 
