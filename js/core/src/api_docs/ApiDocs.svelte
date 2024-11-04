@@ -145,6 +145,7 @@
 							{api_calls}
 							{dependencies}
 							{root}
+							api_prefix={app.api_prefix}
 							short_root={space_id || root}
 							{username}
 						/>
