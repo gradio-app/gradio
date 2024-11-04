@@ -10,6 +10,7 @@
 	export let gradio: Gradio<{
 		change: undefined;
 		submit: undefined;
+		clear: undefined;
 	}>;
 	export let label = "Time";
 	export let show_label = true;
@@ -54,8 +55,8 @@
 	let datetime: HTMLInputElement;
 	let datevalue = value;
 
-	const date_is_valid_format = (date: string): boolean => {
-		if (date === "") return false;
+	const date_is_valid_format = (date: string | null): boolean => {
+		if (date === null || date === "") return true;
 		const valid_regex = include_time
 			? /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
 			: /^\d{4}-\d{2}-\d{2}$/;
