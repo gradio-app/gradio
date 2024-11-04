@@ -666,7 +666,9 @@ class Queue:
                                 else ServerMessage.process_streaming,
                                 output=old_response,
                                 success=old_response is not None,
-                                time_limit=cast(int, fn.time_limit) - first_iteration
+                                time_limit=None
+                                if not fn.time_limit
+                                else cast(int, fn.time_limit) - first_iteration
                                 if event.streaming
                                 else None,
                             ),
@@ -679,7 +681,11 @@ class Queue:
                         if awake_events[0].streaming:
                             awake_events, closed_events = await Queue.wait_for_batch(
                                 awake_events,
-                                [cast(float, fn.time_limit) - first_iteration]
+                                # We need to wait for all of the events to have the latest input data
+                                # the max time is the time limit of the function or 30 seconds (arbitrary) but should
+                                # never really take that long to make a request from the client to the server unless
+                                # the client disconnected.
+                                [cast(float, fn.time_limit or 30) - first_iteration]
                                 * len(awake_events),
                             )
                             for closed_event in closed_events:

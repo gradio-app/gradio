@@ -201,7 +201,7 @@
 		dispatch("start_recording");
 		if (!inited) await prepare_audio();
 		header = undefined;
-		if (streaming) {
+		if (streaming && recorder.state != "recording") {
 			recorder.start(stream_every * 1000);
 		}
 	}
