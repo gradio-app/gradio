@@ -1,5 +1,15 @@
 # @gradio/atoms
 
+## 0.11.0
+
+### Features
+
+- [#9891](https://github.com/gradio-app/gradio/pull/9891) [`fc12496`](https://github.com/gradio-app/gradio/commit/fc124964a1b4922e54a4ca4755f0a536dfae1a21) - Allow uploading more files in gr.File.  Thanks @hannahblair!
+
+### Fixes
+
+- [#9882](https://github.com/gradio-app/gradio/pull/9882) [`6c8a064`](https://github.com/gradio-app/gradio/commit/6c8a064feeaa89a2ffc96260032f24f18eb032fa) - Ensure non-form elements are correctly positioned when scale is applied.  Thanks @hannahblair!
+
 ## 0.10.1
 
 ### Fixes

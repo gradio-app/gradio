@@ -1,5 +1,16 @@
 # website
 
+## 0.42.0
+
+### Features
+
+- [#9726](https://github.com/gradio-app/gradio/pull/9726) [`b6725cf`](https://github.com/gradio-app/gradio/commit/b6725cf6c1fe9667dc10e1988976ed36d84d73d3) - Lite auto-load imported modules with `pyodide.loadPackagesFromImports`.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/code@0.10.7
+- @gradio/paramviewer@0.5.6
+
 ## 0.41.0
 
 ### Features
