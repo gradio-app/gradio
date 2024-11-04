@@ -1,5 +1,18 @@
 # @gradio/dataframe
 
+## 0.12.2
+
+### Fixes
+
+- [#9892](https://github.com/gradio-app/gradio/pull/9892) [`7d77024`](https://github.com/gradio-app/gradio/commit/7d77024cb8f9cfd39a6468de9534e58dcfa69f49) - Fix dataframe height increasing on scroll.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/button@0.3.6
+- @gradio/atoms@0.11.0
+- @gradio/upload@0.14.0
+
 ## 0.12.1
 
 ### Features
