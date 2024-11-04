@@ -682,7 +682,7 @@ class Queue:
                             awake_events, closed_events = await Queue.wait_for_batch(
                                 awake_events,
                                 # We need to wait for all of the events to have the latest input data
-                                # the max time is the time limit of the function or 90 seconds (arbitrary) but should
+                                # the max time is the time limit of the function or 30 seconds (arbitrary) but should
                                 # never really take that long to make a request from the client to the server unless
                                 # the client disconnected.
                                 [cast(float, fn.time_limit or 30) - first_iteration]

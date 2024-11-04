@@ -724,6 +724,12 @@ class Interface(Blocks):
                 if component.has_event(Events.submit)
             ]
 
+            for component in self.input_components:
+                if getattr(component, "streaming", None):
+                    warnings.warn(
+                        "Streaming components are only supported in live interfaces."
+                    )
+
             if _stop_btn:
                 extra_output = [_submit_btn, _stop_btn]
 
