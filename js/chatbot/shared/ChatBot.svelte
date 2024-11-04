@@ -5,7 +5,7 @@
 		is_last_bot_message,
 		group_messages,
 		load_components,
-		get_components_from_messages
+		get_components_from_messages,
 	} from "./utils";
 	import type { NormalisedMessage } from "../types";
 	import { copy } from "@gradio/utils";
@@ -18,7 +18,7 @@
 		type SvelteComponent,
 		type ComponentType,
 		tick,
-		onMount
+		onMount,
 	} from "svelte";
 	import { Image } from "@gradio/image/shared";
 
@@ -26,7 +26,7 @@
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
-	import { MarkdownCode as Markdown } from "@gradio/markdown";
+	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
@@ -43,11 +43,13 @@
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
+	const is_browser = typeof window !== "undefined";
+
 	async function update_components(): Promise<void> {
 		_components = await load_components(
 			get_components_from_messages(value),
 			_components,
-			load_component
+			load_component,
 		);
 	}
 
@@ -190,14 +192,14 @@
 	function handle_example_select(i: number, example: ExampleMessage): void {
 		dispatch("example_select", {
 			index: i,
-			value: { text: example.text, files: example.files }
+			value: { text: example.text, files: example.files },
 		});
 	}
 
 	function handle_like(
 		i: number,
 		message: NormalisedMessage,
-		selected: string | null
+		selected: string | null,
 	): void {
 		if (selected === "undo" || selected === "retry") {
 			const val_ = value as NormalisedMessage[];
@@ -209,7 +211,7 @@
 			}
 			dispatch(selected, {
 				index: val_[last_index].index,
-				value: val_[last_index].content
+				value: val_[last_index].content,
 			});
 			return;
 		}
@@ -218,7 +220,7 @@
 			dispatch("like", {
 				index: message.index,
 				value: message.content,
-				liked: selected === "like"
+				liked: selected === "like",
 			});
 		} else {
 			if (!groupedMessages) return;
@@ -226,13 +228,13 @@
 			const message_group = groupedMessages[i];
 			const [first, last] = [
 				message_group[0],
-				message_group[message_group.length - 1]
+				message_group[message_group.length - 1],
 			];
 
 			dispatch("like", {
 				index: [first.index, last.index] as [number, number],
 				value: message_group.map((m) => m.content),
-				liked: selected === "like"
+				liked: selected === "like",
 			});
 		}
 	}
@@ -248,7 +250,7 @@
 						// @ts-ignore
 						const formatted = await format_chat_for_sharing(value);
 						dispatch("share", {
-							description: formatted
+							description: formatted,
 						});
 					} catch (e) {
 						console.error(e);
@@ -260,7 +262,8 @@
 				<Community />
 			</IconButton>
 		{/if}
-		<IconButton Icon={Trash} on:click={() => dispatch("clear")}></IconButton>
+		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
+		></IconButton>
 		{#if show_copy_all_button}
 			<CopyAll {value} />
 		{/if}
@@ -283,18 +286,15 @@
 				{#if is_image_preview_open}
 					<div class="image-preview">
 						<img src={image_preview_source} alt={image_preview_source_alt} />
-						<button
-							class="image-preview-close-button"
-							on:click={() => {
-								is_image_preview_open = false;
-							}}><Clear /></button
-						>
+						<IconButtonWrapper>
+							<IconButton
+								Icon={Clear}
+								on:click={() => (is_image_preview_open = false)}
+								label={"Clear"}
+							/>
+						</IconButtonWrapper>
 					</div>
 				{/if}
-				{@const show_like =
-					role === "user" ? likeable && like_user_message : likeable}
-				{@const show_retry = _retryable && is_last_bot_message(messages, value)}
-				{@const show_undo = _undoable && is_last_bot_message(messages, value)}
 				<Message
 					{messages}
 					{opposite_avatar_img}
@@ -320,12 +320,12 @@
 					{_components}
 					{generating}
 					{msg_format}
-					{show_like}
-					{show_retry}
-					{show_undo}
+					show_like={role === "user" ? likeable && like_user_message : likeable}
+					show_retry={_retryable && is_last_bot_message(messages, value)}
+					show_undo={_undoable && is_last_bot_message(messages, value)}
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
-					{scroll}
+					scroll={is_browser ? scroll : () => {}}
 				/>
 			{/each}
 			{#if pending_message}
@@ -436,6 +436,7 @@
 		transition: var(--button-transition);
 		max-width: var(--size-56);
 		width: 100%;
+		justify-content: center;
 	}
 
 	.example:hover {
@@ -495,8 +496,10 @@
 		padding-top: var(--spacing-xxl);
 	}
 
-	:global(.dark) .bubble-wrap {
-		background: var(--background-fill-secondary);
+	@media (prefers-color-scheme: dark) {
+		.bubble-wrap {
+			background: var(--background-fill-secondary);
+		}
 	}
 
 	.message-wrap {
@@ -550,40 +553,6 @@
 		margin-top: 0;
 	}
 
-	/* Copy button */
-	.message-wrap :global(div[class*="code_wrap"] > button) {
-		position: absolute;
-		top: var(--spacing-md);
-		right: var(--spacing-md);
-		z-index: 1;
-		cursor: pointer;
-		border-bottom-left-radius: var(--radius-sm);
-		padding: var(--spacing-md);
-		width: 25px;
-		height: 25px;
-	}
-
-	.message-wrap :global(code > button > span) {
-		position: absolute;
-		top: var(--spacing-md);
-		right: var(--spacing-md);
-		width: 12px;
-		height: 12px;
-	}
-	.message-wrap :global(.check) {
-		position: absolute;
-		top: 0;
-		right: 0;
-		opacity: 0;
-		z-index: var(--layer-top);
-		transition: opacity 0.2s;
-		background: var(--background-fill-primary);
-		padding: var(--size-1);
-		width: 100%;
-		height: 100%;
-		color: var(--body-text-color);
-	}
-
 	.message-wrap :global(pre) {
 		position: relative;
 	}
@@ -628,5 +597,20 @@
 			var(--shadow-drop),
 			0 2px 2px rgba(0, 0, 0, 0.05);
 		transform: translateY(-2px);
+	}
+
+	.image-preview {
+		position: absolute;
+		z-index: 999;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: var(--background-fill-secondary);
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		margin-bottom: var(--spacing-xxl);
 	}
 </style>

@@ -1,5 +1,65 @@
 # @gradio/upload
 
+## 0.13.5
+
+### Dependency updates
+
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+
+## 0.13.4
+
+### Fixes
+
+- [#9770](https://github.com/gradio-app/gradio/pull/9770) [`47b5565`](https://github.com/gradio-app/gradio/commit/47b556523db3b63d6a9c2f9f69e8632bfa4ddff6) - Fix broken image select.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+
+## 0.13.3
+
+### Dependency updates
+
+- @gradio/atoms@0.9.2
+
+## 0.13.2
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/client@1.7.0
+- @gradio/wasm@0.14.2
+
+## 0.13.1
+
+### Dependency updates
+
+- @gradio/wasm@0.14.1
+
+## 0.13.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Improve Icon Button consistency
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Dependencies
+
+- @gradio/atoms@0.9.0
+- @gradio/icons@0.8.0
+- @gradio/client@1.6.0
+- @gradio/utils@0.7.0
+- @gradio/wasm@0.14.0
+
+## 0.13.0-beta.7
+
+### Dependency updates
+
+- @gradio/icons@0.8.0-beta.4
+- @gradio/atoms@0.9.0-beta.5
+
 ## 0.13.0-beta.6
 
 ### Dependency updates

@@ -147,11 +147,12 @@ class Chatbot(Component):
         Events.retry,
         Events.undo,
         Events.example_select,
+        Events.clear,
     ]
 
     def __init__(
         self,
-        value: (list[MessageDict | Message] | TupleFormat | Callable | None) = None,
+        value: list[MessageDict | Message] | TupleFormat | Callable | None = None,
         *,
         type: Literal["messages", "tuples"] | None = None,
         label: str | None = None,
@@ -433,17 +434,20 @@ class Chatbot(Component):
 
     def _postprocess_content(
         self,
-        chat_message: str
-        | tuple
-        | list
-        | FileDataDict
-        | FileData
-        | GradioComponent
-        | None,
+        chat_message: (
+            str
+            | tuple
+            | list
+            | FileDataDict
+            | FileData
+            | GradioComponent
+            | ComponentMessage
+            | None
+        ),
     ) -> str | FileMessage | ComponentMessage | None:
         if chat_message is None:
             return None
-        elif isinstance(chat_message, FileMessage):
+        if isinstance(chat_message, (FileMessage, ComponentMessage, str)):
             return chat_message
         elif isinstance(chat_message, FileData):
             return FileMessage(file=chat_message)
@@ -467,9 +471,6 @@ class Chatbot(Component):
         elif isinstance(chat_message, (tuple, list)):
             filepath = str(chat_message[0])
             return self._create_file_message(chat_message, filepath)
-        elif isinstance(chat_message, str):
-            chat_message = inspect.cleandoc(chat_message)
-            return chat_message
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
@@ -504,6 +505,11 @@ class Chatbot(Component):
                 f"Invalid message for Chatbot component: {message}", visible=False
             )
 
+        msg.content = (
+            inspect.cleandoc(msg.content)
+            if isinstance(msg.content, str)
+            else msg.content
+        )
         return msg
 
     def postprocess(

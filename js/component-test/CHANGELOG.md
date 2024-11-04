@@ -1,5 +1,65 @@
 # @self/component-test
 
+## 0.3.0
+
+### Features
+
+- [#9794](https://github.com/gradio-app/gradio/pull/9794) [`70bda3b`](https://github.com/gradio-app/gradio/commit/70bda3bb187a7219f4707344cf47edd0a021da19) - fix storybook build.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/video@0.11.6
+
+## 0.2.5
+
+### Dependency updates
+
+- @gradio/video@0.11.5
+- @self/build@0.2.0
+
+## 0.2.4
+
+### Dependency updates
+
+- @gradio/video@0.11.4
+
+## 0.2.3
+
+### Dependency updates
+
+- @gradio/video@0.11.3
+- @self/build@0.1.1
+
+## 0.2.2
+
+### Dependency updates
+
+- @gradio/video@0.11.2
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/video@0.11.1
+
+## 0.2.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - 🔡 Update default core Gradio font
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Added max lines and overflow scrollbar for `gr.Code`
+
+### Dependencies
+
+- @gradio/video@0.11.0
+
+## 0.2.0-beta.7
+
+### Dependency updates
+
+- @gradio/video@0.11.0-beta.7
+- @self/build@0.1.0-beta.3
+
 ## 0.2.0-beta.6
 
 ### Dependency updates

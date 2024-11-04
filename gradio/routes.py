@@ -270,7 +270,7 @@ class App(FastAPI):
         if os.getenv("GRADIO_LOCAL_DEV_MODE"):
             headers["x-gradio-local-dev-mode"] = "1"
 
-        new_request = App.client.build_request(
+        new_request = App.client.build_request(G
             request.method, httpx.URL(url), headers=headers
         )
         node_response = await App.client.send(new_request)
@@ -364,8 +364,12 @@ class App(FastAPI):
                     getattr(blocks, "node_process", None) is not None
                     and blocks.node_port is not None
                     and not path.startswith("/gradio_api")
-                    and path not in ["/config", "/login"]
+                    and path not in ["/config", "/favicon.ico"]
                     and not path.startswith("/theme")
+                    and not path.startswith("/svelte")
+                    and not path.startswith("/static")
+                    and not path.startswith("/login")
+                    and not path.startswith("/logout")
                 ):
                     if App.app_port is None:
                         App.app_port = request.url.port or int(
@@ -507,6 +511,15 @@ class App(FastAPI):
         # Main Routes
         ###############
 
+        @app.get("/svelte/{path:path}")
+        def _(path: str):
+            svelte_path = Path(BUILD_PATH_LIB) / "svelte"
+            return FileResponse(
+                routes_safe_join(
+                    DeveloperPath(str(svelte_path)), UserProvidedPath(path)
+                )
+            )
+
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
@@ -565,7 +578,8 @@ class App(FastAPI):
                     app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
                 return app.all_app_info
             if not app.api_info:
-                api_info = cast(dict[str, Any], app.get_blocks().get_api_info())
+                api_info = utils.safe_deepcopy(app.get_blocks().get_api_info())
+                api_info = cast(dict[str, Any], api_info)
                 api_info = route_utils.update_example_values_to_use_public_url(api_info)
                 app.api_info = api_info
             return app.api_info
@@ -586,10 +600,18 @@ class App(FastAPI):
             static_file = routes_safe_join(STATIC_PATH_LIB, UserProvidedPath(path))
             return FileResponse(static_file)
 
-        @router.get("/custom_component/{id}/{type}/{file_name}")
+        @router.get("/custom_component/{id}/{environment}/{type}/{file_name}")
         def custom_component_path(
-            id: str, type: str, file_name: str, req: fastapi.Request
+            id: str,
+            environment: Literal["client", "server"],
+            type: str,
+            file_name: str,
+            req: fastapi.Request,
         ):
+            if environment not in ["client", "server"]:
+                raise HTTPException(
+                    status_code=404, detail="Environment not supported."
+                )
             config = app.get_blocks().config
             components = config["components"]
             location = next(
@@ -620,6 +642,10 @@ class App(FastAPI):
                 DeveloperPath(str(Path(module_path).parent)),
                 UserProvidedPath(requested_path),
             )
+
+            # Uncomment when we support custom component SSR
+            # if environment == "server":
+            #     return PlainTextResponse(path)
 
             key = f"{id}-{type}-{file_name}"
 
@@ -1530,7 +1556,7 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
-        ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 18+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+        ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
     Example:

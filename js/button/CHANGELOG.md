@@ -1,5 +1,71 @@
 # @gradio/button
 
+## 0.3.5
+
+### Dependency updates
+
+- @gradio/client@1.7.1
+- @gradio/upload@0.13.5
+
+## 0.3.4
+
+### Dependency updates
+
+- @gradio/upload@0.13.4
+
+## 0.3.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.3
+
+## 0.3.2
+
+### Fixes
+
+- [#9659](https://github.com/gradio-app/gradio/pull/9659) [`b1a0f6d`](https://github.com/gradio-app/gradio/commit/b1a0f6db0d6900cb4089f4d5809a5f1d5e2609ee) - Fix the behavior of `gr.LoginButton` locally and on Spaces.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+
+## 0.3.1
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+
+## 0.3.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Adding new themes to Gradio 5.0
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Redesign `gr.Button()`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Adds a "huggingface" button variant, and makes it the default for `gr.LoginButton` and `gr.DuplicateButton`
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - UI theme fixes
+
+### Fixes
+
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Center icon in button when no text is present
+
+### Dependencies
+
+- @gradio/client@1.6.0
+- @gradio/upload@0.13.0
+- @gradio/utils@0.7.0
+
+## 0.3.0-beta.7
+
+### Features
+
+- [#9437](https://github.com/gradio-app/gradio/pull/9437) [`c3d93be`](https://github.com/gradio-app/gradio/commit/c3d93bef94b9401747a363f7bad88a1d347d535b) - Adding new themes to Gradio 5.0.  Thanks @allisonwhilden!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+
 ## 0.3.0-beta.6
 
 ### Dependency updates

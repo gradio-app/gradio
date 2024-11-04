@@ -1,5 +1,49 @@
 # @gradio/column
 
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.3
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.2
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.1
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.0
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.1
+
+## 0.2.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Equal height columns
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - UI theme fixes
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Remove grey background behind all components
+
+## 0.2.0-beta.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.8.0-beta.5
+
 ## 0.2.0-beta.2
 
 ### Features

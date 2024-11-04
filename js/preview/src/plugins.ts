@@ -44,7 +44,8 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 			prebundleSvelteLibraries: false,
 			hot: true,
 			compilerOptions: {
-				discloseVersion: false
+				discloseVersion: false,
+				hydratable: true
 			},
 			extensions: _svelte_extensions,
 			preprocess: [
@@ -84,6 +85,7 @@ export function make_gradio_plugin({
 		transform(code) {
 			const new_code = code
 				.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
+					if ($1.trim().startsWith("type")) return str;
 					const identifier = $1.trim().startsWith("* as")
 						? $1.replace("* as", "").trim()
 						: $1.trim();

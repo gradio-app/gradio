@@ -10,19 +10,14 @@
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 
 	export let likeable: boolean;
-	export let _retryable: boolean;
-	export let _undoable: boolean;
+	export let show_retry: boolean;
+	export let show_undo: boolean;
 	export let show_copy_button: boolean;
 	export let show: boolean;
 	export let message: NormalisedMessage | NormalisedMessage[];
 	export let position: "right" | "left";
 	export let avatar: FileData | null;
-	export let disable: boolean;
-
-	export let handle_action: (selected: string | null) => void;
-	export let layout: "bubble" | "panel";
-
-	function is_all_text(
+	export let generating: boolean;
 		message: NormalisedMessage[] | NormalisedMessage
 	): message is TextMessage[] | TextMessage {
 		return (
@@ -65,18 +60,20 @@
 					<IconButton Icon={DownloadIcon} />
 				</DownloadLink>
 			{/if}
-			{#if _retryable}
+			{#if show_retry}
 				<IconButton
 					Icon={Retry}
+					label="Retry"
 					on:click={() => handle_action("retry")}
-					disabled={disable}
+					disabled={generating}
 				/>
 			{/if}
-			{#if _undoable}
+			{#if show_undo}
 				<IconButton
+					label="Undo"
 					Icon={Undo}
 					on:click={() => handle_action("undo")}
-					disabled={disable}
+					disabled={generating}
 				/>
 			{/if}
 			{#if likeable}

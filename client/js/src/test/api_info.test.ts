@@ -466,7 +466,7 @@ describe("process_endpoint", () => {
 		expect(response_local_url.space_id).toBe(false);
 		expect(response_local_url.host).toBe("localhost:7860/gradio");
 
-		const local_url_2 = "http://localhost:7860/gradio/";
+		const local_url_2 = "http://localhost:/gradio/";
 		const response_local_url_2 = await process_endpoint(local_url_2);
 		expect(response_local_url_2.space_id).toBe(false);
 		expect(response_local_url_2.host).toBe("localhost:7860/gradio");
@@ -485,6 +485,18 @@ describe("process_endpoint", () => {
 		const response = await process_endpoint(app_reference);
 		expect(response.space_id).toBe("hmb-hello-world");
 		expect(response.host).toBe("hmb-hello-world.hf.space");
+	});
+
+	it("handles huggingface subpath urls", async () => {
+		const app_reference =
+			"https://pngwn-pr-demos-test.hf.space/demo/audio_debugger/";
+		const response = await process_endpoint(app_reference);
+		expect(response.space_id).toBe("pngwn-pr-demos-test");
+		expect(response.host).toBe(
+			"pngwn-pr-demos-test.hf.space/demo/audio_debugger"
+		);
+
+		expect(response.http_protocol).toBe("https:");
 	});
 });
 

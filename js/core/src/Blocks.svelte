@@ -14,6 +14,7 @@
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData, ValueData } from "@gradio/utils";
 	import MountComponents from "./MountComponents.svelte";
+	import { prefix_css } from "./css";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -47,8 +48,8 @@
 	export let username: string | null;
 	export let api_prefix = "";
 	export let max_file_size: number | undefined = undefined;
-	export let initial_layout: LayoutNode | undefined = undefined;
-
+	export let initial_layout: ComponentMeta | undefined = undefined;
+	export let css: string | null | undefined = null;
 	let {
 		layout: _layout,
 		targets,
@@ -60,11 +61,8 @@
 		loading_status,
 		scheduled_updates,
 		create_layout,
-		rerender_layout,
-	} = create_components();
-
-	// @ts-ignore
-	$_layout = initial_layout;
+		rerender_layout
+	} = create_components(initial_layout);
 
 	$: components, layout, dependencies, root, app, fill_height, target, run();
 
@@ -80,8 +78,8 @@
 			root: root + api_prefix,
 			app,
 			options: {
-				fill_height,
-			},
+				fill_height
+			}
 		});
 	}
 
@@ -154,6 +152,7 @@
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
 	function new_message(
+		title: string,
 		message: string,
 		fn_index: number,
 		type: ToastMessage["type"],
@@ -161,6 +160,7 @@
 		visible = true,
 	): ToastMessage & { fn_index: number } {
 		return {
+			title,
 			message,
 			fn_index,
 			type,
@@ -171,10 +171,11 @@
 	}
 
 	export function add_new_message(
+		title: string,
 		message: string,
 		type: ToastMessage["type"],
 	): void {
-		messages = [new_message(message, -1, type), ...messages];
+		messages = [new_message(title, message, -1, type), ...messages];
 	}
 
 	let _error_id = -1;
@@ -207,8 +208,10 @@
 		if ($scheduled_updates) {
 			_unsub = scheduled_updates.subscribe((updating) => {
 				if (!updating) {
-					trigger_api_call(dep_index, trigger_id, event_data);
-					unsub();
+					tick().then(() => {
+						trigger_api_call(dep_index, trigger_id, event_data);
+						unsub();
+					});
 				}
 			});
 		} else {
@@ -219,7 +222,7 @@
 	async function get_component_value_or_event_data(
 		component_id: number,
 		trigger_id: number | null,
-		event_data: unknown,
+		event_data: unknown
 	): Promise<any> {
 		if (
 			component_id === trigger_id &&
@@ -241,11 +244,7 @@
 		if (inputs_waiting.length > 0) {
 			for (const input of inputs_waiting) {
 				if (dep.inputs.includes(input)) {
-					add_new_message(WAITING_FOR_INPUTS_MESSAGE, "warning");
-					return;
-				}
-			}
-		}
+					add_new_message("Warning", WAITING_FOR_INPUTS_MESSAGE, "warning");
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
 		if (current_status === "pending" || current_status === "generating") {
@@ -256,8 +255,8 @@
 			fn_index: dep_index,
 			data: await Promise.all(
 				dep.inputs.map((id) =>
-					get_component_value_or_event_data(id, trigger_id, event_data),
-				),
+					get_component_value_or_event_data(id, trigger_id, event_data)
+				)
 			),
 			event_data: dep.collects_event_data ? event_data : null,
 			trigger_id: trigger_id,
@@ -309,7 +308,7 @@
 
 		async function make_prediction(
 			payload: Payload,
-			streaming = false,
+			streaming = false
 		): Promise<void> {
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
@@ -332,7 +331,7 @@
 					await app.send_ws_message(
 						// @ts-ignore
 						`${app.config.root + app.config.api_prefix}/stream/${submit_map.get(dep_index).event_id()}`,
-						{ ...payload, session_hash: app.session_hash },
+						{ ...payload, session_hash: app.session_hash }
 					);
 					return;
 				}
@@ -346,7 +345,10 @@
 				);
 			} catch (e) {
 				const fn_index = 0; // Mock value for fn_index
-				messages = [new_message(String(e), fn_index, "error"), ...messages];
+				messages = [
+					new_message("Error", String(e), fn_index, "error"),
+					...messages
+				];
 				loading_status.update({
 					status: "error",
 					fn_index,
@@ -413,17 +415,17 @@
 			}
 
 			function handle_log(msg: LogMessage): void {
-				const { log, fn_index, level, duration, visible } = msg;
+				const { title, log, fn_index, level, duration, visible } = msg;
 				messages = [
-					new_message(log, fn_index, level, duration, visible),
-					...messages,
+					new_message(title, log, fn_index, level, duration, visible),
+					...messages
 				];
 			}
 
 			function open_stream_events(
 				status: StatusMessage,
 				id: number,
-				dep: Dependency,
+				dep: Dependency
 			): void {
 				if (
 					status.original_msg === "process_starts" &&
@@ -463,8 +465,8 @@
 				) {
 					showed_duplicate_message = true;
 					messages = [
-						new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
-						...messages,
+						new_message("Warning", DUPLICATE_MESSAGE, fn_index, "warning"),
+						...messages
 					];
 				}
 				if (
@@ -475,8 +477,8 @@
 				) {
 					showed_mobile_warning = true;
 					messages = [
-						new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
-						...messages,
+						new_message("Warning", MOBILE_QUEUE_WARNING, fn_index, "warning"),
+						...messages
 					];
 				}
 
@@ -503,8 +505,8 @@
 				if (status.broken && is_mobile_device && user_left_page) {
 					window.setTimeout(() => {
 						messages = [
-							new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-							...messages,
+							new_message("Error", MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+							...messages
 						];
 					}, 0);
 					wait_then_trigger_api_call(dep.id, payload.trigger_id, event_data);
@@ -515,8 +517,10 @@
 							MESSAGE_QUOTE_RE,
 							(_, b) => b,
 						);
+						const _title = status.title ?? "Error";
 						messages = [
 							new_message(
+								_title,
 								_message,
 								fn_index,
 								"error",
@@ -613,8 +617,10 @@
 			if (event === "share") {
 				const { title, description } = data as ShareData;
 				trigger_share(title, description);
-			} else if (event === "error" || event === "warning") {
-				messages = [new_message(data, -1, event), ...messages];
+			} else if (event === "error") {
+				messages = [new_message("Error", data, -1, event), ...messages];
+			} else if (event === "warning") {
+				messages = [new_message("Warning", data, -1, event), ...messages];
 			} else if (event == "clear_status") {
 				update_status(id, "complete", data);
 			} else if (event == "close_stream") {
@@ -707,7 +713,7 @@
 
 		is_mobile_device =
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent,
+				navigator.userAgent
 			);
 	});
 </script>
@@ -715,6 +721,9 @@
 <svelte:head>
 	{#if control_page_title}
 		<title>{title}</title>
+	{/if}
+	{#if css}
+		{@html `\<style\>${prefix_css(css, version)}</style>`}
 	{/if}
 </svelte:head>
 
@@ -794,7 +803,7 @@
 				on:close={(event) => {
 					set_api_docs_visible(false);
 					api_calls = [];
-					api_recorder_visible = event.detail.api_recorder_visible;
+					api_recorder_visible = event.detail?.api_recorder_visible;
 				}}
 				{dependencies}
 				{root}

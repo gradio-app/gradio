@@ -86,7 +86,7 @@ class ThemeClass:
             + "\n}"
         )
         dark_css_code = (
-            ".dark {\n"
+            "\n:root .dark {\n"
             + "\n".join([f"  --{attr}: {val};" for attr, val in dark_css.items()])
             + "\n}"
         )
@@ -633,6 +633,8 @@ class Base(ThemeClass):
         checkbox_label_border_color_dark=None,
         checkbox_label_border_color_hover=None,
         checkbox_label_border_color_hover_dark=None,
+        checkbox_label_border_color_selected=None,
+        checkbox_label_border_color_selected_dark=None,
         checkbox_label_border_width=None,
         checkbox_label_border_width_dark=None,
         checkbox_label_gap=None,
@@ -696,11 +698,8 @@ class Base(ThemeClass):
         # Buttons: These set the style for buttons.
         button_border_width=None,
         button_border_width_dark=None,
-        button_shadow=None,
-        button_shadow_active=None,
         button_transform_hover=None,
         button_transform_active=None,
-        button_shadow_hover=None,
         button_transition=None,
         button_large_padding=None,
         button_large_radius=None,
@@ -722,6 +721,12 @@ class Base(ThemeClass):
         button_primary_text_color_dark=None,
         button_primary_text_color_hover=None,
         button_primary_text_color_hover_dark=None,
+        button_primary_shadow=None,
+        button_primary_shadow_hover=None,
+        button_primary_shadow_active=None,
+        button_primary_shadow_dark=None,
+        button_primary_shadow_hover_dark=None,
+        button_primary_shadow_active_dark=None,
         button_secondary_background_fill=None,
         button_secondary_background_fill_dark=None,
         button_secondary_background_fill_hover=None,
@@ -734,6 +739,12 @@ class Base(ThemeClass):
         button_secondary_text_color_dark=None,
         button_secondary_text_color_hover=None,
         button_secondary_text_color_hover_dark=None,
+        button_secondary_shadow=None,
+        button_secondary_shadow_hover=None,
+        button_secondary_shadow_active=None,
+        button_secondary_shadow_dark=None,
+        button_secondary_shadow_hover_dark=None,
+        button_secondary_shadow_active_dark=None,
         button_cancel_background_fill=None,
         button_cancel_background_fill_dark=None,
         button_cancel_background_fill_hover=None,
@@ -878,6 +889,8 @@ class Base(ThemeClass):
             checkbox_label_border_color_dark: The border color of the surrounding button of a checkbox or radio element in dark mode.
             checkbox_label_border_color_hover: The border color of the surrounding button of a checkbox or radio element when hovered over.
             checkbox_label_border_color_hover_dark: The border color of the surrounding button of a checkbox or radio element when hovered over in dark mode.
+            checkbox_label_border_color_selected: The border color of the surrounding button of a checkbox or radio element when selected.
+            checkbox_label_border_color_selected_dark: The border color of the surrounding button of a checkbox or radio element when selected in dark mode.
             checkbox_label_border_width: The border width of the surrounding button of a checkbox or radio element.
             checkbox_label_border_width_dark: The border width of the surrounding button of a checkbox or radio element in dark mode.
             checkbox_label_gap: The gap consecutive checkbox or radio elements.
@@ -966,6 +979,12 @@ class Base(ThemeClass):
             button_primary_text_color_dark: The text color of a button of "primary" variant in dark mode.
             button_primary_text_color_hover: The text color of a button of "primary" variant when hovered over.
             button_primary_text_color_hover_dark: The text color of a button of "primary" variant when hovered over in dark mode.
+            button_primary_shadow: The shadow under a primary button.
+            button_primary_shadow_active: The shadow under a primary button when pressed.
+            button_primary_shadow_hover: The shadow under a primary button when hovered over.
+            button_primary_shadow_dark: The shadow under a primary button in dark mode.
+            button_primary_shadow_active_dark: The shadow under a primary button when pressed in dark mode.
+            button_primary_shadow_hover_dark: The shadow under a primary button when hovered over in dark mode.
             button_secondary_background_fill: The background of a button of default "secondary" variant.
             button_secondary_background_fill_dark: The background of a button of default "secondary" variant in dark mode.
             button_secondary_background_fill_hover: The background of a button of default "secondary" variant when hovered over.
@@ -978,9 +997,12 @@ class Base(ThemeClass):
             button_secondary_text_color_dark: The text color of a button of default "secondary" variant in dark mode.
             button_secondary_text_color_hover: The text color of a button of default "secondary" variant when hovered over.
             button_secondary_text_color_hover_dark: The text color of a button of default "secondary" variant when hovered over in dark mode.
-            button_shadow: The shadow under a button.
-            button_shadow_active: The shadow under a button when pressed.
-            button_shadow_hover: The shadow under a button when hovered over.
+            button_secondary_shadow: The shadow under a secondary button.
+            button_secondary_shadow_active: The shadow under a secondary button when pressed.
+            button_secondary_shadow_hover: The shadow under a secondary button when hovered over.
+            button_secondary_shadow_dark: The shadow under a secondary button in dark mode.
+            button_secondary_shadow_active_dark: The shadow under a secondary button when pressed in dark mode.
+            button_secondary_shadow_hover_dark: The shadow under a secondary button when hovered over in dark mode.
             button_small_padding: The padding of a button set to "small" size.
             button_small_radius: The corner radius of a button set to "small" size.
             button_small_text_size: The text size of a button set to "small" size.
@@ -1423,6 +1445,22 @@ class Base(ThemeClass):
                 "*checkbox_label_border_color",
             )
         )
+        self.checkbox_label_border_color_selected = (
+            checkbox_label_border_color_selected
+            or getattr(
+                self,
+                "checkbox_label_border_color_selected",
+                "*checkbox_label_border_color",
+            )
+        )
+        self.checkbox_label_border_color_selected_dark = (
+            checkbox_label_border_color_selected_dark
+            or getattr(
+                self,
+                "checkbox_label_border_color_selected_dark",
+                "*checkbox_label_border_color",
+            )
+        )
         self.checkbox_label_border_width = checkbox_label_border_width or getattr(
             self, "checkbox_label_border_width", "*input_border_width"
         )
@@ -1515,11 +1553,11 @@ class Base(ThemeClass):
             self, "input_background_fill_dark", "*neutral_700"
         )
         self.input_background_fill_focus = input_background_fill_focus or getattr(
-            self, "input_background_fill_focus", "*secondary_500"
+            self, "input_background_fill_focus", "*input_background_fill"
         )
         self.input_background_fill_focus_dark = (
             input_background_fill_focus_dark
-            or getattr(self, "input_background_fill_focus_dark", "*secondary_600")
+            or getattr(self, "input_background_fill_focus_dark", None)
         )
         self.input_background_fill_hover = input_background_fill_hover or getattr(
             self, "input_background_fill_hover", "*input_background_fill"
@@ -1640,10 +1678,6 @@ class Base(ThemeClass):
         self.button_border_width_dark = button_border_width_dark or getattr(
             self, "button_border_width_dark", None
         )
-        self.button_shadow = button_shadow or getattr(self, "button_shadow", "none")
-        self.button_shadow_active = button_shadow_active or getattr(
-            self, "button_shadow_active", "none"
-        )
         self.button_cancel_background_fill = button_cancel_background_fill or getattr(
             self, "button_cancel_background_fill", "*button_secondary_background_fill"
         )
@@ -1719,9 +1753,6 @@ class Base(ThemeClass):
         )
         self.button_transform_active = button_transform_active or getattr(
             self, "button_transform_active", "none"
-        )
-        self.button_shadow_hover = button_shadow_hover or getattr(
-            self, "button_shadow_hover", "none"
         )
         self.button_transition = button_transition or getattr(
             self, "button_transition", "all 0.2s ease"
@@ -1802,6 +1833,30 @@ class Base(ThemeClass):
                 "*button_primary_text_color",
             )
         )
+        self.button_primary_shadow = button_primary_shadow or getattr(
+            self, "button_primary_shadow", "none"
+        )
+        self.button_primary_shadow_hover = button_primary_shadow_hover or getattr(
+            self, "button_primary_shadow_hover", "*button_primary_shadow"
+        )
+        self.button_primary_shadow_active = button_primary_shadow_active or getattr(
+            self, "button_primary_shadow_active", "*button_primary_shadow"
+        )
+        self.button_primary_shadow_dark = button_primary_shadow_dark or getattr(
+            self, "button_primary_shadow_dark", None
+        )
+        self.button_primary_shadow_hover_dark = (
+            button_primary_shadow_hover_dark
+            or getattr(
+                self, "button_primary_shadow_hover_dark", "*button_primary_shadow"
+            )
+        )
+        self.button_primary_shadow_active_dark = (
+            button_primary_shadow_active_dark
+            or getattr(
+                self, "button_primary_shadow_active_dark", "*button_primary_shadow"
+            )
+        )
         self.button_secondary_background_fill = (
             button_secondary_background_fill
             or getattr(self, "button_secondary_background_fill", "*neutral_200")
@@ -1864,6 +1919,30 @@ class Base(ThemeClass):
                 self,
                 "button_secondary_text_color_hover_dark",
                 "*button_secondary_text_color",
+            )
+        )
+        self.button_secondary_shadow = button_secondary_shadow or getattr(
+            self, "button_secondary_shadow", "*button_primary_shadow"
+        )
+        self.button_secondary_shadow_hover = button_secondary_shadow_hover or getattr(
+            self, "button_secondary_shadow_hover", "*button_secondary_shadow"
+        )
+        self.button_secondary_shadow_active = button_secondary_shadow_active or getattr(
+            self, "button_secondary_shadow_active", "*button_secondary_shadow"
+        )
+        self.button_secondary_shadow_dark = button_secondary_shadow_dark or getattr(
+            self, "button_secondary_shadow_dark", None
+        )
+        self.button_secondary_shadow_hover_dark = (
+            button_secondary_shadow_hover_dark
+            or getattr(
+                self, "button_secondary_shadow_hover_dark", "*button_secondary_shadow"
+            )
+        )
+        self.button_secondary_shadow_active_dark = (
+            button_secondary_shadow_active_dark
+            or getattr(
+                self, "button_secondary_shadow_active_dark", "*button_secondary_shadow"
             )
         )
 

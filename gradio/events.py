@@ -371,6 +371,31 @@ class UndoData(EventData):
         """
 
 
+@document()
+class DownloadData(EventData):
+    """
+    The gr.DownloadData class is a subclass of gr.EventData that specifically carries information about the `.download()` event. When gr.DownloadData
+    is added as a type hint to an argument of an event listener method, a gr.DownloadData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def on_download(download_data: gr.DownloadData):
+            return f"Downloaded file: {download_data.file.path}"
+        with gr.Blocks() as demo:
+            files = gr.File()
+            textbox = gr.Textbox()
+            files.download(on_download, None, textbox)
+        demo.launch()
+    """
+
+    def __init__(self, target: Block | None, data: FileDataDict):
+        super().__init__(target, data)
+        self.file: FileData = FileData(**data)
+        """
+        The file that was downloaded, as a FileData object.
+        """
+
+
 @dataclasses.dataclass
 class EventListenerMethod:
     block: Block | None
@@ -477,16 +502,20 @@ class EventListener(str):
         def event_trigger(
             block: Block | None,
             fn: Callable | None | Literal["decorator"] = "decorator",
-            inputs: Component
-            | BlockContext
-            | Sequence[Component | BlockContext]
-            | Set[Component | BlockContext]
-            | None = None,
-            outputs: Component
-            | BlockContext
-            | Sequence[Component | BlockContext]
-            | Set[Component | BlockContext]
-            | None = None,
+            inputs: (
+                Component
+                | BlockContext
+                | Sequence[Component | BlockContext]
+                | Set[Component | BlockContext]
+                | None
+            ) = None,
+            outputs: (
+                Component
+                | BlockContext
+                | Sequence[Component | BlockContext]
+                | Set[Component | BlockContext]
+                | None
+            ) = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
@@ -599,13 +628,15 @@ class EventListener(str):
                 time_limit=time_limit,
                 stream_every=stream_every,
                 like_user_message=like_user_message,
-                event_specific_args=[
-                    d["name"]
-                    for d in _event_specific_args
-                    if d.get("component_prop", "true") != "false"
-                ]
-                if _event_specific_args
-                else None,
+                event_specific_args=(
+                    [
+                        d["name"]
+                        for d in _event_specific_args
+                        if d.get("component_prop", "true") != "false"
+                    ]
+                    if _event_specific_args
+                    else None
+                ),
             )
             set_cancel_events(
                 [event_target],
@@ -625,16 +656,20 @@ class EventListener(str):
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
-    inputs: Component
-    | BlockContext
-    | Sequence[Component | BlockContext]
-    | Set[Component | BlockContext]
-    | None = None,
-    outputs: Component
-    | BlockContext
-    | Sequence[Component | BlockContext]
-    | Set[Component | BlockContext]
-    | None = None,
+    inputs: (
+        Component
+        | BlockContext
+        | Sequence[Component | BlockContext]
+        | Set[Component | BlockContext]
+        | None
+    ) = None,
+    outputs: (
+        Component
+        | BlockContext
+        | Sequence[Component | BlockContext]
+        | Set[Component | BlockContext]
+        | None
+    ) = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
@@ -739,7 +774,9 @@ def on(
             [EventListenerMethod(input, "change") for input in inputs]
             if inputs is not None
             else []
-        ) + [EventListenerMethod(root_block, "load")]  # type: ignore
+        ) + [
+            EventListenerMethod(root_block, "load")
+        ]  # type: ignore
     else:
         methods = [
             EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore
@@ -800,7 +837,7 @@ class Events:
     )
     clear = EventListener(
         "clear",
-        doc="This listener is triggered when the user clears the {{ component }} using the X button for the component.",
+        doc="This listener is triggered when the user clears the {{ component }} using the clear button for the component.",
     )
     play = EventListener(
         "play",
@@ -922,4 +959,16 @@ class Events:
         doc="This listener is triggered when the user clicks the retry button in the chatbot message.",
         callback=lambda block: setattr(block, "_retryable", True),
         config_data=lambda: {"_retryable": False},
+    )
+    expand = EventListener(
+        "expand",
+        doc="This listener is triggered when the {{ component }} is expanded.",
+    )
+    collapse = EventListener(
+        "collapse",
+        doc="This listener is triggered when the {{ component }} is collapsed.",
+    )
+    download = EventListener(
+        "download",
+        doc="This listener is triggered when the user downloads a file from the {{ component }}. Uses event data gradio.DownloadData to carry information about the downloaded file as a FileData object. See EventData documentation on how to use this event data",
     )

@@ -29,7 +29,14 @@ import uuid
 import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from collections.abc import Callable, Iterable, Iterator, MutableMapping, Sequence
+from collections.abc import (
+    Callable,
+    Hashable,
+    Iterable,
+    Iterator,
+    MutableMapping,
+    Sequence,
+)
 from contextlib import contextmanager
 from functools import wraps
 from io import BytesIO
@@ -1072,11 +1079,11 @@ def set_static_paths(paths: list[str | Path]) -> None:
     """
     Set the static paths to be served by the gradio app.
 
-    Static files are not moved to the gradio cache and are served directly from the file system.
+    Static files are are served directly from the file system instead of being copied. They are served to users with The Content-Disposition HTTP header set to "inline"
+    when sending these files to users. This indicates that the file should be displayed directly in the browser window if possible.
     This function is useful when you want to serve files that you know will not be modified during the lifetime of the gradio app (like files used in gr.Examples).
     By setting static paths, your app will launch faster and it will consume less disk space.
     Calling this function will set the static paths for all gradio applications defined in the same interpreter session until it is called again or the session ends.
-    To clear out the static paths, call this function with an empty list.
 
     Parameters:
         paths: List of filepaths or directory names to be served by the gradio app. If it is a directory name, ALL files located within that directory will be considered static and not moved to the gradio cache. This also means that ALL files in that directory will be accessible over the network.
@@ -1388,6 +1395,8 @@ def deep_hash(obj):
         items = tuple(deep_hash(x) for x in obj)
     elif isinstance(obj, set):
         items = tuple(deep_hash(x) for x in sorted(obj, key=hash))
+    elif isinstance(obj, Hashable):
+        items = str(hash(obj)).encode("utf-8")
     else:
         items = str(id(obj)).encode("utf-8")
     hasher.update(repr(items).encode("utf-8"))
@@ -1400,10 +1409,13 @@ def error_payload(
     content: dict[str, bool | str | float | None] = {"error": None}
     show_error = show_error or isinstance(error, Error)
     if show_error:
-        content["error"] = str(error)
-    if isinstance(error, Error):
-        content["duration"] = error.duration
-        content["visible"] = error.visible
+        if isinstance(error, Error):
+            content["error"] = error.message
+            content["duration"] = error.duration
+            content["visible"] = error.visible
+            content["title"] = error.title
+        else:
+            content["error"] = str(error)
     return content
 
 
@@ -1541,7 +1553,7 @@ def get_node_path():
 
     print("Unable to find node install path, falling back to SPA mode.")
     print(
-        "If you wish to use the node backend, please install node 18 and/ or set the path with the GRADIO_NODE_PATH environment variable."
+        "If you wish to use the node backend, please install node 20 and/ or set the path with the GRADIO_NODE_PATH environment variable."
     )
     return None
 

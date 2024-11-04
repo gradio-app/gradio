@@ -7,7 +7,7 @@ This is a sneak preview of what our finished component will look like:
 ![demo](https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png)
 
 ## Step 0: Prerequisites
-Make sure you have gradio 4.0 installed as well as node 18+.
+Make sure you have gradio 5.0 or higher installed as well as node 20+.
 As of the time of publication, the latest release is 4.1.1.
 Also, please read the [Five Minute Tour](./custom-components-in-five-minutes) of custom components and the [Key Concepts](./key-component-concepts) guide before starting.
 

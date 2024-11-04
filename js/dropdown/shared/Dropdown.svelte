@@ -59,12 +59,6 @@
 			old_input_text = input_text;
 		}
 		set_input_text();
-	} else if (choices.length > 0) {
-		old_selected_index = 0;
-		selected_index = 0;
-		[input_text, value] = choices[selected_index];
-		old_value = value;
-		old_input_text = input_text;
 	}
 
 	$: {
@@ -278,6 +272,7 @@
 	.wrap:focus-within {
 		box-shadow: var(--input-shadow-focus);
 		border-color: var(--input-border-color-focus);
+		background: var(--input-background-fill-focus);
 	}
 
 	.wrap-inner {

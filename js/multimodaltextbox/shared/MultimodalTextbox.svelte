@@ -3,7 +3,7 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick
+		tick,
 	} from "svelte";
 	import { text_area_resize, resize } from "../shared/utils";
 	import { BlockTitle } from "@gradio/atoms";
@@ -17,13 +17,13 @@
 		Paperclip,
 		Video,
 		Send,
-		Square
+		Square,
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
-		files: []
+		files: [],
 	};
 
 	export let value_is_output = false;
@@ -119,7 +119,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number
+			target.selectionEnd as number,
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -160,7 +160,7 @@
 	}
 
 	async function handle_upload({
-		detail
+		detail,
 	}: CustomEvent<FileData | FileData[]>): Promise<void> {
 		handle_change();
 		if (Array.isArray(detail)) {
@@ -322,7 +322,7 @@
 				use:text_area_resize={{
 					text: value.text,
 					lines: lines,
-					max_lines: max_lines
+					max_lines: max_lines,
 				}}
 				class="scroll-hide"
 				class:no-label={!show_label}
@@ -397,7 +397,7 @@
 	textarea {
 		flex-grow: 1;
 		outline: none !important;
-		background: var(--input-background-fill);
+		background: var(--block-background-fill);
 		padding: var(--input-padding);
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
@@ -457,6 +457,12 @@
 		background: var(--button-secondary-background-fill-hover);
 	}
 
+	.stop-button:disabled,
+	.upload-button:disabled,
+	.submit-button:disabled {
+		background: var(--button-secondary-background-fill);
+		cursor: initial;
+	}
 	.stop-button:active,
 	.upload-button:active,
 	.submit-button:active {

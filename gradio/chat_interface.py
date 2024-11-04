@@ -164,8 +164,7 @@ class ChatInterface(Blocks):
             if not isinstance(additional_inputs, list):
                 additional_inputs = [additional_inputs]
             self.additional_inputs = [
-                get_component_instance(i)
-                for i in additional_inputs  # type: ignore
+                get_component_instance(i) for i in additional_inputs  # type: ignore
             ]
         else:
             self.additional_inputs = []
@@ -225,7 +224,15 @@ class ChatInterface(Blocks):
                 self.chatbot = cast(
                     Chatbot, get_component_instance(chatbot, render=True)
                 )
-                self.chatbot.examples = examples_messages
+                if self.chatbot.examples and examples_messages:
+                    warnings.warn(
+                        "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
+                    )
+                self.chatbot.examples = (
+                    examples_messages
+                    if not self._additional_inputs_in_examples()
+                    else None
+                )
             else:
                 self.chatbot = Chatbot(
                     label="Chatbot",
@@ -233,7 +240,11 @@ class ChatInterface(Blocks):
                     height=200 if fill_height else None,
                     type=self.type,
                     autoscroll=autoscroll,
-                    examples=examples_messages if not self.additional_inputs else None,
+                    examples=(
+                        examples_messages
+                        if not self._additional_inputs_in_examples()
+                        else None
+                    ),
                 )
 
             with Group():
@@ -272,7 +283,7 @@ class ChatInterface(Blocks):
                     examples_fn = self._examples_stream_fn
                 else:
                     examples_fn = self._examples_fn
-                if self.examples and self.additional_inputs:
+                if self.examples and self._additional_inputs_in_examples():
                     self.examples_handler = Examples(
                         examples=examples,
                         inputs=[self.textbox] + self.additional_inputs,
@@ -314,7 +325,7 @@ class ChatInterface(Blocks):
 
     def _setup_events(self) -> None:
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
-        submit_triggers = [self.textbox.submit]
+        submit_triggers = [self.textbox.submit, self.chatbot.retry]
 
         submit_event = (
             self.textbox.submit(
@@ -350,24 +361,30 @@ class ChatInterface(Blocks):
                 show_api=False,
             )
         )
+        submit_event.then(
+            lambda: update(value=None, interactive=True),
+            None,
+            self.textbox,
+            show_api=False,
+        )
 
         if (
             isinstance(self.chatbot, Chatbot)
             and self.examples
-            and not self.additional_inputs
+            and not self._additional_inputs_in_examples()
         ):
             if self.cache_examples:
                 self.chatbot.example_select(
                     self.example_clicked,
                     [self.chatbot],
-                    [self.chatbot],
+                    [self.chatbot, self.saved_input],
                     show_api=False,
                 )
             else:
                 self.chatbot.example_select(
                     self.example_clicked,
                     [self.chatbot],
-                    [self.chatbot],
+                    [self.chatbot, self.saved_input],
                     show_api=False,
                 ).then(
                     submit_fn,
@@ -381,7 +398,6 @@ class ChatInterface(Blocks):
                         Literal["full", "minimal", "hidden"], self.show_progress
                     ),
                 )
-        self._setup_stop_events(submit_triggers, submit_event)
 
         retry_event = (
             self.chatbot.retry(
@@ -415,13 +431,14 @@ class ChatInterface(Blocks):
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
             )
-            .then(
-                lambda: update(interactive=True),
-                outputs=[self.textbox],
-                show_api=False,
-            )
         )
-        self._setup_stop_events([self.chatbot.retry], retry_event)
+        retry_event.then(
+            lambda: update(interactive=True),
+            outputs=[self.textbox],
+            show_api=False,
+        )
+
+        self._setup_stop_events(submit_triggers, [submit_event, retry_event])
 
         self.chatbot.undo(
             self._undo_msg,
@@ -432,7 +449,7 @@ class ChatInterface(Blocks):
         )
 
     def _setup_stop_events(
-        self, event_triggers: list[Callable], event_to_cancel: Dependency
+        self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
     ) -> None:
         textbox_component = MultimodalTextbox if self.multimodal else Textbox
         if self.is_generator:
@@ -450,22 +467,23 @@ class ChatInterface(Blocks):
                     show_api=False,
                     queue=False,
                 )
-            event_to_cancel.then(
-                async_lambda(
-                    lambda: textbox_component(
-                        submit_btn=original_submit_btn, stop_btn=False
-                    )
-                ),
-                None,
-                [self.textbox],
-                show_api=False,
-                queue=False,
-            )
+            for event_to_cancel in events_to_cancel:
+                event_to_cancel.then(
+                    async_lambda(
+                        lambda: textbox_component(
+                            submit_btn=original_submit_btn, stop_btn=False
+                        )
+                    ),
+                    None,
+                    [self.textbox],
+                    show_api=False,
+                    queue=False,
+                )
             self.textbox.stop(
                 None,
                 None,
                 None,
-                cancels=event_to_cancel,
+                cancels=events_to_cancel,  # type: ignore
                 show_api=False,
             )
 
@@ -488,6 +506,7 @@ class ChatInterface(Blocks):
                     yield None, history + [[message, None]]
                 async for response in generator:
                     yield response, history + [[message, response]]
+
         else:
 
             @functools.wraps(self.fn)
@@ -680,9 +699,12 @@ class ChatInterface(Blocks):
             self._append_multimodal_history(message, None, history)
         else:
             message = x.value["text"]
-            self._append_history(history, message)
+            if self.type == "tuples":
+                history.append([message, None])
+            else:
+                history.append({"role": "user", "content": message})
         self.saved_input.value = message
-        return history
+        return history, message
 
     def _process_example(
         self, message: ExampleMessage | str, response: MessageDict | str | None
@@ -712,6 +734,17 @@ class ChatInterface(Blocks):
                     {"role": "assistant", "content": response},
                 ]
         return result
+
+    def _additional_inputs_in_examples(self):
+        if self.examples is not None:
+            for example in self.examples:
+                for idx, example_for_input in enumerate(example):
+                    if example_for_input is not None:
+                        if idx > 0:
+                            return True
+                        else:
+                            continue
+        return False
 
     async def _examples_fn(
         self, message: ExampleMessage | str, *args
@@ -764,7 +797,7 @@ class ChatInterface(Blocks):
         previous_input: list[str | MultimodalPostprocess],
         history: list[MessageDict] | TupleFormat,
     ):
-        msg = previous_input.pop()
+        msg = previous_input.pop() if previous_input else None
 
         history, msg = await self._delete_prev_fn(msg, history)
         previous_msg = previous_input[-1] if len(previous_input) else msg

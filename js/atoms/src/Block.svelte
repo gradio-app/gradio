@@ -19,10 +19,12 @@
 	export let min_width = 0;
 	export let flex = false;
 
+	if (!visible) flex = false;
+
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
 	const get_dimension = (
-		dimension_value: string | number | undefined
+		dimension_value: string | number | undefined,
 	): string | undefined => {
 		if (dimension_value === undefined) {
 			return undefined;
@@ -57,6 +59,7 @@
 	style:flex-grow={scale}
 	style:min-width={`calc(min(${min_width}px, 100%))`}
 	style:border-width="var(--block-border-width)"
+	class:auto-margin={scale === null}
 >
 	<slot />
 </svelte:element>
@@ -72,6 +75,11 @@
 		background: var(--block-background-fill);
 		width: 100%;
 		line-height: var(--line-sm);
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	.auto-margin {
 		margin-left: auto;
 		margin-right: auto;
 	}

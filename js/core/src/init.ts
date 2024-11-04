@@ -1,4 +1,5 @@
 import { writable, type Writable, get } from "svelte/store";
+
 import type {
 	ComponentMeta,
 	Dependency,
@@ -27,7 +28,8 @@ const raf = is_browser
  * Create a store with the layout and a map of targets
  * @returns A store with the layout and a map of targets
  */
-export function create_components(): {
+let has_run = new Set<number>();
+export function create_components(initial_layout: ComponentMeta | undefined): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
 	update_value: (updates: UpdateTransaction[]) => void;
@@ -65,7 +67,7 @@ export function create_components(): {
 	let instance_map: { [id: number]: ComponentMeta };
 	let loading_status: ReturnType<typeof create_loading_status_store> =
 		create_loading_status_store();
-	const layout_store: Writable<ComponentMeta> = writable();
+	const layout_store: Writable<ComponentMeta> = writable(initial_layout);
 	let _components: ComponentMeta[] = [];
 	let app: client_return;
 	let keyed_component_values: Record<string | number, any> = {};
@@ -290,6 +292,33 @@ export function create_components(): {
 			);
 		}
 
+		if (instance.type === "tabs" && !instance.props.initial_tabs) {
+			const tab_items_props =
+				node.children?.map((c) => {
+					const instance = instance_map[c.id];
+					// console.log("tabs", JSON.stringify(instance.props, null, 2));
+					instance.props.id ??= c.id;
+					return {
+						type: instance.type,
+						props: {
+							...(instance.props as any),
+							id: instance.props.id
+						}
+					};
+				}) || [];
+
+			const child_tab_items = tab_items_props.filter(
+				(child) => child.type === "tabitem"
+			);
+
+			instance.props.initial_tabs = child_tab_items?.map((child) => ({
+				label: child.props.label,
+				id: child.props.id,
+				visible: child.props.visible,
+				interactive: child.props.interactive
+			}));
+		}
+
 		return instance;
 	}
 
@@ -317,7 +346,7 @@ export function create_components(): {
 					else if (update.value instanceof Set)
 						new_value = new Set(update.value);
 					else if (Array.isArray(update.value)) new_value = [...update.value];
-					else if (update.value === null) new_value = null;
+					else if (update.value == null) new_value = null;
 					else if (typeof update.value === "object")
 						new_value = { ...update.value };
 					else new_value = update.value;
@@ -341,9 +370,12 @@ export function create_components(): {
 			raf(flush);
 		}
 	}
-
 	function get_data(id: number): any | Promise<any> {
-		const comp = _component_map.get(id);
+		let comp = _component_map.get(id);
+		if (!comp) {
+			const layout = get(layout_store);
+			comp = findComponentById(layout, id);
+		}
 		if (!comp) {
 			return null;
 		}
@@ -351,6 +383,24 @@ export function create_components(): {
 			return comp.instance.get_value() as Promise<any>;
 		}
 		return comp.props.value;
+	}
+
+	function findComponentById(
+		node: ComponentMeta,
+		id: number
+	): ComponentMeta | undefined {
+		if (node.id === id) {
+			return node;
+		}
+		if (node.children) {
+			for (const child of node.children) {
+				const result = findComponentById(child, id);
+				if (result) {
+					return result;
+				}
+			}
+		}
+		return undefined;
 	}
 
 	function modify_stream(

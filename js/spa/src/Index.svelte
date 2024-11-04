@@ -131,10 +131,14 @@
 	let css_text_stylesheet: HTMLStyleElement | null = null;
 	async function mount_custom_css(css_string: string | null): Promise<void> {
 		if (css_string) {
-			css_text_stylesheet = prefix_css(
+			if (!css_text_stylesheet) {
+				css_text_stylesheet = document.createElement("style");
+				document.head.appendChild(css_text_stylesheet);
+			}
+			css_text_stylesheet.textContent = prefix_css(
 				css_string,
 				version,
-				css_text_stylesheet || undefined
+				css_text_stylesheet
 			);
 		}
 		await mount_css(
@@ -315,7 +319,7 @@
 				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
-					new_message_fn("Error reloading app", "error");
+					new_message_fn("Error", "Error reloading app", "error");
 					// @ts-ignore
 					console.error(JSON.parse(e.data));
 				});
@@ -396,7 +400,7 @@
 		}
 	};
 
-	let new_message_fn: (message: string, type: string) => void;
+	let new_message_fn: (title: string, message: string, type: string) => void;
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);

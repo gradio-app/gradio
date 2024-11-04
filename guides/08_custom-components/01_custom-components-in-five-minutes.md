@@ -1,19 +1,18 @@
 # Custom Components in 5 minutes
 
-Gradio 4.0 introduces Custom Components -- the ability for developers to create their own custom components and use them in Gradio apps.
-You can publish your components as Python packages so that other users can use them as well.
-Users will be able to use all of Gradio's existing functions, such as `gr.Blocks`, `gr.Interface`, API usage, themes, etc. with Custom Components.
-This guide will cover how to get started making custom components.
+Gradio includes the ability for developers to create their own custom components and use them in Gradio apps.You can publish your components as Python packages so that other users can use them as well.
+
+Users will be able to use all of Gradio's existing functions, such as `gr.Blocks`, `gr.Interface`, API usage, themes, etc. with Custom Components. This guide will cover how to get started making custom components.
 
 ## Installation
 
 You will need to have:
 
-* Python 3.8+ (<a href="https://www.python.org/downloads/" target="_blank">install here</a>)
+* Python 3.10+ (<a href="https://www.python.org/downloads/" target="_blank">install here</a>)
 * pip 21.3+ (`python -m pip install --upgrade pip`)
-* Node.js v16.14+ (<a href="https://nodejs.dev/en/download/package-manager/" target="_blank">install here</a>)
+* Node.js 20+ (<a href="https://nodejs.dev/en/download/package-manager/" target="_blank">install here</a>)
 * npm 9+ (<a href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm/" target="_blank">install here</a>)
-* Gradio 4.0+ (`pip install --upgrade gradio`)
+* Gradio 5+ (`pip install --upgrade gradio`)
 
 ## The Workflow
 

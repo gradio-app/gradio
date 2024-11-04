@@ -1,5 +1,23 @@
 # gradio_client
 
+## 1.4.2
+
+### Fixes
+
+- [#9754](https://github.com/gradio-app/gradio/pull/9754) [`36a5076`](https://github.com/gradio-app/gradio/commit/36a50769095081a0e77f04f513d47a2e9d4531ba) - Update client.py: raise error on 429 get_config.  Thanks @Pendrokar!
+
+## 1.4.1
+
+### Fixes
+
+- [#9678](https://github.com/gradio-app/gradio/pull/9678) [`a25a26e`](https://github.com/gradio-app/gradio/commit/a25a26e208c3f3675ba857a889553c7ccc95e866) - Fix: `file_types` checking bug.  Thanks @jasongzy!
+
+## 1.4.0-beta.5
+
+### Features
+
+- [#9589](https://github.com/gradio-app/gradio/pull/9589) [`477f45c`](https://github.com/gradio-app/gradio/commit/477f45cb43be957684eb392e3d62c09490c22391) - Only move files to the cache that have a meta key.  Thanks @freddyaboulton!
+
 ## 1.4.0-beta.4
 
 ### Features

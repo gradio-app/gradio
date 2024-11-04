@@ -5,7 +5,7 @@
 	import type { FileData, Client } from "@gradio/client";
 	import type { NormalisedMessage } from "../types";
 	import MessageBox from "./MessageBox.svelte";
-	import { MarkdownCode as Markdown } from "@gradio/markdown";
+	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import ButtonPanel from "./ButtonPanel.svelte";
@@ -48,7 +48,7 @@
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
 			index: message.index,
-			value: message.content
+			value: message.content,
 		});
 	}
 
@@ -70,21 +70,34 @@
 		return `a component of type ${message.content.component ?? "unknown"}`;
 	}
 
-	function get_button_panel_props(): any {
-		return {
-			show: show_like || show_retry || show_undo || show_copy_button,
-			handle_action,
-			likeable: show_like,
-			_retryable: show_retry,
-			_undoable: show_undo,
-			disable: generating,
-			show_copy_button,
-			message: msg_format === "tuples" ? messages[0] : messages,
-			position: role === "user" ? "right" : "left",
-			avatar: avatar_img,
-			layout
-		};
-	}
+	type ButtonPanelProps = {
+		show: boolean;
+		handle_action: (selected: string | null) => void;
+		likeable: boolean;
+		show_retry: boolean;
+		show_undo: boolean;
+		generating: boolean;
+		show_copy_button: boolean;
+		message: NormalisedMessage[] | NormalisedMessage;
+		position: "left" | "right";
+		layout: "bubble" | "panel";
+		avatar: FileData | null;
+	};
+
+	let button_panel_props: ButtonPanelProps;
+	$: button_panel_props = {
+		show: show_like || show_retry || show_undo || show_copy_button,
+		handle_action,
+		likeable: show_like,
+		show_retry,
+		show_undo,
+		generating,
+		show_copy_button,
+		message: msg_format === "tuples" ? messages[0] : messages,
+		position: role === "user" ? "right" : "left",
+		avatar: avatar_img,
+		layout,
+	};
 </script>
 
 <div
@@ -137,7 +150,7 @@
 						{#if message.metadata.title}
 							<MessageBox
 								title={message.metadata.title}
-								expanded={is_last_bot_message(messages, value)}
+								expanded={is_last_bot_message([message], value)}
 							>
 								<Markdown
 									message={message.content}
@@ -171,7 +184,7 @@
 							{i18n}
 							{upload}
 							{_fetch}
-							on:load={scroll}
+							on:load={() => scroll()}
 						/>
 					{:else if message.type === "component" && message.content.component === "file"}
 						<a
@@ -194,14 +207,14 @@
 			</div>
 
 			{#if layout === "panel"}
-				<ButtonPanel {...get_button_panel_props()} />
+				<ButtonPanel {...button_panel_props} />
 			{/if}
 		{/each}
 	</div>
 </div>
 
 {#if layout === "bubble"}
-	<ButtonPanel {...get_button_panel_props()} />
+	<ButtonPanel {...button_panel_props} />
 {/if}
 
 <style>
@@ -213,18 +226,13 @@
 	/* avatar styles */
 	.avatar-container {
 		flex-shrink: 0;
-		width: 35px;
-		height: 35px;
 		border-radius: 50%;
 		border: 1px solid var(--border-color-primary);
 		overflow: hidden;
 	}
 
 	.avatar-container :global(img) {
-		width: 100%;
-		height: 100%;
 		object-fit: cover;
-		padding: 6px;
 	}
 
 	/* message wrapper */
@@ -251,7 +259,7 @@
 		border: none;
 	}
 
-	.message-row :global(img) {
+	.message-row :not(.avatar-container) :global(img) {
 		margin: var(--size-2);
 		max-height: 300px;
 	}

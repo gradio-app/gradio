@@ -63,16 +63,14 @@ class Video(StreamingOutput, Component):
 
     def __init__(
         self,
-        value: str
-        | Path
-        | tuple[str | Path, str | Path | None]
-        | Callable
-        | None = None,
+        value: (
+            str | Path | tuple[str | Path, str | Path | None] | Callable | None
+        ) = None,
         *,
         format: str | None = None,
-        sources: list[Literal["upload", "webcam"]]
-        | Literal["upload", "webcam"]
-        | None = None,
+        sources: (
+            list[Literal["upload", "webcam"]] | Literal["upload", "webcam"] | None
+        ) = None,
         height: int | str | None = None,
         width: int | str | None = None,
         label: str | None = None,
@@ -559,6 +557,7 @@ class Video(StreamingOutput, Component):
                 # Need to set orig_name so that downloaded file has correct
                 # extension
                 "orig_name": "video-stream.mp4",
+                "meta": {"_type": "gradio.FileData"},
             }
         }
         if value is None:

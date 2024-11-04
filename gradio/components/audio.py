@@ -83,9 +83,11 @@ class Audio(
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        sources: list[Literal["upload", "microphone"]]
-        | Literal["upload", "microphone"]
-        | None = None,
+        sources: (
+            list[Literal["upload", "microphone"]]
+            | Literal["upload", "microphone"]
+            | None
+        ) = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: Timer | float | None = None,
@@ -339,6 +341,7 @@ class Audio(
             "path": output_id,
             "is_stream": True,
             "orig_name": "audio-stream.mp3",
+            "meta": {"_type": "gradio.FileData"},
         }
         if value is None:
             return None, output_file
