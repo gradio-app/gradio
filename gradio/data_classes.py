@@ -221,17 +221,17 @@ class FileData(GradioModel):
         meta: Additional metadata used internally (should not be changed).
     """
 
-    path: str
-    url: Optional[str] = None
-    size: Optional[int] = None
-    orig_name: Optional[str] = None
+    path: str  # server filepath
+    url: Optional[str] = None  # normalised server url
+    size: Optional[int] = None  # size in bytes
+    orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
     is_stream: bool = False
     meta: dict = {"_type": "gradio.FileData"}
 
     @model_validator(mode="before")
     @classmethod
-    def validate_python(cls, v, info: ValidationInfo):
+    def validate_model(cls, v, info: ValidationInfo):
         if (
             info.context
             and info.context.get("validate_meta")
