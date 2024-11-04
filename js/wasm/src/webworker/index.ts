@@ -2,6 +2,7 @@
 /* eslint-env worker */
 
 import type {
+	PackageData,
 	PyodideInterface,
 	loadPyodide as loadPyodideValue
 } from "pyodide";
@@ -175,7 +176,8 @@ anyio.to_thread.run_sync = mocked_anyio_to_thread_run_sync
 async function initializeApp(
 	appId: string,
 	options: InMessageInitApp["data"],
-	updateProgress: (log: string) => void
+	updateProgress: (log: string) => void,
+	onModulesAutoLoaded: (packages: PackageData[]) => void
 ): Promise<void> {
 	const appHomeDir = getAppHomeDir(appId);
 	console.debug("Creating a home directory for the app.", {
@@ -186,6 +188,7 @@ async function initializeApp(
 
 	console.debug("Mounting files.", options.files);
 	updateProgress("Mounting files");
+	const pythonFileContents: string[] = [];
 	await Promise.all(
 		Object.keys(options.files).map(async (path) => {
 			const file = options.files[path];
@@ -204,6 +207,10 @@ async function initializeApp(
 			const appifiedPath = resolveAppHomeBasedPath(appId, path);
 			console.debug(`Write a file "${appifiedPath}"`);
 			writeFileWithParents(pyodide, appifiedPath, data, opts);
+
+			if (typeof data === "string" && path.endsWith(".py")) {
+				pythonFileContents.push(data);
+			}
 		})
 	);
 	console.debug("Files are mounted.");
@@ -213,7 +220,22 @@ async function initializeApp(
 	await micropip.install.callKwargs(options.requirements, { keep_going: true });
 	console.debug("Packages are installed.");
 
-	if (options.requirements.includes("matplotlib")) {
+	console.debug("Auto-loading modules.");
+	const loadedPackagesArr = await Promise.all(
+		pythonFileContents.map((source) => pyodide.loadPackagesFromImports(source))
+	);
+	const loadedPackagesSet = new Set(loadedPackagesArr.flat()); // Remove duplicates
+	const loadedPackages = Array.from(loadedPackagesSet);
+	if (loadedPackages.length > 0) {
+		onModulesAutoLoaded(loadedPackages);
+	}
+	const loadedPackageNames = loadedPackages.map((pkg) => pkg.name);
+	console.debug("Modules are auto-loaded.", loadedPackages);
+
+	if (
+		options.requirements.includes("matplotlib") ||
+		loadedPackageNames.includes("matplotlib")
+	) {
 		console.debug("Setting matplotlib backend.");
 		updateProgress("Setting matplotlib backend");
 		// Ref: https://github.com/pyodide/pyodide/issues/561#issuecomment-1992613717
@@ -274,6 +296,15 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 		};
 		receiver.postMessage(message);
 	};
+	const onModulesAutoLoaded = (packages: PackageData[]) => {
+		const message: OutMessage = {
+			type: "modules-auto-loaded",
+			data: {
+				packages
+			}
+		};
+		receiver.postMessage(message);
+	};
 
 	// App initialization is per app or receiver, so its promise is managed in this scope.
 	let appReadyPromise: Promise<void> | undefined = undefined;
@@ -320,7 +351,12 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 			await envReadyPromise;
 
 			if (msg.type === "init-app") {
-				appReadyPromise = initializeApp(appId, msg.data, updateProgress);
+				appReadyPromise = initializeApp(
+					appId,
+					msg.data,
+					updateProgress,
+					onModulesAutoLoaded
+				);
 
 				const replyMessage: ReplyMessageSuccess = {
 					type: "reply:success",
@@ -346,6 +382,15 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				}
 				case "run-python-code": {
 					unload_local_modules();
+
+					console.debug(`Auto install the requirements`);
+					const loadedPackages = await pyodide.loadPackagesFromImports(
+						msg.data.code
+					);
+					if (loadedPackages.length > 0) {
+						onModulesAutoLoaded(loadedPackages);
+					}
+					console.debug("Modules are auto-loaded.", loadedPackages);
 
 					await run_code(appId, getAppHomeDir(appId), msg.data.code);
 
@@ -379,6 +424,16 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				}
 				case "file:write": {
 					const { path, data: fileData, opts } = msg.data;
+
+					if (typeof fileData === "string" && path.endsWith(".py")) {
+						console.debug(`Auto install the requirements in ${path}`);
+						const loadedPackages =
+							await pyodide.loadPackagesFromImports(fileData);
+						if (loadedPackages.length > 0) {
+							onModulesAutoLoaded(loadedPackages);
+						}
+						console.debug("Modules are auto-loaded.", loadedPackages);
+					}
 
 					const appifiedPath = resolveAppHomeBasedPath(appId, path);
 
