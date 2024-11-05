@@ -44,6 +44,7 @@
 	export let msg_format: "tuples" | "messages";
 	export let handle_action: (selected: string | null) => void;
 	export let scroll: () => void;
+	export let allow_file_downloads = false;
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -147,11 +148,23 @@
 					aria-label={role + "'s message: " + get_message_label_data(message)}
 				>
 					{#if message.type === "text"}
-						{#if message.metadata.title}
-							<MessageBox
-								title={message.metadata.title}
-								expanded={is_last_bot_message([message], value)}
-							>
+						<div class="message-content">
+							{#if message.metadata.title}
+								<MessageBox
+									title={message.metadata.title}
+									expanded={is_last_bot_message([message], value)}
+								>
+									<Markdown
+										message={message.content}
+										{latex_delimiters}
+										{sanitize_html}
+										{render_markdown}
+										{line_breaks}
+										on:load={scroll}
+										{root}
+									/>
+								</MessageBox>
+							{:else}
 								<Markdown
 									message={message.content}
 									{latex_delimiters}
@@ -161,18 +174,8 @@
 									on:load={scroll}
 									{root}
 								/>
-							</MessageBox>
-						{:else}
-							<Markdown
-								message={message.content}
-								{latex_delimiters}
-								{sanitize_html}
-								{render_markdown}
-								{line_breaks}
-								on:load={scroll}
-								{root}
-							/>
-						{/if}
+							{/if}
+						</div>
 					{:else if message.type === "component" && message.content.component in _components}
 						<Component
 							{target}
@@ -185,6 +188,7 @@
 							{upload}
 							{_fetch}
 							on:load={() => scroll()}
+							{allow_file_downloads}
 						/>
 					{:else if message.type === "component" && message.content.component === "file"}
 						<a
@@ -316,7 +320,6 @@
 		box-shadow: var(--shadow-drop);
 		align-self: flex-start;
 		text-align: right;
-		padding: var(--spacing-sm) var(--spacing-xl);
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}
@@ -330,7 +333,6 @@
 		box-shadow: var(--shadow-drop);
 		align-self: flex-start;
 		text-align: right;
-		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.panel .user :global(*) {
@@ -417,17 +419,6 @@
 		overflow-wrap: break-word;
 	}
 
-	.user {
-		border-width: 1px;
-		border-radius: var(--radius-md);
-		align-self: flex-start;
-		border-bottom-right-radius: 0;
-		box-shadow: var(--shadow-drop);
-		text-align: right;
-		padding: var(--spacing-sm) var(--spacing-xl);
-		border-color: var(--border-color-accent-subdued);
-		background-color: var(--color-accent-soft);
-	}
 	@media (max-width: 480px) {
 		.user-row.bubble {
 			align-self: flex-end;
@@ -439,6 +430,10 @@
 		.message {
 			width: 100%;
 		}
+	}
+
+	.message-content {
+		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.avatar-container {

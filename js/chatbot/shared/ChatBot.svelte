@@ -85,6 +85,7 @@
 	export let _undoable = false;
 	export let like_user_message = false;
 	export let root: string;
+	export let allow_file_downloads = false;
 
 	let target: HTMLElement | null = null;
 
@@ -326,6 +327,7 @@
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					scroll={is_browser ? scroll : () => {}}
+					{allow_file_downloads}
 				/>
 			{/each}
 			{#if pending_message}
