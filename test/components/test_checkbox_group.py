@@ -28,7 +28,7 @@ class TestCheckboxGroup:
         expected_error_message = r"Value: '1' \(type: <class 'str'>\) is not in the list of choices: \[1, 2, 3\]"
         with pytest.raises(gr.Error, match=expected_error_message):
             checkboxes_input.preprocess(["1", "2", "3"])
-        
+
         # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
         # so we need to test that case as well
         checkboxgroup = gr.CheckboxGroup(["a", "b", ["c", "c full"]])  # type: ignore
