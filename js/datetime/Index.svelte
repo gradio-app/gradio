@@ -5,7 +5,7 @@
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
-	import { Back, Calendar } from "@gradio/icons";
+	import { Calendar } from "@gradio/icons";
 
 	export let gradio: Gradio<{
 		change: undefined;
@@ -30,6 +30,9 @@
 		entered_value = value;
 		datevalue = value;
 		gradio.dispatch("change");
+		if (value === null) {
+			gradio.dispatch("clear");
+		}
 	}
 
 	const format_date = (date: Date): string => {
