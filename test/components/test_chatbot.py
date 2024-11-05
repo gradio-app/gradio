@@ -51,6 +51,7 @@ class TestChatbot:
             "_selectable": False,
             "_retryable": False,
             "_undoable": False,
+            "allow_file_downloads": False,
             "key": None,
             "type": "tuples",
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
