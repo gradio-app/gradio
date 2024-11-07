@@ -229,7 +229,32 @@
 		event.preventDefault();
 		dragging = false;
 		if (event.dataTransfer && event.dataTransfer.files) {
-			upload_component.load_files(Array.from(event.dataTransfer.files));
+			const files = Array.from(event.dataTransfer.files);
+
+			if (file_types) {
+				const valid_files = files.filter((file) => {
+					return file_types.some((type) => {
+						if (type.startsWith(".")) {
+							return file.name.toLowerCase().endsWith(type.toLowerCase());
+						}
+						return file.type.match(new RegExp(type.replace("*", ".*")));
+					});
+				});
+
+				const invalid_files = files.length - valid_files.length;
+				if (invalid_files > 0) {
+					dispatch(
+						"error",
+						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`
+					);
+				}
+
+				if (valid_files.length > 0) {
+					upload_component.load_files(valid_files);
+				}
+			} else {
+				upload_component.load_files(files);
+			}
 		}
 	}
 </script>
@@ -370,6 +395,13 @@
 	.full-container {
 		width: 100%;
 		position: relative;
+		padding: var(--block-padding);
+		border: 1px solid transparent;
+	}
+
+	.full-container.dragging {
+		border: 1px solid var(--color-accent);
+		border-radius: calc(var(--radius-sm) - 1px);
 	}
 
 	.full-container.dragging::after {
