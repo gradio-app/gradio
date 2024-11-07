@@ -98,6 +98,10 @@ def test_is_valid_file_type(path_or_url, file_types, expected_result):
             "ゆかりです｡私､こんなかわいい服は初めて着ました…｡なんだかうれしくって､楽しいです｡歌いたくなる気分って､初めてです｡これがｱｲﾄﾞﾙってことなのかもしれませんね",
             "ゆかりです私こんなかわいい服は初めて着ましたなんだかうれしくって楽しいです歌いたくなる気分って初めてですこれがｱｲﾄﾞﾙってことなの",
         ),
+        (
+            "Bringing-computational-thinking-into-classrooms-a-systematic-review-on-supporting-teachers-in-integrating-computational-thinking-into-K12-classrooms_2024_Springer-Science-and-Business-Media-Deutschland-GmbH.pdf",
+            "Bringing-computational-thinking-into-classrooms-a-systematic-review-on-supporting-teachers-in-integrating-computational-thinking-into-K12-classrooms_2024_Springer-Science-and-Business-Media-Deutsc.pdf",
+        ),
     ],
 )
 def test_strip_invalid_filename_characters(orig_filename, new_filename):
