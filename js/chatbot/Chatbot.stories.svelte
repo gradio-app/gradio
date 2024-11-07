@@ -186,7 +186,6 @@ This document is a showcase of various Markdown capabilities.`,
 <Story
 	name="Chatbot with image in markdown"
 	args={{
-		allow_file_downloads: true,
 		value: [
 			[
 				`![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)`

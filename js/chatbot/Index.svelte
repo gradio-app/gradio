@@ -62,7 +62,6 @@
 		undo: UndoRetryData;
 		clear: null;
 	}>;
-	export let allow_file_downloads = false;
 
 	let _value: NormalisedMessage[] | null = [];
 
@@ -158,7 +157,6 @@
 			load_component={gradio.load_component}
 			msg_format={type}
 			root={gradio.root}
-			{allow_file_downloads}
 		/>
 	</div>
 </Block>

@@ -57,14 +57,6 @@
 			{#if show_copy}
 				<Copy value={message_text} />
 			{/if}
-			{#if show_download && !Array.isArray(message) && is_component_message(message)}
-				<DownloadLink
-					href={message?.content?.value.url}
-					download={message.content.value.orig_name || "image"}
-				>
-					<IconButton Icon={DownloadIcon} />
-				</DownloadLink>
-			{/if}
 			{#if show_retry}
 				<IconButton
 					Icon={Retry}

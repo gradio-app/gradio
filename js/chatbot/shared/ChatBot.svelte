@@ -92,7 +92,6 @@
 	export let _undoable = false;
 	export let like_user_message = false;
 	export let root: string;
-	export let allow_file_downloads = false;
 
 	let target: HTMLElement | null = null;
 
@@ -300,14 +299,13 @@
 								on:click={() => (is_image_preview_open = false)}
 								label={"Clear"}
 							/>
-							{#if allow_file_downloads}
-								<DownloadLink
-									href={image_preview_source}
-									download={image_preview_source_alt || "image"}
-								>
-									<IconButton Icon={Download} label={"Download"} />
-								</DownloadLink>
-							{/if}
+
+							<DownloadLink
+								href={image_preview_source}
+								download={image_preview_source_alt || "image"}
+							>
+								<IconButton Icon={Download} label={"Download"} />
+							</DownloadLink>
 						</IconButtonWrapper>
 					</div>
 				{/if}
@@ -342,7 +340,6 @@
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					scroll={is_browser ? scroll : () => {}}
-					{allow_file_downloads}
 				/>
 			{/each}
 			{#if pending_message}
