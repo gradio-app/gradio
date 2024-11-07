@@ -806,7 +806,7 @@
 				on:close={(event) => {
 					set_api_docs_visible(false);
 					api_calls = [];
-					api_recorder_visible = event.detail.api_recorder_visible;
+					api_recorder_visible = event.detail?.api_recorder_visible;
 				}}
 				{dependencies}
 				{root}

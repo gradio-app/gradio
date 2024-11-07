@@ -1,5 +1,77 @@
 # @gradio/core
 
+## 0.3.0
+
+### Features
+
+- [#9786](https://github.com/gradio-app/gradio/pull/9786) [`f109497`](https://github.com/gradio-app/gradio/commit/f109497e8281b3429b58e3f6a293dd63ebcc08af) - Fix frontend errors on ApiDocs and RecordingSnippet.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/code@0.10.7
+- @gradio/paramviewer@0.5.6
+- @gradio/video@0.11.7
+- @gradio/statustracker@0.9.4
+- @gradio/button@0.3.6
+- @gradio/atoms@0.11.0
+- @gradio/column@0.2.0
+- @gradio/file@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/checkbox@0.4.6
+- @gradio/wasm@0.15.0
+- @gradio/image@0.16.7
+- @gradio/gallery@0.13.7
+- @gradio/plot@0.9.1
+- @gradio/textbox@0.8.5
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/video@0.11.6
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/image@0.16.6
+- @gradio/upload@0.13.5
+- @gradio/plot@0.9.0
+- @gradio/gallery@0.13.6
+- @gradio/tabs@0.3.3
+- @gradio/tabitem@0.3.3
+- @gradio/code@0.10.6
+- @gradio/paramviewer@0.5.5
+- @gradio/button@0.3.5
+- @gradio/textbox@0.8.4
+- @gradio/column@0.2.0
+- @gradio/checkbox@0.4.5
+- @gradio/file@0.10.6
+
+## 0.2.1
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/button@0.3.4
+- @gradio/video@0.11.5
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+- @gradio/upload@0.13.4
+- @gradio/plot@0.8.0
+- @gradio/gallery@0.13.5
+- @gradio/tabs@0.3.2
+- @gradio/column@0.2.0
+- @gradio/tabitem@0.3.2
+- @gradio/code@0.10.5
+- @gradio/paramviewer@0.5.4
+- @gradio/textbox@0.8.3
+- @gradio/file@0.10.5
+- @gradio/checkbox@0.4.4
+- @gradio/image@0.16.5
+
 ## 0.2.0
 
 ### Dependency updates

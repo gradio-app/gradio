@@ -6,6 +6,7 @@ from gradio_client.documentation import document
 
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
+from gradio.events import Events
 
 if TYPE_CHECKING:
     pass
@@ -20,7 +21,7 @@ class Accordion(BlockContext, metaclass=ComponentMeta):
             gr.Markdown("lorem ipsum")
     """
 
-    EVENTS = []
+    EVENTS = [Events.expand, Events.collapse]
 
     def __init__(
         self,

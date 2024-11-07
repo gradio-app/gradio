@@ -1,6 +1,6 @@
 import adapter from "@sveltejs/adapter-node";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
-import sveltePreprocess from "svelte-preprocess";
+import { sveltePreprocess } from "svelte-preprocess";
 import custom_media from "postcss-custom-media";
 import global_data from "@csstools/postcss-global-data";
 import { resolve } from "path";
@@ -13,7 +13,6 @@ const theme_token_path = join(
 	__dirname,
 	"..",
 	"..",
-
 	"theme",
 	"src",
 	"tokens.css"

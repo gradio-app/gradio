@@ -1,5 +1,34 @@
 # @self/app
 
+## 1.43.1
+
+### Dependency updates
+
+- @gradio/wasm@0.15.0
+- @gradio/core@0.3.0
+
+## 1.43.0
+
+### Features
+
+- [#9794](https://github.com/gradio-app/gradio/pull/9794) [`70bda3b`](https://github.com/gradio-app/gradio/commit/70bda3bb187a7219f4707344cf47edd0a021da19) - fix storybook build.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@1.7.1
+- @gradio/core@0.2.1
+
+## 1.42.1
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @self/build@0.2.0
+- @gradio/core@0.2.1
+
 ## 1.42.0
 
 ### Features

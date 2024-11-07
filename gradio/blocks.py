@@ -18,12 +18,7 @@ from collections import defaultdict
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
 from pathlib import Path
 from types import ModuleType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Literal,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Literal, Union, cast
 from urllib.parse import urlparse, urlunparse
 
 import anyio
@@ -1702,10 +1697,12 @@ Received inputs:
                         check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
-                        if issubclass(block.data_model, GradioModel):  # type: ignore
-                            inputs_cached = block.data_model(**inputs_cached)  # type: ignore
-                        elif issubclass(block.data_model, GradioRootModel):  # type: ignore
-                            inputs_cached = block.data_model(root=inputs_cached)  # type: ignore
+                        data_model = cast(
+                            Union[GradioModel, GradioRootModel], block.data_model
+                        )
+                        inputs_cached = data_model.model_validate(
+                            inputs_cached, context={"validate_meta": True}
+                        )
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
@@ -1744,6 +1741,10 @@ Received inputs:
         [{received}]"""
                 )
             else:
+                if len(predictions) == 1 and predictions[0] is None:
+                    # do not throw error if the function did not return anything
+                    # https://github.com/gradio-app/gradio/issues/9742
+                    return
                 warnings.warn(
                     f"""A function{name} returned too many output values (needed: {len(dep_outputs)}, returned: {len(predictions)}). Ignoring extra values.
     Output components:

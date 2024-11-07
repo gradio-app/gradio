@@ -371,6 +371,31 @@ class UndoData(EventData):
         """
 
 
+@document()
+class DownloadData(EventData):
+    """
+    The gr.DownloadData class is a subclass of gr.EventData that specifically carries information about the `.download()` event. When gr.DownloadData
+    is added as a type hint to an argument of an event listener method, a gr.DownloadData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def on_download(download_data: gr.DownloadData):
+            return f"Downloaded file: {download_data.file.path}"
+        with gr.Blocks() as demo:
+            files = gr.File()
+            textbox = gr.Textbox()
+            files.download(on_download, None, textbox)
+        demo.launch()
+    """
+
+    def __init__(self, target: Block | None, data: FileDataDict):
+        super().__init__(target, data)
+        self.file: FileData = FileData(**data)
+        """
+        The file that was downloaded, as a FileData object.
+        """
+
+
 @dataclasses.dataclass
 class EventListenerMethod:
     block: Block | None
@@ -618,6 +643,17 @@ class EventListener(str):
         event_trigger.event_name = _event_name  # type: ignore
         event_trigger.has_trigger = _has_trigger  # type: ignore
         event_trigger.callback = _callback  # type: ignore
+        event_trigger.connection = _connection  # type: ignore
+        event_specific_args = (
+            [
+                d["name"]
+                for d in _event_specific_args
+                if d.get("component_prop", "true") != "false"
+            ]
+            if _event_specific_args
+            else None
+        )
+        event_trigger.event_specific_args = event_specific_args  # type: ignore
         return event_trigger
 
 
@@ -650,6 +686,8 @@ def on(
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
     show_api: bool = True,
+    time_limit: int | None = None,
+    stream_every: float = 0.5,
 ) -> Dependency:
     """
     Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
@@ -675,6 +713,8 @@ def on(
         concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+        time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
+        stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
     Example:
         import gradio as gr
         with gr.Blocks() as demo:
@@ -721,6 +761,8 @@ def on(
                 concurrency_id=concurrency_id,
                 show_api=show_api,
                 trigger_mode=trigger_mode,
+                time_limit=time_limit,
+                stream_every=stream_every,
             )
 
             @wraps(func)
@@ -768,6 +810,16 @@ def on(
         max_batch_size=max_batch_size,
         show_api=show_api,
         trigger_mode=trigger_mode,
+        connection="stream"
+        if any(t.connection == "stream" for t in (triggers_typed or []))
+        else "sse",
+        event_specific_args=[
+            a
+            for t in (triggers_typed or [])
+            for a in cast(list[str], t.event_specific_args or [])
+        ],
+        time_limit=time_limit,
+        stream_every=stream_every,
     )
     set_cancel_events(methods, cancels)
     return Dependency(None, dep.get_config(), dep_index, fn)
@@ -800,7 +852,7 @@ class Events:
     )
     clear = EventListener(
         "clear",
-        doc="This listener is triggered when the user clears the {{ component }} using the X button for the component.",
+        doc="This listener is triggered when the user clears the {{ component }} using the clear button for the component.",
     )
     play = EventListener(
         "play",
@@ -922,4 +974,16 @@ class Events:
         doc="This listener is triggered when the user clicks the retry button in the chatbot message.",
         callback=lambda block: setattr(block, "_retryable", True),
         config_data=lambda: {"_retryable": False},
+    )
+    expand = EventListener(
+        "expand",
+        doc="This listener is triggered when the {{ component }} is expanded.",
+    )
+    collapse = EventListener(
+        "collapse",
+        doc="This listener is triggered when the {{ component }} is collapsed.",
+    )
+    download = EventListener(
+        "download",
+        doc="This listener is triggered when the user downloads a file from the {{ component }}. Uses event data gradio.DownloadData to carry information about the downloaded file as a FileData object. See EventData documentation on how to use this event data",
     )
