@@ -1,5 +1,11 @@
 # @self/component-test
 
+## 0.3.1
+
+### Dependency updates
+
+- @gradio/video@0.11.7
+
 ## 0.3.0
 
 ### Features
