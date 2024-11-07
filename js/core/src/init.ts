@@ -1,4 +1,5 @@
 import { writable, type Writable, get } from "svelte/store";
+
 import type {
 	ComponentMeta,
 	Dependency,
@@ -18,16 +19,24 @@ export interface UpdateTransaction {
 }
 
 let pending_updates: UpdateTransaction[][] = [];
+const is_browser = typeof window !== "undefined";
+const raf = is_browser
+	? requestAnimationFrame
+	: async (fn: () => Promise<void> | void) => await fn();
 
 /**
  * Create a store with the layout and a map of targets
  * @returns A store with the layout and a map of targets
  */
-export function create_components(): {
+let has_run = new Set<number>();
+export function create_components(initial_layout: ComponentMeta | undefined): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
 	update_value: (updates: UpdateTransaction[]) => void;
 	get_data: (id: number) => any | Promise<any>;
+	modify_stream: (id: number, state: "open" | "waiting" | "closed") => void;
+	get_stream_state: (id: number) => "open" | "waiting" | "closed" | "not_set";
+	set_time_limit: (id: number, time_limit: number | undefined) => void;
 	loading_status: ReturnType<typeof create_loading_status_store>;
 	scheduled_updates: Writable<boolean>;
 	create_layout: (args: {
@@ -39,7 +48,7 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-	}) => void;
+	}) => Promise<void>;
 	rerender_layout: (args: {
 		render_id: number;
 		components: ComponentMeta[];
@@ -58,13 +67,26 @@ export function create_components(): {
 	let instance_map: { [id: number]: ComponentMeta };
 	let loading_status: ReturnType<typeof create_loading_status_store> =
 		create_loading_status_store();
-	const layout_store: Writable<ComponentMeta> = writable();
+	const layout_store: Writable<ComponentMeta> = writable(initial_layout);
 	let _components: ComponentMeta[] = [];
 	let app: client_return;
 	let keyed_component_values: Record<string | number, any> = {};
 	let _rootNode: ComponentMeta;
 
-	function create_layout({
+	function set_event_specific_args(dependencies: Dependency[]): void {
+		dependencies.forEach((dep) => {
+			dep.targets.forEach((target) => {
+				const instance = instance_map[target[0]];
+				if (instance && dep.event_specific_args?.length > 0) {
+					dep.event_specific_args?.forEach((arg: string) => {
+						instance.props[arg] = dep[arg as keyof Dependency];
+					});
+				}
+			});
+		});
+	}
+
+	async function create_layout({
 		app: _app,
 		components,
 		layout,
@@ -80,7 +102,9 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-	}): void {
+	}): Promise<void> {
+		// make sure the state is settled before proceeding
+		flush();
 		app = _app;
 		store_keyed_values(_components);
 
@@ -130,9 +154,10 @@ export function create_components(): {
 			{} as { [id: number]: ComponentMeta }
 		);
 
-		walk_layout(layout, root).then(() => {
-			layout_store.set(_rootNode);
-		});
+		await walk_layout(layout, root);
+
+		layout_store.set(_rootNode);
+		set_event_specific_args(dependencies);
 	}
 
 	/**
@@ -208,6 +233,8 @@ export function create_components(): {
 		walk_layout(layout, root, current_element.parent).then(() => {
 			layout_store.set(_rootNode);
 		});
+
+		set_event_specific_args(dependencies);
 	}
 
 	async function walk_layout(
@@ -265,6 +292,33 @@ export function create_components(): {
 			);
 		}
 
+		if (instance.type === "tabs" && !instance.props.initial_tabs) {
+			const tab_items_props =
+				node.children?.map((c) => {
+					const instance = instance_map[c.id];
+					// console.log("tabs", JSON.stringify(instance.props, null, 2));
+					instance.props.id ??= c.id;
+					return {
+						type: instance.type,
+						props: {
+							...(instance.props as any),
+							id: instance.props.id
+						}
+					};
+				}) || [];
+
+			const child_tab_items = tab_items_props.filter(
+				(child) => child.type === "tabitem"
+			);
+
+			instance.props.initial_tabs = child_tab_items?.map((child) => ({
+				label: child.props.label,
+				id: child.props.id,
+				visible: child.props.visible,
+				interactive: child.props.interactive
+			}));
+		}
+
 		return instance;
 	}
 
@@ -292,7 +346,7 @@ export function create_components(): {
 					else if (update.value instanceof Set)
 						new_value = new Set(update.value);
 					else if (Array.isArray(update.value)) new_value = [...update.value];
-					else if (update.value === null) new_value = null;
+					else if (update.value == null) new_value = null;
 					else if (typeof update.value === "object")
 						new_value = { ...update.value };
 					else new_value = update.value;
@@ -301,7 +355,6 @@ export function create_components(): {
 			}
 			return layout;
 		});
-
 		pending_updates = [];
 		update_scheduled = false;
 		update_scheduled_store.set(false);
@@ -314,12 +367,15 @@ export function create_components(): {
 		if (!update_scheduled) {
 			update_scheduled = true;
 			update_scheduled_store.set(true);
-			requestAnimationFrame(flush);
+			raf(flush);
 		}
 	}
-
 	function get_data(id: number): any | Promise<any> {
-		const comp = _component_map.get(id);
+		let comp = _component_map.get(id);
+		if (!comp) {
+			const layout = get(layout_store);
+			comp = findComponentById(layout, id);
+		}
 		if (!comp) {
 			return null;
 		}
@@ -329,15 +385,61 @@ export function create_components(): {
 		return comp.props.value;
 	}
 
+	function findComponentById(
+		node: ComponentMeta,
+		id: number
+	): ComponentMeta | undefined {
+		if (node.id === id) {
+			return node;
+		}
+		if (node.children) {
+			for (const child of node.children) {
+				const result = findComponentById(child, id);
+				if (result) {
+					return result;
+				}
+			}
+		}
+		return undefined;
+	}
+
+	function modify_stream(
+		id: number,
+		state: "open" | "closed" | "waiting"
+	): void {
+		const comp = _component_map.get(id);
+		if (comp && comp.instance.modify_stream_state) {
+			comp.instance.modify_stream_state(state);
+		}
+	}
+
+	function get_stream_state(
+		id: number
+	): "open" | "closed" | "waiting" | "not_set" {
+		const comp = _component_map.get(id);
+		if (comp && comp.instance.get_stream_state)
+			return comp.instance.get_stream_state();
+		return "not_set";
+	}
+
+	function set_time_limit(id: number, time_limit: number | undefined): void {
+		const comp = _component_map.get(id);
+		if (comp && comp.instance.set_time_limit) {
+			comp.instance.set_time_limit(time_limit);
+		}
+	}
+
 	return {
 		layout: layout_store,
 		targets: target_map,
 		update_value,
 		get_data,
+		modify_stream,
+		get_stream_state,
+		set_time_limit,
 		loading_status,
 		scheduled_updates: update_scheduled_store,
-		create_layout: (...args) =>
-			requestAnimationFrame(() => create_layout(...args)),
+		create_layout: create_layout,
 		rerender_layout
 	};
 }

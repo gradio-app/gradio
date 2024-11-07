@@ -1,5 +1,7 @@
 <script lang="ts">
 	export let height: number | string | undefined = undefined;
+	export let min_height: number | string | undefined = undefined;
+	export let max_height: number | string | undefined = undefined;
 	export let width: number | string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -12,8 +14,12 @@
 	export let container = true;
 	export let visible = true;
 	export let allow_overflow = true;
+	export let overflow_behavior: "visible" | "auto" = "auto";
 	export let scale: number | null = null;
 	export let min_width = 0;
+	export let flex = false;
+
+	if (!visible) flex = false;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
@@ -38,18 +44,22 @@
 	class:hidden={visible === false}
 	class="block {elem_classes.join(' ')}"
 	class:padded={padding}
+	class:flex
 	class:border_focus={border_mode === "focus"}
 	class:border_contrast={border_mode === "contrast"}
 	class:hide-container={!explicit_call && !container}
 	style:height={get_dimension(height)}
+	style:min-height={get_dimension(min_height)}
+	style:max-height={get_dimension(max_height)}
 	style:width={typeof width === "number"
 		? `calc(min(${width}px, 100%))`
 		: get_dimension(width)}
 	style:border-style={variant}
-	style:overflow={allow_overflow ? "visible" : "hidden"}
+	style:overflow={allow_overflow ? overflow_behavior : "hidden"}
 	style:flex-grow={scale}
 	style:min-width={`calc(min(${min_width}px, 100%))`}
 	style:border-width="var(--block-border-width)"
+	class:auto-margin={scale === null}
 >
 	<slot />
 </svelte:element>
@@ -67,6 +77,11 @@
 		line-height: var(--line-sm);
 	}
 
+	.auto-margin {
+		margin-left: auto;
+		margin-right: auto;
+	}
+
 	.block.border_focus {
 		border-color: var(--color-accent);
 	}
@@ -81,6 +96,11 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.flex {
+		display: flex;
+		flex-direction: column;
 	}
 	.hide-container {
 		margin: 0;

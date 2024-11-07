@@ -41,9 +41,13 @@
 		select: SelectData;
 		clear_status: LoadingStatus;
 		delete: FileData;
+		download: FileData;
 	}>;
 	export let file_count: "single" | "multiple" | "directory";
 	export let file_types: string[] = ["file"];
+	export let input_ready: boolean;
+	let uploading = false;
+	$: input_ready = !uploading;
 
 	let old_value = value;
 	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
@@ -79,6 +83,7 @@
 	{#if !interactive}
 		<File
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
+			on:download={({ detail }) => gradio.dispatch("download", detail)}
 			selectable={_selectable}
 			{value}
 			{label}
@@ -88,8 +93,8 @@
 		/>
 	{:else}
 		<FileUpload
-			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream}
+			upload={(...args) => gradio.client.upload(...args)}
+			stream_handler={(...args) => gradio.client.stream(...args)}
 			{label}
 			{show_label}
 			{value}
@@ -98,6 +103,7 @@
 			selectable={_selectable}
 			{root}
 			{height}
+			bind:uploading
 			max_file_size={gradio.max_file_size}
 			on:change={({ detail }) => {
 				value = detail;

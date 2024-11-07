@@ -10,7 +10,15 @@
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData, Client } from "@gradio/client";
-	import { Clear, File, Music, Paperclip, Video, Send } from "@gradio/icons";
+	import {
+		Clear,
+		File,
+		Music,
+		Paperclip,
+		Video,
+		Send,
+		Square
+	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -28,6 +36,7 @@
 	export let container = true;
 	export let max_lines: number;
 	export let submit_btn: string | boolean | null = null;
+	export let stop_btn: string | boolean | null = null;
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
@@ -56,18 +65,6 @@
 		dispatch("change", value);
 		oldValue = value.text;
 	}
-	let accept_file_types: string | null;
-	if (file_types == null) {
-		accept_file_types = null;
-	} else {
-		file_types = file_types.map((x) => {
-			if (x.startsWith(".")) {
-				return x;
-			}
-			return x + "/*";
-		});
-		accept_file_types = file_types.join(", ");
-	}
 
 	$: if (value === null) value = { text: "", files: [] };
 	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
@@ -75,6 +72,7 @@
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
 		submit: undefined;
+		stop: undefined;
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
@@ -188,7 +186,11 @@
 		}
 	}
 
-	async function handle_submit(): Promise<void> {
+	function handle_stop(): void {
+		dispatch("stop");
+	}
+
+	function handle_submit(): void {
 		dispatch("submit");
 	}
 
@@ -227,7 +229,32 @@
 		event.preventDefault();
 		dragging = false;
 		if (event.dataTransfer && event.dataTransfer.files) {
-			upload_component.load_files(Array.from(event.dataTransfer.files));
+			const files = Array.from(event.dataTransfer.files);
+
+			if (file_types) {
+				const valid_files = files.filter((file) => {
+					return file_types.some((type) => {
+						if (type.startsWith(".")) {
+							return file.name.toLowerCase().endsWith(type.toLowerCase());
+						}
+						return file.type.match(new RegExp(type.replace("*", ".*")));
+					});
+				});
+
+				const invalid_files = files.length - valid_files.length;
+				if (invalid_files > 0) {
+					dispatch(
+						"error",
+						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`
+					);
+				}
+
+				if (valid_files.length > 0) {
+					upload_component.load_files(valid_files);
+				}
+			} else {
+				upload_component.load_files(files);
+			}
 		}
 	}
 </script>
@@ -245,7 +272,7 @@
 >
 	<!-- svelte-ignore a11y-autofocus -->
 	<label class:container>
-		<BlockTitle {show_label} {info}>{label}</BlockTitle>
+		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 		{#if value.files.length > 0 || uploading}
 			<div
 				class="thumbnails scroll-hide"
@@ -292,6 +319,7 @@
 				bind:this={upload_component}
 				on:load={handle_upload}
 				{file_count}
+				filetype={file_types}
 				{root}
 				{max_file_size}
 				bind:dragging
@@ -317,6 +345,7 @@
 					max_lines: max_lines
 				}}
 				class="scroll-hide"
+				class:no-label={!show_label}
 				dir={rtl ? "rtl" : "ltr"}
 				bind:value={value.text}
 				bind:this={el}
@@ -341,7 +370,20 @@
 					{#if submit_btn === true}
 						<Send />
 					{:else}
-						Hello World
+						{submit_btn}
+					{/if}
+				</button>
+			{/if}
+			{#if stop_btn}
+				<button
+					class="stop-button"
+					class:padded-button={stop_btn !== true}
+					on:click={handle_stop}
+				>
+					{#if stop_btn === true}
+						<Square fill={"none"} stroke_width={2.5} />
+					{:else}
+						{stop_btn}
 					{/if}
 				</button>
 			{/if}
@@ -353,6 +395,13 @@
 	.full-container {
 		width: 100%;
 		position: relative;
+		padding: var(--block-padding);
+		border: 1px solid transparent;
+	}
+
+	.full-container.dragging {
+		border: 1px solid var(--color-accent);
+		border-radius: calc(var(--radius-sm) - 1px);
 	}
 
 	.full-container.dragging::after {
@@ -374,7 +423,7 @@
 	textarea {
 		flex-grow: 1;
 		outline: none !important;
-		background: var(--input-background-fill);
+		background: var(--block-background-fill);
 		padding: var(--input-padding);
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
@@ -387,6 +436,10 @@
 		position: relative;
 		z-index: 1;
 	}
+	textarea.no-label {
+		padding-top: 5px;
+		padding-bottom: 5px;
+	}
 
 	textarea:disabled {
 		-webkit-opacity: 1;
@@ -398,9 +451,8 @@
 	}
 
 	.upload-button,
-	.submit-button {
-		background: var(--button-secondary-background-fill);
-		color: var(--button-secondary-text-color);
+	.submit-button,
+	.stop-button {
 		border: none;
 		text-align: center;
 		text-decoration: none;
@@ -413,18 +465,31 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		margin-bottom: 5px;
 		z-index: var(--layer-1);
 	}
 	.padded-button {
 		padding: 0 10px;
 	}
 
+	.stop-button,
+	.upload-button,
+	.submit-button {
+		background: var(--button-secondary-background-fill);
+	}
+
+	.stop-button:hover,
 	.upload-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
+	.stop-button:disabled,
+	.upload-button:disabled,
+	.submit-button:disabled {
+		background: var(--button-secondary-background-fill);
+		cursor: initial;
+	}
+	.stop-button:active,
 	.upload-button:active,
 	.submit-button:active {
 		box-shadow: var(--button-shadow-active);
@@ -437,6 +502,11 @@
 	.upload-button :global(svg) {
 		height: 17px;
 		width: 17px;
+	}
+
+	.stop-button :global(svg) {
+		height: 16px;
+		width: 16px;
 	}
 
 	.loader {
@@ -475,6 +545,7 @@
 		gap: var(--spacing-lg);
 		overflow-x: scroll;
 		padding-top: var(--spacing-sm);
+		margin-bottom: 6px;
 	}
 
 	.thumbnail-item {

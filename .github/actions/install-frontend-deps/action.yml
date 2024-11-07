@@ -12,12 +12,20 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # - uses: actions/cache@v4
-    #   id: frontend-cache
-    #   with:
-    #     path: |
-    #       gradio/templates/*
-    #     key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
+    - uses: actions/cache@v4
+      id: frontend-core-cache
+      if: inputs.skip_build == 'false'
+      with:
+        path: |
+          gradio/templates/**
+        key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
+    - uses: actions/cache@v4
+      id: frontend-lite-cache
+      if: inputs.build_lite == 'true'
+      with:
+        path: |
+          js/lite/dist/**
+        key: gradio-lib-front-end-lite-${{ hashFiles('js/**', 'client/js/**', 'gradio/**', 'requirements.txt')}}
     - name: Install pnpm
       uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # @v4
       with:
@@ -34,16 +42,11 @@ runs:
       shell: bash
       run: pnpm css
     - name: Build frontend
-      if: inputs.skip_build == 'false'
-      # && steps.frontend-cache.outputs.cache-hit != 'true'
+      if: inputs.skip_build == 'false' && steps.frontend-core-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
-    - name: generate types
-      if: inputs.skip_build == 'false' || inputs.build_lite == 'true'
-      shell: bash
-      run: pnpm package
     - name: Build frontend lite
-      if: inputs.build_lite == 'true'
+      if: inputs.build_lite == 'true' && steps.frontend-lite-cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
         . venv/bin/activate

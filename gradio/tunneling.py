@@ -7,30 +7,43 @@ import stat
 import subprocess
 import sys
 import time
-import warnings
 from pathlib import Path
-from typing import List
 
 import httpx
 
-VERSION = "0.2"
-CURRENT_TUNNELS: List["Tunnel"] = []
+from gradio.exceptions import ChecksumMismatchError
+
+VERSION = "0.3"
+CURRENT_TUNNELS: list["Tunnel"] = []
 
 machine = platform.machine()
 if machine == "x86_64":
     machine = "amd64"
+elif machine == "aarch64":
+    machine = "arm64"
 
 BINARY_REMOTE_NAME = f"frpc_{platform.system().lower()}_{machine.lower()}"
 EXTENSION = ".exe" if os.name == "nt" else ""
 BINARY_URL = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{BINARY_REMOTE_NAME}{EXTENSION}"
 
 CHECKSUMS = {
-    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_windows_amd64.exe": "cdd756e16622e0e60b697022d8da827a11fefe689325861c58c1003f2f8aa519",
-    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_linux_amd64": "fb74b665633589410540c49dfcef5b6f0fd4a9bd7c9558bcdee2f0e43da0774d",
-    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_linux_arm64": "af13b93897512079ead398224bd58bbaa136fcc5679af023780ee6c0538b3d82",
-    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_darwin_amd64": "6d3bd9f7e92e82fe557ba1d223bdd25317fbc296173a829601926526263c6092",
-    "https://cdn-media.huggingface.co/frpc-gradio-0.2/frpc_darwin_arm64": "0227ae6dafbe59d4e2c4a827d983ecc463eaa61f152216a3ec809c429c08eb31",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_windows_amd64.exe": "14bc0ea470be5d67d79a07412bd21de8a0a179c6ac1116d7764f68e942dc9ceb",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_amd64": "c791d1f047b41ff5885772fc4bf20b797c6059bbd82abb9e31de15e55d6a57c4",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_arm64": "823ced25104de6dc3c9f4798dbb43f20e681207279e6ab89c40e2176ccbf70cd",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_darwin_amd64": "930f8face3365810ce16689da81b7d1941fda4466225a7bbcbced9a2916a6e15",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_darwin_arm64": "dfac50c690aca459ed5158fad8bfbe99f9282baf4166cf7c410a6673fbc1f327",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_arm": "4b563beb2e36c448cc688174e20b53af38dc1ff2b5e362d4ddd1401f2affbfb7",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_freebsd_386": "cb0a56c764ecf96dd54ed601d240c564f060ee4e58202d65ffca17c1a51ce19c",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_freebsd_amd64": "516d9e6903513869a011ddcd1ec206167ad1eb5dd6640d21057acc258edecbbb",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_386": "4c2f2a48cd71571498c0ac8a4d42a055f22cb7f14b4b5a2b0d584220fd60a283",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_mips": "b309ecd594d4f0f7f33e556a80d4b67aef9319c00a8334648a618e56b23cb9e0",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_mips64": "0372ef5505baa6f3b64c6295a86541b24b7b0dbe4ef28b344992e21f47624b7b",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_riscv64": "1658eed7e8c14ea76e1d95749d58441ce24147c3d559381832c725c29cfc3df3",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_mipsle": "a2aaba16961d3372b79bd7a28976fcd0f0bbaebc2b50d5a7a71af2240747960f",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_windows_386.exe": "721b90550195a83e15f2176d8f85a48d5a25822757cb872e9723d4bccc4e5bb6",
+    "https://cdn-media.huggingface.co/frpc-gradio-0.3/frpc_linux_mips64le": "796481edd609f31962b45cc0ab4c9798d040205ae3bf354ed1b72fb432d796b8",
 }
+
 CHUNK_SIZE = 128
 
 BINARY_FILENAME = f"{BINARY_REMOTE_NAME}_v{VERSION}"
@@ -42,6 +55,8 @@ TUNNEL_ERROR_MESSAGE = (
     "Could not create share URL. "
     "Please check the appended log from frpc for more information:"
 )
+
+CERTIFICATE_PATH = ".gradio/certificate.pem"
 
 
 class Tunnel:
@@ -81,9 +96,7 @@ class Tunnel:
                 calculated_hash = sha.hexdigest()
 
                 if calculated_hash != CHECKSUMS[BINARY_URL]:
-                    warnings.warn(
-                        f"Checksum of downloaded binary for creating share links does not match expected value. Please verify the integrity of the downloaded binary located at {BINARY_PATH}."
-                    )
+                    raise ChecksumMismatchError()
 
     def start_tunnel(self) -> str:
         self.download_binary()
@@ -114,6 +127,9 @@ class Tunnel:
             "--server_addr",
             f"{self.remote_host}:{self.remote_port}",
             "--disable_log_color",
+            "--tls_enable",
+            "--tls_trusted_ca_file",
+            CERTIFICATE_PATH,
         ]
         self.proc = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE

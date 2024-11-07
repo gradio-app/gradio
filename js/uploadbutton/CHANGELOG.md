@@ -1,5 +1,121 @@
 # @gradio/uploadbutton
 
+## 0.7.6
+
+### Dependency updates
+
+- @gradio/button@0.3.6
+- @gradio/upload@0.14.0
+
+## 0.7.5
+
+### Dependency updates
+
+- @gradio/client@1.7.1
+- @gradio/upload@0.13.5
+- @gradio/button@0.3.5
+
+## 0.7.4
+
+### Dependency updates
+
+- @gradio/button@0.3.4
+- @gradio/upload@0.13.4
+
+## 0.7.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.3
+- @gradio/button@0.3.3
+
+## 0.7.2
+
+### Dependency updates
+
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/button@0.3.2
+
+## 0.7.1
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+- @gradio/button@0.3.1
+
+## 0.7.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+
+### Dependencies
+
+- @gradio/button@0.3.0
+- @gradio/client@1.6.0
+- @gradio/upload@0.13.0
+- @gradio/utils@0.7.0
+
+## 0.7.0-beta.7
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.7
+- @gradio/button@0.3.0-beta.7
+
+## 0.7.0-beta.6
+
+### Dependency updates
+
+- @gradio/client@1.6.0-beta.4
+- @gradio/upload@0.13.0-beta.6
+- @gradio/button@0.3.0-beta.6
+
+## 0.7.0-beta.5
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.5
+- @gradio/button@0.3.0-beta.5
+
+## 0.7.0-beta.4
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.4
+- @gradio/button@0.3.0-beta.4
+
+## 0.7.0-beta.3
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.3
+- @gradio/client@1.6.0-beta.3
+- @gradio/button@0.3.0-beta.3
+
+## 0.7.0-beta.2
+
+### Features
+
+- [#9339](https://github.com/gradio-app/gradio/pull/9339) [`4c8c6f2`](https://github.com/gradio-app/gradio/commit/4c8c6f2fe603081941c5fdc43f48a0632b9f31ad) - Ssr part 2.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/upload@0.13.0-beta.2
+- @gradio/client@1.6.0-beta.2
+- @gradio/utils@0.7.0-beta.2
+- @gradio/button@0.3.0-beta.2
+
+## 0.6.19-beta.1
+
+### Dependency updates
+
+- @gradio/utils@0.7.0-beta.1
+- @gradio/client@1.6.0-beta.1
+- @gradio/upload@0.12.4-beta.1
+- @gradio/button@0.3.0-beta.1
+
 ## 0.6.19
 
 ### Fixes

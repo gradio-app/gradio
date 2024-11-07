@@ -4,7 +4,7 @@
 	import "@gradio/theme/pollen.css";
 	import "@gradio/theme/typography.css";
 
-	import { onDestroy, SvelteComponent } from "svelte";
+	import { onDestroy, SvelteComponent, createEventDispatcher } from "svelte";
 	import Index from "@self/spa";
 	import Playground from "./Playground.svelte";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
@@ -94,6 +94,12 @@
 		error = (event as CustomEvent).detail;
 	});
 
+	const dispatch = createEventDispatcher();
+
+	worker_proxy.addEventListener("modules-auto-loaded", (event) => {
+		dispatch("modules-auto-loaded", (event as CustomEvent).detail);
+	});
+
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
 	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done
 	// (see the await in the `onmessage` callback in the webworker code)
@@ -155,8 +161,7 @@
 			{:else}
 				<Index
 					space={null}
-					src={null}
-					host={null}
+					src={`http://${FAKE_LITE_HOST}/`}
 					{info}
 					{container}
 					{is_embed}
@@ -181,8 +186,7 @@
 		{:else}
 			<Index
 				space={null}
-				src={null}
-				host={FAKE_LITE_HOST}
+				src={`http://${FAKE_LITE_HOST}/`}
 				{info}
 				{container}
 				{is_embed}

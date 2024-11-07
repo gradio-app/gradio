@@ -4,14 +4,15 @@ import json
 import os
 import sys
 import warnings
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Literal
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
-from typing_extensions import Literal
 
 from gradio import EventData, Request
 from gradio.external_utils import format_ner_list
@@ -31,9 +32,11 @@ from gradio.utils import (
     get_function_params,
     get_type_hints,
     ipython_check,
+    is_allowed_file,
     is_in_or_equal,
     is_special_typed_parameter,
     kaggle_check,
+    safe_deepcopy,
     sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
@@ -370,13 +373,16 @@ def test_is_in_or_equal():
     assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
     assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
     assert not is_in_or_equal("/safe_dir/subdir/../../unsafe_file.txt", "/safe_dir/")
+    assert is_in_or_equal("//foo/asd/", "/foo")
+    assert is_in_or_equal("//foo/..a", "//foo")
+    assert is_in_or_equal("//foo/..²", "/foo")
 
 
 def create_path_string():
     return st.lists(
         st.one_of(
             st.text(
-                alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-",
+                alphabet="ab@1/(",
                 min_size=1,
             ),
             st.just(".."),
@@ -384,7 +390,11 @@ def create_path_string():
         ),
         min_size=1,
         max_size=10,  # Limit depth to avoid excessively long paths
-    ).map(lambda x: os.path.join(*x))
+    ).map(lambda x: os.path.join(*x).replace("(", ".."))
+
+
+def create_path_list():
+    return st.lists(create_path_string(), min_size=0, max_size=5)
 
 
 def my_check(path_1, path_2):
@@ -412,6 +422,58 @@ def test_is_in_or_equal_fuzzer(path_1, path_2):
 
     except Exception as e:
         pytest.fail(f"Exception raised: {e}")
+
+
+@settings(derandomize=os.getenv("CI") is not None)
+@given(
+    path=create_path_string(),
+    blocked_paths=create_path_list(),
+    allowed_paths=create_path_list(),
+    created_paths=create_path_list(),
+)
+def test_is_allowed_file_fuzzer(
+    path: Path,
+    blocked_paths: Sequence[Path],
+    allowed_paths: Sequence[Path],
+    created_paths: Sequence[Path],
+):
+    result, reason = is_allowed_file(path, blocked_paths, allowed_paths, created_paths)
+
+    assert isinstance(result, bool)
+    assert reason in [
+        "in_blocklist",
+        "allowed",
+        "not_created_or_allowed",
+        "created",
+    ]
+
+    if result:
+        assert reason in ("allowed", "created")
+    elif reason == "in_blocklist":
+        assert any(is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths)
+    elif reason == "not_created_or_allowed":
+        assert not any(
+            is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths
+        )
+
+    if reason == "allowed":
+        assert any(is_in_or_equal(path, allowed_path) for allowed_path in allowed_paths)
+    elif reason == "created":
+        assert any(is_in_or_equal(path, created_path) for created_path in created_paths)
+
+
+@pytest.mark.parametrize(
+    "path,blocked_paths,allowed_paths",
+    [
+        ("/a/foo.txt", ["/a"], ["/b"], False),
+        ("/b/foo.txt", ["/a"], ["/b"], True),
+        ("/a/../c/foo.txt", ["/c/"], ["/a/"], False),
+        ("/c/../a/foo.txt", ["/c/"], ["/a/"], True),
+        ("/c/foo.txt", ["/c/"], ["/c/foo.txt"], True),
+    ],
+)
+def is_allowed_file_corner_cases(path, blocked_paths, allowed_paths, result):
+    assert is_allowed_file(path, blocked_paths, allowed_paths, []) == result
 
 
 # Additional test for known edge cases
@@ -606,3 +668,44 @@ class TestUnhashableKeyDict:
         d = UnhashableKeyDict()
         with pytest.raises(KeyError):
             d["nonexistent"]
+
+
+class TestSafeDeepCopy:
+    def test_safe_deepcopy_dict(self):
+        original = {"key1": [1, 2, {"nested_key": "value"}], "key2": "simple_string"}
+        copied = safe_deepcopy(original)
+
+        assert copied == original
+        assert copied is not original
+        assert copied["key1"] is not original["key1"]
+        assert copied["key1"][2] is not original["key1"][2]
+
+    def test_safe_deepcopy_list(self):
+        original = [1, 2, [3, 4, {"key": "value"}]]
+        copied = safe_deepcopy(original)
+
+        assert copied == original
+        assert copied is not original
+        assert copied[2] is not original[2]
+        assert copied[2][2] is not original[2][2]
+
+    def test_safe_deepcopy_custom_object(self):
+        class CustomClass:
+            def __init__(self, value):
+                self.value = value
+
+        original = CustomClass(10)
+        copied = safe_deepcopy(original)
+
+        assert copied.value == original.value
+        assert copied is not original
+
+    def test_safe_deepcopy_handles_undeepcopyable(self):
+        class Uncopyable:
+            def __deepcopy__(self, memo):
+                raise TypeError("Can't deepcopy")
+
+        original = Uncopyable()
+        result = safe_deepcopy(original)
+        assert result is not original
+        assert type(result) is type(original)

@@ -5,6 +5,8 @@
 
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
+	import Hls from "hls.js";
+
 	export let src: HTMLVideoAttributes["src"] = undefined;
 
 	export let muted: HTMLVideoAttributes["muted"] = undefined;
@@ -19,10 +21,12 @@
 
 	export let node: HTMLVideoElement | undefined = undefined;
 	export let loop: boolean;
+	export let is_stream;
 
 	export let processingVideo = false;
 
 	let resolved_src: typeof src;
+	let stream_active = false;
 
 	// The `src` prop can be updated before the Promise from `resolve_wasm_src` is resolved.
 	// In such a case, the resolved value for the old `src` has to be discarded,
@@ -46,6 +50,53 @@
 	}
 
 	const dispatch = createEventDispatcher();
+
+	function load_stream(
+		src: string | null | undefined,
+		is_stream: boolean,
+		node: HTMLVideoElement | undefined
+	): void {
+		if (!src || !is_stream) return;
+		if (!node) return;
+		if (Hls.isSupported() && !stream_active) {
+			const hls = new Hls({
+				maxBufferLength: 1, // 0.5 seconds (500 ms)
+				maxMaxBufferLength: 1, // Maximum max buffer length in seconds
+				lowLatencyMode: true // Enable low latency mode
+			});
+			hls.loadSource(src);
+			hls.attachMedia(node);
+			hls.on(Hls.Events.MANIFEST_PARSED, function () {
+				(node as HTMLVideoElement).play();
+			});
+			hls.on(Hls.Events.ERROR, function (event, data) {
+				console.error("HLS error:", event, data);
+				if (data.fatal) {
+					switch (data.type) {
+						case Hls.ErrorTypes.NETWORK_ERROR:
+							console.error(
+								"Fatal network error encountered, trying to recover"
+							);
+							hls.startLoad();
+							break;
+						case Hls.ErrorTypes.MEDIA_ERROR:
+							console.error("Fatal media error encountered, trying to recover");
+							hls.recoverMediaError();
+							break;
+						default:
+							console.error("Fatal error, cannot recover");
+							hls.destroy();
+							break;
+					}
+				}
+			});
+			stream_active = true;
+		}
+	}
+
+	$: src, (stream_active = false);
+
+	$: load_stream(src, is_stream, node);
 </script>
 
 <!--
@@ -77,7 +128,9 @@ Then, even when `controls` is false, the compiled DOM would be `<video controls=
 	on:mouseout={dispatch.bind(null, "mouseout")}
 	on:focus={dispatch.bind(null, "focus")}
 	on:blur={dispatch.bind(null, "blur")}
-	on:load
+	on:loadstart
+	on:loadeddata
+	on:loadedmetadata
 	bind:currentTime
 	bind:duration
 	bind:paused

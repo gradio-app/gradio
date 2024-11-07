@@ -33,6 +33,8 @@
 		fill_width?: boolean;
 		theme_hash?: number;
 		username: string | null;
+		api_prefix?: string;
+		max_file_size?: number;
 	}
 
 	let id = -1;
@@ -107,7 +109,6 @@
 	}
 
 	export let space: string | null;
-	export let host: string | null;
 	export let src: string | null;
 
 	let _id = id++;
@@ -130,10 +131,14 @@
 	let css_text_stylesheet: HTMLStyleElement | null = null;
 	async function mount_custom_css(css_string: string | null): Promise<void> {
 		if (css_string) {
-			css_text_stylesheet = prefix_css(
+			if (!css_text_stylesheet) {
+				css_text_stylesheet = document.createElement("style");
+				document.head.appendChild(css_text_stylesheet);
+			}
+			css_text_stylesheet.textContent = prefix_css(
 				css_string,
 				version,
-				css_text_stylesheet || undefined
+				css_text_stylesheet
 			);
 		}
 		await mount_css(
@@ -279,7 +284,7 @@
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
 					}`
-				: host || space || src || location.origin;
+				: space || src || location.origin;
 
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
@@ -311,10 +316,10 @@
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
-				let url = new URL(`http://${host}/dev/reload`);
+				let url = new URL(`http://${host}${app.api_prefix}/dev/reload`);
 				stream = new EventSource(url);
 				stream.addEventListener("error", async (e) => {
-					new_message_fn("Error reloading app", "error");
+					new_message_fn("Error", "Error reloading app", "error");
 					// @ts-ignore
 					console.error(JSON.parse(e.data));
 				});
@@ -333,6 +338,10 @@
 					config = app.config;
 					window.__gradio_space__ = config.space_id;
 					await mount_custom_css(config.css);
+					await add_custom_html_head(config.head);
+					css_ready = true;
+					window.__is_colab__ = config.is_colab;
+					dispatch("loaded");
 				});
 			}, 200);
 		}
@@ -391,7 +400,7 @@
 		}
 	};
 
-	let new_message_fn: (message: string, type: string) => void;
+	let new_message_fn: (title: string, message: string, type: string) => void;
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
@@ -507,6 +516,10 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
+			api_prefix={config.api_prefix || ""}
+			max_file_size={config.max_file_size}
+			initial_layout={undefined}
+			search_params={new URLSearchParams(window.location.search)}
 		/>
 	{/if}
 </Embed>

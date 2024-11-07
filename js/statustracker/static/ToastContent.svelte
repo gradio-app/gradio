@@ -5,6 +5,7 @@
 	import { fade } from "svelte/transition";
 	import type { ToastMessage } from "./types";
 
+	export let title = "";
 	export let message = "";
 	export let type: ToastMessage["type"];
 	export let id: number;
@@ -27,9 +28,7 @@
 			}
 		}
 	});
-
 	$: message = DOMPurify.sanitize(message);
-
 	$: display = visible;
 	$: duration = duration || null;
 
@@ -73,7 +72,7 @@
 	</div>
 
 	<div class="toast-details {type}">
-		<div class="toast-title {type}">{type}</div>
+		<div class="toast-title {type}">{title}</div>
 		<div class="toast-text {type}">
 			{@html message}
 		</div>
@@ -113,6 +112,75 @@
 		border: 1px solid var(--color-red-700);
 		background: var(--color-red-50);
 	}
+
+	@media (prefers-color-scheme: dark) {
+		.toast-body.error {
+			border: 1px solid var(--color-red-500);
+			background-color: var(--color-grey-950);
+		}
+
+		.toast-body.warning {
+			border: 1px solid var(--color-yellow-700);
+			background: var(--color-yellow-50);
+		}
+		.toast-body.warning {
+			border: 1px solid var(--color-yellow-500);
+			background-color: var(--color-grey-950);
+		}
+
+		.toast-body.info {
+			border: 1px solid var(--color-grey-500);
+			background-color: var(--color-grey-950);
+		}
+
+		.toast-title.error {
+			color: var(--color-red-50);
+		}
+
+		.toast-title.warning {
+			color: var(--color-yellow-50);
+		}
+		.toast-title.info {
+			color: var(--color-grey-50);
+		}
+		.toast-close.error {
+			color: var(--color-red-500);
+		}
+		.toast-close.warning {
+			color: var(--color-yellow-500);
+		}
+		.toast-close.info {
+			color: var(--color-grey-500);
+		}
+		.toast-text.error {
+			color: var(--color-red-50);
+		}
+		.toast-text.warning {
+			color: var(--color-yellow-50);
+		}
+		.toast-text.info {
+			color: var(--color-grey-50);
+		}
+		.toast-icon.error {
+			color: var(--color-red-500);
+		}
+		.toast-icon.warning {
+			color: var(--color-yellow-500);
+		}
+		.toast-icon.info {
+			color: var(--color-grey-500);
+		}
+		.timer.error {
+			background: var(--color-red-500);
+		}
+		.timer.warning {
+			background: var(--color-yellow-500);
+		}
+		.timer.info {
+			background: var(--color-grey-500);
+		}
+	}
+
 	:global(.dark) .toast-body.error {
 		border: 1px solid var(--color-red-500);
 		background-color: var(--color-grey-950);
@@ -142,7 +210,6 @@
 		font-weight: var(--weight-bold);
 		font-size: var(--text-lg);
 		line-height: var(--line-sm);
-		text-transform: capitalize;
 	}
 
 	.toast-title.error {

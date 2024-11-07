@@ -1,12 +1,20 @@
 <div align="center">
+<a href="https://gradio.app">
+<img src="readme_files/gradio.svg" alt="gradio" width=350>
+</a>
+</div>
 
-[<img src="readme_files/gradio.svg" alt="gradio" width=400>](https://gradio.app)<br>
+<div align="center">
+<span>
+<a href="https://www.producthunt.com/posts/gradio-5-0?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-gradio&#0045;5&#0045;0" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=501906&theme=light" alt="Gradio&#0032;5&#0046;0 - the&#0032;easiest&#0032;way&#0032;to&#0032;build&#0032;AI&#0032;web&#0032;apps | Product Hunt" style="width: 150px; height: 54px;" width="150" height="54" /></a>
+<a href="https://trendshift.io/repositories/2145" target="_blank"><img src="https://trendshift.io/api/badge/repositories/2145" alt="gradio-app%2Fgradio | Trendshift" style="width: 150px; height: 55px;" width="150" height="55"/></a>
+</span>
 
-[![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
-[![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
- [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
+[![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/test-python.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/test-python.yml)
+[![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/tests-js.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/tests-js.yml) 
+[![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
-![Python version](https://img.shields.io/badge/python-3.8+-important)
+![Python version](https://img.shields.io/badge/python-3.10+-important)
 [![Twitter follow](https://img.shields.io/twitter/follow/gradio?style=social&label=follow)](https://twitter.com/gradio)
 
 [Website](https://gradio.app)
@@ -14,7 +22,12 @@
 | [Guides](https://gradio.app/guides/)
 | [Getting Started](https://gradio.app/getting_started/)
 | [Examples](demo/)
-| [中文](readme_files/zh-cn#readme)
+
+</div>
+
+<div align="center">
+
+English | [中文](readme_files/zh-cn#readme)
 
 </div>
 

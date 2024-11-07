@@ -15,12 +15,11 @@
 	let el: HTMLDivElement;
 
 	function set_styles(element: HTMLElement, el_width: number): void {
-		if (!element || !el_width) return;
-		el.style.setProperty(
+		element.style.setProperty(
 			"--local-text-width",
-			`${el_width < 150 ? el_width : 200}px`
+			`${el_width && el_width < 150 ? el_width : 200}px`
 		);
-		el.style.whiteSpace = "unset";
+		element.style.whiteSpace = "unset";
 	}
 
 	onMount(() => {
@@ -42,7 +41,7 @@
 		{#if file.mime_type && file.mime_type.includes("image")}
 			<Image src={file.url} alt="" />
 		{:else if file.mime_type && file.mime_type.includes("video")}
-			<Video src={file.url} alt="" loop={true} />
+			<Video src={file.url} alt="" loop={true} is_stream={false} />
 		{:else if file.mime_type && file.mime_type.includes("audio")}
 			<audio src={file.url} controls />
 		{:else}

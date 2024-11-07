@@ -34,24 +34,34 @@ jobs:
           filter: "functional"
           token: ${{ secrets.GITHUB_TOKEN }}
   test:
+    name: "functional-test-SSR=${{ matrix.SSR }}"
     permissions:
       contents: read
-    name: "functional-test"
     runs-on: ubuntu-latest
     needs: changes
+    strategy:
+      matrix:
+        ssr: [true, false]
     if: needs.changes.outputs.should_run == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
-      - name: install outbreak_forecast dependencies
+        with:
+          python_version: "3.10"
+          test: true
+      - name: install dependencies for specific tests
         run: |
           . venv/bin/activate
           python -m pip install -r demo/outbreak_forecast/requirements.txt
-          python -m pip install -r demo/gradio_pdf_demo/requirements.txt
+          python -m pip install -r demo/stream_video_out/requirements.txt
       - run: pnpm exec playwright install chromium firefox
+      - name: build essential packages
+        run: pnpm --filter @gradio/utils --filter @gradio/theme package
       - name: run browser tests
+        env:
+          GRADIO_SSR_MODE: ${{ matrix.ssr }}
         run: |
           . venv/bin/activate
           CI=1 pnpm test:browser
@@ -59,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-screenshots
+          name: playwright-screenshots-SSR-${{ matrix.ssr }}
           path: |
             ./test-results
       - name: run browser component tests
@@ -74,6 +84,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: reload-mode-playwright-screenshots
+          name: reload-mode-playwright-screenshots-SSR-${{ matrix.ssr }}
           path: |
             ./test-results

@@ -11,6 +11,7 @@ from gradio_client import media_data
 from PIL import Image, ImageCms
 
 from gradio import components, data_classes, processing_utils, utils
+from gradio.route_utils import API_PREFIX
 
 
 class TestTempFileManagement:
@@ -76,7 +77,7 @@ class TestTempFileManagement:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
     @pytest.mark.flaky
-    def test_save_url_to_cache(self, gradio_temp_dir):
+    def test_ssrf_protected_download(self, gradio_temp_dir):
         url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
         url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
 
@@ -96,7 +97,7 @@ class TestTempFileManagement:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
     @pytest.mark.flaky
-    def test_save_url_to_cache_with_redirect(self, gradio_temp_dir):
+    def test_ssrf_protected_download_with_redirect(self, gradio_temp_dir):
         url = "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png"
         processing_utils.save_url_to_cache(url, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
@@ -275,7 +276,7 @@ class TestVideoProcessing:
         )
 
     def raise_ffmpy_runtime_exception(*args, **kwargs):
-        raise ffmpy.FFRuntimeError("", "", "", "")
+        raise ffmpy.FFRuntimeError("", "", "", "")  # type: ignore
 
     @pytest.mark.parametrize(
         "exception_to_raise", [raise_ffmpy_runtime_exception, KeyError(), IndexError()]
@@ -283,11 +284,12 @@ class TestVideoProcessing:
     def test_video_has_playable_codecs_catches_exceptions(
         self, exception_to_raise, test_file_dir
     ):
-        with patch(
-            "ffmpy.FFprobe.run", side_effect=exception_to_raise
-        ), tempfile.NamedTemporaryFile(
-            suffix="out.avi", delete=False
-        ) as tmp_not_playable_vid:
+        with (
+            patch("ffmpy.FFprobe.run", side_effect=exception_to_raise),
+            tempfile.NamedTemporaryFile(
+                suffix="out.avi", delete=False
+            ) as tmp_not_playable_vid,
+        ):
             shutil.copy(
                 str(test_file_dir / "bad_video_sample.mp4"),
                 tmp_not_playable_vid.name,
@@ -330,7 +332,7 @@ def test_add_root_url():
     data = {
         "file": {
             "path": "path",
-            "url": "/file=path",
+            "url": f"{API_PREFIX}/file=path",
             "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
@@ -343,7 +345,7 @@ def test_add_root_url():
     expected = {
         "file": {
             "path": "path",
-            "url": f"{root_url}/file=path",
+            "url": f"{root_url}{API_PREFIX}/file=path",
             "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
@@ -357,7 +359,7 @@ def test_add_root_url():
     new_expected = {
         "file": {
             "path": "path",
-            "url": f"{new_root_url}/file=path",
+            "url": f"{new_root_url}{API_PREFIX}/file=path",
             "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
@@ -383,7 +385,7 @@ async def test_json_data_not_moved_to_cache():
         root={
             "file": {
                 "path": "path",
-                "url": "/file=path",
+                "url": f"{API_PREFIX}/file=path",
                 "meta": {"_type": "gradio.FileData"},
             }
         }
@@ -404,3 +406,39 @@ async def test_json_data_not_moved_to_cache():
         )
         == data
     )
+
+
+def test_public_request_pass():
+    tempdir = tempfile.TemporaryDirectory()
+    file = processing_utils.ssrf_protected_download(
+        "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
+    )
+    assert os.path.exists(file)
+    assert os.path.getsize(file) == 13444
+
+
+@pytest.mark.asyncio
+async def test_async_public_request_pass():
+    tempdir = tempfile.TemporaryDirectory()
+    file = await processing_utils.async_ssrf_protected_download(
+        "https://en.wikipedia.org/static/images/icons/wikipedia.png", tempdir.name
+    )
+    assert os.path.exists(file)
+    assert os.path.getsize(file) == 13444
+
+
+def test_private_request_fail():
+    with pytest.raises(ValueError, match="failed validation"):
+        tempdir = tempfile.TemporaryDirectory()
+        processing_utils.ssrf_protected_download(
+            "http://192.168.1.250.nip.io/image.png", tempdir.name
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_private_request_fail():
+    with pytest.raises(ValueError, match="failed validation"):
+        tempdir = tempfile.TemporaryDirectory()
+        await processing_utils.async_ssrf_protected_download(
+            "http://192.168.1.250.nip.io/image.png", tempdir.name
+        )

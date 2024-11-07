@@ -51,15 +51,16 @@
 		name="test"
 		data-testid="checkbox"
 	/>
-	<span class="ml-2">{label}</span>
+	<span>{label}</span>
 </label>
 
 <style>
 	label {
 		display: flex;
 		align-items: center;
+		transition: var(--button-transition);
 		cursor: pointer;
-		color: var(--body-text-color);
+		color: var(--checkbox-label-text-color);
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
@@ -72,7 +73,7 @@
 	input {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: var(--input-shadow);
+		box-shadow: var(--checkbox-shadow);
 		border: 1px solid var(--checkbox-border-color);
 		border-radius: var(--checkbox-border-radius);
 		background-color: var(--checkbox-background-color);
@@ -82,9 +83,9 @@
 	input:checked,
 	input:checked:hover,
 	input:checked:focus {
-		border-color: var(--checkbox-border-color-selected);
 		background-image: var(--checkbox-check);
 		background-color: var(--checkbox-background-color-selected);
+		border-color: var(--checkbox-border-color-focus);
 	}
 
 	input:checked:focus {
@@ -106,5 +107,9 @@
 	input[disabled],
 	.disabled {
 		cursor: not-allowed;
+	}
+
+	input:hover {
+		cursor: pointer;
 	}
 </style>

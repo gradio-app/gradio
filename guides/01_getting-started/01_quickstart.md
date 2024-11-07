@@ -1,24 +1,25 @@
 # Quickstart
 
-Gradio is an open-source Python package that allows you to quickly **build a demo** or web application for your machine learning model, API, or any arbitary Python function. You can then **share your demo** with a a public link in seconds using Gradio's built-in sharing features. *No JavaScript, CSS, or web hosting experience needed!*
+Gradio is an open-source Python package that allows you to quickly **build** a demo or web application for your machine learning model, API, or any arbitrary Python function. You can then **share** a link to your demo or web application in just a few seconds using Gradio's built-in sharing features. *No JavaScript, CSS, or web hosting experience needed!*
 
-<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/lcm-screenshot-3.gif" style="padding-bottom: 10px">
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/gif-version.gif" style="padding-bottom: 10px">
 
-It just takes a few lines of Python to create a demo like the one above, so let's get started.
+It just takes a few lines of Python to create your own demo, so let's get started 💫
+
 
 ## Installation
 
-**Prerequisite**: Gradio requires [Python 3.8 or higher](https://www.python.org/downloads/).
+**Prerequisite**: Gradio requires [Python 3.10 or higher](https://www.python.org/downloads/).
 
 
 We recommend installing Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
 
 ```bash
-pip install gradio
+pip install --upgrade gradio
 ```
 
 
-Tip: it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="https://www.gradio.app/main/guides/installing-gradio-in-a-virtual-environment">are provided here</a>. 
+Tip: It is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="https://www.gradio.app/main/guides/installing-gradio-in-a-virtual-environment">are provided here</a>. 
 
 ## Building Your First Demo
 
@@ -85,7 +86,7 @@ Now, anyone around the world can try your Gradio demo from their browser, while 
 To learn more about sharing your demo, read our dedicated guide on [sharing your Gradio application](https://www.gradio.app/guides/sharing-your-app).
 
 
-## Core Gradio Classes
+## An Overview of Gradio
 
 So far, we've been discussing the `Interface` class, which is a high-level class that lets to build demos quickly with Gradio. But what else does Gradio include?
 
@@ -101,7 +102,7 @@ Gradio includes another high-level class, `gr.ChatInterface`, which is specifica
 
 ### The Gradio Python & JavaScript Ecosystem
 
-That's the gist of the core `gradio` Python library, but Gradio is actually so much more! Its an entire ecosystem of Python and JavaScript libraries that let you build machine learning applications, or query them programmatically, in Python or JavaScript. Here are other related parts of the Gradio ecosystem:
+That's the gist of the core `gradio` Python library, but Gradio is actually so much more! It's an entire ecosystem of Python and JavaScript libraries that let you build machine learning applications, or query them programmatically, in Python or JavaScript. Here are other related parts of the Gradio ecosystem:
 
 * [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) (`gradio_client`): query any Gradio app programmatically in Python.
 * [Gradio JavaScript Client](https://www.gradio.app/guides/getting-started-with-the-js-client) (`@gradio/client`): query any Gradio app programmatically in JavaScript.

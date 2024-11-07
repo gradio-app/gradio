@@ -13,7 +13,7 @@ inputs:
     default: "false"
   python_version:
     description: "Python version"
-    default: "3.8"
+    default: "3.10"
   os:
     description: "OS"
     default: "ubuntu-latest"
@@ -54,31 +54,35 @@ runs:
       run: |
         python -m pip install --upgrade virtualenv
         python -m virtualenv venv
-    # - uses: actions/cache@v4
-    #   id: cache
-    #   with:
-    #     path: |
-    #       venv/*
-    #       client/python/venv
-    #     restore-keys: |
-    #       gradio-lib-${{inputs.python_version}}-${{inputs.os}}-latest-pip-
-    #     key: "gradio-lib-${{inputs.python_version}}-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}${{ inputs.test == 'true' && '-test' || ''}}"
+    - name: Install uv
+      shell: bash
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    - uses: actions/cache@v4
+      id: cache
+      with:
+        path: |
+          venv/**
+          client/python/venv
+        restore-keys: |
+          gradio-lib-${{inputs.python_version}}-${{inputs.os}}-latest-pip-
+        key: "gradio-lib-${{inputs.python_version}}-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}${{ inputs.test == 'true' && '-test' || ''}}"
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@583042d32dd1cabb8bd09df03bde06080da5c87c # @v2
     - name: Install test dependencies
-      if: inputs.test == 'true'
-      #  && steps.cache.outputs.cache-hit != 'true'
+      if: inputs.test == 'true' && steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        python -m pip install -r test/requirements.txt
-        python -m pip install -r client/python/test/requirements.txt
+        uv pip install -r test/requirements.txt
+        uv pip install -r client/python/test/requirements.txt
     - name: Install Gradio and Client Libraries Locally (Linux)
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        python -m pip install -e client/python
-        python -m pip install -e ".[oauth]"
+        uv pip install -e client/python
+        uv pip install -e ".[oauth]"
     - name: install-frontend
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
@@ -89,4 +93,4 @@ runs:
       if: inputs.os == 'ubuntu-latest'
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        pip install boto3 && python js/_website/generate_jsons/generate.py
+        uv pip install boto3 && python js/_website/generate_jsons/generate.py

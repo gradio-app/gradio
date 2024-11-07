@@ -14,7 +14,7 @@ const base = defineConfig({
 			]
 		}
 	},
-	expect: { timeout: 15000 },
+	expect: { timeout: 10000 },
 	timeout: 30000,
 	testMatch: /.*\.spec\.ts/,
 	testDir: "..",
@@ -51,11 +51,23 @@ const lite = defineConfig(base, {
 		"**/file_component_events.spec.ts",
 		"**/kitchen_sink.spec.ts",
 		"**/gallery_component_events.spec.ts",
-		"**/image_remote_url.spec.ts" // To detect the bugs on Lite fixed in https://github.com/gradio-app/gradio/pull/8011 and https://github.com/gradio-app/gradio/pull/8026
+		"**/image_remote_url.spec.ts", // To detect the bugs on Lite fixed in https://github.com/gradio-app/gradio/pull/8011 and https://github.com/gradio-app/gradio/pull/8026
+		"**/outbreak_forecast.spec.ts" // To test matplotlib on Lite
 	],
 	workers: 1,
 	retries: 3,
-	timeout: 60000
+	timeout: 60000,
+	projects: [
+		{
+			name: "chromium",
+			use: { ...devices["Desktop Chrome"] }
+		},
+		{
+			name: "firefox",
+			use: { ...devices["Desktop Firefox"] },
+			testIgnore: "**/kitchen_sink.*" // This test requires the camera permission but it's not supported on FireFox: https://github.com/microsoft/playwright/issues/11714
+		}
+	]
 });
 
 export default !!process.env.GRADIO_E2E_TEST_LITE ? lite : normal;

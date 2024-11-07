@@ -1,9 +1,8 @@
 {
 	"compilerOptions": {
-		"moduleResolution": "Bundler",
-		"module": "ESNext",
-		"lib": ["es2020", "DOM", "dom.iterable"],
-		"target": "es2020",
+		"moduleResolution": "bundler",
+		"module": "esnext",
+		"lib": ["es2022", "DOM", "dom.iterable"],
 		/**
 			svelte-preprocess cannot figure out whether you have a value or a type, so tell TypeScript
 			to enforce using \`import type\` instead of \`import\` for Types.
@@ -20,8 +19,8 @@
 		"outDir": "dist",
 		"baseUrl": ".",
 		"paths": {
-			"./pure": ["./pure.js"],
-			"@gradio/client": ["./client/js/src/index.ts"]
+			"./pure": ["./pure.js"]
+			// "@gradio/client": ["./client/js/src/index.ts"]
 		},
 		"plugins": [
 			{
@@ -31,10 +30,13 @@
 				"assumeIsSvelteProject": false // if true, skip detection and always assume it's a Svelte project
 			}
 		],
-		"types": ["vite/client"]
+		"types": ["vite/client"],
+		"customConditions": ["gradio"],
+		"target": "es2022"
 	},
 	"exclude": [
 		"**/_website/**/*",
+		"**/app/**/*",
 		"**/dist/**/*",
 		"**/public/**/*",
 		"**/.config/**/*",

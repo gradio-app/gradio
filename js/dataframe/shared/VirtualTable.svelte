@@ -248,7 +248,6 @@
 					return { index: i + start, data };
 				});
 
-	$: actual_height = visible.length * average_height + 10;
 	onMount(() => {
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		mounted = true;
@@ -341,7 +340,6 @@
 		top: 0;
 		left: 0;
 		z-index: var(--layer-1);
-		box-shadow: var(--shadow-drop);
 		overflow: hidden;
 	}
 </style>

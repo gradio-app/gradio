@@ -6,13 +6,18 @@
 	import { DownloadLink } from "@gradio/wasm/svelte";
 	import type { NormalisedMessage, TextMessage } from "../types";
 	import { is_component_message } from "./utils";
+	import { Retry, Undo } from "@gradio/icons";
+	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 
 	export let likeable: boolean;
+	export let show_retry: boolean;
+	export let show_undo: boolean;
 	export let show_copy_button: boolean;
 	export let show: boolean;
 	export let message: NormalisedMessage | NormalisedMessage[];
 	export let position: "right" | "left";
 	export let avatar: FileData | null;
+	export let generating: boolean;
 
 	export let handle_action: (selected: string | null) => void;
 	export let layout: "bubble" | "panel";
@@ -45,80 +50,70 @@
 
 {#if show}
 	<div
-		class="message-buttons-{position} {layout}  message-buttons {avatar !==
+		class="message-buttons-{position} {layout} message-buttons {avatar !==
 			null && 'with-avatar'}"
 	>
-		{#if show_copy}
-			<Copy value={message_text} />
-		{/if}
-		{#if show_download && !Array.isArray(message) && is_component_message(message)}
-			<DownloadLink
-				href={message?.content?.value.url}
-				download={message.content.value.orig_name || "image"}
-			>
-				<span class="icon-wrap">
-					<DownloadIcon />
-				</span>
-			</DownloadLink>
-		{/if}
-		{#if likeable}
-			<LikeDislike {handle_action} padded={show_copy || show_download} />
-		{/if}
+		<IconButtonWrapper top_panel={false}>
+			{#if show_copy}
+				<Copy value={message_text} />
+			{/if}
+			{#if show_download && !Array.isArray(message) && is_component_message(message)}
+				<DownloadLink
+					href={message?.content?.value.url}
+					download={message.content.value.orig_name || "image"}
+				>
+					<IconButton Icon={DownloadIcon} />
+				</DownloadLink>
+			{/if}
+			{#if show_retry}
+				<IconButton
+					Icon={Retry}
+					label="Retry"
+					on:click={() => handle_action("retry")}
+					disabled={generating}
+				/>
+			{/if}
+			{#if show_undo}
+				<IconButton
+					label="Undo"
+					Icon={Undo}
+					on:click={() => handle_action("undo")}
+					disabled={generating}
+				/>
+			{/if}
+			{#if likeable}
+				<LikeDislike {handle_action} />
+			{/if}
+		</IconButtonWrapper>
 	</div>
 {/if}
 
 <style>
-	.icon-wrap {
-		display: block;
-		color: var(--body-text-color-subdued);
+	.bubble :global(.icon-button-wrapper) {
+		margin: 0px calc(var(--spacing-xl) * 2);
 	}
 
-	.icon-wrap:hover {
-		color: var(--body-text-color);
-	}
-
-	.message-buttons {
-		border-radius: var(--radius-md);
-		display: flex;
-		align-items: center;
-
-		height: var(--size-7);
-		align-self: self-end;
-		margin: 0px calc(var(--spacing-xl) * 3);
-		padding-left: 5px;
-		z-index: 1;
-		padding-bottom: var(--spacing-xl);
-		padding: var(--spacing-md) var(--spacing-md);
-		border: 1px solid var(--border-color-primary);
-		background: var(--border-color-secondary);
-		gap: var(--spacing-md);
-	}
 	.message-buttons-left {
-		align-self: start;
-		left: 0px;
+		align-self: flex-start;
 	}
 
-	.panel.message-buttons-left,
-	.panel.message-buttons-right {
-		margin: 10px 0 2px 0;
+	.bubble.message-buttons-right {
+		align-self: flex-end;
 	}
 
-	/* .message-buttons {
-		left: 0px;
-		right: 0px;
-		top: unset;
-		bottom: calc(-30px - var(--spacing-xl));
+	.message-buttons-right :global(.icon-button-wrapper) {
+		margin-left: auto;
+	}
+
+	.bubble.with-avatar {
+		margin-left: calc(var(--spacing-xl) * 5);
+		margin-right: calc(var(--spacing-xl) * 5);
+	}
+
+	.panel {
 		display: flex;
-		justify-content: flex-start;
-		align-items: center;
-		gap: 0px;
-	} */
-
-	.message-buttons :global(> *) {
-		margin-right: 0px;
-	}
-
-	.with-avatar {
-		margin-left: calc(var(--spacing-xl) * 4 + 31px);
+		align-self: flex-start;
+		padding: 0 var(--spacing-xl);
+		z-index: var(--layer-1);
 	}
 </style>

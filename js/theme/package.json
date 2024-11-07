@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/theme",
-	"version": "0.2.5",
+	"version": "0.3.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
@@ -8,7 +8,8 @@
 	"license": "ISC",
 	"private": false,
 	"scripts": {
-		"generate": "pollen -c src/pollen.config.cjs"
+		"generate": "pollen -c src/pollen.config.cjs",
+		"package": "svelte-package --input=. --cwd=../../.config/"
 	},
 	"exports": {
 		".": {

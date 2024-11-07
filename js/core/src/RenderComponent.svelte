@@ -13,7 +13,7 @@
 	export let theme_mode: ThemeMode;
 	export let instance: ComponentMeta["instance"];
 	export let value: any;
-	export let gradio: Gradio;
+	// export let gradio: Gradio;
 	export let elem_id: string;
 	export let elem_classes: string[];
 	export let _id: number;
@@ -32,6 +32,7 @@
 
 				function report(props: string) {
 					return function (propargs: any) {
+						if (!target) return;
 						const ev = s(_id, props, propargs);
 						target.dispatchEvent(ev);
 					};
@@ -61,7 +62,6 @@
 	{...$$restProps}
 	{theme_mode}
 	{root}
-	{gradio}
 >
 	<slot />
 </svelte:component>
