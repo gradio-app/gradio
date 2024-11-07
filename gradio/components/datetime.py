@@ -22,7 +22,6 @@ class DateTime(FormComponent):
     EVENTS = [
         Events.change,
         Events.submit,
-        Events.clear,
     ]
 
     def __init__(

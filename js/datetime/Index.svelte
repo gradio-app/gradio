@@ -10,7 +10,6 @@
 	export let gradio: Gradio<{
 		change: undefined;
 		submit: undefined;
-		clear: undefined;
 	}>;
 	export let label = "Time";
 	export let show_label = true;
@@ -30,9 +29,6 @@
 		entered_value = value;
 		datevalue = value;
 		gradio.dispatch("change");
-		if (value === null) {
-			gradio.dispatch("clear");
-		}
 	}
 
 	const format_date = (date: Date): string => {
