@@ -142,6 +142,8 @@ class Interface(Blocks):
         | Literal["auto"]
         | Literal["manual"]
         | None = None,
+        time_limit: int | None = 30,
+        stream_every: float = 0.5,
         **kwargs,
     ):
         """
@@ -182,6 +184,8 @@ class Interface(Blocks):
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             example_labels: a list of labels for each example. If provided, the length of this list should be the same as the number of examples, and these labels will be used in the UI instead of rendering the example values.
             fill_width: whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
+            time_limit: The time limit for the stream to run. Default is 30 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
+            stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for streaming images or audio if the interface is live and the input components are set to "streaming=True".
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -197,6 +201,8 @@ class Interface(Blocks):
             fill_width=fill_width,
             **kwargs,
         )
+        self.time_limit = time_limit
+        self.stream_every = stream_every
         self.api_name: str | Literal[False] | None = api_name
         self.interface_type = InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
@@ -702,7 +708,9 @@ class Interface(Blocks):
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                     show_progress="hidden" if streaming_event else self.show_progress,
-                    trigger_mode="always_last",
+                    trigger_mode="always_last" if not streaming_event else "multiple",
+                    time_limit=self.time_limit,
+                    stream_every=self.stream_every,
                 )
         else:
             if _submit_btn is None:
@@ -715,6 +723,12 @@ class Interface(Blocks):
                 for component in self.input_components
                 if component.has_event(Events.submit)
             ]
+
+            for component in self.input_components:
+                if getattr(component, "streaming", None):
+                    warnings.warn(
+                        "Streaming components are only supported in live interfaces."
+                    )
 
             if _stop_btn:
                 extra_output = [_submit_btn, _stop_btn]
