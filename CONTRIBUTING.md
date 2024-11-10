@@ -109,6 +109,9 @@ if __name__ == "__main__":
    demo.launch()
 ```
 
+Make sure your `PYTHONPATH` includes the directory where this repository is cloned, e.g.,
+`export PYTHONPATH="./"`
+
 then run:
 
 ```
@@ -345,6 +348,19 @@ bash scripts/build_frontend.sh
 ```FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory``` when running `scripts/build_frontend.sh`.
 
 Run `scripts/build_frontend.sh` with the environment variable `NODE_OPTIONS=--max_old_space_size=2048` to increase the heap size.
+
+---
+
+In the case of:
+- Unexpected Exceptions being thrown;
+- The following warning:
+`IMPORTANT: You are using gradio version <earlier version>, however version <later version> is available, please upgrade.`
+
+Make sure your `PYTHONPATH` includes the directory where this repository is cloned, e.g.:
+
+```export PYTHONPATH="./"```
+
+This ensures that when `gradio` is imported in a python program, it is this current version from this repository.
 
 ---
 
