@@ -71,7 +71,7 @@ class TestLabel:
         """
         Interface, process
         """
-        x_img = FileData(path="test/test_files/bus.png")
+        x_img = FileData(path="test/test_files/cheetah1.jpg")
 
         def rgb_distribution(img):
             rgb_dist = np.mean(img, axis=(0, 1))
@@ -88,8 +88,8 @@ class TestLabel:
         assert output == {
             "label": "red",
             "confidences": [
-                {"label": "red", "confidence": 0.44},
-                {"label": "green", "confidence": 0.28},
-                {"label": "blue", "confidence": 0.28},
+                {"label": "red", "confidence": 0.36},
+                {"label": "green", "confidence": 0.33},
+                {"label": "blue", "confidence": 0.31},
             ],
         }
