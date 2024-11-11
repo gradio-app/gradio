@@ -21,7 +21,7 @@ class TestRadio:
         expected_error_message = r"Value: '1' \(type: <class 'str'>\) is not in the list of choices: \[1, 2, 3\]"
         with pytest.raises(gr.Error, match=expected_error_message):
             radio_input.preprocess("1")
-        
+
         radio_input = gr.Radio(
             choices=["a", "b", "c"], value="a", label="Pick Your One Input"
         )

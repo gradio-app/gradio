@@ -22,7 +22,7 @@ class TestDropdown:
         expected_error_message = r"Value: '1' \(type: <class 'str'>\) is not in the list of choices: \[1, 2, 3\]"
         with pytest.raises(gr.Error, match=expected_error_message):
             dropdown_input.preprocess(["1", "2", "3"])
-        
+
         # When an external Gradio app is loaded with gr.load, the tuples are converted to lists,
         # so we test that case as well
         dropdown = gr.Dropdown(["a", "b", ["c", "c full"]])  # type: ignore
