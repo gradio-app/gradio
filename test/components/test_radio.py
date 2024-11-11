@@ -12,6 +12,16 @@ class TestRadio:
         radio_input = gr.Radio(["a", "b", "c"])
         assert radio_input.preprocess("c") == "c"
         assert radio_input.postprocess("a") == "a"
+
+        # Check that the error message clearly indicates the error source in cases where data
+        # representation could be ambiguous e.g. "1" (str) vs 1 (int)
+        radio_input = gr.Radio([1, 2, 3])
+        # Since pytest.raises takes a regular expression in the `match` argument, we need to escape brackets
+        # that have special meaning in regular expressions
+        expected_error_message = r"Value: '1' \(type: <class 'str'>\) is not in the list of choices: \[1, 2, 3\]"
+        with pytest.raises(gr.Error, match=expected_error_message):
+            radio_input.preprocess("1")
+
         radio_input = gr.Radio(
             choices=["a", "b", "c"], value="a", label="Pick Your One Input"
         )

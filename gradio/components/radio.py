@@ -117,7 +117,7 @@ class Radio(FormComponent):
         choice_values = [value for _, value in self.choices]
         if payload not in choice_values:
             raise Error(
-                f"Value: {payload} is not in the list of choices: {choice_values}"
+                f"Value: {payload!r} (type: {type(payload)}) is not in the list of choices: {choice_values}"
             )
 
         if self.type == "value":
