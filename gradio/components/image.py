@@ -78,7 +78,7 @@ class Image(StreamingInput, Component):
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ]
-        | None = "RGB",
+        | None = None,
         sources: list[Literal["upload", "webcam", "clipboard"]]
         | Literal["upload", "webcam", "clipboard"]
         | None = None,
