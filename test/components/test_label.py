@@ -83,7 +83,7 @@ class TestLabel:
                 "blue": rgb_dist[2],
             }
 
-        iface = gr.Interface(rgb_distribution, "image", "label")
+        iface = gr.Interface(rgb_distribution, gr.Image(image_mode="RGB"), "label")
         output = iface(x_img)
         assert output == {
             "label": "red",
