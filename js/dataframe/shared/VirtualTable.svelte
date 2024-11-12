@@ -248,7 +248,6 @@
 					return { index: i + start, data };
 				});
 
-	$: actual_height = visible.length * average_height + 10;
 	onMount(() => {
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		mounted = true;
