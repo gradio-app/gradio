@@ -109,9 +109,6 @@ if __name__ == "__main__":
    demo.launch()
 ```
 
-Make sure your `PYTHONPATH` includes the directory where this repository is cloned, e.g.,
-`export PYTHONPATH="./"`
-
 then run:
 
 ```
@@ -119,6 +116,9 @@ gradio app.py
 ```
 
 This will start the backend server in reload mode, which will watch for changes in the `gradio` folder and reload the app if changes are made. By default, Gradio will launch on port 7860. You can also just use `python app.py`, but this won't automatically trigger updates. 
+
+Note: if you have `gradio` installed elsewhere in your system, you may need to uninstall it or at least make sure your `PYTHONPATH` includes the directory where the Gradio repository is cloned, e.g.,
+`export PYTHONPATH="./"`
 
 
 If you're making frontend changes, start the frontend server:
@@ -352,11 +352,11 @@ Run `scripts/build_frontend.sh` with the environment variable `NODE_OPTIONS=--ma
 ---
 
 In the case of:
-- Unexpected Exceptions being thrown;
+- Unexpected exceptions being thrown, or
 - The following warning:
 `IMPORTANT: You are using gradio version <earlier version>, however version <later version> is available, please upgrade.`
 
-Make sure your `PYTHONPATH` includes the directory where this repository is cloned, e.g.:
+ensure your `PYTHONPATH` includes the directory where the Gradio repository is cloned, e.g.:
 
 ```export PYTHONPATH="./"```
 
