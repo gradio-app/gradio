@@ -24,6 +24,7 @@
 		RenderMessage,
 		StatusMessage
 	} from "@gradio/client";
+	import { encrypt, decrypt } from "@gradio/utils";
 
 	setupi18n();
 
@@ -101,6 +102,46 @@
 	let api_calls: Payload[] = [];
 
 	export let render_complete = false;
+	async function get_local_state_value(component: LocalStateComponent, app: any): Promise<any> {
+		const stored = localStorage.getItem(component.props.key);
+		if (!stored) return component.props.value;
+		try {
+			const decrypted = await decrypt(stored, component.props._secret);
+			return JSON.parse(decrypted);
+		} catch (e) {
+			console.error("Error reading from localStorage:", e);
+			return component.props.value;
+		}
+	}
+
+	async function set_local_state_value(component: LocalStateComponent, value: any): Promise<void> {
+		try {
+			const encrypted = await encrypt(JSON.stringify(value), component.props._secret);
+			localStorage.setItem(component.props.key, encrypted);
+		} catch (e) {
+			console.error("Error writing to localStorage:", e);
+		}
+	}
+
+	async function get_component_value_or_event_data(
+		component_id: number,
+		trigger_id: number | null,
+		event_data: unknown
+	): Promise<any> {
+		if (
+			component_id === trigger_id &&
+			event_data &&
+			(event_data as ValueData).is_value_data === true
+		) {
+			return (event_data as ValueData & { value: any }).value;
+		}
+		const component = components.find(c => c.id === component_id);
+		if (component?.props?.name === "localstate") {
+			return await get_local_state_value(component as LocalStateComponent, app);
+		}
+		return get_data(component_id);
+	}
+
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const outputs = dependencies.find((dep) => dep.id == fn_index)!.outputs;
 
@@ -118,7 +159,14 @@
 
 		const updates: UpdateTransaction[] = [];
 
-		data?.forEach((value: any, i: number) => {
+		for (let i = 0; i < data?.length; i++) {
+			const value = data[i];
+			const output_component = components.find(c => c.id === outputs[i]);
+			
+			if (output_component?.props?.name === "localstate") {
+				await set_local_state_value(output_component, value);
+			}
+
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -142,7 +190,7 @@
 					value
 				});
 			}
-		});
+		}
 		update_value(updates);
 
 		await tick();
@@ -217,22 +265,6 @@
 		} else {
 			trigger_api_call(dep_index, trigger_id, event_data);
 		}
-	}
-
-	async function get_component_value_or_event_data(
-		component_id: number,
-		trigger_id: number | null,
-		event_data: unknown
-	): Promise<any> {
-		if (
-			component_id === trigger_id &&
-			event_data &&
-			(event_data as ValueData).is_value_data === true
-		) {
-			// @ts-ignore
-			return event_data.value;
-		}
-		return get_data(component_id);
 	}
 
 	async function trigger_api_call(
