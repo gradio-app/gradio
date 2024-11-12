@@ -403,7 +403,7 @@ class TestTempFile:
 
         demo = gr.Interface(
             lambda x: x,
-            inputs=gr.Image(type="filepath"),
+            inputs=gr.Image(type="filepath", image_mode="RGB"),
             outputs=gr.Image(),
         )
         with connect(demo) as client:
