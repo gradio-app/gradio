@@ -21,13 +21,15 @@ from typing import (
 
 from fastapi import Request
 from gradio_client.documentation import document
-from gradio_client.utils import traverse
+from gradio_client.utils import is_file_obj_with_meta, traverse
 from pydantic import (
     BaseModel,
     GetCoreSchemaHandler,
     GetJsonSchemaHandler,
     RootModel,
     ValidationError,
+    ValidationInfo,
+    model_validator,
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
@@ -226,6 +228,19 @@ class FileData(GradioModel):
     mime_type: Optional[str] = None
     is_stream: bool = False
     meta: dict = {"_type": "gradio.FileData"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_model(cls, v, info: ValidationInfo):
+        if (
+            info.context
+            and info.context.get("validate_meta")
+            and not is_file_obj_with_meta(v)
+        ):
+            raise ValueError(
+                "The 'meta' field must be explicitly provided in the input data and be equal to {'_type': 'gradio.FileData'}."
+            )
+        return v
 
     @property
     def is_none(self) -> bool:

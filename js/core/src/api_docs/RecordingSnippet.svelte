@@ -8,6 +8,7 @@
 	export let dependencies: Dependency[];
 	export let short_root: string;
 	export let root: string;
+	export let api_prefix = "";
 	export let current_language: "python" | "javascript" | "bash";
 	export let username: string | null;
 
@@ -22,7 +23,9 @@
 		named_endpoints: any;
 		unnamed_endpoints: any;
 	}> {
-		let response = await fetch(root + "info/?all_endpoints=true");
+		let response = await fetch(
+			root.replace(/\/$/, "") + api_prefix + "/info/?all_endpoints=true"
+		);
 		let data = await response.json();
 		return data;
 	}
@@ -160,8 +163,7 @@ const app = await Client.connect(<span class="token string">"{short_root}"</span
 await client.predict(<span
 								class="api-name">
   "/{api_name}"</span
-							>{#if call},
-							{/if}{call});
+							>{#if call}, {call}{/if});
 						{/each}</pre>
 				</div>
 			</code>

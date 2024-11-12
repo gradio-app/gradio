@@ -339,6 +339,7 @@ class TestRoutes:
                     {
                         "path": file_response.json()[0],
                         "size": os.path.getsize("test/test_files/alphabet.txt"),
+                        "meta": {"_type": "gradio.FileData"},
                     }
                 ],
                 "fn_index": 0,
@@ -1613,3 +1614,30 @@ def test_attacker_cannot_change_root_in_config(
         t.join()
 
     assert not any(results), "attacker was able to modify a victim's config root url"
+
+
+def test_file_without_meta_key_not_moved():
+    demo = gr.Interface(
+        fn=lambda s: str(s), inputs=gr.File(type="binary"), outputs="textbox"
+    )
+
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+    try:
+        with test_client:
+            req = test_client.post(
+                "gradio_api/run/predict",
+                json={
+                    "data": [
+                        {
+                            "path": "test/test_files/alphabet.txt",
+                            "orig_name": "test.txt",
+                            "size": 4,
+                            "mime_type": "text/plain",
+                        }
+                    ]
+                },
+            )
+            assert req.status_code == 500
+    finally:
+        demo.close()

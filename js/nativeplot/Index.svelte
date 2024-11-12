@@ -47,6 +47,7 @@
 	export let x_axis_labels_visible = true;
 	export let caption: string | null = null;
 	export let sort: "x" | "y" | "-x" | "-y" | string[] | null = null;
+	export let tooltip: "axis" | "none" | "all" | string[] = "axis";
 	function reformat_sort(
 		_sort: typeof sort
 	):
@@ -114,6 +115,15 @@
 	function reformat_data(data: PlotData): {
 		[x: string]: string | number;
 	}[] {
+		if (tooltip == "all" || Array.isArray(tooltip)) {
+			return data.data.map((row) => {
+				const obj: { [x: string]: string | number } = {};
+				data.columns.forEach((col, i) => {
+					obj[col] = row[i];
+				});
+				return obj;
+			});
+		}
 		let x_index = data.columns.indexOf(x);
 		let y_index = data.columns.indexOf(y);
 		let color_index = color ? data.columns.indexOf(color) : null;
@@ -411,29 +421,46 @@
 										type: value.datatypes[color]
 									}
 								: undefined,
-							tooltip: [
-								{
-									field: y,
-									type: value.datatypes[y],
-									aggregate: aggregating ? _y_aggregate : undefined,
-									title: y_title || y
-								},
-								{
-									field: x,
-									type: value.datatypes[x],
-									title: x_title || x,
-									format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
-									bin: _x_bin ? { step: _x_bin } : undefined
-								},
-								...(color
-									? [
+							tooltip:
+								tooltip == "none"
+									? undefined
+									: [
 											{
-												field: color,
-												type: value.datatypes[color]
-											}
+												field: y,
+												type: value.datatypes[y],
+												aggregate: aggregating ? _y_aggregate : undefined,
+												title: y_title || y
+											},
+											{
+												field: x,
+												type: value.datatypes[x],
+												title: x_title || x,
+												format: x_temporal ? "%Y-%m-%d %H:%M:%S" : undefined,
+												bin: _x_bin ? { step: _x_bin } : undefined
+											},
+											...(color
+												? [
+														{
+															field: color,
+															type: value.datatypes[color]
+														}
+													]
+												: []),
+											...(tooltip === "axis"
+												? []
+												: value?.columns
+														.filter(
+															(col) =>
+																col !== x &&
+																col !== y &&
+																col !== color &&
+																(tooltip === "all" || tooltip.includes(col))
+														)
+														.map((column) => ({
+															field: column,
+															type: value.datatypes[column]
+														})))
 										]
-									: [])
-							]
 						},
 						strokeDash: {},
 						mark: { clip: true, type: mode === "hover" ? "point" : value.mark },

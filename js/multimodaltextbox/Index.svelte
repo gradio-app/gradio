@@ -63,7 +63,7 @@
 	{scale}
 	{min_width}
 	allow_overflow={false}
-	padding={container}
+	padding={false}
 	border_mode={dragging ? "focus" : "base"}
 >
 	{#if loading_status}

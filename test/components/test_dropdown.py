@@ -14,6 +14,15 @@ class TestDropdown:
         assert dropdown_input.preprocess("c full") == "c full"
         assert dropdown_input.postprocess("c full") == ["c full"]
 
+        # Check that the error message clearly indicates the error source in cases where data
+        # representation could be ambiguous e.g. "1" (str) vs 1 (int)
+        dropdown_input = gr.Dropdown([1, 2, 3])
+        # Since pytest.raises takes a regular expression in the `match` argument, we need to escape brackets
+        # that have special meaning in regular expressions
+        expected_error_message = r"Value: '1' \(type: <class 'str'>\) is not in the list of choices: \[1, 2, 3\]"
+        with pytest.raises(gr.Error, match=expected_error_message):
+            dropdown_input.preprocess(["1", "2", "3"])
+
         # When an external Gradio app is loaded with gr.load, the tuples are converted to lists,
         # so we test that case as well
         dropdown = gr.Dropdown(["a", "b", ["c", "c full"]])  # type: ignore

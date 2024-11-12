@@ -1,5 +1,20 @@
 # @gradio/gallery
 
+## 0.13.7
+
+### Fixes
+
+- [#9881](https://github.com/gradio-app/gradio/pull/9881) [`6866a54`](https://github.com/gradio-app/gradio/commit/6866a5433afe7e29ad73bac10ecbc3b44f5867f4) - Ensure gallery share button is positioned correctly.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.11.7
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/file@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/image@0.16.7
+
 ## 0.13.6
 
 ### Dependency updates

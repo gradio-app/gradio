@@ -21,6 +21,7 @@
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
+	export let icon_upload = false;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -265,7 +266,8 @@
 		class:center
 		class:boundedheight
 		class:flex
-		style:height="100%"
+		class:icon-mode={icon_upload}
+		style:height={icon_upload ? "" : "100%"}
 		tabindex={hidden ? -1 : 0}
 		on:click={paste_clipboard}
 	>
@@ -282,7 +284,8 @@
 		class:boundedheight
 		class:flex
 		class:disable_click
-		style:height="100%"
+		class:icon-mode={icon_upload}
+		style:height={icon_upload ? "" : "100%"}
 		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation
@@ -343,5 +346,19 @@
 
 	input {
 		display: none;
+	}
+
+	.icon-mode {
+		position: absolute !important;
+		width: var(--size-4);
+		height: var(--size-4);
+		padding: 0;
+		min-height: 0;
+		border-radius: var(--radius-circle);
+	}
+
+	.icon-mode :global(svg) {
+		width: var(--size-4);
+		height: var(--size-4);
 	}
 </style>

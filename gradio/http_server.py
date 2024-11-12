@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import socket
+import sys
 import threading
 import time
 from functools import partial
@@ -144,6 +145,7 @@ def start_server(
                     demo_name=GRADIO_WATCH_DEMO_NAME,
                     stop_event=threading.Event(),
                     demo_file=GRADIO_WATCH_DEMO_PATH,
+                    watch_module=sys.modules["__main__"],
                 )
             server = Server(config=config, reloader=reloader)
             server.run_in_thread()

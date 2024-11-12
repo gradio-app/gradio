@@ -35,6 +35,7 @@
 		class:medium={size === "medium"}
 	>
 		<svelte:component this={Icon} />
+		<slot />
 	</div>
 </button>
 
