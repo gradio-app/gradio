@@ -28,8 +28,21 @@ This tutorial shows you how to build a calorie tracking app where you speak to a
 
 ### Setting Up the Environment
 
-First, let’s import our essential libraries and set up a client for using the Groq API. Here’s how to do it:
+First, let’s install and import our essential libraries and set up a client for using the Groq API. Here’s how to do it:
 
+`requirements.txt`
+```
+gradio
+groq
+numpy
+soundfile
+librosa
+spaces
+xxhash
+datasets
+```
+
+`app.py`
 ```python
 import groq
 import gradio as gr
@@ -57,7 +70,7 @@ We need a way to keep track of our conversation history, so the chatbot remember
 class AppState:
     conversation: list = field(default_factory=list)
     stopped: bool = False
-    model_outs: any = None
+    model_outs: Any = None
 ```
 
 Our `AppState` class is a handy tool for managing conversation history and tracking whether recording is on or off. Each instance will have its own fresh list of conversations, making sure chat history is isolated to each session. 
@@ -242,3 +255,5 @@ These lines set up event listeners for starting and stopping the recording, proc
 4. This creates a natural back-and-forth conversation where you can simply talk about your meals and get instant feedback on nutritional content
 
 This app demonstrates how to create a natural voice interface that feels responsive and intuitive. By combining Groq's fast inference with automatic speech detection, we've eliminated the need for manual recording controls while maintaining high-quality interactions. The result is a practical calorie tracking assistant that users can simply talk to as naturally as they would to a human nutritionist.
+
+Link to GitHub repository: [Groq Gradio Basics](https://github.com/bklieger-groq/gradio-groq-basics/tree/main/calorie-tracker)
