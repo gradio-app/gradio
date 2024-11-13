@@ -143,7 +143,7 @@ We use Pytest, Playwright and Vitest to test our code.
 - The Python tests are located in `/test`. To run these tests:
 
 ```
-bash scripts/run_all_tests.sh
+bash scripts/run_backend_tests.sh
 ```
 
 - The frontend unit tests are any defined with the filename `*.test.ts`. To run them:
