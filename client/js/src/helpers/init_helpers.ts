@@ -35,15 +35,13 @@ export function resolve_root(
 export async function get_jwt(
 	space: string,
 	token: `hf_${string}`,
-	cookies?: string | null,
-	additional_headers?: Record<string, string>
+	cookies?: string | null
 ): Promise<string | false> {
 	try {
 		const r = await fetch(`https://huggingface.co/api/spaces/${space}/jwt`, {
 			headers: {
 				Authorization: `Bearer ${token}`,
-				...(cookies ? { Cookie: cookies } : {}),
-				...(additional_headers || {})
+				...(cookies ? { Cookie: cookies } : {})
 			}
 		});
 
