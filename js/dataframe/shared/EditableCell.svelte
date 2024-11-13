@@ -51,6 +51,13 @@
 		value = currentTarget.value;
 		dispatch("blur");
 	}
+
+	function handle_keydown(event: KeyboardEvent): void {
+		if (event.key === "Enter") {
+			value = _value;
+			dispatch("blur");
+		}
+	}
 </script>
 
 {#if edit}
@@ -62,7 +69,7 @@
 		tabindex="-1"
 		on:blur={handle_blur}
 		use:use_focus
-		on:keydown
+		on:keydown={handle_keydown}
 	/>
 {/if}
 
