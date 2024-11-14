@@ -1,5 +1,7 @@
 ---
 "@gradio/core": minor
+"@gradio/localstate": minor
+"@self/component-test": minor
 "gradio": minor
 ---
 
