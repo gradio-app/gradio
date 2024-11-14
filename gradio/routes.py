@@ -277,25 +277,16 @@ class App(FastAPI):
         response_headers = dict(node_response.headers)
         response_headers.pop("content-length", None)
         content = node_response.content
-        if '/_app/immutable/' in request.url.path:
-            print(f"Processing: {request.url.path}")
-            print(f"Original Content-Type: {node_response.headers.get('content-type')}")
-            print(f"Content first bytes: {content[:20]}")
-            try:
-                if isinstance(content, bytes):
-                    content = content.decode('utf-8')
-            except UnicodeDecodeError:
-                print(f"Failed to decode content for: {request.url.path}")
-            response_headers = {
-                "Access-Control-Allow-Origin": "*",
-                "Cross-Origin-Opener-Policy": "same-origin",
-                "Cross-Origin-Embedder-Policy": "require-corp",
-                "Cache-Control": "public, max-age=31536000, immutable",
-            }
-            if request.url.path.endswith('.js'):
-                response_headers["Content-Type"] = "application/javascript; charset=utf-8"
-            elif request.url.path.endswith('.css'):
-                response_headers["Content-Type"] = "text/css; charset=utf-8"
+        response_headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+        }
+        if request.url.path.endswith('.js'):
+            response_headers["Content-Type"] = "application/javascript; charset=utf-8"
+        elif request.url.path.endswith('.css'):
+            response_headers["Content-Type"] = "text/css; charset=utf-8"
 
         return Response(
             content=content,
