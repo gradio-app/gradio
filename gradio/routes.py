@@ -274,14 +274,11 @@ class App(FastAPI):
             request.method, httpx.URL(url), headers=headers
         )
         node_response = await App.client.send(new_request)
-        response_headers = dict(node_response.headers)
-        response_headers.pop("content-length", None)
         content = node_response.content
         response_headers = {
             "Access-Control-Allow-Origin": "*",
             "Cross-Origin-Opener-Policy": "same-origin",
             "Cross-Origin-Embedder-Policy": "require-corp",
-            "Cache-Control": "public, max-age=31536000, immutable",
         }
         if request.url.path.endswith('.js'):
             response_headers["Content-Type"] = "application/javascript; charset=utf-8"
