@@ -26,7 +26,7 @@ class LocalState(Component):
     ):
         """
         Parameters:
-            value: the initial value (of arbitrary type) of the state.
+            default_value: the initial value (of arbitrary type) of the state.
             storage_key: the key to use in localStorage. If None, a random key will be generated.
             render: should always be True, is included for consistency with other components.
         """
