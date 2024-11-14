@@ -274,11 +274,44 @@ class App(FastAPI):
             request.method, httpx.URL(url), headers=headers
         )
         node_response = await App.client.send(new_request)
+        response_headers = dict(node_response.headers)
+        response_headers.pop("content-length", None)
+        
+        # Get the raw content
+        content = node_response.content
+        
+        # Special handling for SvelteKit assets
+        if '/_app/immutable/assets/' in request.url.path or '/_app/immutable/modules/' in request.url.path:
+            file_path = request.url.path
+            extension = file_path.split('.')[-1].lower()
+            
+            if extension in ['js', 'mjs', 'css']:
+                response_headers.update({
+                    "Cross-Origin-Opener-Policy": "same-origin",
+                    "Cross-Origin-Embedder-Policy": "require-corp",
+                    "Cross-Origin-Resource-Policy": "same-origin",
+                    "X-Content-Type-Options": "nosniff"
+                })
+                
+                if extension in ['js', 'mjs']:
+                    response_headers["Content-Type"] = "application/javascript; charset=utf-8"
+                elif extension == 'css':
+                    response_headers["Content-Type"] = "text/css; charset=utf-8"
+                
+                # Remove any content encoding headers to prevent double-encoding
+                response_headers.pop("content-encoding", None)
+                response_headers.pop("transfer-encoding", None)
+                
+                # Ensure the content isn't compressed
+                if "content-encoding" in node_response.headers:
+                    # You might need to decompress the content here if it's compressed
+                    pass
 
         return Response(
-            content=node_response.content,
+            content=content,
             status_code=node_response.status_code,
-            headers=dict(node_response.headers),
+            headers=response_headers,
+            media_type=response_headers.get("Content-Type")
         )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
