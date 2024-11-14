@@ -5,5 +5,24 @@
 	"type": "module",
 	"author": "",
 	"license": "ISC",
-	"private": true
+	"private": true,
+	"scripts": {
+		"storybook": "storybook dev -p 6006 --config-dir .",
+		"build-storybook": "storybook build --config-dir . --webpack-stats-json"
+	},
+	"dependencies": {
+		"@storybook/addon-a11y": "^8.3.6",
+		"@storybook/addon-essentials": "^8.3.6",
+		"@storybook/addon-interactions": "^8.3.6",
+		"@storybook/addon-links": "^8.3.6",
+		"@storybook/addon-svelte-csf": "^4.1.7",
+		"@storybook/blocks": "^8.3.6",
+		"@storybook/manager-api": "^8.3.6",
+		"@storybook/svelte": "^8.3.6",
+		"@storybook/svelte-vite": "^8.3.6",
+		"@storybook/test": "^8.3.6",
+		"@storybook/theming": "^8.3.6",
+		"svelte-preprocess": "^6.0.3",
+		"svelte": "^4.2.15"
+	}
 }

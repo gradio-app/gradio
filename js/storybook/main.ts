@@ -19,7 +19,7 @@ const config: StorybookConfig = {
 		name: "@storybook/svelte-vite",
 		options: {
 			builder: {
-				viteConfigPath: "js/storybook/vite.config.js"
+				viteConfigPath: "vite.config.js"
 			}
 		}
 	},
