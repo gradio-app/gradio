@@ -109,3 +109,11 @@ export type LoadedComponent = {
 export type LoadingComponent = Promise<{
 	default: ComponentMeta["component"];
 }>;
+
+export interface LocalStateComponent {
+	props: {
+		key: string;
+		value: any;
+		name: "localstate";
+	};
+}

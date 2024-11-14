@@ -5,7 +5,7 @@
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
-	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
+	import type { ComponentMeta, Dependency, LayoutNode, LocalStateComponent } from "./types";
 	import type { UpdateTransaction } from "./init";
 	import { setupi18n } from "./i18n";
 	import { ApiDocs, ApiRecorder } from "./api_docs/";
@@ -48,6 +48,7 @@
 	export let ready: boolean;
 	export let username: string | null;
 	export let api_prefix = "";
+	export let local_state_secret: string | undefined;
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
@@ -104,9 +105,9 @@
 	export let render_complete = false;
 	async function get_local_state_value(component: LocalStateComponent, app: any): Promise<any> {
 		const stored = localStorage.getItem(component.props.key);
-		if (!stored) return component.props.value;
+		if (!stored || !local_state_secret) return component.props.value;
 		try {
-			const decrypted = await decrypt(stored, component.props._secret);
+			const decrypted = await decrypt(stored, local_state_secret);
 			return JSON.parse(decrypted);
 		} catch (e) {
 			console.error("Error reading from localStorage:", e);
@@ -116,7 +117,10 @@
 
 	async function set_local_state_value(component: LocalStateComponent, value: any): Promise<void> {
 		try {
-			const encrypted = await encrypt(JSON.stringify(value), component.props._secret);
+			if (!local_state_secret) {
+				throw new Error("No value for local_state_secret, cannot set local state value");
+			}
+			const encrypted = await encrypt(JSON.stringify(value), local_state_secret);
 			localStorage.setItem(component.props.key, encrypted);
 		} catch (e) {
 			console.error("Error writing to localStorage:", e);

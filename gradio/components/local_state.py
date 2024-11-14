@@ -30,9 +30,6 @@ class LocalState(Component):
             key: the key to use in localStorage. If None, a random key will be generated.
             render: should always be True, is included for consistency with other components.
         """
-        self._secret = "".join(
-            secrets.choice(string.ascii_letters + string.digits) for _ in range(32)
-        )
         self.key = key or "".join(
             secrets.choice(string.ascii_letters + string.digits) for _ in range(16)
         )
