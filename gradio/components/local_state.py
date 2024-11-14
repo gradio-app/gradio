@@ -64,4 +64,3 @@ class LocalState(Component):
 
     def example_value(self) -> Any:
         return "test"
-
