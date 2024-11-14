@@ -16,14 +16,12 @@ with gr.Blocks() as demo:
         p = "".join(random.choices(string.ascii_letters + string.digits, k=10))
         return u, p
 
-    # @demo.load(inputs=[local_storage], outputs=[username, password])
+    @demo.load(inputs=[local_storage], outputs=[username, password])
     def load_from_local_storage(saved_values):
         return saved_values[0], saved_values[1]
 
-    demo.load(inputs=[local_storage], outputs=[username, password], fn=load_from_local_storage)
-
-    # @gr.on([username.change, password.change], inputs=[username, password], outputs=[local_storage])
-    # def save_to_local_storage(username, password):
-    #     return [username, password]
+    @gr.on([username.change, password.change], inputs=[username, password], outputs=[local_storage])
+    def save_to_local_storage(username, password):
+        return [username, password]
 
 demo.launch()

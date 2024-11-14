@@ -1,14 +1,12 @@
-/**
- * Encrypts data using AES-GCM with a provided key
- */
 export async function encrypt(data: string, key: string): Promise<string> {
+    const hashedKey = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key));
+    
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encodedData = new TextEncoder().encode(data);
-    const encodedKey = new TextEncoder().encode(key);
     
     const cryptoKey = await crypto.subtle.importKey(
         "raw",
-        encodedKey,
+        hashedKey,
         { name: "AES-GCM" },
         false,
         ["encrypt"]
@@ -31,18 +29,16 @@ export async function encrypt(data: string, key: string): Promise<string> {
     return btoa(String.fromCharCode(...result));
 }
 
-/**
- * Decrypts data using AES-GCM with a provided key
- */
 export async function decrypt(encryptedData: string, key: string): Promise<string> {
+    const hashedKey = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key));
+    
     const data = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
     const iv = data.slice(0, 12);
     const encryptedContent = data.slice(12);
-    const encodedKey = new TextEncoder().encode(key);
 
     const cryptoKey = await crypto.subtle.importKey(
         "raw",
-        encodedKey,
+        hashedKey,
         { name: "AES-GCM" },
         false,
         ["decrypt"]
