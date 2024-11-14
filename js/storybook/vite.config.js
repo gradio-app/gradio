@@ -11,7 +11,6 @@ export default defineConfig({
 			allow: [".."]
 		}
 	},
-
 	plugins: [
 		svelte({
 			inspector: false,
@@ -29,5 +28,13 @@ export default defineConfig({
 	],
 	resolve: {
 		conditions: ["gradio"]
-	}
+	},
+	build: {
+		rollupOptions: {
+			external: ["@storybook/svelte"]
+		}
+	},
+	optimizeDeps: {
+		include: ['@storybook/svelte']
+	  }
 });
