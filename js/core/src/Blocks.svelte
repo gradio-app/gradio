@@ -5,7 +5,12 @@
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
-	import type { ComponentMeta, Dependency, LayoutNode, LocalStateComponent } from "./types";
+	import type {
+		ComponentMeta,
+		Dependency,
+		LayoutNode,
+		LocalStateComponent
+	} from "./types";
 	import type { UpdateTransaction } from "./init";
 	import { setupi18n } from "./i18n";
 	import { ApiDocs, ApiRecorder } from "./api_docs/";
@@ -103,25 +108,36 @@
 	let api_calls: Payload[] = [];
 
 	export let render_complete = false;
-	async function get_local_state_value(component: LocalStateComponent, app: any): Promise<any> {
-		const stored = localStorage.getItem(component.props.key);
-		if (!stored || !local_state_secret) return component.props.value;
+	async function get_local_state_value(
+		component: LocalStateComponent,
+		app: any
+	): Promise<any> {
+		const stored = localStorage.getItem(component.props.storage_key);
+		if (!stored || !local_state_secret) return component.props.default_value;
 		try {
 			const decrypted = await decrypt(stored, local_state_secret);
 			return JSON.parse(decrypted);
 		} catch (e) {
 			console.error("Error reading from localStorage:", e);
-			return component.props.value;
+			return component.props.default_value;
 		}
 	}
 
-	async function set_local_state_value(component: LocalStateComponent, value: any): Promise<void> {
+	async function set_local_state_value(
+		component: LocalStateComponent,
+		value: any
+	): Promise<void> {
 		try {
 			if (!local_state_secret) {
-				throw new Error("No value for local_state_secret, cannot set local state value");
+				throw new Error(
+					"No value for local_state_secret, cannot set local state value"
+				);
 			}
-			const encrypted = await encrypt(JSON.stringify(value), local_state_secret);
-			localStorage.setItem(component.props.key, encrypted);
+			const encrypted = await encrypt(
+				JSON.stringify(value),
+				local_state_secret
+			);
+			localStorage.setItem(component.props.storage_key, encrypted);
 		} catch (e) {
 			console.error("Error writing to localStorage:", e);
 		}
@@ -139,7 +155,7 @@
 		) {
 			return (event_data as ValueData & { value: any }).value;
 		}
-		const component = components.find(c => c.id === component_id);
+		const component = components.find((c) => c.id === component_id);
 		if (component?.props?.name === "localstate") {
 			return await get_local_state_value(component as LocalStateComponent, app);
 		}
@@ -165,8 +181,8 @@
 
 		for (let i = 0; i < data?.length; i++) {
 			const value = data[i];
-			const output_component = components.find(c => c.id === outputs[i]);
-			
+			const output_component = components.find((c) => c.id === outputs[i]);
+
 			if (output_component?.props?.name === "localstate") {
 				await set_local_state_value(output_component, value);
 			}

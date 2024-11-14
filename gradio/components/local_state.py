@@ -19,21 +19,22 @@ class LocalState(Component):
 
     def __init__(
         self,
-        value: Any = None,
+        default_value: Any = None,
         *,
-        key: str | None = None,
+        storage_key: str | None = None,
         render: bool = True,
     ):
         """
         Parameters:
             value: the initial value (of arbitrary type) of the state.
-            key: the key to use in localStorage. If None, a random key will be generated.
+            storage_key: the key to use in localStorage. If None, a random key will be generated.
             render: should always be True, is included for consistency with other components.
         """
-        self.key = key or "".join(
+        self.default_value = default_value
+        self.storage_key = storage_key or "".join(
             secrets.choice(string.ascii_letters + string.digits) for _ in range(16)
         )
-        super().__init__(value=value, render=render)
+        super().__init__(render=render)
 
     def preprocess(self, payload: Any) -> Any:
         """
