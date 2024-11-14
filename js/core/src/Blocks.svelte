@@ -184,7 +184,10 @@
 			const output_component = components.find((c) => c.id === outputs[i]);
 
 			if (output_component?.props?.name === "localstate") {
-				await set_local_state_value(output_component, value);
+				await set_local_state_value(
+					output_component as LocalStateComponent,
+					value
+				);
 			}
 
 			if (

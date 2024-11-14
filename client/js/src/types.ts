@@ -186,6 +186,7 @@ export interface Config {
 	api_prefix?: string;
 	fill_height?: boolean;
 	fill_width?: boolean;
+	local_state_secret?: string;
 }
 
 // todo: DRY up types
