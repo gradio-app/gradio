@@ -284,6 +284,9 @@ importers:
       '@gradio/label':
         specifier: workspace:^
         version: link:js/label
+      '@gradio/localstate':
+        specifier: workspace:^
+        version: link:js/localstate
       '@gradio/markdown':
         specifier: workspace:^
         version: link:js/markdown
@@ -1088,6 +1091,9 @@ importers:
       '@gradio/label':
         specifier: workspace:^
         version: link:../label
+      '@gradio/localstate':
+        specifier: workspace:^
+        version: link:../localstate
       '@gradio/markdown':
         specifier: workspace:^
         version: link:../markdown
@@ -1669,6 +1675,12 @@ importers:
       gradio:
         specifier: workspace:^
         version: link:../../gradio
+
+  js/localstate:
+    dependencies:
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.15
 
   js/markdown:
     dependencies:
@@ -10110,13 +10122,13 @@ snapshots:
   '@jridgewell/gen-mapping@0.3.3':
     dependencies:
       '@jridgewell/set-array': 1.1.2
-      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/sourcemap-codec': 1.5.0
       '@jridgewell/trace-mapping': 0.3.25
 
   '@jridgewell/gen-mapping@0.3.5':
     dependencies:
       '@jridgewell/set-array': 1.2.1
-      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/sourcemap-codec': 1.5.0
       '@jridgewell/trace-mapping': 0.3.25
 
   '@jridgewell/resolve-uri@3.1.2': {}
@@ -10132,12 +10144,12 @@ snapshots:
   '@jridgewell/trace-mapping@0.3.25':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/sourcemap-codec': 1.5.0
 
   '@jridgewell/trace-mapping@0.3.9':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/sourcemap-codec': 1.5.0
 
   '@lezer/common@1.0.2': {}
 
@@ -14037,7 +14049,7 @@ snapshots:
 
   magic-string@0.27.0:
     dependencies:
-      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/sourcemap-codec': 1.5.0
 
   magic-string@0.30.10:
     dependencies:

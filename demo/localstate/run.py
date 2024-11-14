@@ -11,17 +11,19 @@ with gr.Blocks() as demo:
     local_storage = gr.LocalState(["", ""])
 
     @btn.click(outputs=[username, password])
-    def generate_randomly(username, password):
-        username.value = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-        password.value = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-        return username, password
+    def generate_randomly():
+        u = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+        p = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+        return u, p
 
-    @gr.on([username.change, password.change], inputs=[username, password])
-    def save_to_local_storage(username, password):
-        return [username, password]
-
-    @demo.load()
+    # @demo.load(inputs=[local_storage], outputs=[username, password])
     def load_from_local_storage(saved_values):
         return saved_values[0], saved_values[1]
+
+    demo.load(inputs=[local_storage], outputs=[username, password], fn=load_from_local_storage)
+
+    # @gr.on([username.change, password.change], inputs=[username, password], outputs=[local_storage])
+    # def save_to_local_storage(username, password):
+    #     return [username, password]
 
 demo.launch()

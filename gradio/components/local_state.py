@@ -9,29 +9,26 @@ from typing import Any
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
-from gradio.events import Events
 
 
 @document()
 class LocalState(Component):
     """
-    Special component that stores state in the browser's localStorage. Can attach .change listeners that trigger when the state changes.
+    Special component that stores state in the browser's localStorage in an encrypted format.
     """
-
-    EVENTS = [Events.change]
 
     def __init__(
         self,
         value: Any = None,
         *,
         key: str | None = None,
-        render: bool = False,
+        render: bool = True,
     ):
         """
         Parameters:
             value: the initial value (of arbitrary type) of the state.
             key: the key to use in localStorage. If None, a random key will be generated.
-            render: whether to display the component in the browser (should be False).
+            render: should always be True, is included for consistency with other components.
         """
         self._secret = "".join(
             secrets.choice(string.ascii_letters + string.digits) for _ in range(32)
@@ -60,14 +57,11 @@ class LocalState(Component):
         return value
 
     def api_info(self) -> dict[str, Any]:
-        return {"type": {}, "description": "any valid json"}
+        return {"type": {}, "description": "any json-serializable value"}
 
     def example_payload(self) -> Any:
-        return None
+        return "test"
 
     def example_value(self) -> Any:
-        return None
+        return "test"
 
-    @property
-    def skip_api(self):
-        return True 
