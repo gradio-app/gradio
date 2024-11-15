@@ -30,7 +30,7 @@
 		stylesheets?: string[];
 		path: string;
 		app_id?: string;
-		local_state_secret?: string;
+		browser_state_secret?: string;
 		fill_height?: boolean;
 		fill_width?: boolean;
 		theme_hash?: number;

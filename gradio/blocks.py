@@ -1086,7 +1086,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.app_id = random.getrandbits(64)
-        self.local_state_secret = "".join(
+        self.browser_state_secret = "".join(
             secrets.choice(string.ascii_letters + string.digits) for _ in range(32)
         )
         self.upload_file_set = set()
@@ -2112,7 +2112,7 @@ Received inputs:
             "api_prefix": API_PREFIX,
             "mode": self.mode,
             "app_id": self.app_id,
-            "local_state_secret": self.local_state_secret,
+            "browser_state_secret": self.browser_state_secret,
             "dev_mode": self.dev_mode,
             "analytics_enabled": self.analytics_enabled,
             "components": [],

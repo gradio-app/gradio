@@ -53,7 +53,7 @@
 	export let ready: boolean;
 	export let username: string | null;
 	export let api_prefix = "";
-	export let local_state_secret: string | undefined;
+	export let browser_state_secret: string | undefined;
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
@@ -113,9 +113,9 @@
 		app: any
 	): Promise<any> {
 		const stored = localStorage.getItem(component.props.storage_key);
-		if (!stored || !local_state_secret) return component.props.default_value;
+		if (!stored || !browser_state_secret) return component.props.default_value;
 		try {
-			const decrypted = await decrypt(stored, local_state_secret);
+			const decrypted = await decrypt(stored, browser_state_secret);
 			return JSON.parse(decrypted);
 		} catch (e) {
 			console.error("Error reading from localStorage:", e);
@@ -128,14 +128,14 @@
 		value: any
 	): Promise<void> {
 		try {
-			if (!local_state_secret) {
+			if (!browser_state_secret) {
 				throw new Error(
-					"No value for local_state_secret, cannot set local state value"
+					"No value for browser_state_secret, cannot set local state value"
 				);
 			}
 			const encrypted = await encrypt(
 				JSON.stringify(value),
-				local_state_secret
+				browser_state_secret
 			);
 			localStorage.setItem(component.props.storage_key, encrypted);
 		} catch (e) {

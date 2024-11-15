@@ -357,7 +357,7 @@ class BlocksConfigDict(TypedDict):
     version: str
     mode: str
     app_id: int
-    local_state_secret: str
+    browser_state_secret: str
     dev_mode: bool
     analytics_enabled: bool
     components: list[dict[str, Any]]

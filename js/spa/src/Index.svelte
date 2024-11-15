@@ -29,7 +29,7 @@
 		stylesheets?: string[];
 		path: string;
 		app_id?: string;
-		local_state_secret?: string;
+		browser_state_secret?: string;
 		fill_height?: boolean;
 		fill_width?: boolean;
 		theme_hash?: number;
@@ -507,7 +507,7 @@
 			{app}
 			{...config}
 			fill_height={!is_embed && config.fill_height}
-			local_state_secret={config.local_state_secret || undefined}
+			browser_state_secret={config.browser_state_secret || undefined}
 			theme_mode={active_theme_mode}
 			{control_page_title}
 			target={wrapper}
