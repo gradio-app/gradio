@@ -119,7 +119,6 @@ def load(
 
             @gr.on(demo.load, inputs=[browser_state], outputs=[textbox, remember_token])
             def load_token(token_value):
-                print("load_token", token_value)
                 if token_value:
                     return token_value, True
                 else:
