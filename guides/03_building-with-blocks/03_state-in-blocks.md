@@ -31,3 +31,15 @@ The `.change` listener for a state variable triggers after any event listener ch
 The value of a session State variable is cleared when the user refreshes the page. The value is stored on in the app backend for 60 minutes after the user closes the tab (this can be configured by the `delete_cache` parameter in `gr.Blocks`).
 
 Learn more about `State` in the [docs](https://gradio.app/docs/gradio/state).
+
+## Local State
+
+Gradio also supports **local state**, where data persists in the browser's localStorage even after the page is refreshed or closed. This is useful for storing user preferences, settings, API keys, or other data that should persist across sessions. To use local state:
+
+1. Create a `gr.BrowserState()` object. You can optionally provide an initial default value and a key to identify the data in the browser's localStorage.
+2. Use it like a regular `gr.State` component in event listeners as inputs and outputs.
+
+Here's a simple example that saves a user's username and password across sessions:
+
+$code_browserstate
+
