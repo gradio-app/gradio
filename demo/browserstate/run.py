@@ -8,7 +8,7 @@ with gr.Blocks() as demo:
     username = gr.Textbox(label="Username")
     password = gr.Textbox(label="Password", type="password")
     btn = gr.Button("Generate Randomly")
-    local_storage = gr.LocalState(["", ""])
+    local_storage = gr.BrowserState(["", ""])
 
     @btn.click(outputs=[username, password])
     def generate_randomly():

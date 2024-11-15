@@ -9,6 +9,7 @@ from gradio.components.base import (
     component,
     get_component_instance,
 )
+from gradio.components.browser_state import BrowserState
 from gradio.components.button import Button
 from gradio.components.chatbot import Chatbot, ChatMessage, MessageDict
 from gradio.components.checkbox import Checkbox
@@ -32,7 +33,6 @@ from gradio.components.image import Image
 from gradio.components.image_editor import ImageEditor
 from gradio.components.json_component import JSON
 from gradio.components.label import Label
-from gradio.components.local_state import BrowserState
 from gradio.components.login_button import LoginButton
 from gradio.components.markdown import Markdown
 from gradio.components.model3d import Model3D
