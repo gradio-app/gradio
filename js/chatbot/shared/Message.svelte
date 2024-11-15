@@ -44,6 +44,7 @@
 	export let msg_format: "tuples" | "messages";
 	export let handle_action: (selected: string | null) => void;
 	export let scroll: () => void;
+	export let show_download_button: boolean;
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -187,6 +188,7 @@
 							{upload}
 							{_fetch}
 							on:load={() => scroll()}
+							{show_download_button}
 						/>
 					{:else if message.type === "component" && message.content.component === "file"}
 						<a

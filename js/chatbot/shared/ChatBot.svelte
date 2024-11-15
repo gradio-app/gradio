@@ -47,6 +47,7 @@
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
+	export let show_download_button: boolean;
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
@@ -340,6 +341,7 @@
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					scroll={is_browser ? scroll : () => {}}
+					{show_download_button}
 				/>
 			{/each}
 			{#if pending_message}
