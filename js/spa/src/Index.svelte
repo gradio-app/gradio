@@ -507,7 +507,6 @@
 			{app}
 			{...config}
 			fill_height={!is_embed && config.fill_height}
-			browser_state_secret={config.browser_state_secret || undefined}
 			theme_mode={active_theme_mode}
 			{control_page_title}
 			target={wrapper}
