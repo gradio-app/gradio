@@ -315,28 +315,30 @@
 			</div>
 		{/if}
 		<div class="input-container">
-			<Upload
-				bind:this={upload_component}
-				on:load={handle_upload}
-				{file_count}
-				filetype={file_types}
-				{root}
-				{max_file_size}
-				bind:dragging
-				bind:uploading
-				show_progress={false}
-				disable_click={true}
-				bind:hidden_upload
-				on:error
-				hidden={true}
-				{upload}
-				{stream_handler}
-			></Upload>
-			<button
-				data-testid="upload-button"
-				class="upload-button"
-				on:click={handle_upload_click}><Paperclip /></button
-			>
+			{#if !disabled && !(file_count === "single" && value.files.length > 0)}
+				<Upload
+					bind:this={upload_component}
+					on:load={handle_upload}
+					{file_count}
+					filetype={file_types}
+					{root}
+					{max_file_size}
+					bind:dragging
+					bind:uploading
+					show_progress={false}
+					disable_click={true}
+					bind:hidden_upload
+					on:error
+					hidden={true}
+					{upload}
+					{stream_handler}
+				></Upload>
+				<button
+					data-testid="upload-button"
+					class="upload-button"
+					on:click={handle_upload_click}><Paperclip /></button
+				>
+			{/if}
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={{
