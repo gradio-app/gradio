@@ -299,6 +299,7 @@ export interface ClientOptions {
 	auth?: [string, string] | null;
 	with_null_state?: boolean;
 	events?: EventType[];
+	headers?: Record<string, string>;
 }
 
 export interface FileData {
