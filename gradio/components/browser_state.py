@@ -27,7 +27,7 @@ class BrowserState(Component):
     ):
         """
         Parameters:
-            default_value: the value that will be used if no value is stored in localStorage.
+            default_value: the default value that will be used if no value is stored in localStorage.
             storage_key: the key to use in localStorage. If None, a random key will be generated.
             secret: the secret key to use for encryption. If None, a random key will be generated (recommended).
             render: should always be True, is included for consistency with other components.

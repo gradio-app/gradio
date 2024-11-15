@@ -1,66 +1,28 @@
-export async function encrypt(data: string, key: string): Promise<string> {
-	const hashedKey = await crypto.subtle.digest(
-		"SHA-256",
-		new TextEncoder().encode(key)
-	);
+import CryptoJS from 'crypto-js';
 
-	const iv = crypto.getRandomValues(new Uint8Array(12));
-	const encodedData = new TextEncoder().encode(data);
+export function encrypt(data: string, key: string): string {
+	const hashedKey = CryptoJS.SHA256(key).toString();
+	const iv = CryptoJS.lib.WordArray.random(12);
+	const encrypted = CryptoJS.AES.encrypt(data, hashedKey, {
+		iv: iv,
+		mode: CryptoJS.mode.GCM,
+		padding: CryptoJS.pad.NoPadding
+	});
 
-	const cryptoKey = await crypto.subtle.importKey(
-		"raw",
-		hashedKey,
-		{ name: "AES-GCM" },
-		false,
-		["encrypt"]
-	);
-
-	const encryptedData = await crypto.subtle.encrypt(
-		{
-			name: "AES-GCM",
-			iv: iv
-		},
-		cryptoKey,
-		encodedData
-	);
-
-	const encryptedArray = new Uint8Array(encryptedData);
-	const result = new Uint8Array(iv.length + encryptedArray.length);
-	result.set(iv);
-	result.set(encryptedArray, iv.length);
-
-	return btoa(String.fromCharCode(...result));
+	const ivString = CryptoJS.enc.Base64.stringify(iv);
+	const cipherString = encrypted.toString();
+	return ivString + ':' + cipherString;
 }
 
-export async function decrypt(
-	encryptedData: string,
-	key: string
-): Promise<string> {
-	const hashedKey = await crypto.subtle.digest(
-		"SHA-256",
-		new TextEncoder().encode(key)
-	);
+export function decrypt(encryptedData: string, key: string): string {
+	const hashedKey = CryptoJS.SHA256(key).toString();
+	const [ivString, cipherString] = encryptedData.split(':');
+	const iv = CryptoJS.enc.Base64.parse(ivString);
+	const decrypted = CryptoJS.AES.decrypt(cipherString, hashedKey, {
+		iv: iv,
+		mode: CryptoJS.mode.GCM,
+		padding: CryptoJS.pad.NoPadding
+	});
 
-	const data = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0));
-	const iv = data.slice(0, 12);
-	const encryptedContent = data.slice(12);
-
-	const cryptoKey = await crypto.subtle.importKey(
-		"raw",
-		hashedKey,
-		{ name: "AES-GCM" },
-		false,
-		["decrypt"]
-	);
-
-	const decryptedData = await crypto.subtle.decrypt(
-		{
-			name: "AES-GCM",
-			iv: iv
-		},
-		cryptoKey,
-		encryptedContent
-	);
-
-	return new TextDecoder().decode(decryptedData);
+	return decrypted.toString(CryptoJS.enc.Utf8);
 } 

@@ -1,47 +1,58 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { beforeUpdate } from "svelte";
 	import { encrypt, decrypt } from "./crypto";
+	import { dequal } from "dequal/lite";
 
-	export let value: any;
 	export let storage_key: string;
 	export let secret: string;
 	export let default_value: any;
-	console.log("secret", secret);
-	console.log("storage_key", storage_key);
-	console.log("value1", value);
-	console.log("default_value", default_value);
+	export let value = default_value;
+    let initialized = false;
+	let old_value = value;
 
-	async function load_value(): Promise<void> {
+	function load_value(): void {
 		const stored = localStorage.getItem(storage_key);
 		if (!stored) {
-			value = default_value;
+			old_value = default_value;
+			value = old_value;
 			return;
 		}
 		try {
-			const decrypted = await decrypt(stored, secret);
-			value = JSON.parse(decrypted);
+			const decrypted = decrypt(stored, secret);
+			old_value = JSON.parse(decrypted);
+			value = old_value;
+			console.log("retrieved value", JSON.stringify(value));
 		} catch (e) {
 			console.error("Error reading from localStorage:", e);
-			value = default_value;
+			old_value = default_value;
+			value = old_value;
 		}
 	}
 
-	async function save_value(new_value: unknown): Promise<void> {
+	function save_value(): void {
+		console.log("saving value", JSON.stringify(value), "old_value", JSON.stringify(old_value));
 		try {
-			const encrypted = await encrypt(
-				JSON.stringify(new_value),
+			const encrypted = encrypt(
+				JSON.stringify(value),
 				secret
 			);
 			localStorage.setItem(storage_key, encrypted);
-			value = new_value;
+			old_value = value;
+			console.log("new_value", JSON.stringify(old_value));
 		} catch (e) {
 			console.error("Error writing to localStorage:", e);
 		}
 	}
 
-	$: value && save_value(value);
+	$: value && !dequal(value, old_value) && save_value();
 
-    load_value();
+    // value = ["123", "45"]
+	beforeUpdate(() => {
+        if (!initialized) {
+            initialized = true;
+            load_value();
+        }
+	});
 </script>
