@@ -89,17 +89,31 @@ def load(
         import gradio as gr
 
         with gr.Blocks(fill_height=True) as demo:
-            textbox = gr.Textbox(
-                type="password",
-                label="Enter your token and press enter",
-            )
-            remember_token = gr.Checkbox(label="Remember me on this device", value=False)
-            browser_state = gr.BrowserState()
+            with gr.Accordion("Enter your token and press enter") as accordion:
+                textbox = gr.Textbox(
+                    type="password",
+                    show_label=False,
+                    container=False,
+                )
+                remember_token = gr.Checkbox(
+                    label="Remember me on this device", value=False, container=False
+                )
+                browser_state = gr.BrowserState()
 
-            @gr.on([textbox.submit, remember_token.change], inputs=[textbox, remember_token], outputs=[browser_state, remember_token])
+            @gr.on([textbox.submit], outputs=accordion)
+            def hide_accordion():
+                return gr.Accordion("Token settings", open=False)
+
+            @gr.on(
+                [textbox.submit, remember_token.change],
+                inputs=[textbox, remember_token],
+                outputs=[browser_state, remember_token],
+            )
             def save_token(token_value, remember_token_value):
                 if remember_token_value and token_value:
-                    return token_value, gr.Checkbox(label="Remember me on this device (saved!)", value=True)
+                    return token_value, gr.Checkbox(
+                        label="Remember me on this device (saved!)", value=True
+                    )
                 else:
                     return "", gr.Checkbox(label="Remember me on this device")
 
