@@ -109,25 +109,3 @@ export type LoadedComponent = {
 export type LoadingComponent = Promise<{
 	default: ComponentMeta["component"];
 }>;
-
-export interface LocalStateComponent extends ComponentMeta {
-	type: string;
-	id: number;
-	has_modes: boolean;
-	instance: SvelteComponent;
-	component: ComponentType<SvelteComponent>;
-	documentation?: Documentation;
-	children?: ComponentMeta[];
-	parent?: ComponentMeta;
-	value?: any;
-	component_class_id: string;
-	key: string | number | null;
-	rendered_in?: number;
-	props: {
-		storage_key: string;
-		default_value: any;
-		name: "browserstate";
-		interactive: boolean;
-		[key: string]: unknown;
-	};
-}
