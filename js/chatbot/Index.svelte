@@ -79,7 +79,7 @@
 	export let placeholder: string | null = null;
 	export let examples: ExampleMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
-	export let show_download_button = true;
+	export let allow_file_downloads = true;
 </script>
 
 <Block
@@ -158,7 +158,7 @@
 			load_component={gradio.load_component}
 			msg_format={type}
 			root={gradio.root}
-			{show_download_button}
+			{allow_file_downloads}
 		/>
 	</div>
 </Block>

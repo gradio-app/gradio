@@ -47,7 +47,7 @@
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
-	export let show_download_button: boolean;
+	export let allow_file_downloads: boolean;
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
@@ -300,13 +300,14 @@
 								on:click={() => (is_image_preview_open = false)}
 								label={"Clear"}
 							/>
-
-							<DownloadLink
-								href={image_preview_source}
-								download={image_preview_source_alt || "image"}
-							>
-								<IconButton Icon={Download} label={"Download"} />
-							</DownloadLink>
+							{#if allow_file_downloads}
+								<DownloadLink
+									href={image_preview_source}
+									download={image_preview_source_alt || "image"}
+								>
+									<IconButton Icon={Download} label={"Download"} />
+								</DownloadLink>
+							{/if}
 						</IconButtonWrapper>
 					</div>
 				{/if}
@@ -341,7 +342,7 @@
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					scroll={is_browser ? scroll : () => {}}
-					{show_download_button}
+					{allow_file_downloads}
 				/>
 			{/each}
 			{#if pending_message}
