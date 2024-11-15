@@ -41,7 +41,7 @@ from gradio.components import (
     Json,
     Label,
     LinePlot,
-    LocalState,
+    BrowserState,
     LoginButton,
     Markdown,
     MessageDict,

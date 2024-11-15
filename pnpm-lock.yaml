@@ -284,9 +284,9 @@ importers:
       '@gradio/label':
         specifier: workspace:^
         version: link:js/label
-      '@gradio/localstate':
+      '@gradio/browserstate':
         specifier: workspace:^
-        version: link:js/localstate
+        version: link:js/browserstate
       '@gradio/markdown':
         specifier: workspace:^
         version: link:js/markdown
@@ -1091,9 +1091,9 @@ importers:
       '@gradio/label':
         specifier: workspace:^
         version: link:../label
-      '@gradio/localstate':
+      '@gradio/browserstate':
         specifier: workspace:^
-        version: link:../localstate
+        version: link:../browserstate
       '@gradio/markdown':
         specifier: workspace:^
         version: link:../markdown
@@ -1676,7 +1676,7 @@ importers:
         specifier: workspace:^
         version: link:../../gradio
 
-  js/localstate:
+  js/browserstate:
     dependencies:
       svelte:
         specifier: ^4.0.0

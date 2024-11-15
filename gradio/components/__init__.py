@@ -32,7 +32,7 @@ from gradio.components.image import Image
 from gradio.components.image_editor import ImageEditor
 from gradio.components.json_component import JSON
 from gradio.components.label import Label
-from gradio.components.local_state import LocalState
+from gradio.components.local_state import BrowserState
 from gradio.components.login_button import LoginButton
 from gradio.components.markdown import Markdown
 from gradio.components.model3d import Model3D
@@ -89,7 +89,7 @@ __all__ = [
     "Json",
     "Label",
     "LinePlot",
-    "LocalState",
+    "BrowserState",
     "LoginButton",
     "Markdown",
     "MessageDict",

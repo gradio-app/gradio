@@ -1,7 +1,7 @@
 ---
 "@gradio/client": minor
 "@gradio/core": minor
-"@gradio/localstate": minor
+"@gradio/browserstate": minor
 "@gradio/utils": minor
 "@self/app": minor
 "@self/component-test": minor

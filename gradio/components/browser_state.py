@@ -1,4 +1,4 @@
-"""gr.LocalState() component."""
+"""gr.BrowserState() component."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from gradio.components.base import Component
 
 
 @document()
-class LocalState(Component):
+class BrowserState(Component):
     """
     Special component that stores state in the browser's localStorage in an encrypted format.
     """

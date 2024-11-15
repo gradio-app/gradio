@@ -126,7 +126,7 @@ export interface LocalStateComponent extends ComponentMeta {
 	props: {
 		storage_key: string;
 		default_value: any;
-		name: "localstate";
+		name: "browserstate";
 		interactive: boolean;
 		[key: string]: unknown;
 	};

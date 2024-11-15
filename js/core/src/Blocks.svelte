@@ -156,7 +156,7 @@
 			return (event_data as ValueData & { value: any }).value;
 		}
 		const component = components.find((c) => c.id === component_id);
-		if (component?.props?.name === "localstate") {
+		if (component?.props?.name === "browserstate") {
 			return await get_local_state_value(component as LocalStateComponent, app);
 		}
 		return get_data(component_id);
@@ -183,7 +183,7 @@
 			const value = data[i];
 			const output_component = components.find((c) => c.id === outputs[i]);
 
-			if (output_component?.props?.name === "localstate") {
+			if (output_component?.props?.name === "browserstate") {
 				await set_local_state_value(
 					output_component as LocalStateComponent,
 					value
