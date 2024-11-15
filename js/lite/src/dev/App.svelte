@@ -79,6 +79,12 @@ def hi(name):
 			playground: false,
 			layout: null
 		});
+		controller.addEventListener("modules-auto-loaded", (event) => {
+			const packages = (event as CustomEvent).detail as { name: string }[];
+			const packageNames = packages.map((pkg) => pkg.name);
+			requirements_txt +=
+				"\n" + packageNames.map((line) => line + "  # auto-loaded").join("\n");
+		});
 	});
 	onDestroy(() => {
 		controller.unmount();
