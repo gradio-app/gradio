@@ -117,6 +117,9 @@ gradio app.py
 
 This will start the backend server in reload mode, which will watch for changes in the `gradio` folder and reload the app if changes are made. By default, Gradio will launch on port 7860. You can also just use `python app.py`, but this won't automatically trigger updates. 
 
+Note: if you have `gradio` installed elsewhere in your system, you may need to uninstall it or at least make sure your `PYTHONPATH` includes the directory where the Gradio repository is cloned, e.g.,
+`export PYTHONPATH="./"`
+
 
 If you're making frontend changes, start the frontend server:
 
@@ -140,7 +143,7 @@ We use Pytest, Playwright and Vitest to test our code.
 - The Python tests are located in `/test`. To run these tests:
 
 ```
-bash scripts/run_all_tests.sh
+bash scripts/run_backend_tests.sh
 ```
 
 - The frontend unit tests are any defined with the filename `*.test.ts`. To run them:
@@ -345,6 +348,19 @@ bash scripts/build_frontend.sh
 ```FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory``` when running `scripts/build_frontend.sh`.
 
 Run `scripts/build_frontend.sh` with the environment variable `NODE_OPTIONS=--max_old_space_size=2048` to increase the heap size.
+
+---
+
+In the case of:
+- Unexpected exceptions being thrown, or
+- The following warning:
+`IMPORTANT: You are using gradio version <earlier version>, however version <later version> is available, please upgrade.`
+
+ensure your `PYTHONPATH` includes the directory where the Gradio repository is cloned, e.g.:
+
+```export PYTHONPATH="./"```
+
+This ensures that when `gradio` is imported in a python program, it is this current version from this repository.
 
 ---
 
