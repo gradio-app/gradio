@@ -9,7 +9,7 @@
 	export let secret: string;
 	export let default_value: any;
 	export let value = default_value;
-    let initialized = false;
+	let initialized = false;
 	let old_value = value;
 
 	function load_value(): void {
@@ -23,7 +23,6 @@
 			const decrypted = decrypt(stored, secret);
 			old_value = JSON.parse(decrypted);
 			value = old_value;
-			console.log("retrieved value", JSON.stringify(value));
 		} catch (e) {
 			console.error("Error reading from localStorage:", e);
 			old_value = default_value;
@@ -32,15 +31,10 @@
 	}
 
 	function save_value(): void {
-		console.log("saving value", JSON.stringify(value), "old_value", JSON.stringify(old_value));
 		try {
-			const encrypted = encrypt(
-				JSON.stringify(value),
-				secret
-			);
+			const encrypted = encrypt(JSON.stringify(value), secret);
 			localStorage.setItem(storage_key, encrypted);
 			old_value = value;
-			console.log("new_value", JSON.stringify(old_value));
 		} catch (e) {
 			console.error("Error writing to localStorage:", e);
 		}
@@ -48,11 +42,11 @@
 
 	$: value && !dequal(value, old_value) && save_value();
 
-    // value = ["123", "45"]
+	// value = ["123", "45"]
 	beforeUpdate(() => {
-        if (!initialized) {
-            initialized = true;
-            load_value();
-        }
+		if (!initialized) {
+			initialized = true;
+			load_value();
+		}
 	});
 </script>
