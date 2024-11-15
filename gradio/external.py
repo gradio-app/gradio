@@ -89,11 +89,13 @@ def load(
         import gradio as gr
 
         with gr.Blocks(fill_height=True) as demo:
-            textbox = gr.Textbox(
-                type="password",
-                label="Token",
-                info="Enter your token and press enter.",
-            )
+            with gr.Row():
+                textbox = gr.Textbox(
+                    type="password",
+                    label="Token",
+                    info="Enter your token and press enter.",
+                )
+                remember_token = gr.Checkbox(label="Remember me on this device", value=False)
 
             @gr.render(inputs=[textbox], triggers=[textbox.submit])
             def create(token_value):
