@@ -72,7 +72,6 @@
 	}
 
 	type ButtonPanelProps = {
-		show: boolean;
 		handle_action: (selected: string | null) => void;
 		likeable: boolean;
 		show_retry: boolean;
@@ -87,7 +86,6 @@
 
 	let button_panel_props: ButtonPanelProps;
 	$: button_panel_props = {
-		show: show_like || show_retry || show_undo || show_copy_button,
 		handle_action,
 		likeable: show_like,
 		show_retry,
