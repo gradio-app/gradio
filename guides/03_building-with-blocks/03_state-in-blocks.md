@@ -41,5 +41,5 @@ Gradio also supports **local state**, where data persists in the browser's local
 
 Here's a simple example that saves a user's username and password across sessions:
 
-$code_localstate
+$code_browserstate
 
