@@ -89,13 +89,27 @@ def load(
         import gradio as gr
 
         with gr.Blocks(fill_height=True) as demo:
-            with gr.Row():
-                textbox = gr.Textbox(
-                    type="password",
-                    label="Token",
-                    info="Enter your token and press enter.",
-                )
-                remember_token = gr.Checkbox(label="Remember me on this device", value=False)
+            textbox = gr.Textbox(
+                type="password",
+                label="Enter your token and press enter",
+            )
+            remember_token = gr.Checkbox(label="Remember me on this device", value=False)
+            browser_state = gr.BrowserState()
+
+            @gr.on([textbox.submit, remember_token.change], inputs=[textbox, remember_token], outputs=[browser_state, remember_token])
+            def save_token(token_value, remember_token_value):
+                if remember_token_value and token_value:
+                    return token_value, gr.Checkbox(label="Remember me on this device (saved!)", value=True)
+                else:
+                    return "", gr.Checkbox(label="Remember me on this device")
+
+            @gr.on(demo.load, inputs=[browser_state], outputs=[textbox, remember_token])
+            def load_token(token_value):
+                print("load_token", token_value)
+                if token_value:
+                    return token_value, True
+                else:
+                    return "", False
 
             @gr.render(inputs=[textbox], triggers=[textbox.submit])
             def create(token_value):
