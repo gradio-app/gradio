@@ -14,6 +14,7 @@ from gradio.components import (
     Annotatedimage,
     Audio,
     BarPlot,
+    BrowserState,
     Button,
     Chatbot,
     ChatMessage,

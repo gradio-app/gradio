@@ -9,6 +9,7 @@ from gradio.components.base import (
     component,
     get_component_instance,
 )
+from gradio.components.browser_state import BrowserState
 from gradio.components.button import Button
 from gradio.components.chatbot import Chatbot, ChatMessage, MessageDict
 from gradio.components.checkbox import Checkbox
@@ -88,6 +89,7 @@ __all__ = [
     "Json",
     "Label",
     "LinePlot",
+    "BrowserState",
     "LoginButton",
     "Markdown",
     "MessageDict",

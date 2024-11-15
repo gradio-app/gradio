@@ -36,7 +36,7 @@ class State(Component):
         """
         Parameters:
             value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
-            render: has no effect, but is included for consistency with other components.
+            render: should always be True, is included for consistency with other components.
             time_to_live: The number of seconds the state should be stored for after it is created or updated. If None, the state will be stored indefinitely. Gradio automatically deletes state variables after a user closes the browser tab or refreshes the page, so this is useful for clearing state for potentially long running sessions.
             delete_callback: A function that is called when the state is deleted. The function should take the state value as an argument.
         """
