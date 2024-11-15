@@ -42,7 +42,6 @@
 
 	$: value && !dequal(value, old_value) && save_value();
 
-	// value = ["123", "45"]
 	beforeUpdate(() => {
 		if (!initialized) {
 			initialized = true;
