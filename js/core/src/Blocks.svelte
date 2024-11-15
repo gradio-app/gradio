@@ -5,12 +5,7 @@
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
-	import type {
-		ComponentMeta,
-		Dependency,
-		LayoutNode,
-		LocalStateComponent
-	} from "./types";
+	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
 	import { setupi18n } from "./i18n";
 	import { ApiDocs, ApiRecorder } from "./api_docs/";
@@ -29,7 +24,6 @@
 		RenderMessage,
 		StatusMessage
 	} from "@gradio/client";
-	import { encrypt, decrypt } from "@gradio/utils";
 
 	setupi18n();
 
@@ -53,7 +47,6 @@
 	export let ready: boolean;
 	export let username: string | null;
 	export let api_prefix = "";
-	export let browser_state_secret: string | undefined;
 	export let max_file_size: number | undefined = undefined;
 	export let initial_layout: ComponentMeta | undefined = undefined;
 	export let css: string | null | undefined = null;
@@ -108,60 +101,6 @@
 	let api_calls: Payload[] = [];
 
 	export let render_complete = false;
-	async function get_local_state_value(
-		component: LocalStateComponent,
-		app: any
-	): Promise<any> {
-		const stored = localStorage.getItem(component.props.storage_key);
-		if (!stored || !browser_state_secret) return component.props.default_value;
-		try {
-			const decrypted = await decrypt(stored, browser_state_secret);
-			return JSON.parse(decrypted);
-		} catch (e) {
-			console.error("Error reading from localStorage:", e);
-			return component.props.default_value;
-		}
-	}
-
-	async function set_local_state_value(
-		component: LocalStateComponent,
-		value: any
-	): Promise<void> {
-		try {
-			if (!browser_state_secret) {
-				throw new Error(
-					"No value for browser_state_secret, cannot set local state value"
-				);
-			}
-			const encrypted = await encrypt(
-				JSON.stringify(value),
-				browser_state_secret
-			);
-			localStorage.setItem(component.props.storage_key, encrypted);
-		} catch (e) {
-			console.error("Error writing to localStorage:", e);
-		}
-	}
-
-	async function get_component_value_or_event_data(
-		component_id: number,
-		trigger_id: number | null,
-		event_data: unknown
-	): Promise<any> {
-		if (
-			component_id === trigger_id &&
-			event_data &&
-			(event_data as ValueData).is_value_data === true
-		) {
-			return (event_data as ValueData & { value: any }).value;
-		}
-		const component = components.find((c) => c.id === component_id);
-		if (component?.props?.name === "browserstate") {
-			return await get_local_state_value(component as LocalStateComponent, app);
-		}
-		return get_data(component_id);
-	}
-
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const outputs = dependencies.find((dep) => dep.id == fn_index)!.outputs;
 
@@ -179,17 +118,7 @@
 
 		const updates: UpdateTransaction[] = [];
 
-		for (let i = 0; i < data?.length; i++) {
-			const value = data[i];
-			const output_component = components.find((c) => c.id === outputs[i]);
-
-			if (output_component?.props?.name === "browserstate") {
-				await set_local_state_value(
-					output_component as LocalStateComponent,
-					value
-				);
-			}
-
+		data?.forEach((value: any, i: number) => {
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -213,7 +142,7 @@
 					value
 				});
 			}
-		}
+		});
 		update_value(updates);
 
 		await tick();
@@ -288,6 +217,22 @@
 		} else {
 			trigger_api_call(dep_index, trigger_id, event_data);
 		}
+	}
+
+	async function get_component_value_or_event_data(
+		component_id: number,
+		trigger_id: number | null,
+		event_data: unknown
+	): Promise<any> {
+		if (
+			component_id === trigger_id &&
+			event_data &&
+			(event_data as ValueData).is_value_data === true
+		) {
+			// @ts-ignore
+			return event_data.value;
+		}
+		return get_data(component_id);
 	}
 
 	async function trigger_api_call(
