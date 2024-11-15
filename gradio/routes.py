@@ -281,9 +281,8 @@ class App(FastAPI):
             and "chrome" not in user_agent
             and "chromium" not in user_agent
         )
+        response_headers = {}
         if is_safari:
-            response_headers = dict(node_response.headers)
-            response_headers.pop("content-length", None)
             response_headers = {
                 "Access-Control-Allow-Origin": "*",
                 "Cross-Origin-Opener-Policy": "same-origin",
