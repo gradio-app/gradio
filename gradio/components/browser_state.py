@@ -22,15 +22,20 @@ class BrowserState(Component):
         default_value: Any = None,
         *,
         storage_key: str | None = None,
+        secret: str | None = None,
         render: bool = True,
     ):
         """
         Parameters:
-            default_value: the initial value (of arbitrary type) of the state.
+            default_value: the value that will be used if no value is stored in localStorage.
             storage_key: the key to use in localStorage. If None, a random key will be generated.
+            secret: the secret key to use for encryption. If None, a random key will be generated (recommended).
             render: should always be True, is included for consistency with other components.
         """
         self.default_value = default_value
+        self.secret = secret or "".join(
+            secrets.choice(string.ascii_letters + string.digits) for _ in range(16)
+        )
         self.storage_key = storage_key or "".join(
             secrets.choice(string.ascii_letters + string.digits) for _ in range(16)
         )

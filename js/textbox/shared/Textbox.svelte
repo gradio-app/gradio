@@ -11,6 +11,7 @@
 	import type { SelectData } from "@gradio/utils";
 
 	export let value = "";
+	console.log("textbox value", value);
 	export let value_is_output = false;
 	export let lines = 1;
 	export let placeholder = "Type here...";
@@ -43,6 +44,8 @@
 	$: value, el && lines !== max_lines && resize({ target: el });
 
 	$: if (value === null) value = "";
+
+	$: value && console.log("textbox value2", value);
 
 	const dispatch = createEventDispatcher<{
 		change: string;
