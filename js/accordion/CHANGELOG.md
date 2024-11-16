@@ -1,5 +1,26 @@
 # @gradio/accordion
 
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+- @gradio/statustracker@0.9.5
+- @gradio/column@0.2.0
+
+## 0.5.0
+
+### Features
+
+- [#9875](https://github.com/gradio-app/gradio/pull/9875) [`8305ff8`](https://github.com/gradio-app/gradio/commit/8305ff8712183f27174cfb891548ad7cc1c67fed) - Adds `.expand()` and `.collapse()` events to `gr.Accordion`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/column@0.2.0
+
 ## 0.4.5
 
 ### Dependency updates

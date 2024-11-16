@@ -4,7 +4,7 @@
 	import "@gradio/theme/pollen.css";
 	import "@gradio/theme/typography.css";
 
-	import { onDestroy, SvelteComponent } from "svelte";
+	import { onDestroy, SvelteComponent, createEventDispatcher } from "svelte";
 	import Index from "@self/spa";
 	import Playground from "./Playground.svelte";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
@@ -92,6 +92,12 @@
 
 	worker_proxy.addEventListener("initialization-error", (event) => {
 		error = (event as CustomEvent).detail;
+	});
+
+	const dispatch = createEventDispatcher();
+
+	worker_proxy.addEventListener("modules-auto-loaded", (event) => {
+		dispatch("modules-auto-loaded", (event as CustomEvent).detail);
 	});
 
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued

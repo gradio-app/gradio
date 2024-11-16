@@ -750,14 +750,21 @@ def decode_base64_to_binary(encoding: str) -> tuple[bytes, str | None]:
 
 
 def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> str:
-    """Strips invalid characters from a filename and ensures that the file_length is less than `max_bytes` bytes."""
-    filename = "".join([char for char in filename if char.isalnum() or char in "._- "])
+    """
+    Strips invalid characters from a filename and ensures it does not exceed the maximum byte length
+    Invalid characters are any characters that are not alphanumeric or one of the following: . _ -
+    The filename may include an extension (in which case it is preserved exactly as is), or could be just a name without an extension.
+    """
+    name, ext = os.path.splitext(filename)
+    name = "".join([char for char in name if char.isalnum() or char in "._- "])
+    filename = name + ext
     filename_len = len(filename.encode())
     if filename_len > max_bytes:
         while filename_len > max_bytes:
-            if len(filename) == 0:
+            if len(name) == 0:
                 break
-            filename = filename[:-1]
+            name = name[:-1]
+            filename = name + ext
             filename_len = len(filename.encode())
     return filename
 

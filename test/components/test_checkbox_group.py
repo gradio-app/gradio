@@ -20,6 +20,15 @@ class TestCheckboxGroup:
         with pytest.raises(gr.Error):
             checkboxes_input.preprocess(["a", "b", "c"])
 
+        # Check that the error message clearly indicates the error source in cases where data
+        # representation could be ambiguous e.g. "1" (str) vs 1 (int)
+        checkboxes_input = gr.CheckboxGroup([1, 2, 3])
+        # Since pytest.raises takes a regular expression in the `match` argument, we need to escape brackets
+        # that have special meaning in regular expressions
+        expected_error_message = r"Value: '1' \(type: <class 'str'>\) is not in the list of choices: \[1, 2, 3\]"
+        with pytest.raises(gr.Error, match=expected_error_message):
+            checkboxes_input.preprocess(["1", "2", "3"])
+
         # When a Gradio app is loaded with gr.load, the tuples are converted to lists,
         # so we need to test that case as well
         checkboxgroup = gr.CheckboxGroup(["a", "b", ["c", "c full"]])  # type: ignore

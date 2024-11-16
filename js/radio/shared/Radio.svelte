@@ -50,7 +50,7 @@
 		box-shadow: var(--checkbox-label-shadow);
 		border: var(--checkbox-label-border-width) solid
 			var(--checkbox-label-border-color);
-		border-radius: var(--button-small-radius);
+		border-radius: var(--checkbox-border-radius);
 		background: var(--checkbox-label-background-fill);
 		padding: var(--checkbox-label-padding);
 		color: var(--checkbox-label-text-color);

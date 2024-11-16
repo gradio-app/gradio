@@ -448,7 +448,7 @@ def get_component_instance(
         component_obj = comp
     else:
         raise ValueError(
-            f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
+            f"Component must be provided as a `str` or `dict` or `Component` but is {comp}"
         )
 
     if render and not component_obj.is_rendered:

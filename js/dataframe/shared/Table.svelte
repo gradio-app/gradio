@@ -1241,8 +1241,8 @@
 	}
 
 	th .header-content {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		white-space: normal;
+		overflow-wrap: break-word;
+		word-break: break-word;
 	}
 </style>

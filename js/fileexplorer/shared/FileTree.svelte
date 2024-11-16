@@ -67,24 +67,27 @@
 	{#each content as { type, name, valid }, i}
 		<li>
 			<span class="wrap">
-				<Checkbox
-					disabled={!interactive ||
-						(type === "folder" && file_count === "single")}
-					value={(type === "file" ? selected_files : selected_folders).some(
-						(x) => x[0] === name && x.length === 1
-					)}
-					on:change={(e) => {
-						let checked = e.detail;
-						dispatch("check", {
-							path: [...path, name],
-							checked,
-							type
-						});
-						if (type === "folder" && checked) {
-							open_folder(i);
-						}
-					}}
-				/>
+				{#if type === "folder" && file_count === "single"}
+					<span class="no-checkbox" aria-hidden="true"></span>
+				{:else}
+					<Checkbox
+						disabled={!interactive}
+						value={(type === "file" ? selected_files : selected_folders).some(
+							(x) => x[0] === name && x.length === 1
+						)}
+						on:change={(e) => {
+							let checked = e.detail;
+							dispatch("check", {
+								path: [...path, name],
+								checked,
+								type
+							});
+							if (type === "folder" && checked) {
+								open_folder(i);
+							}
+						}}
+					/>
+				{/if}
 
 				{#if type === "folder"}
 					<span
@@ -178,6 +181,11 @@
 		transform-origin: 40% 50%;
 		transition: 0.2s;
 		color: var(--color-accent);
+	}
+
+	.no-checkbox {
+		width: 18px;
+		height: 18px;
 	}
 
 	.hidden :global(> *) {
