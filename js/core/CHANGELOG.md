@@ -1,5 +1,32 @@
 # @gradio/core
 
+## 0.4.0
+
+### Features
+
+- [#9950](https://github.com/gradio-app/gradio/pull/9950) [`fc06fe4`](https://github.com/gradio-app/gradio/commit/fc06fe41f015678a0545f4e5c99f6ae2704f0031) - Add ability to read and write from LocalStorage.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/video@0.11.8
+- @gradio/atoms@0.11.1
+- @gradio/code@0.10.8
+- @gradio/paramviewer@0.5.7
+- @gradio/tabitem@0.3.4
+- @gradio/tabs@0.3.4
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/button@0.3.7
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+- @gradio/gallery@0.13.8
+- @gradio/plot@0.9.2
+- @gradio/image@0.16.8
+- @gradio/file@0.11.1
+- @gradio/checkbox@0.4.7
+- @gradio/textbox@0.8.6
+- @gradio/column@0.2.0
+
 ## 0.3.0
 
 ### Features

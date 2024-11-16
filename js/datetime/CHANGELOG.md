@@ -1,5 +1,17 @@
 # @gradio/datetime
 
+## 0.2.7
+
+### Fixes
+
+- [#9897](https://github.com/gradio-app/gradio/pull/9897) [`c0cf80b`](https://github.com/gradio-app/gradio/commit/c0cf80bddd99ad0f836e618cc3d2b13e73cb5611) - Allow datetime value to be null.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+- @gradio/statustracker@0.9.5
+
 ## 0.2.6
 
 ### Dependency updates

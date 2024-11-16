@@ -1,5 +1,17 @@
 # @gradio/checkboxgroup
 
+## 0.6.7
+
+### Fixes
+
+- [#9901](https://github.com/gradio-app/gradio/pull/9901) [`74b4ff0`](https://github.com/gradio-app/gradio/commit/74b4ff0e61a2a32e1cd5e3354d3002b369c7ad83) - Ensure radio radius is consistent with checkbox radius.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+- @gradio/statustracker@0.9.5
+
 ## 0.6.6
 
 ### Dependency updates

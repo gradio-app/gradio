@@ -1,5 +1,22 @@
 # @gradio/multimodaltextbox
 
+## 0.7.6
+
+### Fixes
+
+- [#9946](https://github.com/gradio-app/gradio/pull/9946) [`a966e9f`](https://github.com/gradio-app/gradio/commit/a966e9f753af25eb9d813dfdbce39be6f3014d82) - Hide upload button after upload when `file_count="single"`.  Thanks @abidlabs!
+- [#9904](https://github.com/gradio-app/gradio/pull/9904) [`f523c91`](https://github.com/gradio-app/gradio/commit/f523c915d3732859ff4a8019a82cb597b5208ae2) - Ensure dropped files are validated in MultimediaTextbox.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.11.8
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+- @gradio/image@0.16.8
+
 ## 0.7.5
 
 ### Dependency updates
