@@ -58,7 +58,7 @@
 
 <Story
 	name="Chatbot with math disabled, small height"
-	args={{ latex_delimiters: [], height: 200 }}
+	args={{ latex_delimiters: [], height: 200, show_copy_button: false }}
 />
 
 <Story
@@ -85,24 +85,10 @@
 />
 
 <Story
-	name="Chatbot with copy button"
-	args={{
-		show_copy_button: true
-	}}
-/>
-
-<Story
-	name="Chatbot with chat bubble full width disabled"
-	args={{
-		bubble_full_width: false
-	}}
-/>
-
-<Story
-	name="Chatbot with panel layout enabled"
+	name="Chatbot with chat bubble full width disabled and copy button"
 	args={{
 		bubble_full_width: false,
-		layout: "panel"
+		show_copy_button: true
 	}}
 />
 

@@ -1,5 +1,33 @@
 # @gradio/file
 
+## 0.11.1
+
+### Fixes
+
+- [#9946](https://github.com/gradio-app/gradio/pull/9946) [`a966e9f`](https://github.com/gradio-app/gradio/commit/a966e9f753af25eb9d813dfdbce39be6f3014d82) - Hide upload button after upload when `file_count="single"`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+
+## 0.11.0
+
+### Features
+
+- [#9891](https://github.com/gradio-app/gradio/pull/9891) [`fc12496`](https://github.com/gradio-app/gradio/commit/fc124964a1b4922e54a4ca4755f0a536dfae1a21) - Allow uploading more files in gr.File.  Thanks @hannahblair!
+- [#9887](https://github.com/gradio-app/gradio/pull/9887) [`d407c00`](https://github.com/gradio-app/gradio/commit/d407c007153705a7f5446f4601c12f208ec32a5b) - Add `.download()` event to `gr.File`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/wasm@0.15.0
+
 ## 0.10.6
 
 ### Dependency updates

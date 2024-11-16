@@ -5,7 +5,7 @@
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
-	import { Back, Calendar } from "@gradio/icons";
+	import { Calendar } from "@gradio/icons";
 
 	export let gradio: Gradio<{
 		change: undefined;
@@ -54,8 +54,8 @@
 	let datetime: HTMLInputElement;
 	let datevalue = value;
 
-	const date_is_valid_format = (date: string): boolean => {
-		if (date === "") return false;
+	const date_is_valid_format = (date: string | null): boolean => {
+		if (date === null || date === "") return true;
 		const valid_regex = include_time
 			? /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
 			: /^\d{4}-\d{2}-\d{2}$/;

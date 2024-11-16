@@ -1,5 +1,40 @@
 # @gradio/chatbot
 
+## 0.16.3
+
+### Fixes
+
+- [#9905](https://github.com/gradio-app/gradio/pull/9905) [`08f4b8b`](https://github.com/gradio-app/gradio/commit/08f4b8b000702456e04fac70961a4fbe0058f11c) - Add `allow_file_downloads` param to allow downloading image/video/audio media in chatbot.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.11.8
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+- @gradio/gallery@0.13.8
+- @gradio/plot@0.9.2
+- @gradio/image@0.16.8
+
+## 0.16.2
+
+### Fixes
+
+- [#9826](https://github.com/gradio-app/gradio/pull/9826) [`69acfeb`](https://github.com/gradio-app/gradio/commit/69acfebffd0d3479a40352de19c8763863557428) - Make sure the Tool accordion is closed if it is not the last message.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/video@0.11.7
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/wasm@0.15.0
+- @gradio/image@0.16.7
+- @gradio/gallery@0.13.7
+- @gradio/plot@0.9.1
+
 ## 0.16.1
 
 ### Fixes

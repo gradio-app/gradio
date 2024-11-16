@@ -184,6 +184,7 @@ class Chatbot(Component):
         placeholder: str | None = None,
         examples: list[ExampleMessage] | None = None,
         show_copy_all_button=False,
+        allow_file_downloads=True,
     ):
         """
         Parameters:
@@ -218,6 +219,7 @@ class Chatbot(Component):
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
             examples: A list of example messages to display in the chatbot before any user/assistant messages are shown. Each example should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the example box, and an optional "display_text" key, whose value should be the text to display in the example box. If "display_text" is not provided, the value of "text" will be displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
+            allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
         """
         if type is None:
             warnings.warn(
@@ -259,6 +261,7 @@ class Chatbot(Component):
         self.line_breaks = line_breaks
         self.layout = layout
         self.show_copy_all_button = show_copy_all_button
+        self.allow_file_downloads = allow_file_downloads
         super().__init__(
             label=label,
             every=every,
