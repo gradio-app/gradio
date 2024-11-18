@@ -13,6 +13,7 @@
 	import { onMount } from "svelte";
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 	import WHEEL from "$lib/json/wheel.json";
+	import PYTHON_STANDARD_LIBRARIES from "./python-standard-library-list.json";
 
 	let generated = true;
 
@@ -170,7 +171,8 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 		}
 		demos[queried_index].requirements = generated_requirements_txt
 			.split("\n")
-			.filter((r) => r.trim() !== "");
+			.map((r) => r.trim())
+			.filter((r) => r !== "" && !PYTHON_STANDARD_LIBRARIES.includes(r));
 
 		generated = true;
 		if (selected_demo.name === demo_name) {
