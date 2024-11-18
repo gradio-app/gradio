@@ -749,7 +749,7 @@ class ChatInterface(Blocks):
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-        return self._process_example(message, response)
+        return self._process_example(message, response)  # type: ignore
 
     async def _examples_stream_fn(
         self,
