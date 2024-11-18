@@ -22,7 +22,7 @@
 </script>
 
 <div class="container">
-	{#if !hide_heading}
+	{#if !hide_heading || !value.confidences}
 		<h2
 			class="output-class"
 			data-testid="label-output-value"

@@ -37,7 +37,7 @@
 />
 
 <Story
-	name="Long and space-separated label text with hide_heading"
+	name="Multiple label text with hide_heading"
 	args={{
 		hide_heading: true,
 		value: {
@@ -47,5 +47,13 @@
 				{ label: "Second Label", confidence: 0.2 }
 			]
 		}
+	}}
+/>
+
+<Story
+	name="Single label text with hide_heading (heading still visible)"
+	args={{
+		hide_heading: true,
+		value: { label: "Test label", confidence: 0.8 }
 	}}
 />

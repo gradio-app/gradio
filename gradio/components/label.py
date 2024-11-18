@@ -78,7 +78,7 @@ class Label(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             color: The background color of the label (either a valid css color name or hexadecimal string).
-            hide_heading: If True, the heading will not be displayed. Defaults to False.
+            hide_heading: If True, the heading will not be displayed. Heading will still be visible if there is a single label. Defaults to False.
         """
         self.num_top_classes = num_top_classes
         self.color = color
