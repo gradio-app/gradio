@@ -213,7 +213,11 @@ MIT
    [PlGa]: <https://github.com/RahulHP/dillinger/blob/master/plugins/googleanalytics/README.md>
 
 """
+def print_copy(copy_data: gr.CopyData):
+    print(copy_data.value)
+
 with gr.Blocks() as demo:
-    gr.Markdown(value=md, header_links=True, height=400)
+    markdown = gr.Markdown(value=md, header_links=True, height=400, show_copy_button=True)
+    markdown.copy(print_copy, None, None)
 
 demo.launch()
