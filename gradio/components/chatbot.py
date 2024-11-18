@@ -37,6 +37,10 @@ class MetadataDict(TypedDict):
     title: Union[str, None]
 
 
+class OptionsDict(TypedDict):
+    display_text: NotRequired[str]
+    value: str
+
 class FileDataDict(TypedDict):
     path: str  # server filepath
     url: NotRequired[Optional[str]]  # normalised server url
@@ -51,6 +55,7 @@ class MessageDict(TypedDict):
     content: str | FileDataDict | tuple | Component
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
+    options: NotRequired[OptionsDict]
 
 
 class FileMessage(GradioModel):
