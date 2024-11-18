@@ -1,6 +1,7 @@
 ---
 "@gradio/chatbot": minor
 "@gradio/markdown": minor
+"@gradio/textbox": minor
 "@gradio/utils": minor
 "gradio": minor
 ---
