@@ -148,6 +148,7 @@ class Chatbot(Component):
         Events.undo,
         Events.example_select,
         Events.clear,
+        Events.copy,
     ]
 
     def __init__(

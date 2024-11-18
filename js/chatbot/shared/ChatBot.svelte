@@ -9,6 +9,7 @@
 	} from "./utils";
 	import type { NormalisedMessage } from "../types";
 	import { copy } from "@gradio/utils";
+	import type { CopyData } from "@gradio/utils";
 	import Message from "./Message.svelte";
 	import { DownloadLink } from "@gradio/wasm/svelte";
 
