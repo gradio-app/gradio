@@ -35,3 +35,17 @@
 		}
 	}}
 />
+
+<Story
+	name="Long and space-separated label text with hide_heading"
+	args={{
+		hide_heading: true,
+		value: {
+			label: "Label",
+			confidences: [
+				{ label: "First Label", confidence: 0.7 },
+				{ label: "Second Label", confidence: 0.2 }
+			]
+		}
+	}}
+/>
