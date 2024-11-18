@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Add `hide_heading` param to gr.Label()
+fix:Add `hide_heading` param to gr.Label
