@@ -172,6 +172,23 @@ export class WorkerProxy extends EventTarget {
 						detail: msg.data.packages
 					})
 				);
+				break;
+			}
+			case "stdout": {
+				this.dispatchEvent(
+					new CustomEvent("stdout", {
+						detail: msg.data.output
+					})
+				);
+				break;
+			}
+			case "stderr": {
+				this.dispatchEvent(
+					new CustomEvent("stderr", {
+						detail: msg.data.output
+					})
+				);
+				break;
 			}
 		}
 	}

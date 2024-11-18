@@ -50,6 +50,12 @@
 		requirements: requirements ?? [],
 		sharedWorkerMode: sharedWorkerMode ?? false
 	});
+	worker_proxy.addEventListener("stdout", (event) => {
+		dispatch("stdout", (event as CustomEvent).detail);
+	});
+	worker_proxy.addEventListener("stderr", (event) => {
+		dispatch("stderr", (event as CustomEvent).detail);
+	});
 	onDestroy(() => {
 		worker_proxy.terminate();
 	});
