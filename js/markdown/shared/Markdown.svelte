@@ -29,7 +29,10 @@
 	let copied = false;
 	let timer: NodeJS.Timeout;
 
-	const dispatch = createEventDispatcher<{ change: undefined, copy: CopyData }>();
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+		copy: CopyData;
+	}>();
 
 	$: value, dispatch("change");
 

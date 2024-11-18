@@ -4,7 +4,10 @@
 	import { Copy, Check } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import type { CopyData } from "@gradio/utils";
-	const dispatch = createEventDispatcher<{ change: undefined, copy: CopyData }>();
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+		copy: CopyData;
+	}>();
 
 	let copied = false;
 	export let value: string;
@@ -20,7 +23,7 @@
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			dispatch("copy", { value: value });			
+			dispatch("copy", { value: value });
 			await navigator.clipboard.writeText(value);
 			copy_feedback();
 		} else {

@@ -25,7 +25,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         markdown = gr.Markdown(value=md, header_links=True, height=400, show_copy_button=True)
         chatbot = gr.Chatbot([("Hello", "World"), ("Goodbye", "World")], show_copy_button=True)
-        textbox2 = gr.Textbox("Write something here", interactive=True)
+        textbox2 = gr.Textbox("Write something here", interactive=True, show_copy_button=True)
 
         gr.on(
             [markdown.copy, chatbot.copy, textbox2.copy],

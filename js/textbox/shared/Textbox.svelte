@@ -8,7 +8,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, CopyData } from "@gradio/utils";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -52,6 +52,7 @@
 		select: SelectData;
 		input: undefined;
 		focus: undefined;
+		copy: CopyData;
 	}>();
 
 	beforeUpdate(() => {
@@ -84,6 +85,7 @@
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
 			await navigator.clipboard.writeText(value);
+			dispatch("copy", { value: value });
 			copy_feedback();
 		}
 	}
