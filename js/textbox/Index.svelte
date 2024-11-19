@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, SelectData, CopyData } from "@gradio/utils";
 	import TextBox from "./shared/Textbox.svelte";
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -21,6 +21,7 @@
 		focus: never;
 		stop: never;
 		clear_status: LoadingStatus;
+		copy: CopyData;
 	}>;
 	export let label = "Textbox";
 	export let info: string | undefined = undefined;
@@ -95,6 +96,7 @@
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:focus={() => gradio.dispatch("focus")}
 		on:stop={() => gradio.dispatch("stop")}
+		on:copy={(e) => gradio.dispatch("copy", e.detail)}
 		disabled={!interactive}
 	/>
 </Block>

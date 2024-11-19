@@ -82,6 +82,7 @@
 		position: "left" | "right";
 		layout: "bubble" | "panel";
 		avatar: FileData | null;
+		dispatch: any;
 	};
 
 	let button_panel_props: ButtonPanelProps;
@@ -95,7 +96,8 @@
 		message: msg_format === "tuples" ? messages[0] : messages,
 		position: role === "user" ? "right" : "left",
 		avatar: avatar_img,
-		layout
+		layout,
+		dispatch
 	};
 </script>
 
@@ -209,7 +211,10 @@
 			</div>
 
 			{#if layout === "panel"}
-				<ButtonPanel {...button_panel_props} />
+				<ButtonPanel
+					{...button_panel_props}
+					on:copy={(e) => dispatch("copy", e.detail)}
+				/>
 			{/if}
 		{/each}
 	</div>

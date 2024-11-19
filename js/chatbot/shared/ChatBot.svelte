@@ -9,6 +9,7 @@
 	} from "./utils";
 	import type { NormalisedMessage } from "../types";
 	import { copy } from "@gradio/utils";
+	import type { CopyData } from "@gradio/utils";
 	import Message from "./Message.svelte";
 	import { DownloadLink } from "@gradio/wasm/svelte";
 
@@ -114,6 +115,7 @@
 		share: any;
 		error: string;
 		example_select: SelectData;
+		copy: CopyData;
 	}>();
 
 	function is_at_bottom(): boolean {
@@ -343,6 +345,7 @@
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					scroll={is_browser ? scroll : () => {}}
 					{allow_file_downloads}
+					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
 			{/each}
 			{#if pending_message}

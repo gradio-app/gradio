@@ -4,7 +4,7 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
+	import type { Gradio, CopyData } from "@gradio/utils";
 	import Markdown from "./shared/Markdown.svelte";
 
 	import { StatusTracker } from "@gradio/statustracker";
@@ -22,6 +22,7 @@
 	export let line_breaks = false;
 	export let gradio: Gradio<{
 		change: never;
+		copy: CopyData;
 		clear_status: LoadingStatus;
 	}>;
 	export let latex_delimiters: {
@@ -64,6 +65,7 @@
 			{visible}
 			{rtl}
 			on:change={() => gradio.dispatch("change")}
+			on:copy={(e) => gradio.dispatch("copy", e.detail)}
 			{latex_delimiters}
 			{sanitize_html}
 			{line_breaks}
