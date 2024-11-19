@@ -14,6 +14,7 @@ from gradio.components import (
     Annotatedimage,
     Audio,
     BarPlot,
+    BrowserState,
     Button,
     Chatbot,
     ChatMessage,
@@ -65,6 +66,7 @@ from gradio.components.image_editor import Brush, Eraser
 from gradio.data_classes import FileData
 from gradio.events import (
     DeletedFileData,
+    DownloadData,
     EventData,
     KeyUpData,
     LikeData,
