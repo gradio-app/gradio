@@ -31,11 +31,14 @@ from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 from gradio.exceptions import Error
+import bleach  # Import bleach for HTML sanitization
 
+# Define allowed tags and attributes for sanitization
+ALLOWED_TAGS = bleach.sanitizer.ALLOWED_TAGS + ['br', 'p', 'strong', 'em', 'code']
+ALLOWED_ATTRIBUTES = {}
 
 class MetadataDict(TypedDict):
     title: Union[str, None]
-
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
@@ -46,24 +49,20 @@ class FileDataDict(TypedDict):
     is_stream: NotRequired[bool]
     meta: dict[Literal["_type"], Literal["gradio.FileData"]]
 
-
 class MessageDict(TypedDict):
     content: str | FileDataDict | tuple | Component
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
 
-
 class FileMessage(GradioModel):
     file: FileData
     alt_text: Optional[str] = None
-
 
 class ComponentMessage(GradioModel):
     component: str
     value: Any
     constructor_args: dict[str, Any]
     props: dict[str, Any]
-
 
 class ChatbotDataTuples(GradioRootModel):
     root: list[
@@ -73,29 +72,19 @@ class ChatbotDataTuples(GradioRootModel):
         ]
     ]
 
-
 class Metadata(GradioModel):
     title: Optional[str] = None
-
 
 class Message(GradioModel):
     role: str
     metadata: Metadata = Field(default_factory=Metadata)
     content: Union[str, FileMessage, ComponentMessage]
 
-
 class ExampleMessage(TypedDict):
-    icon: NotRequired[
-        str | FileDataDict
-    ]  # filepath or url to an image to be shown in example box
-    display_text: NotRequired[
-        str
-    ]  # text to be shown in example box. If not provided, main_text will be shown
+    icon: NotRequired[str | FileDataDict]  # filepath or url to an image to be shown in example box
+    display_text: NotRequired[str]  # text to be shown in example box. If not provided, main_text will be shown
     text: NotRequired[str]  # text to be added to chatbot when example is clicked
-    files: NotRequired[
-        Sequence[str | FileDataDict]
-    ]  # list of file paths or URLs to be added to chatbot when example is clicked
-
+    files: NotRequired[Sequence[str | FileDataDict]]  # list of file paths or URLs to be added to chatbot when example is clicked
 
 @dataclass
 class ChatMessage:
@@ -103,16 +92,13 @@ class ChatMessage:
     content: str | FileData | Component | FileDataDict | tuple | list
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
 
-
 class ChatbotDataMessages(GradioRootModel):
     root: list[Message]
-
 
 TupleFormat = list[list[Union[str, tuple[str], tuple[str, str], None]]]
 
 if TYPE_CHECKING:
     from gradio.components import Timer
-
 
 def import_component_and_data(
     component_name: str,
@@ -128,7 +114,6 @@ def import_component_and_data(
     except AttributeError:
         pass
 
-
 @document()
 class Chatbot(Component):
     """
@@ -137,7 +122,7 @@ class Chatbot(Component):
     component is usually used as an output component.
 
     Demos: chatbot_simple, chatbot_streaming, chatbot_with_tools, chatbot_core_components
-    Guides: creating-a-chatbot-fast, creating-a-custom-chatbot-with-blocks, agents-and-tool-usage
+    Guides: creating-a-chatbot-fast, creating-a-custom-chatbot-with-block s, agents-and-tool-usage
     """
 
     EVENTS = [
@@ -186,44 +171,9 @@ class Chatbot(Component):
         show_copy_all_button=False,
         allow_file_downloads=True,
     ):
-        """
-        Parameters:
-            value: Default list of messages to show in chatbot, where each message is of the format {"role": "user", "content": "Help me."}. Role can be one of "user", "assistant", or "system". Content should be either text, or media passed as a Gradio component, e.g. {"content": gr.Image("lion.jpg")}. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
-            label: the label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: Continously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
-            inputs: Components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
-            show_label: if True, will display label.
-            container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
-            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            visible: If False, component will be hidden.
-            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
-            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
-            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll.
-            max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll. If messages are shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
-            min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
-            latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
-            rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
-            show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            show_copy_button: If True, will show a copy button for each chatbot message.
-            avatar_images: Tuple of two avatar image paths or URLs for user and bot (in that order). Pass None for either the user or bot image to skip. Must be within the working directory of the Gradio app or an external URL.
-            sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
-            render_markdown: If False, will disable Markdown rendering for chatbot messages.
-            bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
-            line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
-            layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
-            placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
-            examples: A list of example messages to display in the chatbot before any user/assistant messages are shown. Each example should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the example box, and an optional "display_text" key, whose value should be the text to display in the example box. If "display_text" is not provided, the value of "text" will be displayed.
-            show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
-            allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
-        """
         if type is None:
             warnings.warn(
-                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
+                "You have not specified a value for the type parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
                 UserWarning,
             )
             type = "tuples"
@@ -234,7 +184,7 @@ class Chatbot(Component):
             )
         if type not in ["messages", "tuples"]:
             raise ValueError(
-                f"The `type` parameter must be 'messages' or 'tuples', received: {type}"
+                f"The type parameter must be 'messages' or 'tuples', received: {type}"
             )
         self.type: Literal["tuples", "messages"] = type
         if self.type == "messages":
@@ -287,7 +237,7 @@ class Chatbot(Component):
             ]
         self.placeholder = placeholder
 
-        self.examples = examples
+        self .examples = examples
         if self.examples is not None:
             for i, example in enumerate(self.examples):
                 if "icon" in example and isinstance(example["icon"], str):
@@ -332,6 +282,9 @@ class Chatbot(Component):
                 "Data incompatible with tuples format. Each message should be a list of length 2."
             )
 
+    def _sanitize_html_input(self, html: str) -> str:
+        return bleach.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
+
     def _preprocess_content(
         self,
         chat_message: str | FileMessage | ComponentMessage | None,
@@ -344,7 +297,7 @@ class Chatbot(Component):
             else:
                 return (chat_message.file.path,)
         elif isinstance(chat_message, str):
-            return chat_message
+            return self._sanitize_html_input(chat_message)  # Sanitize HTML input
         elif isinstance(chat_message, ComponentMessage):
             capitalized_component = (
                 chat_message.component.upper()
@@ -398,12 +351,6 @@ class Chatbot(Component):
     ) -> (
         list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict] | None
     ):
-        """
-        Parameters:
-            payload: data as a ChatbotData object
-        Returns:
-            If type is 'tuples', passes the messages in the chatbot as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. Each message can be (1) a string in valid Markdown, (2) a tuple if there are displayed files: (a filepath or URL to a file, [optional string alt text]), or (3) None, if there is no message displayed. If type is 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content` key's value supports everything the `tuples` format supports.
-        """
         if payload is None:
             return payload
         if self.type == "tuples":
@@ -517,12 +464,6 @@ class Chatbot(Component):
         self,
         value: TupleFormat | list[MessageDict | Message] | None,
     ) -> ChatbotDataTuples | ChatbotDataMessages:
-        """
-        Parameters:
-            value: If type is `tuples`, expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed. If type is 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content` key's value supports everything the `tuples` format supports.
-        Returns:
-            an object of type ChatbotData
-        """
         data_model = cast(
             Union[type[ChatbotDataTuples], type[ChatbotDataMessages]], self.data_model
         )
@@ -536,7 +477,26 @@ class Chatbot(Component):
             self._postprocess_message_messages(cast(MessageDict, message))
             for message in value
         ]
-        return ChatbotDataMessages(root=processed_messages)
+        return ChatbotData ```python
+Messages(root=processed_messages)
+
+    def example_payload(self) -> Any:
+        if self.type == "messages":
+            return [
+                Message(role="user", content="Hello!").model_dump(),
+                Message(role="assistant", content="How can I help you?").model_dump(),
+            ]
+        return [["Hello!", None]]
+
+    def example_value(self) -> Any:
+        if self.type == "messages":
+            return [
+                Message(role="user", content="Hello!").model_dump(),
+                Message(role="assistant", content="How can I help you?").model_dump(),
+            ]
+        return [["Hello!", None]]
+``` ```python
+Messages(root=processed_messages)
 
     def example_payload(self) -> Any:
         if self.type == "messages":
