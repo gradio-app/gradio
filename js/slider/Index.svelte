@@ -70,9 +70,9 @@
 	}
 	function set_slider_range(): void {
 		const range = range_input;
-		const min = Number(range.min) || 0;
-		const max = Number(range.max) || 100;
-		const val = Number(range.value) || 0;
+		const min = Number(range.min);
+		const max = Number(range.max);
+		const val = Number(range.value);
 		const percentage = ((val - min) / (max - min)) * 100;
 		range.style.setProperty("--range_progress", `${percentage}%`);
 	}
