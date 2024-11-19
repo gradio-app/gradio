@@ -2,9 +2,9 @@
 	import { BaseCode as Code, BaseWidget as CodeWidget } from "@gradio/code";
 	import { BaseTabs as Tabs, type Tab } from "@gradio/tabs";
 	import { BaseTabItem as TabItem } from "@gradio/tabitem";
-	import Slider from "./Slider.svelte";
-	import Fullscreen from "./icons/Fullscreen.svelte";
-	import Close from "./icons/Close.svelte";
+	import Slider from "../Slider.svelte";
+	import Fullscreen from "../icons/Fullscreen.svelte";
+	import Close from "../icons/Close.svelte";
 	import { page } from "$app/stores";
 	import share from "$lib/assets/img/anchor_gray.svg";
 	import spaces_logo from "$lib/assets/img/spaces-logo.svg";
