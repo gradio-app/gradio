@@ -55,7 +55,7 @@ class MessageDict(TypedDict):
     content: str | FileDataDict | tuple | Component
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
-    options: NotRequired[OptionsDict]
+    options: list[OptionsDict]
 
 
 class FileMessage(GradioModel):
