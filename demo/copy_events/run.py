@@ -1,21 +1,6 @@
 import gradio as gr
 
-# sample md stolen from https://dillinger.io/
-
-md = """# Dillinger
-## _The Last Markdown Editor, Ever_
-
-This is some `inline code`, it is good.
-
-[![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
-
-Dillinger is a cloud-enabled, mobile-ready, offline-storage compatible,
-AngularJS-powered HTML5 Markdown editor.
-
-- Type some Markdown on the left
-- See HTML in the right
-- ✨Magic ✨
-"""
+md = "This is **bold** text."
 
 def copy_callback(copy_data: gr.CopyData):
     return copy_data.value
@@ -33,4 +18,5 @@ with gr.Blocks() as demo:
             outputs=textbox
         )
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
