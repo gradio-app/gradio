@@ -10,7 +10,7 @@ import inspect
 import warnings
 from collections.abc import AsyncGenerator, Callable, Sequence
 from pathlib import Path
-from typing import Literal, Union, cast
+from typing import Generator, Literal, Union, cast
 
 import anyio
 from gradio_client.documentation import document
@@ -90,19 +90,19 @@ class ChatInterface(Blocks):
         analytics_enabled: bool | None = None,
         autofocus: bool = True,
         autoscroll: bool = True,
-        concurrency_limit: int | None | Literal["default"] = "default",
-        fill_height: bool = True,
-        delete_cache: tuple[int, int] | None = None,
-        show_progress: Literal["full", "minimal", "hidden"] = "minimal",
-        fill_width: bool = False,
         submit_btn: str | bool | None = True,
         stop_btn: str | bool | None = True,
+        concurrency_limit: int | None | Literal["default"] = "default",
+        delete_cache: tuple[int, int] | None = None,
+        show_progress: Literal["full", "minimal", "hidden"] = "minimal",
+        fill_height: bool = True,
+        fill_width: bool = False,
     ):
         """
         Parameters:
-            fn: the function to wrap the chat interface around. Should accept two parameters: a string input message and list of two-element lists of the form [[user_message, bot_message], ...] representing the chat history, and return a string response. See the Chatbot documentation for more information on the chat history format.
-            multimodal: if True, the chat interface will use a gr.MultimodalTextbox component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input.
-            type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the value as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component. At the moment Image, Plot, Video, Gallery, Audio, and HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples', expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message, but this format is deprecated.
+            fn: the function to wrap the chat interface around. The function should accept two parameters: a `str` input message and `list` of openai-style dictionary {"role": "user" | "assistant", "content": `str` | {"path": `str`} | `gr.Component`} representing the chat history, and return a `str` (if a simple message) or `dict` (for a complete openai-style message) response. If `additional_inputs` are provided, their values will be passed into the function as arguments after the chat history.
+            multimodal: if True, the chat interface will use a `gr.MultimodalTextbox` component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input.
+            type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the history as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component: at the moment gr.Image, gr.Plot, gr.Video, gr.Gallery, gr.Audio, and gr.HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples' (deprecated), passes the chat history as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message.
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
@@ -123,13 +123,13 @@ class ChatInterface(Blocks):
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             autofocus: if True, autofocuses to the textbox when the page loads.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
-            concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
-            fill_height: if True, the chat interface will expand to the height of window.
-            delete_cache: a tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
-            show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
-            fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             submit_btn: If True, will show a submit button with a submit icon within the textbox. If a string, will use that string as the submit button text in place of the icon. If False, will not show a submit button.
             stop_btn: If True, will show a button with a stop icon during generator executions, to stop generating. If a string, will use that string as the submit button text in place of the stop icon. If False, will not show a stop button.
+            concurrency_limit: if set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
+            delete_cache: a tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
+            fill_height: if True, the chat interface will expand to the height of window.
+            fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,

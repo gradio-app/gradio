@@ -1,6 +1,6 @@
 import gradio as gr
 
-def generate_fake_image(prompt, seed, initial_image=None):
+def generate_fake_image(a):
     return f"Used seed: {seed}", "https://dummyimage.com/300/09f.png"
 
 demo = gr.Interface(
