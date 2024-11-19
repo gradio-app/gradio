@@ -13,14 +13,15 @@
 	import { onMount } from "svelte";
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 	import WHEEL from "$lib/json/wheel.json";
+	import { excludeUnavailablePackages } from "./requirements-utils";
 
 	let generated = true;
 
 	let current_code = false;
 	let compare = false;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5174/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:5174/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -168,9 +169,9 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 				}
 			}
 		}
-		demos[queried_index].requirements = generated_requirements_txt
-			.split("\n")
-			.filter((r) => r.trim() !== "");
+		demos[queried_index].requirements = await excludeUnavailablePackages(
+			generated_requirements_txt.split("\n").filter((r) => r.trim() !== "")
+		);
 
 		generated = true;
 		if (selected_demo.name === demo_name) {
