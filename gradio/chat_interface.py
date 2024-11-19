@@ -10,11 +10,12 @@ import inspect
 import warnings
 from collections.abc import AsyncGenerator, Callable, Sequence
 from pathlib import Path
-from typing import Generator, Literal, Union, cast
+from typing import Literal, Union, cast
 
 import anyio
 from gradio_client.documentation import document
 
+from gradio import utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -41,7 +42,6 @@ from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
-from gradio.utils import SyncToAsyncIterator, async_iteration, async_lambda
 
 
 @document()
@@ -69,7 +69,7 @@ class ChatInterface(Blocks):
         fn: Callable,
         *,
         multimodal: bool = False,
-        type: Literal["messages", "tuples"] = "tuples",
+        type: Literal["messages", "tuples"] | None = None,
         chatbot: Chatbot | None = None,
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
@@ -145,7 +145,7 @@ class ChatInterface(Blocks):
             fill_width=fill_width,
             delete_cache=delete_cache,
         )
-        self.type: Literal["messages", "tuples"] = type
+        self.type = type
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
         self.fn = fn
@@ -155,20 +155,14 @@ class ChatInterface(Blocks):
         self.is_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
-
+        self.provided_chatbot = chatbot is not None
         self.examples = examples
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
-
-        if additional_inputs:
-            if not isinstance(additional_inputs, list):
-                additional_inputs = [additional_inputs]
-            self.additional_inputs = [
-                get_component_instance(i)
-                for i in additional_inputs  # type: ignore
-            ]
-        else:
-            self.additional_inputs = []
+        self.additional_inputs = [
+            get_component_instance(i)
+            for i in utils.none_or_singleton_to_list(additional_inputs)
+        ]
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
                 "label": "Additional Inputs",
@@ -196,28 +190,8 @@ class ChatInterface(Blocks):
                 )
             if description:
                 Markdown(description)
-
-            examples_messages: list[ExampleMessage] = []
-            if examples:
-                for index, example in enumerate(examples):
-                    if isinstance(example, list):
-                        example = example[0]
-                    example_message: ExampleMessage = {}
-                    if isinstance(example, str):
-                        example_message["text"] = example
-                    elif isinstance(example, dict):
-                        example_message["text"] = example.get("text", "")
-                        example_message["files"] = example.get("files", [])
-                    if example_labels:
-                        example_message["display_text"] = example_labels[index]
-                    if example_icons:
-                        example_message["icon"] = example_icons[index]
-                    examples_messages.append(example_message)
-
-            self.provided_chatbot = chatbot is not None
-
             if chatbot:
-                if self.type != chatbot.type:
+                if self.type and chatbot.type and self.type != chatbot.type:
                     warnings.warn(
                         "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
                         "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
@@ -236,6 +210,7 @@ class ChatInterface(Blocks):
                     else None
                 )
             else:
+                self.type = self.type or "tuples"
                 self.chatbot = Chatbot(
                     label="Chatbot",
                     scale=1,
@@ -322,6 +297,29 @@ class ChatInterface(Blocks):
             self.show_progress = show_progress
             self._setup_events()
             self._setup_api()
+
+    def _setup_example_messages(
+            self,
+            examples: list[str] | list[MultimodalValue] | list[list] | None,
+            example_labels: list[str] | None = None,
+            example_icons: list[str] | None = None,
+        ) -> None:
+        self.examples_messages = []
+        if examples:
+            for index, example in enumerate(examples):
+                if isinstance(example, list):
+                    example = example[0]
+                example_message: ExampleMessage = {}
+                if isinstance(example, str):
+                    example_message["text"] = example
+                elif isinstance(example, dict):
+                    example_message["text"] = example.get("text", "")
+                    example_message["files"] = example.get("files", [])
+                if example_labels:
+                    example_message["display_text"] = example_labels[index]
+                if example_icons:
+                    example_message["icon"] = example_icons[index]
+                self.examples_messages.append(example_message)
 
     def _setup_events(self) -> None:
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
@@ -450,7 +448,7 @@ class ChatInterface(Blocks):
             original_submit_btn = self.textbox.submit_btn
             for event_trigger in event_triggers:
                 event_trigger(
-                    async_lambda(
+                    utils.async_lambda(
                         lambda: textbox_component(
                             submit_btn=False,
                             stop_btn=self.original_stop_btn,
@@ -463,7 +461,7 @@ class ChatInterface(Blocks):
                 )
             for event_to_cancel in events_to_cancel:
                 event_to_cancel.then(
-                    async_lambda(
+                    utils.async_lambda(
                         lambda: textbox_component(
                             submit_btn=original_submit_btn, stop_btn=False
                         )
@@ -492,9 +490,9 @@ class ChatInterface(Blocks):
                     generator = await anyio.to_thread.run_sync(
                         self.fn, message, history, *args, **kwargs, limiter=self.limiter
                     )
-                    generator = SyncToAsyncIterator(generator, self.limiter)
+                    generator = utils.SyncToAsyncIterator(generator, self.limiter)
                 try:
-                    first_response = await async_iteration(generator)
+                    first_response = await utils.async_iteration(generator)
                     yield first_response, history + [[message, first_response]]
                 except StopIteration:
                     yield None, history + [[message, None]]
@@ -673,9 +671,9 @@ class ChatInterface(Blocks):
             generator = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-            generator = SyncToAsyncIterator(generator, self.limiter)
+            generator = utils.SyncToAsyncIterator(generator, self.limiter)
         try:
-            first_response = await async_iteration(generator)
+            first_response = await utils.async_iteration(generator)
             self._append_history(history_with_input, first_response)
             yield history_with_input
         except StopIteration:
@@ -764,7 +762,7 @@ class ChatInterface(Blocks):
             generator = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-            generator = SyncToAsyncIterator(generator, self.limiter)
+            generator = utils.SyncToAsyncIterator(generator, self.limiter)
         async for response in generator:
             yield self._process_example(message, response)
 
