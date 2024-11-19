@@ -36,6 +36,7 @@
 	export let _selectable = false;
 	export let combine_adjacent = false;
 	export let interactive: boolean;
+	export let show_label = true;
 
 	$: if (!color_map && Object.keys(color_map).length) {
 		color_map = color_map;
@@ -79,6 +80,7 @@
 				{label}
 				float={false}
 				disable={container === false}
+				{show_label}
 			/>
 		{/if}
 
@@ -121,6 +123,7 @@
 				{label}
 				float={false}
 				disable={container === false}
+				{show_label}
 			/>
 		{/if}
 
