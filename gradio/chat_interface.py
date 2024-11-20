@@ -267,32 +267,17 @@ class ChatInterface(Blocks):
                 self.fake_api_btn = Button("Fake API", visible=False)
                 self.fake_response_textbox = Textbox(label="Response", visible=False)
 
-            if examples:
-                if self.is_generator:
-                    examples_fn = self._examples_stream_fn
-                else:
-                    examples_fn = self._examples_fn
-                if self.examples and self._additional_inputs_in_examples:
-                    self.examples_handler = Examples(
-                        examples=examples,
-                        inputs=[self.textbox] + self.additional_inputs,
-                        outputs=self.chatbot,
-                        fn=examples_fn,
-                        cache_examples=self.cache_examples,
-                        cache_mode=self.cache_mode,
-                    )
-                else:
-                    self.examples_handler = Examples(
-                        examples=examples,
-                        inputs=[self.textbox] + self.additional_inputs,
-                        outputs=self.chatbot,
-                        fn=examples_fn,
-                        cache_examples=self.cache_examples,
-                        cache_mode=self.cache_mode,
-                        visible=False,
-                        preprocess=False,
-                        postprocess=True,
-                    )
+            if self.examples:
+                self.examples_handler = Examples(
+                    examples=self.examples,
+                    inputs=[self.textbox] + self.additional_inputs,
+                    outputs=self.chatbot,
+                    fn=self._examples_stream_fn if self.is_generator else self._examples_fn,
+                    cache_examples=self.cache_examples,
+                    cache_mode=self.cache_mode,
+                    visible=self._additional_inputs_in_examples,
+                    preprocess=self._additional_inputs_in_examples,
+                )
 
             any_unrendered_inputs = any(
                 not inp.is_rendered for inp in self.additional_inputs
