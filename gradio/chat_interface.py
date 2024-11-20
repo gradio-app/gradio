@@ -105,9 +105,9 @@ class ChatInterface(Blocks):
             type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the history as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component: at the moment gr.Image, gr.Plot, gr.Video, gr.Gallery, gr.Audio, and gr.HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples' (deprecated), passes the chat history as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message.
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
-            additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
+            additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If the components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
-            examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings representing text-only examples, or a list of dictionaries (with keys `text` and `files`) representing multimodal examples. If `additional_inputs` are provided, the examples should instead be a list of lists, where the first element is the example message and the remaining elements are the example values for the additional inputs -- in this case, the examples will appear under the chatbot.
+            examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings representing text-only examples, or a list of dictionaries (with keys `text` and `files`) representing multimodal examples. If `additional_inputs` are provided, the examples must be a list of lists, where the first element of each inner list is the string or dictionary example message and the remaining elements are the example values for the additional inputs -- in this case, the examples will appear under the chatbot.
             example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list.
             example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list.
             cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
@@ -158,6 +158,15 @@ class ChatInterface(Blocks):
         self.provided_chatbot = chatbot is not None
         self.examples = examples
         self.examples_messages = self._setup_example_messages(examples, example_labels, example_icons)
+        self._additional_inputs_in_examples = False
+        if self.examples is not None:
+            for example in self.examples:
+                for idx, example_for_input in enumerate(example):
+                    if example_for_input is not None and idx > 0:
+                            self._additional_inputs_in_examples = True
+                            break
+                if self._additional_inputs_in_examples:
+                    break
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
         self.additional_inputs = [
@@ -728,16 +737,6 @@ class ChatInterface(Blocks):
                 ]
         return result
 
-    def _additional_inputs_in_examples(self):
-        if self.examples is not None:
-            for example in self.examples:
-                for idx, example_for_input in enumerate(example):
-                    if example_for_input is not None:
-                        if idx > 0:
-                            return True
-                        else:
-                            continue
-        return False
 
     async def _examples_fn(
         self, message: ExampleMessage | str, *args
