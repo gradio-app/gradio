@@ -216,7 +216,7 @@ class ChatInterface(Blocks):
                     )
                 self.chatbot.examples = (
                     self.examples_messages
-                    if not self._additional_inputs_in_examples()
+                    if not self._additional_inputs_in_examples
                     else None
                 )
             else:
@@ -228,7 +228,7 @@ class ChatInterface(Blocks):
                     type=self.type,
                     autoscroll=autoscroll,
                     examples=self.examples_messages
-                    if not self._additional_inputs_in_examples()
+                    if not self._additional_inputs_in_examples
                     else None,
                 )
 
@@ -268,7 +268,7 @@ class ChatInterface(Blocks):
                     examples_fn = self._examples_stream_fn
                 else:
                     examples_fn = self._examples_fn
-                if self.examples and self._additional_inputs_in_examples():
+                if self.examples and self._additional_inputs_in_examples:
                     self.examples_handler = Examples(
                         examples=examples,
                         inputs=[self.textbox] + self.additional_inputs,
@@ -374,7 +374,7 @@ class ChatInterface(Blocks):
         if (
             isinstance(self.chatbot, Chatbot)
             and self.examples
-            and not self._additional_inputs_in_examples()
+            and not self._additional_inputs_in_examples
         ):
             if self.cache_examples:
                 self.chatbot.example_select(
