@@ -157,14 +157,16 @@ class ChatInterface(Blocks):
         ) or inspect.isasyncgenfunction(self.fn)
         self.provided_chatbot = chatbot is not None
         self.examples = examples
-        self.examples_messages = self._setup_example_messages(examples, example_labels, example_icons)
+        self.examples_messages = self._setup_example_messages(
+            examples, example_labels, example_icons
+        )
         self._additional_inputs_in_examples = False
         if self.examples is not None:
             for example in self.examples:
                 for idx, example_for_input in enumerate(example):
                     if example_for_input is not None and idx > 0:
-                            self._additional_inputs_in_examples = True
-                            break
+                        self._additional_inputs_in_examples = True
+                        break
                 if self._additional_inputs_in_examples:
                     break
         self.cache_examples = cache_examples
@@ -310,10 +312,10 @@ class ChatInterface(Blocks):
 
     @staticmethod
     def _setup_example_messages(
-            examples: list[str] | list[MultimodalValue] | list[list] | None,
-            example_labels: list[str] | None = None,
-            example_icons: list[str] | None = None,
-        ) -> list[ExampleMessage]:
+        examples: list[str] | list[MultimodalValue] | list[list] | None,
+        example_labels: list[str] | None = None,
+        example_icons: list[str] | None = None,
+    ) -> list[ExampleMessage]:
         examples_messages = []
         if examples:
             for index, example in enumerate(examples):
@@ -736,7 +738,6 @@ class ChatInterface(Blocks):
                     {"role": "assistant", "content": response},
                 ]
         return result
-
 
     async def _examples_fn(
         self, message: ExampleMessage | str, *args
