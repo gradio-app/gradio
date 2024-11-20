@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fix example caching in chatinterface
+fix:Fix issues related to examples and example caching in `gr.ChatInterface`
