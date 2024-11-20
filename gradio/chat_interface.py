@@ -299,8 +299,8 @@ class ChatInterface(Blocks):
             self._setup_events()
             self._setup_api()
 
+    @staticmethod
     def _setup_example_messages(
-            self,
             examples: list[str] | list[MultimodalValue] | list[list] | None,
             example_labels: list[str] | None = None,
             example_icons: list[str] | None = None,
