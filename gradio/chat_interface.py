@@ -111,7 +111,7 @@ class ChatInterface(Blocks):
             example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
             example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
             cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
-            cache_mode: If "lazy", then examples are cached (for all users of the app) after their first use (by any user of the app). If "eager", all examples are cached at app launch. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
+            cache_mode: if "eager", all examples are cached at app launch. The "lazy" option is not yet supported. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
@@ -369,7 +369,7 @@ class ChatInterface(Blocks):
             and self.examples
             and not self._additional_inputs_in_examples
         ):
-            if self.cache_examples:
+            if self.cache_examples and self.cache_mode == "eager":
                 self.chatbot.example_select(
                     self.example_clicked,
                     None,
@@ -694,7 +694,7 @@ class ChatInterface(Blocks):
         (including files). The saved input value is also set to complete example value
         if multimodal is True, otherwise it is set to the text of the example.
         """
-        if self.cache_examples:
+        if self.cache_examples and self.cache_mode == "eager":
             history = self.examples_handler.load_from_cache(example.index)[0].root
         elif self.type == "tuples":
             history = [(example.value["text"], None)]
