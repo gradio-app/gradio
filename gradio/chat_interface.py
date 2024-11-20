@@ -570,7 +570,7 @@ class ChatInterface(Blocks):
         else:
             for x in message.get("files", []):
                 if isinstance(x, dict):
-                    history.append(
+                    history.append(  # type: ignore
                         {"role": "user", "content": cast(FileDataDict, x)}  # type: ignore
                     )
                 else:
@@ -689,6 +689,11 @@ class ChatInterface(Blocks):
     def example_clicked(
         self, x: SelectData
     ) -> tuple[TupleFormat | list[MessageDict], str]:
+        """
+        The event handler for when an example is clicked: sets the chat
+        history to the example value (including files) and sets the textbox
+        value to just the text of the example.
+        """
         # if self.cache_examples:
         #     print(self.examples_handler.load_from_cache(x.index)[0].root)
         #     return self.examples_handler.load_from_cache(x.index)[0].root
