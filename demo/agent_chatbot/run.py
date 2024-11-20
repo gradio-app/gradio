@@ -1,12 +1,16 @@
 import gradio as gr
 from gradio import ChatMessage
-from transformers import load_tool, ReactCodeAgent # type: ignore
+from transformers import Tool, ReactCodeAgent # type: ignore
 from transformers.agents import stream_to_gradio, HfApiEngine # type: ignore
 
 # Import tool from Hub
-image_generation_tool = load_tool("huggingface-tools/text-to-image")
+image_generation_tool = Tool.from_space(
+    space_id="black-forest-labs/FLUX.1-schnell",
+    name="image_generator",
+    description="Generates an image following your prompt. Returns a PIL Image.",
+)
 
-llm_engine = HfApiEngine("meta-llama/Meta-Llama-3-70B-Instruct")
+llm_engine = HfApiEngine("Qwen/Qwen2.5-Coder-32B-Instruct")
 # Initialize the agent with both tools and engine
 agent = ReactCodeAgent(tools=[image_generation_tool], llm_engine=llm_engine)
 
