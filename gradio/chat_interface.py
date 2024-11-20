@@ -100,12 +100,12 @@ class ChatInterface(Blocks):
     ):
         """
         Parameters:
-            fn: the function to wrap the chat interface around. The function should accept two parameters: a `str` input message and `list` of openai-style dictionary {"role": "user" | "assistant", "content": `str` | {"path": `str`} | `gr.Component`} representing the chat history, and return a `str` (if a simple message) or `dict` (for a complete openai-style message) response. If `additional_inputs` are provided, their values will be passed into the function as arguments after the chat history.
-            multimodal: if True, the chat interface will use a `gr.MultimodalTextbox` component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input.
+            fn: the function to wrap the chat interface around. In the default case (assuming `type` is set to "messages"), the function should accept two parameters: a `str` input message and `list` of openai-style dictionary {"role": "user" | "assistant", "content": `str` | {"path": `str`} | `gr.Component`} representing the chat history, and return/yield a `str` (if a simple message) or `dict` (for a complete openai-style message) response.
+            multimodal: if True, the chat interface will use a `gr.MultimodalTextbox` component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input. If this is True, the first argument of `fn` should accept not a `str` message but a `dict` message with keys "text" and "files"
             type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the history as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component: at the moment gr.Image, gr.Plot, gr.Video, gr.Gallery, gr.Audio, and gr.HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples' (deprecated), passes the chat history as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message.
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
-            additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If the components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
+            additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If the components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion. The values of these components will be passed into `fn` as arguments in order after the chat history.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
             examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings representing text-only examples, or a list of dictionaries (with keys `text` and `files`) representing multimodal examples. If `additional_inputs` are provided, the examples must be a list of lists, where the first element of each inner list is the string or dictionary example message and the remaining elements are the example values for the additional inputs -- in this case, the examples will appear under the chatbot.
             example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
@@ -687,29 +687,24 @@ class ChatInterface(Blocks):
             yield history_with_input
 
     def example_clicked(
-        self, x: SelectData
-    ) -> tuple[TupleFormat | list[MessageDict], str]:
+        self, example: SelectData
+    ) -> tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess]:
         """
-        The event handler for when an example is clicked: sets the chat
-        history to the example value (including files) and sets the textbox
-        value to just the text of the example.
+        When an example is clicked, the chat history is set to the complete example value
+        (including files). The saved input value is also set to complete example value
+        if multimodal is True, otherwise it is set to the text of the example.
         """
-        # if self.cache_examples:
-        #     print(self.examples_handler.load_from_cache(x.index)[0].root)
-        #     return self.examples_handler.load_from_cache(x.index)[0].root
-        # if self.multimodal:
-        #     message = MultimodalPostprocess(**cast(dict, x.value))
-        #     self._append_multimodal_history(message, None, history)
-        # else:
-        message: str = x.value["text"]
-        if self.type == "tuples":
-            history = [(message, None)]
-            for file in x.value.get("files", []):
+        if self.cache_examples:
+            history = self.examples_handler.load_from_cache(example.index)[0].root
+        elif self.type == "tuples":
+            history = [(example.value["text"], None)]
+            for file in example.value.get("files", []):
                 history.append(((file["path"]), None))
         else:
-            history = [MessageDict(role="user", content=message)]
-            for file in x.value.get("files", []):
+            history = [MessageDict(role="user", content=example.value["text"])]
+            for file in example.value.get("files", []):
                 history.append(MessageDict(role="user", content=file))
+        message = example.value if self.multimodal else example.value["text"]
         return history, message
 
     def _process_example(
