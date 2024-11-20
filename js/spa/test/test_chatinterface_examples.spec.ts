@@ -6,7 +6,7 @@ const cases = [
 	// "multimodal_tuples_examples",
 	// "multimodal_messages_examples",
 	"eager_caching_examples",
-	"lazy_caching_examples",
+	"lazy_caching_examples"
 ];
 
 for (const test_case of cases) {
