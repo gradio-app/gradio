@@ -108,7 +108,7 @@ class ChatbotDataMessages(GradioRootModel):
     root: list[Message]
 
 
-TupleFormat = list[
+TupleFormat = Sequence[
     tuple[Union[str, tuple[str], None], Union[str, tuple[str], None]]
     | list[Union[str, tuple[str], None]]
 ]

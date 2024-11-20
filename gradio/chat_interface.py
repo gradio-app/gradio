@@ -372,14 +372,14 @@ class ChatInterface(Blocks):
             if self.cache_examples:
                 self.chatbot.example_select(
                     self.example_clicked,
-                    [self.chatbot],
+                    None,
                     [self.chatbot, self.saved_input],
                     show_api=False,
                 )
             else:
                 self.chatbot.example_select(
                     self.example_clicked,
-                    [self.chatbot],
+                    None,
                     [self.chatbot, self.saved_input],
                     show_api=False,
                 ).then(
@@ -686,19 +686,25 @@ class ChatInterface(Blocks):
             self._append_history(history_with_input, response, first_response=False)
             yield history_with_input
 
-    def example_clicked(self, x: SelectData, history):
-        if self.cache_examples:
-            return self.examples_handler.load_from_cache(x.index)[0].root
-        if self.multimodal:
-            message = MultimodalPostprocess(**cast(dict, x.value))
-            self._append_multimodal_history(message, None, history)
+    def example_clicked(
+        self, x: SelectData
+    ) -> tuple[TupleFormat | list[MessageDict], str]:
+        # if self.cache_examples:
+        #     print(self.examples_handler.load_from_cache(x.index)[0].root)
+        #     return self.examples_handler.load_from_cache(x.index)[0].root
+        # if self.multimodal:
+        #     message = MultimodalPostprocess(**cast(dict, x.value))
+        #     self._append_multimodal_history(message, None, history)
+        # else:
+        message: str = x.value["text"]
+        if self.type == "tuples":
+            history = [(message, None)]
+            for file in x.value.get("files", []):
+                history.append(((file["path"]), None))
         else:
-            message = x.value["text"]
-            if self.type == "tuples":
-                history.append([message, None])
-            else:
-                history.append({"role": "user", "content": message})
-        self.saved_input.value = message
+            history = [MessageDict(role="user", content=message)]
+            for file in x.value.get("files", []):
+                history.append(MessageDict(role="user", content=file))
         return history, message
 
     def _process_example(
