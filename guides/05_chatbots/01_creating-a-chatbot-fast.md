@@ -107,14 +107,21 @@ gr.ChatInterface(
 
 Tip: While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
 
-## Customizing your chatbot
+## Customizing the Chat UI
 
-If you're familiar with Gradio's `Interface` class, the `gr.ChatInterface` includes many of the same arguments that you can use to customize the look and feel of your Chatbot. For example, you can:
+If you're familiar with Gradio's `gr.Interface` class, the `gr.ChatInterface` includes many of the same arguments that you can use to customize the look and feel of your Chatbot. For example, you can:
 
 - add a title and description above your chatbot using `title` and `description` arguments.
 - add a theme or custom css using `theme` and `css` arguments respectively.
 - add `examples` and even enable `cache_examples`, which make it easier for users to try it out. `examples` can be customized by adding `display_icon` or `display_text` keys to each example.
-- You can change the text or disable each of the buttons that appear in the chatbot interface: `submit_btn`, `retry_btn`, `undo_btn`, `clear_btn`.
+
+**Adding Examples**
+
+You can add preset examples to your `gr.ChatInterface` with the `examples` parameter, which takes a list of string examples. Any examples will appear as "buttons" within the Chatbot before any messages are sent. You can change the displayed text for 
+
+If you'd like to cache the examples so that they are pre-computed and appear 
+
+**Customizing the Chatbot or Textbox**
 
 If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `ChatInterface`, then you can pass in your own chatbot or textbox as well. Here's an example of how we can use these parameters:
 
@@ -135,7 +142,7 @@ gr.ChatInterface(
     title="Yes Man",
     description="Ask Yes Man any question",
     theme="soft",
-    examples=[{"text": "Hello"}, {"text": "Am I cool?"}, {"text": "Are tomatoes vegetables?"}],
+    examples=["Hello", "Am I cool?", "Are tomatoes vegetables?"],
     cache_examples=True,
     retry_btn=None,
     undo_btn="Delete Previous",
@@ -155,10 +162,11 @@ gr.ChatInterface(
 
 The placeholder appears vertically and horizontally centered in the chatbot.
 
-## Add Multimodal Capability to your chatbot
+## Making a Multimodal Chat Interface
 
-You may want to add multimodal capability to your chatbot. For example, you may want users to be able to easily upload images or files to your chatbot and ask questions about it. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
+You may want to add multimodal capability to your chat interface. For example, you may want users to be able to easily upload images or files to your chatbot and ask questions about it. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
 
+When `multimodal=True`, the signature of `fn` changes slightly. The first parameter of your function should accept a dictionary consisting of the submitted text and uploaded files that looks like this: `{"text": "user input", "file": ["file_path1", "file_path2", ...]}`. 
 
 ```python
 import gradio as gr
