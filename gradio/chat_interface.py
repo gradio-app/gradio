@@ -160,15 +160,6 @@ class ChatInterface(Blocks):
         self.examples_messages = self._setup_example_messages(
             examples, example_labels, example_icons
         )
-        self._additional_inputs_in_examples = False
-        if self.examples is not None:
-            for example in self.examples:
-                for idx, example_for_input in enumerate(example):
-                    if example_for_input is not None and idx > 0:
-                        self._additional_inputs_in_examples = True
-                        break
-                if self._additional_inputs_in_examples:
-                    break
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
         self.additional_inputs = [
@@ -194,6 +185,17 @@ class ChatInterface(Blocks):
             raise ValueError(
                 f"The `additional_inputs_accordion` parameter must be a string or gr.Accordion, not {builtins.type(additional_inputs_accordion)}"
             )
+        self._additional_inputs_in_examples = False
+        if self.additional_inputs and self.examples is not None:
+            for example in self.examples:
+                if not isinstance(example, list):
+                    raise ValueError("Examples must be a list of lists when additional inputs are provided.")
+                for idx, example_for_input in enumerate(example):
+                    if example_for_input is not None and idx > 0:
+                        self._additional_inputs_in_examples = True
+                        break
+                if self._additional_inputs_in_examples:
+                    break
 
         with self:
             if title:
