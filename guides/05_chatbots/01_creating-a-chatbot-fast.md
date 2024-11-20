@@ -1,16 +1,14 @@
 # How to Create a Chatbot with Gradio
 
-Tags: NLP, TEXT, CHAT
+Tags: NLP, LLM, CHATBOT
 
 ## Introduction
 
-Chatbots are a popular application of large language models. Using `gradio`, you can easily build a demo of your chatbot model and share that with your users, or try it yourself using an intuitive chatbot UI.
+Chatbots are a popular application of large language models (LLMs). Using Gradio, you can easily build a demo of your LLM and share that with your users, or try it yourself using an intuitive chatbot UI.
 
-This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that allows you to create your chatbot UI fast, often with a single line of code. The chatbot interface that we create will look something like this:
+This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that allows you to create your chatbot UI fast, often with a single line of code. It can be easily adapted to support multimodal chatbots, or chatbots that require further customization.
 
-We'll start with a couple of simple examples, and then show how to use `gr.ChatInterface()` with real language models from several popular APIs and libraries, including `langchain`, `openai`, and Hugging Face.
-
-**Prerequisites**: please make sure you are using the **latest version** version of Gradio:
+**Prerequisites**: please make sure you are using the latest version version of Gradio:
 
 ```bash
 $ pip install --upgrade gradio
@@ -18,23 +16,27 @@ $ pip install --upgrade gradio
 
 ## Defining a chat function
 
-When working with `gr.ChatInterface()`, the first thing you should do is define your **chat function**. In the simplest case, your chat function should take two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
+When working with `gr.ChatInterface()`, the first thing you should do is define your **chat function**. In the simplest case, your chat function should accept two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
 
 - `message`: a `str` representing the user's input.
-- `history`: a list of openai-style dictionaries with `role` and `content` keys, repreesting the previous conversation history. 
+- `history`: a list of openai-style dictionaries with `role` and `content` keys, representing the previous conversation history. 
 
-Here is an example value of the `history`:
+For example, the `history` could look like this:
 
 ```python
 [
-    {"role": "user", "content": "What is the capital of France"},
+    {"role": "user", "content": "What is the capital of France?"},
     {"role": "assistant", "content": "Paris"}
 ]
 ```
 
-Your function should return a single string response, which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
+In the simplest case, your function should return: 
+* a single `str` response
 
-Let's take a look at a few example applications.
+
+which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
+
+Let's take a look at a few example chat functions:
 
 **Example: a chatbot that randomly responds yes or no**
 
@@ -219,26 +221,11 @@ demo.launch()
 
 If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/creating-a-custom-chatbot-with-blocks).
 
-## Displaying Files or Components in the Chatbot
+## Returning Complex Responses
 
-The `Chatbot` component supports using many of the core Gradio components (such as `gr.Image`, `gr.Plot`, `gr.Audio`, and `gr.HTML`) inside of the chatbot. Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example:
+We mentioned earlier that in the simplest case, your **chat function** should return a `str` response. However, you can also return more complex 
 
-```py
-import gradio as gr
-
-def fake(message, history):
-    if message.strip():
-        return gr.Audio("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav")
-    else:
-        return "Please provide the name of an artist"
-
-gr.ChatInterface(
-    fake,
-    type="messages",
-    textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
-    chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
-).launch()
-```
+**Returning Image/Audio/Video Files**:
 
 You can also return a dictionary with a `path` key that points to a local file or a publicly available URL.
 
@@ -259,7 +246,33 @@ gr.ChatInterface(
 ).launch()
 ```
 
- See the chatbot [docs](/docs/gradio/chatbot#behavior) for an explanation how.
+
+**Returning Components**
+
+The `Chatbot` component supports using many of the core Gradio components (such as `gr.Image`, `gr.Plot`, `gr.Audio`, and `gr.HTML`) inside of the chatbot. Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example:
+
+```py
+import gradio as gr
+
+def fake(message, history):
+    if message.strip():
+        return gr.Audio("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav")
+    else:
+        return "Please provide the name of an artist"
+
+gr.ChatInterface(
+    fake,
+    type="messages",
+    textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
+    chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
+).launch()
+```
+
+**Returning Preset Options**
+
+You can 
+
+
 
 ## Using your chatbot via an API
 
@@ -269,146 +282,4 @@ Once you've built your Gradio chatbot and are hosting it on [Hugging Face Spaces
 
 To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client).
 
-## A `langchain` example
 
-Now, let's actually use the `gr.ChatInterface` with some real large language models. We'll start by using `langchain` on top of `openai` to build a general-purpose streaming chatbot application in 19 lines of code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
-
-```python
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import AIMessage, HumanMessage
-import openai
-import gradio as gr
-
-os.environ["OPENAI_API_KEY"] = "sk-..."  # Replace with your key
-
-llm = ChatOpenAI(temperature=1.0, model='gpt-3.5-turbo-0613')
-
-def predict(message, history):
-    history_langchain_format = []
-    for msg in history:
-        if msg['role'] == "user":
-            history_langchain_format.append(HumanMessage(content=msg['content']))
-        elif msg['role'] == "assistant":
-            history_langchain_format.append(AIMessage(content=msg['content']))
-    history_langchain_format.append(HumanMessage(content=message))
-    gpt_response = llm(history_langchain_format)
-    return gpt_response.content
-
-gr.ChatInterface(predict, type="messages").launch()
-```
-
-## A streaming example using `openai`
-
-Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming results as well:
-
-```python
-from openai import OpenAI
-import gradio as gr
-
-api_key = "sk-..."  # Replace with your key
-client = OpenAI(api_key=api_key)
-
-def predict(message, history):
-    history_openai_format = []
-    for msg in history:
-        history_openai_format.append(msg)
-    history_openai_format.append(message)
-  
-    response = client.chat.completions.create(model='gpt-3.5-turbo',
-    messages= history_openai_format,
-    temperature=1.0,
-    stream=True)
-
-    partial_message = ""
-    for chunk in response:
-        if chunk.choices[0].delta.content is not None:
-              partial_message = partial_message + chunk.choices[0].delta.content
-              yield partial_message
-
-gr.ChatInterface(predict, type="messages").launch()
-```
-
-**Handling Concurrent Users with Threads**
-
-The example above works if you have a single user — or if you have multiple users, since it passes the entire history of the conversation each time there is a new message from a user. 
-
-However, the `openai` library also provides higher-level abstractions that manage conversation history for you, e.g. the [Threads abstraction](https://platform.openai.com/docs/assistants/how-it-works/managing-threads-and-messages). If you use these abstractions, you will need to create a separate thread for each user session. Here's a partial example of how you can do that, by accessing the `session_hash` within your `predict()` function:
-
-```py
-import openai
-import gradio as gr
-
-client = openai.OpenAI(api_key = os.getenv("OPENAI_API_KEY"))
-threads = {}
-
-def predict(message, history, request: gr.Request):
-    if request.session_hash in threads:
-        thread = threads[request.session_hash]
-    else:
-        threads[request.session_hash] = client.beta.threads.create()
-        
-    message = client.beta.threads.messages.create(
-        thread_id=thread.id,
-        role="user",
-        content=message)
-    
-    ...
-
-gr.ChatInterface(predict, type="messages").launch()
-```
-
-## Example using a local, open-source LLM with Hugging Face
-
-Of course, in many cases you want to run a chatbot locally. Here's the equivalent example using Together's RedePajama model, from Hugging Face (this requires you to have a GPU with CUDA).
-
-```python
-import gradio as gr
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer
-from threading import Thread
-
-tokenizer = AutoTokenizer.from_pretrained("togethercomputer/RedPajama-INCITE-Chat-3B-v1")
-model = AutoModelForCausalLM.from_pretrained("togethercomputer/RedPajama-INCITE-Chat-3B-v1", torch_dtype=torch.float16)
-model = model.to('cuda:0')
-
-class StopOnTokens(StoppingCriteria):
-    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
-        stop_ids = [29, 0]
-        for stop_id in stop_ids:
-            if input_ids[0][-1] == stop_id:
-                return True
-        return False
-
-def predict(message, history):
-    history_transformer_format = list(zip(history[:-1], history[1:])) + [[message, ""]]
-    stop = StopOnTokens()
-
-    messages = "".join(["".join(["\n<human>:"+item[0], "\n<bot>:"+item[1]])
-                for item in history_transformer_format])
-
-    model_inputs = tokenizer([messages], return_tensors="pt").to("cuda")
-    streamer = TextIteratorStreamer(tokenizer, timeout=10., skip_prompt=True, skip_special_tokens=True)
-    generate_kwargs = dict(
-        model_inputs,
-        streamer=streamer,
-        max_new_tokens=1024,
-        do_sample=True,
-        top_p=0.95,
-        top_k=1000,
-        temperature=1.0,
-        num_beams=1,
-        stopping_criteria=StoppingCriteriaList([stop])
-        )
-    t = Thread(target=model.generate, kwargs=generate_kwargs)
-    t.start()
-
-    partial_message = ""
-    for new_token in streamer:
-        if new_token != '<':
-            partial_message += new_token
-            yield partial_message
-
-gr.ChatInterface(predict).launch()
-```
-
-With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building even more custom Chatbot applications, check out [a dedicated guide](/guides/creating-a-custom-chatbot-with-blocks) using the low-level `gr.Blocks()` API.
