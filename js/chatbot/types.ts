@@ -15,7 +15,7 @@ export interface ComponentData {
 }
 
 export interface Option {
-    display_text?: string;  // Optional field (NotRequired in Python)
+    display_text?: string;
     value: string;
 }
 export interface Message {
@@ -23,7 +23,7 @@ export interface Message {
 	metadata: Metadata;
 	content: string | FileData | ComponentData;
 	index: number | [number, number];
-    options: Option[];
+    options?: Option[];
 }
 
 export interface TextMessage extends Message {
