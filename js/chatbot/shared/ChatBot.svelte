@@ -7,7 +7,7 @@
 		load_components,
 		get_components_from_messages
 	} from "./utils";
-	import type { NormalisedMessage } from "../types";
+	import type { NormalisedMessage, Option } from "../types";
 	import { copy } from "@gradio/utils";
 	import type { CopyData } from "@gradio/utils";
 	import Message from "./Message.svelte";
@@ -115,6 +115,7 @@
 		share: any;
 		error: string;
 		example_select: SelectData;
+		option_select: SelectData;
 		copy: CopyData;
 	}>();
 
@@ -196,7 +197,6 @@
 			dispatch("change");
 		}
 	}
-
 	$: groupedMessages = value && group_messages(value, msg_format);
 
 	function handle_example_select(i: number, example: ExampleMessage): void {
@@ -247,6 +247,16 @@
 				liked: selected === "like"
 			});
 		}
+	}
+
+	function get_last_bot_options(): Option[] | undefined {
+		if (!value || !groupedMessages || groupedMessages.length === 0) 
+			return undefined;
+		const last_group = groupedMessages[groupedMessages.length - 1];
+		console.log("groupedMessages", groupedMessages);
+		console.log("last_group", last_group);
+		if (last_group[0].role !== "assistant") return undefined;
+		return last_group[last_group.length - 1].options;
 	}
 </script>
 
@@ -350,6 +360,23 @@
 			{/each}
 			{#if pending_message}
 				<Pending {layout} />
+			{:else}
+				{@const options = get_last_bot_options()}
+				{#if options}
+					<div class="examples">
+						{#each options as option, index}
+							<button 
+								class="example"
+								on:click={() => dispatch("option_select", { 
+									index: index,
+									value: option.value
+								})}
+							>
+								{option.label || option.value}
+							</button>
+						{/each}
+					</div>
+				{/if}
 			{/if}
 		</div>
 	{:else}

@@ -12,14 +12,23 @@ Is this correct?
 """
 
 def chat(message, history):
-    if message == "Yes":
+    if message == "Yes, that's correct.":
         return "Great!"
-    elif message == "No, regenerate":
+    else:
         return {
+            "role": "assistant",
             "content": example_code,
             "options": [
-                {"value": "Yes"}, {"label": "No", "value": "No, regenerate"}
-                ]}
-    return "Hello, world!"
+                {"value": "Yes, that's correct.", "label": "Yes"},
+                {"value": "No"}
+                ]
+            }
 
-gr.ChatInterface(chat).launch()
+demo = gr.ChatInterface(
+    chat,
+    type="messages",
+    examples=["Write a Python function that takes a string and returns a greeting."]
+)
+
+if __name__ == "__main__":
+    demo.launch()
