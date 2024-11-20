@@ -74,7 +74,7 @@
 			{...loading_status}
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
-		{#if label}
+		{#if label && show_label}
 			<BlockLabel
 				Icon={TextHighlight}
 				{label}
@@ -117,7 +117,7 @@
 			i18n={gradio.i18n}
 			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
-		{#if label}
+		{#if label && show_label}
 			<BlockLabel
 				Icon={TextHighlight}
 				{label}
@@ -136,7 +136,7 @@
 				{color_map}
 			/>
 		{:else}
-			<Empty>
+			<Empty size="small" unpadded_box={true}>
 				<TextHighlight />
 			</Empty>
 		{/if}
