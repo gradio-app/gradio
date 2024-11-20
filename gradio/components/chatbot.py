@@ -113,7 +113,10 @@ class ChatbotDataMessages(GradioRootModel):
     root: list[Message]
 
 
-TupleFormat = list[list[Union[str, tuple[str], tuple[str, str], None]]]
+TupleFormat = list[
+    tuple[Union[str, tuple[str], None], Union[str, tuple[str], None]]
+    | list[Union[str, tuple[str], None]]
+]
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -153,6 +156,7 @@ class Chatbot(Component):
         Events.undo,
         Events.example_select,
         Events.clear,
+        Events.copy,
     ]
 
     def __init__(

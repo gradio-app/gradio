@@ -8,7 +8,6 @@
 	import { is_component_message } from "./utils";
 	import { Retry, Undo } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
-
 	export let likeable: boolean;
 	export let show_retry: boolean;
 	export let show_undo: boolean;
@@ -20,6 +19,7 @@
 
 	export let handle_action: (selected: string | null) => void;
 	export let layout: "bubble" | "panel";
+	export let dispatch: any;
 
 	function is_all_text(
 		message: NormalisedMessage[] | NormalisedMessage
@@ -54,7 +54,10 @@
 	>
 		<IconButtonWrapper top_panel={false}>
 			{#if show_copy}
-				<Copy value={message_text} />
+				<Copy
+					value={message_text}
+					on:copy={(e) => dispatch("copy", e.detail)}
+				/>
 			{/if}
 			{#if show_retry}
 				<IconButton
