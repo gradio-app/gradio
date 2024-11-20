@@ -15,7 +15,7 @@ export interface ComponentData {
 }
 
 export interface Option {
-    display_text?: string;
+    label?: string;
     value: string;
 }
 export interface Message {

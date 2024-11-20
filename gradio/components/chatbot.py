@@ -38,8 +38,9 @@ class MetadataDict(TypedDict):
 
 
 class Option(TypedDict):
-    display_text: NotRequired[str]
+    label: NotRequired[str]
     value: str
+
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
