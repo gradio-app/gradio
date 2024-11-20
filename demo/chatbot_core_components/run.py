@@ -1,3 +1,4 @@
+# type: ignore
 import gradio as gr
 import os
 import plotly.express as px
