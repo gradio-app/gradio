@@ -8,8 +8,6 @@ Chatbots are a popular application of large language models. Using `gradio`, you
 
 This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that allows you to create your chatbot UI fast, often with a single line of code. The chatbot interface that we create will look something like this:
 
-$demo_chatinterface_streaming_echo
-
 We'll start with a couple of simple examples, and then show how to use `gr.ChatInterface()` with real language models from several popular APIs and libraries, including `langchain`, `openai`, and Hugging Face.
 
 **Prerequisites**: please make sure you are using the **latest version** version of Gradio:
@@ -20,10 +18,10 @@ $ pip install --upgrade gradio
 
 ## Defining a chat function
 
-When working with `gr.ChatInterface()`, the first thing you should do is define your chat function. Your chat function should take two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
+When working with `gr.ChatInterface()`, the first thing you should do is define your **chat function**. In the simplest case, your chat function should take two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
 
 - `message`: a `str` representing the user's input.
-- `history`: If you set `type="messages"` in gr.ChatInterface, the history will be a list of dictionaries with `role` and `content` keys. Please see the chatbot [docs](/docs/gradio/chatbot) for an in-depth explanation of the chatbot format. 
+- `history`: a list of openai-style dictionaries with `role` and `content` keys, repreesting the previous conversation history. 
 
 Here is an example value of the `history`:
 
@@ -34,14 +32,11 @@ Here is an example value of the `history`:
 ]
 ```
 
-
 Your function should return a single string response, which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
-
-Tip: It's strongly recommended to set type="messages" in gr.ChatInterface. Setting type="tuples" is deprecated and will be removed in a future version of Gradio.
 
 Let's take a look at a few example applications.
 
-## Example: a chatbot that responds yes or no
+**Example: a chatbot that randomly responds yes or no**
 
 Let's write a chat function that responds `Yes` or `No` randomly.
 
@@ -59,19 +54,23 @@ Now, we can plug this into `gr.ChatInterface()` and call the `.launch()` method 
 ```python
 import gradio as gr
 
-gr.ChatInterface(random_response, type="messages").launch()
+gr.ChatInterface(
+    fn=random_response, 
+    type="messages"
+).launch()
 ```
+
+Tip: Always type="messages" in gr.ChatInterface. The default value (type="tuples") is deprecated and will be removed in a future version of Gradio.
 
 That's it! Here's our running demo, try it out:
 
 $demo_chatinterface_random_response
 
-## Another example using the user's input and history
+**Example: a chatbot that alternatively agrees and disagrees**
 
 Of course, the previous example was very simplistic, it didn't even take user input or the previous history into account! Here's another simple example showing how to incorporate a user's input as well as the history.
 
 ```python
-import random
 import gradio as gr
 
 def alternatingly_agree(message, history):
@@ -80,7 +79,10 @@ def alternatingly_agree(message, history):
     else:
         return "I don't think so"
 
-gr.ChatInterface(alternatingly_agree, type="messages").launch()
+gr.ChatInterface(
+    fn=alternatingly_agree, 
+    type="messages"
+).launch()
 ```
 
 ## Streaming chatbots
@@ -96,7 +98,10 @@ def slow_echo(message, history):
         time.sleep(0.3)
         yield "You typed: " + message[: i+1]
 
-gr.ChatInterface(slow_echo, type="messages").launch()
+gr.ChatInterface(
+    fn=slow_echo, 
+    type="messages"
+).launch()
 ```
 
 
