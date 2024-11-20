@@ -31,6 +31,7 @@ For example, the `history` could look like this:
 ```
 
 In the simplest case, your function should return: 
+
 * a single `str` response
 
 
@@ -87,6 +88,8 @@ gr.ChatInterface(
 ).launch()
 ```
 
+We'll look at more realistic examples of chat functions in our next Guide, which shows [examples of using `gr.ChatInterface` with popular LLMs](). 
+
 ## Streaming chatbots
 
 In your chat function, you can use `yield` to generate a sequence of partial responses, each replacing the previous ones. This way, you'll end up with a streaming chatbot. It's that simple!
@@ -106,8 +109,9 @@ gr.ChatInterface(
 ).launch()
 ```
 
+While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance of the "Stop" button using the `stop_btn` parameter.
 
-Tip: While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
+Tip: Even though you are yielding the latest message at each iteration, Gradio only sends the "diff" of each message, which reduces latency and data consumption over your network.
 
 ## Customizing the Chat UI
 
@@ -115,13 +119,15 @@ If you're familiar with Gradio's `gr.Interface` class, the `gr.ChatInterface` in
 
 - add a title and description above your chatbot using `title` and `description` arguments.
 - add a theme or custom css using `theme` and `css` arguments respectively.
-- add `examples` and even enable `cache_examples`, which make it easier for users to try it out. `examples` can be customized by adding `display_icon` or `display_text` keys to each example.
+- add `examples` and even enable `cache_examples`, which make your Chatbot easier for users to try it out.
 
 **Adding Examples**
 
-You can add preset examples to your `gr.ChatInterface` with the `examples` parameter, which takes a list of string examples. Any examples will appear as "buttons" within the Chatbot before any messages are sent. You can change the displayed text for 
+You can add preset examples to your `gr.ChatInterface` with the `examples` parameter, which takes a list of string examples. Any examples will appear as "buttons" within the Chatbot before any messages are sent. If you'd like to include images or other files as part of your examples, you can do so by using this dictionary format for each example instead of a string: `{"text": "What's in this image?", "files": ["cheetah.jpg"]}`. Each file will be a separate message that is added to your Chatbot history 
 
-If you'd like to cache the examples so that they are pre-computed and appear 
+You can change the displayed text for each example by using the `example_labels` argument. You can add icons to each example as well using the `example_icons` argument. Both of these arguments take a list of strings, which should be the same length as the `examples` list.
+
+If you'd like to cache the examples so that they are pre-computed and the results appear instantly, set `cache_examples=True`.
 
 **Customizing the Chatbot or Textbox**
 
@@ -177,14 +183,22 @@ def count_files(message, history):
     num_files = len(message["files"])
     return f"You uploaded {num_files} files"
 
-demo = gr.ChatInterface(fn=count_files, type="messages", examples=[{"text": "Hello", "files": []}], title="Echo Bot", multimodal=True)
+demo = gr.ChatInterface(
+    fn=count_files, 
+    type="messages", 
+    examples=[{"text": "Hello", "files": []}], title="Echo Bot", multimodal=True
+)
 
 demo.launch()
 ```
 
-When `multimodal=True`, the signature of `fn` changes slightly. The first parameter of your function should accept a dictionary consisting of the submitted text and uploaded files that looks like this: `{"text": "user input", "file": ["file_path1", "file_path2", ...]}`. Similarly, any examples you provide should be in a dictionary of this form. Your function should still return a single `str` message. 
+There are some other changes to keep in mind: TODO
 
-Tip: If you'd like to customize the UI/UX of the textbox for your multimodal chatbot, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` argument of `ChatInterface` instead of an instance of `gr.Textbox`.
+Similarly, any examples you provide should be in a dictionary of this form. Your function should still return a single `str` message. 
+
+Files are stored in history differentl
+
+If you'd like to customize the UI/UX of the textbox for your multimodal chatbot, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` argument of `ChatInterface` instead of an instance of `gr.Textbox`.
 
 ## Additional Inputs
 
@@ -270,7 +284,7 @@ gr.ChatInterface(
 
 **Returning Preset Options**
 
-You can 
+TODO:
 
 
 
@@ -282,4 +296,8 @@ Once you've built your Gradio chatbot and are hosting it on [Hugging Face Spaces
 
 To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client).
 
+What's next?
+* More realistic examples
+* Very custom
+* Deploy to Discord
 
