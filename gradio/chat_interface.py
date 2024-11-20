@@ -107,7 +107,7 @@ class ChatInterface(Blocks):
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
-            examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings if `multimodal` is False, and a list of dictionaries (with keys `text` and `files`) if `multimodal` is True. Should also include values for the additional inputs if they are provided.
+            examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings representing text-only examples, or a list of dictionaries (with keys `text` and `files`) representing multimodal examples. If `additional_inputs` are provided, the examples should instead be a list of lists, where the first element is the example message and the remaining elements are the example values for the additional inputs -- in this case, the examples will appear under the chatbot.
             example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list.
             example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list.
             cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
@@ -157,6 +157,7 @@ class ChatInterface(Blocks):
         ) or inspect.isasyncgenfunction(self.fn)
         self.provided_chatbot = chatbot is not None
         self.examples = examples
+        self.examples_messages = self._setup_example_messages(examples, example_labels, example_icons)
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
         self.additional_inputs = [
@@ -200,12 +201,12 @@ class ChatInterface(Blocks):
                 self.chatbot = cast(
                     Chatbot, get_component_instance(chatbot, render=True)
                 )
-                if self.chatbot.examples and examples_messages:
+                if self.chatbot.examples and self.examples_messages:
                     warnings.warn(
                         "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
                     )
                 self.chatbot.examples = (
-                    examples_messages
+                    self.examples_messages
                     if not self._additional_inputs_in_examples()
                     else None
                 )
@@ -217,7 +218,7 @@ class ChatInterface(Blocks):
                     height=200 if fill_height else None,
                     type=self.type,
                     autoscroll=autoscroll,
-                    examples=examples_messages
+                    examples=self.examples_messages
                     if not self._additional_inputs_in_examples()
                     else None,
                 )
@@ -303,8 +304,8 @@ class ChatInterface(Blocks):
             examples: list[str] | list[MultimodalValue] | list[list] | None,
             example_labels: list[str] | None = None,
             example_icons: list[str] | None = None,
-        ) -> None:
-        self.examples_messages = []
+        ) -> list[ExampleMessage]:
+        examples_messages = []
         if examples:
             for index, example in enumerate(examples):
                 if isinstance(example, list):
@@ -319,7 +320,8 @@ class ChatInterface(Blocks):
                     example_message["display_text"] = example_labels[index]
                 if example_icons:
                     example_message["icon"] = example_icons[index]
-                self.examples_messages.append(example_message)
+                examples_messages.append(example_message)
+        return examples_messages
 
     def _setup_events(self) -> None:
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
