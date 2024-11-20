@@ -15,15 +15,15 @@ export interface ComponentData {
 }
 
 export interface Option {
-    label?: string;
-    value: string;
+	label?: string;
+	value: string;
 }
 export interface Message {
 	role: MessageRole;
 	metadata: Metadata;
 	content: string | FileData | ComponentData;
 	index: number | [number, number];
-    options?: Option[];
+	options?: Option[];
 }
 
 export interface TextMessage extends Message {

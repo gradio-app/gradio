@@ -250,7 +250,7 @@
 	}
 
 	function get_last_bot_options(): Option[] | undefined {
-		if (!value || !groupedMessages || groupedMessages.length === 0) 
+		if (!value || !groupedMessages || groupedMessages.length === 0)
 			return undefined;
 		const last_group = groupedMessages[groupedMessages.length - 1];
 		console.log("groupedMessages", groupedMessages);
@@ -365,12 +365,13 @@
 				{#if options}
 					<div class="examples">
 						{#each options as option, index}
-							<button 
+							<button
 								class="example"
-								on:click={() => dispatch("option_select", { 
-									index: index,
-									value: option.value
-								})}
+								on:click={() =>
+									dispatch("option_select", {
+										index: index,
+										value: option.value
+									})}
 							>
 								{option.label || option.value}
 							</button>
