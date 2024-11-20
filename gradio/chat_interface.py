@@ -189,7 +189,9 @@ class ChatInterface(Blocks):
         if self.additional_inputs and self.examples is not None:
             for example in self.examples:
                 if not isinstance(example, list):
-                    raise ValueError("Examples must be a list of lists when additional inputs are provided.")
+                    raise ValueError(
+                        "Examples must be a list of lists when additional inputs are provided."
+                    )
                 for idx, example_for_input in enumerate(example):
                     if example_for_input is not None and idx > 0:
                         self._additional_inputs_in_examples = True
@@ -272,7 +274,9 @@ class ChatInterface(Blocks):
                     examples=self.examples,
                     inputs=[self.textbox] + self.additional_inputs,
                     outputs=self.chatbot,
-                    fn=self._examples_stream_fn if self.is_generator else self._examples_fn,
+                    fn=self._examples_stream_fn
+                    if self.is_generator
+                    else self._examples_fn,
                     cache_examples=self.cache_examples,
                     cache_mode=self.cache_mode,
                     visible=self._additional_inputs_in_examples,
