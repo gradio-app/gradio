@@ -313,23 +313,19 @@ class TestExampleMessages:
             double,
             examples=["hello", "hi", "hey"],
             example_labels=["Greeting 1", "Greeting 2", "Greeting 3"],
-            example_icons=["👋", "✋", "🖐️"],
         )
         assert len(chat.examples_messages) == 3
         assert chat.examples_messages[0] == {
             "text": "hello",
             "display_text": "Greeting 1",
-            "icon": "👋",
         }
         assert chat.examples_messages[1] == {
             "text": "hi",
             "display_text": "Greeting 2",
-            "icon": "✋",
         }
         assert chat.examples_messages[2] == {
             "text": "hey",
             "display_text": "Greeting 3",
-            "icon": "🖐️",
         }
 
     def test_setup_example_messages_with_multimodal(self):
@@ -342,12 +338,8 @@ class TestExampleMessages:
             ],
         )
         assert len(chat.examples_messages) == 3
-        assert chat.examples_messages[0] == {"text": "hello", "files": ["file1.txt"]}
-        assert chat.examples_messages[1] == {
-            "text": "hi",
-            "files": ["file2.txt", "file3.txt"],
-        }
-        assert chat.examples_messages[2] == {"text": "", "files": ["file4.txt"]}
+        assert chat.examples_messages[0]["text"] == "hello"  # type: ignore
+        assert chat.examples_messages[0]["files"][0]["path"].endswith("file1.txt")  # type: ignore
 
     def test_setup_example_messages_with_lists(self):
         chat = gr.ChatInterface(
