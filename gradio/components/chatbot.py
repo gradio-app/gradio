@@ -37,7 +37,7 @@ class MetadataDict(TypedDict):
     title: Union[str, None]
 
 
-class OptionsDict(TypedDict):
+class Option(TypedDict):
     display_text: NotRequired[str]
     value: str
 
@@ -55,7 +55,7 @@ class MessageDict(TypedDict):
     content: str | FileDataDict | tuple | Component
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
-    options: list[OptionsDict]
+    options: list[Option]
 
 
 class FileMessage(GradioModel):
