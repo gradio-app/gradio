@@ -31,7 +31,7 @@
 	export let loading_status: LoadingStatus;
 	export let show_label = true;
 	export let _selectable = false;
-	export let hide_heading = false;
+	export let show_heading = false;
 
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
@@ -68,7 +68,7 @@
 			selectable={_selectable}
 			{value}
 			{color}
-			{hide_heading}
+			{show_heading}
 		/>
 	{:else}
 		<Empty unpadded_box={true}><LabelIcon /></Empty>
