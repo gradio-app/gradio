@@ -37,9 +37,9 @@
 />
 
 <Story
-	name="Multiple label text with show_heading"
+	name="Multiple label text with show_heading set to false (heading not visible)"
 	args={{
-		show_heading: true,
+		show_heading: false,
 		value: {
 			label: "Label",
 			confidences: [
@@ -51,9 +51,9 @@
 />
 
 <Story
-	name="Single label text with show_heading (heading still visible)"
+	name="Single label text with show_heading set to false (heading still visible)"
 	args={{
-		show_heading: true,
+		show_heading: false,
 		value: { label: "Test label", confidence: 0.8 }
 	}}
 />

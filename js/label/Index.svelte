@@ -31,7 +31,7 @@
 	export let loading_status: LoadingStatus;
 	export let show_label = true;
 	export let _selectable = false;
-	export let show_heading = false;
+	export let show_heading = true;
 
 	$: {
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {

@@ -11,7 +11,7 @@
 
 	export let color: string | undefined = undefined;
 	export let selectable = false;
-	export let show_heading = false;
+	export let show_heading = true;
 
 	function get_aria_referenceable_id(elem_id: string): string {
 		// `aria-labelledby` interprets the value as a space-separated id reference list,
@@ -22,7 +22,7 @@
 </script>
 
 <div class="container">
-	{#if !show_heading || !value.confidences}
+	{#if show_heading || !value.confidences}
 		<h2
 			class="output-class"
 			data-testid="label-output-value"

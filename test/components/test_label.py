@@ -61,7 +61,7 @@ class TestLabel:
             "color": None,
             "_selectable": False,
             "key": None,
-            "show_heading": False,
+            "show_heading": True,
         }
 
     def test_color_argument(self):
