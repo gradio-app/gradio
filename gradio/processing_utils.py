@@ -76,7 +76,7 @@ if wasm_utils.IS_WASM:
             return httpx.Response(
                 status_code=response.status,
                 headers=response_headers,
-                stream=Urllib3ResponseSyncByteStream(response),
+                stream=Urllib3ResponseSyncByteStream(response),  # type: ignore
             )
 
     sync_transport = Urllib3Transport()

@@ -1,3 +1,4 @@
+# type: ignore
 import gradio as gr
 import xyzservices.providers as xyz
 from bokeh.models import ColumnDataSource, Whisker

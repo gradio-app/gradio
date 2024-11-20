@@ -17,7 +17,8 @@ demo = gr.ChatInterface(
         ["Hey"],
         ["Can you explain briefly to me what is the Python programming language?"],
     ],
-    cache_examples=False,
+    cache_examples=True,
+    cache_mode="eager",
     type="messages",
 )
 

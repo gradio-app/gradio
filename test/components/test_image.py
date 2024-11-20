@@ -7,7 +7,7 @@ from gradio_client import media_data
 from gradio_client import utils as client_utils
 
 import gradio as gr
-from gradio.components.image import ImageData
+from gradio.components.image import ImageData  # type: ignore
 from gradio.exceptions import Error
 
 
