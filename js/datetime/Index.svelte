@@ -191,7 +191,7 @@
 		color: var(--body-text-color-subdued);
 	}
 	.timebox[aria-disabled] {
-		pointer-events: none;  
+		pointer-events: none;
 	}
 	.calendar {
 		display: inline-flex;
