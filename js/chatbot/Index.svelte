@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
+	import type { Gradio, SelectData, LikeData, CopyData } from "@gradio/utils";
 
 	import ChatBot from "./shared/ChatBot.svelte";
 	import type { UndoRetryData } from "./shared/utils";
@@ -61,6 +61,7 @@
 		retry: UndoRetryData;
 		undo: UndoRetryData;
 		clear: null;
+		copy: CopyData;
 	}>;
 
 	let _value: NormalisedMessage[] | null = [];
@@ -79,6 +80,7 @@
 	export let placeholder: string | null = null;
 	export let examples: ExampleMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
+	export let allow_file_downloads = true;
 </script>
 
 <Block
@@ -142,6 +144,7 @@
 				value = [];
 				gradio.dispatch("clear");
 			}}
+			on:copy={(e) => gradio.dispatch("copy", e.detail)}
 			{avatar_images}
 			{sanitize_html}
 			{bubble_full_width}
@@ -157,6 +160,7 @@
 			load_component={gradio.load_component}
 			msg_format={type}
 			root={gradio.root}
+			{allow_file_downloads}
 		/>
 	</div>
 </Block>

@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.4.3
+
+### Fixes
+
+- [#9913](https://github.com/gradio-app/gradio/pull/9913) [`d81f430`](https://github.com/gradio-app/gradio/commit/d81f430fd50546001b76c0ae5fded32c6d3093f7) - fix: Fix filename stripping to preserve extensions.  Thanks @TakaSoap!
+
 ## 1.4.2
 
 ### Fixes

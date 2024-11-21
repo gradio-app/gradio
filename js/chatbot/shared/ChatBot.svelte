@@ -9,7 +9,9 @@
 	} from "./utils";
 	import type { NormalisedMessage } from "../types";
 	import { copy } from "@gradio/utils";
+	import type { CopyData } from "@gradio/utils";
 	import Message from "./Message.svelte";
+	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import { dequal } from "dequal/lite";
 	import {
@@ -22,7 +24,13 @@
 	} from "svelte";
 	import { Image } from "@gradio/image/shared";
 
-	import { Clear, Trash, Community, ScrollDownArrow } from "@gradio/icons";
+	import {
+		Clear,
+		Trash,
+		Community,
+		ScrollDownArrow,
+		Download
+	} from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
@@ -40,6 +48,7 @@
 
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
+	export let allow_file_downloads: boolean;
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
@@ -106,6 +115,7 @@
 		share: any;
 		error: string;
 		example_select: SelectData;
+		copy: CopyData;
 	}>();
 
 	function is_at_bottom(): boolean {
@@ -292,6 +302,14 @@
 								on:click={() => (is_image_preview_open = false)}
 								label={"Clear"}
 							/>
+							{#if allow_file_downloads}
+								<DownloadLink
+									href={image_preview_source}
+									download={image_preview_source_alt || "image"}
+								>
+									<IconButton Icon={Download} label={"Download"} />
+								</DownloadLink>
+							{/if}
 						</IconButtonWrapper>
 					</div>
 				{/if}
@@ -326,6 +344,8 @@
 					{show_copy_button}
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					scroll={is_browser ? scroll : () => {}}
+					{allow_file_downloads}
+					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
 			{/each}
 			{#if pending_message}

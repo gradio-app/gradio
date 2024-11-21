@@ -196,7 +196,7 @@ class Dropdown(FormComponent):
                 for value in payload:
                     if value not in choice_values:
                         raise Error(
-                            f"Value: {value} is not in the list of choices: {choice_values}"
+                            f"Value: {value!r} (type: {type(value)}) is not in the list of choices: {choice_values}"
                         )
             elif payload not in choice_values:
                 raise Error(
