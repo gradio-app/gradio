@@ -253,8 +253,6 @@
 		if (!value || !groupedMessages || groupedMessages.length === 0)
 			return undefined;
 		const last_group = groupedMessages[groupedMessages.length - 1];
-		console.log("groupedMessages", groupedMessages);
-		console.log("last_group", last_group);
 		if (last_group[0].role !== "assistant") return undefined;
 		return last_group[last_group.length - 1].options;
 	}

@@ -191,7 +191,6 @@ export function group_messages(
 	messages: NormalisedMessage[],
 	msg_format: "messages" | "tuples"
 ): NormalisedMessage[][] {
-	console.log("messages", messages);
 	const groupedMessages: NormalisedMessage[][] = [];
 	let currentGroup: NormalisedMessage[] = [];
 	let currentRole: MessageRole | null = null;
