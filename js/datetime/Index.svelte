@@ -14,7 +14,6 @@
 	export let label = "Time";
 	export let show_label = true;
 	export let info: string | undefined = undefined;
-	export let interactivate = true;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -69,7 +68,6 @@
 	$: valid = date_is_valid_format(entered_value);
 
 	const submit_values = (): void => {
-		if (!interactivate) return;
 		if (entered_value === value) return;
 		if (!date_is_valid_format(entered_value)) return;
 		old_value = value = entered_value;
@@ -89,21 +87,18 @@
 	<div class="label-content">
 		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 	</div>
-	<div class="timebox" aria-disabled={!interactivate}>
+	<div class="timebox">
 		<input
 			class="time"
 			bind:value={entered_value}
 			class:invalid={!valid}
 			on:keydown={(evt) => {
-				if (!interactivate) return;
 				if (evt.key === "Enter") {
 					submit_values();
 					gradio.dispatch("submit");
 				}
 			}}
-			on:blur={() => {
-				if (interactivate) submit_values();
-			}}
+			on:blur={submit_values}
 		/>
 		{#if include_time}
 			<input
@@ -113,7 +108,6 @@
 				bind:this={datetime}
 				bind:value={datevalue}
 				on:input={() => {
-					if (!interactivate) return;
 					const date = new Date(datevalue);
 					entered_value = format_date(date);
 					submit_values();
@@ -127,7 +121,6 @@
 				bind:this={datetime}
 				bind:value={datevalue}
 				on:input={() => {
-					if (!interactivate) return;
 					const date = new Date(datevalue + "T00:00:00");
 					entered_value = format_date(date);
 					submit_values();
@@ -138,7 +131,6 @@
 		<button
 			class="calendar"
 			on:click={() => {
-				if (!interactivate) return;
 				datetime.showPicker();
 			}}><Calendar></Calendar></button
 		>
@@ -189,9 +181,6 @@
 	}
 	.time.invalid {
 		color: var(--body-text-color-subdued);
-	}
-	.timebox[aria-disabled] {
-		pointer-events: none;
 	}
 	.calendar {
 		display: inline-flex;
