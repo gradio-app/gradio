@@ -6,7 +6,7 @@ Tags: NLP, LLM, CHATBOT
 
 Chatbots are a popular application of large language models (LLMs). Using Gradio, you can easily build a demo of your LLM and share that with your users, or try it yourself using an intuitive chatbot UI.
 
-This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that allows you to create your chatbot UI fast, often with a single line of code. It can be easily adapted to support multimodal chatbots, or chatbots that require further customization.
+This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that allows you to create your chatbot UI fast, often with a _single line of Python_. It can be easily adapted to support multimodal chatbots, or chatbots that require further customization.
 
 **Prerequisites**: please make sure you are using the latest version version of Gradio:
 
@@ -30,12 +30,9 @@ For example, the `history` could look like this:
 ]
 ```
 
-In the simplest case, your function should return: 
+Your chat function should return: 
 
-* a single `str` response
-
-
-which is the bot's response to the particular user input `message`. Your function can take into account the `history` of messages, as well as the current message.
+* a `str` value, which is the chatbot's response based on the chat `history` and most recent `message`.
 
 Let's take a look at a few example chat functions:
 
@@ -63,22 +60,22 @@ gr.ChatInterface(
 ).launch()
 ```
 
-Tip: Always type="messages" in gr.ChatInterface. The default value (type="tuples") is deprecated and will be removed in a future version of Gradio.
+Tip: Always set type="messages" in gr.ChatInterface. The default value (type="tuples") is deprecated and will be removed in a future version of Gradio.
 
 That's it! Here's our running demo, try it out:
 
 $demo_chatinterface_random_response
 
-**Example: a chatbot that alternatively agrees and disagrees**
+**Example: a chatbot that alternates between agreeing and disagreeing**
 
-Of course, the previous example was very simplistic, it didn't even take user input or the previous history into account! Here's another simple example showing how to incorporate a user's input as well as the history.
+Of course, the previous example was very simplistic, it didn't take user input or the previous history into account! Here's another simple example showing how to incorporate a user's input as well as the history.
 
 ```python
 import gradio as gr
 
 def alternatingly_agree(message, history):
     if len([h for h in history if h['role'] == "assistant"]) % 2 == 0:
-        return f"Yes, I do think that '{message}'"
+        return f"Yes, I do think that: {message}"
     else:
         return "I don't think so"
 
@@ -109,9 +106,9 @@ gr.ChatInterface(
 ).launch()
 ```
 
-While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance of the "Stop" button using the `stop_btn` parameter.
+While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function.
 
-Tip: Even though you are yielding the latest message at each iteration, Gradio only sends the "diff" of each message, which reduces latency and data consumption over your network.
+Tip: Even though you are yielding the latest message at each iteration, Gradio only sends the "diff" of each message from the server to the frontend, which reduces latency and data consumption over your network.
 
 ## Customizing the Chat UI
 
@@ -120,6 +117,7 @@ If you're familiar with Gradio's `gr.Interface` class, the `gr.ChatInterface` in
 - add a title and description above your chatbot using `title` and `description` arguments.
 - add a theme or custom css using `theme` and `css` arguments respectively.
 - add `examples` and even enable `cache_examples`, which make your Chatbot easier for users to try it out.
+- customize the chatbot (e.g. to add a placeholder) or textbox (e.g. to change the number of lines).
 
 **Adding Examples**
 
@@ -149,12 +147,9 @@ gr.ChatInterface(
     textbox=gr.Textbox(placeholder="Ask me a yes or no question", container=False, scale=7),
     title="Yes Man",
     description="Ask Yes Man any question",
-    theme="soft",
+    theme="ocean",
     examples=["Hello", "Am I cool?", "Are tomatoes vegetables?"],
     cache_examples=True,
-    retry_btn=None,
-    undo_btn="Delete Previous",
-    clear_btn="Clear",
 ).launch()
 ```
 
@@ -170,7 +165,7 @@ gr.ChatInterface(
 
 The placeholder appears vertically and horizontally centered in the chatbot.
 
-## Making a Multimodal Chat Interface
+## Multimodal Chat Interface
 
 You may want to add multimodal capability to your chat interface. For example, you may want users to be able to easily upload images or files to your chatbot and ask questions about it. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
 
