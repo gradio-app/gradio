@@ -570,10 +570,12 @@ class Examples:
             self.root_block.default_config.fns.pop(fn_index)
 
     def load_from_cache(self, example_id: int) -> list[Any]:
-        """Loads a particular cached example for the interface.
+        """Loads a particular cached example for the interface. If it
+        is not already cached, it will be cached and then loaded.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
+        if not Path(self.cached_file).exists():
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
         example = examples[example_id + 1]  # +1 to adjust for header

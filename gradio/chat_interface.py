@@ -369,7 +369,7 @@ class ChatInterface(Blocks):
             and self.examples
             and not self._additional_inputs_in_examples
         ):
-            if self.cache_examples and self.cache_mode == "eager":
+            if self.cache_examples:
                 self.chatbot.example_select(
                     self.example_clicked,
                     None,
@@ -696,6 +696,7 @@ class ChatInterface(Blocks):
         """
         if self.cache_examples and self.cache_mode == "eager":
             history = self.examples_handler.load_from_cache(example.index)[0].root
+        # Handle "lazy" by first yielding the input message, and then the full history
         elif self.type == "tuples":
             history = [(example.value["text"], None)]
             for file in example.value.get("files", []):
