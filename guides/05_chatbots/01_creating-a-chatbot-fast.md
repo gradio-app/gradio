@@ -327,7 +327,7 @@ gr.ChatInterface(
 
 **Providing preset responses**
 
-You may wnat to provide preset responses that a user can choose between when conversing with your chatbot. You can add the `options` key to the dictionary returned from your chat function to set these responses. The value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
+You may want to provide preset responses that a user can choose between when conversing with your chatbot. You can add the `options` key to the dictionary returned from your chat function to set these responses. The value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
 
 This example illustrates how to use present responses:
 
