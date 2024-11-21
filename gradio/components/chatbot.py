@@ -549,7 +549,6 @@ class Chatbot(Component):
             self._postprocess_message_messages(cast(MessageDict, message))
             for message in value
         ]
-        print("processed_messages", processed_messages)
         return ChatbotDataMessages(root=processed_messages)
 
     def example_payload(self) -> Any:

@@ -30,7 +30,7 @@ For example, the `history` could look like this:
 ]
 ```
 
-Your chat function should return: 
+Your chat function simply needs to return: 
 
 * a `str` value, which is the chatbot's response based on the chat `history` and most recent `message`.
 
@@ -119,7 +119,7 @@ If you're familiar with Gradio's `gr.Interface` class, the `gr.ChatInterface` in
 - add `examples` and even enable `cache_examples`, which make your Chatbot easier for users to try it out.
 - customize the chatbot (e.g. to add a placeholder) or textbox (e.g. to change the number of lines).
 
-**Adding Examples**
+**Adding examples**
 
 You can add preset examples to your `gr.ChatInterface` with the `examples` parameter, which takes a list of string examples. Any examples will appear as "buttons" within the Chatbot before any messages are sent. If you'd like to include images or other files as part of your examples, you can do so by using this dictionary format for each example instead of a string: `{"text": "What's in this image?", "files": ["cheetah.jpg"]}`. Each file will be a separate message that is added to your Chatbot history 
 
@@ -127,9 +127,9 @@ You can change the displayed text for each example by using the `example_labels`
 
 If you'd like to cache the examples so that they are pre-computed and the results appear instantly, set `cache_examples=True`.
 
-**Customizing the Chatbot or Textbox**
+**Customizing the chatbot or textbox component**
 
-If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `ChatInterface`, then you can pass in your own chatbot or textbox as well. Here's an example of how we can use these parameters:
+If you want to customize the `gr.Chatbot` or `gr.Textbox` that compose the `ChatInterface`, then you can pass in your own chatbot or textbox components. Here's an example of how we to apply the parameters we've discussed in this section:
 
 ```python
 import gradio as gr
@@ -153,7 +153,7 @@ gr.ChatInterface(
 ).launch()
 ```
 
-In particular, if you'd like to add a "placeholder" for your chat interface, which appears before the user has started chatting, you can do so using the `placeholder` argument of `gr.Chatbot`, which accepts Markdown or HTML. 
+Here's another example that adds a "placeholder" for your chat interface, which appears before the user has started chatting. The `placeholder` argument of `gr.Chatbot` accepts Markdown or HTML:
 
 ```python
 gr.ChatInterface(
@@ -167,33 +167,59 @@ The placeholder appears vertically and horizontally centered in the chatbot.
 
 ## Multimodal Chat Interface
 
-You may want to add multimodal capability to your chat interface. For example, you may want users to be able to easily upload images or files to your chatbot and ask questions about it. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
+You may want to add multimodal capabilities to your chat interface. For example, you may want users to be able to upload images or files to your chatbot and ask questions about them. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
 
-When `multimodal=True`, the signature of `fn` changes slightly. The first parameter of your function should accept a dictionary consisting of the submitted text and uploaded files that looks like this: `{"text": "user input", "file": ["file_path1", "file_path2", ...]}`. 
+When `multimodal=True`, the signature of of your chat function changes slightly: the first parameter of your function (what we referred to as `message` above) should accept a dictionary consisting of the submitted text and uploaded files that looks like this: 
+
+```py
+{
+    "text": "user input", 
+    "files": [
+        "updated_file_1_path.ext",
+        "updated_file_2_path.ext", 
+        ...
+    ]
+}
+```
+
+This second parameter of your chat function, `history`, will be in the same openai-style dictionary format as before. However, the `content` key for a file will be not a string, but rather a single-element tuple consisting of the filepath. Each file will be a separate message in the history. So after uploading two files and asking a question, your history might look like this:
+
+```python
+[
+    {"role": "user", "content": ("cat1.png")},
+    {"role": "user", "content": ("cat2.png")},
+    {"role": "user", "content": "What's the difference between these two images?"},
+]
+```
+
+The return type of your chat function does *not change* when setting `multimodal=True` (in the simplest case, you should still return a string value). We discuss more complex cases, e.g. [returning files below](#returning-complex-responses).
+
+If you are customizing a multimodal chat interface, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` parameter. Here's an example that illustrates how to set up and customize and multimodal chat interface:
+ 
 
 ```python
 import gradio as gr
 
-def count_files(message, history):
-    num_files = len(message["files"])
-    return f"You uploaded {num_files} files"
+def count_images(message, history):
+    num_images = len(message["files"])
+    total_images = 0
+    for message in history:
+        if isinstance(message["content"], tuple):
+            total_images += 1
+    return f"You just uploaded {num_images} images, total uploaded: {total_images+num_images}"
 
 demo = gr.ChatInterface(
-    fn=count_files, 
+    fn=count_images, 
     type="messages", 
-    examples=[{"text": "Hello", "files": []}], title="Echo Bot", multimodal=True
+    examples=[
+        {"text": "No files", "files": []}
+    ], 
+    multimodal=True,
+    textbox=gr.MultimodalTextbox(file_count="multiple", file_types=["image"])
 )
 
 demo.launch()
 ```
-
-There are some other changes to keep in mind: TODO
-
-Similarly, any examples you provide should be in a dictionary of this form. Your function should still return a single `str` message. 
-
-Files are stored in history differentl
-
-If you'd like to customize the UI/UX of the textbox for your multimodal chatbot, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` argument of `ChatInterface` instead of an instance of `gr.Textbox`.
 
 ## Additional Inputs
 
@@ -232,9 +258,9 @@ If you need to create something even more custom, then its best to construct the
 
 ## Returning Complex Responses
 
-We mentioned earlier that in the simplest case, your **chat function** should return a `str` response. However, you can also return more complex 
+We mentioned earlier that in the simplest case, your **chat function** should return a `str` response, which will be rendered as text in the chatbot. However, you can also return more complex responses as we discuss below:
 
-**Returning Image/Audio/Video Files**:
+**Returning Image, Audio, Video, or  Files**:
 
 You can also return a dictionary with a `path` key that points to a local file or a publicly available URL.
 
