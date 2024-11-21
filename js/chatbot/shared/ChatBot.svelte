@@ -485,6 +485,11 @@
 		justify-content: center;
 	}
 
+	.example:hover {
+		background-color: var(--color-accent-soft);
+		border-color: var(--border-color-accent);
+	}
+
 	.example-icon-container {
 		display: flex;
 		align-self: flex-start;
