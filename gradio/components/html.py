@@ -40,6 +40,7 @@ class HTML(Component):
         key: int | str | None = None,
         min_height: int | None = None,
         max_height: int | None = None,
+        container: bool = False,
     ):
         """
         Parameters:
@@ -55,6 +56,7 @@ class HTML(Component):
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If HTML content exceeds the height, the component will expand to fit the content.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the component will scroll.
+            container: If True, the HTML component will be displayed in a container. Default is False.
         """
         self.min_height = min_height
         self.max_height = max_height
@@ -69,6 +71,7 @@ class HTML(Component):
             render=render,
             key=key,
             value=value,
+            container=container,
         )
 
     def example_payload(self) -> Any:
