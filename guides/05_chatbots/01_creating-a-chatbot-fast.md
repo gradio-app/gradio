@@ -36,7 +36,7 @@ Your chat function simply needs to return:
 
 Let's take a look at a few example chat functions:
 
-**Example: a chatbot that randomly responds yes or no**
+**Example: a chatbot that randomly responds with yes or no**
 
 Let's write a chat function that responds `Yes` or `No` randomly.
 
