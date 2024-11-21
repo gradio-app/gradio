@@ -361,10 +361,10 @@
 			{:else}
 				{@const options = get_last_bot_options()}
 				{#if options}
-					<div class="examples">
+					<div class="options">
 						{#each options as option, index}
 							<button
-								class="example"
+								class="option"
 								on:click={() =>
 									dispatch("option_select", {
 										index: index,
@@ -476,18 +476,13 @@
 		align-items: center;
 		padding: var(--spacing-xl);
 		border: 0.05px solid var(--border-color-primary);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-md);
 		background-color: var(--background-fill-secondary);
 		cursor: pointer;
 		transition: var(--button-transition);
 		max-width: var(--size-56);
 		width: 100%;
 		justify-content: center;
-	}
-
-	.example:hover {
-		background-color: var(--color-accent-soft);
-		border-color: var(--border-color-accent);
 	}
 
 	.example-icon-container {
@@ -657,5 +652,35 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+	}
+
+	.options {
+		margin-left: auto;
+		padding: var(--spacing-xxl);
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--spacing-xxl);
+		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
+		justify-content: end;
+	}
+
+	.option {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: var(--spacing-xl);
+		border: 1px dashed var(--border-color-primary);
+		border-radius: var(--radius-md);
+		background-color: var(--background-fill-secondary);
+		cursor: pointer;
+		transition: var(--button-transition);
+		max-width: var(--size-56);
+		width: 100%;
+		justify-content: center;
+	}
+
+	.option:hover {
+		background-color: var(--color-accent-soft);
+		border-color: var(--border-color-accent);
 	}
 </style>
