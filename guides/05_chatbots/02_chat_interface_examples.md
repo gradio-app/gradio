@@ -90,7 +90,7 @@ gr.ChatInterface(predict, type="messages").launch()
 
 ## Example using a local, open-source LLM with Hugging Face
 
-Of course, in many cases you want to run a chatbot locally. Here's the equivalent example using Together's RedePajama model, from Hugging Face (this requires you to have a GPU with CUDA).
+Of course, in many cases you want to run a chatbot locally. Here's the equivalent example using Together's RedPajama model, from Hugging Face (this requires you to have a GPU with CUDA).
 
 ```python
 import gradio as gr
