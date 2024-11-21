@@ -570,40 +570,33 @@ class Examples:
             self.root_block.default_config.fns.pop(fn_index)
 
     def load_from_cache(self, example_id: int) -> list[Any]:
-        """Loads a particular cached example for the interface. If it
-        is not already cached, it will be cached and then loaded.
+        """Loads a particular cached example for the interface.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
-        if self.cache_examples is True:
-            with open(self.cached_file, encoding="utf-8") as cache:
-                examples = list(csv.reader(cache))
-            example = examples[example_id + 1]  # +1 to adjust for header
-            output = []
-            if self.outputs is None:
-                raise ValueError("self.outputs is missing")
-            for component, value in zip(self.outputs, example, strict=False):
-                value_to_use = value
-                try:
-                    value_as_dict = ast.literal_eval(value)
-                    # File components that output multiple files get saved as a python list
-                    # need to pass the parsed list to serialize
-                    # TODO: Better file serialization in 4.0
-                    if isinstance(value_as_dict, list) and isinstance(
-                        component, components.File
-                    ):
-                        value_to_use = value_as_dict
-                    if not utils.is_prop_update(value_as_dict):
-                        raise TypeError("value wasn't an update")  # caught below
-                    output.append(value_as_dict)
-                except (ValueError, TypeError, SyntaxError):
-                    output.append(component.read_from_flag(value_to_use))
-            return output
-        elif self.cache_examples == "lazy":
-            if not Path(self.cached_file).exists():
-                self.cach
-        else:
-            raise ValueError("Examples not cached")
+        with open(self.cached_file, encoding="utf-8") as cache:
+            examples = list(csv.reader(cache))
+        example = examples[example_id + 1]  # +1 to adjust for header
+        output = []
+        if self.outputs is None:
+            raise ValueError("self.outputs is missing")
+        for component, value in zip(self.outputs, example, strict=False):
+            value_to_use = value
+            try:
+                value_as_dict = ast.literal_eval(value)
+                # File components that output multiple files get saved as a python list
+                # need to pass the parsed list to serialize
+                # TODO: Better file serialization in 4.0
+                if isinstance(value_as_dict, list) and isinstance(
+                    component, components.File
+                ):
+                    value_to_use = value_as_dict
+                if not utils.is_prop_update(value_as_dict):
+                    raise TypeError("value wasn't an update")  # caught below
+                output.append(value_as_dict)
+            except (ValueError, TypeError, SyntaxError):
+                output.append(component.read_from_flag(value_to_use))
+        return output
 
 
 async def merge_generated_values_into_output(
