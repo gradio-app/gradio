@@ -495,6 +495,8 @@ class Examples:
         with open(self.cached_indices_file, "a") as f:
             f.write(f"{example_index}\n")
 
+
+
     async def cache(self) -> None:
         """
         Caches examples so that their predictions can be shown immediately.
@@ -574,6 +576,17 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
+        if not Path(self.cached_file).exists():  # Because no examples have been lazily cached yet
+            self.cache_logger.setup(self.outputs, self.cached_folder)
+        if cached_index := self._get_cached_index_if_cached(example_id) is None:
+            # TODO: fix this
+            client_utils.synchronize_async(self.cache)
+            with open(self.cached_indices_file, "a") as f:
+                f.write(f"{example_id}\n")
+            pass
+        else:
+            example_id = cached_index
+
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
         example = examples[example_id + 1]  # +1 to adjust for header
