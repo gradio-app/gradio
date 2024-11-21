@@ -22,7 +22,7 @@ class TestChatbot:
             [(Path("test/test_files/audio_sample.wav"),), "cool audio"],
             [(Path("test/test_files/bus.png"), "A bus"), "cool pic"],
         ]
-        postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg).model_dump()
+        postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg).model_dump()  # type: ignore
         for msg in postprocessed_multimodal_msg:
             assert "file" in msg[0]
             assert msg[1] in {"cool video", "cool audio", "cool pic"}
