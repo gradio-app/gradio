@@ -570,9 +570,9 @@ class App(FastAPI):
                 )
                 gradio_api_info = api_info(request)
                 return templates.TemplateResponse(
-                    template,
-                    {
-                        "request": request,
+                    request=request,
+                    name=template,
+                    context={
                         "config": config,
                         "gradio_api_info": gradio_api_info,
                     },
