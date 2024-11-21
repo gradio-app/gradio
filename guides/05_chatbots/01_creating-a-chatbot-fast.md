@@ -85,7 +85,7 @@ gr.ChatInterface(
 ).launch()
 ```
 
-We'll look at more realistic examples of chat functions in our next Guide, which shows [examples of using `gr.ChatInterface` with popular LLMs](). 
+We'll look at more realistic examples of chat functions in our next Guide, which shows [examples of using `gr.ChatInterface` with popular LLMs](/guides/chatbots/chat_interface_examples). 
 
 ## Streaming chatbots
 
@@ -260,36 +260,22 @@ If you need to create something even more custom, then its best to construct the
 
 We mentioned earlier that in the simplest case, your **chat function** should return a `str` response, which will be rendered as text in the chatbot. However, you can also return more complex responses as we discuss below:
 
-**Returning Image, Audio, Video, or  Files**:
+**Returning Gradio components**
 
-You can also return a dictionary with a `path` key that points to a local file or a publicly available URL.
+Currently, the following Gradio components can be displayed inside the chat interface:
+* `gr.Image`
+* `gr.Plot`
+* `gr.Audio`
+* `gr.HTML`
+* `gr.Video`
+* `gr.Gallery`
 
-```py
-import gradio as gr
-
-def fake(message, history):
-    if message.strip():
-        return {"role": "assistant", "content": {"path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"}}
-    else:
-        return "Please provide the name of an artist"
-
-gr.ChatInterface(
-    fake,
-    type="messages",
-    textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
-    chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
-).launch()
-```
-
-
-**Returning Components**
-
-The `Chatbot` component supports using many of the core Gradio components (such as `gr.Image`, `gr.Plot`, `gr.Audio`, and `gr.HTML`) inside of the chatbot. Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example:
+Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example:
 
 ```py
 import gradio as gr
 
-def fake(message, history):
+def music(message, history):
     if message.strip():
         return gr.Audio("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav")
     else:
@@ -299,26 +285,64 @@ gr.ChatInterface(
     fake,
     type="messages",
     textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
+).launch()
+```
+
+
+**Returning image, audio, video, or other files**:
+
+Sometimes, you don't want to return a complete Gradio component, but rather simply an image/audio/video/other file to be displayed inside the chatbot. You can do this by returning a complete openai-style dictionary from your chat function. The dictionary should consist of the following keys:
+
+* `role`: set to `"assistant"`
+* `content`: set to a dictionary with key `path` and value the filepath or URL you'd like to return
+
+Here is an example:
+
+```py
+import gradio as gr
+
+def fake(message, history):
+    if message.strip():
+        return {
+            "role": "assistant", 
+            "content": {
+                "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+                }
+            }
+    else:
+        return "Please provide the name of an artist"
+
+gr.ChatInterface(
+    fake,
+    type="messages",
+    textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
     chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
 ).launch()
 ```
 
-**Returning Preset Options**
 
-TODO:
+**Providing preset responses**
 
+You may wnat to provide preset responses that a user can choose between when conversing with your chatbot. You can add the `options` key to the dictionary returned from your chat function to set these responses. The value corresponding to this key should itself be a dictionary with a `value` key (and string value representing the value that should be sent to the chat function when this response is clicked) and an optional `label` key (if provided, is the text displayed as the preset response instead of the value). 
 
+This example illustrates how to use present responses:
 
-## Using your chatbot via an API
+$code_chatinterface_options
 
-Once you've built your Gradio chatbot and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message (and potentially additional inputs if you have set any using the `additional_inputs` parameter), and will return the response, internally keeping track of the messages sent so far.
+## Using Your Chatbot via API
+
+Once you've built your Gradio chat interface and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message (and potentially additional inputs if you have set any using the `additional_inputs` parameter), and will return the response, internally keeping track of the messages sent so far.
 
 [](https://github.com/gradio-app/gradio/assets/1778297/7b10d6db-6476-4e2e-bebd-ecda802c3b8f)
 
 To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client).
 
-What's next?
-* More realistic examples
-* Very custom
-* Deploy to Discord
+## What's Next?
+
+Now that you've learned about the `gr.ChatInterface` class and how it can be used to create chatbot UIs quickly, we recommend reading one of the following:
+
+* [Our next Guide](/guides/chatbots/chat_interface_examples) shows examples of how to use `gr.ChatInterface` with popular LLM libraries.
+* If you'd like to build very custom chat applications from scratch, you can build them using the low-level Blocks API, as [discussed in this Guide](/guides/chatbots/creating-a-custom-chatbot-with-blocks).
+* Once you've deployed your Gradio Chat Interface, its easy to use it other applications because of the built-in API. Here's a tutorial on [how to deploy a Gradio chat interface as a Discord bot](/guides/chatbots/creating-a-discord-bot-from-a-gradio-app).
+
 

@@ -1,6 +1,8 @@
+In this Guide, we go through several examples of how to use `gr.ChatInterface` with popular LLM libraries.
+
 ## A `langchain` example
 
-Now, let's actually use the `gr.ChatInterface` with some real large language models. We'll start by using `langchain` on top of `openai` to build a general-purpose streaming chatbot application in 19 lines of code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
+Let's start by using `langchain` on top of `openai` to build a general-purpose streaming chatbot application in 19 lines of code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
 
 ```python
 from langchain.chat_models import ChatOpenAI
@@ -140,4 +142,3 @@ def predict(message, history):
 gr.ChatInterface(predict).launch()
 ```
 
-With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building even more custom Chatbot applications, check out [a dedicated guide](/guides/creating-a-custom-chatbot-with-blocks) using the low-level `gr.Blocks()` API.
