@@ -8,7 +8,7 @@ import builtins
 import functools
 import inspect
 import warnings
-from collections.abc import AsyncGenerator, Callable, Sequence
+from collections.abc import AsyncGenerator, Callable, Generator, Sequence
 from pathlib import Path
 from typing import Literal, Union, cast
 
@@ -688,16 +688,13 @@ class ChatInterface(Blocks):
 
     def example_clicked(
         self, example: SelectData
-    ) -> tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess]:
+    ) -> Generator[tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess], None, None]:
         """
-        When an example is clicked, the chat history is set to the complete example value
-        (including files). The saved input value is also set to complete example value
-        if multimodal is True, otherwise it is set to the text of the example.
+        When an example is clicked, the chat history (and saved input) is initially just set
+        to the example value. Then, if caching is enabled, the cached output is loaded and
+        added to the history.
         """
-        if self.cache_examples and self.cache_mode == "eager":
-            history = self.examples_handler.load_from_cache(example.index)[0].root
-        # Handle "lazy" by first yielding the input message, and then the full history
-        elif self.type == "tuples":
+        if self.type == "tuples":
             history = [(example.value["text"], None)]
             for file in example.value.get("files", []):
                 history.append(((file["path"]), None))
@@ -706,7 +703,10 @@ class ChatInterface(Blocks):
             for file in example.value.get("files", []):
                 history.append(MessageDict(role="user", content=file))
         message = example.value if self.multimodal else example.value["text"]
-        return history, message
+        yield history, message
+        if self.cache_examples:
+            history = self.examples_handler.load_from_cache(example.index)[0].root
+            yield history, message
 
     def _process_example(
         self, message: ExampleMessage | str, response: MessageDict | str | None
