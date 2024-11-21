@@ -8,7 +8,7 @@ Chatbots are a popular application of large language models (LLMs). Using Gradio
 
 This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that allows you to create your chatbot UI fast, often with a _single line of Python_. It can be easily adapted to support multimodal chatbots, or chatbots that require further customization.
 
-**Prerequisites**: please make sure you are using the latest version version of Gradio:
+**Prerequisites**: please make sure you are using the latest version of Gradio:
 
 ```bash
 $ pip install --upgrade gradio
