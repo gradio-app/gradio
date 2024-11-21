@@ -108,7 +108,10 @@ class ChatbotDataMessages(GradioRootModel):
     root: list[Message]
 
 
-TupleFormat = list[list[Union[str, tuple[str], tuple[str, str], None]]]
+TupleFormat = Sequence[
+    tuple[Union[str, tuple[str], None], Union[str, tuple[str], None]]
+    | list[Union[str, tuple[str], None]]
+]
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -148,6 +151,7 @@ class Chatbot(Component):
         Events.undo,
         Events.example_select,
         Events.clear,
+        Events.copy,
     ]
 
     def __init__(
@@ -223,7 +227,7 @@ class Chatbot(Component):
         """
         if type is None:
             warnings.warn(
-                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
+                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style dictionaries with 'role' and 'content' keys.",
                 UserWarning,
             )
             type = "tuples"
@@ -311,7 +315,7 @@ class Chatbot(Component):
                                 file_info[i] = file_data
 
     @staticmethod
-    def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
+    def _check_format(messages: Any, type: Literal["messages", "tuples"]):
         if type == "messages":
             all_valid = all(
                 isinstance(message, dict)

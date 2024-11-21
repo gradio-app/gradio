@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 import dataclasses
 import hashlib
@@ -2532,6 +2533,10 @@ Received inputs:
                 # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
                 # So we need to manually cancel them. See `self.close()`..
                 self.run_startup_events()
+                # In the normal mode, self.run_extra_startup_events() is awaited like https://github.com/gradio-app/gradio/blob/2afcad80abd489111e47cf586a2a8221cc3dc9b6/gradio/routes.py#L1442.
+                # But in the Wasm env, we need to call the start up events here as described above, so we can't await it as here is not in an async function.
+                # So we use create_task() instead. This is a best-effort fallback in the Wasm env but it doesn't guarantee that all the tasks are completed before they are needed.
+                asyncio.create_task(self.run_extra_startup_events())
 
         self.is_sagemaker = (
             False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks

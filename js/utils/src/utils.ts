@@ -30,6 +30,10 @@ export interface ShareData {
 	title?: string;
 }
 
+export interface CopyData {
+	value: string;
+}
+
 export class ShareError extends Error {
 	constructor(message: string) {
 		super(message);
