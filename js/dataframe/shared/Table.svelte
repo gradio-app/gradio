@@ -397,10 +397,10 @@
 		select_on_focus = _select;
 	}
 
-	function end_header_edit(event: KeyboardEvent): void {
+	function end_header_edit(event: CustomEvent<KeyboardEvent>): void {
 		if (!editable) return;
 
-		switch (event.key) {
+		switch (event.detail.key) {
 			case "Escape":
 			case "Enter":
 			case "Tab":

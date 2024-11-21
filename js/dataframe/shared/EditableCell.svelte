@@ -57,6 +57,7 @@
 			value = _value;
 			dispatch("blur");
 		}
+		dispatch("keydown", event);
 	}
 </script>
 
