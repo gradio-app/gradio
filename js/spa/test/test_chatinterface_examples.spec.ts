@@ -4,11 +4,12 @@ const cases = [
 	"messages",
 	"tuples_examples",
 	"multimodal_tuples_examples",
-	"multimodal_messages_examples"
+	"multimodal_messages_examples",
+	"eager_caching_examples"
 ];
 
 for (const test_case of cases) {
-	test(`test case ${test_case} clicking example properly adds it to the history and passes the correct values to the prediction function`, async ({
+	test(`case ${test_case}: clicked example is added to history and passed to chat function`, async ({
 		page
 	}) => {
 		if (cases.slice(1).includes(test_case)) {
