@@ -18,7 +18,7 @@ $ pip install --upgrade gradio
 
 When working with `gr.ChatInterface()`, the first thing you should do is define your **chat function**. In the simplest case, your chat function should accept two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
 
-- `message`: a `str` representing the user's input.
+- `message`: a `str` representing the user's most recent message.
 - `history`: a list of openai-style dictionaries with `role` and `content` keys, representing the previous conversation history. 
 
 For example, the `history` could look like this:
@@ -117,7 +117,7 @@ If you're familiar with Gradio's `gr.Interface` class, the `gr.ChatInterface` in
 - add a title and description above your chatbot using `title` and `description` arguments.
 - add a theme or custom css using `theme` and `css` arguments respectively.
 - add `examples` and even enable `cache_examples`, which make your Chatbot easier for users to try it out.
-- customize the chatbot (e.g. to add a placeholder) or textbox (e.g. to change the number of lines).
+- customize the chatbot (e.g. to change the height or add a placeholder) or textbox (e.g. to add a max number of characters or add a placeholder).
 
 **Adding examples**
 
@@ -182,7 +182,7 @@ When `multimodal=True`, the signature of of your chat function changes slightly:
 }
 ```
 
-This second parameter of your chat function, `history`, will be in the same openai-style dictionary format as before. However, the `content` key for a file will be not a string, but rather a single-element tuple consisting of the filepath. Each file will be a separate message in the history. So after uploading two files and asking a question, your history might look like this:
+This second parameter of your chat function, `history`, will be in the same openai-style dictionary format as before. However, if the history contains uploaded files, the `content` key for a file will be not a string, but rather a single-element tuple consisting of the filepath. Each file will be a separate message in the history. So after uploading two files and asking a question, your history might look like this:
 
 ```python
 [
@@ -192,7 +192,7 @@ This second parameter of your chat function, `history`, will be in the same open
 ]
 ```
 
-The return type of your chat function does *not change* when setting `multimodal=True` (in the simplest case, you should still return a string value). We discuss more complex cases, e.g. [returning files below](#returning-complex-responses).
+The return type of your chat function does *not change* when setting `multimodal=True` (i.e. in the simplest case, you should still return a string value). We discuss more complex cases, e.g. returning files [below](#returning-complex-responses).
 
 If you are customizing a multimodal chat interface, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` parameter. Here's an example that illustrates how to set up and customize and multimodal chat interface:
  
@@ -223,9 +223,9 @@ demo.launch()
 
 ## Additional Inputs
 
-You may want to add additional parameters to your chatbot and expose them to your users through the Chatbot UI. For example, suppose you want to add a textbox for a system prompt, or a slider that sets the number of tokens in the chatbot's response. The `ChatInterface` class supports an `additional_inputs` parameter which can be used to add additional input components.
+You may want to add additional inputs to your chat function and expose them to your users through the chat UI. For example, you could add a textbox for a system prompt, or a slider that sets the number of tokens in the chatbot's response. The `gr.ChatInterface` class supports an `additional_inputs` parameter which can be used to add additional input components.
 
-The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have _not_ already been rendered, then the components will appear underneath the chatbot within a `gr.Accordion()`. You can set the label of this accordion using the `additional_inputs_accordion_name` parameter.
+The `additional_inputs` parameters accepts a component or a list of components. You can pass the component instances directly, or use their string shortcuts (e.g. `"textbox"` instead of `gr.Textbox()`). If you pass in component instances, and they have _not_ already been rendered, then the components will appear underneath the chatbot within a `gr.Accordion()`. 
 
 Here's a complete example:
 
@@ -254,11 +254,15 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
+**Examples with additional inputs**
+
+You can also add example values for your additional inputs. Pass in a list of lists to the `examples` parameter, where each inner list represents one sample, and each inner list should be `1 + len(additional_inputs)` long. The first element in the inner list should be the example value for the chat message, and each subsequent element should be an example value for one of the additional inputs, in order. When additional inputs are provided, examples are rendered in a table underneath the chat interface.
+
 If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/creating-a-custom-chatbot-with-blocks).
 
 ## Returning Complex Responses
 
-We mentioned earlier that in the simplest case, your **chat function** should return a `str` response, which will be rendered as text in the chatbot. However, you can also return more complex responses as we discuss below:
+We mentioned earlier that in the simplest case, your chat function should return a `str` response, which will be rendered as text in the chatbot. However, you can also return more complex responses as we discuss below:
 
 **Returning Gradio components**
 
@@ -323,7 +327,7 @@ gr.ChatInterface(
 
 **Providing preset responses**
 
-You may wnat to provide preset responses that a user can choose between when conversing with your chatbot. You can add the `options` key to the dictionary returned from your chat function to set these responses. The value corresponding to this key should itself be a dictionary with a `value` key (and string value representing the value that should be sent to the chat function when this response is clicked) and an optional `label` key (if provided, is the text displayed as the preset response instead of the value). 
+You may wnat to provide preset responses that a user can choose between when conversing with your chatbot. You can add the `options` key to the dictionary returned from your chat function to set these responses. The value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
 
 This example illustrates how to use present responses:
 
@@ -335,7 +339,7 @@ Once you've built your Gradio chat interface and are hosting it on [Hugging Face
 
 [](https://github.com/gradio-app/gradio/assets/1778297/7b10d6db-6476-4e2e-bebd-ecda802c3b8f)
 
-To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client).
+To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client). Or, you can deploy your Chat Interface to other platforms, such as [Discord](/guides/chatbots/creating-a-discord-bot-from-a-gradio-app).
 
 ## What's Next?
 
