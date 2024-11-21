@@ -12,7 +12,6 @@ from typing import (
     Any,
     Literal,
     Optional,
-    TypedDict,
     Union,
     cast,
 )
@@ -20,7 +19,7 @@ from typing import (
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from pydantic import Field
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 from gradio import utils
 from gradio.component_meta import ComponentMeta
