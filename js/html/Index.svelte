@@ -20,11 +20,12 @@
 	export let show_label = false;
 	export let min_height: number | undefined = undefined;
 	export let max_height: number | undefined = undefined;
+	export let container = false;
 
 	$: label, gradio.dispatch("change");
 </script>
 
-<Block {visible} {elem_id} {elem_classes} container={false}>
+<Block {visible} {elem_id} {elem_classes} {container}>
 	{#if show_label}
 		<span class="label-container">
 			<BlockLabel Icon={CodeIcon} {show_label} {label} float={true} />
