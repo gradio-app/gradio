@@ -1,4 +1,5 @@
 import gradio as gr
+import time
 
 def generate(
     message: str,
@@ -8,6 +9,7 @@ def generate(
     output = ""
     for character in message:
         output += character
+        time.sleep(0.3)
         yield output
 
 
