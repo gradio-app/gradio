@@ -444,6 +444,24 @@ class ChatInterface(Blocks):
             queue=False,
         )
 
+        self.chatbot.option_select(
+            self.option_clicked,
+            [self.chatbot],
+            [self.chatbot, self.saved_input],
+            show_api=False,
+        ).then(
+            submit_fn,
+            [self.saved_input, self.chatbot],
+            [self.chatbot],
+            show_api=False,
+            concurrency_limit=cast(
+                Union[int, Literal["default"], None], self.concurrency_limit
+            ),
+            show_progress=cast(
+                Literal["full", "minimal", "hidden"], self.show_progress
+            ),
+        )
+
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
     ) -> None:
@@ -685,6 +703,18 @@ class ChatInterface(Blocks):
         async for response in generator:
             self._append_history(history_with_input, response, first_response=False)
             yield history_with_input
+
+    def option_clicked(
+        self, history: list[MessageDict], option: SelectData
+    ) -> tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess]:
+        """
+        When an option is clicked, the chat history is appended with the option value.
+        The saved input value is also set to option value. Note that event can only
+        be called if self.type is "messages" since options are only available for this
+        chatbot type.
+        """
+        history.append({"role": "user", "content": option.value})
+        return history, option.value
 
     def example_clicked(
         self, example: SelectData
