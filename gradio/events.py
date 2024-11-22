@@ -963,9 +963,11 @@ class Events:
     )
     example_select = EventListener(
         "example_select",
-        config_data=lambda: {"example_selectable": False},
-        callback=lambda block: setattr(block, "example_selectable", True),
         doc="This listener is triggered when the user clicks on an example from within the {{ component }}. This event has SelectData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value. See SelectData documentation on how to use this event data.",
+    )
+    option_select = EventListener(
+        "option_select",
+        doc="This listener is triggered when the user clicks on an option from within the {{ component }}. This event has SelectData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value. See SelectData documentation on how to use this event data.",
     )
     load = EventListener(
         "load",
