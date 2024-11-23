@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:enable lazy caching for chatinterface
+fix:enable lazy caching for chatinterface
