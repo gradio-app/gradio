@@ -333,6 +333,14 @@ This example illustrates how to use present responses:
 
 $code_chatinterface_options
 
+**Returning multiple messages**
+
+If you would like to return multiple messages from your chat functions, simply return a `list` of messages in any of the above formats, and they will be rendered as individual bot messages:
+
+```py
+
+```
+
 ## Using Your Chatbot via API
 
 Once you've built your Gradio chat interface and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message (and potentially additional inputs if you have set any using the `additional_inputs` parameter), and will return the response, internally keeping track of the messages sent so far.
