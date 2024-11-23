@@ -65,7 +65,6 @@ class TestChatbot:
             "line_breaks": True,
             "layout": None,
             "show_copy_all_button": False,
-            "example_selectable": False,
             "examples": None,
         }
 

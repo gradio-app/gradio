@@ -58,6 +58,7 @@
 		like: LikeData;
 		clear_status: LoadingStatus;
 		example_select: SelectData;
+		option_select: SelectData;
 		retry: UndoRetryData;
 		undo: UndoRetryData;
 		clear: null;
@@ -138,6 +139,7 @@
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:example_select={(e) => gradio.dispatch("example_select", e.detail)}
+			on:option_select={(e) => gradio.dispatch("option_select", e.detail)}
 			on:retry={(e) => gradio.dispatch("retry", e.detail)}
 			on:undo={(e) => gradio.dispatch("undo", e.detail)}
 			on:clear={() => {
