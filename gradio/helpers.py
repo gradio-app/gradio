@@ -505,7 +505,7 @@ class Examples:
         """
         if self.root_block is None:
             raise Error("Cannot cache examples if not in a Blocks context.")
-        if Path(self.cached_file).exists():
+        if Path(self.cached_file).exists() and example_id is None:
             print(
                 f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
             )
@@ -584,6 +584,8 @@ class Examples:
             client_utils.synchronize_async(self.cache, example_id)
             with open(self.cached_indices_file, "a") as f:
                 f.write(f"{example_id}\n")
+            with open(self.cached_indices_file) as f:
+                example_id = len(f.readlines()) - 1
         else:
             example_id = cached_index
 
