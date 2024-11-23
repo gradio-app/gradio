@@ -19,35 +19,13 @@ For many LLM libraries and providers, there exist community-maintained integrati
 
 Let's start by using `langchain` on top of `openai` to build a general-purpose streaming chatbot application in 19 lines of code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
 
-```python
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import AIMessage, HumanMessage
-import openai
-import gradio as gr
-
-os.environ["OPENAI_API_KEY"] = "sk-..."  # Replace with your key
-
-llm = ChatOpenAI(temperature=1.0, model='gpt-3.5-turbo-0613')
-
-def predict(message, history):
-    history_langchain_format = []
-    for msg in history:
-        if msg['role'] == "user":
-            history_langchain_format.append(HumanMessage(content=msg['content']))
-        elif msg['role'] == "assistant":
-            history_langchain_format.append(AIMessage(content=msg['content']))
-    history_langchain_format.append(HumanMessage(content=message))
-    gpt_response = llm(history_langchain_format)
-    return gpt_response.content
-
-gr.ChatInterface(predict, type="messages").launch()
-```
+$code_llm_langchain
 
 ## `openai`
 
 Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming results as well:
 
-
+**Note**: the openai-gradio library makes building Gradio apps from openai models even easier. 
 
 **Handling Concurrent Users with Threads**
 
