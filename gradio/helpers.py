@@ -495,8 +495,6 @@ class Examples:
         with open(self.cached_indices_file, "a") as f:
             f.write(f"{example_index}\n")
 
-
-
     async def cache(self, example_id: int | None = None) -> None:
         """
         Caches examples so that their predictions can be shown immediately.
