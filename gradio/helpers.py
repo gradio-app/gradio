@@ -9,6 +9,7 @@ import copy
 import csv
 import inspect
 import os
+import shutil
 import warnings
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
@@ -276,6 +277,8 @@ class Examples:
             simplify_file_data=False, verbose=False, dataset_file_name="log.csv"
         )
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
+        if os.environ.get("GRADIO_RESET_EXAMPLES_CACHE") == "True" and self.cached_folder.exists():
+            shutil.rmtree(self.cached_folder)
         self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
