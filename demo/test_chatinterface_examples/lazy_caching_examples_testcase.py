@@ -9,7 +9,7 @@ def generate(
     output = ""
     for character in message:
         output += character
-        time.sleep(0.3)
+        time.sleep(0.02)
         yield output
 
 
