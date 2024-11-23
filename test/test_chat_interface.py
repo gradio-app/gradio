@@ -95,7 +95,7 @@ class TestInit:
             assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
     @pytest.mark.asyncio
-    async def test_example_caching_lazy(self, connect):
+    async def test_example_caching_lazy(self):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
