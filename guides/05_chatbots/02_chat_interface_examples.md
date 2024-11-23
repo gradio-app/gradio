@@ -1,4 +1,15 @@
-In this Guide, we go through several examples of how to use `gr.ChatInterface` with popular LLM libraries.
+In this Guide, we go through several examples of how to use `gr.ChatInterface` with popular LLM libraries and API providers.
+
+We will cover the following libraries and API providers:
+
+* langchain
+* llama_index
+* openai
+* anthropic
+* together
+* sambanova
+* 
+
 
 ## A `langchain` example
 
