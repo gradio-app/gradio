@@ -111,7 +111,7 @@ class ChatInterface(Blocks):
             example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
             example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
             cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
-            cache_mode: if "eager", all examples are cached at app launch. The "lazy" option is not yet supported. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
+            cache_mode: if "eager", all examples are cached at app launch. If "lazy", examples are cached for all users after the first use by any user of the app. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
@@ -720,9 +720,9 @@ class ChatInterface(Blocks):
         self, example: SelectData
     ) -> Generator[tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess], None, None]:
         """
-        When an example is clicked, the chat history (and saved input) is initially just set
-        to the example value. Then, if caching is enabled, the cached output is loaded and
-        added to the history.
+        When an example is clicked, the chat history (and saved input) is initially set only
+        to the example message. Then, if example caching is enabled, the cached response is loaded
+        and added to the chat history as well.
         """
         if self.type == "tuples":
             history = [(example.value["text"], None)]

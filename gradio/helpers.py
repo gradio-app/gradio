@@ -497,9 +497,11 @@ class Examples:
 
 
 
-    async def cache(self) -> None:
+    async def cache(self, example_id: int | None = None) -> None:
         """
         Caches examples so that their predictions can be shown immediately.
+        Parameters:
+            example_id: The id of the example to process (zero-indexed). If None, all examples are cached.
         """
         if self.root_block is None:
             raise Error("Cannot cache examples if not in a Blocks context.")
@@ -550,6 +552,8 @@ class Examples:
             if self.outputs is None:
                 raise ValueError("self.outputs is missing")
             for i, example in enumerate(self.examples):
+                if example_id is not None and i != example_id:
+                    continue
                 print(f"Caching example {i + 1}/{len(self.examples)}")
                 processed_input = self._get_processed_example(example)
                 if self.batch:
@@ -576,14 +580,10 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
-        if not Path(self.cached_file).exists():  # Because no examples have been lazily cached yet
-            self.cache_logger.setup(self.outputs, self.cached_folder)
         if cached_index := self._get_cached_index_if_cached(example_id) is None:
-            # TODO: fix this
-            client_utils.synchronize_async(self.cache)
+            client_utils.synchronize_async(self.cache, example_id)
             with open(self.cached_indices_file, "a") as f:
                 f.write(f"{example_id}\n")
-            pass
         else:
             example_id = cached_index
 
