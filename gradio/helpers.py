@@ -584,14 +584,15 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
-        if cached_index := self._get_cached_index_if_cached(example_id) is None:
-            client_utils.synchronize_async(self.cache, example_id)
-            with open(self.cached_indices_file, "a") as f:
-                f.write(f"{example_id}\n")
-            with open(self.cached_indices_file) as f:
-                example_id = len(f.readlines()) - 1
-        else:
-            example_id = cached_index
+        if self.cache_examples == "lazy":
+            if cached_index := self._get_cached_index_if_cached(example_id) is None:
+                client_utils.synchronize_async(self.cache, example_id)
+                with open(self.cached_indices_file, "a") as f:
+                    f.write(f"{example_id}\n")
+                with open(self.cached_indices_file) as f:
+                    example_id = len(f.readlines()) - 1
+            else:
+                example_id = cached_index
 
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
