@@ -2,15 +2,17 @@ In this Guide, we go through several examples of how to use `gr.ChatInterface` w
 
 We will cover the following libraries and API providers:
 
-* llama_index
-* langchain
-* openai
-* openai-compatible server
+* Llama_index
+* Langchain
+* Openai
+* Openai-compatible server
 * [Hugging Face transformers](#hugging-face-transformers)
 * [Hugging Face inference API]()
-* anthropic
-* sambanova
-* cerebras
+* Anthropic
+* Sambanova
+* Cerebras
+* Hyperbolic
+* Together
 
 For many LLM libraries and providers, there exist community-maintained integration libraries that make it even easier to spin up Gradio apps. We reference these libraries in the appropriate sections below.
 
@@ -25,7 +27,7 @@ $code_llm_langchain
 
 Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming results as well:
 
-**Note**: the openai-gradio library makes building Gradio apps from openai models even easier. 
+**Note**: the community-maintained openai-gradio library makes building Gradio apps from OpenAI models even easier. 
 
 **Handling Concurrent Users with Threads**
 
