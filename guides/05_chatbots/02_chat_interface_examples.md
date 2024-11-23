@@ -2,16 +2,20 @@ In this Guide, we go through several examples of how to use `gr.ChatInterface` w
 
 We will cover the following libraries and API providers:
 
-* langchain
 * llama_index
+* langchain
 * openai
+* openai-compatible server
+* [Hugging Face transformers](#hugging-face-transformers)
+* [Hugging Face inference API]()
 * anthropic
-* together
 * sambanova
-* 
+* cerebras
+
+For many LLM libraries and providers, there exist community-maintained integration libraries that make it even easier to spin up Gradio apps. We reference these libraries in the appropriate sections below.
 
 
-## A `langchain` example
+## `langchain`
 
 Let's start by using `langchain` on top of `openai` to build a general-purpose streaming chatbot application in 19 lines of code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
 
@@ -39,36 +43,11 @@ def predict(message, history):
 gr.ChatInterface(predict, type="messages").launch()
 ```
 
-## A streaming example using `openai`
+## `openai`
 
 Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming results as well:
 
-```python
-from openai import OpenAI
-import gradio as gr
 
-api_key = "sk-..."  # Replace with your key
-client = OpenAI(api_key=api_key)
-
-def predict(message, history):
-    history_openai_format = []
-    for msg in history:
-        history_openai_format.append(msg)
-    history_openai_format.append(message)
-  
-    response = client.chat.completions.create(model='gpt-3.5-turbo',
-    messages= history_openai_format,
-    temperature=1.0,
-    stream=True)
-
-    partial_message = ""
-    for chunk in response:
-        if chunk.choices[0].delta.content is not None:
-              partial_message = partial_message + chunk.choices[0].delta.content
-              yield partial_message
-
-gr.ChatInterface(predict, type="messages").launch()
-```
 
 **Handling Concurrent Users with Threads**
 
@@ -153,3 +132,26 @@ def predict(message, history):
 gr.ChatInterface(predict).launch()
 ```
 
+
+## Hugging Face Transformers
+
+The Hugging Face `transformers` library contains implementations of many popular LLMs, which can be run locally if you have a GPU locally. Building a Gradio user interface around `transformers` models is very easy thanks to the `gr.from_pipeline()` factory method. Here are some examples:
+
+```py
+import gradio as gr
+from transformers import pipeline
+
+gr.from_pipeline().launch()
+```
+
+```py
+import gradio as gr
+
+gr.from_pipeline().launch()
+```
+
+## Hugging Face Inference API
+
+If you do not have a 
+
+**Note:** a
