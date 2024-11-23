@@ -1,5 +1,5 @@
 ---
-"gradio": patch
+"gradio": minor
 ---
 
-fix:enable lazy caching for chatinterface
+feat:Support returning multiple messages from `gr.ChatInterface`
