@@ -163,6 +163,16 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_NODE_NUM_PORTS=200
   ```
 
+### 18. `GRADIO_RESET_EXAMPLES_CACHE`
+
+- **Description**: If set to "True", Gradio will delete and recreate the examples cache directory when the app starts instead of reusing the cached example if they already exist. 
+- **Default**: `"False"`
+- **Options**: `"True"`, `"False"`
+- **Example**:
+  ```sh
+  export GRADIO_RESET_EXAMPLES_CACHE="True"
+  ```
+
 ## How to Set Environment Variables
 
 To set environment variables in your terminal, use the `export` command followed by the variable name and its value. For example:
