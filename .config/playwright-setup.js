@@ -84,7 +84,8 @@ function spawn_gradio_app(app, port, verbose) {
 				...process.env,
 				PYTHONUNBUFFERED: "true",
 				GRADIO_ANALYTICS_ENABLED: "False",
-				GRADIO_IS_E2E_TEST: "1"
+				GRADIO_IS_E2E_TEST: "1",
+				GRADIO_RESET_EXAMPLES_CACHE: "True"
 			}
 		});
 		_process.stdout.setEncoding("utf8");

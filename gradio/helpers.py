@@ -9,6 +9,7 @@ import copy
 import csv
 import inspect
 import os
+import shutil
 import warnings
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
@@ -276,6 +277,11 @@ class Examples:
             simplify_file_data=False, verbose=False, dataset_file_name="log.csv"
         )
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
+        if (
+            os.environ.get("GRADIO_RESET_EXAMPLES_CACHE") == "True"
+            and self.cached_folder.exists()
+        ):
+            shutil.rmtree(self.cached_folder)
         self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
@@ -495,13 +501,15 @@ class Examples:
         with open(self.cached_indices_file, "a") as f:
             f.write(f"{example_index}\n")
 
-    async def cache(self) -> None:
+    async def cache(self, example_id: int | None = None) -> None:
         """
         Caches examples so that their predictions can be shown immediately.
+        Parameters:
+            example_id: The id of the example to process (zero-indexed). If None, all examples are cached.
         """
         if self.root_block is None:
             raise Error("Cannot cache examples if not in a Blocks context.")
-        if Path(self.cached_file).exists():
+        if Path(self.cached_file).exists() and example_id is None:
             print(
                 f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
             )
@@ -548,6 +556,8 @@ class Examples:
             if self.outputs is None:
                 raise ValueError("self.outputs is missing")
             for i, example in enumerate(self.examples):
+                if example_id is not None and i != example_id:
+                    continue
                 print(f"Caching example {i + 1}/{len(self.examples)}")
                 processed_input = self._get_processed_example(example)
                 if self.batch:
@@ -574,6 +584,16 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
+        if self.cache_examples == "lazy":
+            if cached_index := self._get_cached_index_if_cached(example_id) is None:
+                client_utils.synchronize_async(self.cache, example_id)
+                with open(self.cached_indices_file, "a") as f:
+                    f.write(f"{example_id}\n")
+                with open(self.cached_indices_file) as f:
+                    example_id = len(f.readlines()) - 1
+            else:
+                example_id = cached_index
+
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
         example = examples[example_id + 1]  # +1 to adjust for header
