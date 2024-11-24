@@ -1,3 +1,7 @@
+# This is a simple RAG chatbot built on top of Llama Index and Gradio. It allows you to upload any text or PDF files and ask questions about them!
+# Before running this, make sure you have exported your OpenAI API key as an environment variable:
+# export OPENAI_API_KEY="your-openai-api-key"
+
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 import gradio as gr
 

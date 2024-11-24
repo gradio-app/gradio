@@ -2,7 +2,7 @@ In this Guide, we go through several examples of how to use `gr.ChatInterface` w
 
 We will cover the following libraries and API providers:
 
-* [Llama Index](#llamaindex)
+* [Llama Index](#llama-index)
 * [LangChain](#langchain)
 * [OpenAI](#openai)
 * [Hugging Face `transformers`](#hugging-face-transformers)
@@ -12,12 +12,11 @@ We will cover the following libraries and API providers:
 
 For many LLM libraries and providers, there exist community-maintained integration libraries that make it even easier to spin up Gradio apps. We reference these libraries in the appropriate sections below.
 
-## LlamaIndex
+## Llama Index
 
 Let's start by using `llamaindex` on top of `openai` to build a RAG chatbot on any text or PDF files that you can demo and share in less than 30 lines fo code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
 
 $code_llm_langchain
-
 
 
 ## LangChain
