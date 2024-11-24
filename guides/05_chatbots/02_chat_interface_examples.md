@@ -14,10 +14,9 @@ For many LLM libraries and providers, there exist community-maintained integrati
 
 ## Llama Index
 
-Let's start by using `llamaindex` on top of `openai` to build a RAG chatbot on any text or PDF files that you can demo and share in less than 30 lines fo code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
+Let's start by using `llama-index` on top of `openai` to build a RAG chatbot on any text or PDF files that you can demo and share in less than 30 lines of code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
 
-$code_llm_langchain
-
+$code_llm_llamaindex
 
 ## LangChain
 
