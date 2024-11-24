@@ -20,15 +20,17 @@ $code_llm_llamaindex
 
 ## LangChain
 
-Let's start by using `langchain` on top of `openai` to build a general-purpose streaming chatbot application in 19 lines of code. You'll need to have an OpenAI key for this example (keep reading for the free, open-source equivalent!)
+Here's an example using `langchain` on top of `openai` to build a general-purpose. As before, you'll need to have an OpenAI key for this example.
 
 $code_llm_langchain
 
-## `openai`
+**Note**: For quick prototyping, the community-maintained [langchain-gradio repo](https://github.com/AK391/langchain-gradio)  makes it even easier to build chatbots on top of LangChain.
 
-Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming results as well:
+## OpenAI
 
-**Note**: the community-maintained openai-gradio library makes building Gradio apps from OpenAI models even easier. 
+Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming as well:
+
+**Note**: For quick prototyping, the  [openai-gradio library](https://github.com/gradio-app/openai-gradio) makes it even easier to build chatbots on top of OpenAI models.
 
 **Handling Concurrent Users with Threads**
 
