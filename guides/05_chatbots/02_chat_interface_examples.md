@@ -6,7 +6,6 @@ We will cover the following libraries and API providers:
 * [LangChain](#langchain)
 * [OpenAI](#openai)
 * [Hugging Face `transformers`](#hugging-face-transformers)
-* [Hugging Face inference API]()
 * [Sambanova]()
 * [Hyperbolic]()
 
@@ -28,7 +27,7 @@ $code_llm_langchain
 
 ## OpenAI
 
-Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming as well:
+Of course, we could also use the `openai` library directy. Here a similar example to the LangChain , but this time with streaming as well:
 
 **Note**: For quick prototyping, the  [openai-gradio library](https://github.com/gradio-app/openai-gradio) makes it even easier to build chatbots on top of OpenAI models.
 
