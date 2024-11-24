@@ -33,7 +33,7 @@ with gr.Blocks() as demo:
     generate_btn_1 = gr.Button("Generate Image via model 1")
     generate_btn_2 = gr.Button("Generate Image via model 2")
     generate_btn_3 = gr.Button("Generate Image via model 3")
-    generate_btn_1.click(image_gen_1, prompt, image, concurrency_limit=1, concurrency_id="gpu_queue")
+    generate_btn_1.click(image_gen_1, prompt, image, concurrency_limit=2, concurrency_id="gpu_queue")
     generate_btn_2.click(image_gen_2, prompt, image, concurrency_id="gpu_queue")
     generate_btn_3.click(image_gen_3, prompt, image, concurrency_id="gpu_queue")
 ```
