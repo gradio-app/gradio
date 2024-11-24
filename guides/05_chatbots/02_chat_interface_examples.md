@@ -5,14 +5,11 @@ We will cover the following libraries and API providers:
 * Llama_index
 * Langchain
 * Openai
-* Openai-compatible server
 * [Hugging Face transformers](#hugging-face-transformers)
 * [Hugging Face inference API]()
 * Anthropic
 * Sambanova
-* Cerebras
 * Hyperbolic
-* Together
 
 For many LLM libraries and providers, there exist community-maintained integration libraries that make it even easier to spin up Gradio apps. We reference these libraries in the appropriate sections below.
 
