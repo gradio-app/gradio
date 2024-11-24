@@ -48,8 +48,10 @@ $code_llm_sambanova
 
 ## Hyperbolic
 
+The Hyperbolic AI API provides access to many open-source models, such as the Llama family. Here's an example of how to build a Gradio app around the SambaNova API
+
 $code_llm_hyperbolic
 
-**Note**: For quick prototyping, the  [openai-gradio library](https://github.com/gradio-app/openai-gradio) makes it even easier to build chatbots on top of OpenAI models.
+**Note**: For quick prototyping, the  [hyperbolic-gradio library](https://github.com/HyperbolicLabs/hyperbolic-gradio) makes it even easier to build chatbots on top of OpenAI models.
 
 
