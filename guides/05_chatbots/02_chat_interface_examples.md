@@ -6,7 +6,7 @@ We will cover the following libraries and API providers:
 * [LangChain](#langchain)
 * [OpenAI](#openai)
 * [Hugging Face `transformers`](#hugging-face-transformers)
-* [Sambanova](#sambanova)
+* [SambaNova](#sambanova)
 * [Hyperbolic](#hyperbolic)
 
 For many LLM libraries and providers, there exist community-maintained integration libraries that make it even easier to spin up Gradio apps. We reference these libraries in the appropriate sections below.
@@ -38,13 +38,15 @@ Of course, in many cases you want to run a chatbot locally. Here's the equivalen
 
 $code_llm_hf_transformers
 
-## Sambanova
+## SambaNova
 
-The Sambanova API 
+The SambaNova Cloud API provides access to full-precision open-source models, such as the Llama family. Here's an example of how to build a Gradio app around the SambaNova API
+
+
 
 $code_llm_sambanova
 
-**Note**: For quick prototyping, the  [openai-gradio library](https://github.com/gradio-app/openai-gradio) makes it even easier to build chatbots on top of OpenAI models.
+**Note**: For quick prototyping, the  [sambanova-gradio library](https://github.com/gradio-app/sambanova-gradio) makes it even easier to build chatbots on top of OpenAI models.
 
 ## Hyperbolic
 
