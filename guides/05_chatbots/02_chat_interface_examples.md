@@ -42,8 +42,6 @@ $code_llm_hf_transformers
 
 The SambaNova Cloud API provides access to full-precision open-source models, such as the Llama family. Here's an example of how to build a Gradio app around the SambaNova API
 
-
-
 $code_llm_sambanova
 
 **Note**: For quick prototyping, the  [sambanova-gradio library](https://github.com/gradio-app/sambanova-gradio) makes it even easier to build chatbots on top of OpenAI models.
