@@ -18,12 +18,14 @@ export function set_local_stream(
 export async function get_video_stream(
 	include_audio: boolean,
 	video_source: HTMLVideoElement,
-	device_id?: string
+	width?: number,
+	height?: number,
+	device_id?: string,
 ): Promise<MediaStream> {
 	const size = {
-		width: { ideal: 1920 },
-		height: { ideal: 1440 }
-	};
+		width: { ideal: width || 1920 },
+		height: { ideal: height || 1440 }
+};
 
 	const constraints = {
 		video: device_id ? { deviceId: { exact: device_id }, ...size } : size,

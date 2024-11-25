@@ -102,6 +102,8 @@ class Image(StreamingInput, Component):
         show_share_button: bool | None = None,
         placeholder: str | None = None,
         show_fullscreen_button: bool = True,
+        webcam_height: int = 1440,
+        webcam_width: int = 1920,
     ):
         """
         Parameters:
@@ -170,6 +172,9 @@ class Image(StreamingInput, Component):
         )
         self.show_fullscreen_button = show_fullscreen_button
         self.placeholder = placeholder
+        self.webcam_height = webcam_height
+        self.webcam_width = webcam_width
+
         super().__init__(
             label=label,
             every=every,
