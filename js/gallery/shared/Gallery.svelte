@@ -388,16 +388,14 @@
 			class:fixed-height={mode !== "minimal" && (!height || height == "auto")}
 			class:hidden={is_full_screen}
 		>
+			{#if interactive && selected_index === null}
+				<ModifyUpload {i18n} on:clear={() => (value = [])} />
+			{/if}
 			<div
 				class="grid-container"
 				style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 				class:pt-6={show_label}
 			>
-				{#if interactive}
-					<div class="icon-button">
-						<ModifyUpload {i18n} on:clear={() => (value = [])} />
-					</div>
-				{/if}
 				{#each resolved_value as entry, i}
 					<button
 						class="thumbnail-item thumbnail-lg"
@@ -654,11 +652,6 @@
 		text-align: left;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-
-	.icon-button {
-		top: 1px;
-		right: 1px;
 	}
 
 	.grid-wrap.minimal {
