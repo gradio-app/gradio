@@ -34,7 +34,7 @@ export function add_bg_image(
 	renderer: IRenderer,
 	background: Blob | File,
 	resize: (width: number, height: number) => void,
-	max_height: number
+	max_height = 450
 ): BgImageCommand {
 	let sprite: Sprite & DisplayObject;
 
