@@ -156,8 +156,9 @@ class Client:
         )
         api_prefix: str = self.config.get("api_prefix", "")
         self.api_prefix = api_prefix.lstrip("/") + "/"
-        self.src_prefixed = urllib.parse.urljoin(self.src, api_prefix).rstrip("/") + "/"
-
+        self.src_prefixed = (
+            urllib.parse.urljoin(self.src, self.api_prefix).rstrip("/") + "/"
+        )
         self.api_url = urllib.parse.urljoin(self.src_prefixed, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
             self.src_prefixed,
