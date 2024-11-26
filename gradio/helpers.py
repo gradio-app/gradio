@@ -309,9 +309,11 @@ class Examples:
                     postprocess=True,
                 )
                 sub.append(prediction_value)
-        return [
-            ex for (ex, keep) in zip(sub, self.input_has_examples, strict=False) if keep
-        ]
+        if len(sub) > len(self.input_has_examples):
+            return [
+                ex for (ex, keep) in zip(sub, self.input_has_examples, strict=False) if keep
+            ]
+        return sub
 
     def create(self) -> None:
         """Creates the Dataset component to hold the examples"""
@@ -342,10 +344,7 @@ class Examples:
             else:
 
                 def load_example(example_tuple):
-                    example_index, _ = example_tuple
-                    # Get the original value, even if it has None values
-                    # _get_processed_example will remove optional values
-                    example_value = self.examples[example_index]
+                    _, example_value = example_tuple
                     processed_example = self._get_processed_example(example_value)
                     if len(self.inputs_with_examples) == 1:
                         return update(
