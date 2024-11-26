@@ -43,7 +43,7 @@ export function add_bg_image(
 		height: number,
 		max_height: number
 	): [number, number] {
-		const MAX_HEIGHT = max_height || 450;
+		const MAX_HEIGHT = max_height * 1.5;
 		const MAX_WIDTH = MAX_HEIGHT * 2;
 
 		let new_width = width;
