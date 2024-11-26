@@ -943,7 +943,7 @@ def test_examples_no_cache_optional_inputs():
         ["text", "text", "text", "text"],
         "json",
         cache_examples=False,
-        examples=[["a", "b", "c", "d"], ["a", "b", None, "de"]],
+        examples=[["a", "b", None, "d"], ["a", "b", None, "de"]],
     )
 
     try:
