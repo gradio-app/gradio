@@ -1,6 +1,6 @@
 ---
-"@gradio/imageeditor": minor
-"gradio": minor
+"@gradio/imageeditor": patch
+"gradio": patch
 ---
 
-feat:Ensure brush colour is updated when changed
+fix:Ensure ImageEditor brush colour is updated when changed
