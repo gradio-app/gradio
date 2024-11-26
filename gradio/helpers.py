@@ -311,7 +311,9 @@ class Examples:
                 sub.append(prediction_value)
         if len(sub) > len(self.input_has_examples):
             return [
-                ex for (ex, keep) in zip(sub, self.input_has_examples, strict=False) if keep
+                ex
+                for (ex, keep) in zip(sub, self.input_has_examples, strict=False)
+                if keep
             ]
         return sub
 
