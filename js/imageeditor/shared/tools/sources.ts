@@ -33,16 +33,53 @@ export function add_bg_image(
 	container: Container,
 	renderer: IRenderer,
 	background: Blob | File,
-	resize: (width: number, height: number) => void
+	resize: (width: number, height: number) => void,
+	max_height = 450
 ): BgImageCommand {
 	let sprite: Sprite & DisplayObject;
+
+	function calculate_dimensions(
+		width: number,
+		height: number,
+		max_height: number
+	): [number, number] {
+		const MAX_HEIGHT = max_height * 1.5;
+		const MAX_WIDTH = MAX_HEIGHT * 2;
+
+		let new_width = width;
+		let new_height = height;
+
+		if (height > MAX_HEIGHT) {
+			const ratio = MAX_HEIGHT / height;
+			new_width = width * ratio;
+			new_height = MAX_HEIGHT;
+		}
+
+		if (new_width > MAX_WIDTH) {
+			const ratio = MAX_WIDTH / new_width;
+			new_width = MAX_WIDTH;
+			new_height = new_height * ratio;
+		}
+
+		return [Math.round(new_width), Math.round(new_height)];
+	}
+
 	return {
 		async start() {
 			container.removeChildren();
 			const img = await createImageBitmap(background);
 			const bitmap_texture = Texture.from(img);
 			sprite = new Sprite(bitmap_texture) as Sprite & DisplayObject;
-			return [sprite.width, sprite.height];
+
+			const [new_width, new_height] = calculate_dimensions(
+				sprite.width,
+				sprite.height,
+				max_height
+			);
+			sprite.width = new_width;
+			sprite.height = new_height;
+
+			return [new_width, new_height];
 		},
 		async execute() {
 			// renderer.resize(sprite.width, sprite.height);

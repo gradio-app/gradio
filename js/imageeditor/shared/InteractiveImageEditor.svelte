@@ -242,6 +242,7 @@
 			bind:bg
 			bind:active_mode
 			background_file={value?.background || value?.composite || null}
+			max_height={height}
 		></Sources>
 
 		{#if transforms.includes("crop")}
