@@ -342,7 +342,10 @@ class Examples:
             else:
 
                 def load_example(example_tuple):
-                    _, example_value = example_tuple
+                    example_index, _ = example_tuple
+                    # Get the original value, even if it has None values
+                    # _get_processed_example will remove optional values
+                    example_value = self.examples[example_index]
                     processed_example = self._get_processed_example(example_value)
                     if len(self.inputs_with_examples) == 1:
                         return update(
