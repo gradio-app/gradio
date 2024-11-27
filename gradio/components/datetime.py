@@ -38,7 +38,7 @@ class DateTime(FormComponent):
         scale: int | None = None,
         min_width: int = 160,
         visible: bool = True,
-        interactive: bool = True,
+        interactive: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
