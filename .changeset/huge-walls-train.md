@@ -1,6 +1,6 @@
 ---
-"@gradio/label": patch
-"gradio": patch
+"@gradio/label": minor
+"gradio": minor
 ---
 
-fix:Add `show_heading` param to gr.Label
+feat:Add `show_heading` param to gr.Label
