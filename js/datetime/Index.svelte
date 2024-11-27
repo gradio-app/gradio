@@ -195,9 +195,6 @@
 	.time.invalid {
 		color: var(--body-text-color-subdued);
 	}
-	.timebox[aria-disabled] {
-		pointer-events: none;
-	}
 	.calendar {
 		display: inline-flex;
 		justify-content: center;
