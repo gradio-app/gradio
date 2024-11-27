@@ -1,6 +1,6 @@
 ---
-"@gradio/chatbot": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"gradio": patch
 ---
 
-feat:Ensure chatbot messages are aligned correctly
+fix:Ensure chatbot messages are aligned correctly
