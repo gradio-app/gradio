@@ -335,9 +335,9 @@
 		text-align: right;
 	}
 
-	/* .panel .user :global(*) {
+	.panel .user :global(*) {
 		text-align: right;
-	} */
+	}
 
 	/* Colors */
 	.bubble .bot {
@@ -406,7 +406,7 @@
 	}
 
 	.panel .user :global(*) {
-		text-align: inherit !important;
+		text-align: right;
 	}
 
 	/* message content */
