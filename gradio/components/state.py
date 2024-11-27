@@ -45,12 +45,13 @@ class State(Component):
         )
         self.delete_callback = delete_callback or (lambda a: None)  # noqa: ARG005
         try:
-            self.value = deepcopy(value)
+            value = deepcopy(value)
         except TypeError as err:
             raise TypeError(
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
-        super().__init__(value=self.value, render=render)
+        super().__init__(value=value, render=render)
+        self.value = value
 
     @property
     def stateful(self) -> bool:
