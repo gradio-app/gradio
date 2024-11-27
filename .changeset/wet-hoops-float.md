@@ -1,6 +1,6 @@
 ---
-"@gradio/chatbot": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"gradio": patch
 ---
 
-feat:Remove duplicated share icon in gr.Chatbot
+fix:Remove duplicated share icon in gr.Chatbot
