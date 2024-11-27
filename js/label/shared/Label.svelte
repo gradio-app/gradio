@@ -118,11 +118,38 @@
 
 	.bar {
 		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
 		align-self: flex-start;
 		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
 		background: var(--stat-background-fill);
 		height: var(--size-1);
+		border: none;
+	}
+
+	.bar::-moz-meter-bar {
+		border-radius: var(--radius-md);
+		background: var(--stat-background-fill);
+	}
+
+	.bar::-webkit-meter-bar {
+		border-radius: var(--radius-md);
+		background: var(--stat-background-fill);
+		border: none;
+	}
+
+	.bar::-webkit-meter-optimum-value,
+	.bar::-webkit-meter-suboptimum-value,
+	.bar::-webkit-meter-even-less-good-value {
+		border-radius: var(--radius-md);
+		background: var(--stat-background-fill);
+	}
+
+	.bar::-ms-fill {
+		border-radius: var(--radius-md);
+		background: var(--stat-background-fill);
+		border: none;
 	}
 
 	.label {
