@@ -352,7 +352,7 @@ class TestExampleMessages:
         chat._setup_example_messages(None)
         assert chat.examples_messages == []
 
-    def test_chat_interface_disable_api(self, connect):
+    def test_chat_interface_api_name(self, connect):
         chat = gr.ChatInterface(double, api_name=False)
         assert chat.api_name is False
         with connect(chat) as client:
