@@ -311,7 +311,9 @@ class Examples:
             return self.non_none_processed_examples[example]
         with utils.set_directory(self.working_directory):
             sub = []
-            for component, sample in zip(self.inputs_with_examples, example, strict=False):
+            for component, sample in zip(
+                self.inputs_with_examples, example, strict=False
+            ):
                 prediction_value = component.postprocess(sample)
                 if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                     prediction_value = prediction_value.model_dump()
