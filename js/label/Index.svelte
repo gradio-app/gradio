@@ -60,7 +60,12 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	{#if show_label}
-		<BlockLabel Icon={LabelIcon} {label} disable={container === false} />
+		<BlockLabel
+			Icon={LabelIcon}
+			{label}
+			disable={container === false}
+			float={show_heading === true}
+		/>
 	{/if}
 	{#if _label !== undefined && _label !== null}
 		<Label
