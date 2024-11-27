@@ -293,6 +293,11 @@
 					selected = [i + 1, j];
 				} else {
 					if (dequal(editing, [i, j])) {
+						const cell_id = data[i][j].id;
+						const input_el = els[cell_id].input;
+						if (input_el) {
+							data[i][j].value = input_el.value;
+						}
 						editing = false;
 						await tick();
 						selected = [i, j];
@@ -392,10 +397,10 @@
 		select_on_focus = _select;
 	}
 
-	function end_header_edit(event: KeyboardEvent): void {
+	function end_header_edit(event: CustomEvent<KeyboardEvent>): void {
 		if (!editable) return;
 
-		switch (event.key) {
+		switch (event.detail.key) {
 			case "Escape":
 			case "Enter":
 			case "Tab":
@@ -1227,7 +1232,7 @@
 		min-width: var(--size-5);
 		padding: 0;
 		margin-right: var(--spacing-sm);
-		z-index: var(--layer-2);
+		z-index: var(--layer-1);
 	}
 
 	.cell-menu-button:hover {
