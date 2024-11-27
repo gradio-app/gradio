@@ -124,7 +124,6 @@
 				class:message-fit={layout === "bubble" && !bubble_full_width}
 				class:panel-full-width={true}
 				class:message-markdown-disabled={!render_markdown}
-				style:text-align={rtl && role === "user" ? "left" : "right"}
 				class:component={message.type === "component"}
 				class:html={is_component_message(message) &&
 					message.content.component === "html"}
@@ -137,7 +136,7 @@
 					style:user-select="text"
 					class:selectable
 					style:cursor={selectable ? "pointer" : "default"}
-					style:text-align={role === "user" ? "right" : "left"}
+					style:text-align={rtl ? "right" : "left"}
 					on:click={() => handle_select(i, message)}
 					on:keydown={(e) => {
 						if (e.key === "Enter") {
@@ -321,7 +320,6 @@
 		align-self: flex-end;
 		border-bottom-right-radius: 0;
 		box-shadow: var(--shadow-drop);
-		text-align: right;
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}
@@ -337,9 +335,9 @@
 		text-align: right;
 	}
 
-	.panel .user :global(*) {
+	/* .panel .user :global(*) {
 		text-align: right;
-	}
+	} */
 
 	/* Colors */
 	.bubble .bot {
@@ -408,7 +406,7 @@
 	}
 
 	.panel .user :global(*) {
-		text-align: right;
+		text-align: inherit !important;
 	}
 
 	/* message content */
