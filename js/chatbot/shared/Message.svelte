@@ -137,7 +137,7 @@
 					style:user-select="text"
 					class:selectable
 					style:cursor={selectable ? "pointer" : "default"}
-					style:text-align={rtl ? "right" : "left"}
+					style:text-align={role === "user" ? "right" : "left"}
 					on:click={() => handle_select(i, message)}
 					on:keydown={(e) => {
 						if (e.key === "Enter") {
@@ -318,10 +318,9 @@
 	.user {
 		border-width: 1px;
 		border-radius: var(--radius-md);
-		align-self: flex-start;
+		align-self: flex-end;
 		border-bottom-right-radius: 0;
 		box-shadow: var(--shadow-drop);
-		align-self: flex-start;
 		text-align: right;
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
