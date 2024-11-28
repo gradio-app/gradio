@@ -274,14 +274,6 @@ class App(FastAPI):
             request.method, httpx.URL(url), headers=headers
         )
         node_response = await App.client.send(new_request, stream=True)
-        content = node_response.content
-        user_agent = request.headers.get("user-agent", "").lower()
-        is_safari = (
-            "safari" in user_agent
-            and "chrome" not in user_agent
-            and "chromium" not in user_agent
-        )
-
         return StreamingResponse(
             node_response.aiter_raw(),
             status_code=node_response.status_code,
