@@ -97,6 +97,7 @@ class ChatInterface(Blocks):
         show_progress: Literal["full", "minimal", "hidden"] = "minimal",
         fill_height: bool = True,
         fill_width: bool = False,
+        api_name: str | Literal[False] = "chat",
     ):
         """
         Parameters:
@@ -130,6 +131,7 @@ class ChatInterface(Blocks):
             show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
             fill_height: if True, the chat interface will expand to the height of window.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
+            api_name: the name of the API endpoint to use for the chat interface. Defaults to "chat". Set to False to disable the API endpoint.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -145,6 +147,7 @@ class ChatInterface(Blocks):
             fill_width=fill_width,
             delete_cache=delete_cache,
         )
+        self.api_name = api_name
         self.type = type
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
@@ -537,7 +540,7 @@ class ChatInterface(Blocks):
             api_fn,
             [self.textbox, self.chatbot_state] + self.additional_inputs,
             [self.fake_response_textbox, self.chatbot_state],
-            api_name="chat",
+            api_name=cast(Union[str, Literal[False]], self.api_name),
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),

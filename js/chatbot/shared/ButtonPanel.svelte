@@ -87,6 +87,9 @@
 		margin: 0px calc(var(--spacing-xl) * 2);
 	}
 
+	.message-buttons {
+		z-index: var(--layer-1);
+	}
 	.message-buttons-left {
 		align-self: flex-start;
 	}
