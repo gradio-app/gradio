@@ -39,7 +39,7 @@ from gradio.context import get_blocks_context
 from gradio.events import Dependency, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
-from gradio.layouts import Accordion, Group, Row
+from gradio.layouts import Accordion, Column, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 
@@ -74,6 +74,7 @@ class ChatInterface(Blocks):
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
+        additional_outputs: Component | list[Component] | None = None,
         examples: list[str] | list[MultimodalValue] | list[list] | None = None,
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
@@ -108,6 +109,7 @@ class ChatInterface(Blocks):
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If the components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion. The values of these components will be passed into `fn` as arguments in order after the chat history.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
+            additional_outputs: an instance or list of instances of gradio components to use as additional outputs from the chat function. These must be components that are already defined in the same Blocks scope. If provided, the chat function should return additional values for these components.
             examples: sample inputs for the function; if provided, appear within the chatbot and can be clicked to populate the chatbot input. Should be a list of strings representing text-only examples, or a list of dictionaries (with keys `text` and `files`) representing multimodal examples. If `additional_inputs` are provided, the examples must be a list of lists, where the first element of each inner list is the string or dictionary example message and the remaining elements are the example values for the additional inputs -- in this case, the examples will appear under the chatbot.
             example_labels: labels for the examples, to be displayed instead of the examples themselves. If provided, should be a list of strings with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
             example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
@@ -169,6 +171,7 @@ class ChatInterface(Blocks):
             get_component_instance(i)
             for i in utils.none_or_singleton_to_list(additional_inputs)
         ]
+        self.additional_outputs = utils.none_or_singleton_to_list(additional_outputs)
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
                 "label": "Additional Inputs",
@@ -203,108 +206,109 @@ class ChatInterface(Blocks):
                     break
 
         with self:
-            if title:
-                Markdown(
-                    f"<h1 style='text-align: center; margin-bottom: 1rem'>{self.title}</h1>"
-                )
-            if description:
-                Markdown(description)
-            if chatbot:
-                if self.type and self.type != chatbot.type:
-                    warnings.warn(
-                        "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
-                        "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
+            with Column():
+                if title:
+                    Markdown(
+                        f"<h1 style='text-align: center; margin-bottom: 1rem'>{self.title}</h1>"
                     )
-                    chatbot.type = self.type
-                    chatbot._setup_data_model()
-                self.chatbot = cast(
-                    Chatbot, get_component_instance(chatbot, render=True)
-                )
-                if self.chatbot.examples and self.examples_messages:
-                    warnings.warn(
-                        "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
+                if description:
+                    Markdown(description)
+                if chatbot:
+                    if self.type and self.type != chatbot.type:
+                        warnings.warn(
+                            "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
+                            "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
+                        )
+                        chatbot.type = self.type
+                        chatbot._setup_data_model()
+                    self.chatbot = cast(
+                        Chatbot, get_component_instance(chatbot, render=True)
                     )
-                self.chatbot.examples = (
-                    self.examples_messages
-                    if not self._additional_inputs_in_examples
-                    else None
-                )
-                self.chatbot._setup_examples()
-            else:
-                self.type = self.type or "tuples"
-                self.chatbot = Chatbot(
-                    label="Chatbot",
-                    scale=1,
-                    height=200 if fill_height else None,
-                    type=self.type,
-                    autoscroll=autoscroll,
-                    examples=self.examples_messages
-                    if not self._additional_inputs_in_examples
-                    else None,
-                )
+                    if self.chatbot.examples and self.examples_messages:
+                        warnings.warn(
+                            "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
+                        )
+                    self.chatbot.examples = (
+                        self.examples_messages
+                        if not self._additional_inputs_in_examples
+                        else None
+                    )
+                    self.chatbot._setup_examples()
+                else:
+                    self.type = self.type or "tuples"
+                    self.chatbot = Chatbot(
+                        label="Chatbot",
+                        scale=1,
+                        height=400 if fill_height else None,
+                        type=self.type,
+                        autoscroll=autoscroll,
+                        examples=self.examples_messages
+                        if not self._additional_inputs_in_examples
+                        else None,
+                    )
 
-            with Group():
-                with Row():
-                    if textbox:
-                        textbox.show_label = False
-                        textbox_ = get_component_instance(textbox, render=True)
-                        if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
-                            raise TypeError(
-                                f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
+                with Group():
+                    with Row():
+                        if textbox:
+                            textbox.show_label = False
+                            textbox_ = get_component_instance(textbox, render=True)
+                            if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
+                                raise TypeError(
+                                    f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
+                                )
+                            self.textbox = textbox_
+                        else:
+                            textbox_component = (
+                                MultimodalTextbox if self.multimodal else Textbox
                             )
-                        self.textbox = textbox_
-                    else:
-                        textbox_component = (
-                            MultimodalTextbox if self.multimodal else Textbox
-                        )
-                        self.textbox = textbox_component(
-                            show_label=False,
-                            label="Message",
-                            placeholder="Type a message...",
-                            scale=7,
-                            autofocus=autofocus,
-                            submit_btn=submit_btn,
-                            stop_btn=stop_btn,
-                        )
+                            self.textbox = textbox_component(
+                                show_label=False,
+                                label="Message",
+                                placeholder="Type a message...",
+                                scale=7,
+                                autofocus=autofocus,
+                                submit_btn=submit_btn,
+                                stop_btn=stop_btn,
+                            )
 
-                    # Hide the stop button at the beginning, and show it with the given value during the generator execution.
-                    self.original_stop_btn = self.textbox.stop_btn
-                    self.textbox.stop_btn = False
+                        # Hide the stop button at the beginning, and show it with the given value during the generator execution.
+                        self.original_stop_btn = self.textbox.stop_btn
+                        self.textbox.stop_btn = False
 
-                self.fake_api_btn = Button("Fake API", visible=False)
-                self.fake_response_textbox = Textbox(label="Response", visible=False)
+                    self.fake_api_btn = Button("Fake API", visible=False)
+                    self.fake_response_textbox = Textbox(label="Response", visible=False)
 
-            if self.examples:
-                self.examples_handler = Examples(
-                    examples=self.examples,
-                    inputs=[self.textbox] + self.additional_inputs,
-                    outputs=self.chatbot,
-                    fn=self._examples_stream_fn
-                    if self.is_generator
-                    else self._examples_fn,
-                    cache_examples=self.cache_examples,
-                    cache_mode=self.cache_mode,
-                    visible=self._additional_inputs_in_examples,
-                    preprocess=self._additional_inputs_in_examples,
+                if self.examples:
+                    self.examples_handler = Examples(
+                        examples=self.examples,
+                        inputs=[self.textbox] + self.additional_inputs,
+                        outputs=self.chatbot,
+                        fn=self._examples_stream_fn
+                        if self.is_generator
+                        else self._examples_fn,
+                        cache_examples=self.cache_examples,
+                        cache_mode=self.cache_mode,
+                        visible=self._additional_inputs_in_examples,
+                        preprocess=self._additional_inputs_in_examples,
+                    )
+
+                any_unrendered_inputs = any(
+                    not inp.is_rendered for inp in self.additional_inputs
                 )
+                if self.additional_inputs and any_unrendered_inputs:
+                    with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
+                        for input_component in self.additional_inputs:
+                            if not input_component.is_rendered:
+                                input_component.render()
 
-            any_unrendered_inputs = any(
-                not inp.is_rendered for inp in self.additional_inputs
-            )
-            if self.additional_inputs and any_unrendered_inputs:
-                with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
-                    for input_component in self.additional_inputs:
-                        if not input_component.is_rendered:
-                            input_component.render()
-
-            self.saved_input = State()
-            self.chatbot_state = (
-                State(self.chatbot.value) if self.chatbot.value else State([])
-            )
-            self.previous_input = State(value=[])
-            self.show_progress = show_progress
-            self._setup_events()
-            self._setup_api()
+                self.saved_input = State()
+                self.chatbot_state = (
+                    State(self.chatbot.value) if self.chatbot.value else State([])
+                )
+                self.previous_input = State(value=[])
+                self.show_progress = show_progress
+                self._setup_events()
+                self._setup_api()
 
     @staticmethod
     def _setup_example_messages(
