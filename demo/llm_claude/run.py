@@ -21,6 +21,7 @@ def predict(message, history):
 
 placeholder = """
 <center><h1>10 Questions</h1>Think of a person, place, or thing. I'll ask you 10 questions to try and guess it.
+<br><br>When you have something, click "Get Started". I'll ask my first question.<br><br>
 </center>
 """
 
