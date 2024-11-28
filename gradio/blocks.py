@@ -896,7 +896,9 @@ class BlocksConfig:
         config["layout"] = get_layout(root_block)
 
         config["components"] = []
-        blocks_items = list(self.blocks.items())
+        blocks_items = list(
+            self.blocks.items()
+        )  # freeze as list to prevent concurrent re-renders from changing the dict during loop
         for _id, block in blocks_items:
             if renderable:
                 if _id not in rendered_ids:
