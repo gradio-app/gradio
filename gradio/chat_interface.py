@@ -210,12 +210,13 @@ class ChatInterface(Blocks):
             if description:
                 Markdown(description)
             if chatbot:
-                if self.type and chatbot.type and self.type != chatbot.type:
+                if self.type and self.type != chatbot.type:
                     warnings.warn(
                         "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
                         "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
                     )
                     chatbot.type = self.type
+                    chatbot._setup_data_model()
                 self.chatbot = cast(
                     Chatbot, get_component_instance(chatbot, render=True)
                 )
@@ -228,6 +229,7 @@ class ChatInterface(Blocks):
                     if not self._additional_inputs_in_examples
                     else None
                 )
+                self.chatbot._setup_examples()
             else:
                 self.type = self.type or "tuples"
                 self.chatbot = Chatbot(

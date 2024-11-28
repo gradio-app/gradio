@@ -19,7 +19,7 @@ $ pip install --upgrade gradio
 When working with `gr.ChatInterface()`, the first thing you should do is define your **chat function**. In the simplest case, your chat function should accept two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
 
 - `message`: a `str` representing the user's most recent message.
-- `history`: a list of openai-style dictionaries with `role` and `content` keys, representing the previous conversation history. 
+- `history`: a list of openai-style dictionaries with `role` and `content` keys, representing the previous conversation history. May also include additional keys representing message metadata.
 
 For example, the `history` could look like this:
 
@@ -85,7 +85,7 @@ gr.ChatInterface(
 ).launch()
 ```
 
-We'll look at more realistic examples of chat functions in our next Guide, which shows [examples of using `gr.ChatInterface` with popular LLMs](/guides/chatbots/chat_interface_examples). 
+We'll look at more realistic examples of chat functions in our next Guide, which shows [examples of using `gr.ChatInterface` with popular LLMs](../guides/chatinterface-examples). 
 
 ## Streaming chatbots
 
@@ -329,24 +329,57 @@ gr.ChatInterface(
 
 You may want to provide preset responses that a user can choose between when conversing with your chatbot. You can add the `options` key to the dictionary returned from your chat function to set these responses. The value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
 
-This example illustrates how to use present responses:
+This example illustrates how to use preset responses:
 
-$code_chatinterface_options
+```python
+import gradio as gr
 
+example_code = '''
+Here's the code I generated:
+
+def greet(x):
+    return f"Hello, {x}!"
+
+Is this correct?
+'''
+
+def chat(message, history):
+    if message == "Yes, that's correct.":
+        return "Great!"
+    else:
+        return {
+            "role": "assistant",
+            "content": example_code,
+            "options": [
+                {"value": "Yes, that's correct.", "label": "Yes"},
+                {"value": "No"}
+                ]
+            }
+
+demo = gr.ChatInterface(
+    chat,
+    type="messages",
+    examples=["Write a Python function that takes a string and returns a greeting."]
+)
+
+if __name__ == "__main__":
+    demo.launch()
+
+```
 ## Using Your Chatbot via API
 
 Once you've built your Gradio chat interface and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message (and potentially additional inputs if you have set any using the `additional_inputs` parameter), and will return the response, internally keeping track of the messages sent so far.
 
 [](https://github.com/gradio-app/gradio/assets/1778297/7b10d6db-6476-4e2e-bebd-ecda802c3b8f)
 
-To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client). Or, you can deploy your Chat Interface to other platforms, such as [Discord](/guides/chatbots/creating-a-discord-bot-from-a-gradio-app).
+To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client). Or, you can deploy your Chat Interface to other platforms, such as [Discord](../guides/creating-a-discord-bot-from-a-gradio-app).
 
 ## What's Next?
 
 Now that you've learned about the `gr.ChatInterface` class and how it can be used to create chatbot UIs quickly, we recommend reading one of the following:
 
-* [Our next Guide](/guides/chatbots/chat_interface_examples) shows examples of how to use `gr.ChatInterface` with popular LLM libraries.
-* If you'd like to build very custom chat applications from scratch, you can build them using the low-level Blocks API, as [discussed in this Guide](/guides/chatbots/creating-a-custom-chatbot-with-blocks).
-* Once you've deployed your Gradio Chat Interface, its easy to use it other applications because of the built-in API. Here's a tutorial on [how to deploy a Gradio chat interface as a Discord bot](/guides/chatbots/creating-a-discord-bot-from-a-gradio-app).
+* [Our next Guide](../guides/chatinterface-examples) shows examples of how to use `gr.ChatInterface` with popular LLM libraries.
+* If you'd like to build very custom chat applications from scratch, you can build them using the low-level Blocks API, as [discussed in this Guide](../guides/creating-a-custom-chatbot-with-blocks).
+* Once you've deployed your Gradio Chat Interface, its easy to use it other applications because of the built-in API. Here's a tutorial on [how to deploy a Gradio chat interface as a Discord bot](../guides/creating-a-discord-bot-from-a-gradio-app).
 
 
