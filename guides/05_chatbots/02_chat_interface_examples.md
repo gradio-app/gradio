@@ -46,7 +46,7 @@ The SambaNova Cloud API provides access to full-precision open-source models, su
 
 $code_llm_sambanova
 
-**Note**: For quick prototyping, the  [sambanova-gradio library](https://github.com/gradio-app/sambanova-gradio) makes it even easier to build chatbots on top of OpenAI models.
+Tip: For quick prototyping, the  <a href='https://github.com/gradio-app/sambanova-gradio'>sambanova-gradio library</a> makes it even easier to build chatbots on top of OpenAI models.
 
 ## Hyperbolic
 
