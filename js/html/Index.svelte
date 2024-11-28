@@ -38,6 +38,7 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<div
+		class="html-container"
 		class:pending={loading_status?.status === "pending"}
 		style:min-height={min_height && loading_status?.status !== "pending"
 			? css_units(min_height)
@@ -54,6 +55,10 @@
 </Block>
 
 <style>
+	.html-container {
+		padding: var(--block-padding);
+	}
+
 	div {
 		transition: 150ms;
 	}
