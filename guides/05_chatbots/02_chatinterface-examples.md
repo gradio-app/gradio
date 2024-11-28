@@ -1,5 +1,7 @@
 # Using Popular LLM libraries and APIs
 
+Tags: LLM, CHATBOT, API
+
 In this Guide, we go through several examples of how to use `gr.ChatInterface` with popular LLM libraries and API providers.
 
 We will cover the following libraries and API providers:
@@ -37,7 +39,7 @@ Tip: For quick prototyping, the  <a href='https://github.com/gradio-app/openai-g
 
 ## Hugging Face `transformers`
 
-Of course, in many cases you want to run a chatbot locally. Here's the equivalent example using Together's RedPajama model, from Hugging Face (this requires you to have a GPU with CUDA).
+Of course, in many cases you want to run a chatbot locally. Here's the equivalent example using the SmolLM2-135M-Instruct model using the Hugging Face `transformers` library.
 
 $code_llm_hf_transformers
 
