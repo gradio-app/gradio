@@ -7,7 +7,7 @@
 	import { Code as CodeIcon } from "@gradio/icons";
 	import { css_units } from "@gradio/utils";
 
-	export let label: string;
+	export let label = "HTML";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -25,11 +25,9 @@
 	$: label, gradio.dispatch("change");
 </script>
 
-<Block {visible} {elem_id} {elem_classes} {container}>
+<Block {visible} {elem_id} {elem_classes} {container} padding={false}>
 	{#if show_label}
-		<span class="label-container">
-			<BlockLabel Icon={CodeIcon} {show_label} {label} float={true} />
-		</span>
+		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 	{/if}
 
 	<StatusTracker
@@ -62,16 +60,5 @@
 
 	.pending {
 		opacity: 0.2;
-	}
-
-	.label-container :global(label) {
-		top: -8px !important;
-		position: relative !important;
-		left: -8px !important;
-		background: var(--block-background-fill) !important;
-		border-top: var(--block-label-border-width) solid
-			var(--border-color-primary) !important;
-		border-left: var(--block-label-border-width) solid
-			var(--border-color-primary) !important;
 	}
 </style>
