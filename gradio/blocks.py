@@ -896,7 +896,8 @@ class BlocksConfig:
         config["layout"] = get_layout(root_block)
 
         config["components"] = []
-        for _id, block in self.blocks.items():
+        blocks_items = list(self.blocks.items())
+        for _id, block in blocks_items:
             if renderable:
                 if _id not in rendered_ids:
                     continue
@@ -2067,15 +2068,14 @@ Received inputs:
             "changed_state_ids": changed_state_ids,
         }
         if block_fn.renderable and state:
-            with state.modify_config_lock:
-                output["render_config"] = state.blocks_config.get_config(
-                    block_fn.renderable
+            output["render_config"] = state.blocks_config.get_config(
+                block_fn.renderable
+            )
+            output["render_config"]["render_id"] = block_fn.renderable._id
+            if root_path is not None:
+                output["render_config"] = processing_utils.add_root_url(
+                    output["render_config"], root_path, None
                 )
-                output["render_config"]["render_id"] = block_fn.renderable._id
-                if root_path is not None:
-                    output["render_config"] = processing_utils.add_root_url(
-                        output["render_config"], root_path, None
-                    )
 
         return output
 
