@@ -3,10 +3,10 @@ In this Guide, we go through several examples of how to use `gr.ChatInterface` w
 We will cover the following libraries and API providers:
 
 * [Llama Index](#llama-index)
-* [LangChain](#langchain)
-* [OpenAI](#openai)
+* [LangChain](#lang-chain)
+* [OpenAI](#open-ai)
 * [Hugging Face `transformers`](#hugging-face-transformers)
-* [SambaNova](#sambanova)
+* [SambaNova](#samba-nova)
 * [Hyperbolic](#hyperbolic)
 * [Anthropic's Claude](#claude)
 * [Groq](#groq)
