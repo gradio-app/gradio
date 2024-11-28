@@ -25,7 +25,7 @@ Here's an example using `langchain` on top of `openai` to build a general-purpos
 
 $code_llm_langchain
 
-**Note**: For quick prototyping, the community-maintained [langchain-gradio repo](https://github.com/AK391/langchain-gradio)  makes it even easier to build chatbots on top of LangChain.
+Tip: For quick prototyping, the community-maintained <a href='https://github.com/AK391/langchain-gradio'>langchain-gradio repo</a>  makes it even easier to build chatbots on top of LangChain.
 
 ## OpenAI
 
