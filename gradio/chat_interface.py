@@ -210,11 +210,12 @@ class ChatInterface(Blocks):
             if description:
                 Markdown(description)
             if chatbot:
-                if self.type and chatbot.type and self.type != chatbot.type:
-                    warnings.warn(
-                        "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
-                        "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
-                    )
+                if self.type and self.type != chatbot.type:
+                    if not chatbot.coerced_type:
+                        warnings.warn(
+                            "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
+                            "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
+                        )
                     chatbot.type = self.type
                 self.chatbot = cast(
                     Chatbot, get_component_instance(chatbot, render=True)
