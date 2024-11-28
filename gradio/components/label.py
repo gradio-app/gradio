@@ -59,6 +59,7 @@ class Label(Component):
         render: bool = True,
         key: int | str | None = None,
         color: str | None = None,
+        show_heading: bool = True,
     ):
         """
         Parameters:
@@ -77,9 +78,11 @@ class Label(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             color: The background color of the label (either a valid css color name or hexadecimal string).
+            show_heading: If False, the heading will not be displayed if a dictionary of labels and confidences is provided. The heading will still be visible if the value is a string or number.
         """
         self.num_top_classes = num_top_classes
         self.color = color
+        self.show_heading = show_heading
         super().__init__(
             label=label,
             every=every,
