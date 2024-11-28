@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.5.0
+
+### Features
+
+- [#10017](https://github.com/gradio-app/gradio/pull/10017) [`a95fda1`](https://github.com/gradio-app/gradio/commit/a95fda1f85e80ce8423f4373bb238422b9b7aa32) - fix small bug when join src & api_prefix.  Thanks @Chandler-Bing!
+
 ## 1.4.3
 
 ### Fixes
