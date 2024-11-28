@@ -1,5 +1,11 @@
 # @gradio/html
 
+## 0.5.1
+
+### Fixes
+
+- [#10069](https://github.com/gradio-app/gradio/pull/10069) [`afd75de`](https://github.com/gradio-app/gradio/commit/afd75def9e979d9b255a6d22d33a3aee63b6f225) - Fix label placement in gr.HTML.  Thanks @hannahblair!
+
 ## 0.5.0
 
 ### Features
