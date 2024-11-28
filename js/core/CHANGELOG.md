@@ -1,5 +1,31 @@
 # @gradio/core
 
+## 0.4.1
+
+### Fixes
+
+- [#9822](https://github.com/gradio-app/gradio/pull/9822) [`2e2cdbf`](https://github.com/gradio-app/gradio/commit/2e2cdbfb609ca992ccc31bb38589486aaaa14012) - Fix css preload when serving from proxied subpaths.  Thanks @amol-!
+
+### Dependency updates
+
+- @gradio/video@0.11.9
+- @gradio/atoms@0.11.2
+- @gradio/code@0.10.9
+- @gradio/paramviewer@0.5.8
+- @gradio/tabitem@0.3.5
+- @gradio/tabs@0.3.5
+- @gradio/utils@0.9.0
+- @gradio/button@0.3.8
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/gallery@0.13.9
+- @gradio/plot@0.9.3
+- @gradio/image@0.17.0
+- @gradio/file@0.11.2
+- @gradio/textbox@0.9.0
+- @gradio/column@0.2.0
+- @gradio/checkbox@0.4.8
+
 ## 0.4.0
 
 ### Features

@@ -1,5 +1,17 @@
 # @gradio/slider
 
+## 0.5.8
+
+### Fixes
+
+- [#9988](https://github.com/gradio-app/gradio/pull/9988) [`2afcad8`](https://github.com/gradio-app/gradio/commit/2afcad80abd489111e47cf586a2a8221cc3dc9b6) - Allow negative values in gr.Slider.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+
 ## 0.5.7
 
 ### Dependency updates

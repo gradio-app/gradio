@@ -932,3 +932,35 @@ def test_check_event_data_in_cache():
                 },
             ),
         )
+
+
+def test_examples_no_cache_optional_inputs():
+    def foo(a, b, c, d):
+        return {"a": a, "b": b, "c": c, "d": d}
+
+    io = gr.Interface(
+        foo,
+        ["text", "text", "text", "text"],
+        "json",
+        cache_examples=False,
+        examples=[["a", "b", None, "d"], ["a", "b", None, "de"]],
+    )
+
+    try:
+        app, _, _ = io.launch(prevent_thread_lock=True)
+
+        client = TestClient(app)
+        with client as c:
+            for i in range(2):
+                response = c.post(
+                    f"{API_PREFIX}/run/predict/",
+                    json={
+                        "data": [i],
+                        "fn_index": 6,
+                        "trigger_id": 19,
+                        "session_hash": "test",
+                    },
+                )
+                assert response.status_code == 200
+    finally:
+        io.close()

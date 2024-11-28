@@ -124,7 +124,6 @@
 				class:message-fit={layout === "bubble" && !bubble_full_width}
 				class:panel-full-width={true}
 				class:message-markdown-disabled={!render_markdown}
-				style:text-align={rtl && role === "user" ? "left" : "right"}
 				class:component={message.type === "component"}
 				class:html={is_component_message(message) &&
 					message.content.component === "html"}
@@ -318,11 +317,9 @@
 	.user {
 		border-width: 1px;
 		border-radius: var(--radius-md);
-		align-self: flex-start;
+		align-self: flex-end;
 		border-bottom-right-radius: 0;
 		box-shadow: var(--shadow-drop);
-		align-self: flex-start;
-		text-align: right;
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}

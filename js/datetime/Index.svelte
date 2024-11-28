@@ -14,6 +14,8 @@
 	export let label = "Time";
 	export let show_label = true;
 	export let info: string | undefined = undefined;
+	export let interactive: boolean;
+	$: disabled = !interactive;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -99,6 +101,7 @@
 				}
 			}}
 			on:blur={submit_values}
+			{disabled}
 		/>
 		{#if include_time}
 			<input
@@ -112,6 +115,7 @@
 					entered_value = format_date(date);
 					submit_values();
 				}}
+				{disabled}
 			/>
 		{:else}
 			<input
@@ -125,15 +129,19 @@
 					entered_value = format_date(date);
 					submit_values();
 				}}
+				{disabled}
 			/>
 		{/if}
 
-		<button
-			class="calendar"
-			on:click={() => {
-				datetime.showPicker();
-			}}><Calendar></Calendar></button
-		>
+		{#if interactive}
+			<button
+				class="calendar"
+				{disabled}
+				on:click={() => {
+					datetime.showPicker();
+				}}><Calendar></Calendar></button
+			>
+		{/if}
 	</div>
 </Block>
 
@@ -178,6 +186,11 @@
 		border-top-left-radius: var(--input-radius);
 		border-bottom-left-radius: var(--input-radius);
 		box-shadow: var(--input-shadow);
+	}
+	.time:disabled {
+		border-right: var(--input-border-width) solid var(--input-border-color);
+		border-top-right-radius: var(--input-radius);
+		border-bottom-right-radius: var(--input-radius);
 	}
 	.time.invalid {
 		color: var(--body-text-color-subdued);

@@ -1,5 +1,21 @@
 # @gradio/gallery
 
+## 0.13.9
+
+### Fixes
+
+- [#10016](https://github.com/gradio-app/gradio/pull/10016) [`7b8f1e4`](https://github.com/gradio-app/gradio/commit/7b8f1e447acae4506236db9819c7c4a54f8b8153) - Fix double gallery close button in preview.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/video@0.11.9
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/image@0.17.0
+- @gradio/file@0.11.2
+
 ## 0.13.8
 
 ### Dependency updates

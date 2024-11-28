@@ -1,6 +1,11 @@
 import pytest
+from pydantic import BaseModel
 
 import gradio as gr
+
+
+class TestModel(BaseModel):
+    name: str
 
 
 class TestState:
@@ -13,6 +18,10 @@ class TestState:
     def test_initial_value_deepcopy(self):
         with pytest.raises(TypeError):
             gr.State(value=gr)  # modules are not deepcopyable
+
+    def test_initial_value_pydantic(self):
+        state = gr.State(value=TestModel(name="Freddy"))
+        assert isinstance(state.value, TestModel)
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
