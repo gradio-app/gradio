@@ -8,6 +8,8 @@ We will cover the following libraries and API providers:
 * [Hugging Face `transformers`](#hugging-face-transformers)
 * [SambaNova](#sambanova)
 * [Hyperbolic](#hyperbolic)
+* [Anthropic's Claude](#claude)
+* [Groq](#groq)
 
 For many LLM libraries and providers, there exist community-maintained integration libraries that make it even easier to spin up Gradio apps. We reference these libraries in the appropriate sections below.
 
@@ -53,5 +55,19 @@ The Hyperbolic AI API provides access to many open-source models, such as the Ll
 $code_llm_hyperbolic
 
 **Note**: For quick prototyping, the  [hyperbolic-gradio library](https://github.com/HyperbolicLabs/hyperbolic-gradio) makes it even easier to build chatbots on top of OpenAI models.
+
+
+## Anthropic's Claude 
+
+Anthropic's Claude model can also be used via API. Here's a simple 20 questions-style game built on top of the Anthropic API:
+
+$code_llm_claude
+
+## Groq 
+
+Of course, we could use open-source models instead. Here's a simple 20 questions-style game built on top of the Groq API, which serves open-source models with blazing fast speeds:
+
+$code_llm_groq
+
 
 
