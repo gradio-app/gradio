@@ -66,20 +66,4 @@ Anthropic's Claude model can also be used via API. Here's a simple 20 questions-
 
 $code_llm_claude
 
-## Groq 
-
-Of course, we could use open-source models instead. Here's a simple 20 questions-style game built on top of the Groq API, which serves open-source models with blazing fast speeds:
-
-$code_llm_groq
-
-Tip: For quick prototyping, the  <a href='https://github.com/groq/groq-gradio'>groq-gradio library</a> makes it even easier to build chatbots on top of the Groq API.
-
-## Llama.cpp
-
-$code_llm_llama_cpp
-
-Finally, we'll show an example of how to build the same 20 questions-style game using an open-source, local model served through [Llama.cpp](https://github.com/ggerganov/llama.cpp).
-
-$code_llm_llama_cpp
-
 
