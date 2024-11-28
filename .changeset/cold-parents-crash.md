@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:fix: fix proxy to ssr
+feat:fix: stream node response to user
