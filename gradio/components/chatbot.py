@@ -249,10 +249,7 @@ class Chatbot(Component):
                 f"The `type` parameter must be 'messages' or 'tuples', received: {type}"
             )
         self.type: Literal["tuples", "messages"] = type
-        if self.type == "messages":
-            self.data_model = ChatbotDataMessages
-        else:
-            self.data_model = ChatbotDataTuples
+        self._setup_data_model()
         self.autoscroll = autoscroll
         self.height = height
         self.max_height = max_height
@@ -300,6 +297,15 @@ class Chatbot(Component):
         self.placeholder = placeholder
 
         self.examples = examples
+        self._setup_examples()
+
+    def _setup_data_model(self):
+        if self.type == "messages":
+            self.data_model = ChatbotDataMessages
+        else:
+            self.data_model = ChatbotDataTuples
+
+    def _setup_examples(self):
         if self.examples is not None:
             for i, example in enumerate(self.examples):
                 if "icon" in example and isinstance(example["icon"], str):
