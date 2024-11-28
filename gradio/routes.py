@@ -273,7 +273,7 @@ class App(FastAPI):
         new_request = App.client.build_request(
             request.method, httpx.URL(url), headers=headers
         )
-        node_response = await App.client.send(new_request)
+        node_response = await App.client.send(new_request, stream=True)
         content = node_response.content
         user_agent = request.headers.get("user-agent", "").lower()
         is_safari = (
@@ -281,24 +281,12 @@ class App(FastAPI):
             and "chrome" not in user_agent
             and "chromium" not in user_agent
         )
-        response_headers = {}
-        if is_safari:
-            response_headers = {
-                "Access-Control-Allow-Origin": "*",
-                "Cross-Origin-Opener-Policy": "same-origin",
-                "Cross-Origin-Embedder-Policy": "require-corp",
-            }
-            if request.url.path.endswith(".js"):
-                response_headers["Content-Type"] = (
-                    "application/javascript; charset=utf-8"
-                )
-            elif request.url.path.endswith(".css"):
-                response_headers["Content-Type"] = "text/css; charset=utf-8"
 
-        return Response(
-            content=content,
+        return StreamingResponse(
+            node_response.aiter_raw(),
             status_code=node_response.status_code,
-            headers=response_headers if is_safari else node_response.headers,
+            headers=node_response.headers,
+            background=BackgroundTask(node_response.aclose),
         )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
