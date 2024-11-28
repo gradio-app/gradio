@@ -54,7 +54,7 @@ The Hyperbolic AI API provides access to many open-source models, such as the Ll
 
 $code_llm_hyperbolic
 
-**Note**: For quick prototyping, the  [hyperbolic-gradio library](https://github.com/HyperbolicLabs/hyperbolic-gradio) makes it even easier to build chatbots on top of OpenAI models.
+Tip: For quick prototyping, the  <a href='https://github.com/HyperbolicLabs/hyperbolic-gradio'>hyperbolic-gradio library</a> makes it even easier to build chatbots on top of OpenAI models.
 
 
 ## Anthropic's Claude 
