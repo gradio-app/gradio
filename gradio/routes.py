@@ -274,6 +274,7 @@ class App(FastAPI):
             request.method, httpx.URL(url), headers=headers
         )
         node_response = await App.client.send(new_request, stream=True)
+
         return StreamingResponse(
             node_response.aiter_raw(),
             status_code=node_response.status_code,
