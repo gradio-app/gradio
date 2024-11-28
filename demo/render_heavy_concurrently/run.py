@@ -12,7 +12,7 @@ with gr.Blocks() as demo:
             gr.Button("DONE 1")
 
         @gr.render()
-        def render():
+        def render2():
             for _ in range(500):
                 gr.Textbox(str(random.randint(0, 100)))
             gr.Button("DONE 2")
