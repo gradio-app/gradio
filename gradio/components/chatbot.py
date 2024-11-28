@@ -328,7 +328,6 @@ class Chatbot(Component):
                                 file_data = FileDataDict(**file_data)
                                 file_info[i] = file_data
 
-
     @staticmethod
     def _check_format(messages: Any, type: Literal["messages", "tuples"]):
         if type == "messages":
