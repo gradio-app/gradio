@@ -7,14 +7,14 @@ with gr.Blocks() as demo:
 
         @gr.render()
         def render():
-            for i in range(500):
-                gr.Textbox(random.randint(0, 100))            
+            for _ in range(500):
+                gr.Textbox(str(random.randint(0, 100)))
             gr.Button("DONE 1")
 
         @gr.render()
         def render():
-            for i in range(500):
-                gr.Textbox(random.randint(0, 100))
+            for _ in range(500):
+                gr.Textbox(str(random.randint(0, 100)))
             gr.Button("DONE 2")
 
 if __name__ == "__main__":
