@@ -21,6 +21,8 @@ export const redirects = {
 	"/using_hugging_face_integrations": "/guides/using-hugging-face-integrations",
 	"/main/guides/object-detection-from-webcam":
 		"/main/guides/object-detection-from-webcam-with-webrtc",
-	"/guides/chatbots/chat_interface_examples": "/main/guides/chatinterface-examples",
-	"/guides/chatbots/creating-a-discord-bot-from-a-gradio-app": "/guides/creating-a-discord-bot-from-a-gradio-app"
+	"/guides/chatbots/chat_interface_examples":
+		"/main/guides/chatinterface-examples",
+	"/guides/chatbots/creating-a-discord-bot-from-a-gradio-app":
+		"/guides/creating-a-discord-bot-from-a-gradio-app"
 };
