@@ -1,3 +1,5 @@
+# Using Popular LLM libraries and APIs
+
 In this Guide, we go through several examples of how to use `gr.ChatInterface` with popular LLM libraries and API providers.
 
 We will cover the following libraries and API providers:
