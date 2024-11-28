@@ -11,8 +11,6 @@ We will cover the following libraries and API providers:
 * [SambaNova](#samba-nova)
 * [Hyperbolic](#hyperbolic)
 * [Anthropic's Claude](#anthropics-claude)
-* [Groq](#groq)
-* [Llama.cpp](#llamacpp)
 
 For many LLM libraries and providers, there exist community-maintained integration libraries that make it even easier to spin up Gradio apps. We reference these libraries in the appropriate sections below.
 
