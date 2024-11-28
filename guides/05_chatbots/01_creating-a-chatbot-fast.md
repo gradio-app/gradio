@@ -19,7 +19,7 @@ $ pip install --upgrade gradio
 When working with `gr.ChatInterface()`, the first thing you should do is define your **chat function**. In the simplest case, your chat function should accept two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
 
 - `message`: a `str` representing the user's most recent message.
-- `history`: a list of openai-style dictionaries with `role` and `content` keys, representing the previous conversation history. 
+- `history`: a list of openai-style dictionaries with `role` and `content` keys, representing the previous conversation history. May also include additional keys representing message metadata.
 
 For example, the `history` could look like this:
 

@@ -233,13 +233,11 @@ class Chatbot(Component):
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
             allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
         """
-        self.coerced_type = False
         if type is None:
             warnings.warn(
                 "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style dictionaries with 'role' and 'content' keys.",
                 UserWarning,
             )
-            self.coerced_type = True
             type = "tuples"
         elif type == "tuples":
             warnings.warn(
@@ -251,7 +249,7 @@ class Chatbot(Component):
                 f"The `type` parameter must be 'messages' or 'tuples', received: {type}"
             )
         self.type: Literal["tuples", "messages"] = type
-        self._set_data_model()
+        self._setup_data_model()
         self.autoscroll = autoscroll
         self.height = height
         self.max_height = max_height
@@ -299,6 +297,15 @@ class Chatbot(Component):
         self.placeholder = placeholder
 
         self.examples = examples
+        self._setup_examples()
+
+    def _setup_data_model(self):
+        if self.type == "messages":
+            self.data_model = ChatbotDataMessages
+        else:
+            self.data_model = ChatbotDataTuples
+
+    def _setup_examples(self):
         if self.examples is not None:
             for i, example in enumerate(self.examples):
                 if "icon" in example and isinstance(example["icon"], str):
@@ -321,11 +328,6 @@ class Chatbot(Component):
                                 file_data = FileDataDict(**file_data)
                                 file_info[i] = file_data
 
-    def _set_data_model(self):
-        if self.type == "messages":
-            self.data_model = ChatbotDataMessages
-        else:
-            self.data_model = ChatbotDataTuples
 
     @staticmethod
     def _check_format(messages: Any, type: Literal["messages", "tuples"]):
