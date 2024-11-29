@@ -278,9 +278,7 @@
 						dispatch("error", message);
 					}
 				}}
-			>
-				<Community />
-			</IconButton>
+			/>
 		{/if}
 		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
 		></IconButton>
