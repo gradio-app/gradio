@@ -96,7 +96,7 @@
 					</div>
 				{/if}
 				{#if description}
-					<div class="description"><p>{description}</p></div>
+					<div class="description"><p>{@html description}</p></div>
 				{/if}
 			</details>
 		{/each}
