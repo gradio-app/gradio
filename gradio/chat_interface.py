@@ -334,8 +334,7 @@ class ChatInterface(Blocks):
         submit_triggers = [self.textbox.submit, self.chatbot.retry]
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
         if hasattr(self.fn, "zerogpu"):
-            val = self.fn.zerogpu
-            submit_fn.zerogpu = val
+            setattr(submit_fn, "zerogpu", None)
 
         submit_event = (
             self.textbox.submit(
