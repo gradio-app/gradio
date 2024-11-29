@@ -276,7 +276,9 @@ class ChatInterface(Blocks):
                         self.textbox.stop_btn = False
 
                     self.fake_api_btn = Button("Fake API", visible=False)
-                    self.fake_response_textbox = Textbox(label="Response", visible=False)
+                    self.fake_response_textbox = Textbox(
+                        label="Response", visible=False
+                    )
 
                 if self.examples:
                     self.examples_handler = Examples(
@@ -694,7 +696,10 @@ class ChatInterface(Blocks):
         history_with_input: TupleFormat | list[MessageDict],
         request: Request,
         *args,
-    ) -> AsyncGenerator[TupleFormat | list[MessageDict] | tuple[TupleFormat | list[MessageDict], ...], None]:
+    ) -> AsyncGenerator[
+        TupleFormat | list[MessageDict] | tuple[TupleFormat | list[MessageDict], ...],
+        None,
+    ]:
         message_serialized, history = self._process_msg_and_trim_history(
             message, history_with_input
         )
@@ -715,14 +720,22 @@ class ChatInterface(Blocks):
             if isinstance(first_response, tuple):
                 first_response, *additional_outputs = first_response
             self._append_history(history_with_input, first_response)
-            yield history_with_input if not additional_outputs else (history_with_input, *additional_outputs)
+            yield (
+                history_with_input
+                if not additional_outputs
+                else (history_with_input, *additional_outputs)
+            )
         except StopIteration:
             yield history_with_input
         async for response in generator:
             if isinstance(response, tuple):
                 response, *additional_outputs = response
             self._append_history(history_with_input, response, first_response=False)
-            yield history_with_input if not additional_outputs else (history_with_input, *additional_outputs)
+            yield (
+                history_with_input
+                if not additional_outputs
+                else (history_with_input, *additional_outputs)
+            )
 
     def option_clicked(
         self, history: list[MessageDict], option: SelectData
