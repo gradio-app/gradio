@@ -715,6 +715,7 @@ class ChatInterface(Blocks):
             )
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
 
+        additional_outputs = None
         try:
             first_response = await utils.async_iteration(generator)
             if isinstance(first_response, tuple):
