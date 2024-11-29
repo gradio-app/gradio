@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:[test] zerogpu fix
+feat:Apply Zero GPU for `gr.ChatInterface`
