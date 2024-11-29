@@ -331,8 +331,10 @@ class ChatInterface(Blocks):
         return examples_messages
 
     def _setup_events(self) -> None:
-        submit_fn = self._stream_fn if self.is_generator else self._submit_fn
         submit_triggers = [self.textbox.submit, self.chatbot.retry]
+        submit_fn = self._stream_fn if self.is_generator else self._submit_fn
+        if hasattr(self.fn, "zerogpu"):
+            submit_fn.zerogpu = self.fn.zerogpu
 
         submit_event = (
             self.textbox.submit(
