@@ -394,7 +394,7 @@ class ChatInterface(Blocks):
                 ).then(
                     submit_fn,
                     [self.saved_input, self.chatbot],
-                    [self.chatbot],
+                    [self.chatbot] + self.additional_outputs,
                     show_api=False,
                     concurrency_limit=cast(
                         Union[int, Literal["default"], None], self.concurrency_limit
@@ -427,7 +427,7 @@ class ChatInterface(Blocks):
             .then(
                 submit_fn,
                 [self.saved_input, self.chatbot] + self.additional_inputs,
-                [self.chatbot],
+                [self.chatbot] + self.additional_outputs,
                 show_api=False,
                 concurrency_limit=cast(
                     Union[int, Literal["default"], None], self.concurrency_limit
@@ -461,7 +461,7 @@ class ChatInterface(Blocks):
         ).then(
             submit_fn,
             [self.saved_input, self.chatbot],
-            [self.chatbot],
+            [self.chatbot] + self.additional_outputs,
             show_api=False,
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
