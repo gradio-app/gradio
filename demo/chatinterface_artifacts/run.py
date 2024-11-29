@@ -31,7 +31,12 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             gr.Markdown("<center><h1>Write Python or JavaScript</h1></center>")
-            gr.ChatInterface(chat, examples=["Python", "JavaScript"], additional_outputs=[code], type="messages")
+            gr.ChatInterface(
+                chat,
+                examples=["Python", "JavaScript"],
+                additional_outputs=[code],
+                type="messages"
+            )
         with gr.Column():
             gr.Markdown("<center><h1>Code Artifacts</h1></center>")
             code.render()

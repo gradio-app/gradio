@@ -356,7 +356,7 @@ class ChatInterface(Blocks):
             .then(
                 submit_fn,
                 [self.saved_input, self.chatbot] + self.additional_inputs,
-                [self.chatbot],
+                [self.chatbot] + self.additional_outputs,
                 show_api=False,
                 concurrency_limit=cast(
                     Union[int, Literal["default"], None], self.concurrency_limit
@@ -660,13 +660,19 @@ class ChatInterface(Blocks):
 
     async def _submit_fn(
         self,
-        message: str | MultimodalPostprocess,
+        message: str | MultimodalPostprocess | tuple,
         history_with_input: TupleFormat | list[MessageDict],
         request: Request,
         *args,
-    ) -> tuple[TupleFormat, TupleFormat] | tuple[list[MessageDict], list[MessageDict]]:
+    ) -> TupleFormat | list[MessageDict] | tuple[TupleFormat | list[MessageDict], ...]:
+        additional_outputs = ()
+        if isinstance(message, tuple):
+            message_value, *additional_outputs = message
+        else:
+            message_value = message
+
         message_serialized, history = self._process_msg_and_trim_history(
-            message, history_with_input
+            message_value, history_with_input
         )
         inputs, _, _ = special_args(
             self.fn, inputs=[message_serialized, history, *args], request=request
@@ -680,17 +686,23 @@ class ChatInterface(Blocks):
             )
         self._append_history(history_with_input, response)
 
-        return history_with_input  # type: ignore
+        return history_with_input if not additional_outputs else (history_with_input, *additional_outputs)
 
     async def _stream_fn(
         self,
-        message: str | MultimodalPostprocess,
+        message: str | MultimodalPostprocess | tuple,
         history_with_input: TupleFormat | list[MessageDict],
         request: Request,
         *args,
     ) -> AsyncGenerator:
+        additional_outputs = ()
+        if isinstance(message, tuple):
+            message_value, *additional_outputs = message
+        else:
+            message_value = message
+
         message_serialized, history = self._process_msg_and_trim_history(
-            message, history_with_input
+            message_value, history_with_input
         )
         inputs, _, _ = special_args(
             self.fn, inputs=[message_serialized, history, *args], request=request
@@ -706,12 +718,12 @@ class ChatInterface(Blocks):
         try:
             first_response = await utils.async_iteration(generator)
             self._append_history(history_with_input, first_response)
-            yield history_with_input
+            yield history_with_input if not additional_outputs else (history_with_input, *additional_outputs)
         except StopIteration:
-            yield history_with_input
+            yield history_with_input if not additional_outputs else (history_with_input, *additional_outputs)
         async for response in generator:
             self._append_history(history_with_input, response, first_response=False)
-            yield history_with_input
+            yield history_with_input if not additional_outputs else (history_with_input, *additional_outputs)
 
     def option_clicked(
         self, history: list[MessageDict], option: SelectData
