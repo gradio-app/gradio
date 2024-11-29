@@ -64,8 +64,6 @@
 
 	$: value, update_components();
 
-	console.log("value", value);
-
 	export let latex_delimiters: {
 		left: string;
 		right: string;
