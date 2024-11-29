@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Additional outputs in `gr.ChatInterface`
+feat:Support `additional_outputs` in `gr.ChatInterface`
