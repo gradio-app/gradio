@@ -531,6 +531,9 @@
 	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.bubble-wrap {
@@ -538,6 +541,8 @@
 		overflow-y: auto;
 		height: 100%;
 		padding-top: var(--spacing-xxl);
+		display: flex;
+		flex-direction: column;
 	}
 
 	@media (prefers-color-scheme: dark) {

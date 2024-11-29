@@ -169,13 +169,12 @@
 
 <style>
 	.wrapper {
-		display: flex;
+		display: grid;
+		grid-template-rows: auto 1fr;
 		position: relative;
-		flex-direction: column;
-		align-items: start;
 		width: 100%;
 		height: 100%;
-		flex-grow: 1;
+		min-height: 400px;
 	}
 
 	:global(.progress-text) {
