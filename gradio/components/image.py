@@ -102,8 +102,7 @@ class Image(StreamingInput, Component):
         show_share_button: bool | None = None,
         placeholder: str | None = None,
         show_fullscreen_button: bool = True,
-        webcam_height: int = 1440,
-        webcam_width: int = 1920,
+        webcam_constraints: Optional[dict] = None,
     ):
         """
         Parameters:
@@ -172,8 +171,12 @@ class Image(StreamingInput, Component):
         )
         self.show_fullscreen_button = show_fullscreen_button
         self.placeholder = placeholder
-        self.webcam_height = webcam_height
-        self.webcam_width = webcam_width
+        if webcam_constraints:
+            self.webcam_constraints = webcam_constraints
+        else:
+            self.webcam_constraints = {
+                "video": {"width": 1920, "height": 1440}
+            }
 
         super().__init__(
             label=label,
