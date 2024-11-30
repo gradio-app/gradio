@@ -12,7 +12,6 @@ from typing import (
     Any,
     Literal,
     Optional,
-    TypedDict,
     Union,
     cast,
 )
@@ -20,7 +19,7 @@ from typing import (
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from pydantic import Field
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 from gradio import utils
 from gradio.component_meta import ComponentMeta
@@ -37,6 +36,11 @@ class MetadataDict(TypedDict):
     title: Union[str, None]
 
 
+class Option(TypedDict):
+    label: NotRequired[str]
+    value: str
+
+
 class FileDataDict(TypedDict):
     path: str  # server filepath
     url: NotRequired[Optional[str]]  # normalised server url
@@ -51,6 +55,7 @@ class MessageDict(TypedDict):
     content: str | FileDataDict | tuple | Component
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
+    options: NotRequired[list[Option]]
 
 
 class FileMessage(GradioModel):
@@ -82,6 +87,7 @@ class Message(GradioModel):
     role: str
     metadata: Metadata = Field(default_factory=Metadata)
     content: Union[str, FileMessage, ComponentMessage]
+    options: Optional[list[Option]] = None
 
 
 class ExampleMessage(TypedDict):
@@ -102,13 +108,17 @@ class ChatMessage:
     role: Literal["user", "assistant", "system"]
     content: str | FileData | Component | FileDataDict | tuple | list
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
+    options: Optional[list[Option]] = None
 
 
 class ChatbotDataMessages(GradioRootModel):
     root: list[Message]
 
 
-TupleFormat = list[list[Union[str, tuple[str], tuple[str, str], None]]]
+TupleFormat = Sequence[
+    tuple[Union[str, tuple[str], None], Union[str, tuple[str], None]]
+    | list[Union[str, tuple[str], None]]
+]
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -147,7 +157,9 @@ class Chatbot(Component):
         Events.retry,
         Events.undo,
         Events.example_select,
+        Events.option_select,
         Events.clear,
+        Events.copy,
     ]
 
     def __init__(
@@ -223,7 +235,7 @@ class Chatbot(Component):
         """
         if type is None:
             warnings.warn(
-                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
+                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style dictionaries with 'role' and 'content' keys.",
                 UserWarning,
             )
             type = "tuples"
@@ -237,10 +249,7 @@ class Chatbot(Component):
                 f"The `type` parameter must be 'messages' or 'tuples', received: {type}"
             )
         self.type: Literal["tuples", "messages"] = type
-        if self.type == "messages":
-            self.data_model = ChatbotDataMessages
-        else:
-            self.data_model = ChatbotDataTuples
+        self._setup_data_model()
         self.autoscroll = autoscroll
         self.height = height
         self.max_height = max_height
@@ -288,6 +297,15 @@ class Chatbot(Component):
         self.placeholder = placeholder
 
         self.examples = examples
+        self._setup_examples()
+
+    def _setup_data_model(self):
+        if self.type == "messages":
+            self.data_model = ChatbotDataMessages
+        else:
+            self.data_model = ChatbotDataTuples
+
+    def _setup_examples(self):
         if self.examples is not None:
             for i, example in enumerate(self.examples):
                 if "icon" in example and isinstance(example["icon"], str):
@@ -311,7 +329,7 @@ class Chatbot(Component):
                                 file_info[i] = file_data
 
     @staticmethod
-    def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
+    def _check_format(messages: Any, type: Literal["messages", "tuples"]):
         if type == "messages":
             all_valid = all(
                 isinstance(message, dict)
@@ -498,6 +516,7 @@ class Chatbot(Component):
                 role=message.role,
                 content=message.content,  # type: ignore
                 metadata=message.metadata,  # type: ignore
+                options=message.options,
             )
         elif isinstance(message, Message):
             return message

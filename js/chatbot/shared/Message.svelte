@@ -82,6 +82,7 @@
 		position: "left" | "right";
 		layout: "bubble" | "panel";
 		avatar: FileData | null;
+		dispatch: any;
 	};
 
 	let button_panel_props: ButtonPanelProps;
@@ -95,7 +96,8 @@
 		message: msg_format === "tuples" ? messages[0] : messages,
 		position: role === "user" ? "right" : "left",
 		avatar: avatar_img,
-		layout
+		layout,
+		dispatch
 	};
 </script>
 
@@ -122,7 +124,6 @@
 				class:message-fit={layout === "bubble" && !bubble_full_width}
 				class:panel-full-width={true}
 				class:message-markdown-disabled={!render_markdown}
-				style:text-align={rtl && role === "user" ? "left" : "right"}
 				class:component={message.type === "component"}
 				class:html={is_component_message(message) &&
 					message.content.component === "html"}
@@ -209,7 +210,10 @@
 			</div>
 
 			{#if layout === "panel"}
-				<ButtonPanel {...button_panel_props} />
+				<ButtonPanel
+					{...button_panel_props}
+					on:copy={(e) => dispatch("copy", e.detail)}
+				/>
 			{/if}
 		{/each}
 	</div>
@@ -313,11 +317,9 @@
 	.user {
 		border-width: 1px;
 		border-radius: var(--radius-md);
-		align-self: flex-start;
+		align-self: flex-end;
 		border-bottom-right-radius: 0;
 		box-shadow: var(--shadow-drop);
-		align-self: flex-start;
-		text-align: right;
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}

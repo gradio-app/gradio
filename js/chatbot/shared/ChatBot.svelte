@@ -7,8 +7,9 @@
 		load_components,
 		get_components_from_messages
 	} from "./utils";
-	import type { NormalisedMessage } from "../types";
+	import type { NormalisedMessage, Option } from "../types";
 	import { copy } from "@gradio/utils";
+	import type { CopyData } from "@gradio/utils";
 	import Message from "./Message.svelte";
 	import { DownloadLink } from "@gradio/wasm/svelte";
 
@@ -114,6 +115,8 @@
 		share: any;
 		error: string;
 		example_select: SelectData;
+		option_select: SelectData;
+		copy: CopyData;
 	}>();
 
 	function is_at_bottom(): boolean {
@@ -194,7 +197,6 @@
 			dispatch("change");
 		}
 	}
-
 	$: groupedMessages = value && group_messages(value, msg_format);
 
 	function handle_example_select(i: number, example: ExampleMessage): void {
@@ -246,6 +248,14 @@
 			});
 		}
 	}
+
+	function get_last_bot_options(): Option[] | undefined {
+		if (!value || !groupedMessages || groupedMessages.length === 0)
+			return undefined;
+		const last_group = groupedMessages[groupedMessages.length - 1];
+		if (last_group[0].role !== "assistant") return undefined;
+		return last_group[last_group.length - 1].options;
+	}
 </script>
 
 {#if value !== null && value.length > 0}
@@ -266,9 +276,7 @@
 						dispatch("error", message);
 					}
 				}}
-			>
-				<Community />
-			</IconButton>
+			/>
 		{/if}
 		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
 		></IconButton>
@@ -343,10 +351,29 @@
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					scroll={is_browser ? scroll : () => {}}
 					{allow_file_downloads}
+					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
 			{/each}
 			{#if pending_message}
 				<Pending {layout} />
+			{:else}
+				{@const options = get_last_bot_options()}
+				{#if options}
+					<div class="options">
+						{#each options as option, index}
+							<button
+								class="option"
+								on:click={() =>
+									dispatch("option_select", {
+										index: index,
+										value: option.value
+									})}
+							>
+								{option.label || option.value}
+							</button>
+						{/each}
+					</div>
+				{/if}
 			{/if}
 		</div>
 	{:else}
@@ -447,7 +474,7 @@
 		align-items: center;
 		padding: var(--spacing-xl);
 		border: 0.05px solid var(--border-color-primary);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-md);
 		background-color: var(--background-fill-secondary);
 		cursor: pointer;
 		transition: var(--button-transition);
@@ -628,5 +655,35 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+	}
+
+	.options {
+		margin-left: auto;
+		padding: var(--spacing-xxl);
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--spacing-xxl);
+		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
+		justify-content: end;
+	}
+
+	.option {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: var(--spacing-xl);
+		border: 1px dashed var(--border-color-primary);
+		border-radius: var(--radius-md);
+		background-color: var(--background-fill-secondary);
+		cursor: pointer;
+		transition: var(--button-transition);
+		max-width: var(--size-56);
+		width: 100%;
+		justify-content: center;
+	}
+
+	.option:hover {
+		background-color: var(--color-accent-soft);
+		border-color: var(--border-color-accent);
 	}
 </style>
