@@ -253,7 +253,10 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 	}
 
 	function cleanupRequirements(requirements: string[]): string[] {
-		return requirements.filter((r) => r.trim() !== "");
+		return requirements
+			.map((r) => r.split("#")[0]) // Remove comments
+			.map((r) => r.trim())
+			.filter((r) => r !== "");
 	}
 
 	onMount(async () => {
