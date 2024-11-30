@@ -20,8 +20,8 @@
 	let current_code = false;
 	let compare = false;
 
-	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	const workerUrl = "http://localhost:5174/api/generate";
+	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	// const workerUrl = "http://localhost:5174/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
