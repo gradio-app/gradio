@@ -1577,6 +1577,11 @@ def mount_gradio_app(
             "Please add the favicon directly to your FastAPI app."
         )
 
+    app_kwargs = app_kwargs or {}
+
+    if "show_api" in app_kwargs:
+        blocks.show_api = app_kwargs.pop("show_api")
+
     blocks.dev_mode = False
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
