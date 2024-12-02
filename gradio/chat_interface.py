@@ -210,13 +210,19 @@ class ChatInterface(Blocks):
             if description:
                 Markdown(description)
             if chatbot:
-                if self.type and self.type != chatbot.type:
+                if self.type:
+                    if self.type != chatbot.type:
+                        warnings.warn(
+                            "The type of the gr.Chatbot does not match the type of the gr.ChatInterface."
+                            f"The type of the gr.ChatInterface, '{self.type}', will be used."
+                        )
+                        chatbot.type = self.type
+                        chatbot._setup_data_model()
+                else:
                     warnings.warn(
-                        "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
-                        "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
+                        f"The gr.ChatInterface was not provided with a type, so the type of the gr.Chatbot, '{chatbot.type}', will be used."
                     )
-                    chatbot.type = self.type
-                    chatbot._setup_data_model()
+                    self.type = chatbot.type
                 self.chatbot = cast(
                     Chatbot, get_component_instance(chatbot, render=True)
                 )
@@ -331,8 +337,10 @@ class ChatInterface(Blocks):
         return examples_messages
 
     def _setup_events(self) -> None:
-        submit_fn = self._stream_fn if self.is_generator else self._submit_fn
         submit_triggers = [self.textbox.submit, self.chatbot.retry]
+        submit_fn = self._stream_fn if self.is_generator else self._submit_fn
+        if hasattr(self.fn, "zerogpu"):
+            submit_fn.__func__.zerogpu = self.fn.zerogpu  # type: ignore
 
         submit_event = (
             self.textbox.submit(
