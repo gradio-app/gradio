@@ -374,7 +374,9 @@ def test_is_in_or_equal():
     assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
     assert not is_in_or_equal("/safe_dir/subdir/../../unsafe_file.txt", "/safe_dir/")
     assert is_in_or_equal("//foo/..a", "//foo")
-    if not sys.platform.startswith("win"): # Linux filepath notation with two backslashes doesn't return real Windows filepath notation
+    if not sys.platform.startswith(
+        "win"
+    ):  # Linux filepath notation with two backslashes doesn't return real Windows filepath notation
         assert is_in_or_equal("//foo/asd/", "/foo")
         assert is_in_or_equal("//foo/..²", "/foo")
 
