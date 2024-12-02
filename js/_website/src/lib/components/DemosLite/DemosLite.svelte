@@ -2,9 +2,9 @@
 	import { BaseCode as Code, BaseWidget as CodeWidget } from "@gradio/code";
 	import { BaseTabs as Tabs, type Tab } from "@gradio/tabs";
 	import { BaseTabItem as TabItem } from "@gradio/tabitem";
-	import Slider from "./Slider.svelte";
-	import Fullscreen from "./icons/Fullscreen.svelte";
-	import Close from "./icons/Close.svelte";
+	import Slider from "../Slider.svelte";
+	import Fullscreen from "../icons/Fullscreen.svelte";
+	import Close from "../icons/Close.svelte";
 	import { page } from "$app/stores";
 	import share from "$lib/assets/img/anchor_gray.svg";
 	import spaces_logo from "$lib/assets/img/spaces-logo.svg";
@@ -13,6 +13,7 @@
 	import { onMount } from "svelte";
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 	import WHEEL from "$lib/json/wheel.json";
+	import { excludeUnavailablePackages } from "./requirements-utils";
 
 	let generated = true;
 
@@ -168,9 +169,9 @@ You only return the content of \`requirements.txt\`, without any other texts or 
 				}
 			}
 		}
-		demos[queried_index].requirements = generated_requirements_txt
-			.split("\n")
-			.filter((r) => r.trim() !== "");
+		demos[queried_index].requirements = await excludeUnavailablePackages(
+			generated_requirements_txt.split("\n").filter((r) => r.trim() !== "")
+		);
 
 		generated = true;
 		if (selected_demo.name === demo_name) {
