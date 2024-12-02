@@ -3,4 +3,4 @@
 "gradio_client": patch
 ---
 
-feat:Update `requirements.txt` for `gradio` and `gradio_client`
+fix:Update `requirements.txt` for `gradio` and `gradio_client`
