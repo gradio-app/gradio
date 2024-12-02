@@ -414,7 +414,7 @@ class Chatbot(Component):
         self,
         payload: ChatbotDataTuples | ChatbotDataMessages | None,
     ) -> (
-        list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict] | None
+        list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict]
     ):
         """
         Parameters:
@@ -423,7 +423,7 @@ class Chatbot(Component):
             If type is 'tuples', passes the messages in the chatbot as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. Each message can be (1) a string in valid Markdown, (2) a tuple if there are displayed files: (a filepath or URL to a file, [optional string alt text]), or (3) None, if there is no message displayed. If type is 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content` key's value supports everything the `tuples` format supports.
         """
         if payload is None:
-            return payload
+            return []
         if self.type == "tuples":
             if not isinstance(payload, ChatbotDataTuples):
                 raise Error("Data incompatible with the tuples format")
