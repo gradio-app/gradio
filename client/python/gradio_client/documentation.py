@@ -177,6 +177,12 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
             "annotation": param.annotation,
             "doc": parameters.get(param_name),
         }
+        if "$demo/" in parameter_doc["doc"]:
+            parameter_doc["doc"] = re.sub(
+                r"\$demo/(\w+)",
+                lambda m: f'<a href="https://github.com/gradio-app/gradio/blob/main/demo/{m.group(1)}/run.py">demo/{m.group(1)}</a>',
+                parameter_doc["doc"],
+            )
         if param_name in parameters:
             del parameters[param_name]
         if param.default != inspect.Parameter.empty:
@@ -191,12 +197,8 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
                 parameter_doc["kwargs"] = True
             if "args" in parameter_doc["doc"]:
                 parameter_doc["args"] = True
-            if parameter_doc["doc"] and "$demo/" in parameter_doc["doc"]:
-                parameter_doc["doc"] = re.sub(
-                    r"\$demo/(\S+)",
-                    lambda m: f'<a href="https://github.com/gradio-app/gradio/blob/main/demo/{m.group(1)}/run.py">demo/{m.group(1)}</a>',
-                    parameter_doc["doc"],
-                )
+            print(parameter_doc["name"], "$demo" in parameter_doc["doc"])
+            # if parameter_doc["doc"]:
         parameter_docs.append(parameter_doc)
     if parameters:
         raise ValueError(
