@@ -69,17 +69,17 @@
 
 	function render_links(description: string): string {
 		const escaped = description
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#039;');
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;");
 
 		const markdown_links = escaped.replace(
-		/\[([^\]]+)\]\(([^)]+)\)/g,
-		'<a href="$2" target="_blank">$1</a>'
+			/\[([^\]]+)\]\(([^)]+)\)/g,
+			'<a href="$2" target="_blank">$1</a>'
 		);
-		return markdown_links
+		return markdown_links;
 	}
 </script>
 
@@ -111,7 +111,9 @@
 					</div>
 				{/if}
 				{#if description}
-					<div class="description"><p>{@html render_links(description)}</p></div>
+					<div class="description">
+						<p>{@html render_links(description)}</p>
+					</div>
 				{/if}
 			</details>
 		{/each}
