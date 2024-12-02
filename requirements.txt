@@ -18,10 +18,10 @@ python-multipart==0.0.12 # required for fastapi forms. pinning to avoid yanking 
 pydub
 pyyaml>=5.0,<7.0
 ruff>=0.2.2; sys.platform != 'emscripten'
-safehttpx>=0.1.1,<1.0
+safehttpx>=0.1.6,<0.2.0
 semantic_version~=2.0
 starlette>=0.40.0,<1.0; sys.platform != 'emscripten'
-tomlkit==0.12.0
+tomlkit>=0.12.0,<0.14.0
 typer>=0.12,<1.0; sys.platform != 'emscripten'
 typing_extensions~=4.0
 urllib3~=2.0; sys.platform == 'emscripten'  # urllib3 is used for Lite support. Version spec can be omitted because urllib3==2.1.0 is prebuilt for Pyodide and urllib>=2.2.0 supports Pyodide as well.
