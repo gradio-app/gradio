@@ -158,7 +158,6 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
                     )
                 parameter = line[:colon_index]
                 parameter_doc = line[colon_index + 2 :]
-
                 parameters[parameter] = parameter_doc
             elif mode == "return":
                 returns.append(line)
