@@ -114,7 +114,7 @@ def generate_playground_link(demo_name):
                 encoded_reqs = base64.b64encode(requirements.encode('utf-8')).decode('utf-8')
                 encoded_reqs_url = urllib.parse.quote(encoded_reqs, safe='')
                 playground_url += "&reqs=" + encoded_reqs_url
-    return f"<a href='{playground_url}' target='_blank'>demo/{demo_name}</a>"
+    return f"[demo/{demo_name}]({playground_url})"
 
 
 def escape_parameters(parameters):
