@@ -1,6 +1,6 @@
 ---
 "gradio": minor
-"gradio_client": minor
+"website": minor
 ---
 
 feat:Support `additional_outputs` in `gr.ChatInterface`
