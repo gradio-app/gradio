@@ -18,7 +18,7 @@ python-multipart==0.0.12 # required for fastapi forms. pinning to avoid yanking 
 pydub
 pyyaml>=5.0,<7.0
 ruff>=0.2.2; sys.platform != 'emscripten'
-safehttpx>=0.1.1,<1.0
+safehttpx>=0.1.5,<0.2.0
 semantic_version~=2.0
 starlette>=0.40.0,<1.0; sys.platform != 'emscripten'
 tomlkit==0.12.0
