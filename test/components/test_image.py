@@ -63,7 +63,7 @@ class TestImage:
         assert image_input.preprocess(img) is not None
         image_input.preprocess(img)
         file_image = gr.Image(type="filepath", image_mode=None)
-        assert Path(img.path).name == Path(str(file_image.preprocess(img))).name
+        assert Path(img.path).name == Path(str(file_image.preprocess(img))).name  # type: ignore
         with pytest.raises(ValueError):
             gr.Image(type="unknown")  # type: ignore
 
