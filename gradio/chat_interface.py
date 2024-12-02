@@ -674,6 +674,7 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> TupleFormat | list[MessageDict] | tuple[TupleFormat | list[MessageDict], ...]:
+        print("message", message, "history_with_input", history_with_input)
         message_serialized, history = self._process_msg_and_trim_history(
             message, history_with_input
         )
