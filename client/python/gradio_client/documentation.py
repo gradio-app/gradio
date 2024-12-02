@@ -197,8 +197,6 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
                 parameter_doc["kwargs"] = True
             if "args" in parameter_doc["doc"]:
                 parameter_doc["args"] = True
-            print(parameter_doc["name"], "$demo" in parameter_doc["doc"])
-            # if parameter_doc["doc"]:
         parameter_docs.append(parameter_doc)
     if parameters:
         raise ValueError(
