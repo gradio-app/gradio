@@ -54,7 +54,9 @@ def url_ok(url: str) -> bool:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore")
                 r = httpx.head(url, timeout=3, verify=False)
-            if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
+            if (
+                r.status_code in (200, 401, 302, 303, 307)
+            ):  # 401 or 302 if auth is set; 303 or 307 are alternatives to 302 for temporary redirects
                 return True
             time.sleep(0.500)
     except (ConnectionError, httpx.ConnectError, httpx.TimeoutException):
