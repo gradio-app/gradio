@@ -379,7 +379,7 @@ def test_is_in_or_equal():
     sys.platform.startswith("win"),
     reason="Windows doesn't support POSIX double-slash notation",
 )
-def test_posix_specific_paths():
+def test_is_in_or_equal_posix_specific_paths():
     assert is_in_or_equal("//foo/..a", "//foo")
     assert is_in_or_equal("//foo/asd/", "/foo")
     assert is_in_or_equal("//foo/..²", "/foo")
