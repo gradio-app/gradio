@@ -1,6 +1,6 @@
 <script lang="ts">
 	// @ts-nocheck
-	import DemosLite from "../../lib/components/DemosLite.svelte";
+	import DemosLite from "../../lib/components/DemosLite";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 	import { browser } from "$app/environment";

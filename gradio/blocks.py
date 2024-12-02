@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 import dataclasses
 import hashlib
@@ -34,7 +35,6 @@ from gradio import (
     networking,
     processing_utils,
     queueing,
-    routes,
     strings,
     themes,
     utils,
@@ -69,6 +69,7 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
+from gradio.routes import VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -895,7 +896,10 @@ class BlocksConfig:
         config["layout"] = get_layout(root_block)
 
         config["components"] = []
-        for _id, block in self.blocks.items():
+        blocks_items = list(
+            self.blocks.items()
+        )  # freeze as list to prevent concurrent re-renders from changing the dict during loop, see https://github.com/gradio-app/gradio/issues/9991
+        for _id, block in blocks_items:
             if renderable:
                 if _id not in rendered_ids:
                     continue
@@ -1506,7 +1510,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         block_fn: BlockFunction | int,
         processed_input: list[Any],
         iterator: AsyncIterator[Any] | None = None,
-        requests: routes.Request | list[routes.Request] | None = None,
+        requests: Request | list[Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = False,
@@ -1931,7 +1935,7 @@ Received inputs:
         block_fn: BlockFunction | int,
         inputs: list[Any],
         state: SessionState | None = None,
-        request: routes.Request | list[routes.Request] | None = None,
+        request: Request | list[Request] | None = None,
         iterator: AsyncIterator | None = None,
         session_hash: str | None = None,
         event_id: str | None = None,
@@ -2105,7 +2109,7 @@ Received inputs:
 
     def get_config_file(self) -> BlocksConfigDict:
         config: BlocksConfigDict = {
-            "version": routes.VERSION,
+            "version": VERSION,
             "api_prefix": API_PREFIX,
             "mode": self.mode,
             "app_id": self.app_id,
@@ -2171,7 +2175,7 @@ Received inputs:
         else:
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
-        self.app = routes.App.create_app(self)
+        self.app = App.create_app(self)
         self.progress_tracking = any(
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
@@ -2224,7 +2228,7 @@ Received inputs:
             default_concurrency_limit=default_concurrency_limit,
         )
         self.config = self.get_config_file()
-        self.app = routes.App.create_app(self)
+        self.app = App.create_app(self)
         return self
 
     def validate_queue_settings(self):
@@ -2281,7 +2285,7 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         _frontend: bool = True,
-    ) -> tuple[routes.App, str, str]:
+    ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
         public link used by anyone to access the demo from their browser by setting share=True.
@@ -2532,6 +2536,10 @@ Received inputs:
                 # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
                 # So we need to manually cancel them. See `self.close()`..
                 self.run_startup_events()
+                # In the normal mode, self.run_extra_startup_events() is awaited like https://github.com/gradio-app/gradio/blob/2afcad80abd489111e47cf586a2a8221cc3dc9b6/gradio/routes.py#L1442.
+                # But in the Wasm env, we need to call the start up events here as described above, so we can't await it as here is not in an async function.
+                # So we use create_task() instead. This is a best-effort fallback in the Wasm env but it doesn't guarantee that all the tasks are completed before they are needed.
+                asyncio.create_task(self.run_extra_startup_events())
 
         self.is_sagemaker = (
             False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
