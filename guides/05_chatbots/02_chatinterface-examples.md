@@ -1,5 +1,7 @@
 # Using Popular LLM libraries and APIs
 
+Tags: LLM, CHATBOT, API
+
 In this Guide, we go through several examples of how to use `gr.ChatInterface` with popular LLM libraries and API providers.
 
 We will cover the following libraries and API providers:
@@ -37,7 +39,7 @@ Tip: For quick prototyping, the  <a href='https://github.com/gradio-app/openai-g
 
 ## Hugging Face `transformers`
 
-Of course, in many cases you want to run a chatbot locally. Here's the equivalent example using Together's RedPajama model, from Hugging Face (this requires you to have a GPU with CUDA).
+Of course, in many cases you want to run a chatbot locally. Here's the equivalent example using the SmolLM2-135M-Instruct model using the Hugging Face `transformers` library.
 
 $code_llm_hf_transformers
 
@@ -47,7 +49,7 @@ The SambaNova Cloud API provides access to full-precision open-source models, su
 
 $code_llm_sambanova
 
-Tip: For quick prototyping, the  <a href='https://github.com/gradio-app/sambanova-gradio'>sambanova-gradio library</a> makes it even easier to build chatbots on top of OpenAI models.
+Tip: For quick prototyping, the  <a href='https://github.com/gradio-app/sambanova-gradio'>sambanova-gradio library</a> makes it even easier to build chatbots on top of SambaNova models.
 
 ## Hyperbolic
 
@@ -55,7 +57,7 @@ The Hyperbolic AI API provides access to many open-source models, such as the Ll
 
 $code_llm_hyperbolic
 
-Tip: For quick prototyping, the  <a href='https://github.com/HyperbolicLabs/hyperbolic-gradio'>hyperbolic-gradio library</a> makes it even easier to build chatbots on top of OpenAI models.
+Tip: For quick prototyping, the  <a href='https://github.com/HyperbolicLabs/hyperbolic-gradio'>hyperbolic-gradio library</a> makes it even easier to build chatbots on top of Hyperbolic models.
 
 
 ## Anthropic's Claude 

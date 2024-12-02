@@ -1,6 +1,6 @@
 # How to Create a Chatbot with Gradio
 
-Tags: NLP, LLM, CHATBOT
+Tags: LLM, CHATBOT, NLP
 
 ## Introduction
 
