@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import dataclasses
 import inspect
+import re
 import warnings
 from collections import defaultdict
 from collections.abc import Callable
 from functools import lru_cache
-import re
 
 classes_to_document = defaultdict(list)
 classes_inherit_documentation = {}
@@ -158,7 +158,7 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
                     )
                 parameter = line[:colon_index]
                 parameter_doc = line[colon_index + 2 :]
-                
+
                 parameters[parameter] = parameter_doc
             elif mode == "return":
                 returns.append(line)
@@ -194,9 +194,9 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
                 parameter_doc["args"] = True
             if parameter_doc["doc"] and "$demo/" in parameter_doc["doc"]:
                 parameter_doc["doc"] = re.sub(
-                    r'\$demo/(\S+)',
+                    r"\$demo/(\S+)",
                     lambda m: f'<a href="https://github.com/gradio-app/gradio/blob/main/demo/{m.group(1)}/run.py">demo/{m.group(1)}</a>',
-                    parameter_doc["doc"]
+                    parameter_doc["doc"],
                 )
         parameter_docs.append(parameter_doc)
     if parameters:

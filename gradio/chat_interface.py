@@ -240,7 +240,9 @@ class ChatInterface(Blocks):
                             if textbox:
                                 textbox.show_label = False
                                 textbox_ = get_component_instance(textbox, render=True)
-                                if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
+                                if not isinstance(
+                                    textbox_, (Textbox, MultimodalTextbox)
+                                ):
                                     raise TypeError(
                                         f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
                                     )
