@@ -405,9 +405,24 @@
 								<span class="example-text">{example.text}</span>
 							{/if}
 							{#if example.files !== undefined && example.files.length > 1}
-								<span class="example-file"
-									><em>{example.files.length} Files</em></span
-								>
+								<div class="example-images-grid">
+									{#each example.files.slice(0, 4) as file, i}
+										{#if file.mime_type?.includes("image")}
+											<div class="example-image-container">
+												<Image
+													class="example-image"
+													src={file.url}
+													alt="example-image"
+												/>
+												{#if i === 3 && example.files.length > 4}
+													<div class="image-overlay">
+														+{example.files.length - 4}
+													</div>
+												{/if}
+											</div>
+										{/if}
+									{/each}
+								</div>
 							{:else if example.files !== undefined && example.files[0] !== undefined && example.files[0].mime_type?.includes("image")}
 								<div class="example-image-container">
 									<Image
@@ -512,6 +527,7 @@
 	}
 
 	.example-image-container {
+		position: relative;
 		flex-grow: 1;
 		display: flex;
 		justify-content: center;
@@ -519,13 +535,27 @@
 		margin-top: var(--spacing-xl);
 	}
 
-	.example-image-container :global(img) {
-		max-height: 100%;
-		max-width: 100%;
-		height: var(--size-32);
+	.image-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.6);
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--text-lg);
+		font-weight: var(--weight-semibold);
+	}
+
+	.example-images-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--spacing-md);
 		width: 100%;
-		object-fit: cover;
-		border-radius: var(--radius-xl);
+		margin-top: var(--spacing-xl);
 	}
 
 	.panel-wrap {
