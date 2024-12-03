@@ -18,7 +18,7 @@ export function set_local_stream(
 export async function get_video_stream(
 	include_audio: boolean,
 	video_source: HTMLVideoElement,
-	webcam_constraints?: { [key: string]: any },
+	webcam_constraints: { [key: string]: any } | null,
 	device_id?: string
 ): Promise<MediaStream> {
 	const constraints: MediaStreamConstraints = {

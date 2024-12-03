@@ -53,7 +53,7 @@
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
-	export let webcam_constraints: { [key: string]: any } | undefined = undefined;
+	export let webcam_constraints: { [key: string]: any } | null = null;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 	export let value: FileData | null | Base64File = null;
