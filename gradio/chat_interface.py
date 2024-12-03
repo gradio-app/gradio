@@ -390,31 +390,26 @@ class ChatInterface(Blocks):
             and self.examples
             and not self._additional_inputs_in_examples
         ):
-            if self.cache_examples:
-                self.chatbot.example_select(
+            if self.cache_examples or self.run_examples_on_click:
+                example_select_event = self.chatbot.example_select(
                     self.example_clicked,
                     None,
                     [self.chatbot, self.saved_input],
                     show_api=False,
                 )
-            elif self.run_examples_on_click:
-                self.chatbot.example_select(
-                    self.example_clicked,
-                    None,
-                    [self.chatbot, self.saved_input],
-                    show_api=False,
-                ).then(
-                    submit_fn,
-                    [self.saved_input, self.chatbot],
-                    [self.chatbot] + self.additional_outputs,
-                    show_api=False,
-                    concurrency_limit=cast(
-                        Union[int, Literal["default"], None], self.concurrency_limit
-                    ),
-                    show_progress=cast(
-                        Literal["full", "minimal", "hidden"], self.show_progress
-                    ),
-                )
+                if not self.cache_examples:
+                    example_select_event.then(
+                        submit_fn,
+                        [self.saved_input, self.chatbot],
+                        [self.chatbot] + self.additional_outputs,
+                        show_api=False,
+                        concurrency_limit=cast(
+                            Union[int, Literal["default"], None], self.concurrency_limit
+                        ),
+                        show_progress=cast(
+                            Literal["full", "minimal", "hidden"], self.show_progress
+                        ),
+                    )
             else:
                 self.chatbot.example_select(
                     self.example_populated,
