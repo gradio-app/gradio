@@ -397,26 +397,31 @@ class ChatInterface(Blocks):
                     [self.chatbot, self.saved_input],
                     show_api=False,
                 )
-            else:
-                example_select_event = self.chatbot.example_select(
+            elif self.run_examples_on_click:
+                self.chatbot.example_select(
                     self.example_clicked,
                     None,
                     [self.chatbot, self.saved_input],
                     show_api=False,
+                ).then(
+                    submit_fn,
+                    [self.saved_input, self.chatbot],
+                    [self.chatbot] + self.additional_outputs,
+                    show_api=False,
+                    concurrency_limit=cast(
+                        Union[int, Literal["default"], None], self.concurrency_limit
+                    ),
+                    show_progress=cast(
+                        Literal["full", "minimal", "hidden"], self.show_progress
+                    ),
                 )
-                if self.run_examples_on_click:
-                    example_select_event.then(
-                        submit_fn,
-                        [self.saved_input, self.chatbot],
-                        [self.chatbot] + self.additional_outputs,
-                        show_api=False,
-                        concurrency_limit=cast(
-                            Union[int, Literal["default"], None], self.concurrency_limit
-                        ),
-                        show_progress=cast(
-                            Literal["full", "minimal", "hidden"], self.show_progress
-                        ),
-                    )
+            else:
+                self.chatbot.example_select(
+                    self.example_populated,
+                    None,
+                    [self.textbox],
+                    show_api=False,
+                )
 
         retry_event = (
             self.chatbot.retry(
@@ -762,6 +767,21 @@ class ChatInterface(Blocks):
         history.append({"role": "user", "content": option.value})
         return history, option.value
 
+    def _flatten_example_files(self, example: SelectData):
+        """
+        Returns an example with the files flattened to just the file path.
+        Also ensures that the `files` key is always present in the example.
+        """
+        example.value["files"] = [f["path"] for f in example.value.get("files", [])]
+        return example
+
+    def example_populated(self, example: SelectData):
+        if self.multimodal:
+            example = self._flatten_example_files(example)
+            return example.value
+        else:
+            return example.value["text"]
+
     def example_clicked(
         self, example: SelectData
     ) -> Generator[
@@ -772,13 +792,14 @@ class ChatInterface(Blocks):
         to the example message. Then, if example caching is enabled, the cached response is loaded
         and added to the chat history as well.
         """
+        example = self._flatten_example_files(example)
         if self.type == "tuples":
             history = [(example.value["text"], None)]
-            for file in example.value.get("files", []):
-                history.append(((file["path"]), None))
+            for file in example.value["files"]:
+                history.append(((file), None))
         else:
             history = [MessageDict(role="user", content=example.value["text"])]
-            for file in example.value.get("files", []):
+            for file in example.value["files"]:
                 history.append(MessageDict(role="user", content=file))
         message = example.value if self.multimodal else example.value["text"]
         yield history, message
