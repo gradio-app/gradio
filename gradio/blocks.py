@@ -943,7 +943,7 @@ class BlocksConfig:
         new.fn_id = self.fn_id
         return new
 
-    def attach_load_events(self, rendered_in: Renderable = None):
+    def attach_load_events(self, rendered_in: Renderable | None = None):
         """Add a load event for every component whose initial value requires a function call to set."""
         for component in self.blocks.values():
             if rendered_in is not None and component.rendered_in != rendered_in:
@@ -954,7 +954,7 @@ class BlocksConfig:
             ):
                 load_fn, triggers, inputs = component.load_event_to_attach
                 has_target = len(triggers) > 0
-                triggers += [(self, "load")]
+                triggers += [(self.root_block, "load")]
                 # Use set_event_trigger to avoid ambiguity between load class/instance method
 
                 dep = self.set_event_trigger(
