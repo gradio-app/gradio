@@ -78,6 +78,7 @@ class ChatInterface(Blocks):
         examples: list[str] | list[MultimodalValue] | list[list] | None = None,
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
+        run_examples_on_click: bool = True,
         cache_examples: bool | None = None,
         cache_mode: Literal["eager", "lazy"] | None = None,
         title: str | None = None,
@@ -115,6 +116,7 @@ class ChatInterface(Blocks):
             example_icons: icons for the examples, to be displayed above the examples. If provided, should be a list of string URLs or local paths with the same length as the examples list. Only applies when examples are displayed within the chatbot (i.e. when `additional_inputs` is not provided).
             cache_examples: if True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             cache_mode: if "eager", all examples are cached at app launch. If "lazy", examples are cached for all users after the first use by any user of the app. If None, will use the GRADIO_CACHE_MODE environment variable if defined, or default to "eager".
+            run_examples_on_click: if True, clicking on an example will run the example through the chatbot fn and the response will be displayed in the chatbot. If False, clicking on an example will only populate the chatbot input with the example message. Has no effect if `cache_examples` is True
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
@@ -165,6 +167,7 @@ class ChatInterface(Blocks):
         self.examples_messages = self._setup_example_messages(
             examples, example_labels, example_icons
         )
+        self.run_examples_on_click = run_examples_on_click
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
         self.additional_inputs = [
@@ -395,23 +398,25 @@ class ChatInterface(Blocks):
                     show_api=False,
                 )
             else:
-                self.chatbot.example_select(
+                example_select_event = self.chatbot.example_select(
                     self.example_clicked,
                     None,
                     [self.chatbot, self.saved_input],
                     show_api=False,
-                ).then(
-                    submit_fn,
-                    [self.saved_input, self.chatbot],
-                    [self.chatbot] + self.additional_outputs,
-                    show_api=False,
-                    concurrency_limit=cast(
-                        Union[int, Literal["default"], None], self.concurrency_limit
-                    ),
-                    show_progress=cast(
-                        Literal["full", "minimal", "hidden"], self.show_progress
-                    ),
                 )
+                if self.run_examples_on_click:
+                    example_select_event.then(
+                        submit_fn,
+                        [self.saved_input, self.chatbot],
+                        [self.chatbot] + self.additional_outputs,
+                        show_api=False,
+                        concurrency_limit=cast(
+                            Union[int, Literal["default"], None], self.concurrency_limit
+                        ),
+                        show_progress=cast(
+                            Literal["full", "minimal", "hidden"], self.show_progress
+                        ),
+                    )
 
         retry_event = (
             self.chatbot.retry(
