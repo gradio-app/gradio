@@ -896,7 +896,10 @@ class BlocksConfig:
         config["layout"] = get_layout(root_block)
 
         config["components"] = []
-        for _id, block in self.blocks.items():
+        blocks_items = list(
+            self.blocks.items()
+        )  # freeze as list to prevent concurrent re-renders from changing the dict during loop, see https://github.com/gradio-app/gradio/issues/9991
+        for _id, block in blocks_items:
             if renderable:
                 if _id not in rendered_ids:
                     continue
