@@ -42,17 +42,11 @@
 
 	let is_full_screen = false;
 	let image_container: HTMLElement;
-	let icon_wrapper: HTMLElement;
-	let min_container_width = 0;
 
 	onMount(() => {
 		document.addEventListener("fullscreenchange", () => {
 			is_full_screen = !!document.fullscreenElement;
 		});
-
-		if (icon_wrapper) {
-			min_container_width = icon_wrapper.offsetWidth;
-		}
 	});
 
 	const toggle_full_screen = async (): Promise<void> => {
@@ -74,7 +68,7 @@
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
-		<IconButtonWrapper bind:this={icon_wrapper}>
+		<IconButtonWrapper>
 			{#if !is_full_screen && show_fullscreen_button}
 				<IconButton
 					Icon={Maximize}
@@ -111,11 +105,7 @@
 			{/if}
 		</IconButtonWrapper>
 		<button on:click={handle_click}>
-			<div
-				class:selectable
-				class="image-frame"
-				style="min-width: {min_container_width}px"
-			>
+			<div class:selectable class="image-frame">
 				<Image src={value.url} alt="" loading="lazy" on:load />
 			</div>
 		</button>
@@ -126,6 +116,7 @@
 	.image-container {
 		height: 100%;
 		position: relative;
+		min-width: var(--size-20);
 	}
 
 	.image-container button {
