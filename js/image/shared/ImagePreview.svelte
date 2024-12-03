@@ -12,10 +12,11 @@
 	} from "@gradio/atoms";
 	import { Download, Image as ImageIcon } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
-	import Image from "./Image.svelte";
+	import { Image } from "@gradio/image/shared";
 	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import type { I18nFormatter } from "@gradio/utils";
+	import type { FileData } from "@gradio/client";
 
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
