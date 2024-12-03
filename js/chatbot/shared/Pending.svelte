@@ -1,25 +1,43 @@
 <script lang="ts">
+	import { Image } from "@gradio/image/shared";
+	import type { FileData } from "@gradio/client";
+
 	export let layout = "bubble";
+	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 </script>
 
-<div
-	class="message bot pending {layout}"
-	role="status"
-	aria-label="Loading response"
-	aria-live="polite"
->
-	<div class="message-content">
-		<span class="sr-only">Loading content</span>
-		<div class="dots">
-			<div class="dot" />
-			<div class="dot" />
-			<div class="dot" />
+<div class="container">
+	{#if avatar_images[1] !== null}
+		<div class="avatar-container">
+			<Image class="avatar-image" src={avatar_images[1].url} alt="bot avatar" />
+		</div>
+	{/if}
+
+	<div
+		class="message bot pending {layout}"
+		class:with_avatar={avatar_images[1] !== null}
+		class:with_opposite_avatar={avatar_images[0] !== null}
+		role="status"
+		aria-label="Loading response"
+		aria-live="polite"
+	>
+		<div class="message-content">
+			<span class="sr-only">Loading content</span>
+			<div class="dots">
+				<div class="dot" />
+				<div class="dot" />
+				<div class="dot" />
+			</div>
 		</div>
 	</div>
 </div>
 
 <style>
-	/* Default bubble styles */
+	.container {
+		display: flex;
+		margin: calc(var(--spacing-xl) * 2);
+	}
+
 	.bubble.pending {
 		border-width: 1px;
 		border-radius: var(--radius-lg);
@@ -29,11 +47,13 @@
 		box-shadow: var(--shadow-drop);
 		align-self: flex-start;
 		width: fit-content;
-		margin: calc(var(--spacing-xl) * 2);
 		margin-bottom: var(--spacing-xl);
 	}
 
-	/* Panel styles */
+	.bubble.with_opposite_avatar {
+		margin-right: calc(var(--spacing-xxl) + 35px + var(--spacing-xxl));
+	}
+
 	.panel.pending {
 		margin: 0;
 		padding: calc(var(--spacing-lg) * 2) calc(var(--spacing-lg) * 2);
@@ -44,7 +64,26 @@
 		border-radius: 0;
 	}
 
-	/* Shared styles */
+	.panel.with_avatar {
+		padding-left: calc(var(--spacing-xl) * 2) !important;
+		padding-right: calc(var(--spacing-xl) * 2) !important;
+	}
+
+	.avatar-container {
+		align-self: flex-start;
+		position: relative;
+		display: flex;
+		justify-content: flex-start;
+		align-items: flex-start;
+		width: 35px;
+		height: 35px;
+		flex-shrink: 0;
+		bottom: 0;
+		border-radius: 50%;
+		border: 1px solid var(--border-color-primary);
+		margin-right: var(--spacing-xxl);
+	}
+
 	.message-content {
 		padding: var(--spacing-sm) var(--spacing-xl);
 		min-height: var(--size-8);

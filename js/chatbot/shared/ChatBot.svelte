@@ -355,7 +355,7 @@
 				/>
 			{/each}
 			{#if pending_message}
-				<Pending {layout} />
+				<Pending {layout} {avatar_images} />
 			{:else}
 				{@const options = get_last_bot_options()}
 				{#if options}
