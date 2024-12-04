@@ -174,7 +174,6 @@ class Examples:
         if self.cache_examples and cache_mode == "lazy":
             self.cache_examples = "lazy"
 
-
         if not isinstance(inputs, Sequence):
             inputs = [inputs]
         if outputs and not isinstance(outputs, Sequence):
@@ -305,7 +304,6 @@ class Examples:
                     "If method or examples have changed since last caching, delete this folder to reset cache."
                 )
             print("\n")
-
 
     def _get_processed_example(self, example):
         """
@@ -555,7 +553,7 @@ class Examples:
 
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
-        
+
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
         if self.outputs is None:
