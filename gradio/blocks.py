@@ -2114,7 +2114,8 @@ Received inputs:
         hashed_values = []
         for block in block_fn.outputs:
             if block.stateful and any(
-                (block._id, "change") in fn.targets for fn in self.fns.values()
+                (block._id, "change") in fn.targets
+                for fn in state.blocks_config.fns.values()
             ):
                 value = state[block._id]
                 state_ids_to_track.append(block._id)
