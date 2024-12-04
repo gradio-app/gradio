@@ -74,6 +74,7 @@ class Renderable:
             with container_copy:
                 self.fn(*args, **kwargs)
                 blocks_config.blocks[self.container_id] = container_copy
+                blocks_config.attach_load_events(self)
         finally:
             LocalContext.renderable.set(None)
 

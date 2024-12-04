@@ -943,6 +943,30 @@ class BlocksConfig:
         new.fn_id = self.fn_id
         return new
 
+    def attach_load_events(self, rendered_in: Renderable | None = None):
+        """Add a load event for every component whose initial value requires a function call to set."""
+        for component in self.blocks.values():
+            if rendered_in is not None and component.rendered_in != rendered_in:
+                continue
+            if (
+                isinstance(component, components.Component)
+                and component.load_event_to_attach
+            ):
+                load_fn, triggers, inputs = component.load_event_to_attach
+                has_target = len(triggers) > 0
+                triggers += [(self.root_block, "load")]
+                # Use set_event_trigger to avoid ambiguity between load class/instance method
+
+                dep = self.set_event_trigger(
+                    [EventListenerMethod(*trigger) for trigger in triggers],
+                    load_fn,
+                    inputs,
+                    component,
+                    no_target=not has_target,
+                    show_progress="hidden" if has_target else "full",
+                )[0]
+                component.load_event = dep.get_config()
+
 
 @document("launch", "queue", "integrate", "load", "unload")
 class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
@@ -2090,7 +2114,8 @@ Received inputs:
         hashed_values = []
         for block in block_fn.outputs:
             if block.stateful and any(
-                (block._id, "change") in fn.targets for fn in self.fns.values()
+                (block._id, "change") in fn.targets
+                for fn in state.blocks_config.fns.values()
             ):
                 value = state[block._id]
                 state_ids_to_track.append(block._id)
@@ -2169,7 +2194,7 @@ Received inputs:
         super().fill_expected_parents()
         set_render_context(self.parent)
         # Configure the load events before root_block is reset
-        self.attach_load_events()
+        self.default_config.attach_load_events()
         if self.parent is None:
             Context.root_block = None
         else:
@@ -2844,30 +2869,6 @@ Received inputs:
                 self.server.close()
             for tunnel in CURRENT_TUNNELS:
                 tunnel.kill()
-
-    def attach_load_events(self):
-        """Add a load event for every component whose initial value should be randomized."""
-        root_context = Context.root_block
-        if root_context:
-            for component in root_context.blocks.values():
-                if (
-                    isinstance(component, components.Component)
-                    and component.load_event_to_attach
-                ):
-                    load_fn, triggers, inputs = component.load_event_to_attach
-                    has_target = len(triggers) > 0
-                    triggers += [(self, "load")]
-                    # Use set_event_trigger to avoid ambiguity between load class/instance method
-
-                    dep = self.default_config.set_event_trigger(
-                        [EventListenerMethod(*trigger) for trigger in triggers],
-                        load_fn,
-                        inputs,
-                        component,
-                        no_target=not has_target,
-                        show_progress="hidden" if has_target else "full",
-                    )[0]
-                    component.load_event = dep.get_config()
 
     def run_startup_events(self):
         """Events that should be run when the app containing this block starts up."""
