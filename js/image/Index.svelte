@@ -65,6 +65,7 @@
 	export let placeholder: string | undefined = undefined;
 	export let show_fullscreen_button: boolean;
 	export let input_ready: boolean;
+	export let webcam_constraints: { [key: string]: any } | undefined = undefined;
 	let uploading = false;
 	$: input_ready = !uploading;
 	export let gradio: Gradio<{
@@ -218,6 +219,7 @@
 			{stream_every}
 			bind:modify_stream={_modify_stream}
 			bind:set_time_limit
+			{webcam_constraints}
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.client.upload(...args)}
