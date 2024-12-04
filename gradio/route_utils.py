@@ -632,7 +632,7 @@ class GradioMultiPartParser:
             raise MultiPartException("Missing boundary in multipart.") from e
 
         # Callbacks dictionary.
-        callbacks: multipart.multipart.MultipartCallbacks = {
+        callbacks = {
             "on_part_begin": self.on_part_begin,
             "on_part_data": self.on_part_data,
             "on_part_end": self.on_part_end,
@@ -644,7 +644,7 @@ class GradioMultiPartParser:
         }
 
         # Create the parser.
-        parser = multipart.MultipartParser(boundary, callbacks)
+        parser = multipart.MultipartParser(boundary, callbacks)  # type: ignore
         try:
             # Feed the parser with data from the request.
             async for chunk in self.stream:
