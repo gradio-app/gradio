@@ -373,8 +373,15 @@ def test_is_in_or_equal():
     assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
     assert not is_in_or_equal("/home/usr/../../etc/notes.txt", "/home/usr/")
     assert not is_in_or_equal("/safe_dir/subdir/../../unsafe_file.txt", "/safe_dir/")
-    assert is_in_or_equal("//foo/asd/", "/foo")
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="Windows doesn't support POSIX double-slash notation",
+)
+def test_is_in_or_equal_posix_specific_paths():
     assert is_in_or_equal("//foo/..a", "//foo")
+    assert is_in_or_equal("//foo/asd/", "/foo")
     assert is_in_or_equal("//foo/..²", "/foo")
 
 

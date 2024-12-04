@@ -124,6 +124,7 @@
 		"@gradio/imageeditor": "workspace:^",
 		"@gradio/json": "workspace:^",
 		"@gradio/label": "workspace:^",
+		"@gradio/browserstate": "workspace:^",
 		"@gradio/markdown": "workspace:^",
 		"@gradio/model3d": "workspace:^",
 		"@gradio/multimodaltextbox": "workspace:^",

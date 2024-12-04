@@ -70,6 +70,11 @@ export class Client {
 		if (this && this.cookies) {
 			headers.append("Cookie", this.cookies);
 		}
+		if (this && this.options.headers) {
+			for (const name in this.options.headers) {
+				headers.append(name, this.options.headers[name]);
+			}
+		}
 
 		return fetch(input, { ...init, headers });
 	}
@@ -78,6 +83,11 @@ export class Client {
 		const headers = new Headers();
 		if (this && this.cookies) {
 			headers.append("Cookie", this.cookies);
+		}
+		if (this && this.options.headers) {
+			for (const name in this.options.headers) {
+				headers.append(name, this.options.headers[name]);
+			}
 		}
 
 		this.abort_controller = new AbortController();

@@ -44,6 +44,7 @@
 	export let msg_format: "tuples" | "messages";
 	export let handle_action: (selected: string | null) => void;
 	export let scroll: () => void;
+	export let allow_file_downloads: boolean;
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -71,7 +72,6 @@
 	}
 
 	type ButtonPanelProps = {
-		show: boolean;
 		handle_action: (selected: string | null) => void;
 		likeable: boolean;
 		show_retry: boolean;
@@ -82,11 +82,11 @@
 		position: "left" | "right";
 		layout: "bubble" | "panel";
 		avatar: FileData | null;
+		dispatch: any;
 	};
 
 	let button_panel_props: ButtonPanelProps;
 	$: button_panel_props = {
-		show: show_like || show_retry || show_undo || show_copy_button,
 		handle_action,
 		likeable: show_like,
 		show_retry,
@@ -96,7 +96,8 @@
 		message: msg_format === "tuples" ? messages[0] : messages,
 		position: role === "user" ? "right" : "left",
 		avatar: avatar_img,
-		layout
+		layout,
+		dispatch
 	};
 </script>
 
@@ -123,7 +124,6 @@
 				class:message-fit={layout === "bubble" && !bubble_full_width}
 				class:panel-full-width={true}
 				class:message-markdown-disabled={!render_markdown}
-				style:text-align={rtl && role === "user" ? "left" : "right"}
 				class:component={message.type === "component"}
 				class:html={is_component_message(message) &&
 					message.content.component === "html"}
@@ -147,11 +147,23 @@
 					aria-label={role + "'s message: " + get_message_label_data(message)}
 				>
 					{#if message.type === "text"}
-						{#if message.metadata.title}
-							<MessageBox
-								title={message.metadata.title}
-								expanded={is_last_bot_message([message], value)}
-							>
+						<div class="message-content">
+							{#if message.metadata.title}
+								<MessageBox
+									title={message.metadata.title}
+									expanded={is_last_bot_message([message], value)}
+								>
+									<Markdown
+										message={message.content}
+										{latex_delimiters}
+										{sanitize_html}
+										{render_markdown}
+										{line_breaks}
+										on:load={scroll}
+										{root}
+									/>
+								</MessageBox>
+							{:else}
 								<Markdown
 									message={message.content}
 									{latex_delimiters}
@@ -161,18 +173,8 @@
 									on:load={scroll}
 									{root}
 								/>
-							</MessageBox>
-						{:else}
-							<Markdown
-								message={message.content}
-								{latex_delimiters}
-								{sanitize_html}
-								{render_markdown}
-								{line_breaks}
-								on:load={scroll}
-								{root}
-							/>
-						{/if}
+							{/if}
+						</div>
 					{:else if message.type === "component" && message.content.component in _components}
 						<Component
 							{target}
@@ -185,6 +187,7 @@
 							{upload}
 							{_fetch}
 							on:load={() => scroll()}
+							{allow_file_downloads}
 						/>
 					{:else if message.type === "component" && message.content.component === "file"}
 						<a
@@ -207,7 +210,10 @@
 			</div>
 
 			{#if layout === "panel"}
-				<ButtonPanel {...button_panel_props} />
+				<ButtonPanel
+					{...button_panel_props}
+					on:copy={(e) => dispatch("copy", e.detail)}
+				/>
 			{/if}
 		{/each}
 	</div>
@@ -311,12 +317,9 @@
 	.user {
 		border-width: 1px;
 		border-radius: var(--radius-md);
-		align-self: flex-start;
+		align-self: flex-end;
 		border-bottom-right-radius: 0;
 		box-shadow: var(--shadow-drop);
-		align-self: flex-start;
-		text-align: right;
-		padding: var(--spacing-sm) var(--spacing-xl);
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}
@@ -330,7 +333,6 @@
 		box-shadow: var(--shadow-drop);
 		align-self: flex-start;
 		text-align: right;
-		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.panel .user :global(*) {
@@ -417,17 +419,6 @@
 		overflow-wrap: break-word;
 	}
 
-	.user {
-		border-width: 1px;
-		border-radius: var(--radius-md);
-		align-self: flex-start;
-		border-bottom-right-radius: 0;
-		box-shadow: var(--shadow-drop);
-		text-align: right;
-		padding: var(--spacing-sm) var(--spacing-xl);
-		border-color: var(--border-color-accent-subdued);
-		background-color: var(--color-accent-soft);
-	}
 	@media (max-width: 480px) {
 		.user-row.bubble {
 			align-self: flex-end;
@@ -439,6 +430,10 @@
 		.message {
 			width: 100%;
 		}
+	}
+
+	.message-content {
+		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.avatar-container {

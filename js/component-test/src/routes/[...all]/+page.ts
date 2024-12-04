@@ -24,6 +24,7 @@ const comps = {
 	imageeditor: () => import("@gradio/imageeditor"),
 	json: () => import("@gradio/json"),
 	label: () => import("@gradio/label"),
+	browserstate: () => import("@gradio/browserstate"),
 	markdown: () => import("@gradio/markdown"),
 	model3d: () => import("@gradio/model3d"),
 	multimodaltextbox: () => import("@gradio/multimodaltextbox"),

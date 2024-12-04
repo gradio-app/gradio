@@ -12,7 +12,6 @@ from typing import (
     Any,
     Literal,
     Optional,
-    TypedDict,
     Union,
     cast,
 )
@@ -20,7 +19,7 @@ from typing import (
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from pydantic import Field
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 from gradio import utils
 from gradio.component_meta import ComponentMeta
@@ -37,6 +36,11 @@ class MetadataDict(TypedDict):
     title: Union[str, None]
 
 
+class Option(TypedDict):
+    label: NotRequired[str]
+    value: str
+
+
 class FileDataDict(TypedDict):
     path: str  # server filepath
     url: NotRequired[Optional[str]]  # normalised server url
@@ -51,6 +55,7 @@ class MessageDict(TypedDict):
     content: str | FileDataDict | tuple | Component
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
+    options: NotRequired[list[Option]]
 
 
 class FileMessage(GradioModel):
@@ -82,6 +87,7 @@ class Message(GradioModel):
     role: str
     metadata: Metadata = Field(default_factory=Metadata)
     content: Union[str, FileMessage, ComponentMessage]
+    options: Optional[list[Option]] = None
 
 
 class ExampleMessage(TypedDict):
@@ -102,13 +108,17 @@ class ChatMessage:
     role: Literal["user", "assistant", "system"]
     content: str | FileData | Component | FileDataDict | tuple | list
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
+    options: Optional[list[Option]] = None
 
 
 class ChatbotDataMessages(GradioRootModel):
     root: list[Message]
 
 
-TupleFormat = list[list[Union[str, tuple[str], tuple[str, str], None]]]
+TupleFormat = Sequence[
+    tuple[Union[str, tuple[str], None], Union[str, tuple[str], None]]
+    | list[Union[str, tuple[str], None]]
+]
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -147,7 +157,9 @@ class Chatbot(Component):
         Events.retry,
         Events.undo,
         Events.example_select,
+        Events.option_select,
         Events.clear,
+        Events.copy,
     ]
 
     def __init__(
@@ -184,6 +196,7 @@ class Chatbot(Component):
         placeholder: str | None = None,
         examples: list[ExampleMessage] | None = None,
         show_copy_all_button=False,
+        allow_file_downloads=True,
     ):
         """
         Parameters:
@@ -218,10 +231,11 @@ class Chatbot(Component):
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
             examples: A list of example messages to display in the chatbot before any user/assistant messages are shown. Each example should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the example box, and an optional "display_text" key, whose value should be the text to display in the example box. If "display_text" is not provided, the value of "text" will be displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
+            allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
         """
         if type is None:
             warnings.warn(
-                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
+                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style dictionaries with 'role' and 'content' keys.",
                 UserWarning,
             )
             type = "tuples"
@@ -235,10 +249,7 @@ class Chatbot(Component):
                 f"The `type` parameter must be 'messages' or 'tuples', received: {type}"
             )
         self.type: Literal["tuples", "messages"] = type
-        if self.type == "messages":
-            self.data_model = ChatbotDataMessages
-        else:
-            self.data_model = ChatbotDataTuples
+        self._setup_data_model()
         self.autoscroll = autoscroll
         self.height = height
         self.max_height = max_height
@@ -259,6 +270,7 @@ class Chatbot(Component):
         self.line_breaks = line_breaks
         self.layout = layout
         self.show_copy_all_button = show_copy_all_button
+        self.allow_file_downloads = allow_file_downloads
         super().__init__(
             label=label,
             every=every,
@@ -285,6 +297,15 @@ class Chatbot(Component):
         self.placeholder = placeholder
 
         self.examples = examples
+        self._setup_examples()
+
+    def _setup_data_model(self):
+        if self.type == "messages":
+            self.data_model = ChatbotDataMessages
+        else:
+            self.data_model = ChatbotDataTuples
+
+    def _setup_examples(self):
         if self.examples is not None:
             for i, example in enumerate(self.examples):
                 if "icon" in example and isinstance(example["icon"], str):
@@ -308,7 +329,7 @@ class Chatbot(Component):
                                 file_info[i] = file_data
 
     @staticmethod
-    def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
+    def _check_format(messages: Any, type: Literal["messages", "tuples"]):
         if type == "messages":
             all_valid = all(
                 isinstance(message, dict)
@@ -495,6 +516,7 @@ class Chatbot(Component):
                 role=message.role,
                 content=message.content,  # type: ignore
                 metadata=message.metadata,  # type: ignore
+                options=message.options,
             )
         elif isinstance(message, Message):
             return message

@@ -110,7 +110,8 @@ export function normalise_messages(
 				metadata: message.metadata,
 				content: redirect_src_url(message.content, root),
 				type: "text",
-				index: i
+				index: i,
+				options: message.options
 			};
 		} else if ("file" in message.content) {
 			return {
@@ -118,7 +119,8 @@ export function normalise_messages(
 				metadata: message.metadata,
 				role: message.role,
 				type: "component",
-				index: i
+				index: i,
+				options: message.options
 			};
 		}
 		return { type: "component", ...message } as ComponentMessage;

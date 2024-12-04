@@ -102,6 +102,7 @@ class Image(StreamingInput, Component):
         show_share_button: bool | None = None,
         placeholder: str | None = None,
         show_fullscreen_button: bool = True,
+        webcam_constraints: dict[str, Any] | None = None,
     ):
         """
         Parameters:
@@ -131,6 +132,7 @@ class Image(StreamingInput, Component):
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             placeholder: Custom text for the upload area. Overrides default upload messages when provided. Accepts new lines and `#` to designate a heading.
             show_fullscreen_button: If True, will show a fullscreen icon in the corner of the component that allows user to view the image in fullscreen mode. If False, icon does not appear.
+            webcam_constraints: A dictionary that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
         """
         self.format = format
         self.mirror_webcam = mirror_webcam
@@ -170,6 +172,8 @@ class Image(StreamingInput, Component):
         )
         self.show_fullscreen_button = show_fullscreen_button
         self.placeholder = placeholder
+        self.webcam_constraints = webcam_constraints
+
         super().__init__(
             label=label,
             every=every,

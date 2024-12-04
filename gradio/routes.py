@@ -273,12 +273,13 @@ class App(FastAPI):
         new_request = App.client.build_request(
             request.method, httpx.URL(url), headers=headers
         )
-        node_response = await App.client.send(new_request)
+        node_response = await App.client.send(new_request, stream=True)
 
-        return Response(
-            content=node_response.content,
+        return StreamingResponse(
+            node_response.aiter_raw(),
             status_code=node_response.status_code,
-            headers=dict(node_response.headers),
+            headers=node_response.headers,
+            background=BackgroundTask(node_response.aclose),
         )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -550,9 +551,9 @@ class App(FastAPI):
                 )
                 gradio_api_info = api_info(request)
                 return templates.TemplateResponse(
-                    template,
-                    {
-                        "request": request,
+                    request=request,
+                    name=template,
+                    context={
                         "config": config,
                         "gradio_api_info": gradio_api_info,
                     },

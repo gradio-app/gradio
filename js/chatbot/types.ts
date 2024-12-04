@@ -14,11 +14,16 @@ export interface ComponentData {
 	alt_text: string | null;
 }
 
+export interface Option {
+	label?: string;
+	value: string;
+}
 export interface Message {
 	role: MessageRole;
 	metadata: Metadata;
 	content: string | FileData | ComponentData;
 	index: number | [number, number];
+	options?: Option[];
 }
 
 export interface TextMessage extends Message {

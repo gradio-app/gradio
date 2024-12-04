@@ -25,8 +25,11 @@
 />
 
 <Story
-	name="Slider with hidden label"
+	name="Slider with hidden label and negative value"
 	args={{
+		value: -50,
+		minimum: -100,
+		maximum: 0,
 		show_label: false
 	}}
 />

@@ -31,6 +31,7 @@ class Textbox(FormComponent):
         Events.focus,
         Events.blur,
         Events.stop,
+        Events.copy,
     ]
 
     def __init__(

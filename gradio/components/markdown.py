@@ -25,7 +25,10 @@ class Markdown(Component):
     Guides: key-features
     """
 
-    EVENTS = [Events.change]
+    EVENTS = [
+        Events.change,
+        Events.copy,
+    ]
 
     def __init__(
         self,
