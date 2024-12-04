@@ -1,5 +1,11 @@
 # @gradio/imageeditor
 
+## 0.11.10
+
+### Dependency updates
+
+- @gradio/image@0.18.0
+
 ## 0.11.9
 
 ### Fixes
