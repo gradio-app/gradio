@@ -650,13 +650,13 @@ class TestProcessExamples:
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
         data = response.json()["data"]
-        assert data[0]["value"]["path"].endswith("cheetah1.jpg")
-        assert data[1]["value"] == "cheetah"
+        assert data[0]["path"].endswith("cheetah1.jpg")
+        assert data[1] == "cheetah"
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         data = response.json()["data"]
-        assert data[0]["value"]["path"].endswith("bus.png")
-        assert data[1]["value"] == "bus"
+        assert data[0]["path"].endswith("bus.png")
+        assert data[1] == "bus"
 
 
 def test_multiple_file_flagging(tmp_path, connect):
