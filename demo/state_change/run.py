@@ -95,5 +95,20 @@ with gr.Blocks() as demo:
         increment, custom_clicks, custom_clicks
     )
 
+    @gr.render()
+    def render_state_changes():
+        with gr.Row():
+            box1 = gr.Textbox(label="Start State")
+            state1 = gr.State()
+            box2 = gr.Textbox()
+            state2 = gr.State()
+            box3 = gr.Textbox(label="End State")
+
+            iden = lambda x: x
+            box1.change(iden, box1, state1)
+            state1.change(iden, state1, box2)
+            box2.change(iden, box2, state2)
+            state2.change(iden, state2, box3)
+            
 if __name__ == "__main__":
     demo.launch()
