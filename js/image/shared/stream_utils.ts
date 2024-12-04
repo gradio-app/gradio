@@ -18,16 +18,17 @@ export function set_local_stream(
 export async function get_video_stream(
 	include_audio: boolean,
 	video_source: HTMLVideoElement,
+	webcam_constraints: { [key: string]: any } | null,
 	device_id?: string
 ): Promise<MediaStream> {
-	const size = {
-		width: { ideal: 1920 },
-		height: { ideal: 1440 }
-	};
-
-	const constraints = {
-		video: device_id ? { deviceId: { exact: device_id }, ...size } : size,
-		audio: include_audio
+	const constraints: MediaStreamConstraints = {
+		video: device_id
+			? { deviceId: { exact: device_id }, ...webcam_constraints?.video }
+			: webcam_constraints?.video || {
+					width: { ideal: 1920 },
+					height: { ideal: 1440 }
+				},
+		audio: include_audio && (webcam_constraints?.audio ?? true) // Defaults to true if not specified
 	};
 
 	return navigator.mediaDevices
