@@ -33,6 +33,7 @@
 	export let stream_handler: Client["stream"];
 	export let loop: boolean;
 	export let uploading = false;
+	export let webcam_constraints: { [key: string]: any } | null = null;
 
 	let has_change_history = false;
 
@@ -99,6 +100,7 @@
 					{root}
 					{mirror_webcam}
 					{include_audio}
+					{webcam_constraints}
 					mode="video"
 					on:error
 					on:capture={handle_capture}

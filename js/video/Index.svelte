@@ -28,6 +28,7 @@
 	export let loading_status: LoadingStatus;
 	export let height: number | undefined;
 	export let width: number | undefined;
+	export let webcam_constraints: { [key: string]: any } | null = null;
 
 	export let container = false;
 	export let scale: number | null = null;
@@ -203,6 +204,7 @@
 			{autoplay}
 			{root}
 			{loop}
+			{webcam_constraints}
 			{handle_reset_value}
 			on:clear={() => gradio.dispatch("clear")}
 			on:play={() => gradio.dispatch("play")}

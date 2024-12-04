@@ -42,6 +42,8 @@
 	export let uploading = false;
 	export let active_source: source_type = null;
 
+	export let webcam_constraints: { [key: string]: any } | undefined = undefined;
+
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
 		// only trigger streaming event if streaming
 		if (!streaming) {
@@ -205,6 +207,7 @@
 				{upload}
 				bind:modify_stream
 				bind:set_time_limit
+				{webcam_constraints}
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->

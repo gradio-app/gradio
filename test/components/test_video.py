@@ -70,6 +70,7 @@ class TestVideo:
             "loop": False,
             "streaming": False,
             "watermark": None,
+            "webcam_constraints": None,
         }
         assert video_input.preprocess(None) is None
         video_input = gr.Video(format="avi")
