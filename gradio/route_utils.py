@@ -50,7 +50,7 @@ from gradio.exceptions import Error
 from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
-    from gradio.blocks import BlockFunction, Blocks
+    from gradio.blocks import BlockFunction, Blocks, BlocksConfig
     from gradio.helpers import EventData
     from gradio.routes import App
 
@@ -286,14 +286,14 @@ def restore_session_state(app: App, body: PredictBodyInternal):
 
 
 def prepare_event_data(
-    blocks: Blocks,
+    blocks_config: BlocksConfig,
     body: PredictBodyInternal,
 ) -> EventData:
     from gradio.helpers import EventData
 
     target = body.trigger_id
     event_data = EventData(
-        blocks.blocks.get(target) if target else None,
+        blocks_config.blocks.get(target) if target else None,
         body.event_data,
     )
     return event_data
@@ -308,7 +308,7 @@ async def call_process_api(
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
-    event_data = prepare_event_data(app.get_blocks(), body)
+    event_data = prepare_event_data(session_state.blocks_config, body)
     event_id = body.event_id
 
     session_hash = getattr(body, "session_hash", None)
