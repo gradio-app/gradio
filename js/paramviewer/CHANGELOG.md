@@ -1,5 +1,12 @@
 # @gradio/paramviewer
 
+## 0.6.0
+
+### Features
+
+- [#10083](https://github.com/gradio-app/gradio/pull/10083) [`b2a21c6`](https://github.com/gradio-app/gradio/commit/b2a21c643dc5e50581567cbde7b660357b3d982e) - Add HTML support to paramviewer descriptions.  Thanks @aliabd!
+- [#10096](https://github.com/gradio-app/gradio/pull/10096) [`ec10aa3`](https://github.com/gradio-app/gradio/commit/ec10aa3b9b42d8c3fe930aff9465c469626992d4) - Fix paramviewer descriptions to only render markdown links.  Thanks @aliabd!
+
 ## 0.5.8
 
 ### Dependency updates

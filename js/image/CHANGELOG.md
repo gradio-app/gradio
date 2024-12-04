@@ -1,5 +1,12 @@
 # @gradio/image
 
+## 0.18.0
+
+### Features
+
+- [#10099](https://github.com/gradio-app/gradio/pull/10099) [`8530b6e`](https://github.com/gradio-app/gradio/commit/8530b6e2f986421adceda98f972e6b843bc03fbe) - Redesign pending bubble in Chatbot.  Thanks @hannahblair!
+- [#10032](https://github.com/gradio-app/gradio/pull/10032) [`e450674`](https://github.com/gradio-app/gradio/commit/e450674ce41ca28f1f37a27fb149c728593a6ddf) - add  `webcam_height` and `webcam_width` to specify the resolution of the Webcam.  Thanks @yinsumirage!
+
 ## 0.17.0
 
 ### Features

@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.5.1
+
+### Fixes
+
+- [#10090](https://github.com/gradio-app/gradio/pull/10090) [`5ea3cb5`](https://github.com/gradio-app/gradio/commit/5ea3cb51a39ba01fda7f65ff31e59955e1d12cea) - Update `requirements.txt` for `gradio` and `gradio_client`.  Thanks @abidlabs!
+
 ## 1.5.0
 
 ### Features
