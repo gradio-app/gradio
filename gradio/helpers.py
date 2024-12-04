@@ -173,16 +173,6 @@ class Examples:
 
         if self.cache_examples and cache_mode == "lazy":
             self.cache_examples = "lazy"
-            print(
-                f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
-                end="",
-            )
-            if Path(self.cached_file).exists():
-                print(
-                    "If method or examples have changed since last caching, delete this folder to reset cache.",
-                    end="",
-                )
-            print("\n\n")
 
 
         if not isinstance(inputs, Sequence):
@@ -304,6 +294,18 @@ class Examples:
                 self.non_none_processed_examples[self.dataset.samples[index]] = (
                     self._get_processed_example(example)
                 )
+
+        if self.cache_examples == "lazy":
+            print(
+                f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use.",
+                end="",
+            )
+            if Path(self.cached_file).exists():
+                print(
+                    "If method or examples have changed since last caching, delete this folder to reset cache."
+                )
+            print("\n")
+
 
     def _get_processed_example(self, example):
         """
