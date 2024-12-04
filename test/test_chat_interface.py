@@ -226,6 +226,26 @@ class TestInit:
             None,
         )
 
+    def test_chatbot_type_mismatch(self):
+        chatbot = gr.Chatbot()
+        chat_interface = gr.ChatInterface(
+            fn=lambda x, y: x, chatbot=chatbot, type="tuples"
+        )
+        assert chatbot.type == "tuples"
+        assert chat_interface.type == "tuples"
+
+        chatbot = gr.Chatbot()
+        chat_interface = gr.ChatInterface(
+            fn=lambda x, y: x, chatbot=chatbot, type="messages"
+        )
+        assert chatbot.type == "messages"
+        assert chat_interface.type == "messages"
+
+        chatbot = gr.Chatbot()
+        chat_interface = gr.ChatInterface(fn=lambda x, y: x, chatbot=chatbot)
+        assert chatbot.type == "tuples"
+        assert chat_interface.type == "tuples"
+
 
 class TestAPI:
     def test_get_api_info(self):
