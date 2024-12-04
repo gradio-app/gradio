@@ -1,6 +1,6 @@
 ---
-"@gradio/chatbot": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"gradio": patch
 ---
 
-feat:Fix sharing on chatbot with spaces
+fix:Fix sharing on chatbot with spaces
