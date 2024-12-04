@@ -8,6 +8,7 @@
 	export let i18n;
 	export let upload;
 	export let _fetch;
+	export let allow_file_downloads: boolean;
 </script>
 
 {#if type === "gallery"}
@@ -45,7 +46,7 @@
 		label=""
 		waveform_settings={{}}
 		waveform_options={{}}
-		show_download_button={false}
+		show_download_button={allow_file_downloads}
 		on:load
 	/>
 {:else if type === "video"}
@@ -57,7 +58,7 @@
 		show_share_button={true}
 		{i18n}
 		{upload}
-		show_download_button={false}
+		show_download_button={allow_file_downloads}
 		on:load
 	>
 		<track kind="captions" />
@@ -68,7 +69,7 @@
 		{value}
 		show_label={false}
 		label="chatbot-image"
-		show_download_button={false}
+		show_download_button={allow_file_downloads}
 		on:load
 		{i18n}
 	/>

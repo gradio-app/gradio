@@ -38,6 +38,7 @@ class DateTime(FormComponent):
         scale: int | None = None,
         min_width: int = 160,
         visible: bool = True,
+        interactive: bool | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
@@ -76,6 +77,7 @@ class DateTime(FormComponent):
         )
         self.type = type
         self.include_time = include_time
+        self.interactive = interactive
         self.time_format = "%Y-%m-%d %H:%M:%S" if include_time else "%Y-%m-%d"
         self.timezone = timezone
 

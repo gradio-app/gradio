@@ -1,5 +1,34 @@
 # @gradio/dataframe
 
+## 0.12.4
+
+### Fixes
+
+- [#9945](https://github.com/gradio-app/gradio/pull/9945) [`e9f0d03`](https://github.com/gradio-app/gradio/commit/e9f0d0315d27325f55a8b1c5c763d07e3d78fd06) - Ensure Enter is correctly handled in Safari and Firefox.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/button@0.3.8
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+
+## 0.12.3
+
+### Fixes
+
+- [#9949](https://github.com/gradio-app/gradio/pull/9949) [`cfb62bf`](https://github.com/gradio-app/gradio/commit/cfb62bfdb52d88295f27287f788fca977e37ae6d) - Allow dataframe column content to wrap.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/button@0.3.7
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+
 ## 0.12.2
 
 ### Fixes

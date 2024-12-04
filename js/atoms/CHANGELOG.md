@@ -1,5 +1,17 @@
 # @gradio/atoms
 
+## 0.11.2
+
+### Dependency updates
+
+- @gradio/utils@0.9.0
+
+## 0.11.1
+
+### Dependency updates
+
+- @gradio/utils@0.8.0
+
 ## 0.11.0
 
 ### Features
