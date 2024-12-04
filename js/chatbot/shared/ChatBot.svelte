@@ -356,7 +356,7 @@
 				/>
 			{/each}
 			{#if pending_message}
-				<Pending {layout} />
+				<Pending {layout} {avatar_images} />
 			{:else if options}
 				<div class="options">
 					{#each options as option, index}
