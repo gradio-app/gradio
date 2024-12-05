@@ -800,18 +800,18 @@ class ChatInterface(Blocks):
         if self.multimodal:
             message = cast(ExampleMessage, message)
             if self.type == "tuples":
-                if "text" in message:
-                    result.append([message["text"], None])
                 for file in message.get("files", []):
                     result.append([file, None])
+                if "text" in message:
+                    result.append([message["text"], None])
                 result[-1][1] = response
             else:
-                if "text" in message:
-                    result.append({"role": "user", "content": message["text"]})
                 for file in message.get("files", []):
                     if isinstance(file, dict):
                         file = file.get("path")
                     result.append({"role": "user", "content": (file,)})
+                if "text" in message:
+                    result.append({"role": "user", "content": message["text"]})
                 result.append({"role": "assistant", "content": response})
         else:
             message = cast(str, message)
