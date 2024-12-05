@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
 
 import gradio_client.utils as client_utils
-from gradio_client.documentation import document
 from gradio_client import handle_file
+from gradio_client.documentation import document
 from pydantic import Field
 from typing_extensions import NotRequired
 
@@ -212,11 +212,19 @@ class MultimodalTextbox(FormComponent):
         return MultimodalData(text=text, files=files)
 
     def example_payload(self) -> Any:
-        return {"text": "Describe this image", "files": [handle_file(
-            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
-        )]}
+        return {
+            "text": "Describe this image",
+            "files": [
+                handle_file(
+                    "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+                )
+            ],
+        }
 
     def example_value(self) -> Any:
-        return {"text": "Describe this image", "files": [
-            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
-        ]}
+        return {
+            "text": "Describe this image",
+            "files": [
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            ],
+        }
