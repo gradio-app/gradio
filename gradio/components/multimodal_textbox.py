@@ -118,8 +118,6 @@ class MultimodalTextbox(FormComponent):
         """
         self.file_types = file_types
         self.file_count = file_count
-        if value is None:
-            value = {"text": "", "files": []}
         if file_types is not None and not isinstance(file_types, list):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
@@ -172,7 +170,7 @@ class MultimodalTextbox(FormComponent):
             "files": [f.path for f in payload.files],
         }
 
-    def postprocess(self, value: MultimodalValue | str | None) -> MultimodalData:
+    def postprocess(self, value: MultimodalValue | str | None) -> MultimodalData | None:
         """
         Parameters:
             value: Expects a {dict} with "text" and "files", both optional. The files array is a list of file paths or URLs.
@@ -180,7 +178,7 @@ class MultimodalTextbox(FormComponent):
             The value to display in the multimodal textbox. Files information as a list of FileData objects.
         """
         if value is None:
-            return MultimodalData(text="", files=[])
+            return None
         if not isinstance(value, (dict, str)):
             raise ValueError(
                 f"MultimodalTextbox expects a string or a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
