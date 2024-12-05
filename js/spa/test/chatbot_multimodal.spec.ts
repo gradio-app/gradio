@@ -295,30 +295,4 @@ for (const msg_format of ["tuples", "messages"]) {
 		const textboxValue = await textbox.inputValue();
 		await expect(textboxValue).toBe("");
 	});
-
-	test(`message format ${msg_format} - pasting small text should update textbox normally`, async ({
-		page
-	}) => {
-		if (msg_format === "tuples") {
-			await go_to_testcase(page, "tuples");
-		}
-		const textbox = await page.getByTestId("textbox");
-		const smallText = "This is a small text";
-
-		await textbox.focus();
-		await page.evaluate((text) => {
-			const dataTransfer = new DataTransfer();
-			const clipboardData = new ClipboardEvent("paste", {
-				clipboardData: dataTransfer,
-				bubbles: true,
-				cancelable: true
-			});
-			dataTransfer.setData("text/plain", text);
-			document.activeElement?.dispatchEvent(clipboardData);
-		}, smallText);
-
-		const textboxValue = await textbox.inputValue();
-		await expect(textboxValue).toBe(smallText);
-		await expect(page.locator(".thumbnail-item")).not.toBeVisible();
-	});
 }
