@@ -44,7 +44,7 @@
 		show_share_button={true}
 		{i18n}
 		label=""
-		waveform_settings={{autoplay: true}}
+		waveform_settings={{autoplay: props.autoplay}}
 		waveform_options={{}}
 		show_download_button={allow_file_downloads}
 		on:load
@@ -52,7 +52,7 @@
 {:else if type === "video"}
 	<svelte:component
 		this={components[type]}
-		autoplay={true}
+		autoplay={props.autoplay}
 		value={value.video || value}
 		show_label={false}
 		show_share_button={true}
