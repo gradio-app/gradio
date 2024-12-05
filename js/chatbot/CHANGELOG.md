@@ -1,5 +1,22 @@
 # @gradio/chatbot
 
+## 0.18.0
+
+### Features
+
+- [#10099](https://github.com/gradio-app/gradio/pull/10099) [`8530b6e`](https://github.com/gradio-app/gradio/commit/8530b6e2f986421adceda98f972e6b843bc03fbe) - Redesign pending bubble in Chatbot.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10123](https://github.com/gradio-app/gradio/pull/10123) [`36e9597`](https://github.com/gradio-app/gradio/commit/36e95977b068a96661f06b56c5f4e73ba8a94a38) - Fixes options in the streaming chatbot case.  Thanks @abidlabs!
+- [#10125](https://github.com/gradio-app/gradio/pull/10125) [`b02c8b7`](https://github.com/gradio-app/gradio/commit/b02c8b7d4f85dab21a9fbd782e459de7b56558ed) - Fix sharing on chatbot with spaces.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/gallery@0.13.10
+- @gradio/image@0.18.0
+- @gradio/video@0.12.0
+
 ## 0.17.0
 
 ### Features

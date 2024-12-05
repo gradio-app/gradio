@@ -18,6 +18,7 @@
 		set_available_devices
 	} from "./stream_utils";
 	import type { Base64File } from "./types";
+	import type { int } from "babylonjs";
 
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
@@ -52,6 +53,7 @@
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
+	export let webcam_constraints: { [key: string]: any } | null = null;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
 	export let value: FileData | null | Base64File = null;
@@ -80,21 +82,24 @@
 		const target = event.target as HTMLInputElement;
 		const device_id = target.value;
 
-		await get_video_stream(include_audio, video_source, device_id).then(
-			async (local_stream) => {
-				stream = local_stream;
-				selected_device =
-					available_video_devices.find(
-						(device) => device.deviceId === device_id
-					) || null;
-				options_open = false;
-			}
-		);
+		await get_video_stream(
+			include_audio,
+			video_source,
+			webcam_constraints,
+			device_id
+		).then(async (local_stream) => {
+			stream = local_stream;
+			selected_device =
+				available_video_devices.find(
+					(device) => device.deviceId === device_id
+				) || null;
+			options_open = false;
+		});
 	};
 
 	async function access_webcam(): Promise<void> {
 		try {
-			get_video_stream(include_audio, video_source)
+			get_video_stream(include_audio, video_source, webcam_constraints)
 				.then(async (local_stream) => {
 					webcam_accessed = true;
 					available_video_devices = await get_devices();

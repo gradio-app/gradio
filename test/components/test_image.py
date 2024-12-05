@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import cast
 
 import numpy as np
@@ -56,13 +57,14 @@ class TestImage:
             "streamable": False,
             "type": "pil",
             "placeholder": None,
+            "webcam_constraints": None,
         }
         assert image_input.preprocess(None) is None
         image_input = gr.Image()
         assert image_input.preprocess(img) is not None
         image_input.preprocess(img)
         file_image = gr.Image(type="filepath", image_mode=None)
-        assert img.path == file_image.preprocess(img)
+        assert Path(img.path).name == Path(str(file_image.preprocess(img))).name  # type: ignore
         with pytest.raises(ValueError):
             gr.Image(type="unknown")  # type: ignore
 

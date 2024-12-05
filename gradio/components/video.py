@@ -98,6 +98,7 @@ class Video(StreamingOutput, Component):
         loop: bool = False,
         streaming: bool = False,
         watermark: str | Path | None = None,
+        webcam_constraints: dict[str, Any] | None = None,
     ):
         """
         Parameters:
@@ -129,6 +130,7 @@ class Video(StreamingOutput, Component):
             loop: if True, the video will loop when it reaches the end and continue playing from the beginning.
             streaming: when used set as an output, takes video chunks yielded from the backend and combines them into one streaming video output. Each chunk should be a video file with a .ts extension using an h.264 encoding. Mp4 files are also accepted but they will be converted to h.264 encoding.
             watermark: an image file to be included as a watermark on the video. The image is not scaled and is displayed on the bottom right of the video. Valid formats for the image are: jpeg, png.
+            webcam_constraints: A dictionary that allows developers to specify custom media constraints for the webcam stream. This parameter provides flexibility to control the video stream's properties, such as resolution and front or rear camera on mobile devices. See $demo/webcam_constraints
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -165,6 +167,7 @@ class Video(StreamingOutput, Component):
         self.max_length = max_length
         self.streaming = streaming
         self.watermark = watermark
+        self.webcam_constraints = webcam_constraints
         super().__init__(
             label=label,
             every=every,
