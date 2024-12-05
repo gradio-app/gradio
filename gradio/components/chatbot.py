@@ -465,7 +465,6 @@ class Chatbot(Component):
         | ComponentMessage
         | None,
     ) -> str | FileMessage | ComponentMessage | None:
-        chat_message = copy.deepcopy(chat_message)
         if chat_message is None:
             return None
         if isinstance(chat_message, (FileMessage, ComponentMessage, str)):
@@ -509,6 +508,7 @@ class Chatbot(Component):
     def _postprocess_message_messages(
         self, message: MessageDict | ChatMessage
     ) -> Message:
+        message = copy.deepcopy(message)
         if isinstance(message, dict):
             message["content"] = self._postprocess_content(message["content"])
             msg = Message(**message)  # type: ignore
