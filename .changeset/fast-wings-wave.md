@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix API docs for `multimodal_textbox.py`
+fix:Fix API docs for `multimodal_textbox.py`
