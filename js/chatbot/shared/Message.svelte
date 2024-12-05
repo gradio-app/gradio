@@ -105,6 +105,7 @@
 	class="message-row {layout} {role}-row"
 	class:with_avatar={avatar_img !== null}
 	class:with_opposite_avatar={opposite_avatar_img !== null}
+	class:message-fit={layout === "bubble" && !bubble_full_width}
 >
 	{#if avatar_img !== null}
 		<div class="avatar-container">
@@ -304,7 +305,7 @@
 	}
 
 	.message-fit {
-		width: fit-content !important;
+		width: 60% !important;
 	}
 
 	.panel-full-width {
