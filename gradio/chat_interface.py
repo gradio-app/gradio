@@ -787,15 +787,8 @@ class ChatInterface(Blocks):
         to the example message. Then, if example caching is enabled, the cached response is loaded
         and added to the chat history as well.
         """
-        example = self._flatten_example_files(example)
-        if self.type == "tuples":
-            history = [(example.value["text"], None)]
-            for file in example.value["files"]:
-                history.append(((file), None))
-        else:
-            history = [MessageDict(role="user", content=example.value["text"])]
-            for file in example.value["files"]:
-                history.append(MessageDict(role="user", content=file))
+        history = []
+        self._append_multimodal_history(example.value, None, history)
         message = example.value if self.multimodal else example.value["text"]
         yield history, message
         if self.cache_examples:
