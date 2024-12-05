@@ -5,6 +5,7 @@
 	import type { ExampleMessage } from "../types";
 	import { createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
+	import type { FileData } from "@gradio/client";
 
 	export let examples: ExampleMessage[] | null = null;
 	export let placeholder: string | null = null;
@@ -19,11 +20,21 @@
 		example_select: SelectData;
 	}>();
 
-	function handle_example_select(i: number, example: ExampleMessage): void {
+	function handle_example_select(
+		i: number,
+		example: ExampleMessage | string
+	): void {
+		const example_obj =
+			typeof example === "string" ? { text: example } : example;
 		dispatch("example_select", {
 			index: i,
-			value: { text: example.text, files: example.files }
+			value: { text: example_obj.text, files: example_obj.files }
 		});
+	}
+
+	function get_file_icons(files: FileData[] | undefined): FileData[] {
+		if (!files) return [];
+		return files.slice(0, 5).filter((f) => !f.mime_type?.includes("image"));
 	}
 </script>
 
@@ -38,60 +49,81 @@
 			{#each examples as example, i}
 				<button
 					class="example"
-					on:click={() => handle_example_select(i, example)}
+					on:click={() =>
+						handle_example_select(
+							i,
+							typeof example === "string" ? { text: example } : example
+						)}
 				>
 					<div class="example-content">
 						{#if example.files !== undefined && example.files.length > 0}
 							{#if example.files.length > 1}
 								<div class="example-images-grid">
-									{#each example.files.slice(0, 4) as file, i}
-										{#if file.mime_type?.includes("image")}
-											<div class="example-image-container">
-												<Image
-													class="example-image"
-													src={file.url}
-													alt="example-image"
-												/>
-												{#if i === 3 && example.files.length > 4}
-													<div class="image-overlay">
-														+{example.files.length - 4}
-													</div>
-												{/if}
-											</div>
-										{/if}
-									{/each}
+									{#if example.files.some( (f) => f.mime_type?.includes("image") )}
+										{#each example.files.slice(0, 4) as file, i}
+											{#if file.mime_type?.includes("image")}
+												<div class="example-image-container">
+													<Image
+														class="example-image"
+														src={file.url}
+														alt="example-image"
+													/>
+													{#if i === 3 && example.files.length > 4}
+														<div class="image-overlay">
+															+{example.files.length - 4}
+														</div>
+													{/if}
+												</div>
+											{/if}
+										{/each}
+									{:else}
+										<div class="cascading-icons">
+											{#each get_file_icons(example.files) as file, i}
+												<div
+													class="example-icon"
+													aria-label={file.orig_name}
+													style="--i: {i}"
+												>
+													{#if i === 4 && example.files.filter((f) => !f.mime_type?.includes("image")).length > 5}
+														<div class="file-overlay">
+															+{example.files.filter(
+																(f) => !f.mime_type?.includes("image")
+															).length - 5}
+														</div>
+													{:else}
+														<File />
+													{/if}
+												</div>
+											{/each}
+										</div>
+									{/if}
 								</div>
 							{:else if example.files[0].mime_type?.includes("image")}
 								<div class="example-image-container">
 									<Image
 										class="example-image"
 										src={example.files[0].url}
-										alt="example-image"
+										alt={example.files[0].orig_name || "example image"}
 									/>
 								</div>
 							{:else}
-								<div class="example-icon">
+								<div
+									class="example-icon"
+									aria-label={example.files[0].orig_name}
+								>
 									<File />
 								</div>
 							{/if}
 						{:else}
-							<div class="example-icon">
+							<div class="example-icon" aria-label="text example">
 								<span class="text-icon-aa">Aa</span>
 							</div>
 						{/if}
 
 						<div class="example-text-content">
-							{#if example.text}
-								<span class="example-text">{example.text}</span>
-							{:else if example.display_text}
-								<span class="example-display-text">{example.display_text}</span>
-							{/if}
-
-							{#if example.files?.[0] && !example.files[0].mime_type?.includes("image")}
-								<span class="example-file"
-									><em>{example.files[0].orig_name}</em></span
-								>
-							{/if}
+							<span class="example-text">
+								{example.display_text || example.text}
+							</span>
 						</div>
 					</div>
 				</button>
@@ -141,6 +173,7 @@
 		width: 100%;
 		gap: var(--spacing-sm);
 		border: var(--block-border-width) solid var(--block-border-color);
+		transform: translateY(0px);
 	}
 
 	.example:hover {
@@ -158,9 +191,27 @@
 
 	.example-text-content {
 		margin-top: auto;
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
+		text-align: left;
+	}
+
+	.example-text {
+		font-size: var(--text-md);
+		text-align: left;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.cascading-icons {
+		position: relative;
+		height: var(--size-8);
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.cascading-icons .example-icon {
+		position: absolute;
+		z-index: calc(3 - var(--i));
+		border: 1px solid var(--border-color-primary);
+		transform: translateX(calc(var(--i) * 1.25rem));
 	}
 
 	.example-icon {
@@ -169,9 +220,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: var(--background-fill-primary);
 		border-radius: var(--radius-lg);
-		margin-bottom: var(--spacing-lg);
+		margin-bottom: var(--spacing-xxl);
+		border: var(--block-border-width) solid var(--block-border-color);
+		background-color: var(--block-background-fill);
 	}
 
 	.example-icon :global(svg) {
@@ -185,21 +237,6 @@
 		font-weight: var(--weight-semibold);
 		color: var(--color-text-secondary);
 		line-height: 1;
-	}
-
-	.example-text,
-	.example-display-text,
-	.example-file {
-		font-size: var(--text-md);
-		width: 100%;
-		text-align: left;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.example-file {
-		font-size: var(--text-sm);
-		color: var(--color-text-secondary);
 	}
 
 	.example-image-container {
@@ -219,13 +256,9 @@
 
 	.example-images-grid {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(4, 1fr);
 		gap: var(--spacing-sm);
 		margin-bottom: var(--spacing-lg);
-	}
-
-	.example-images-grid .example-image-container {
-		margin-bottom: 0;
 	}
 
 	.image-overlay {
@@ -240,6 +273,19 @@
 		align-items: center;
 		justify-content: center;
 		font-size: var(--text-lg);
+		font-weight: var(--weight-semibold);
+		border-radius: var(--radius-lg);
+	}
+
+	.file-overlay {
+		position: absolute;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.6);
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--text-sm);
 		font-weight: var(--weight-semibold);
 		border-radius: var(--radius-lg);
 	}
