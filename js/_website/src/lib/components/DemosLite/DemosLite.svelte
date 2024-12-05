@@ -13,15 +13,14 @@
 	import { onMount } from "svelte";
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 	import WHEEL from "$lib/json/wheel.json";
-	import { excludeUnavailablePackages } from "./requirements-utils";
 
 	let generated = true;
 
 	let current_code = false;
 	let compare = false;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5174/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:5173/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -87,6 +86,8 @@
 								// }
 							} else if (parsed.info) {
 								console.log(parsed.info);
+							} else if (parsed.requirements) {
+                            	yield { requirements: parsed.requirements };
 							} else if (parsed.choices && parsed.choices.length > 0) {
 								yield parsed;
 							}
@@ -124,8 +125,10 @@
 			query,
 			SYSTEM_PROMPT.SYSTEM,
 			abortController.signal
-		)) {
-			if (chunk.choices && chunk.choices.length > 0) {
+		)) { 
+			if (chunk.requirements) {
+                demos[queried_index].requirements = chunk.requirements;
+            } else if (chunk.choices && chunk.choices.length > 0) {
 				const content = chunk.choices[0].delta.content;
 				if (content) {
 					out += content;
@@ -148,30 +151,8 @@
 						demos[queried_index].code
 					);
 				}
-			}
+            }
 		}
-
-		const system_prompt_requirements_txt = `User gives Python code.
-You return the required package list in the format of \`requirements.txt\` for pip.
-You exclude \`gradio\` from the package list because it's already installed in the user's environment.
-You only return the content of \`requirements.txt\`, without any other texts or messages.`;
-		const query_requirements_txt = demos[queried_index].code;
-		let generated_requirements_txt = "";
-		for await (const chunk of streamFromWorker(
-			query_requirements_txt,
-			system_prompt_requirements_txt,
-			abortController.signal
-		)) {
-			if (chunk.choices && chunk.choices.length > 0) {
-				const content = chunk.choices[0].delta.content;
-				if (content) {
-					generated_requirements_txt += content;
-				}
-			}
-		}
-		demos[queried_index].requirements = await excludeUnavailablePackages(
-			generated_requirements_txt.split("\n").filter((r) => r.trim() !== "")
-		);
 
 		generated = true;
 		if (selected_demo.name === demo_name) {
