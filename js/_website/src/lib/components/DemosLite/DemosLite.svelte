@@ -19,8 +19,8 @@
 	let current_code = false;
 	let compare = false;
 
-	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	const workerUrl = "http://localhost:5173/api/generate";
+	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	// const workerUrl = "http://localhost:5173/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -87,7 +87,7 @@
 							} else if (parsed.info) {
 								console.log(parsed.info);
 							} else if (parsed.requirements) {
-                            	yield { requirements: parsed.requirements };
+								yield { requirements: parsed.requirements };
 							} else if (parsed.choices && parsed.choices.length > 0) {
 								yield parsed;
 							}
@@ -125,10 +125,10 @@
 			query,
 			SYSTEM_PROMPT.SYSTEM,
 			abortController.signal
-		)) { 
+		)) {
 			if (chunk.requirements) {
-                demos[queried_index].requirements = chunk.requirements;
-            } else if (chunk.choices && chunk.choices.length > 0) {
+				demos[queried_index].requirements = chunk.requirements;
+			} else if (chunk.choices && chunk.choices.length > 0) {
 				const content = chunk.choices[0].delta.content;
 				if (content) {
 					out += content;
@@ -151,7 +151,7 @@
 						demos[queried_index].code
 					);
 				}
-            }
+			}
 		}
 
 		generated = true;
