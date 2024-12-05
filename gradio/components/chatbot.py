@@ -509,7 +509,6 @@ class Chatbot(Component):
     def _postprocess_message_messages(
         self, message: MessageDict | ChatMessage
     ) -> Message:
-        message = copy.deepcopy(message)
         if isinstance(message, dict):
             message["content"] = self._postprocess_content(message["content"])
             msg = Message(**message)  # type: ignore
