@@ -95,7 +95,7 @@ class TestInit:
             assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
     @pytest.mark.asyncio
-    async def test_example_caching_lazy(self, connect):
+    async def test_example_caching_lazy(self):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
@@ -105,16 +105,10 @@ class TestInit:
                 cache_examples=True,
                 cache_mode="lazy",
             )
-            async for _ in chatbot.examples_handler.async_lazy_cache(
-                (0, ["hello"]), "hello"
-            ):
-                pass
-            with connect(chatbot):
-                prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
             assert prediction_hello[0].root[0] == ("hello", "hello hello")
-            with pytest.raises(IndexError):
-                prediction_hi = chatbot.examples_handler.load_from_cache(1)
-                assert prediction_hi[0].root[0] == ("hi", "hi hi")
+            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
     def test_example_caching_async(self, connect):
         with patch(
@@ -231,6 +225,26 @@ class TestInit:
             (d for d in dependencies if d.targets == [(chatbot._id, "like")]),
             None,
         )
+
+    def test_chatbot_type_mismatch(self):
+        chatbot = gr.Chatbot()
+        chat_interface = gr.ChatInterface(
+            fn=lambda x, y: x, chatbot=chatbot, type="tuples"
+        )
+        assert chatbot.type == "tuples"
+        assert chat_interface.type == "tuples"
+
+        chatbot = gr.Chatbot()
+        chat_interface = gr.ChatInterface(
+            fn=lambda x, y: x, chatbot=chatbot, type="messages"
+        )
+        assert chatbot.type == "messages"
+        assert chat_interface.type == "messages"
+
+        chatbot = gr.Chatbot()
+        chat_interface = gr.ChatInterface(fn=lambda x, y: x, chatbot=chatbot)
+        assert chatbot.type == "tuples"
+        assert chat_interface.type == "tuples"
 
 
 class TestAPI:
@@ -357,3 +371,12 @@ class TestExampleMessages:
         chat = gr.ChatInterface(double)
         chat._setup_example_messages(None)
         assert chat.examples_messages == []
+
+    def test_chat_interface_api_name(self, connect):
+        chat = gr.ChatInterface(double, api_name=False)
+        assert chat.api_name is False
+        with connect(chat) as client:
+            assert client.view_api(return_format="dict")["named_endpoints"] == {}
+        chat = gr.ChatInterface(double, api_name="double")
+        with connect(chat) as client:
+            assert "/double" in client.view_api(return_format="dict")["named_endpoints"]

@@ -99,12 +99,8 @@ demos_by_category = [
         ]
     },
     {
-        "category": "Other",
+        "category": "Chatbots",
         "demos": [
-            {
-                "name": "Tabbed Interface",
-                "dir": "tabbed_interface_lite",
-            },
             {
                 "name": "Chatbot",
                 "dir": "chatinterface_random_response",
@@ -112,6 +108,23 @@ demos_by_category = [
             {
                 "name": "Streaming Chatbot",
                 "dir": "chatinterface_streaming_echo",
+            },
+            {
+                "name": "Chatbot with Tools",
+                "dir": "chatbot_with_tools",
+            },
+            {
+                "name": "Multimodal Chatbot",
+                "dir": "chatinterface_multimodal",
+            },
+        ]
+    },
+    {
+        "category": "Other",
+        "demos": [
+            {
+                "name": "Tabbed Interface",
+                "dir": "tabbed_interface_lite",
             },
             {
                 "name": "Layouts",

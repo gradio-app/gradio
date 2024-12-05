@@ -7,7 +7,7 @@
 	import { Code as CodeIcon } from "@gradio/icons";
 	import { css_units } from "@gradio/utils";
 
-	export let label: string;
+	export let label = "HTML";
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -20,15 +20,14 @@
 	export let show_label = false;
 	export let min_height: number | undefined = undefined;
 	export let max_height: number | undefined = undefined;
+	export let container = false;
 
 	$: label, gradio.dispatch("change");
 </script>
 
-<Block {visible} {elem_id} {elem_classes} container={false}>
+<Block {visible} {elem_id} {elem_classes} {container} padding={false}>
 	{#if show_label}
-		<span class="label-container">
-			<BlockLabel Icon={CodeIcon} {show_label} {label} float={true} />
-		</span>
+		<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />
 	{/if}
 
 	<StatusTracker
@@ -39,6 +38,7 @@
 		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<div
+		class="html-container"
 		class:pending={loading_status?.status === "pending"}
 		style:min-height={min_height && loading_status?.status !== "pending"
 			? css_units(min_height)
@@ -55,22 +55,15 @@
 </Block>
 
 <style>
+	.html-container {
+		padding: var(--block-padding);
+	}
+
 	div {
 		transition: 150ms;
 	}
 
 	.pending {
 		opacity: 0.2;
-	}
-
-	.label-container :global(label) {
-		top: -8px !important;
-		position: relative !important;
-		left: -8px !important;
-		background: var(--block-background-fill) !important;
-		border-top: var(--block-label-border-width) solid
-			var(--border-color-primary) !important;
-		border-left: var(--block-label-border-width) solid
-			var(--border-color-primary) !important;
 	}
 </style>
