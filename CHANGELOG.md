@@ -1,5 +1,28 @@
 # gradio
 
+## 5.8.0
+
+### Features
+
+- [#10083](https://github.com/gradio-app/gradio/pull/10083) [`b2a21c6`](https://github.com/gradio-app/gradio/commit/b2a21c643dc5e50581567cbde7b660357b3d982e) - Add HTML support to paramviewer descriptions.  Thanks @aliabd!
+- [#10096](https://github.com/gradio-app/gradio/pull/10096) [`ec10aa3`](https://github.com/gradio-app/gradio/commit/ec10aa3b9b42d8c3fe930aff9465c469626992d4) - Fix paramviewer descriptions to only render markdown links.  Thanks @aliabd!
+- [#10080](https://github.com/gradio-app/gradio/pull/10080) [`ebe25bc`](https://github.com/gradio-app/gradio/commit/ebe25bc13f3b2a90876c59a816c6976fd12b6b73) - Fix chatbot/chatinterface type mismatch.  Thanks @abidlabs!
+- [#10071](https://github.com/gradio-app/gradio/pull/10071) [`01b919f`](https://github.com/gradio-app/gradio/commit/01b919f04b69732fd8adb52f6d156e5683589221) - Support `additional_outputs` in `gr.ChatInterface`.  Thanks @abidlabs!
+- [#10081](https://github.com/gradio-app/gradio/pull/10081) [`b94f010`](https://github.com/gradio-app/gradio/commit/b94f010a5672730d50b191c0b92df1676bb7144c) - Apply Zero GPU for `gr.ChatInterface`.  Thanks @abidlabs!
+- [#10099](https://github.com/gradio-app/gradio/pull/10099) [`8530b6e`](https://github.com/gradio-app/gradio/commit/8530b6e2f986421adceda98f972e6b843bc03fbe) - Redesign pending bubble in Chatbot.  Thanks @hannahblair!
+- [#10032](https://github.com/gradio-app/gradio/pull/10032) [`e450674`](https://github.com/gradio-app/gradio/commit/e450674ce41ca28f1f37a27fb149c728593a6ddf) - add  `webcam_height` and `webcam_width` to specify the resolution of the Webcam.  Thanks @yinsumirage!
+
+### Fixes
+
+- [#10123](https://github.com/gradio-app/gradio/pull/10123) [`36e9597`](https://github.com/gradio-app/gradio/commit/36e95977b068a96661f06b56c5f4e73ba8a94a38) - Fixes options in the streaming chatbot case.  Thanks @abidlabs!
+- [#10095](https://github.com/gradio-app/gradio/pull/10095) [`97d647e`](https://github.com/gradio-app/gradio/commit/97d647ecfdf3999b0a776e51abf69ef0cf6a050c) - Fix state changes within a gr.render.  Thanks @aliabid94!
+- [#10094](https://github.com/gradio-app/gradio/pull/10094) [`98dd668`](https://github.com/gradio-app/gradio/commit/98dd6687e1d4cc527fdc21083cba74533032a417) - add http codes 303 and 307 to `url_ok`.  Thanks @sharon-wang!
+- [#10125](https://github.com/gradio-app/gradio/pull/10125) [`b02c8b7`](https://github.com/gradio-app/gradio/commit/b02c8b7d4f85dab21a9fbd782e459de7b56558ed) - Fix sharing on chatbot with spaces.  Thanks @aliabid94!
+- [#10124](https://github.com/gradio-app/gradio/pull/10124) [`5d61c7b`](https://github.com/gradio-app/gradio/commit/5d61c7b70131ed0a7e73b883b687b7df5255a17b) - Fix lazy caching.  Thanks @abidlabs!
+- [#10114](https://github.com/gradio-app/gradio/pull/10114) [`ce5680f`](https://github.com/gradio-app/gradio/commit/ce5680f10fb572407a83d8ff8954379e2aaaab65) - Add event and gr.Select data support in gr.render blocks.  Thanks @aliabid94!
+- [#10113](https://github.com/gradio-app/gradio/pull/10113) [`de42c85`](https://github.com/gradio-app/gradio/commit/de42c85661faff84bd02960751b12c4bb722e153) - fix `every=` support in render.  Thanks @aliabid94!
+- [#10090](https://github.com/gradio-app/gradio/pull/10090) [`5ea3cb5`](https://github.com/gradio-app/gradio/commit/5ea3cb51a39ba01fda7f65ff31e59955e1d12cea) - Update `requirements.txt` for `gradio` and `gradio_client`.  Thanks @abidlabs!
+
 ## 5.7.1
 
 ### Features
