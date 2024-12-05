@@ -1,5 +1,11 @@
 # @gradio/lite
 
+## 5.8.0
+
+### Features
+
+- [#10077](https://github.com/gradio-app/gradio/pull/10077) [`bf03d54`](https://github.com/gradio-app/gradio/commit/bf03d54e2fa413a4c98c4e3d6797b8b6a0a790ae) - Fix to call bootstrap_custom_element() if the script is loaded after the DOMContentLoaded event.  Thanks @whitphx!
+
 ## 5.7.0
 
 ### Dependency updates
