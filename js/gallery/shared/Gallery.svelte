@@ -1,5 +1,12 @@
 <script lang="ts">
-	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
+	import {
+		BlockLabel,
+		Empty,
+		ShareButton,
+		IconButton,
+		IconButtonWrapper,
+		FullscreenButton
+	} from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
@@ -19,7 +26,6 @@
 	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
-	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 
 	type GalleryData = GalleryImage | GalleryVideo;
@@ -44,7 +50,7 @@
 	export let show_fullscreen_button = true;
 
 	let is_full_screen = false;
-	let gallery_container: HTMLElement;
+	let image_container: HTMLElement;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -221,14 +227,6 @@
 			is_full_screen = !!document.fullscreenElement;
 		});
 	});
-
-	const toggle_full_screen = async (): Promise<void> => {
-		if (!is_full_screen) {
-			await gallery_container.requestFullscreen();
-		} else {
-			await document.exitFullscreen();
-		}
-	};
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -239,7 +237,7 @@
 {#if value == null || resolved_value == null || resolved_value.length === 0}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
-	<div class="gallery-container" bind:this={gallery_container}>
+	<div class="gallery-container" bind:this={image_container}>
 		{#if selected_media && allow_preview}
 			<button
 				on:keydown={on_keydown}
@@ -267,23 +265,10 @@
 						/>
 					{/if}
 
-					{#if show_fullscreen_button && !is_full_screen}
-						<IconButton
-							Icon={is_full_screen ? Minimize : Maximize}
-							label={is_full_screen
-								? "Exit full screen"
-								: "View in full screen"}
-							on:click={toggle_full_screen}
-						/>
+					{#if show_fullscreen_button}
+						<FullscreenButton container={image_container} />
 					{/if}
 
-					{#if show_fullscreen_button && is_full_screen}
-						<IconButton
-							Icon={Minimize}
-							label="Exit full screen"
-							on:click={toggle_full_screen}
-						/>
-					{/if}
 					{#if show_share_button}
 						<div class="icon-button">
 							<ShareButton
