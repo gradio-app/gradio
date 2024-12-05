@@ -611,11 +611,8 @@ class ChatInterface(Blocks):
         else:
             for x in message.get("files", []):
                 if isinstance(x, dict):
-                    history.append(  # type: ignore
-                        {"role": "user", "content": cast(FileDataDict, x)}  # type: ignore
-                    )
-                else:
-                    history.append({"role": "user", "content": (x,)})  # type: ignore
+                    x = x.get("path")
+                history.append({"role": "user", "content": (x,)})  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
                 return
             else:
@@ -789,6 +786,7 @@ class ChatInterface(Blocks):
         """
         history = []
         self._append_multimodal_history(example.value, None, history)
+        example = self._flatten_example_files(example)
         message = example.value if self.multimodal else example.value["text"]
         yield history, message
         if self.cache_examples:
@@ -811,7 +809,9 @@ class ChatInterface(Blocks):
                 if "text" in message:
                     result.append({"role": "user", "content": message["text"]})
                 for file in message.get("files", []):
-                    result.append({"role": "assistant", "content": file})
+                    if isinstance(file, dict):
+                        file = file.get("path")
+                    result.append({"role": "user", "content": (file,)})
                 result.append({"role": "assistant", "content": response})
         else:
             message = cast(str, message)
