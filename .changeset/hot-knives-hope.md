@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Quick Fix: Fixes autoplay parameter for Audio in Chatbot
+fix:Quick Fix: Fixes autoplay parameter for Audio/Video in Chatbot
