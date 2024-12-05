@@ -29,7 +29,6 @@ from gradio.components import (
 )
 from gradio.components.chatbot import (
     ExampleMessage,
-    FileDataDict,
     Message,
     MessageDict,
     TupleFormat,
