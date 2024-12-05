@@ -116,6 +116,7 @@
 	.image-container {
 		height: 100%;
 		position: relative;
+		min-width: var(--size-20);
 	}
 
 	.image-container button {

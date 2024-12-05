@@ -198,6 +198,7 @@
 		}
 	}
 	$: groupedMessages = value && group_messages(value, msg_format);
+	$: options = value && get_last_bot_options();
 
 	function handle_example_select(i: number, example: ExampleMessage): void {
 		dispatch("example_select", {
@@ -355,25 +356,22 @@
 				/>
 			{/each}
 			{#if pending_message}
-				<Pending {layout} />
-			{:else}
-				{@const options = get_last_bot_options()}
-				{#if options}
-					<div class="options">
-						{#each options as option, index}
-							<button
-								class="option"
-								on:click={() =>
-									dispatch("option_select", {
-										index: index,
-										value: option.value
-									})}
-							>
-								{option.label || option.value}
-							</button>
-						{/each}
-					</div>
-				{/if}
+				<Pending {layout} {avatar_images} />
+			{:else if options}
+				<div class="options">
+					{#each options as option, index}
+						<button
+							class="option"
+							on:click={() =>
+								dispatch("option_select", {
+									index: index,
+									value: option.value
+								})}
+						>
+							{option.label || option.value}
+						</button>
+					{/each}
+				</div>
 			{/if}
 		</div>
 	{:else}

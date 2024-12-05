@@ -3,7 +3,7 @@ anyio>=3.0,<5.0
 audioop-lts<1.0; python_version >= "3.13" #it provides support for 'audioop' module removed in latest python version used by pydub
 fastapi>=0.115.2,<1.0
 ffmpy
-gradio_client==1.5.0
+gradio_client==1.5.1
 httpx>=0.24.1
 huggingface_hub>=0.25.1
 Jinja2<4.0
