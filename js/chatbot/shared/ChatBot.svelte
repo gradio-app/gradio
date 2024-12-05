@@ -15,7 +15,6 @@
 
 	import { dequal } from "dequal/lite";
 	import {
-		afterUpdate,
 		createEventDispatcher,
 		type SvelteComponent,
 		type ComponentType,
@@ -24,13 +23,7 @@
 	} from "svelte";
 	import { Image } from "@gradio/image/shared";
 
-	import {
-		Clear,
-		Trash,
-		Community,
-		ScrollDownArrow,
-		Download
-	} from "@gradio/icons";
+	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
@@ -173,24 +166,6 @@
 		};
 	});
 
-	let image_preview_source: string;
-	let image_preview_source_alt: string;
-	let is_image_preview_open = false;
-
-	afterUpdate(() => {
-		if (!div) return;
-		div.querySelectorAll("img").forEach((n) => {
-			n.addEventListener("click", (e) => {
-				const target = e.target as HTMLImageElement;
-				if (target) {
-					image_preview_source = target.src;
-					image_preview_source_alt = target.alt;
-					is_image_preview_open = true;
-				}
-			});
-		});
-	});
-
 	$: {
 		if (!dequal(value, old_value)) {
 			old_value = value;
@@ -300,26 +275,6 @@
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
 				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
 				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
-				{#if is_image_preview_open}
-					<div class="image-preview">
-						<img src={image_preview_source} alt={image_preview_source_alt} />
-						<IconButtonWrapper>
-							<IconButton
-								Icon={Clear}
-								on:click={() => (is_image_preview_open = false)}
-								label={"Clear"}
-							/>
-							{#if allow_file_downloads}
-								<DownloadLink
-									href={image_preview_source}
-									download={image_preview_source_alt || "image"}
-								>
-									<IconButton Icon={Download} label={"Download"} />
-								</DownloadLink>
-							{/if}
-						</IconButtonWrapper>
-					</div>
-				{/if}
 				<Message
 					{messages}
 					{opposite_avatar_img}
@@ -639,20 +594,6 @@
 			var(--shadow-drop),
 			0 2px 2px rgba(0, 0, 0, 0.05);
 		transform: translateY(-2px);
-	}
-
-	.image-preview {
-		position: absolute;
-		z-index: 999;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		overflow: auto;
-		background-color: var(--background-fill-secondary);
-		display: flex;
-		justify-content: center;
-		align-items: center;
 	}
 
 	.options {
