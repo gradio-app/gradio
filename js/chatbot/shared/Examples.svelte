@@ -15,7 +15,7 @@
 		display: boolean;
 	}[];
 	export let root: string;
-	let multimodal = true;
+	export let multimodal = false;
 
 	const dispatch = createEventDispatcher<{
 		example_select: SelectData;
@@ -31,18 +31,6 @@
 			index: i,
 			value: { text: example_obj.text, files: example_obj.files }
 		});
-	}
-
-	function get_file_icons(files: FileData[] | undefined): FileData[] {
-		if (!files) return [];
-		return files
-			.slice(0, 4)
-			.filter(
-				(f) =>
-					!f.mime_type?.includes("image") &&
-					!f.mime_type?.includes("video") &&
-					!f.mime_type?.includes("audio")
-			);
 	}
 </script>
 
