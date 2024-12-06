@@ -14,4 +14,6 @@ demo = gr.ChatInterface(
     title="Echo Bot",
     multimodal=True,
 )
-demo.launch()
+
+if __name__ == "__main__":
+    demo.launch()
