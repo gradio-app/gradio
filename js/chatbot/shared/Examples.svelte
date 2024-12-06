@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Image } from "@gradio/image/shared";
 	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
-	import { File } from "@gradio/icons";
+	import { File, Music, Video } from "@gradio/icons";
 	import type { ExampleMessage } from "../types";
 	import { createEventDispatcher } from "svelte";
 	import type { SelectData } from "@gradio/utils";
@@ -15,7 +15,7 @@
 		display: boolean;
 	}[];
 	export let root: string;
-	export let multimodal = false;
+	let multimodal = true;
 
 	const dispatch = createEventDispatcher<{
 		example_select: SelectData;
@@ -35,7 +35,14 @@
 
 	function get_file_icons(files: FileData[] | undefined): FileData[] {
 		if (!files) return [];
-		return files.slice(0, 5).filter((f) => !f.mime_type?.includes("image"));
+		return files
+			.slice(0, 4)
+			.filter(
+				(f) =>
+					!f.mime_type?.includes("image") &&
+					!f.mime_type?.includes("video") &&
+					!f.mime_type?.includes("audio")
+			);
 	}
 </script>
 
@@ -74,7 +81,7 @@
 										role="group"
 										aria-label="Example attachments"
 									>
-										{#if example.files.some( (f) => f.mime_type?.includes("image") )}
+										{#if example.files.some((f) => f.mime_type?.includes("image") || f.mime_type?.includes("video"))}
 											{#each example.files.slice(0, 4) as file, i}
 												{#if file.mime_type?.includes("image")}
 													<div class="example-image-container">
@@ -87,7 +94,24 @@
 															<div
 																class="image-overlay"
 																role="status"
-																aria-label={`${example.files.length - 4} more images`}
+																aria-label={`${example.files.length - 4} more files`}
+															>
+																+{example.files.length - 4}
+															</div>
+														{/if}
+													</div>
+												{:else if file.mime_type?.includes("video")}
+													<div class="example-image-container">
+														<video
+															class="example-image"
+															src={file.url}
+															aria-hidden="true"
+														/>
+														{#if i === 3 && example.files.length > 4}
+															<div
+																class="image-overlay"
+																role="status"
+																aria-label={`${example.files.length - 4} more files`}
 															>
 																+{example.files.length - 4}
 															</div>
@@ -101,23 +125,29 @@
 												role="group"
 												aria-label="File attachments"
 											>
-												{#each get_file_icons(example.files) as file}
+												{#each example.files.slice(0, 4) as file}
 													<div
 														class="example-icon"
 														aria-label={`File: ${file.orig_name}`}
 													>
-														<File />
+														{#if file.mime_type?.includes("audio")}
+															<Music />
+														{:else}
+															<File />
+														{/if}
 													</div>
 												{/each}
-												{#if example.files.filter((f) => !f.mime_type?.includes("image")).length > 4}
+												{#if example.files.filter((f) => !f.mime_type?.includes("image") && !f.mime_type?.includes("video")).length > 4}
 													<div class="example-icon">
 														<div
 															class="file-overlay"
 															role="status"
-															aria-label={`${example.files.filter((f) => !f.mime_type?.includes("image")).length - 4} more files`}
+															aria-label={`${example.files.filter((f) => !f.mime_type?.includes("image") && !f.mime_type?.includes("video")).length - 4} more files`}
 														>
 															+{example.files.filter(
-																(f) => !f.mime_type?.includes("image")
+																(f) =>
+																	!f.mime_type?.includes("image") &&
+																	!f.mime_type?.includes("video")
 															).length - 4}
 														</div>
 													</div>
@@ -132,6 +162,21 @@
 											src={example.files[0].url}
 											alt={example.files[0].orig_name || "Example image"}
 										/>
+									</div>
+								{:else if example.files[0].mime_type?.includes("video")}
+									<div class="example-image-container">
+										<video
+											class="example-image"
+											src={example.files[0].url}
+											aria-hidden="true"
+										/>
+									</div>
+								{:else if example.files[0].mime_type?.includes("audio")}
+									<div
+										class="example-icon"
+										aria-label={`File: ${example.files[0].orig_name}`}
+									>
+										<Music />
 									</div>
 								{:else}
 									<div
