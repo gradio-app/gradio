@@ -64,6 +64,7 @@
 		clear: null;
 		copy: CopyData;
 	}>;
+	export let multimodal = false;
 
 	let _value: NormalisedMessage[] | null = [];
 
@@ -163,6 +164,7 @@
 			msg_format={type}
 			root={gradio.root}
 			{allow_file_downloads}
+			{multimodal}
 		/>
 	</div>
 </Block>

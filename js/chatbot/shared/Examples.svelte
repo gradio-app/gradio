@@ -15,6 +15,7 @@
 		display: boolean;
 	}[];
 	export let root: string;
+	export let multimodal = false;
 
 	const dispatch = createEventDispatcher<{
 		example_select: SelectData;
@@ -56,91 +57,101 @@
 						)}
 					aria-label={`Select example ${i + 1}: ${example.display_text || example.text}`}
 				>
-					<div class="example-content">
-						{#if example.files !== undefined && example.files.length > 0}
-							{#if example.files.length > 1}
-								<div
-									class="example-images-grid"
-									role="group"
-									aria-label="Example attachments"
-								>
-									{#if example.files.some( (f) => f.mime_type?.includes("image") )}
-										{#each example.files.slice(0, 4) as file, i}
-											{#if file.mime_type?.includes("image")}
-												<div class="example-image-container">
-													<Image
-														class="example-image"
-														src={file.url}
-														alt={file.orig_name || `Example image ${i + 1}`}
-													/>
-													{#if i === 3 && example.files.length > 4}
-														<div
-															class="image-overlay"
-															role="status"
-															aria-label={`${example.files.length - 4} more images`}
-														>
-															+{example.files.length - 4}
-														</div>
-													{/if}
-												</div>
-											{/if}
-										{/each}
-									{:else}
-										<div
-											class="cascading-icons"
-											role="group"
-											aria-label="File attachments"
-										>
-											{#each get_file_icons(example.files) as file, i}
-												<div
-													class="example-icon"
-													aria-label={`File: ${file.orig_name}`}
-													style="--i: {i}"
-												>
-													{#if i === 4 && example.files.filter((f) => !f.mime_type?.includes("image")).length > 5}
-														<div
-															class="file-overlay"
-															role="status"
-															aria-label={`${example.files.filter((f) => !f.mime_type?.includes("image")).length - 5} more files`}
-														>
-															+{example.files.filter(
-																(f) => !f.mime_type?.includes("image")
-															).length - 5}
-														</div>
-													{:else}
-														<File />
-													{/if}
-												</div>
-											{/each}
-										</div>
-									{/if}
-								</div>
-							{:else if example.files[0].mime_type?.includes("image")}
+					<div class="example-content" class:no-multimodal={!multimodal}>
+						{#if multimodal}
+							{#if example.icon}
 								<div class="example-image-container">
 									<Image
 										class="example-image"
-										src={example.files[0].url}
-										alt={example.files[0].orig_name || "Example image"}
+										src={example.icon.url}
+										alt="Example icon"
 									/>
 								</div>
+							{:else if example.files !== undefined && example.files.length > 0}
+								{#if example.files.length > 1}
+									<div
+										class="example-icons-grid"
+										role="group"
+										aria-label="Example attachments"
+									>
+										{#if example.files.some( (f) => f.mime_type?.includes("image") )}
+											{#each example.files.slice(0, 4) as file, i}
+												{#if file.mime_type?.includes("image")}
+													<div class="example-image-container">
+														<Image
+															class="example-image"
+															src={file.url}
+															alt={file.orig_name || `Example image ${i + 1}`}
+														/>
+														{#if i === 3 && example.files.length > 4}
+															<div
+																class="image-overlay"
+																role="status"
+																aria-label={`${example.files.length - 4} more images`}
+															>
+																+{example.files.length - 4}
+															</div>
+														{/if}
+													</div>
+												{/if}
+											{/each}
+										{:else}
+											<div
+												class="example-icons-grid"
+												role="group"
+												aria-label="File attachments"
+											>
+												{#each get_file_icons(example.files) as file}
+													<div
+														class="example-icon"
+														aria-label={`File: ${file.orig_name}`}
+													>
+														<File />
+													</div>
+												{/each}
+												{#if example.files.filter((f) => !f.mime_type?.includes("image")).length > 4}
+													<div class="example-icon">
+														<div
+															class="file-overlay"
+															role="status"
+															aria-label={`${example.files.filter((f) => !f.mime_type?.includes("image")).length - 4} more files`}
+														>
+															+{example.files.filter(
+																(f) => !f.mime_type?.includes("image")
+															).length - 4}
+														</div>
+													</div>
+												{/if}
+											</div>
+										{/if}
+									</div>
+								{:else if example.files[0].mime_type?.includes("image")}
+									<div class="example-image-container">
+										<Image
+											class="example-image"
+											src={example.files[0].url}
+											alt={example.files[0].orig_name || "Example image"}
+										/>
+									</div>
+								{:else}
+									<div
+										class="example-icon"
+										aria-label={`File: ${example.files[0].orig_name}`}
+									>
+										<File />
+									</div>
+								{/if}
 							{:else}
-								<div
-									class="example-icon"
-									aria-label={`File: ${example.files[0].orig_name}`}
-								>
-									<File />
+								<div class="example-icon" aria-hidden="true">
+									<span class="text-icon-aa">Aa</span>
 								</div>
 							{/if}
-						{:else}
-							<div class="example-icon" aria-hidden="true">
-								<span class="text-icon-aa">Aa</span>
-							</div>
 						{/if}
 
 						<div class="example-text-content">
-							<span class="example-text">
-								{example.display_text || example.text}
-							</span>
+							<span class="example-text"
+								>{example.display_text || example.text}</span
+							>
 						</div>
 					</div>
 				</button>
@@ -204,6 +215,7 @@
 		align-items: flex-start;
 		width: 100%;
 		height: 100%;
+		min-height: var(--size-16);
 	}
 
 	.example-text-content {
@@ -218,29 +230,24 @@
 		text-overflow: ellipsis;
 	}
 
-	.cascading-icons {
-		position: relative;
-		height: var(--size-8);
+	.example-icons-grid {
+		display: flex;
+		gap: var(--spacing-sm);
 		margin-bottom: var(--spacing-lg);
-	}
-
-	.cascading-icons .example-icon {
-		position: absolute;
-		z-index: calc(3 - var(--i));
-		border: 1px solid var(--border-color-primary);
-		transform: translateX(calc(var(--i) * 1.25rem));
+		width: 100%;
 	}
 
 	.example-icon {
+		flex-shrink: 0;
 		width: var(--size-8);
 		height: var(--size-8);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		border-radius: var(--radius-lg);
-		margin-bottom: var(--spacing-xxl);
 		border: var(--block-border-width) solid var(--block-border-color);
 		background-color: var(--block-background-fill);
+		position: relative;
 	}
 
 	.example-icon :global(svg) {
@@ -271,13 +278,6 @@
 		object-fit: cover;
 	}
 
-	.example-images-grid {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: var(--spacing-sm);
-		margin-bottom: var(--spacing-lg);
-	}
-
 	.image-overlay {
 		position: absolute;
 		top: 0;
@@ -305,5 +305,10 @@
 		font-size: var(--text-sm);
 		font-weight: var(--weight-semibold);
 		border-radius: var(--radius-lg);
+	}
+
+	.no-multimodal {
+		padding-top: var(--spacing-xxl);
+		justify-content: flex-end;
 	}
 </style>

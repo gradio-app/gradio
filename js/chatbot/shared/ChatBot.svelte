@@ -96,6 +96,7 @@
 	export let _undoable = false;
 	export let like_user_message = false;
 	export let root: string;
+	export let multimodal = false;
 
 	let target: HTMLElement | null = null;
 
@@ -382,6 +383,7 @@
 			{placeholder}
 			{latex_delimiters}
 			{root}
+			{multimodal}
 			on:example_select={(e) => dispatch("example_select", e.detail)}
 		/>
 	{/if}
