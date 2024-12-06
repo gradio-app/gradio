@@ -86,13 +86,13 @@ gradio-client==0.10.0
     # via gradio
 gradio-pdf==0.0.7
     # via -r requirements.in
-h11==0.12.0
+h11==0.14.0
     # via
     #   httpcore
     #   uvicorn
-httpcore==0.15.0
+httpcore==1.0.5
     # via httpx
-httpx==0.23.0
+httpx==0.28.1
     # via
     #   -r requirements.in
     #   gradio

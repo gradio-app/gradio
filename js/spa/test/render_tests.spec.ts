@@ -21,3 +21,16 @@ test("Test every= works in render", async ({ page }) => {
 	let box_2_value_end = parseFloat(await box_2.inputValue());
 	expect(box_2_value_end).toBeGreaterThan(box_2_value_start);
 });
+
+test("Test event/selection data works in render", async ({ page }) => {
+	const selected_button = page.getByLabel("Selected Button");
+	const slider = page.getByLabel("number input for Slider");
+	await slider.fill("3");
+	await page.getByRole("button", { name: "Button 2" }).click();
+
+	await expect(selected_button).toHaveValue("Button 2");
+
+	const selected_chat = page.getByLabel("Selected Chat");
+	await page.getByText("Hi").click();
+	await expect(selected_chat).toHaveValue("[0, 1]");
+});
