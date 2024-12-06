@@ -1,5 +1,6 @@
 ---
 "@gradio/chatbot": minor
+"@self/component-test": minor
 "gradio": minor
 ---
 
