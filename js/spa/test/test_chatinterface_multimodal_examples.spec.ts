@@ -1,9 +1,6 @@
 import { test, expect, go_to_testcase } from "@self/tootils";
 
-const cases = [
-	"not_cached",
-	"cached"
-];
+const cases = ["not_cached", "cached"];
 
 for (const test_case of cases) {
 	test(`case ${test_case}: clicked example is added to history and passed to chat function`, async ({
