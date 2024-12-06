@@ -421,7 +421,7 @@ class ChatInterface(Blocks):
             self.chatbot.retry(
                 self._delete_prev_fn,
                 [self.saved_input, self.chatbot],
-                [self.chatbot, self.saved_input],
+                [self.chatbot],
                 show_api=False,
                 queue=False,
             )
@@ -461,7 +461,7 @@ class ChatInterface(Blocks):
         self.chatbot.undo(
             self._delete_prev_fn,
             [self.saved_input, self.chatbot],
-            [self.chatbot, self.saved_input],
+            [self.chatbot],
             show_api=False,
             queue=False,
         ).then(
@@ -854,7 +854,7 @@ class ChatInterface(Blocks):
         self,
         message: str | MultimodalPostprocess | None,
         history: list[MessageDict] | TupleFormat,
-    ) -> tuple[list[MessageDict] | TupleFormat, str | MultimodalPostprocess]:
+    ) -> list[MessageDict] | TupleFormat:
         extra = 1 if self.type == "messages" else 0
         if self.multimodal and isinstance(message, dict):
             remove_input = (
@@ -865,7 +865,7 @@ class ChatInterface(Blocks):
             history = history[:-remove_input]
         else:
             history = history[: -(1 + extra)]
-        return history, message or "", message or ""  # type: ignore
+        return history
 
     def render(self) -> ChatInterface:
         # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
