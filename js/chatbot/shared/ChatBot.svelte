@@ -79,7 +79,6 @@
 	export let show_copy_button = false;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
-	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let autoscroll = true;
@@ -336,7 +335,6 @@
 					{upload}
 					{selectable}
 					{sanitize_html}
-					{bubble_full_width}
 					{render_markdown}
 					{rtl}
 					{i}
