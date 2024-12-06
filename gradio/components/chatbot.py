@@ -190,7 +190,7 @@ class Chatbot(Component):
         avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
         sanitize_html: bool = True,
         render_markdown: bool = True,
-        bubble_full_width = None,
+        bubble_full_width=None,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
@@ -270,7 +270,7 @@ class Chatbot(Component):
             warnings.warn(
                 "The 'bubble_full_width' parameter is deprecated and will be removed in a future version. This parameter no longer has any effect.",
                 DeprecationWarning,
-        )
+            )
         self.bubble_full_width = None
         self.line_breaks = line_breaks
         self.layout = layout
