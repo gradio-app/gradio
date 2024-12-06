@@ -310,11 +310,11 @@ class ChatInterface(Blocks):
                             if not input_component.is_rendered:
                                 input_component.render()
 
-                self.saved_input = State()
+                self.saved_input = State()  # Stores the most recent user message
+                self.previous_input = State(value=[])  # Stores all user messages
                 self.chatbot_state = (
                     State(self.chatbot.value) if self.chatbot.value else State([])
                 )
-                self.previous_input = State(value=[])
                 self.show_progress = show_progress
                 self._setup_events()
                 self._setup_api()
@@ -459,9 +459,15 @@ class ChatInterface(Blocks):
         self._setup_stop_events(submit_triggers, [submit_event, retry_event])
 
         self.chatbot.undo(
-            self._undo_msg,
-            [self.previous_input, self.chatbot],
-            [self.chatbot, self.textbox, self.saved_input, self.previous_input],
+            self._delete_prev_fn,
+            [self.saved_input, self.chatbot],
+            [self.chatbot, self.saved_input],
+            show_api=False,
+            queue=False,
+        ).then(
+            lambda x: x,
+            self.saved_input,
+            self.textbox,
             show_api=False,
             queue=False,
         )
@@ -574,20 +580,12 @@ class ChatInterface(Blocks):
         str | MultimodalPostprocess,
         list[str | MultimodalPostprocess],
     ]:
-        if self.multimodal:
-            previous_input += [message]
-            return (
-                MultimodalTextbox("", interactive=False, placeholder=""),
-                message,
-                previous_input,
-            )
-        else:
-            previous_input += [message]
-            return (
-                Textbox("", interactive=False, placeholder=""),
-                message,
-                previous_input,
-            )
+        previous_input += [message]
+        return (
+            type(self.textbox)("", interactive=False, placeholder=""),
+            message,
+            previous_input,
+        )
 
     def _append_multimodal_history(
         self,
@@ -867,18 +865,7 @@ class ChatInterface(Blocks):
             history = history[:-remove_input]
         else:
             history = history[: -(1 + extra)]
-        return history, message or ""  # type: ignore
-
-    async def _undo_msg(
-        self,
-        previous_input: list[str | MultimodalPostprocess],
-        history: list[MessageDict] | TupleFormat,
-    ):
-        msg = previous_input.pop() if previous_input else None
-
-        history, msg = await self._delete_prev_fn(msg, history)
-        previous_msg = previous_input[-1] if len(previous_input) else msg
-        return history, msg, previous_msg, previous_input
+        return history, message or "", message or ""  # type: ignore
 
     def render(self) -> ChatInterface:
         # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
