@@ -7,17 +7,16 @@
 		Empty,
 		IconButton,
 		ShareButton,
-		IconButtonWrapper
+		IconButtonWrapper,
+		FullscreenButton
 	} from "@gradio/atoms";
-	import { Download } from "@gradio/icons";
+	import { Download, Image as ImageIcon } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
-	import Image from "./Image.svelte";
+	import { Image } from "@gradio/image/shared";
 	import { DownloadLink } from "@gradio/wasm/svelte";
-	import { Maximize, Minimize } from "@gradio/icons";
 
-	import { Image as ImageIcon } from "@gradio/icons";
-	import { type FileData } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
+	import type { FileData } from "@gradio/client";
 
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
@@ -40,23 +39,7 @@
 		}
 	};
 
-	let is_full_screen = false;
 	let image_container: HTMLElement;
-
-	onMount(() => {
-		document.addEventListener("fullscreenchange", () => {
-			is_full_screen = !!document.fullscreenElement;
-		});
-	});
-
-	const toggle_full_screen = async (): Promise<void> => {
-		if (!is_full_screen) {
-			await image_container.requestFullscreen();
-		} else {
-			await document.exitFullscreen();
-			is_full_screen = !is_full_screen;
-		}
-	};
 </script>
 
 <BlockLabel
@@ -69,20 +52,8 @@
 {:else}
 	<div class="image-container" bind:this={image_container}>
 		<IconButtonWrapper>
-			{#if !is_full_screen && show_fullscreen_button}
-				<IconButton
-					Icon={Maximize}
-					label={is_full_screen ? "Exit full screen" : "View in full screen"}
-					on:click={toggle_full_screen}
-				/>
-			{/if}
-
-			{#if is_full_screen && show_fullscreen_button}
-				<IconButton
-					Icon={Minimize}
-					label={is_full_screen ? "Exit full screen" : "View in full screen"}
-					on:click={toggle_full_screen}
-				/>
+			{#if show_fullscreen_button}
+				<FullscreenButton container={image_container} />
 			{/if}
 
 			{#if show_download_button}

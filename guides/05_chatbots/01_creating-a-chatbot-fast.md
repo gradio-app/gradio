@@ -260,6 +260,14 @@ You can also add example values for your additional inputs. Pass in a list of li
 
 If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/creating-a-custom-chatbot-with-blocks).
 
+## Additional Outputs
+
+In the same way that you can accept additional inputs into your chat function, you can also return additional outputs. Simply pass in a list of components to the `additional_outputs` parameter in `gr.ChatInterface` and return additional values for each component from your chat function. Here's an example that extracts code and outputs it into a separate `gr.Code` component:
+
+$code_chatinterface_artifacts
+
+**Note:** unlike the case of additional inputs, the components passed in `additional_outputs` must be already defined in your `gr.Blocks` context -- they are not rendered automatically. If you need to render them after your `gr.ChatInterface`, you can set `render=False` when they are first defined and then `.render()` them in the appropriate section of your `gr.Blocks()` as we do in the example above.
+
 ## Returning Complex Responses
 
 We mentioned earlier that in the simplest case, your chat function should return a `str` response, which will be rendered as text in the chatbot. However, you can also return more complex responses as we discuss below:
