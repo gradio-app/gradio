@@ -419,9 +419,9 @@ class ChatInterface(Blocks):
 
         retry_event = (
             self.chatbot.retry(
-                self._delete_prev_fn,
-                [self.saved_input, self.chatbot],
+                self._pop_last_user_message,
                 [self.chatbot],
+                [self.chatbot, self.saved_input],
                 show_api=False,
                 queue=False,
             )
@@ -459,9 +459,9 @@ class ChatInterface(Blocks):
         self._setup_stop_events(submit_triggers, [submit_event, retry_event])
 
         self.chatbot.undo(
-            self._delete_prev_fn,
-            [self.saved_input, self.chatbot],
+            self._pop_last_user_message,
             [self.chatbot],
+            [self.chatbot, self.saved_input],
             show_api=False,
             queue=False,
         ).then(
@@ -637,7 +637,7 @@ class ChatInterface(Blocks):
             history = history_with_input[:-remove_input]
         else:
             history = history_with_input[:-1]
-        return message, history
+        return message, history  # type: ignore
 
     def _append_history(self, history, message, first_response=True):
         if self.type == "tuples":
@@ -836,22 +836,60 @@ class ChatInterface(Blocks):
         async for response in generator:
             yield self._process_example(message, response)
 
-    async def _delete_prev_fn(
+    async def _pop_last_user_message(
         self,
-        message: str | MultimodalPostprocess | None,
         history: list[MessageDict] | TupleFormat,
-    ) -> list[MessageDict] | TupleFormat:
-        extra = 1 if self.type == "messages" else 0
-        if self.multimodal and isinstance(message, dict):
-            remove_input = (
-                len(message.get("files", [])) + 1
-                if message["text"] is not None
-                else len(message.get("files", []))
-            ) + extra
-            history = history[:-remove_input]
+    ) -> tuple[list[MessageDict] | TupleFormat, str | MultimodalPostprocess]:
+        """
+        Removes the last user message from the chat history and returns it.
+        If self.multimodal is True, returns a MultimodalPostprocess (dict) object with text and files.
+        If self.multimodal is False, returns just the message text as a string.
+        """
+        if not history:
+            return history, "" if not self.multimodal else {"text": "", "files": []}
+
+        if self.type == "messages":
+            # Skip the last message as it's always an assistant message
+            i = len(history) - 2
+            while i >= 0 and history[i]["role"] == "user":  # type: ignore
+                i -= 1
+            last_messages = history[i + 1 :]
+            last_user_message = ""
+            files = []
+            for msg in last_messages:
+                assert isinstance(msg, dict)  # noqa: S101
+                if msg["role"] == "user":
+                    content = msg["content"]
+                    if isinstance(content, tuple):
+                        files.append(content[0])
+                    else:
+                        last_user_message = content
+            return_message = (
+                {"text": last_user_message, "files": files}
+                if self.multimodal
+                else last_user_message
+            )
+            return history[: i + 1], return_message  # type: ignore
         else:
-            history = history[: -(1 + extra)]
-        return history
+            # Skip the last message pair as it always includes an assistant message
+            i = len(history) - 2
+            while i >= 0 and history[i][1] is None:  # type: ignore
+                i -= 1
+            last_messages = history[i + 1 :]
+            last_user_message = ""
+            files = []
+            for msg in last_messages:
+                assert isinstance(msg, tuple)  # noqa: S101
+                if isinstance(msg[0], tuple):
+                    files.append(msg[0][0])
+                elif msg[0] is not None:
+                    last_user_message = msg[0]
+            return_message = (
+                {"text": last_user_message, "files": files}
+                if self.multimodal
+                else last_user_message
+            )
+            return history[: i + 1], return_message  # type: ignore
 
     def render(self) -> ChatInterface:
         # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
