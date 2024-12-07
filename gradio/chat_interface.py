@@ -600,7 +600,7 @@ class ChatInterface(Blocks):
                     x = x.get("path")
                 history.append([(x,), None])  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
-                return
+                pass
             elif message["text"] == "" and message.get("files", []) != []:
                 history.append([None, None])  # type: ignore
             else:
@@ -611,9 +611,10 @@ class ChatInterface(Blocks):
                     x = x.get("path")
                 history.append({"role": "user", "content": (x,)})  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
-                return
+                pass
             else:
                 history.append({"role": "user", "content": message["text"]})  # type: ignore
+        return history
 
     def response_as_dict(self, response: MessageDict | Message | str) -> MessageDict:
         if isinstance(response, Message):
