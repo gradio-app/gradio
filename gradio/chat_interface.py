@@ -879,7 +879,7 @@ class ChatInterface(Blocks):
             last_user_message = ""
             files = []
             for msg in last_messages:
-                assert isinstance(msg, tuple)  # noqa: S101
+                assert isinstance(msg, (tuple, list))  # noqa: S101
                 if isinstance(msg[0], tuple):
                     files.append(msg[0][0])
                 elif msg[0] is not None:
