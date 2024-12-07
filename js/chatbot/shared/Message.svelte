@@ -16,7 +16,6 @@
 	export let role = "user";
 	export let messages: NormalisedMessage[] = [];
 	export let layout: "bubble" | "panel";
-	export let bubble_full_width: boolean;
 	export let render_markdown: boolean;
 	export let latex_delimiters: {
 		left: string;
@@ -121,7 +120,6 @@
 				class="message {role} {is_component_message(message)
 					? message?.content.component
 					: ''}"
-				class:message-fit={layout === "bubble" && !bubble_full_width}
 				class:panel-full-width={true}
 				class:message-markdown-disabled={!render_markdown}
 				class:component={message.type === "component"}
@@ -303,10 +301,6 @@
 		border-radius: var(--radius-md);
 	}
 
-	.message-fit {
-		width: fit-content !important;
-	}
-
 	.panel-full-width {
 		width: 100%;
 	}
@@ -380,10 +374,6 @@
 
 	.bubble .with_opposite_avatar.user-row {
 		margin-left: calc(var(--spacing-xxl) + 35px + var(--spacing-xxl));
-	}
-
-	.bubble .message-fit {
-		width: fit-content !important;
 	}
 
 	/* panel mode styles */
