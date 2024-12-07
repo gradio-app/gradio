@@ -358,7 +358,7 @@ class ChatInterface(Blocks):
                 queue=False,
             )
             .then(
-                self._display_input,
+                self._append_message_to_history,
                 [self.saved_input, self.chatbot],
                 [self.chatbot],
                 show_api=False,
@@ -431,7 +431,7 @@ class ChatInterface(Blocks):
                 show_api=False,
             )
             .then(
-                self._display_input,
+                self._append_message_to_history,
                 [self.saved_input, self.chatbot],
                 [self.chatbot],
                 show_api=False,
@@ -587,24 +587,24 @@ class ChatInterface(Blocks):
             previous_input,
         )
 
-    def _append_multimodal_history(
+    def _append_message_to_history(
         self,
-        message: MultimodalPostprocess,
-        response: MessageDict | str | None,
+        message: MultimodalPostprocess | str,
         history: list[MessageDict] | TupleFormat,
     ):
+        if isinstance(message, str):
+            message = {"text": message}
         if self.type == "tuples":
             for x in message.get("files", []):
                 if isinstance(x, dict):
-                    history.append([(x.get("path"),), None])  # type: ignore
-                else:
-                    history.append([(x,), None])  # type: ignore
+                    x = x.get("path")
+                history.append([(x,), None])  # type: ignore
             if message["text"] is None or not isinstance(message["text"], str):
                 return
             elif message["text"] == "" and message.get("files", []) != []:
-                history.append([None, response])  # type: ignore
+                history.append([None, None])  # type: ignore
             else:
-                history.append([message["text"], cast(str, response)])  # type: ignore
+                history.append([message["text"], None])  # type: ignore
         else:
             for x in message.get("files", []):
                 if isinstance(x, dict):
@@ -614,21 +614,6 @@ class ChatInterface(Blocks):
                 return
             else:
                 history.append({"role": "user", "content": message["text"]})  # type: ignore
-            if response:
-                history.append(cast(MessageDict, response))  # type: ignore
-
-    async def _display_input(
-        self,
-        message: str | MultimodalPostprocess,
-        history: TupleFormat | list[MessageDict],
-    ) -> tuple[TupleFormat, TupleFormat] | tuple[list[MessageDict], list[MessageDict]]:
-        if self.multimodal and isinstance(message, dict):
-            self._append_multimodal_history(message, None, history)
-        elif isinstance(message, str) and self.type == "tuples":
-            history.append([message, None])  # type: ignore
-        elif isinstance(message, str) and self.type == "messages":
-            history.append({"role": "user", "content": message})  # type: ignore
-        return history  # type: ignore
 
     def response_as_dict(self, response: MessageDict | Message | str) -> MessageDict:
         if isinstance(response, Message):
@@ -782,7 +767,7 @@ class ChatInterface(Blocks):
         and added to the chat history as well.
         """
         history = []
-        self._append_multimodal_history(example.value, None, history)
+        self._append_message_to_history(example.value, history)
         example = self._flatten_example_files(example)
         message = example.value if self.multimodal else example.value["text"]
         yield history, message
