@@ -4,6 +4,25 @@
 
 ### Dependency updates
 
+- @gradio/code@0.10.10
+- @gradio/paramviewer@0.6.1
+- @gradio/video@0.12.1
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/button@0.3.9
+- @gradio/atoms@0.12.0
+- @gradio/gallery@0.14.0
+- @gradio/plot@0.9.4
+- @gradio/image@0.19.0
+- @gradio/file@0.11.3
+- @gradio/column@0.2.0
+- @gradio/textbox@0.9.1
+- @gradio/checkbox@0.4.9
+
+## 0.4.1
+
+### Dependency updates
+
 - @gradio/gallery@0.13.10
 - @gradio/paramviewer@0.6.0
 - @gradio/image@0.18.0

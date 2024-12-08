@@ -1,5 +1,19 @@
 # gradio
 
+## 5.9.0
+
+### Features
+
+- [#10109](https://github.com/gradio-app/gradio/pull/10109) [`48e4aa9`](https://github.com/gradio-app/gradio/commit/48e4aa9d627b6958a0b215d6312de508845f669c) - adds a `run_examples_on_click` parameter to `gr.ChatInterface` mirroring the the `run_on_click` parameter in `gr.Examples`.  Thanks @abidlabs!
+- [#10098](https://github.com/gradio-app/gradio/pull/10098) [`9a6ce6f`](https://github.com/gradio-app/gradio/commit/9a6ce6f6b089d94c06da0b8620f28967f39f8383) - Refactor full screen logic to be reusable.  Thanks @hannahblair!
+- [#10088](https://github.com/gradio-app/gradio/pull/10088) [`cb5b891`](https://github.com/gradio-app/gradio/commit/cb5b89108e0217131a914315be698827a4d05c15) - Refactor `NO_RELOAD` implementation.  Thanks @CNSeniorious000!
+- [#10132](https://github.com/gradio-app/gradio/pull/10132) [`6645518`](https://github.com/gradio-app/gradio/commit/6645518a66e01ebcd2746626a4e2a14239172e76) - Tweak Chatbot `bubble_full_width` behaviour.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10131](https://github.com/gradio-app/gradio/pull/10131) [`4984e84`](https://github.com/gradio-app/gradio/commit/4984e847fa2575f9fb209c6b1b73a9003e79e564) - Fix API docs for `multimodal_textbox.py`.  Thanks @abidlabs!
+- [#10097](https://github.com/gradio-app/gradio/pull/10097) [`43d88c3`](https://github.com/gradio-app/gradio/commit/43d88c32bf5f636762acffba839800e05294e484) - Fix: Added support for show_api in mount_gradio_app.  Thanks @HongweiRuan!
+
 ## 5.8.0
 
 ### Features
