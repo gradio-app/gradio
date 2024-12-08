@@ -1580,7 +1580,8 @@ def mount_gradio_app(
         )
 
     blocks.dev_mode = False
-    blocks.show_api = show_api
+    if show_api is not None:
+        blocks.show_api = show_api
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
