@@ -266,4 +266,33 @@ for (const msg_format of ["tuples", "messages"]) {
 
 		await expect(page.locator(".thumbnail-image")).toHaveCount(2);
 	});
+
+	test(`message format ${msg_format} - pasting large text should create a file upload`, async ({
+		page
+	}) => {
+		if (msg_format === "tuples") {
+			await go_to_testcase(page, "tuples");
+		}
+		const textbox = await page.getByTestId("textbox");
+		const largeText = "x".repeat(2000);
+
+		await textbox.focus();
+		await page.evaluate((text) => {
+			const dataTransfer = new DataTransfer();
+			const clipboardData = new ClipboardEvent("paste", {
+				clipboardData: dataTransfer,
+				bubbles: true,
+				cancelable: true
+			});
+			dataTransfer.setData("text/plain", text);
+			document.activeElement?.dispatchEvent(clipboardData);
+		}, largeText);
+
+		await expect(page.locator(".thumbnail-item")).toBeVisible();
+		const fileIcon = await page.locator(".thumbnail-item").first();
+		await expect(fileIcon).toBeVisible();
+
+		const textboxValue = await textbox.inputValue();
+		await expect(textboxValue).toBe("");
+	});
 }
