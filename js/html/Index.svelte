@@ -15,6 +15,7 @@
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
 		change: never;
+		click: never;
 		clear_status: LoadingStatus;
 	}>;
 	export let show_label = false;
@@ -50,6 +51,7 @@
 			{elem_classes}
 			{visible}
 			on:change={() => gradio.dispatch("change")}
+			on:click={() => gradio.dispatch("click")}
 		/>
 	</div>
 </Block>
