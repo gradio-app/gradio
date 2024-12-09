@@ -193,3 +193,42 @@ This document is a showcase of various Markdown capabilities.`,
 		]
 	}}
 />
+
+<Story
+	name="Uploaded text files"
+	args={{
+		type: "messages",
+		value: [
+			{
+				role: "user",
+				content: {
+					file: {
+						path: "abc/qwerty.pdf",
+						url: ""
+					},
+					alt_text: null
+				}
+			},
+			{
+				role: "user",
+				content: {
+					file: {
+						path: "abc/qwerty.txt",
+						url: ""
+					},
+					alt_text: null
+				}
+			},
+			{
+				role: "user",
+				content: {
+					file: {
+						path: "abc/qwerty.rtf",
+						url: ""
+					},
+					alt_text: null
+				}
+			}
+		]
+	}}
+/>
