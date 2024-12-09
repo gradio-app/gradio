@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { is_component_message, is_last_bot_message } from "../shared/utils";
+	import { File } from "@gradio/icons";
 	import { Image } from "@gradio/image/shared";
 	import Component from "./Component.svelte";
 	import type { FileData, Client } from "@gradio/client";
@@ -188,21 +189,40 @@
 							{allow_file_downloads}
 						/>
 					{:else if message.type === "component" && message.content.component === "file"}
-						<a
-							data-testid="chatbot-file"
-							class="file-pil"
-							href={message.content.value.url}
-							target="_blank"
-							download={window.__is_colab__
-								? null
-								: message.content.value?.orig_name ||
-									message.content.value?.path.split("/").pop() ||
-									"file"}
-						>
-							{message.content.value?.orig_name ||
-								message.content.value?.path.split("/").pop() ||
-								"file"}
-						</a>
+						<div class="file-container">
+							<div class="file-icon">
+								<File />
+							</div>
+							<div class="file-info">
+								<a
+									data-testid="chatbot-file"
+									class="file-link"
+									href={message.content.value.url}
+									target="_blank"
+									download={window.__is_colab__
+										? null
+										: message.content.value?.orig_name ||
+											message.content.value?.path.split("/").pop() ||
+											"file"}
+								>
+									<span class="file-name"
+										>{message.content.value?.orig_name ||
+											message.content.value?.path.split("/").pop() ||
+											"file"}</span
+									>
+								</a>
+								<span class="file-type"
+									>{(
+										message.content.value?.orig_name ||
+										message.content.value?.path ||
+										""
+									)
+										.split(".")
+										.pop()
+										.toUpperCase()}</span
+								>
+							</div>
+						</div>
 					{/if}
 				</button>
 			</div>
@@ -568,5 +588,53 @@
 
 	.panel .message {
 		margin-bottom: var(--spacing-md);
+	}
+
+	.file-container {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-lg);
+		padding: var(--spacing-lg);
+		border-radius: var(--radius-lg);
+		width: fit-content;
+		margin: var(--spacing-sm) 0;
+	}
+
+	.file-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--body-text-color);
+	}
+
+	.file-icon :global(svg) {
+		width: var(--size-7);
+		height: var(--size-7);
+	}
+
+	.file-info {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.file-link {
+		text-decoration: none;
+		color: var(--body-text-color);
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	.file-name {
+		font-family: var(--font);
+		font-size: var(--text-md);
+		font-weight: 500;
+	}
+
+	.file-type {
+		font-family: var(--font);
+		font-size: var(--text-sm);
+		color: var(--body-text-color-subdued);
+		text-transform: uppercase;
 	}
 </style>
