@@ -86,6 +86,7 @@ class MultimodalTextbox(FormComponent):
         rtl: bool = False,
         submit_btn: str | bool | None = True,
         stop_btn: str | bool | None = False,
+        max_plain_text_length: int = 1000,
     ):
         """
         Parameters:
@@ -115,6 +116,7 @@ class MultimodalTextbox(FormComponent):
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
             stop_btn: If True, will show a stop button (useful for streaming demos). If a string, will use that string as the stop button text.
+            max_plain_text_length: Maximum length of plain text in the textbox. If the text exceeds this length, the text will be pasted as a file. Default is 1000.
         """
         self.file_types = file_types
         self.file_count = file_count
@@ -129,6 +131,7 @@ class MultimodalTextbox(FormComponent):
         self.stop_btn = stop_btn
         self.autofocus = autofocus
         self.autoscroll = autoscroll
+        self.max_plain_text_length = max_plain_text_length
 
         super().__init__(
             label=label,
