@@ -81,7 +81,7 @@ class Error(Exception):
         duration: float | None = 10,
         visible: bool = True,
         title: str = "Error",
-        print_exception: bool = True
+        print_exception: bool = True,
     ):
         """
         Parameters:

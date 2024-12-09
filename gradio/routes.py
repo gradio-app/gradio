@@ -76,7 +76,7 @@ from gradio.data_classes import (
     SimplePredictBody,
     UserProvidedPath,
 )
-from gradio.exceptions import InvalidPathError, Error
+from gradio.exceptions import Error, InvalidPathError
 from gradio.node_server import (
     start_node_server,
 )
