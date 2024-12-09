@@ -998,7 +998,7 @@ class App(FastAPI):
                 )
             except BaseException as error:
                 content = utils.error_payload(error, app.get_blocks().show_error)
-                if not isinstance(error, Error) or error.print_exc:
+                if not isinstance(error, Error) or error.print_exception:
                     traceback.print_exc()
                 return JSONResponse(
                     content=content,
