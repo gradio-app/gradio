@@ -61,21 +61,23 @@
 
 {#if value && (Array.isArray(value) ? value.length > 0 : true)}
 	<IconButtonWrapper>
-		<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
-			<Upload
-				icon_upload={true}
-				on:load={handle_upload}
-				filetype={file_types}
-				{file_count}
-				{max_file_size}
-				{root}
-				bind:dragging
-				bind:uploading
-				on:error
-				{stream_handler}
-				{upload}
-			/>
-		</IconButton>
+		{#if !(file_count === "single" && (Array.isArray(value) ? value.length > 0 : value !== null))}
+			<IconButton Icon={UploadIcon} label={i18n("common.upload")}>
+				<Upload
+					icon_upload={true}
+					on:load={handle_upload}
+					filetype={file_types}
+					{file_count}
+					{max_file_size}
+					{root}
+					bind:dragging
+					bind:uploading
+					on:error
+					{stream_handler}
+					{upload}
+				/>
+			</IconButton>
+		{/if}
 		<IconButton
 			Icon={Clear}
 			label={i18n("common.clear")}

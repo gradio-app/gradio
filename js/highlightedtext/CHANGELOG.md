@@ -1,5 +1,32 @@
 # @gradio/highlightedtext
 
+## 0.8.8
+
+### Fixes
+
+- [#10004](https://github.com/gradio-app/gradio/pull/10004) [`0879be7`](https://github.com/gradio-app/gradio/commit/0879be78b3ae220cb303ac275c8fd47d085aad18) - Ensure `show_label` param is used in HighlightedText.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+
+## 0.8.7
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+- @gradio/statustracker@0.9.5
+
+## 0.8.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+
 ## 0.8.5
 
 ### Dependency updates

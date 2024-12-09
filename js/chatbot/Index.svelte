@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
+	import type { Gradio, SelectData, LikeData, CopyData } from "@gradio/utils";
 
 	import ChatBot from "./shared/ChatBot.svelte";
 	import type { UndoRetryData } from "./shared/utils";
@@ -37,7 +37,6 @@
 	export let show_copy_button = true;
 	export let show_copy_all_button = false;
 	export let sanitize_html = true;
-	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
@@ -58,9 +57,11 @@
 		like: LikeData;
 		clear_status: LoadingStatus;
 		example_select: SelectData;
+		option_select: SelectData;
 		retry: UndoRetryData;
 		undo: UndoRetryData;
 		clear: null;
+		copy: CopyData;
 	}>;
 
 	let _value: NormalisedMessage[] | null = [];
@@ -79,6 +80,7 @@
 	export let placeholder: string | null = null;
 	export let examples: ExampleMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";
+	export let allow_file_downloads = true;
 </script>
 
 <Block
@@ -136,15 +138,16 @@
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:example_select={(e) => gradio.dispatch("example_select", e.detail)}
+			on:option_select={(e) => gradio.dispatch("option_select", e.detail)}
 			on:retry={(e) => gradio.dispatch("retry", e.detail)}
 			on:undo={(e) => gradio.dispatch("undo", e.detail)}
 			on:clear={() => {
 				value = [];
 				gradio.dispatch("clear");
 			}}
+			on:copy={(e) => gradio.dispatch("copy", e.detail)}
 			{avatar_images}
 			{sanitize_html}
-			{bubble_full_width}
 			{line_breaks}
 			{autoscroll}
 			{layout}
@@ -157,6 +160,7 @@
 			load_component={gradio.load_component}
 			msg_format={type}
 			root={gradio.root}
+			{allow_file_downloads}
 		/>
 	</div>
 </Block>

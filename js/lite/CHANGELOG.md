@@ -1,5 +1,38 @@
 # @gradio/lite
 
+## 5.8.0
+
+### Features
+
+- [#10077](https://github.com/gradio-app/gradio/pull/10077) [`bf03d54`](https://github.com/gradio-app/gradio/commit/bf03d54e2fa413a4c98c4e3d6797b8b6a0a790ae) - Fix to call bootstrap_custom_element() if the script is loaded after the DOMContentLoaded event.  Thanks @whitphx!
+
+## 5.7.0
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/core@0.4.1
+
+## 5.6.0
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/core@0.4.0
+
+## 5.5.0
+
+### Features
+
+- [#9424](https://github.com/gradio-app/gradio/pull/9424) [`a1582a6`](https://github.com/gradio-app/gradio/commit/a1582a6dca494618c734208cade87acfdac91004) - Lite worker refactoring.  Thanks @whitphx!
+- [#9726](https://github.com/gradio-app/gradio/pull/9726) [`b6725cf`](https://github.com/gradio-app/gradio/commit/b6725cf6c1fe9667dc10e1988976ed36d84d73d3) - Lite auto-load imported modules with `pyodide.loadPackagesFromImports`.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.0
+- @gradio/wasm@0.15.0
+- @gradio/core@0.3.0
+
 ## 4.43.2
 
 ### Dependency updates

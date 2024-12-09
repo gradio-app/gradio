@@ -1,5 +1,36 @@
 # @gradio/datetime
 
+## 0.3.0
+
+### Features
+
+- [#10013](https://github.com/gradio-app/gradio/pull/10013) [`5d36c80`](https://github.com/gradio-app/gradio/commit/5d36c8088d4d7f7dccce55a3f2be3bcd8b345332) - Add `gr.datetime` a param `interactive:bool`.  Thanks @yinsumirage!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+
+## 0.2.7
+
+### Fixes
+
+- [#9897](https://github.com/gradio-app/gradio/pull/9897) [`c0cf80b`](https://github.com/gradio-app/gradio/commit/c0cf80bddd99ad0f836e618cc3d2b13e73cb5611) - Allow datetime value to be null.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/utils@0.8.0
+- @gradio/statustracker@0.9.5
+
+## 0.2.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.4
+- @gradio/atoms@0.11.0
+
 ## 0.2.5
 
 ### Fixes

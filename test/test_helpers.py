@@ -650,13 +650,13 @@ class TestProcessExamples:
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [0]})
         data = response.json()["data"]
-        assert data[0]["value"]["path"].endswith("cheetah1.jpg")
-        assert data[1]["value"] == "cheetah"
+        assert data[0]["path"].endswith("cheetah1.jpg")
+        assert data[1] == "cheetah"
 
         response = client.post(f"{API_PREFIX}/api/load_example/", json={"data": [1]})
         data = response.json()["data"]
-        assert data[0]["value"]["path"].endswith("bus.png")
-        assert data[1]["value"] == "bus"
+        assert data[0]["path"].endswith("bus.png")
+        assert data[1] == "bus"
 
 
 def test_multiple_file_flagging(tmp_path, connect):
@@ -932,3 +932,35 @@ def test_check_event_data_in_cache():
                 },
             ),
         )
+
+
+def test_examples_no_cache_optional_inputs():
+    def foo(a, b, c, d):
+        return {"a": a, "b": b, "c": c, "d": d}
+
+    io = gr.Interface(
+        foo,
+        ["text", "text", "text", "text"],
+        "json",
+        cache_examples=False,
+        examples=[["a", "b", None, "d"], ["a", "b", None, "de"]],
+    )
+
+    try:
+        app, _, _ = io.launch(prevent_thread_lock=True)
+
+        client = TestClient(app)
+        with client as c:
+            for i in range(2):
+                response = c.post(
+                    f"{API_PREFIX}/run/predict/",
+                    json={
+                        "data": [i],
+                        "fn_index": 6,
+                        "trigger_id": 19,
+                        "session_hash": "test",
+                    },
+                )
+                assert response.status_code == 200
+    finally:
+        io.close()

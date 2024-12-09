@@ -136,6 +136,7 @@ class SourceFileReloader(BaseReloader):
         watch_dirs: list[str],
         watch_module_name: str,
         demo_file: str,
+        watch_module: ModuleType,
         stop_event: threading.Event,
         demo_name: str = "demo",
     ) -> None:
@@ -146,6 +147,7 @@ class SourceFileReloader(BaseReloader):
         self.stop_event = stop_event
         self.demo_name = demo_name
         self.demo_file = Path(demo_file)
+        self.watch_module = watch_module
 
     @property
     def running_app(self) -> App:
@@ -170,10 +172,21 @@ class SourceFileReloader(BaseReloader):
         self.alert_change("reload")
 
 
-NO_RELOAD = True
+class DynamicBoolean(int):
+    def __init__(self, value: int):
+        self.value = bool(value)
+
+    def __bool__(self):
+        return self.value
+
+    def set(self, value: int):
+        self.value = bool(value)
 
 
-def _remove_no_reload_codeblocks(file_path: str):
+NO_RELOAD = DynamicBoolean(True)
+
+
+def _remove_if_name_main_codeblock(file_path: str):
     """Parse the file, remove the gr.no_reload code blocks, and write the file back to disk.
 
     Parameters:
@@ -185,19 +198,22 @@ def _remove_no_reload_codeblocks(file_path: str):
 
     tree = ast.parse(code)
 
-    def _is_gr_no_reload(expr: ast.AST) -> bool:
-        """Find with gr.no_reload context managers."""
+    def _is_if_name_main(expr: ast.AST) -> bool:
+        """Find the if __name__ == '__main__': block."""
         return (
             isinstance(expr, ast.If)
-            and isinstance(expr.test, ast.Attribute)
-            and isinstance(expr.test.value, ast.Name)
-            and expr.test.value.id == "gr"
-            and expr.test.attr == "NO_RELOAD"
+            and isinstance(expr.test, ast.Compare)
+            and isinstance(expr.test.left, ast.Name)
+            and expr.test.left.id == "__name__"
+            and len(expr.test.ops) == 1
+            and isinstance(expr.test.ops[0], ast.Eq)
+            and isinstance(expr.test.comparators[0], ast.Constant)
+            and expr.test.comparators[0].s == "__main__"
         )
 
     # Find the positions of the code blocks to load
     for node in ast.walk(tree):
-        if _is_gr_no_reload(node):
+        if _is_if_name_main(node):
             assert isinstance(node, ast.If)  # noqa: S101
             node.body = [ast.Pass(lineno=node.lineno, col_offset=node.col_offset)]
 
@@ -220,6 +236,8 @@ def watchfn(reloader: SourceFileReloader):
 
     get_changes is taken from uvicorn's default file watcher.
     """
+
+    NO_RELOAD.set(False)
 
     # The thread running watchfn will be the thread reloading
     # the app. So we need to modify this thread_data attr here
@@ -259,7 +277,11 @@ def watchfn(reloader: SourceFileReloader):
     mtimes = {}
     # Need to import the module in this thread so that the
     # module is available in the namespace of this thread
-    module = importlib.import_module(reloader.watch_module_name)
+    module = reloader.watch_module
+    no_reload_source_code = _remove_if_name_main_codeblock(str(reloader.demo_file))
+    exec(no_reload_source_code, module.__dict__)
+    sys.modules[reloader.watch_module_name] = module
+
     while reloader.should_watch():
         changed = get_changes()
         if changed:
@@ -275,7 +297,7 @@ def watchfn(reloader: SourceFileReloader):
                 # changes to be reflected in the main demo file.
 
                 if changed.suffix == ".py":
-                    changed_in_copy = _remove_no_reload_codeblocks(str(changed))
+                    changed_in_copy = _remove_if_name_main_codeblock(str(changed))
                     if changed != reloader.demo_file:
                         changed_module = _find_module(changed)
                         if changed_module:
@@ -286,7 +308,7 @@ def watchfn(reloader: SourceFileReloader):
                             if top_level_parent != changed_module:
                                 importlib.reload(top_level_parent)
 
-                changed_demo_file = _remove_no_reload_codeblocks(
+                changed_demo_file = _remove_if_name_main_codeblock(
                     str(reloader.demo_file)
                 )
                 exec(changed_demo_file, module.__dict__)

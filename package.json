@@ -124,6 +124,7 @@
 		"@gradio/imageeditor": "workspace:^",
 		"@gradio/json": "workspace:^",
 		"@gradio/label": "workspace:^",
+		"@gradio/browserstate": "workspace:^",
 		"@gradio/markdown": "workspace:^",
 		"@gradio/model3d": "workspace:^",
 		"@gradio/multimodaltextbox": "workspace:^",
@@ -165,7 +166,7 @@
 	},
 	"engines": {
 		"node": ">=18.0.0",
-		"pnpm": "~9.1.0"
+		"pnpm": "^9.1.0"
 	},
 	"pnpm": {
 		"patchedDependencies": {

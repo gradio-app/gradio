@@ -84,13 +84,8 @@ test("test state change for custom hashes", async ({ page }) => {
 	);
 });
 
-test("test generators properly trigger state changes", async ({ page }) => {
-	await page.getByRole("button", { name: "Iterator State Change" }).click();
-	await expect(page.getByTestId("markdown").first()).toHaveText(
-		"Success Box 0 added"
-	);
-	await page.getByRole("button", { name: "Iterator State Change" }).click();
-	await expect(page.getByTestId("markdown").nth(1)).toHaveText(
-		"Success Box 1 added"
-	);
+test("test state changes work within gr.render", async ({ page }) => {
+	const textbox = await page.getByLabel("Start State");
+	await textbox.fill("test");
+	await expect(page.getByLabel("End State").first()).toHaveValue("test");
 });

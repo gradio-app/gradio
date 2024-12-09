@@ -1,5 +1,53 @@
 # website
 
+## 0.43.0
+
+### Features
+
+- [#10096](https://github.com/gradio-app/gradio/pull/10096) [`ec10aa3`](https://github.com/gradio-app/gradio/commit/ec10aa3b9b42d8c3fe930aff9465c469626992d4) - Fix paramviewer descriptions to only render markdown links.  Thanks @aliabd!
+- [#10071](https://github.com/gradio-app/gradio/pull/10071) [`01b919f`](https://github.com/gradio-app/gradio/commit/01b919f04b69732fd8adb52f6d156e5683589221) - Support `additional_outputs` in `gr.ChatInterface`.  Thanks @abidlabs!
+- [#10073](https://github.com/gradio-app/gradio/pull/10073) [`873dab5`](https://github.com/gradio-app/gradio/commit/873dab5bce32de472523b851d443588106223e21) - Fix the Playground to ignore comments in the requirements text.  Thanks @whitphx!
+- [#9998](https://github.com/gradio-app/gradio/pull/9998) [`6cc13f5`](https://github.com/gradio-app/gradio/commit/6cc13f55e00ff29e833fd55493a53b654f23fbcc) - Playground exclude unavailable packages.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/paramviewer@0.6.0
+
+## 0.42.3
+
+### Fixes
+
+- [#10025](https://github.com/gradio-app/gradio/pull/10025) [`368ba73`](https://github.com/gradio-app/gradio/commit/368ba731069583b22fcf7ddc9501db349f6a2953) - Update Chat Interface examples and add more LLM libraries and API providers.  Thanks @abidlabs!
+
+## 0.42.2
+
+### Dependency updates
+
+- @gradio/code@0.10.9
+- @gradio/paramviewer@0.5.8
+- @gradio/tabitem@0.3.5
+- @gradio/tabs@0.3.5
+
+## 0.42.1
+
+### Dependency updates
+
+- @gradio/code@0.10.8
+- @gradio/paramviewer@0.5.7
+- @gradio/tabitem@0.3.4
+- @gradio/tabs@0.3.4
+
+## 0.42.0
+
+### Features
+
+- [#9726](https://github.com/gradio-app/gradio/pull/9726) [`b6725cf`](https://github.com/gradio-app/gradio/commit/b6725cf6c1fe9667dc10e1988976ed36d84d73d3) - Lite auto-load imported modules with `pyodide.loadPackagesFromImports`.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/code@0.10.7
+- @gradio/paramviewer@0.5.6
+
 ## 0.41.0
 
 ### Features
