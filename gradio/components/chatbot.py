@@ -197,6 +197,7 @@ class Chatbot(Component):
         examples: list[ExampleMessage] | None = None,
         show_copy_all_button=False,
         allow_file_downloads=True,
+        multimodal: bool = False,
     ):
         """
         Parameters:
@@ -271,6 +272,7 @@ class Chatbot(Component):
         self.layout = layout
         self.show_copy_all_button = show_copy_all_button
         self.allow_file_downloads = allow_file_downloads
+        self.multimodal = multimodal
         super().__init__(
             label=label,
             every=every,
