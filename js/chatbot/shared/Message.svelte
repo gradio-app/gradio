@@ -595,7 +595,6 @@
 		align-items: center;
 		gap: var(--spacing-lg);
 		padding: var(--spacing-lg);
-		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
 		width: fit-content;
 		margin: var(--spacing-sm) 0;
