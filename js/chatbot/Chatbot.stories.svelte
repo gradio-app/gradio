@@ -85,16 +85,9 @@
 />
 
 <Story
-	name="Chatbot with chat bubble full width disabled and copy button"
-	args={{
-		bubble_full_width: false,
-		show_copy_button: true
-	}}
-/>
-
-<Story
 	name="Chatbot with panel layout enabled and avatars"
 	args={{
+		show_copy_button: true,
 		layout: "panel",
 		avatar_images: [
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
@@ -106,7 +99,6 @@
 <Story
 	name="Chatbot with bubble layout enabled and avatars"
 	args={{
-		bubble_full_width: true,
 		layout: "bubble",
 		avatar_images: [
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
@@ -118,7 +110,6 @@
 <Story
 	name="Chatbot with percentage height"
 	args={{
-		bubble_full_width: false,
 		layout: "panel",
 		height: "50%"
 	}}
