@@ -41,7 +41,7 @@
 	/>
 	<div
 		class="html-container"
-		class:padding={padding}
+		class:padding
 		class:pending={loading_status?.status === "pending"}
 		style:min-height={min_height && loading_status?.status !== "pending"
 			? css_units(min_height)
