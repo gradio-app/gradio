@@ -248,7 +248,6 @@ class ChatInterface(Blocks):
                         height=200 if fill_height else None,
                         type=self.type,
                         autoscroll=autoscroll,
-                        multimodal=self.multimodal,
                         examples=self.examples_messages
                         if not self._additional_inputs_in_examples
                         else None,
