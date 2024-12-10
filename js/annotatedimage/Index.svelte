@@ -6,8 +6,8 @@
 		Block,
 		BlockLabel,
 		Empty,
-		IconButton,
-		IconButtonWrapper
+		IconButtonWrapper,
+		FullscreenButton
 	} from "@gradio/atoms";
 	import { Image, Maximize, Minimize } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -47,22 +47,8 @@
 	export let loading_status: LoadingStatus;
 	export let show_fullscreen_button = true;
 
-	let is_full_screen = false;
 	let image_container: HTMLElement;
-
-	onMount(() => {
-		document.addEventListener("fullscreenchange", () => {
-			is_full_screen = !!document.fullscreenElement;
-		});
-	});
-
-	const toggle_full_screen = async (): Promise<void> => {
-		if (!is_full_screen) {
-			await image_container.requestFullscreen();
-		} else {
-			await document.exitFullscreen();
-		}
-	};
+	let is_full_screen = false;
 
 	// `value` can be updated before the Promises from `resolve_wasm_src` are resolved.
 	// In such a case, the resolved values for the old `value` have to be discarded,
@@ -166,19 +152,10 @@
 		{:else}
 			<div class="image-container" bind:this={image_container}>
 				<IconButtonWrapper>
-					{#if !is_full_screen && show_fullscreen_button}
-						<IconButton
-							Icon={Maximize}
-							label="View in full screen"
-							on:click={toggle_full_screen}
-						/>
-					{/if}
-
-					{#if is_full_screen}
-						<IconButton
-							Icon={Minimize}
-							label="Exit full screen"
-							on:click={toggle_full_screen}
+					{#if show_fullscreen_button}
+						<FullscreenButton
+							container={image_container}
+							on:fullscreenchange={(e) => (is_full_screen = e.detail)}
 						/>
 					{/if}
 				</IconButtonWrapper>

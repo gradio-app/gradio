@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel, IconButtonWrapper, IconButton } from "@gradio/atoms";
-	import { Clear, Image as ImageIcon, Maximize, Minimize } from "@gradio/icons";
+	import { Clear, Image as ImageIcon } from "@gradio/icons";
+	import { FullscreenButton } from "@gradio/atoms";
 	import {
 		type SelectData,
 		type I18nFormatter,
@@ -122,17 +123,7 @@
 		}
 	}
 
-	let is_full_screen = false;
 	let image_container: HTMLElement;
-
-	const toggle_full_screen = async (): Promise<void> => {
-		if (!is_full_screen) {
-			await image_container.requestFullscreen();
-		} else {
-			await document.exitFullscreen();
-			is_full_screen = !is_full_screen;
-		}
-	};
 </script>
 
 <BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} />
@@ -140,19 +131,8 @@
 <div data-testid="image" class="image-container" bind:this={image_container}>
 	<IconButtonWrapper>
 		{#if value?.url && !active_streaming}
-			{#if !is_full_screen && show_fullscreen_button}
-				<IconButton
-					Icon={Maximize}
-					label={is_full_screen ? "Exit full screen" : "View in full screen"}
-					on:click={toggle_full_screen}
-				/>
-			{/if}
-			{#if is_full_screen && show_fullscreen_button}
-				<IconButton
-					Icon={Minimize}
-					label={is_full_screen ? "Exit full screen" : "View in full screen"}
-					on:click={toggle_full_screen}
-				/>
+			{#if show_fullscreen_button}
+				<FullscreenButton container={image_container} />
 			{/if}
 			<IconButton
 				Icon={Clear}

@@ -391,7 +391,7 @@ export default [
 			avatar_images: [null, null],
 			sanitize_html: true,
 			render_markdown: true,
-			bubble_full_width: true,
+			bubble_full_width: null,
 			line_breaks: true,
 			show_copy_all_button: false,
 			name: "chatbot",
