@@ -41,7 +41,6 @@ class TestChatbot:
             "elem_classes": [],
             "container": True,
             "min_width": 160,
-            "multimodal": False,
             "scale": None,
             "placeholder": None,
             "height": 400,
