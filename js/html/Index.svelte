@@ -22,6 +22,7 @@
 	export let min_height: number | undefined = undefined;
 	export let max_height: number | undefined = undefined;
 	export let container = false;
+	export let padding = true;
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -40,6 +41,7 @@
 	/>
 	<div
 		class="html-container"
+		class:padding={padding}
 		class:pending={loading_status?.status === "pending"}
 		style:min-height={min_height && loading_status?.status !== "pending"
 			? css_units(min_height)
@@ -57,7 +59,7 @@
 </Block>
 
 <style>
-	.html-container {
+	.padding {
 		padding: var(--block-padding);
 	}
 
