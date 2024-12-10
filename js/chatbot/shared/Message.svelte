@@ -100,11 +100,6 @@
 		layout,
 		dispatch
 	};
-
-	$: console.log(
-		"display_consecutive_in_same_bubble",
-		display_consecutive_in_same_bubble
-	);
 </script>
 
 <div
