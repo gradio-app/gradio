@@ -615,7 +615,8 @@ class App(FastAPI):
                 )
             components = utils.get_all_components()
             location = next(
-                (item for item in components if item.get_component_class_id() == id), None
+                (item for item in components if item.get_component_class_id() == id),
+                None,
             )
             if location is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
