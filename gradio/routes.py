@@ -76,7 +76,7 @@ from gradio.data_classes import (
     SimplePredictBody,
     UserProvidedPath,
 )
-from gradio.exceptions import InvalidPathError
+from gradio.exceptions import Error, InvalidPathError
 from gradio.node_server import (
     start_node_server,
 )
@@ -998,7 +998,8 @@ class App(FastAPI):
                 )
             except BaseException as error:
                 content = utils.error_payload(error, app.get_blocks().show_error)
-                traceback.print_exc()
+                if not isinstance(error, Error) or error.print_exception:
+                    traceback.print_exc()
                 return JSONResponse(
                     content=content,
                     status_code=500,
