@@ -172,6 +172,7 @@
 		}
 	}
 	$: groupedMessages = value && group_messages(value, msg_format);
+	$: console.log("groupedMessages", groupedMessages);
 	$: options = value && get_last_bot_options();
 
 	function handle_example_select(i: number, example: ExampleMessage): void {
