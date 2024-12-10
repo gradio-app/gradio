@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:make print_exc error configurable
+feat:make printing the error message from a `gr.Error` to the console configurable
