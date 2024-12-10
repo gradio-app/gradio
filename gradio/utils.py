@@ -312,11 +312,12 @@ def watchfn(reloader: SourceFileReloader):
                     str(reloader.demo_file)
                 )
                 exec(changed_demo_file, module.__dict__)
-            except Exception:
+            except Exception as error:
                 print(
                     f"Reloading {reloader.watch_module_name} failed with the following exception: "
                 )
-                traceback.print_exc()
+                if not isinstance(error, Error) or error.print_exception:
+                    traceback.print_exc()
                 mtimes = {}
                 reloader.alert_change("error")
                 reloader.app.reload_error_message = traceback.format_exc()
