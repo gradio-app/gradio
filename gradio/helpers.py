@@ -20,7 +20,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
-from gradio.context import Context, LocalContext
+from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
@@ -338,9 +338,9 @@ class Examples:
 
     def create(self) -> None:
         """Creates the Dataset component to hold the examples"""
-
-        self.root_block = Context.root_block
-        if self.root_block:
+        blocks_config = get_blocks_context()
+        self.root_block = Context.root_block or blocks_config.root_block
+        if blocks_config:
             self.root_block.extra_startup_events.append(self._start_caching)
 
             if self.cache_examples:
