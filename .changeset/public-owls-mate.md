@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Add a `.click()` event to the `HTML` component
+feat:Add a `.click()` event and `padding` parameter to the `HTML` component
