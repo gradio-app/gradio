@@ -145,7 +145,19 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_EXAMPLES_CACHE="custom_cached_examples/"
   ```
 
-### 16. `GRADIO_NODE_SERVER_NAME`
+
+### 16. `GRADIO_SSR_MODE`
+
+- **Description**: Controls whether server-side rendering (SSR) is enabled. When enabled, the initial HTML is rendered on the server rather than the client, which can improve initial page load performance and SEO.
+
+- **Default**: `"False"` (except on Hugging Face Spaces, where this environment variable sets it to `True`)
+- **Options**: `"True"`, `"False"`
+- **Example**:
+  ```sh
+  export GRADIO_SSR_MODE="True"
+  ```
+
+### 17. `GRADIO_NODE_SERVER_NAME`
 
 - **Description**: Defines the host name for the Gradio node server. (Only applies if `ssr_mode` is set to `True`.)
 - **Default**: `GRADIO_SERVER_NAME` if it is set, otherwise `"127.0.0.1"`
@@ -154,7 +166,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_NODE_SERVER_NAME="0.0.0.0"
   ```
 
-### 17. `GRADIO_NODE_NUM_PORTS`
+### 18. `GRADIO_NODE_NUM_PORTS`
 
 - **Description**: Defines the number of ports to try when starting the Gradio node server. (Only applies if `ssr_mode` is set to `True`.)
 - **Default**: `100`
@@ -163,7 +175,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_NODE_NUM_PORTS=200
   ```
 
-### 18. `GRADIO_RESET_EXAMPLES_CACHE`
+### 19. `GRADIO_RESET_EXAMPLES_CACHE`
 
 - **Description**: If set to "True", Gradio will delete and recreate the examples cache directory when the app starts instead of reusing the cached example if they already exist. 
 - **Default**: `"False"`
