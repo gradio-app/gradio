@@ -44,7 +44,7 @@
 		show_share_button={true}
 		{i18n}
 		label=""
-		waveform_settings={{autoplay: props.autoplay}}
+		waveform_settings={{ autoplay: props.autoplay }}
 		waveform_options={{}}
 		show_download_button={allow_file_downloads}
 		on:load
