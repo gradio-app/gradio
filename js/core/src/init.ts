@@ -154,7 +154,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			{} as { [id: number]: ComponentMeta }
 		);
 
-		await walk_layout(layout, root);
+		await walk_layout(layout, root, _components);
 
 		layout_store.set(_rootNode);
 		set_event_specific_args(dependencies);
@@ -230,7 +230,12 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			] = instance_map[layout.id];
 		}
 
-		walk_layout(layout, root, current_element.parent).then(() => {
+		walk_layout(
+			layout,
+			root,
+			_components.concat(components),
+			current_element.parent
+		).then(() => {
 			layout_store.set(_rootNode);
 		});
 
@@ -240,6 +245,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	async function walk_layout(
 		node: LayoutNode,
 		root: string,
+		components: ComponentMeta[],
 		parent?: ComponentMeta
 	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
@@ -254,7 +260,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 				instance.type,
 				instance.component_class_id,
 				root,
-				_components,
+				components,
 				instance.props.components
 			).example_components;
 		}
@@ -288,7 +294,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 
 		if (node.children) {
 			instance.children = await Promise.all(
-				node.children.map((v) => walk_layout(v, root, instance))
+				node.children.map((v) => walk_layout(v, root, components, instance))
 			);
 		}
 
