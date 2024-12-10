@@ -31,13 +31,6 @@
 				description: "Whether to render right-to-left",
 				control: { type: "boolean" },
 				defaultValue: false
-			},
-			display_consecutive_in_same_bubble: {
-				options: [true, false],
-				description:
-					"Whether to display consecutive messages in the same bubble",
-				control: { type: "boolean" },
-				defaultValue: true
 			}
 		}
 	};
@@ -267,7 +260,7 @@ This document is a showcase of various Markdown capabilities.`,
 	name="Consecutive messages not grouped in same bubble"
 	args={{
 		type: "messages",
-		display_consecutive_in_same_bubble: true,
+		display_consecutive_in_same_bubble: false,
 		value: [
 			{
 				role: "user",
