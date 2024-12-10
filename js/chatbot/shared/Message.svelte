@@ -45,6 +45,7 @@
 	export let handle_action: (selected: string | null) => void;
 	export let scroll: () => void;
 	export let allow_file_downloads: boolean;
+	export let display_consecutive_in_same_bubble: boolean;
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -99,6 +100,11 @@
 		layout,
 		dispatch
 	};
+
+	$: console.log(
+		"display_consecutive_in_same_bubble",
+		display_consecutive_in_same_bubble
+	);
 </script>
 
 <div
@@ -116,10 +122,13 @@
 		class="flex-wrap"
 		class:component-wrap={messages[0].type === "component"}
 	>
-		<div class="message {role}">
+		<div
+			class:message={display_consecutive_in_same_bubble}
+			class={display_consecutive_in_same_bubble ? role : ""}
+		>
 			{#each messages as message, thought_index}
 				<div
-					class="message"
+					class="message {!display_consecutive_in_same_bubble ? role : ''}"
 					class:panel-full-width={true}
 					class:message-markdown-disabled={!render_markdown}
 					class:component={message.type === "component"}

@@ -31,6 +31,13 @@
 				description: "Whether to render right-to-left",
 				control: { type: "boolean" },
 				defaultValue: false
+			},
+			display_consecutive_in_same_bubble: {
+				options: [true, false],
+				description:
+					"Whether to display consecutive messages in the same bubble",
+				control: { type: "boolean" },
+				defaultValue: true
 			}
 		}
 	};
@@ -215,6 +222,70 @@ This document is a showcase of various Markdown capabilities.`,
 				content: {
 					file: {
 						path: "abc/qwerty.rtf",
+						url: ""
+					},
+					alt_text: null
+				}
+			}
+		]
+	}}
+/>
+
+<Story
+	name="Consecutive messages grouped in same bubble"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: true,
+		value: [
+			{
+				role: "user",
+				content: "Show me the file."
+			},
+			{
+				role: "user",
+				content: "Second user message"
+			},
+			{
+				role: "assistant",
+				content: "Here is the file you requested"
+			},
+			{
+				role: "assistant",
+				content: {
+					file: {
+						path: "abc/qwerty.txt",
+						url: ""
+					},
+					alt_text: null
+				}
+			}
+		]
+	}}
+/>
+
+<Story
+	name="Consecutive messages not grouped in same bubble"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: true,
+		value: [
+			{
+				role: "user",
+				content: "Show me the file."
+			},
+			{
+				role: "user",
+				content: "Second user message"
+			},
+			{
+				role: "assistant",
+				content: "Here is the file you requested"
+			},
+			{
+				role: "assistant",
+				content: {
+					file: {
+						path: "abc/qwerty.txt",
 						url: ""
 					},
 					alt_text: null

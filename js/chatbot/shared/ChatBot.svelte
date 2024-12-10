@@ -42,6 +42,7 @@
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
 	export let allow_file_downloads: boolean;
+	export let display_consecutive_in_same_bubble: boolean;
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
@@ -172,7 +173,6 @@
 		}
 	}
 	$: groupedMessages = value && group_messages(value, msg_format);
-	$: console.log("groupedMessages", groupedMessages);
 	$: options = value && get_last_bot_options();
 
 	function handle_example_select(i: number, example: ExampleMessage): void {
@@ -277,6 +277,7 @@
 				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
 				<Message
 					{messages}
+					{display_consecutive_in_same_bubble}
 					{opposite_avatar_img}
 					{avatar_img}
 					{role}

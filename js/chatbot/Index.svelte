@@ -44,6 +44,7 @@
 	export let autoscroll = true;
 	export let _retryable = false;
 	export let _undoable = false;
+	export let display_consecutive_in_same_bubble = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -125,6 +126,7 @@
 			{show_copy_all_button}
 			value={_value}
 			{latex_delimiters}
+			{display_consecutive_in_same_bubble}
 			{render_markdown}
 			{theme_mode}
 			pending_message={loading_status?.status === "pending"}
