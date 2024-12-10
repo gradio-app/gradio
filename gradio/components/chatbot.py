@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import inspect
 import warnings
 from collections.abc import Callable, Sequence
@@ -190,7 +191,7 @@ class Chatbot(Component):
         avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
         sanitize_html: bool = True,
         render_markdown: bool = True,
-        bubble_full_width: bool = True,
+        bubble_full_width=None,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
@@ -226,7 +227,7 @@ class Chatbot(Component):
             avatar_images: Tuple of two avatar image paths or URLs for user and bot (in that order). Pass None for either the user or bot image to skip. Must be within the working directory of the Gradio app or an external URL.
             sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
-            bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
+            bubble_full_width: Deprecated.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
@@ -267,7 +268,12 @@ class Chatbot(Component):
         self.render_markdown = render_markdown
         self.show_copy_button = show_copy_button
         self.sanitize_html = sanitize_html
-        self.bubble_full_width = bubble_full_width
+        if bubble_full_width is not None:
+            warnings.warn(
+                "The 'bubble_full_width' parameter is deprecated and will be removed in a future version. This parameter no longer has any effect.",
+                DeprecationWarning,
+            )
+        self.bubble_full_width = None
         self.line_breaks = line_breaks
         self.layout = layout
         self.show_copy_all_button = show_copy_all_button
@@ -509,6 +515,7 @@ class Chatbot(Component):
     def _postprocess_message_messages(
         self, message: MessageDict | ChatMessage
     ) -> Message:
+        message = copy.deepcopy(message)
         if isinstance(message, dict):
             message["content"] = self._postprocess_content(message["content"])
             msg = Message(**message)  # type: ignore

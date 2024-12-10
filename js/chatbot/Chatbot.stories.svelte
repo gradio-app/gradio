@@ -85,16 +85,9 @@
 />
 
 <Story
-	name="Chatbot with chat bubble full width disabled and copy button"
-	args={{
-		bubble_full_width: false,
-		show_copy_button: true
-	}}
-/>
-
-<Story
 	name="Chatbot with panel layout enabled and avatars"
 	args={{
+		show_copy_button: true,
 		layout: "panel",
 		avatar_images: [
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
@@ -106,7 +99,6 @@
 <Story
 	name="Chatbot with bubble layout enabled and avatars"
 	args={{
-		bubble_full_width: true,
 		layout: "bubble",
 		avatar_images: [
 			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
@@ -118,7 +110,6 @@
 <Story
 	name="Chatbot with percentage height"
 	args={{
-		bubble_full_width: false,
 		layout: "panel",
 		height: "50%"
 	}}
@@ -190,6 +181,45 @@ This document is a showcase of various Markdown capabilities.`,
 			[
 				`![A cheetah](https://cdn.britannica.com/02/92702-120-6A02E613/Cheetah.jpg)`
 			]
+		]
+	}}
+/>
+
+<Story
+	name="Uploaded text files"
+	args={{
+		type: "messages",
+		value: [
+			{
+				role: "user",
+				content: {
+					file: {
+						path: "abc/qwerty.pdf",
+						url: ""
+					},
+					alt_text: null
+				}
+			},
+			{
+				role: "user",
+				content: {
+					file: {
+						path: "abc/qwerty.txt",
+						url: ""
+					},
+					alt_text: null
+				}
+			},
+			{
+				role: "user",
+				content: {
+					file: {
+						path: "abc/qwerty.rtf",
+						url: ""
+					},
+					alt_text: null
+				}
+			}
 		]
 	}}
 />

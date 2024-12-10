@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
 
 import gradio_client.utils as client_utils
+from gradio_client import handle_file
 from gradio_client.documentation import document
 from pydantic import Field
 from typing_extensions import NotRequired
@@ -85,6 +86,7 @@ class MultimodalTextbox(FormComponent):
         rtl: bool = False,
         submit_btn: str | bool | None = True,
         stop_btn: str | bool | None = False,
+        max_plain_text_length: int = 1000,
     ):
         """
         Parameters:
@@ -114,11 +116,10 @@ class MultimodalTextbox(FormComponent):
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text.
             stop_btn: If True, will show a stop button (useful for streaming demos). If a string, will use that string as the stop button text.
+            max_plain_text_length: Maximum length of plain text in the textbox. If the text exceeds this length, the text will be pasted as a file. Default is 1000.
         """
         self.file_types = file_types
         self.file_count = file_count
-        if value is None:
-            value = {"text": "", "files": []}
         if file_types is not None and not isinstance(file_types, list):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
@@ -130,6 +131,7 @@ class MultimodalTextbox(FormComponent):
         self.stop_btn = stop_btn
         self.autofocus = autofocus
         self.autoscroll = autoscroll
+        self.max_plain_text_length = max_plain_text_length
 
         super().__init__(
             label=label,
@@ -171,7 +173,7 @@ class MultimodalTextbox(FormComponent):
             "files": [f.path for f in payload.files],
         }
 
-    def postprocess(self, value: MultimodalValue | str | None) -> MultimodalData:
+    def postprocess(self, value: MultimodalValue | str | None) -> MultimodalData | None:
         """
         Parameters:
             value: Expects a {dict} with "text" and "files", both optional. The files array is a list of file paths or URLs.
@@ -179,7 +181,7 @@ class MultimodalTextbox(FormComponent):
             The value to display in the multimodal textbox. Files information as a list of FileData objects.
         """
         if value is None:
-            return MultimodalData(text="", files=[])
+            return None
         if not isinstance(value, (dict, str)):
             raise ValueError(
                 f"MultimodalTextbox expects a string or a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
@@ -210,5 +212,20 @@ class MultimodalTextbox(FormComponent):
             )
         return MultimodalData(text=text, files=files)
 
-    def example_inputs(self) -> Any:
-        return {"text": "sample text", "files": []}
+    def example_payload(self) -> Any:
+        return {
+            "text": "Describe this image",
+            "files": [
+                handle_file(
+                    "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+                )
+            ],
+        }
+
+    def example_value(self) -> Any:
+        return {
+            "text": "Describe this image",
+            "files": [
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            ],
+        }
