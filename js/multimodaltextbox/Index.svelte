@@ -52,6 +52,7 @@
 	export let interactive: boolean;
 	export let root: string;
 	export let file_count: "single" | "multiple" | "directory";
+	export let max_plain_text_length: number;
 
 	let dragging: boolean;
 </script>
@@ -109,5 +110,6 @@
 		disabled={!interactive}
 		upload={(...args) => gradio.client.upload(...args)}
 		stream_handler={(...args) => gradio.client.stream(...args)}
+		{max_plain_text_length}
 	/>
 </Block>
