@@ -129,6 +129,7 @@
 					class:component={message.type === "component"}
 					class:html={is_component_message(message) &&
 						message.content.component === "html"}
+					class:thought={thought_index > 0}
 				>
 					<button
 						data-testid={role}
@@ -552,6 +553,10 @@
 		padding: 0;
 		border: none;
 		background: none;
+	}
+
+	.thought {
+		margin-top: var(--spacing-xxl);
 	}
 
 	.panel .bot,
