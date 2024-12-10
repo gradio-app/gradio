@@ -114,8 +114,8 @@ demos_by_category = [
                 "dir": "chatbot_with_tools",
             },
             {
-                "name": "Multimodal Chatbot",
-                "dir": "chatinterface_multimodal",
+                "name": "Chatinterface with Code",
+                "dir": "chatinterface_artifacts",
             },
         ]
     },

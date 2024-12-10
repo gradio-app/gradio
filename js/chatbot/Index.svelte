@@ -37,7 +37,6 @@
 	export let show_copy_button = true;
 	export let show_copy_all_button = false;
 	export let sanitize_html = true;
-	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
@@ -150,7 +149,6 @@
 			on:copy={(e) => gradio.dispatch("copy", e.detail)}
 			{avatar_images}
 			{sanitize_html}
-			{bubble_full_width}
 			{line_breaks}
 			{autoscroll}
 			{layout}
