@@ -150,7 +150,7 @@
 					>
 						{#if message.type === "text"}
 							<div class="message-content">
-								{#if message.metadata.title}
+								{#if message?.metadata?.title}
 									<MessageBox
 										title={message.metadata.title}
 										expanded={is_last_bot_message([message], value)}
