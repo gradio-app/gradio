@@ -21,8 +21,6 @@
 	export let resizeable = false;
 	let element: HTMLElement;
 
-	if (!visible) flex = false;
-
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
 	const get_dimension = (
@@ -37,6 +35,10 @@
 			return dimension_value;
 		}
 	};
+
+	$: if (!visible) {
+		flex = false;
+	}
 </script>
 
 <svelte:element
