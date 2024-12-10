@@ -469,13 +469,13 @@ class Base(ThemeClass):
         if isinstance(font, (fonts.Font, str)):
             font = [font]
         self._font = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
+            fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
             for fontfam in font
         ]
         if isinstance(font_mono, (fonts.Font, str)):
             font_mono = [font_mono]
         self._font_mono = [
-            fontfam if isinstance(fontfam, fonts.Font) else fonts.LocalFont(fontfam)
+            fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
             for fontfam in font_mono
         ]
         self.font = ", ".join(str(font) for font in self._font)
