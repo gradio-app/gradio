@@ -512,7 +512,6 @@ class ChatInterface(Blocks):
 
     def _setup_api(self) -> None:
         api_fn = self._stream_fn if self.is_generator else self._submit_fn
-        print(">>>", "api_fn", api_fn)
         self.fake_api_btn.click(
             api_fn,
             [self.textbox, self.chatbot_state] + self.additional_inputs,
