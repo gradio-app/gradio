@@ -9,7 +9,9 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { FileData, Client } from "@gradio/client";
+	import type { WaveformOptions } from "../../audio/shared/types";
 	import {
 		Clear,
 		File,
@@ -17,9 +19,11 @@
 		Paperclip,
 		Video,
 		Send,
-		Square
+		Square,
+		Microphone
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
+	import InteractiveAudio from "../../audio/interactive/InteractiveAudio.svelte";
 
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
@@ -28,6 +32,7 @@
 
 	export let value_is_output = false;
 	export let lines = 1;
+	export let i18n: I18nFormatter;
 	export let placeholder = "Type here...";
 	export let disabled = false;
 	export let label: string;
@@ -48,7 +53,14 @@
 	export let stream_handler: Client["stream"];
 	export let file_count: "single" | "multiple" | "directory" = "multiple";
 	export let max_plain_text_length = 1000;
-
+	export let waveform_settings: Record<string, any>;
+	export let waveform_options: WaveformOptions = {};
+	export let sources:
+		| ["microphone"]
+		| ["upload"]
+		| ["microphone", "upload"]
+		| ["upload", "microphone"] = ["microphone", "upload"];
+	export let active_source: "microphone" | "upload" = sources[0];
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
 	let el: HTMLTextAreaElement | HTMLInputElement;
@@ -58,6 +70,7 @@
 	export let dragging = false;
 	let uploading = false;
 	let oldValue = value.text;
+	let recording = false;
 	$: dispatch("drag", dragging);
 
 	let full_container: HTMLDivElement;
@@ -83,6 +96,9 @@
 		clear: undefined;
 		load: FileData[] | FileData;
 		error: string;
+		start_recording: undefined;
+		pause_recording: undefined;
+		stop_recording: undefined;
 	}>();
 
 	beforeUpdate(() => {
@@ -137,6 +153,7 @@
 		) {
 			e.preventDefault();
 			dispatch("submit");
+			active_source = "upload";
 		}
 	}
 
@@ -193,6 +210,7 @@
 
 	function handle_submit(): void {
 		dispatch("submit");
+		active_source = "upload";
 	}
 
 	async function handle_paste(event: ClipboardEvent): Promise<void> {
@@ -329,6 +347,40 @@
 				{/if}
 			</div>
 		{/if}
+		{#if active_source === "microphone"}
+			<InteractiveAudio
+				on:change={({ detail }) => {
+					if (Array.isArray(detail)) {
+						value.files = [...value.files, ...detail];
+					} else if (detail) {
+						value.files = [...value.files, detail];
+					}
+					value = value;
+				}}
+				on:clear={() => {
+					active_source = "upload";
+				}}
+				on:start_recording={() => dispatch("start_recording")}
+				on:pause_recording={() => dispatch("pause_recording")}
+				on:stop_recording={() => dispatch("stop_recording")}
+				sources={["microphone"]}
+				{recording}
+				{waveform_settings}
+				{waveform_options}
+				{i18n}
+				{active_source}
+				{upload}
+				{stream_handler}
+				stream_every={1}
+				editable={true}
+				{label}
+				{root}
+				loop={false}
+				show_label={false}
+				show_download_button={false}
+				{dragging}
+			/>
+		{/if}
 		<div class="input-container">
 			{#if !disabled && !(file_count === "single" && value.files.length > 0)}
 				<Upload
@@ -347,12 +399,28 @@
 					hidden={true}
 					{upload}
 					{stream_handler}
-				></Upload>
+				/>
+
+				{#if sources && sources.includes("microphone")}
+					<button
+						data-testid="microphone-button"
+						class="action-button"
+						class:recording
+						on:click={() => {
+							active_source = "microphone";
+						}}
+					>
+						<Microphone />
+					</button>
+				{/if}
+
 				<button
 					data-testid="upload-button"
-					class="upload-button"
-					on:click={handle_upload_click}><Paperclip /></button
+					class="action-button"
+					on:click={handle_upload_click}
 				>
+					<Paperclip />
+				</button>
 			{/if}
 			<textarea
 				data-testid="textbox"
@@ -380,7 +448,7 @@
 			/>
 			{#if submit_btn}
 				<button
-					class="submit-button"
+					class="action-button"
 					class:padded-button={submit_btn !== true}
 					on:click={handle_submit}
 				>
@@ -393,7 +461,7 @@
 			{/if}
 			{#if stop_btn}
 				<button
-					class="stop-button"
+					class="action-button"
 					class:padded-button={stop_btn !== true}
 					on:click={handle_stop}
 				>
@@ -467,9 +535,7 @@
 		color: var(--input-placeholder-color);
 	}
 
-	.upload-button,
-	.submit-button,
-	.stop-button {
+	.action-button {
 		border: none;
 		text-align: center;
 		text-decoration: none;
@@ -483,70 +549,72 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-1);
-	}
-	.padded-button {
-		padding: 0 10px;
-	}
-
-	.stop-button,
-	.upload-button,
-	.submit-button {
 		background: var(--button-secondary-background-fill);
+		margin-left: var(--spacing-sm);
 	}
 
-	.stop-button:hover,
-	.upload-button:hover,
-	.submit-button:hover {
+	.action-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
-	.stop-button:disabled,
-	.upload-button:disabled,
-	.submit-button:disabled {
+	.action-button:disabled {
 		background: var(--button-secondary-background-fill);
 		cursor: initial;
 	}
-	.stop-button:active,
-	.upload-button:active,
-	.submit-button:active {
+
+	.action-button:active {
 		box-shadow: var(--button-shadow-active);
 	}
 
-	.submit-button :global(svg) {
-		height: 22px;
-		width: 22px;
+	.action-button.recording {
+		background: var(--color-accent);
+		color: white;
 	}
-	.upload-button :global(svg) {
+
+	.action-button :global(svg) {
 		height: 17px;
 		width: 17px;
 	}
 
-	.stop-button :global(svg) {
-		height: 16px;
-		width: 16px;
+	.padded-button {
+		padding: 0 10px;
 	}
 
-	.loader {
+	.disabled {
+		display: none;
+	}
+
+	.delete-button {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		--ring-color: transparent;
-		position: relative;
-		border: 5px solid #f3f3f3;
-		border-top: 5px solid var(--color-accent);
+		position: absolute;
+		right: -7px;
+		top: -7px;
+		color: var(--button-secondary-text-color);
+		background: var(--button-secondary-background-fill);
+		border: none;
+		text-align: center;
+		text-decoration: none;
+		font-size: 10px;
+		cursor: pointer;
 		border-radius: 50%;
-		width: 25px;
-		height: 25px;
-		animation: spin 2s linear infinite;
+		width: 20px;
+		height: 20px;
 	}
 
-	@keyframes spin {
-		0% {
-			transform: rotate(0deg);
-		}
-		100% {
-			transform: rotate(360deg);
-		}
+	.delete-button :global(svg) {
+		width: 12px;
+		height: 12px;
+	}
+
+	.delete-button:hover {
+		filter: brightness(1.2);
+		border: 0.8px solid var(--color-grey-500);
+	}
+
+	:global(.source-selector) {
+		margin-top: var(--spacing-sm);
 	}
 
 	.thumbnails :global(img) {
@@ -596,36 +664,26 @@
 		height: 30px;
 	}
 
-	.delete-button {
+	.loader {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		position: absolute;
-		right: -7px;
-		top: -7px;
-		color: var(--button-secondary-text-color);
-		background: var(--button-secondary-background-fill);
-		border: none;
-		text-align: center;
-		text-decoration: none;
-		font-size: 10px;
-		cursor: pointer;
+		--ring-color: transparent;
+		position: relative;
+		border: 5px solid #f3f3f3;
+		border-top: 5px solid var(--color-accent);
 		border-radius: 50%;
-		width: 20px;
-		height: 20px;
+		width: 25px;
+		height: 25px;
+		animation: spin 2s linear infinite;
 	}
 
-	.disabled {
-		display: none;
-	}
-
-	.delete-button :global(svg) {
-		width: 12px;
-		height: 12px;
-	}
-
-	.delete-button:hover {
-		filter: brightness(1.2);
-		border: 0.8px solid var(--color-grey-500);
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 </style>
