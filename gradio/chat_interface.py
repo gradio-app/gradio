@@ -348,23 +348,34 @@ class ChatInterface(Blocks):
         if hasattr(self.fn, "zerogpu"):
             submit_fn.__func__.zerogpu = self.fn.zerogpu  # type: ignore
 
-        submit_event = self.textbox.submit(
-            self._clear_and_save_textbox,
-            [self.textbox],
-            [self.textbox, self.saved_input],
-            show_api=False,
-            queue=False,
-        ).then(
-            submit_fn,
-            [self.saved_input, self.chatbot] + self.additional_inputs,
-            [self.chatbot, self.fake_response_textbox] + self.additional_outputs,
-            show_api=False,
-            concurrency_limit=cast(
-                Union[int, Literal["default"], None], self.concurrency_limit
-            ),
-            show_progress=cast(
-                Literal["full", "minimal", "hidden"], self.show_progress
-            ),
+        submit_event = (
+            self.textbox.submit(
+                self._clear_and_save_textbox,
+                [self.textbox],
+                [self.textbox, self.saved_input],
+                show_api=False,
+                queue=False,
+            )
+            .then(  # The reason we do this outside of the submit_fn is that we want to update the chatbot UI with the user message before the submit_fn is called
+                self._append_message_to_history,
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
+                show_api=False,
+                queue=False,
+            )
+            .then(
+                submit_fn,
+                [self.saved_input, self.chatbot_state] + self.additional_inputs,
+                [self.chatbot, self.chatbot_state, self.fake_response_textbox]
+                + self.additional_outputs,
+                show_api=False,
+                concurrency_limit=cast(
+                    Union[int, Literal["default"], None], self.concurrency_limit
+                ),
+                show_progress=cast(
+                    Literal["full", "minimal", "hidden"], self.show_progress
+                ),
+            )
         )
         submit_event.then(
             lambda: update(value=None, interactive=True),
@@ -389,7 +400,8 @@ class ChatInterface(Blocks):
                     example_select_event.then(
                         submit_fn,
                         [self.saved_input, self.chatbot],
-                        [self.chatbot] + self.additional_outputs,
+                        [self.chatbot, self.fake_response_textbox]
+                        + self.additional_outputs,
                         show_api=False,
                         concurrency_limit=cast(
                             Union[int, Literal["default"], None], self.concurrency_limit
@@ -410,7 +422,14 @@ class ChatInterface(Blocks):
             self.chatbot.retry(
                 self._pop_last_user_message,
                 [self.chatbot],
-                [self.chatbot, self.saved_input],
+                [self.chatbot, self.chatbot_state, self.saved_input],
+                show_api=False,
+                queue=False,
+            )
+            .then(
+                self._append_message_to_history,
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
                 show_api=False,
                 queue=False,
             )
@@ -421,8 +440,9 @@ class ChatInterface(Blocks):
             )
             .then(
                 submit_fn,
-                [self.saved_input, self.chatbot] + self.additional_inputs,
-                [self.chatbot, self.fake_response_textbox] + self.additional_outputs,
+                [self.saved_input, self.chatbot_state] + self.additional_inputs,
+                [self.chatbot, self.chatbot_state, self.fake_response_textbox]
+                + self.additional_outputs,
                 show_api=False,
                 concurrency_limit=cast(
                     Union[int, Literal["default"], None], self.concurrency_limit
@@ -443,7 +463,7 @@ class ChatInterface(Blocks):
         self.chatbot.undo(
             self._pop_last_user_message,
             [self.chatbot],
-            [self.chatbot, self.saved_input],
+            [self.chatbot, self.chatbot_state, self.saved_input],
             show_api=False,
             queue=False,
         ).then(
@@ -563,7 +583,7 @@ class ChatInterface(Blocks):
         self,
         message: MultimodalPostprocess | str,
         history: list[MessageDict] | TupleFormat,
-        role: Literal["user", "assistant"],
+        role: Literal["user", "assistant"] = "user",
     ) -> list[MessageDict] | TupleFormat:
         if isinstance(message, str):
             message = {"text": message}
@@ -600,10 +620,7 @@ class ChatInterface(Blocks):
         history: TupleFormat | list[MessageDict],
         request: Request,
         *args,
-    ) -> (
-        tuple[TupleFormat | list[MessageDict], str]
-        | tuple[TupleFormat | list[MessageDict], ...]
-    ):
+    ) -> tuple:
         inputs, _, _ = special_args(
             self.fn, inputs=[message, history, *args], request=request
         )
@@ -620,8 +637,8 @@ class ChatInterface(Blocks):
         history = self._append_message_to_history(message, history, "user")
         history = self._append_message_to_history(response, history, "assistant")
         if additional_outputs:
-            return history, response, *additional_outputs
-        return history, response
+            return history, history, response, *additional_outputs
+        return history, history, response
 
     async def _stream_fn(
         self,
@@ -645,7 +662,7 @@ class ChatInterface(Blocks):
             )
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
 
-        self._append_message_to_history(message, history, "user")
+        history = self._append_message_to_history(message, history, "user")
         additional_outputs = None
         try:
             first_response = await utils.async_iteration(generator)
@@ -811,7 +828,7 @@ class ChatInterface(Blocks):
         history_ = history[: i + 1]
         if self.type == "tuples":
             history_ = self._messages_to_tuples(history_)  # type: ignore
-        return history_, return_message  # type: ignore
+        return history_, history_, return_message  # type: ignore
 
     def render(self) -> ChatInterface:
         # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
