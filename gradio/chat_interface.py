@@ -5,7 +5,6 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import builtins
-import functools
 import inspect
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
@@ -348,26 +347,23 @@ class ChatInterface(Blocks):
         if hasattr(self.fn, "zerogpu"):
             submit_fn.__func__.zerogpu = self.fn.zerogpu  # type: ignore
 
-        submit_event = (
-            self.textbox.submit(
-                self._clear_and_save_textbox,
-                [self.textbox],
-                [self.textbox, self.saved_input],
-                show_api=False,
-                queue=False,
-            )
-            .then(
-                submit_fn,
-                [self.saved_input, self.chatbot] + self.additional_inputs,
-                [self.chatbot, self.fake_response_textbox] + self.additional_outputs,
-                show_api=False,
-                concurrency_limit=cast(
-                    Union[int, Literal["default"], None], self.concurrency_limit
-                ),
-                show_progress=cast(
-                    Literal["full", "minimal", "hidden"], self.show_progress
-                ),
-            )
+        submit_event = self.textbox.submit(
+            self._clear_and_save_textbox,
+            [self.textbox],
+            [self.textbox, self.saved_input],
+            show_api=False,
+            queue=False,
+        ).then(
+            submit_fn,
+            [self.saved_input, self.chatbot] + self.additional_inputs,
+            [self.chatbot, self.fake_response_textbox] + self.additional_outputs,
+            show_api=False,
+            concurrency_limit=cast(
+                Union[int, Literal["default"], None], self.concurrency_limit
+            ),
+            show_progress=cast(
+                Literal["full", "minimal", "hidden"], self.show_progress
+            ),
         )
         submit_event.then(
             lambda: update(value=None, interactive=True),
@@ -425,7 +421,7 @@ class ChatInterface(Blocks):
             .then(
                 submit_fn,
                 [self.saved_input, self.chatbot] + self.additional_inputs,
-                [self.chatbot] + self.additional_outputs,
+                [self.chatbot, self.fake_response_textbox] + self.additional_outputs,
                 show_api=False,
                 concurrency_limit=cast(
                     Union[int, Literal["default"], None], self.concurrency_limit
@@ -465,7 +461,7 @@ class ChatInterface(Blocks):
         ).then(
             submit_fn,
             [self.saved_input, self.chatbot],
-            [self.chatbot] + self.additional_outputs,
+            [self.chatbot, self.fake_response_textbox] + self.additional_outputs,
             show_api=False,
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
@@ -558,14 +554,16 @@ class ChatInterface(Blocks):
             if message_tuple[0]:
                 history_messages.append({"role": "user", "content": message_tuple[0]})
             if message_tuple[1]:
-                history_messages.append({"role": "assistant", "content": message_tuple[1]})
+                history_messages.append(
+                    {"role": "assistant", "content": message_tuple[1]}
+                )
         return history_messages
 
     def _append_message_to_history(
         self,
         message: MultimodalPostprocess | str,
         history: list[MessageDict] | TupleFormat,
-        role: Literal["user", "assistant"] = "user",
+        role: Literal["user", "assistant"],
     ):
         if isinstance(message, str):
             message = {"text": message}
@@ -600,45 +598,42 @@ class ChatInterface(Blocks):
         history: TupleFormat | list[MessageDict],
         request: Request,
         *args,
-    ) -> tuple[TupleFormat | list[MessageDict], str] | tuple[TupleFormat | list[MessageDict], ...]:
+    ) -> (
+        tuple[TupleFormat | list[MessageDict], str]
+        | tuple[TupleFormat | list[MessageDict], ...]
+    ):
         inputs, _, _ = special_args(
             self.fn, inputs=[user_message, history, *args], request=request
         )
-
         if self.is_async:
             response = await self.fn(*inputs)
         else:
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-        additional_outputs = None
         if isinstance(response, tuple):
             response, *additional_outputs = response
-
+        else:
+            additional_outputs = None
         self._append_message_to_history(user_message, history, role="user")
         self._append_message_to_history(response, history, role="assistant")
-
         if additional_outputs:
             return history, response, *additional_outputs
         return history, response
 
     async def _stream_fn(
         self,
-        message: str | MultimodalPostprocess,
-        history_with_input: TupleFormat | list[MessageDict],
+        user_message: str | MultimodalPostprocess,
+        history: TupleFormat | list[MessageDict],
         request: Request,
         *args,
     ) -> AsyncGenerator[
         TupleFormat | list[MessageDict] | tuple[TupleFormat | list[MessageDict], ...],
         None,
     ]:
-        message_serialized, history = self._pop_last_user_message(
-            history_with_input
-        )
         inputs, _, _ = special_args(
-            self.fn, inputs=[message_serialized, history, *args], request=request
+            self.fn, inputs=[user_message, history, *args], request=request
         )
-
         if self.is_async:
             generator = self.fn(*inputs)
         else:
@@ -646,28 +641,23 @@ class ChatInterface(Blocks):
                 self.fn, *inputs, limiter=self.limiter
             )
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
-
         additional_outputs = None
         try:
             first_response = await utils.async_iteration(generator)
             if isinstance(first_response, tuple):
                 first_response, *additional_outputs = first_response
-            self._append_message_to_history(first_response, history_with_input)
+            self._append_message_to_history(first_response, history, role="assistant")
             yield (
-                history_with_input
-                if not additional_outputs
-                else (history_with_input, *additional_outputs)
+                history if not additional_outputs else (history, *additional_outputs)
             )
         except StopIteration:
-            yield history_with_input
+            yield history
         async for response in generator:
             if isinstance(response, tuple):
                 response, *additional_outputs = response
-            self._append_message_to_history(response, history_with_input)
+            self._append_message_to_history(response, history, role="assistant")
             yield (
-                history_with_input
-                if not additional_outputs
-                else (history_with_input, *additional_outputs)
+                history if not additional_outputs else (history, *additional_outputs)
             )
 
     def option_clicked(
