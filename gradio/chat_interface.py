@@ -164,7 +164,7 @@ class ChatInterface(Blocks):
         self.provided_chatbot = chatbot is not None
         self.examples = examples
         self.examples_messages = self._setup_example_messages(
-            examples, example_labels, example_icons
+            examples, example_labels, example_icons, multimodal
         )
         self.run_examples_on_click = run_examples_on_click
         self.cache_examples = cache_examples
@@ -324,6 +324,7 @@ class ChatInterface(Blocks):
         examples: list[str] | list[MultimodalValue] | list[list] | None,
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
+        multimodal: bool = False,
     ) -> list[ExampleMessage]:
         examples_messages = []
         if examples:
@@ -338,8 +339,18 @@ class ChatInterface(Blocks):
                     example_message["files"] = example.get("files", [])
                 if example_labels:
                     example_message["display_text"] = example_labels[index]
-                if example_icons:
-                    example_message["icon"] = example_icons[index]
+                if example_icons and multimodal:
+                    example_files = example_message.get("files")
+                    if not example_files:
+                        example_message["icon"] = {
+                            "path": "",
+                            "url": "",
+                            "orig_name": "",
+                            "mime_type": "text", # for internal use, not a valid mime type
+                            "meta": {"_type": "gradio.FileData"}
+                        }
+                    else:
+                        example_message["icon"] = example_icons[index]
                 examples_messages.append(example_message)
         return examples_messages
 
