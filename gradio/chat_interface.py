@@ -408,8 +408,8 @@ class ChatInterface(Blocks):
                 if not self.cache_examples:
                     example_select_event.then(
                         submit_fn,
-                        [self.saved_input, self.chatbot],
-                        [self.chatbot, self.fake_response_textbox]
+                        [self.saved_input, self.chatbot_state] + self.additional_inputs,
+                        [self.chatbot_state, self.fake_response_textbox]
                         + self.additional_outputs,
                         show_api=False,
                         concurrency_limit=cast(
@@ -418,6 +418,8 @@ class ChatInterface(Blocks):
                         show_progress=cast(
                             Literal["full", "minimal", "hidden"], self.show_progress
                         ),
+                    ).then(
+                        **synchronize_chatbot_state
                     )
             else:
                 self.chatbot.example_select(
@@ -579,11 +581,10 @@ class ChatInterface(Blocks):
 
     def _append_message_to_history(
         self,
-        message: MultimodalPostprocess | str,
+        message: MultimodalPostprocess | str | MessageDict,
         history: list[MessageDict] | TupleFormat,
         role: Literal["user", "assistant"] = "user",
     ) -> list[MessageDict] | TupleFormat:
-        print("message", message, type(message))
         if isinstance(message, str):
             message = {"text": message}
         if self.type == "tuples":
@@ -591,23 +592,26 @@ class ChatInterface(Blocks):
         else:
             history = copy.deepcopy(history)
 
-        for x in message.get("files", []):
-            if isinstance(x, dict):
-                x = x.get("path")
-            history.append({"role": role, "content": (x,)})  # type: ignore
-        if message["text"] is None or not isinstance(message["text"], str):
-            pass
-        else:
-            history.append({"role": role, "content": message["text"]})  # type: ignore
+        if "content" in message:  # in MessageDict format already
+            history.append(message)  # type: ignore
+        else:  # in MultimodalPostprocess format
+            for x in message.get("files", []):
+                if isinstance(x, dict):
+                    x = x.get("path")
+                history.append({"role": role, "content": (x,)})  # type: ignore
+            if message["text"] is None or not isinstance(message["text"], str):
+                pass
+            else:
+                history.append({"role": role, "content": message["text"]})  # type: ignore
 
         if self.type == "tuples":
             history = self._messages_to_tuples(history)  # type: ignore
         return history
 
-    def response_as_dict(self, response: MessageDict | Message | str) -> MessageDict:
+    def response_as_dict(self, response: MessageDict | Message | str | Component) -> MessageDict:
         if isinstance(response, Message):
             new_response = response.model_dump()
-        elif isinstance(response, str):
+        elif isinstance(response, (str, Component)):
             return {"role": "assistant", "content": response}
         else:
             new_response = response
@@ -620,10 +624,6 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> tuple:
-        print("message", message, type(message))
-        print("history", history)
-        print("args", args)
-        print("request", request)
         inputs, _, _ = special_args(
             self.fn, inputs=[message, history, *args], request=request
         )
@@ -637,8 +637,8 @@ class ChatInterface(Blocks):
             response, *additional_outputs = response
         else:
             additional_outputs = None
-        response = self.response_as_dict(response)
         history = self._append_message_to_history(message, history, "user")
+        response = self.response_as_dict(response)
         history = self._append_message_to_history(response, history, "assistant")  # type: ignore
         if additional_outputs:
             return history, response, *additional_outputs
