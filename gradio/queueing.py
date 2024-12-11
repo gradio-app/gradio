@@ -17,6 +17,7 @@ from gradio import route_utils, routes
 from gradio.data_classes import (
     PredictBodyInternal,
 )
+from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
 from gradio.route_utils import API_PREFIX
 from gradio.server_messages import (
@@ -637,7 +638,8 @@ class Queue:
                         response["is_generating"] = not event.is_finished
 
             except Exception as e:
-                traceback.print_exc()
+                if not isinstance(e, Error) or e.print_exception:
+                    traceback.print_exc()
                 response = None
                 err = e
                 for event in awake_events:
@@ -722,7 +724,8 @@ class Queue:
                             if event.streaming:
                                 response["is_generating"] = not event.is_finished
                     except Exception as e:
-                        traceback.print_exc()
+                        if not isinstance(e, Error) or e.print_exception:
+                            traceback.print_exc()
                         response = None
                         err = e
 
@@ -764,7 +767,8 @@ class Queue:
                 for event in events:
                     self.event_analytics[event._id]["process_time"] = duration
         except Exception as e:
-            traceback.print_exc()
+            if not isinstance(e, Error) or e.print_exception:
+                traceback.print_exc()
         finally:
             event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
             event_queue.current_concurrency -= 1
