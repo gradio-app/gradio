@@ -39,6 +39,21 @@
 	$: if (!visible) {
 		flex = false;
 	}
+
+	const resize = (e: MouseEvent): void => {
+		let prevY = e.clientY;
+		const onMouseMove = (e: MouseEvent): void => {
+			const dy: number = e.clientY - prevY;
+			prevY = e.clientY;
+			element.style.height = `${element.offsetHeight + dy}px`;
+		};
+		const onMouseUp = (): void => {
+			window.removeEventListener("mousemove", onMouseMove);
+			window.removeEventListener("mouseup", onMouseUp);
+		};
+		window.addEventListener("mousemove", onMouseMove);
+		window.addEventListener("mouseup", onMouseUp);
+	};
 </script>
 
 <svelte:element
@@ -73,20 +88,7 @@
 			class="resize-handle"
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 10 10"
-			on:mousedown={(e: MouseEvent) => {
-				let prevY = e.clientY;
-				const onMouseMove = (e: MouseEvent): void => {
-					const dy: number = e.clientY - prevY;
-					prevY = e.clientY;
-					element.style.height = `${element.offsetHeight + dy}px`;
-				};
-				const onMouseUp = (): void => {
-					window.removeEventListener("mousemove", onMouseMove);
-					window.removeEventListener("mouseup", onMouseUp);
-				};
-				window.addEventListener("mousemove", onMouseMove);
-				window.addEventListener("mouseup", onMouseUp);
-			}}
+			on:mousedown={resize}
 		>
 			<line x1="1" y1="9" x2="9" y2="1" stroke="gray" stroke-width="0.5" />
 			<line x1="5" y1="9" x2="9" y2="5" stroke="gray" stroke-width="0.5" />
