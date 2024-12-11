@@ -368,7 +368,7 @@ class ChatInterface(Blocks):
                 [self.saved_input, self.chatbot_state] + self.additional_inputs,
                 [self.chatbot_state, self.fake_response_textbox]
                 + self.additional_outputs,
-                show_api=False,
+                api_name=cast(Union[str, Literal[False]], self.api_name),
                 concurrency_limit=cast(
                     Union[int, Literal["default"], None], self.concurrency_limit
                 ),
@@ -544,18 +544,6 @@ class ChatInterface(Blocks):
                 cancels=events_to_cancel,  # type: ignore
                 show_api=False,
             )
-
-    def _setup_api(self) -> None:
-        api_fn = self._stream_fn if self.is_generator else self._submit_fn
-        self.fake_api_btn.click(
-            api_fn,
-            [self.textbox, self.chatbot_state] + self.additional_inputs,
-            [self.chatbot_state, self.fake_response_textbox] + self.additional_outputs,
-            api_name=cast(Union[str, Literal[False]], self.api_name),
-            concurrency_limit=cast(
-                Union[int, Literal["default"], None], self.concurrency_limit
-            ),
-        )
 
     def _clear_and_save_textbox(
         self,
