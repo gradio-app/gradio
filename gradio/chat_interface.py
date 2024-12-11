@@ -698,7 +698,7 @@ class ChatInterface(Blocks):
         and added to the chat history as well.
         """
         history = []
-        self._append_message_to_history(example.value, history)
+        self._append_message_to_history(example.value, history, role="user")
         example = self._flatten_example_files(example)
         message = example.value if self.multimodal else example.value["text"]
         yield history, message
