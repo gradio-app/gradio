@@ -335,9 +335,4 @@
 		font-weight: var(--weight-semibold);
 		border-radius: var(--radius-lg);
 	}
-
-	.no-multimodal {
-		padding-top: var(--spacing-xxl);
-		justify-content: flex-end;
-	}
 </style>
