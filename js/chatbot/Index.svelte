@@ -75,6 +75,7 @@
 	export let like_user_message = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height: number | string | undefined;
+	export let resizeable: boolean;
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
 	export let placeholder: string | null = null;
@@ -91,6 +92,7 @@
 	{scale}
 	{min_width}
 	{height}
+	{resizeable}
 	{min_height}
 	{max_height}
 	allow_overflow={true}
