@@ -366,7 +366,7 @@ class ChatInterface(Blocks):
             .then(
                 submit_fn,
                 [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                [self.chatbot, self.chatbot_state, self.fake_response_textbox]
+                [self.chatbot_state, self.fake_response_textbox]
                 + self.additional_outputs,
                 show_api=False,
                 concurrency_limit=cast(
@@ -375,6 +375,13 @@ class ChatInterface(Blocks):
                 show_progress=cast(
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
+            )
+            .then(
+                lambda x: x,
+                self.chatbot_state,
+                self.chatbot,
+                show_api=False,
+                queue=False,
             )
         )
         submit_event.then(
@@ -441,7 +448,7 @@ class ChatInterface(Blocks):
             .then(
                 submit_fn,
                 [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                [self.chatbot, self.chatbot_state, self.fake_response_textbox]
+                [self.chatbot_state, self.fake_response_textbox]
                 + self.additional_outputs,
                 show_api=False,
                 concurrency_limit=cast(
@@ -450,6 +457,13 @@ class ChatInterface(Blocks):
                 show_progress=cast(
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
+            )
+            .then(
+                lambda x: x,
+                self.chatbot_state,
+                self.chatbot,
+                show_api=False,
+                queue=False,
             )
         )
         retry_event.then(
@@ -637,8 +651,8 @@ class ChatInterface(Blocks):
         history = self._append_message_to_history(message, history, "user")
         history = self._append_message_to_history(response, history, "assistant")
         if additional_outputs:
-            return history, history, response, *additional_outputs
-        return history, history, response
+            return history, response, *additional_outputs
+        return history, response
 
     async def _stream_fn(
         self,
