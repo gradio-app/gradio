@@ -73,14 +73,14 @@
 			class="resize-handle"
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 10 10"
-			on:mousedown={(e) => {
+			on:mousedown={(e: MouseEvent) => {
 				let prevY = e.clientY;
-				const onMouseMove = (e) => {
-					const dy = e.clientY - prevY;
+				const onMouseMove = (e: MouseEvent): void => {
+					const dy: number = e.clientY - prevY;
 					prevY = e.clientY;
 					element.style.height = `${element.offsetHeight + dy}px`;
 				};
-				const onMouseUp = () => {
+				const onMouseUp = (): void => {
 					window.removeEventListener("mousemove", onMouseMove);
 					window.removeEventListener("mouseup", onMouseUp);
 				};
