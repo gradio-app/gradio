@@ -346,12 +346,26 @@ class ChatInterface(Blocks):
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
         if hasattr(self.fn, "zerogpu"):
             submit_fn.__func__.zerogpu = self.fn.zerogpu  # type: ignore
-        synchronize_chatbot_state = {
+
+        synchronize_chat_state_kwargs = {
             "fn": lambda x: x,
             "inputs": [self.chatbot_state],
             "outputs": [self.chatbot],
             "show_api": False,
             "queue": False,
+        }
+        submit_fn_kwargs = {
+            "fn": submit_fn,
+            "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
+            "outputs": [self.chatbot_state, self.fake_response_textbox]
+            + self.additional_outputs,
+            "show_api": False,
+            "concurrency_limit": cast(
+                Union[int, Literal["default"], None], self.concurrency_limit
+            ),
+            "show_progress": cast(
+                Literal["full", "minimal", "hidden"], self.show_progress
+            ),
         }
 
         submit_event = (
@@ -370,21 +384,13 @@ class ChatInterface(Blocks):
                 queue=False,
             )
             .then(
-                submit_fn,
-                [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                [self.chatbot_state, self.fake_response_textbox]
-                + self.additional_outputs,
-                api_name=cast(Union[str, Literal[False]], self.api_name),
-                concurrency_limit=cast(
-                    Union[int, Literal["default"], None], self.concurrency_limit
-                ),
-                show_progress=cast(
-                    Literal["full", "minimal", "hidden"], self.show_progress
-                ),
+                **{
+                    **submit_fn_kwargs,
+                    "show_api": True,
+                    "api_name": cast(Union[str, Literal[False]], self.api_name),
+                }
             )
-            .then(
-                **synchronize_chatbot_state
-            )
+            .then(**synchronize_chat_state_kwargs)
         )
         submit_event.then(
             lambda: update(value=None, interactive=True),
@@ -406,20 +412,8 @@ class ChatInterface(Blocks):
                     show_api=False,
                 )
                 if not self.cache_examples:
-                    example_select_event.then(
-                        submit_fn,
-                        [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                        [self.chatbot_state, self.fake_response_textbox]
-                        + self.additional_outputs,
-                        show_api=False,
-                        concurrency_limit=cast(
-                            Union[int, Literal["default"], None], self.concurrency_limit
-                        ),
-                        show_progress=cast(
-                            Literal["full", "minimal", "hidden"], self.show_progress
-                        ),
-                    ).then(
-                        **synchronize_chatbot_state
+                    example_select_event.then(**submit_fn_kwargs).then(
+                        **synchronize_chat_state_kwargs
                     )
             else:
                 self.chatbot.example_select(
@@ -449,22 +443,8 @@ class ChatInterface(Blocks):
                 outputs=[self.textbox],
                 show_api=False,
             )
-            .then(
-                submit_fn,
-                [self.saved_input, self.chatbot_state] + self.additional_inputs,
-                [self.chatbot_state, self.fake_response_textbox]
-                + self.additional_outputs,
-                show_api=False,
-                concurrency_limit=cast(
-                    Union[int, Literal["default"], None], self.concurrency_limit
-                ),
-                show_progress=cast(
-                    Literal["full", "minimal", "hidden"], self.show_progress
-                ),
-            )
-            .then(
-                **synchronize_chatbot_state
-            )
+            .then(**submit_fn_kwargs)
+            .then(**synchronize_chat_state_kwargs)
         )
         retry_event.then(
             lambda: update(interactive=True),
@@ -480,29 +460,14 @@ class ChatInterface(Blocks):
             [self.chatbot_state, self.textbox],
             show_api=False,
             queue=False,
-        ).then(
-            **synchronize_chatbot_state
-        )
+        ).then(**synchronize_chat_state_kwargs)
 
         self.chatbot.option_select(
             self.option_clicked,
             [self.chatbot_state],
             [self.chatbot_state, self.saved_input],
             show_api=False,
-        ).then(
-            **synchronize_chatbot_state
-        ).then(
-            submit_fn,
-            [self.saved_input, self.chatbot_state] + self.additional_inputs,
-            [self.chatbot_state, self.fake_response_textbox] + self.additional_outputs,
-            show_api=False,
-            concurrency_limit=cast(
-                Union[int, Literal["default"], None], self.concurrency_limit
-            ),
-            show_progress=cast(
-                Literal["full", "minimal", "hidden"], self.show_progress
-            ),
-        )
+        ).then(**synchronize_chat_state_kwargs).then(**submit_fn_kwargs)
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
@@ -608,7 +573,9 @@ class ChatInterface(Blocks):
             history = self._messages_to_tuples(history)  # type: ignore
         return history
 
-    def response_as_dict(self, response: MessageDict | Message | str | Component) -> MessageDict:
+    def response_as_dict(
+        self, response: MessageDict | Message | str | Component
+    ) -> MessageDict:
         if isinstance(response, Message):
             new_response = response.model_dump()
         elif isinstance(response, (str, Component)):
