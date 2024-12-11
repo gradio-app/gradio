@@ -614,8 +614,8 @@ class ChatInterface(Blocks):
             response, *additional_outputs = response
         else:
             additional_outputs = None
-        self._append_message_to_history(message, history, role="user")
-        self._append_message_to_history(response, history, role="assistant")
+        history = self._append_message_to_history(message, history, role="user")
+        history = self._append_message_to_history(response, history, role="assistant")
         if additional_outputs:
             return history, response, *additional_outputs
         return history, response
@@ -647,7 +647,7 @@ class ChatInterface(Blocks):
             first_response = await utils.async_iteration(generator)
             if isinstance(first_response, tuple):
                 first_response, *additional_outputs = first_response
-            self._append_message_to_history(first_response, history, role="assistant")
+            history = self._append_message_to_history(first_response, history, role="assistant")
             yield (
                 history if not additional_outputs else (history, *additional_outputs)
             )
@@ -656,7 +656,7 @@ class ChatInterface(Blocks):
         async for response in generator:
             if isinstance(response, tuple):
                 response, *additional_outputs = response
-            self._append_message_to_history(response, history, role="assistant")
+            history = self._append_message_to_history(response, history, role="assistant")
             yield (
                 history if not additional_outputs else (history, *additional_outputs)
             )
@@ -698,8 +698,7 @@ class ChatInterface(Blocks):
         to the example message. Then, if example caching is enabled, the cached response is loaded
         and added to the chat history as well.
         """
-        history = []
-        self._append_message_to_history(example.value, history, role="user")
+        history = self._append_message_to_history(example.value, [], role="user")
         example = self._flatten_example_files(example)
         message = example.value if self.multimodal else example.value["text"]
         yield history, message
