@@ -438,7 +438,7 @@ class ChatInterface(Blocks):
             .then(
                 self._append_message_to_history,
                 [self.saved_input, self.chatbot_state],
-                [self.chatbot_state],
+                [self.chatbot],
                 show_api=False,
                 queue=False,
             )
@@ -446,9 +446,6 @@ class ChatInterface(Blocks):
                 lambda: update(interactive=False, placeholder=""),
                 outputs=[self.textbox],
                 show_api=False,
-            )
-            .then(
-                **synchronize_chatbot_state
             )
             .then(
                 submit_fn,
@@ -477,16 +474,12 @@ class ChatInterface(Blocks):
 
         self.chatbot.undo(
             self._pop_last_user_message,
-            [self.chatbot],
-            [self.chatbot, self.chatbot_state, self.saved_input],
+            [self.chatbot_state],
+            [self.chatbot_state, self.textbox],
             show_api=False,
             queue=False,
         ).then(
-            lambda x: x,
-            self.saved_input,
-            self.textbox,
-            show_api=False,
-            queue=False,
+            **synchronize_chatbot_state
         )
 
         self.chatbot.option_select(
