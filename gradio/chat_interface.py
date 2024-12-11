@@ -316,7 +316,6 @@ class ChatInterface(Blocks):
                 )
                 self.show_progress = show_progress
                 self._setup_events()
-                self._setup_api()
 
     @staticmethod
     def _setup_example_messages(
