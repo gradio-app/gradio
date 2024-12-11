@@ -75,7 +75,7 @@ artifacts = [
   "/gradio/_frontend_code",
   "*.pyi",
   "/gradio/node",
-  "py.typed",
+  "/gradio/py.typed",
 ]
 
 [tool.hatch.build.targets.lite]
