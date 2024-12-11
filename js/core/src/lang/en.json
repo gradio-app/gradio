@@ -97,6 +97,8 @@
 	"login": {
 		"enable_cookies": "If you are visiting a HuggingFace Space in Incognito mode, you must enable third party cookies.",
 		"incorrect_credentials": "Incorrect Credentials",
+		"username": "username",
+		"password": "password",
 		"login": "Login"
 	},
 	"number": {
