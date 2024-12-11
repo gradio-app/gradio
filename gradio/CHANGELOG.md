@@ -1,5 +1,27 @@
 # gradio
 
+## 5.9.0
+
+### Features
+
+- [#10109](https://github.com/gradio-app/gradio/pull/10109) [`48e4aa9`](https://github.com/gradio-app/gradio/commit/48e4aa9d627b6958a0b215d6312de508845f669c) - adds a `run_examples_on_click` parameter to `gr.ChatInterface` mirroring the the `run_on_click` parameter in `gr.Examples`.  Thanks @abidlabs!
+- [#10135](https://github.com/gradio-app/gradio/pull/10135) [`3e93740`](https://github.com/gradio-app/gradio/commit/3e93740f057712278a7c2194a1702f48915683e1) - Improve pasted text behaviour in `Multimodaltextbox`.  Thanks @hannahblair!
+- [#10098](https://github.com/gradio-app/gradio/pull/10098) [`9a6ce6f`](https://github.com/gradio-app/gradio/commit/9a6ce6f6b089d94c06da0b8620f28967f39f8383) - Refactor full screen logic to be reusable.  Thanks @hannahblair!
+- [#10088](https://github.com/gradio-app/gradio/pull/10088) [`cb5b891`](https://github.com/gradio-app/gradio/commit/cb5b89108e0217131a914315be698827a4d05c15) - Refactor `NO_RELOAD` implementation.  Thanks @CNSeniorious000!
+- [#10132](https://github.com/gradio-app/gradio/pull/10132) [`6645518`](https://github.com/gradio-app/gradio/commit/6645518a66e01ebcd2746626a4e2a14239172e76) - Tweak Chatbot `bubble_full_width` behaviour.  Thanks @hannahblair!
+- [#10158](https://github.com/gradio-app/gradio/pull/10158) [`19e1ef5`](https://github.com/gradio-app/gradio/commit/19e1ef52dcd2c7f2bae49ef7844fbfd31c1785fe) - make printing the error message from a `gr.Error` to the console configurable.  Thanks @obendidi!
+- [#10137](https://github.com/gradio-app/gradio/pull/10137) [`fe7a9db`](https://github.com/gradio-app/gradio/commit/fe7a9db659e009bb5ac0e4e9cb4ac0eab1f2c2f4) - Improve uploaded file UI in Chatbot.  Thanks @hannahblair!
+- [#10166](https://github.com/gradio-app/gradio/pull/10166) [`8ac5b13`](https://github.com/gradio-app/gradio/commit/8ac5b13c96f871ac4b0f13c6ebfbb5559a18bcc2) - Add Japanese translations for login UI.  Thanks @kazuhitoyokoi!
+- [#10159](https://github.com/gradio-app/gradio/pull/10159) [`7ca3685`](https://github.com/gradio-app/gradio/commit/7ca36850c9e46a1eb5b7a3866b4b166776b4146f) - Add Japanese message into message catalog.  Thanks @kazuhitoyokoi!
+
+### Fixes
+
+- [#10167](https://github.com/gradio-app/gradio/pull/10167) [`5f03649`](https://github.com/gradio-app/gradio/commit/5f03649668856a383066964b60cb14c9cd566140) - Let Gradio be typed!.  Thanks @abidlabs!
+- [#10131](https://github.com/gradio-app/gradio/pull/10131) [`4984e84`](https://github.com/gradio-app/gradio/commit/4984e847fa2575f9fb209c6b1b73a9003e79e564) - Fix API docs for `multimodal_textbox.py`.  Thanks @abidlabs!
+- [#10129](https://github.com/gradio-app/gradio/pull/10129) [`2b55302`](https://github.com/gradio-app/gradio/commit/2b5530274af3936c82176f09db529168263acc2c) - Quick Fix: Fixes autoplay parameter for Audio/Video in Chatbot.  Thanks @dawoodkhan82!
+- [#10161](https://github.com/gradio-app/gradio/pull/10161) [`3a053cc`](https://github.com/gradio-app/gradio/commit/3a053cc76c173c6386e0b5102b03e1a56786cbb9) - Fix chatbot `visible` prop not reacting to changes.  Thanks @freddyaboulton!
+- [#10097](https://github.com/gradio-app/gradio/pull/10097) [`43d88c3`](https://github.com/gradio-app/gradio/commit/43d88c32bf5f636762acffba839800e05294e484) - Fix: Added support for show_api in mount_gradio_app.  Thanks @HongweiRuan!
+
 ## 5.8.0
 
 ### Features
