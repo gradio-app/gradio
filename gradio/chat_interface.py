@@ -349,15 +349,15 @@ class ChatInterface(Blocks):
 
         synchronize_chat_state_kwargs = {
             "fn": lambda x: x,
-            "inputs": [self.chatbot_state],
-            "outputs": [self.chatbot],
+            "inputs": [self.chatbot],
+            "outputs": [self.chatbot_state],
             "show_api": False,
             "queue": False,
         }
         submit_fn_kwargs = {
             "fn": submit_fn,
             "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
-            "outputs": [self.chatbot_state, self.fake_response_textbox]
+            "outputs": [self.chatbot, self.fake_response_textbox]
             + self.additional_outputs,
             "show_api": False,
             "concurrency_limit": cast(
@@ -390,9 +390,8 @@ class ChatInterface(Blocks):
                     "api_name": cast(Union[str, Literal[False]], self.api_name),
                 }
             )
-            .then(**synchronize_chat_state_kwargs)
         )
-        submit_event.then(
+        submit_event.then(**synchronize_chat_state_kwargs).then(
             lambda: update(value=None, interactive=True),
             None,
             self.textbox,
@@ -444,9 +443,8 @@ class ChatInterface(Blocks):
                 show_api=False,
             )
             .then(**submit_fn_kwargs)
-            .then(**synchronize_chat_state_kwargs)
         )
-        retry_event.then(
+        retry_event.then(**synchronize_chat_state_kwargs).then(
             lambda: update(interactive=True),
             outputs=[self.textbox],
             show_api=False,
@@ -456,16 +454,16 @@ class ChatInterface(Blocks):
 
         self.chatbot.undo(
             self._pop_last_user_message,
-            [self.chatbot_state],
-            [self.chatbot_state, self.textbox],
+            [self.chatbot],
+            [self.chatbot, self.textbox],
             show_api=False,
             queue=False,
         ).then(**synchronize_chat_state_kwargs)
 
         self.chatbot.option_select(
             self.option_clicked,
-            [self.chatbot_state],
-            [self.chatbot_state, self.saved_input],
+            [self.chatbot],
+            [self.chatbot, self.saved_input],
             show_api=False,
         ).then(**synchronize_chat_state_kwargs).then(**submit_fn_kwargs)
 
