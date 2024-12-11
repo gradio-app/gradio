@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		onMount,
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
@@ -118,10 +119,13 @@
 		}
 	}
 
-	afterUpdate(() => {
+	onMount(() => {
 		if (autofocus && el !== null) {
 			el.focus();
 		}
+	});
+
+	afterUpdate(() => {
 		if (can_scroll && autoscroll) {
 			scroll();
 		}

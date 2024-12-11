@@ -13,7 +13,6 @@ build/
 __tmp/*
 *.pyi
 !gradio/stubs/**/*.pyi
-py.typed
 .ipynb_checkpoints/
 .python-version
 =23.2
