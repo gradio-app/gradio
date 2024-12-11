@@ -285,7 +285,7 @@ class ChatInterface(Blocks):
                     self.fake_api_btn = Button("Fake API", visible=False)
                     self.fake_response_textbox = Textbox(
                         label="Response", visible=False
-                    )
+                    )  # Used to store the response from the API call
 
                 if self.examples:
                     self.examples_handler = Examples(
@@ -311,7 +311,6 @@ class ChatInterface(Blocks):
                                 input_component.render()
 
                 self.saved_input = State()  # Stores the most recent user message
-                self.previous_input = State(value=[])  # Stores all user messages
                 self.chatbot_state = (
                     State(self.chatbot.value) if self.chatbot.value else State([])
                 )
@@ -352,15 +351,8 @@ class ChatInterface(Blocks):
         submit_event = (
             self.textbox.submit(
                 self._clear_and_save_textbox,
-                [self.textbox, self.previous_input],
-                [self.textbox, self.saved_input, self.previous_input],
-                show_api=False,
-                queue=False,
-            )
-            .then(
-                self._append_message_to_history,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
+                [self.textbox],
+                [self.textbox, self.saved_input],
                 show_api=False,
                 queue=False,
             )
@@ -545,17 +537,13 @@ class ChatInterface(Blocks):
     def _clear_and_save_textbox(
         self,
         message: str | MultimodalPostprocess,
-        previous_input: list[str | MultimodalPostprocess],
     ) -> tuple[
         Textbox | MultimodalTextbox,
         str | MultimodalPostprocess,
-        list[str | MultimodalPostprocess],
     ]:
-        previous_input += [message]
         return (
             type(self.textbox)("", interactive=False, placeholder=""),
             message,
-            previous_input,
         )
 
     def _append_message_to_history(
