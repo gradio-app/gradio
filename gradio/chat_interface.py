@@ -594,7 +594,7 @@ class ChatInterface(Blocks):
 
     async def _submit_fn(
         self,
-        user_message: str | MultimodalPostprocess,
+        message: str | MultimodalPostprocess,
         history: TupleFormat | list[MessageDict],
         request: Request,
         *args,
@@ -603,7 +603,7 @@ class ChatInterface(Blocks):
         | tuple[TupleFormat | list[MessageDict], ...]
     ):
         inputs, _, _ = special_args(
-            self.fn, inputs=[user_message, history, *args], request=request
+            self.fn, inputs=[message, history, *args], request=request
         )
         if self.is_async:
             response = await self.fn(*inputs)
@@ -615,7 +615,7 @@ class ChatInterface(Blocks):
             response, *additional_outputs = response
         else:
             additional_outputs = None
-        self._append_message_to_history(user_message, history, role="user")
+        self._append_message_to_history(message, history, role="user")
         self._append_message_to_history(response, history, role="assistant")
         if additional_outputs:
             return history, response, *additional_outputs
@@ -623,7 +623,7 @@ class ChatInterface(Blocks):
 
     async def _stream_fn(
         self,
-        user_message: str | MultimodalPostprocess,
+        message: str | MultimodalPostprocess,
         history: TupleFormat | list[MessageDict],
         request: Request,
         *args,
@@ -632,7 +632,7 @@ class ChatInterface(Blocks):
         None,
     ]:
         inputs, _, _ = special_args(
-            self.fn, inputs=[user_message, history, *args], request=request
+            self.fn, inputs=[message, history, *args], request=request
         )
         if self.is_async:
             generator = self.fn(*inputs)
@@ -641,6 +641,8 @@ class ChatInterface(Blocks):
                 self.fn, *inputs, limiter=self.limiter
             )
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
+
+        self._append_message_to_history(message, history, role="user")
         additional_outputs = None
         try:
             first_response = await utils.async_iteration(generator)
