@@ -778,48 +778,32 @@ class ChatInterface(Blocks):
         if not history:
             return history, "" if not self.multimodal else {"text": "", "files": []}
 
-        if self.type == "messages":
-            # Skip the last message as it's always an assistant message
-            i = len(history) - 2
-            while i >= 0 and history[i]["role"] == "user":  # type: ignore
-                i -= 1
-            last_messages = history[i + 1 :]
-            last_user_message = ""
-            files = []
-            for msg in last_messages:
-                assert isinstance(msg, dict)  # noqa: S101
-                if msg["role"] == "user":
-                    content = msg["content"]
-                    if isinstance(content, tuple):
-                        files.append(content[0])
-                    else:
-                        last_user_message = content
-            return_message = (
-                {"text": last_user_message, "files": files}
-                if self.multimodal
-                else last_user_message
-            )
-            return history[: i + 1], return_message  # type: ignore
-        else:
-            # Skip the last message pair as it always includes an assistant message
-            i = len(history) - 2
-            while i >= 0 and history[i][1] is None:  # type: ignore
-                i -= 1
-            last_messages = history[i + 1 :]
-            last_user_message = ""
-            files = []
-            for msg in last_messages:
-                assert isinstance(msg, (tuple, list))  # noqa: S101
-                if isinstance(msg[0], tuple):
-                    files.append(msg[0][0])
-                elif msg[0] is not None:
-                    last_user_message = msg[0]
-            return_message = (
-                {"text": last_user_message, "files": files}
-                if self.multimodal
-                else last_user_message
-            )
-            return history[: i + 1], return_message  # type: ignore
+        if self.type == "tuples":
+            history = self._tuples_to_messages(history)  # type: ignore
+        # Skip the last message as it's always an assistant message
+        i = len(history) - 2
+        while i >= 0 and history[i]["role"] == "user":  # type: ignore
+            i -= 1
+        last_messages = history[i + 1 :]
+        last_user_message = ""
+        files = []
+        for msg in last_messages:
+            assert isinstance(msg, dict)  # noqa: S101
+            if msg["role"] == "user":
+                content = msg["content"]
+                if isinstance(content, tuple):
+                    files.append(content[0])
+                else:
+                    last_user_message = content
+        return_message = (
+            {"text": last_user_message, "files": files}
+            if self.multimodal
+            else last_user_message
+        )
+        history_ = history[: i + 1]
+        if self.type == "tuples":
+            history_ = self._messages_to_tuples(history_)  # type: ignore
+        return history_, return_message  # type: ignore
 
     def render(self) -> ChatInterface:
         # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
