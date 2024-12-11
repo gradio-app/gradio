@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Clean up `gr.ChatInterface` and fix API type discrepancy
+fix:Clean up `gr.ChatInterface` and fix API type discrepancy
