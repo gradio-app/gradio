@@ -423,13 +423,6 @@ class ChatInterface(Blocks):
                 show_api=False,
             )
             .then(
-                self._append_message_to_history,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
-                show_api=False,
-                queue=False,
-            )
-            .then(
                 submit_fn,
                 [self.saved_input, self.chatbot] + self.additional_inputs,
                 [self.chatbot] + self.additional_outputs,
