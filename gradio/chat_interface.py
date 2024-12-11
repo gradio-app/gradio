@@ -347,6 +347,13 @@ class ChatInterface(Blocks):
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
         if hasattr(self.fn, "zerogpu"):
             submit_fn.__func__.zerogpu = self.fn.zerogpu  # type: ignore
+        synchronize_chatbot_state = {
+            "fn": lambda x: x,
+            "inputs": [self.chatbot_state],
+            "outputs": [self.chatbot],
+            "show_api": False,
+            "queue": False,
+        }
 
         submit_event = (
             self.textbox.submit(
@@ -377,11 +384,7 @@ class ChatInterface(Blocks):
                 ),
             )
             .then(
-                lambda x: x,
-                self.chatbot_state,
-                self.chatbot,
-                show_api=False,
-                queue=False,
+                **synchronize_chatbot_state
             )
         )
         submit_event.then(
@@ -428,15 +431,15 @@ class ChatInterface(Blocks):
         retry_event = (
             self.chatbot.retry(
                 self._pop_last_user_message,
-                [self.chatbot],
-                [self.chatbot, self.chatbot_state, self.saved_input],
+                [self.chatbot_state],
+                [self.chatbot_state, self.saved_input],
                 show_api=False,
                 queue=False,
             )
             .then(
                 self._append_message_to_history,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
+                [self.saved_input, self.chatbot_state],
+                [self.chatbot_state],
                 show_api=False,
                 queue=False,
             )
@@ -444,6 +447,9 @@ class ChatInterface(Blocks):
                 lambda: update(interactive=False, placeholder=""),
                 outputs=[self.textbox],
                 show_api=False,
+            )
+            .then(
+                **synchronize_chatbot_state
             )
             .then(
                 submit_fn,
@@ -459,11 +465,7 @@ class ChatInterface(Blocks):
                 ),
             )
             .then(
-                lambda x: x,
-                self.chatbot_state,
-                self.chatbot,
-                show_api=False,
-                queue=False,
+                **synchronize_chatbot_state
             )
         )
         retry_event.then(
@@ -830,7 +832,7 @@ class ChatInterface(Blocks):
         history_ = history[: i + 1]
         if self.type == "tuples":
             history_ = self._messages_to_tuples(history_)  # type: ignore
-        return history_, history_, return_message  # type: ignore
+        return history_, return_message  # type: ignore
 
     def render(self) -> ChatInterface:
         # If this is being rendered inside another Blocks, and the height is not explicitly set, set it to 400 instead of 200.
