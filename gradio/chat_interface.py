@@ -5,6 +5,7 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import builtins
+import copy
 import inspect
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
@@ -563,11 +564,13 @@ class ChatInterface(Blocks):
         message: MultimodalPostprocess | str,
         history: list[MessageDict] | TupleFormat,
         role: Literal["user", "assistant"],
-    ):
+    ) -> list[MessageDict] | TupleFormat:
         if isinstance(message, str):
             message = {"text": message}
         if self.type == "tuples":
             history = self._tuples_to_messages(history)  # type: ignore
+        else:
+            history = copy.deepcopy(history)
 
         for x in message.get("files", []):
             if isinstance(x, dict):
@@ -627,7 +630,8 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> AsyncGenerator[
-        TupleFormat | list[MessageDict] | tuple[TupleFormat | list[MessageDict], ...],
+        tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess | None]
+        | tuple[TupleFormat | list[MessageDict], ...],
         None,
     ]:
         inputs, _, _ = special_args(
@@ -647,21 +651,23 @@ class ChatInterface(Blocks):
             first_response = await utils.async_iteration(generator)
             if isinstance(first_response, tuple):
                 first_response, *additional_outputs = first_response
-            history = self._append_message_to_history(
+            history_ = self._append_message_to_history(
                 first_response, history, "assistant"
             )
-            yield (
-                history if not additional_outputs else (history, *additional_outputs)
-            )
+            if not additional_outputs:
+                yield history_, first_response
+            else:
+                yield history_, first_response, *additional_outputs
         except StopIteration:
-            yield history
+            yield history, None
         async for response in generator:
             if isinstance(response, tuple):
                 response, *additional_outputs = response
-            history = self._append_message_to_history(response, history, "assistant")
-            yield (
-                history if not additional_outputs else (history, *additional_outputs)
-            )
+            history_ = self._append_message_to_history(response, history, "assistant")
+            if not additional_outputs:
+                yield history_, response
+            else:
+                yield history_, response, *additional_outputs
 
     def option_clicked(
         self, history: list[MessageDict], option: SelectData
