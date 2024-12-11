@@ -539,33 +539,50 @@ class ChatInterface(Blocks):
             message,
         )
 
+    @staticmethod
+    def _messages_to_tuples(history_messages: list[MessageDict]) -> TupleFormat:
+        history_tuples = []
+        for message in history_messages:
+            if message["role"] == "user":
+                history_tuples.append((message["content"], None))
+            elif history_tuples and history_tuples[-1][1] is None:
+                history_tuples[-1] = (history_tuples[-1][0], message["content"])
+            else:
+                history_tuples.append((None, message["content"]))
+        return history_tuples
+
+    @staticmethod
+    def _tuples_to_messages(history_tuples: TupleFormat) -> list[MessageDict]:
+        history_messages = []
+        for message_tuple in history_tuples:
+            if message_tuple[0]:
+                history_messages.append({"role": "user", "content": message_tuple[0]})
+            if message_tuple[1]:
+                history_messages.append({"role": "assistant", "content": message_tuple[1]})
+        return history_messages
+
     def _append_message_to_history(
         self,
         message: MultimodalPostprocess | str,
         history: list[MessageDict] | TupleFormat,
+        role: Literal["user", "assistant"] = "user",
     ):
         if isinstance(message, str):
             message = {"text": message}
         if self.type == "tuples":
-            for x in message.get("files", []):
-                if isinstance(x, dict):
-                    x = x.get("path")
-                history.append([(x,), None])  # type: ignore
-            if message["text"] is None or not isinstance(message["text"], str):
-                pass
-            elif message["text"] == "" and message.get("files", []) != []:
-                history.append([None, None])  # type: ignore
-            else:
-                history.append([message["text"], None])  # type: ignore
+            history = self._tuples_to_messages(history)  # type: ignore
+
+        for x in message.get("files", []):
+            if isinstance(x, dict):
+                x = x.get("path")
+            history.append({"role": role, "content": (x,)})  # type: ignore
+        if message["text"] is None or not isinstance(message["text"], str):
+            pass
         else:
-            for x in message.get("files", []):
-                if isinstance(x, dict):
-                    x = x.get("path")
-                history.append({"role": "user", "content": (x,)})  # type: ignore
-            if message["text"] is None or not isinstance(message["text"], str):
-                pass
-            else:
-                history.append({"role": "user", "content": message["text"]})  # type: ignore
+            history.append({"role": role, "content": message["text"]})  # type: ignore
+
+        if self.type == "tuples":
+            history = self._messages_to_tuples(history)  # type: ignore
         return history
 
     def response_as_dict(self, response: MessageDict | Message | str) -> MessageDict:
@@ -598,8 +615,8 @@ class ChatInterface(Blocks):
         if isinstance(response, tuple):
             response, *additional_outputs = response
 
-        self._append_message_to_history(user_message, history)
-        self._append_message_to_history(response, history)
+        self._append_message_to_history(user_message, history, role="user")
+        self._append_message_to_history(response, history, role="assistant")
 
         if additional_outputs:
             return history, response, *additional_outputs
