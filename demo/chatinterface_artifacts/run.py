@@ -1,4 +1,5 @@
 import gradio as gr
+import time
 
 python_code = """
 def fib(n):
@@ -19,6 +20,7 @@ function fib(n) {
 """
 
 def chat(message, history):
+    time.sleep(0.5)
     if "python" in message.lower():
         return "Type Python or JavaScript to see the code.", gr.Code(language="python", value=python_code)
     elif "javascript" in message.lower():

@@ -484,13 +484,15 @@ class ChatInterface(Blocks):
 
         self.chatbot.option_select(
             self.option_clicked,
-            [self.chatbot],
-            [self.chatbot, self.saved_input],
+            [self.chatbot_state],
+            [self.chatbot_state, self.saved_input],
             show_api=False,
         ).then(
+            **synchronize_chatbot_state
+        ).then(
             submit_fn,
-            [self.saved_input, self.chatbot],
-            [self.chatbot, self.fake_response_textbox] + self.additional_outputs,
+            [self.saved_input, self.chatbot_state] + self.additional_inputs,
+            [self.chatbot_state, self.fake_response_textbox] + self.additional_outputs,
             show_api=False,
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
@@ -581,6 +583,7 @@ class ChatInterface(Blocks):
         history: list[MessageDict] | TupleFormat,
         role: Literal["user", "assistant"] = "user",
     ) -> list[MessageDict] | TupleFormat:
+        print("message", message, type(message))
         if isinstance(message, str):
             message = {"text": message}
         if self.type == "tuples":
@@ -617,6 +620,10 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> tuple:
+        print("message", message, type(message))
+        print("history", history)
+        print("args", args)
+        print("request", request)
         inputs, _, _ = special_args(
             self.fn, inputs=[message, history, *args], request=request
         )
@@ -630,8 +637,9 @@ class ChatInterface(Blocks):
             response, *additional_outputs = response
         else:
             additional_outputs = None
+        response = self.response_as_dict(response)
         history = self._append_message_to_history(message, history, "user")
-        history = self._append_message_to_history(response, history, "assistant")
+        history = self._append_message_to_history(response, history, "assistant")  # type: ignore
         if additional_outputs:
             return history, response, *additional_outputs
         return history, response
