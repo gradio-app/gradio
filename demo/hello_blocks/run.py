@@ -1,11 +1,15 @@
 import gradio as gr
 
-with gr.Blocks() as demo:
-    @gr.render()
-    def query_render(request:gr.Request):
-        for key, value in request.query_params.items():
-            with gr.Row():
-                gr.Textbox(key)
-                gr.Textbox(value)
 
-demo.launch()
+def greet(name):
+    return "Hello " + name + "!"
+
+
+with gr.Blocks() as demo:
+    name = gr.Textbox(label="Name")
+    output = gr.Textbox(label="Output Box")
+    greet_btn = gr.Button("Greet")
+    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
+
+if __name__ == "__main__":
+    demo.launch()
