@@ -56,7 +56,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
-from python_multipart.multipart import MultipartParser, parse_options_header
+from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse
