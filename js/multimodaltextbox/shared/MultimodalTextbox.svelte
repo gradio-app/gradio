@@ -408,7 +408,7 @@
 				{#if sources && sources.includes("microphone")}
 					<button
 						data-testid="microphone-button"
-						class="action-button"
+						class="microphone-button"
 						class:recording
 						on:click={() => {
 							active_source = "microphone";
@@ -420,11 +420,9 @@
 
 				<button
 					data-testid="upload-button"
-					class="action-button"
-					on:click={handle_upload_click}
+					class="upload-button"
+					on:click={handle_upload_click}><Paperclip /></button
 				>
-					<Paperclip />
-				</button>
 			{/if}
 			<textarea
 				data-testid="textbox"
@@ -539,6 +537,7 @@
 		color: var(--input-placeholder-color);
 	}
 
+	.microphone-button,
 	.upload-button,
 	.submit-button,
 	.stop-button {
@@ -555,29 +554,34 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-1);
+		margin-left: var(--spacing-sm);
 	}
 	.padded-button {
 		padding: 0 10px;
 	}
 
+	.microphone-button,
 	.stop-button,
 	.upload-button,
 	.submit-button {
 		background: var(--button-secondary-background-fill);
 	}
 
+	.microphone-button:hover,
 	.stop-button:hover,
 	.upload-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
+	.microphone-button:disabled,
 	.stop-button:disabled,
 	.upload-button:disabled,
 	.submit-button:disabled {
 		background: var(--button-secondary-background-fill);
 		cursor: initial;
 	}
+	.microphone-button:active,
 	.stop-button:active,
 	.upload-button:active,
 	.submit-button:active {
@@ -588,6 +592,7 @@
 		height: 22px;
 		width: 22px;
 	}
+	.microphone-button :global(svg),
 	.upload-button :global(svg) {
 		height: 17px;
 		width: 17px;
