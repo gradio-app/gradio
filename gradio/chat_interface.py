@@ -346,8 +346,8 @@ class ChatInterface(Blocks):
                             "path": "",
                             "url": "",
                             "orig_name": "",
-                            "mime_type": "text", # for internal use, not a valid mime type
-                            "meta": {"_type": "gradio.FileData"}
+                            "mime_type": "text",  # for internal use, not a valid mime type
+                            "meta": {"_type": "gradio.FileData"},
                         }
                     else:
                         example_message["icon"] = example_icons[index]
