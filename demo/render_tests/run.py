@@ -34,5 +34,15 @@ with gr.Blocks() as demo:
             chatbot = gr.Chatbot([["Hello", "Hi"], ["How are you?", "I'm good."]])
             chatbot.select(get_select_index, None, selected_chat)
 
+    @gr.render()
+    def examples_in_interface():
+        gr.Interface(lambda x:x, gr.Textbox(label="input"), gr.Textbox(), examples=[["test"]])
+
+    @gr.render()
+    def examples_in_blocks():
+        a = gr.Textbox(label="little textbox")
+        gr.Examples([["abc"], ["def"]], [a])
+
+
 if __name__ == '__main__':
     demo.launch()
