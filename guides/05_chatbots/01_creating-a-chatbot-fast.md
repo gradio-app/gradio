@@ -294,7 +294,7 @@ def music(message, history):
         return "Please provide the name of an artist"
 
 gr.ChatInterface(
-    fake,
+    music,
     type="messages",
     textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
 ).launch()

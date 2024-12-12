@@ -5,6 +5,15 @@
 		"or": "または",
 		"submit": "送信"
 	},
+	"errors": {
+		"use_via_api": "API経由で使おう"
+	},
+	"login": {
+		"incorrect_credentials": "認証情報が正しくありません",
+		"username": "ユーザ名",
+		"password": "パスワード",
+		"login": "ログイン"
+	},
 	"upload_text": {
 		"click_to_upload": "クリックしてアップロード",
 		"drop_audio": "ここに音声をドロップ",

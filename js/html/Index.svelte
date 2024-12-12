@@ -15,12 +15,14 @@
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
 		change: never;
+		click: never;
 		clear_status: LoadingStatus;
 	}>;
 	export let show_label = false;
 	export let min_height: number | undefined = undefined;
 	export let max_height: number | undefined = undefined;
 	export let container = false;
+	export let padding = true;
 
 	$: label, gradio.dispatch("change");
 </script>
@@ -39,6 +41,7 @@
 	/>
 	<div
 		class="html-container"
+		class:padding
 		class:pending={loading_status?.status === "pending"}
 		style:min-height={min_height && loading_status?.status !== "pending"
 			? css_units(min_height)
@@ -50,12 +53,13 @@
 			{elem_classes}
 			{visible}
 			on:change={() => gradio.dispatch("change")}
+			on:click={() => gradio.dispatch("click")}
 		/>
 	</div>
 </Block>
 
 <style>
-	.html-container {
+	.padding {
 		padding: var(--block-padding);
 	}
 
