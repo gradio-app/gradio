@@ -376,16 +376,14 @@ class ChatInterface(Blocks):
                 show_api=False,
                 queue=False,
             )
-            .then(  # The reason we do this outside of the submit_fn is that we want to update the chatbot UI with the user message before the submit_fn is called
+            .then(  # The reason we do this outside of the submit_fn is that we want to update the chatbot UI with the user message immediately, before the submit_fn is called
                 self._append_message_to_history,
                 [self.saved_input, self.chatbot],
                 [self.chatbot],
                 show_api=False,
                 queue=False,
             )
-            .then(
-                **submit_fn_kwargs
-            )
+            .then(**submit_fn_kwargs)
         )
         submit_event.then(**synchronize_chat_state_kwargs).then(
             lambda: update(value=None, interactive=True),
