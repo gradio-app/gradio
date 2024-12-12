@@ -1438,6 +1438,18 @@ class App(FastAPI):
             else:
                 return "User-agent: *\nDisallow: "
 
+        @app.get("/manifest.json")
+        def manifest_json():
+            return ORJSONResponse(
+                content={
+                    "short_name": "Gradio App",
+                    "name": "Gradio App",
+                    "start_url": ".",
+                    "display": "standalone",
+                },
+                media_type="application/manifest+json",
+            )
+
         @router.get("/monitoring", dependencies=[Depends(login_check)])
         async def analytics_login(request: fastapi.Request):
             if not blocks.enable_monitoring:
