@@ -384,11 +384,7 @@ class ChatInterface(Blocks):
                 queue=False,
             )
             .then(
-                **{
-                    **submit_fn_kwargs,
-                    "show_api": True,
-                    "api_name": cast(Union[str, Literal[False]], self.api_name),
-                }
+                **submit_fn_kwargs
             )
         )
         submit_event.then(**synchronize_chat_state_kwargs).then(
@@ -396,6 +392,15 @@ class ChatInterface(Blocks):
             None,
             self.textbox,
             show_api=False,
+        )
+        self.fake_api_btn.click(
+            submit_fn,
+            [self.textbox, self.chatbot_state] + self.additional_inputs,
+            [self.fake_response_textbox, self.chatbot_state] + self.additional_outputs,
+            api_name=cast(Union[str, Literal[False]], self.api_name),
+            concurrency_limit=cast(
+                Union[int, Literal["default"], None], self.concurrency_limit
+            ),
         )
 
         if (
