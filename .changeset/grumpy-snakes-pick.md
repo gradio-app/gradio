@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Fix fonts loading
+fix:Fix fonts loading
