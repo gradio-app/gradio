@@ -82,7 +82,7 @@ for (const test_case of cases) {
 		);
 		const api_recorder = await page.locator("#api-recorder");
 		await api_recorder.click();
-		const n_calls = test_case.includes("non_stream") ? 4 : 6;
+		const n_calls = test_case.includes("non_stream") ? 5 : 7;
 		await expect(page.locator("#num-recorded-api-calls")).toContainText(
 			`🪄 Recorded API Calls [${n_calls}]`
 		);
