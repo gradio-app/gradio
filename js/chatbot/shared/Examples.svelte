@@ -71,77 +71,63 @@
 									role="group"
 									aria-label="Example attachments"
 								>
-									{#if example.files.some((f) => f.mime_type?.includes("image") || f.mime_type?.includes("video"))}
-										{#each example.files.slice(0, 4) as file, i}
-											{#if file.mime_type?.includes("image")}
-												<div class="example-image-container">
-													<Image
-														class="example-image"
-														src={file.url}
-														alt={file.orig_name || `Example image ${i + 1}`}
-													/>
-													{#if i === 3 && example.files.length > 4}
-														<div
-															class="image-overlay"
-															role="status"
-															aria-label={`${example.files.length - 4} more files`}
-														>
-															+{example.files.length - 4}
-														</div>
-													{/if}
-												</div>
-											{:else if file.mime_type?.includes("video")}
-												<div class="example-image-container">
-													<video
-														class="example-image"
-														src={file.url}
-														aria-hidden="true"
-													/>
-													{#if i === 3 && example.files.length > 4}
-														<div
-															class="image-overlay"
-															role="status"
-															aria-label={`${example.files.length - 4} more files`}
-														>
-															+{example.files.length - 4}
-														</div>
-													{/if}
-												</div>
-											{/if}
-										{/each}
-									{:else}
-										<div
-											class="example-icons-grid"
-											role="group"
-											aria-label="File attachments"
-										>
-											{#each example.files.slice(0, 4) as file}
-												<div
-													class="example-icon"
-													aria-label={`File: ${file.orig_name}`}
-												>
-													{#if file.mime_type?.includes("audio")}
-														<Music />
-													{:else}
-														<File />
-													{/if}
-												</div>
-											{/each}
-											{#if example.files.filter((f) => !f.mime_type?.includes("image") && !f.mime_type?.includes("video")).length > 4}
-												<div class="example-icon">
+									{#each example.files.slice(0, 4) as file, i}
+										{#if file.mime_type?.includes("image")}
+											<div class="example-image-container">
+												<Image
+													class="example-image"
+													src={file.url}
+													alt={file.orig_name || `Example image ${i + 1}`}
+												/>
+												{#if i === 3 && example.files.length > 4}
 													<div
-														class="file-overlay"
+														class="image-overlay"
 														role="status"
-														aria-label={`${example.files.filter((f) => !f.mime_type?.includes("image") && !f.mime_type?.includes("video")).length - 4} more files`}
+														aria-label={`${example.files.length - 4} more files`}
 													>
-														+{example.files.filter(
-															(f) =>
-																!f.mime_type?.includes("image") &&
-																!f.mime_type?.includes("video")
-														).length - 4}
+														+{example.files.length - 4}
 													</div>
-												</div>
-											{/if}
+												{/if}
+											</div>
+										{:else if file.mime_type?.includes("video")}
+											<div class="example-image-container">
+												<video
+													class="example-image"
+													src={file.url}
+													aria-hidden="true"
+												/>
+												{#if i === 3 && example.files.length > 4}
+													<div
+														class="image-overlay"
+														role="status"
+														aria-label={`${example.files.length - 4} more files`}
+													>
+														+{example.files.length - 4}
+													</div>
+												{/if}
+											</div>
+										{:else}
+											<div
+												class="example-icon"
+												aria-label={`File: ${file.orig_name}`}
+											>
+												{#if file.mime_type?.includes("audio")}
+													<Music />
+												{:else}
+													<File />
+												{/if}
+											</div>
+										{/if}
+									{/each}
+									{#if example.files.length > 4}
+										<div class="example-icon">
+											<div
+												class="file-overlay"
+												role="status"
+												aria-label={`${example.files.length - 4} more files`}
+											>
+												+{example.files.length - 4}
+											</div>
 										</div>
 									{/if}
 								</div>

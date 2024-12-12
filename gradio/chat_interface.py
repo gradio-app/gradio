@@ -339,17 +339,20 @@ class ChatInterface(Blocks):
                     example_message["files"] = example.get("files", [])
                 if example_labels:
                     example_message["display_text"] = example_labels[index]
-                if example_icons and multimodal:
+                if multimodal:
                     example_files = example_message.get("files")
                     if not example_files:
-                        example_message["icon"] = {
-                            "path": "",
-                            "url": None,
-                            "orig_name": None,
-                            "mime_type": "text",  # for internal use, not a valid mime type
-                            "meta": {"_type": "gradio.FileData"},
-                        }
-                    else:
+                        if example_icons:
+                            example_message["icon"] = example_icons[index]
+                        else:
+                            example_message["icon"] = {
+                                "path": "",
+                                "url": None,
+                                "orig_name": None,
+                                "mime_type": "text",  # for internal use, not a valid mime type
+                                "meta": {"_type": "gradio.FileData"},
+                            }
+                    elif example_icons:
                         example_message["icon"] = example_icons[index]
                 examples_messages.append(example_message)
         return examples_messages
