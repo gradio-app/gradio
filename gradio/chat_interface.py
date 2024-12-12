@@ -415,9 +415,8 @@ class ChatInterface(Blocks):
                     show_api=False,
                 )
                 if not self.cache_examples:
-                    example_select_event.then(**submit_fn_kwargs).then(
-                        **synchronize_chat_state_kwargs
-                    )
+                    example_select_event = example_select_event.then(**submit_fn_kwargs)
+                example_select_event.then(**synchronize_chat_state_kwargs)
             else:
                 self.chatbot.example_select(
                     self.example_populated,
