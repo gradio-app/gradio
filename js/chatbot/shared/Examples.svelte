@@ -52,17 +52,17 @@
 					aria-label={`Select example ${i + 1}: ${example.display_text || example.text}`}
 				>
 					<div class="example-content">
-						{#if example?.icon?.mime_type === "text"}
-							<div class="example-icon" aria-hidden="true">
-								<span class="text-icon-aa">Aa</span>
-							</div>
-						{:else if example.icon}
+						{#if example?.icon?.url}
 							<div class="example-image-container">
 								<Image
 									class="example-image"
 									src={example.icon.url}
 									alt="Example icon"
 								/>
+							</div>
+						{:else if example?.icon?.mime_type === "text"}
+							<div class="example-icon" aria-hidden="true">
+								<span class="text-icon-aa">Aa</span>
 							</div>
 						{:else if example.files !== undefined && example.files.length > 0}
 							{#if example.files.length > 1}

@@ -344,8 +344,8 @@ class ChatInterface(Blocks):
                     if not example_files:
                         example_message["icon"] = {
                             "path": "",
-                            "url": "",
-                            "orig_name": "",
+                            "url": None,
+                            "orig_name": None,
                             "mime_type": "text",  # for internal use, not a valid mime type
                             "meta": {"_type": "gradio.FileData"},
                         }
