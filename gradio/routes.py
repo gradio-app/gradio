@@ -1442,8 +1442,8 @@ class App(FastAPI):
         def manifest_json():
             return ORJSONResponse(
                 content={
-                    "short_name": "Gradio App",
-                    "name": "Gradio App",
+                    "short_name": app.get_blocks().title,
+                    "name": app.get_blocks().title,
                     "start_url": ".",
                     "display": "standalone",
                 },
