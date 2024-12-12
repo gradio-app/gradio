@@ -31,9 +31,8 @@ import anyio
 import fastapi
 import gradio_client.utils as client_utils
 import httpx
-import multipart
 from gradio_client.documentation import document
-from multipart.multipart import parse_options_header
+from python_multipart.multipart import MultipartParser, parse_options_header
 from starlette.datastructures import FormData, Headers, MutableHeaders, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
 from starlette.responses import PlainTextResponse, Response
@@ -644,7 +643,7 @@ class GradioMultiPartParser:
         }
 
         # Create the parser.
-        parser = multipart.MultipartParser(boundary, callbacks)  # type: ignore
+        parser = MultipartParser(boundary, callbacks)  # type: ignore
         try:
             # Feed the parser with data from the request.
             async for chunk in self.stream:

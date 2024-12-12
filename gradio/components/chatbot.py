@@ -182,6 +182,7 @@ class Chatbot(Component):
         render: bool = True,
         key: int | str | None = None,
         height: int | str | None = 400,
+        resizeable: bool = False,
         max_height: int | str | None = None,
         min_height: int | str | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
@@ -218,6 +219,7 @@ class Chatbot(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll.
+            resizeable: If True, the component will be resizeable by the user.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll. If messages are shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
@@ -255,6 +257,7 @@ class Chatbot(Component):
         self._setup_data_model()
         self.autoscroll = autoscroll
         self.height = height
+        self.resizeable = resizeable
         self.max_height = max_height
         self.min_height = min_height
         self.rtl = rtl

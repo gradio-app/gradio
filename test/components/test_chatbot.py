@@ -45,6 +45,7 @@ class TestChatbot:
             "scale": None,
             "placeholder": None,
             "height": 400,
+            "resizeable": False,
             "max_height": None,
             "min_height": None,
             "autoscroll": True,
