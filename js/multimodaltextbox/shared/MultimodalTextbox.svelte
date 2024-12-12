@@ -452,7 +452,7 @@
 			/>
 			{#if submit_btn}
 				<button
-					class="action-button"
+					class="submit-button"
 					class:padded-button={submit_btn !== true}
 					on:click={handle_submit}
 				>
@@ -465,7 +465,7 @@
 			{/if}
 			{#if stop_btn}
 				<button
-					class="action-button"
+					class="stop-button"
 					class:padded-button={stop_btn !== true}
 					on:click={handle_stop}
 				>
@@ -539,7 +539,9 @@
 		color: var(--input-placeholder-color);
 	}
 
-	.action-button {
+	.upload-button,
+	.submit-button,
+	.stop-button {
 		border: none;
 		text-align: center;
 		text-decoration: none;
@@ -553,72 +555,70 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-1);
-		background: var(--button-secondary-background-fill);
-		margin-left: var(--spacing-sm);
 	}
-
-	.action-button:hover {
-		background: var(--button-secondary-background-fill-hover);
-	}
-
-	.action-button:disabled {
-		background: var(--button-secondary-background-fill);
-		cursor: initial;
-	}
-
-	.action-button:active {
-		box-shadow: var(--button-shadow-active);
-	}
-
-	.action-button.recording {
-		background: var(--color-accent);
-		color: white;
-	}
-
-	.action-button :global(svg) {
-		height: 17px;
-		width: 17px;
-	}
-
 	.padded-button {
 		padding: 0 10px;
 	}
 
-	.disabled {
-		display: none;
+	.stop-button,
+	.upload-button,
+	.submit-button {
+		background: var(--button-secondary-background-fill);
 	}
 
-	.delete-button {
+	.stop-button:hover,
+	.upload-button:hover,
+	.submit-button:hover {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.stop-button:disabled,
+	.upload-button:disabled,
+	.submit-button:disabled {
+		background: var(--button-secondary-background-fill);
+		cursor: initial;
+	}
+	.stop-button:active,
+	.upload-button:active,
+	.submit-button:active {
+		box-shadow: var(--button-shadow-active);
+	}
+
+	.submit-button :global(svg) {
+		height: 22px;
+		width: 22px;
+	}
+	.upload-button :global(svg) {
+		height: 17px;
+		width: 17px;
+	}
+
+	.stop-button :global(svg) {
+		height: 16px;
+		width: 16px;
+	}
+
+	.loader {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		position: absolute;
-		right: -7px;
-		top: -7px;
-		color: var(--button-secondary-text-color);
-		background: var(--button-secondary-background-fill);
-		border: none;
-		text-align: center;
-		text-decoration: none;
-		font-size: 10px;
-		cursor: pointer;
+		--ring-color: transparent;
+		position: relative;
+		border: 5px solid #f3f3f3;
+		border-top: 5px solid var(--color-accent);
 		border-radius: 50%;
-		width: 20px;
-		height: 20px;
+		width: 25px;
+		height: 25px;
+		animation: spin 2s linear infinite;
 	}
 
-	.delete-button :global(svg) {
-		width: 12px;
-		height: 12px;
-	}
-
-	.delete-button:hover {
-		filter: brightness(1.2);
-		border: 0.8px solid var(--color-grey-500);
-	}
-
-	:global(.source-selector) {
-		margin-top: var(--spacing-sm);
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 
 	.thumbnails :global(img) {
@@ -668,26 +668,36 @@
 		height: 30px;
 	}
 
-	.loader {
+	.delete-button {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		--ring-color: transparent;
-		position: relative;
-		border: 5px solid #f3f3f3;
-		border-top: 5px solid var(--color-accent);
+		position: absolute;
+		right: -7px;
+		top: -7px;
+		color: var(--button-secondary-text-color);
+		background: var(--button-secondary-background-fill);
+		border: none;
+		text-align: center;
+		text-decoration: none;
+		font-size: 10px;
+		cursor: pointer;
 		border-radius: 50%;
-		width: 25px;
-		height: 25px;
-		animation: spin 2s linear infinite;
+		width: 20px;
+		height: 20px;
 	}
 
-	@keyframes spin {
-		0% {
-			transform: rotate(0deg);
-		}
-		100% {
-			transform: rotate(360deg);
-		}
+	.disabled {
+		display: none;
+	}
+
+	.delete-button :global(svg) {
+		width: 12px;
+		height: 12px;
+	}
+
+	.delete-button:hover {
+		filter: brightness(1.2);
+		border: 0.8px solid var(--color-grey-500);
 	}
 </style>
