@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let type: "gallery" | "plot" | "audio" | "video" | "image" | string;
+	export let type: "gallery" | "plot" | "audio" | "video" | "image" | "dataframe" | string;
 	export let components;
 	export let value;
 	export let target;
@@ -9,6 +9,7 @@
 	export let upload;
 	export let _fetch;
 	export let allow_file_downloads: boolean;
+	$: console.log("components", components);
 </script>
 
 {#if type === "gallery"}
@@ -25,6 +26,20 @@
 		fixed_height={1}
 		on:load
 	/>
+<!-- {:else if type === "dataframe"}
+	<svelte:component
+		this={components[type]}
+		{value}
+		show_label={false}
+		{i18n}
+		label=""
+		{_fetch}
+		allow_preview={false}
+		interactive={false}
+		mode="minimal"
+		fixed_height={1}
+		on:load
+	/> -->
 {:else if type === "plot"}
 	<svelte:component
 		this={components[type]}
@@ -37,6 +52,7 @@
 		on:load
 	/>
 {:else if type === "audio"}
+	{console.log("components[type]", components[type])}
 	<svelte:component
 		this={components[type]}
 		{value}
@@ -64,6 +80,7 @@
 		<track kind="captions" />
 	</svelte:component>
 {:else if type === "image"}
+	{console.log("components[type]", components[type])}
 	<svelte:component
 		this={components[type]}
 		{value}
