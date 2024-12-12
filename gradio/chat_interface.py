@@ -391,6 +391,7 @@ class ChatInterface(Blocks):
             self.textbox,
             show_api=False,
         )
+        # Creates the "/chat" API endpoint
         self.fake_api_btn.click(
             submit_fn,
             [self.textbox, self.chatbot_state] + self.additional_inputs,
