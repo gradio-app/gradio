@@ -357,7 +357,7 @@ class ChatInterface(Blocks):
         submit_fn_kwargs = {
             "fn": submit_fn,
             "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
-            "outputs": [self.chatbot, self.fake_response_textbox]
+            "outputs": [self.fake_response_textbox, self.chatbot]
             + self.additional_outputs,
             "show_api": False,
             "concurrency_limit": cast(
@@ -608,11 +608,11 @@ class ChatInterface(Blocks):
         else:
             additional_outputs = None
         history = self._append_message_to_history(message, history, "user")
-        response = self.response_as_dict(response)
-        history = self._append_message_to_history(response, history, "assistant")  # type: ignore
+        response_ = self.response_as_dict(response)
+        history = self._append_message_to_history(response_, history, "assistant")  # type: ignore
         if additional_outputs:
-            return history, response, *additional_outputs
-        return history, response
+            return response, history, *additional_outputs
+        return response, history
 
     async def _stream_fn(
         self,
@@ -621,8 +621,7 @@ class ChatInterface(Blocks):
         request: Request,
         *args,
     ) -> AsyncGenerator[
-        tuple[TupleFormat | list[MessageDict], str | MultimodalPostprocess | None]
-        | tuple[TupleFormat | list[MessageDict], ...],
+        tuple,
         None,
     ]:
         inputs, _, _ = special_args(
@@ -646,19 +645,19 @@ class ChatInterface(Blocks):
                 first_response, history, "assistant"
             )
             if not additional_outputs:
-                yield history_, first_response
+                yield first_response, history_
             else:
-                yield history_, first_response, *additional_outputs
+                yield first_response, history_, *additional_outputs
         except StopIteration:
-            yield history, None
+            yield None, history
         async for response in generator:
             if isinstance(response, tuple):
                 response, *additional_outputs = response
             history_ = self._append_message_to_history(response, history, "assistant")
             if not additional_outputs:
-                yield history_, response
+                yield response, history_
             else:
-                yield history_, response, *additional_outputs
+                yield response, history_, *additional_outputs
 
     def option_clicked(
         self, history: list[MessageDict], option: SelectData
