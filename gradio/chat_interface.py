@@ -471,6 +471,8 @@ class ChatInterface(Blocks):
             show_api=False,
         ).then(**submit_fn_kwargs).then(**synchronize_chat_state_kwargs)
 
+        self.chatbot.clear(**synchronize_chat_state_kwargs)
+
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
     ) -> None:
