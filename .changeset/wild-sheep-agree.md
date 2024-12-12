@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Fix ModuleNotFoundError: No module named 'multipart.multipart'; 'multipart' is not a package
+feat:Fix  `multipart` ModuleNotFoundError by renaming import to `python_multipart`
