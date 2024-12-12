@@ -824,7 +824,7 @@ class TestPassingRequest:
         response = client.post(f"{API_PREFIX}/api/chat/", json={"data": ["test", None]})
         assert response.status_code == 200
         output = dict(response.json())
-        assert output["data"] == ["test", None]
+        assert output["data"] == [None, "test"]
 
     def test_request_included_with_chat_interface_when_streaming(self):
         def identity(x, y, request: gr.Request):
@@ -844,7 +844,7 @@ class TestPassingRequest:
         response = client.post(f"{API_PREFIX}/api/chat/", json={"data": ["test", None]})
         assert response.status_code == 200
         output = dict(response.json())
-        assert output["data"] == ["t", None]
+        assert output["data"] == [None, "t"]
 
     def test_request_get_headers(self):
         def identity(name, request: gr.Request):
