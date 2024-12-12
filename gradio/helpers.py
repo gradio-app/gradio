@@ -339,9 +339,12 @@ class Examples:
     def create(self) -> None:
         """Creates the Dataset component to hold the examples"""
         blocks_config = get_blocks_context()
-        self.root_block = Context.root_block or blocks_config.root_block
+        self.root_block = Context.root_block or (
+            blocks_config.root_block if blocks_config else None
+        )
         if blocks_config:
-            self.root_block.extra_startup_events.append(self._start_caching)
+            if self.root_block:
+                self.root_block.extra_startup_events.append(self._start_caching)
 
             if self.cache_examples:
 
