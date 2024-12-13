@@ -18,6 +18,7 @@ from gradio_client.documentation import document
 from gradio import utils
 from gradio.blocks import Blocks
 from gradio.components import (
+    JSON,
     Button,
     Chatbot,
     Component,
@@ -283,7 +284,7 @@ class ChatInterface(Blocks):
                         self.textbox.stop_btn = False
 
                     self.fake_api_btn = Button("Fake API", visible=False)
-                    self.fake_response_textbox = Textbox(
+                    self.fake_response = JSON(
                         label="Response", visible=False
                     )  # Used to store the response from the API call
 
@@ -311,6 +312,7 @@ class ChatInterface(Blocks):
                                 input_component.render()
 
                 self.saved_input = State()  # Stores the most recent user message
+                self.null_component = State()  # Used to discard unneeded values
                 self.chatbot_state = (
                     State(self.chatbot.value) if self.chatbot.value else State([])
                 )
@@ -357,7 +359,7 @@ class ChatInterface(Blocks):
         submit_fn_kwargs = {
             "fn": submit_fn,
             "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
-            "outputs": [self.fake_response_textbox, self.chatbot]
+            "outputs": [self.null_component, self.chatbot]
             + self.additional_outputs,
             "show_api": False,
             "concurrency_limit": cast(
@@ -395,11 +397,12 @@ class ChatInterface(Blocks):
         self.fake_api_btn.click(
             submit_fn,
             [self.textbox, self.chatbot_state] + self.additional_inputs,
-            [self.fake_response_textbox, self.chatbot_state] + self.additional_outputs,
+            [self.fake_response, self.chatbot_state] + self.additional_outputs,
             api_name=cast(Union[str, Literal[False]], self.api_name),
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),
+            postprocess=False
         )
 
         if (
