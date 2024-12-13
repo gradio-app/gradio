@@ -4,7 +4,7 @@
 </script>
 
 <div
-	class={`icon-button-wrapper ${top_panel ? "top-panel" : ""} ${display_top_border ? "" : "hide-top-border"}`}
+	class={`icon-button-wrapper ${top_panel ? "top-panel" : ""} ${display_top_border ? "display-top-border" : "hide-top-border"}`}
 >
 	<slot></slot>
 </div>
@@ -27,6 +27,12 @@
 		border-top: none;
 		border-right: none;
 		border-radius: var(--block-label-right-radius);
+	}
+
+	.icon-button-wrapper.display-top-border {
+		border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+		top: var(--spacing-sm);
+		right: -1px;
 	}
 
 	.icon-button-wrapper:not(.top-panel) {
