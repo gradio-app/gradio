@@ -15,9 +15,10 @@ from typing import Literal, Union, cast
 import anyio
 from gradio_client.documentation import document
 
-from gradio import utils
+from gradio import render, utils
 from gradio.blocks import Blocks
 from gradio.components import (
+    HTML,
     Button,
     Chatbot,
     Component,
@@ -42,6 +43,39 @@ from gradio.layouts import Accordion, Column, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 
+save_history_css = """
+<style>
+._gradio-save-history {
+    width: 100%;
+    background-color: var(--background-fill-primary);
+    padding: 3px 6px;
+    user-select: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.8rem;
+    text-overflow: ellipsis;
+}
+._gradio-save-history:hover {
+    background-color: var(--background-fill-secondary);
+}
+._gradio-save-history:active {
+    background-color: var(--color-accent-soft);
+}
+._gradio-save-history-header {
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 10px 0px;
+}
+</style>
+<div class="_gradio-save-history-header">
+Local chat history
+</div>
+"""
 
 @document()
 class ChatInterface(Blocks):
@@ -99,6 +133,7 @@ class ChatInterface(Blocks):
         fill_height: bool = True,
         fill_width: bool = False,
         api_name: str | Literal[False] = "chat",
+        save_history: bool = False,
     ):
         """
         Parameters:
@@ -215,100 +250,124 @@ class ChatInterface(Blocks):
                     )
                 if description:
                     Markdown(description)
-                if chatbot:
-                    if self.type:
-                        if self.type != chatbot.type:
-                            warnings.warn(
-                                "The type of the gr.Chatbot does not match the type of the gr.ChatInterface."
-                                f"The type of the gr.ChatInterface, '{self.type}', will be used."
-                            )
-                            chatbot.type = self.type
-                            chatbot._setup_data_model()
-                    else:
-                        warnings.warn(
-                            f"The gr.ChatInterface was not provided with a type, so the type of the gr.Chatbot, '{chatbot.type}', will be used."
-                        )
-                        self.type = chatbot.type
-                    self.chatbot = cast(
-                        Chatbot, get_component_instance(chatbot, render=True)
-                    )
-                    if self.chatbot.examples and self.examples_messages:
-                        warnings.warn(
-                            "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
-                        )
-                    self.chatbot.examples = (
-                        self.examples_messages
-                        if not self._additional_inputs_in_examples
-                        else None
-                    )
-                    self.chatbot._setup_examples()
-                else:
-                    self.type = self.type or "tuples"
-                    self.chatbot = Chatbot(
-                        label="Chatbot",
-                        scale=1,
-                        height=200 if fill_height else None,
-                        type=self.type,
-                        autoscroll=autoscroll,
-                        examples=self.examples_messages
-                        if not self._additional_inputs_in_examples
-                        else None,
-                    )
-                with Group():
-                    with Row():
-                        if textbox:
-                            textbox.show_label = False
-                            textbox_ = get_component_instance(textbox, render=True)
-                            if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
-                                raise TypeError(
-                                    f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
+                with Row():
+                    if save_history:
+                        with Column(scale=1, min_width=100):
+                            HTML(save_history_css, container=True, padding=False)
+                            history = [
+                                "Hello how are you?",
+                                "Explain the concept of AI to a 5 year old",
+                                "If a woodchuck could chuck wood how much wood would a woodchuck chuck?",
+                            ]
+                            state = State(history)
+                            with Group():
+                                @render(inputs=state)
+                                def create_history(history):
+                                    for message in history:
+                                        h = HTML(message, padding=False, elem_classes=["_gradio-save-history"])
+                                        h.click(lambda x:x, h, self.textbox)
+
+                    with Column(scale=6):
+                        if chatbot:
+                            if self.type:
+                                if self.type != chatbot.type:
+                                    warnings.warn(
+                                        "The type of the gr.Chatbot does not match the type of the gr.ChatInterface."
+                                        f"The type of the gr.ChatInterface, '{self.type}', will be used."
+                                    )
+                                    chatbot.type = self.type
+                                    chatbot._setup_data_model()
+                            else:
+                                warnings.warn(
+                                    f"The gr.ChatInterface was not provided with a type, so the type of the gr.Chatbot, '{chatbot.type}', will be used."
                                 )
-                            self.textbox = textbox_
+                                self.type = chatbot.type
+                            self.chatbot = cast(
+                                Chatbot, get_component_instance(chatbot, render=True)
+                            )
+                            if self.chatbot.examples and self.examples_messages:
+                                warnings.warn(
+                                    "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
+                                )
+                            self.chatbot.examples = (
+                                self.examples_messages
+                                if not self._additional_inputs_in_examples
+                                else None
+                            )
+                            self.chatbot._setup_examples()
                         else:
-                            textbox_component = (
-                                MultimodalTextbox if self.multimodal else Textbox
+                            self.type = self.type or "tuples"
+                            self.chatbot = Chatbot(
+                                label="Chatbot",
+                                scale=1,
+                                height=400 if fill_height else None,
+                                type=self.type,
+                                autoscroll=autoscroll,
+                                examples=self.examples_messages
+                                if not self._additional_inputs_in_examples
+                                else None,
                             )
-                            self.textbox = textbox_component(
-                                show_label=False,
-                                label="Message",
-                                placeholder="Type a message...",
-                                scale=7,
-                                autofocus=autofocus,
-                                submit_btn=submit_btn,
-                                stop_btn=stop_btn,
+                        with Group():
+                            with Row():
+                                if textbox:
+                                    textbox.show_label = False
+                                    textbox_ = get_component_instance(
+                                        textbox, render=True
+                                    )
+                                    if not isinstance(
+                                        textbox_, (Textbox, MultimodalTextbox)
+                                    ):
+                                        raise TypeError(
+                                            f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
+                                        )
+                                    self.textbox = textbox_
+                                else:
+                                    textbox_component = (
+                                        MultimodalTextbox
+                                        if self.multimodal
+                                        else Textbox
+                                    )
+                                    self.textbox = textbox_component(
+                                        show_label=False,
+                                        label="Message",
+                                        placeholder="Type a message...",
+                                        scale=7,
+                                        autofocus=autofocus,
+                                        submit_btn=submit_btn,
+                                        stop_btn=stop_btn,
+                                    )
+
+                                # Hide the stop button at the beginning, and show it with the given value during the generator execution.
+                                self.original_stop_btn = self.textbox.stop_btn
+                                self.textbox.stop_btn = False
+
+                            self.fake_api_btn = Button("Fake API", visible=False)
+                            self.fake_response_textbox = Textbox(
+                                label="Response", visible=False
+                            )  # Used to store the response from the API call
+
+                        if self.examples:
+                            self.examples_handler = Examples(
+                                examples=self.examples,
+                                inputs=[self.textbox] + self.additional_inputs,
+                                outputs=self.chatbot,
+                                fn=self._examples_stream_fn
+                                if self.is_generator
+                                else self._examples_fn,
+                                cache_examples=self.cache_examples,
+                                cache_mode=self.cache_mode,
+                                visible=self._additional_inputs_in_examples,
+                                preprocess=self._additional_inputs_in_examples,
                             )
 
-                        # Hide the stop button at the beginning, and show it with the given value during the generator execution.
-                        self.original_stop_btn = self.textbox.stop_btn
-                        self.textbox.stop_btn = False
-
-                    self.fake_api_btn = Button("Fake API", visible=False)
-                    self.fake_response_textbox = Textbox(
-                        label="Response", visible=False
-                    )  # Used to store the response from the API call
-
-                if self.examples:
-                    self.examples_handler = Examples(
-                        examples=self.examples,
-                        inputs=[self.textbox] + self.additional_inputs,
-                        outputs=self.chatbot,
-                        fn=self._examples_stream_fn
-                        if self.is_generator
-                        else self._examples_fn,
-                        cache_examples=self.cache_examples,
-                        cache_mode=self.cache_mode,
-                        visible=self._additional_inputs_in_examples,
-                        preprocess=self._additional_inputs_in_examples,
-                    )
-
-                any_unrendered_inputs = any(
-                    not inp.is_rendered for inp in self.additional_inputs
-                )
-                if self.additional_inputs and any_unrendered_inputs:
-                    with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
-                        for input_component in self.additional_inputs:
-                            if not input_component.is_rendered:
-                                input_component.render()
+                        any_unrendered_inputs = any(
+                            not inp.is_rendered for inp in self.additional_inputs
+                        )
+                        if self.additional_inputs and any_unrendered_inputs:
+                            with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
+                                for input_component in self.additional_inputs:
+                                    if not input_component.is_rendered:
+                                        input_component.render()
 
                 self.saved_input = State()  # Stores the most recent user message
                 self.chatbot_state = (
