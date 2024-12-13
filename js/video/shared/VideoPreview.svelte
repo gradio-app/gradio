@@ -25,6 +25,7 @@
 	export let loop: boolean;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
+	export let display_icon_button_wrapper_top_border = false;
 
 	let old_value: FileData | null = null;
 	let old_subtitle: FileData | null = null;

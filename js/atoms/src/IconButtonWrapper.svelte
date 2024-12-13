@@ -1,8 +1,11 @@
 <script>
 	export let top_panel = true;
+	export let display_top_border = false;
 </script>
 
-<div class={`icon-button-wrapper ${top_panel ? "top-panel" : ""}`}>
+<div
+	class={`icon-button-wrapper ${top_panel ? "top-panel" : ""} ${display_top_border ? "" : "hide-top-border"}`}
+>
 	<slot></slot>
 </div>
 
@@ -16,11 +19,14 @@
 		gap: var(--spacing-sm);
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
+		background: var(--block-background-fill);
+		padding: var(--spacing-xxs);
+	}
+
+	.icon-button-wrapper.hide-top-border {
 		border-top: none;
 		border-right: none;
 		border-radius: var(--block-label-right-radius);
-		background: var(--block-background-fill);
-		padding: var(--spacing-xxs);
 	}
 
 	.icon-button-wrapper:not(.top-panel) {
