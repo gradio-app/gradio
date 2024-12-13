@@ -583,7 +583,8 @@ class ChatInterface(Blocks):
     ) -> MessageDict:
         if isinstance(response, Message):
             new_response = response.model_dump()
-        elif isinstance(response, (str, Component)):
+        elif isinstance(response, (tuple, str, Component)):
+            print("response>>>", response)
             return {"role": "assistant", "content": response}
         else:
             new_response = response
@@ -605,7 +606,7 @@ class ChatInterface(Blocks):
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-        if isinstance(response, tuple):
+        if self.additional_outputs:
             response, *additional_outputs = response
         else:
             additional_outputs = None

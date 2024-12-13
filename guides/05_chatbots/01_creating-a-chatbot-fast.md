@@ -303,29 +303,21 @@ gr.ChatInterface(
 
 **Returning image, audio, video, or other files**:
 
-Sometimes, you don't want to return a complete Gradio component, but rather simply an image/audio/video/other file to be displayed inside the chatbot. You can do this by returning a complete openai-style dictionary from your chat function. The dictionary should consist of the following keys:
-
-* `role`: set to `"assistant"`
-* `content`: set to a dictionary with key `path` and value the filepath or URL you'd like to return
+Sometimes, you don't want to return a complete Gradio component, but rather simply an image/audio/video/other file to be displayed inside the chatbot. You can do this by returning a single-element tuple consisting of the string file path or URL.
 
 Here is an example:
 
 ```py
 import gradio as gr
 
-def fake(message, history):
+def artist(message, history):
     if message.strip():
-        return {
-            "role": "assistant", 
-            "content": {
-                "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
-                }
-            }
+        return ("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav", )
     else:
         return "Please provide the name of an artist"
 
 gr.ChatInterface(
-    fake,
+    artist,
     type="messages",
     textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
     chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
