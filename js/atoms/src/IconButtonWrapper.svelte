@@ -1,10 +1,10 @@
 <script>
 	export let top_panel = true;
-	export let display_top_border = false;
+	export let display_top_corner = false;
 </script>
 
 <div
-	class={`icon-button-wrapper ${top_panel ? "top-panel" : ""} ${display_top_border ? "display-top-border" : "hide-top-border"}`}
+	class={`icon-button-wrapper ${top_panel ? "top-panel" : ""} ${display_top_corner ? "display-top-corner" : "hide-top-corner"}`}
 >
 	<slot></slot>
 </div>
@@ -23,13 +23,13 @@
 		padding: var(--spacing-xxs);
 	}
 
-	.icon-button-wrapper.hide-top-border {
+	.icon-button-wrapper.hide-top-corner {
 		border-top: none;
 		border-right: none;
 		border-radius: var(--block-label-right-radius);
 	}
 
-	.icon-button-wrapper.display-top-border {
+	.icon-button-wrapper.display-top-corner {
 		border-radius: var(--radius-sm) 0 0 var(--radius-sm);
 		top: var(--spacing-sm);
 		right: -1px;
