@@ -185,7 +185,8 @@
 								type={message.content.component}
 								components={_components}
 								value={message.content.value}
-								display_icon_button_wrapper_top_corner={thought_index > 0}
+								display_icon_button_wrapper_top_corner={thought_index > 0 &&
+									display_consecutive_in_same_bubble}
 								{i18n}
 								{upload}
 								{_fetch}
