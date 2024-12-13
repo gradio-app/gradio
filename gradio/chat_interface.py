@@ -789,7 +789,7 @@ class ChatInterface(Blocks):
         history: list[MessageDict] | TupleFormat,
     ) -> tuple[list[MessageDict] | TupleFormat, str | MultimodalPostprocess]:
         """
-        Removes the last user message from the chat history and returns it.
+        Removes the message (or set of messages) that the user last sent from the chat history and returns them.
         If self.multimodal is True, returns a MultimodalPostprocess (dict) object with text and files.
         If self.multimodal is False, returns just the message text as a string.
         """
@@ -798,8 +798,9 @@ class ChatInterface(Blocks):
 
         if self.type == "tuples":
             history = self._tuples_to_messages(history)  # type: ignore
-        # Skip the last message as it's always an assistant message
-        i = len(history) - 2
+        i = len(history) - 1
+        while i >= 0 and history[i]["role"] == "assistant":  # type: ignore
+            i -= 1
         while i >= 0 and history[i]["role"] == "user":  # type: ignore
             i -= 1
         last_messages = history[i + 1 :]
