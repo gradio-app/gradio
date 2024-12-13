@@ -332,7 +332,6 @@ gr.ChatInterface(
 ).launch()
 ```
 
-
 **Providing preset responses**
 
 You may want to provide preset responses that a user can choose between when conversing with your chatbot. You can add the `options` key to the dictionary returned from your chat function to set these responses. The value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
@@ -372,8 +371,14 @@ demo = gr.ChatInterface(
 
 if __name__ == "__main__":
     demo.launch()
-
 ```
+
+**Returning Multiple Messages**
+
+You can return multiple assistant messages from your chat function simply by returning a `list` of messages of any of the above types (you can even mix-and-match). This lets you, for example, send a message along with files, as in the following example:
+
+
+
 ## Using Your Chatbot via API
 
 Once you've built your Gradio chat interface and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message (and potentially additional inputs if you have set any using the `additional_inputs` parameter), and will return the response, internally keeping track of the messages sent so far.
