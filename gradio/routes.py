@@ -1440,11 +1440,15 @@ class App(FastAPI):
 
         @app.get("/manifest.json")
         def manifest_json():
+            if not blocks.pwa:
+                raise HTTPException(status_code=404)
+
             return ORJSONResponse(
                 content={
-                    "short_name": app.get_blocks().title,
+                    # NOTE: Required members: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable#required_manifest_members
                     "name": app.get_blocks().title,
-                    "start_url": ".",
+                    "icons": [],  # TODO
+                    "start_url": "./",
                     "display": "standalone",
                 },
                 media_type="application/manifest+json",

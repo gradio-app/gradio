@@ -2309,6 +2309,7 @@ Received inputs:
         node_server_name: str | None = None,
         node_port: int | None = None,
         ssr_mode: bool | None = None,
+        pwa: bool = False,
         _frontend: bool = True,
     ) -> tuple[App, str, str]:
         """
@@ -2529,6 +2530,7 @@ Received inputs:
                 "http" if share_server_address is not None else "https"
             )
             self.has_launched = True
+            self.pwa = pwa
 
             self.protocol = (
                 "https"
