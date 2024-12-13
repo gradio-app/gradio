@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:[testing] gr.load
+feat:Pass 
