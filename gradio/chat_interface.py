@@ -284,7 +284,7 @@ class ChatInterface(Blocks):
                         self.textbox.stop_btn = False
 
                     self.fake_api_btn = Button("Fake API", visible=False)
-                    self.fake_response = JSON(
+                    self.api_response = JSON(
                         label="Response", visible=False
                     )  # Used to store the response from the API call
 
@@ -359,8 +359,7 @@ class ChatInterface(Blocks):
         submit_fn_kwargs = {
             "fn": submit_fn,
             "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
-            "outputs": [self.null_component, self.chatbot]
-            + self.additional_outputs,
+            "outputs": [self.null_component, self.chatbot] + self.additional_outputs,
             "show_api": False,
             "concurrency_limit": cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
@@ -397,12 +396,12 @@ class ChatInterface(Blocks):
         self.fake_api_btn.click(
             submit_fn,
             [self.textbox, self.chatbot_state] + self.additional_inputs,
-            [self.fake_response, self.chatbot_state] + self.additional_outputs,
+            [self.api_response, self.chatbot_state] + self.additional_outputs,
             api_name=cast(Union[str, Literal[False]], self.api_name),
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),
-            postprocess=False
+            postprocess=False,
         )
 
         if (
