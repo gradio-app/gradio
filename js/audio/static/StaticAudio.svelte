@@ -25,7 +25,7 @@
 	export let waveform_options: WaveformOptions;
 	export let editable = true;
 	export let loop: boolean;
-	export let display_icon_button_wrapper_top_border: false;
+	export let display_icon_button_wrapper_top_border = false;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
