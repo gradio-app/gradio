@@ -40,5 +40,15 @@ with gr.Blocks() as demo:
     def show_selected_chat(selection: gr.SelectData):
         gr.Textbox(label="Trigger Index", value=selection.index)
 
+    @gr.render()
+    def examples_in_interface():
+        gr.Interface(lambda x:x, gr.Textbox(label="input"), gr.Textbox(), examples=[["test"]])
+
+    @gr.render()
+    def examples_in_blocks():
+        a = gr.Textbox(label="little textbox")
+        gr.Examples([["abc"], ["def"]], [a])
+
+
 if __name__ == '__main__':
     demo.launch()

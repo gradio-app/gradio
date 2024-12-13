@@ -40,3 +40,12 @@ test("Test event/selection data can trigger render", async ({ page }) => {
 	const selected_chat = page.getByLabel("Trigger Index");
 	await expect(selected_chat).toHaveValue("[1, 0]");
 });
+
+test("Test examples work in render", async ({ page }) => {
+	await page.getByRole("button", { name: "test" }).click();
+	await expect(page.getByLabel("input", { exact: true })).toHaveValue("test");
+	await page.getByRole("button", { name: "def", exact: true }).click();
+	await expect(page.getByLabel("little textbox", { exact: true })).toHaveValue(
+		"def"
+	);
+});
