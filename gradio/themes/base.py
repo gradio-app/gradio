@@ -1686,7 +1686,7 @@ class Base(ThemeClass):
             or getattr(
                 self,
                 "button_cancel_background_fill_dark",
-                "*neutral_700",
+                "*button_secondary_background_fill",
             )
         )
         self.button_cancel_background_fill_hover = (
@@ -1770,7 +1770,6 @@ class Base(ThemeClass):
         self.button_large_text_weight = button_large_text_weight or getattr(
             self, "button_large_text_weight", "600"
         )
-
         self.button_primary_background_fill = button_primary_background_fill or getattr(
             self, "button_primary_background_fill", "*primary_500"
         )

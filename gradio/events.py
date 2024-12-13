@@ -527,20 +527,16 @@ class EventListener(str):
         def event_trigger(
             block: Block | None,
             fn: Callable | None | Literal["decorator"] = "decorator",
-            inputs: (
-                Component
-                | BlockContext
-                | Sequence[Component | BlockContext]
-                | Set[Component | BlockContext]
-                | None
-            ) = None,
-            outputs: (
-                Component
-                | BlockContext
-                | Sequence[Component | BlockContext]
-                | Set[Component | BlockContext]
-                | None
-            ) = None,
+            inputs: Component
+            | BlockContext
+            | Sequence[Component | BlockContext]
+            | Set[Component | BlockContext]
+            | None = None,
+            outputs: Component
+            | BlockContext
+            | Sequence[Component | BlockContext]
+            | Set[Component | BlockContext]
+            | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
@@ -653,15 +649,13 @@ class EventListener(str):
                 time_limit=time_limit,
                 stream_every=stream_every,
                 like_user_message=like_user_message,
-                event_specific_args=(
-                    [
-                        d["name"]
-                        for d in _event_specific_args
-                        if d.get("component_prop", "true") != "false"
-                    ]
-                    if _event_specific_args
-                    else None
-                ),
+                event_specific_args=[
+                    d["name"]
+                    for d in _event_specific_args
+                    if d.get("component_prop", "true") != "false"
+                ]
+                if _event_specific_args
+                else None,
             )
             set_cancel_events(
                 [event_target],
@@ -692,20 +686,16 @@ class EventListener(str):
 def on(
     triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
-    inputs: (
-        Component
-        | BlockContext
-        | Sequence[Component | BlockContext]
-        | Set[Component | BlockContext]
-        | None
-    ) = None,
-    outputs: (
-        Component
-        | BlockContext
-        | Sequence[Component | BlockContext]
-        | Set[Component | BlockContext]
-        | None
-    ) = None,
+    inputs: Component
+    | BlockContext
+    | Sequence[Component | BlockContext]
+    | Set[Component | BlockContext]
+    | None = None,
+    outputs: Component
+    | BlockContext
+    | Sequence[Component | BlockContext]
+    | Set[Component | BlockContext]
+    | None = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,

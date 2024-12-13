@@ -37,9 +37,9 @@ def attach_oauth(app: fastapi.FastAPI):
     # user log in with a fake user profile - without any calls to hf.co.
 
     if get_space() is not None:
-        _add_oauth_routes(router)
+        _add_oauth_routes(app)
     else:
-        _add_mocked_oauth_routes(router)
+        _add_mocked_oauth_routes(app)
 
     # Session Middleware requires a secret key to sign the cookies. Let's use a hash
     # of the OAuth secret key to make it unique to the Space + updated in case OAuth
@@ -55,7 +55,7 @@ def attach_oauth(app: fastapi.FastAPI):
     )
 
 
-def _add_oauth_routes(app: fastapi.APIRouter) -> None:
+def _add_oauth_routes(app: fastapi.FastAPI) -> None:
     """Add OAuth routes to the FastAPI app (login, callback handler and logout)."""
     try:
         from authlib.integrations.base_client.errors import MismatchingStateError
@@ -154,7 +154,7 @@ def _add_oauth_routes(app: fastapi.APIRouter) -> None:
         return _redirect_to_target(request)
 
 
-def _add_mocked_oauth_routes(app: fastapi.APIRouter) -> None:
+def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     """Add fake oauth routes if Gradio is run locally and OAuth is enabled.
 
     Clicking on a gr.LoginButton will have the same behavior as in a Space (i.e. gets redirected in a new tab) but
@@ -186,7 +186,6 @@ def _add_mocked_oauth_routes(app: fastapi.APIRouter) -> None:
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
-
         request.session.pop("oauth_info", None)
         logout_url = URL("/").include_query_params(**request.query_params)
         return RedirectResponse(url=logout_url, status_code=302)

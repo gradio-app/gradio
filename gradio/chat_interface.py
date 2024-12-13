@@ -250,11 +250,9 @@ class ChatInterface(Blocks):
                         height=200 if fill_height else None,
                         type=self.type,
                         autoscroll=autoscroll,
-                        examples=(
-                            self.examples_messages
-                            if not self._additional_inputs_in_examples
-                            else None
-                        ),
+                        examples=self.examples_messages
+                        if not self._additional_inputs_in_examples
+                        else None,
                     )
                 with Group():
                     with Row():
@@ -294,11 +292,9 @@ class ChatInterface(Blocks):
                         examples=self.examples,
                         inputs=[self.textbox] + self.additional_inputs,
                         outputs=self.chatbot,
-                        fn=(
-                            self._examples_stream_fn
-                            if self.is_generator
-                            else self._examples_fn
-                        ),
+                        fn=self._examples_stream_fn
+                        if self.is_generator
+                        else self._examples_fn,
                         cache_examples=self.cache_examples,
                         cache_mode=self.cache_mode,
                         visible=self._additional_inputs_in_examples,
@@ -379,12 +375,6 @@ class ChatInterface(Blocks):
                 show_progress=cast(
                     Literal["full", "minimal", "hidden"], self.show_progress
                 ),
-            )
-            .then(
-                lambda: update(value=None, interactive=True),
-                None,
-                self.textbox,
-                show_api=False,
             )
         )
         submit_event.then(
@@ -558,7 +548,6 @@ class ChatInterface(Blocks):
                     yield None, history + [[message, None]]
                 async for response in generator:
                     yield response, history + [[message, response]]
-
         else:
 
             @functools.wraps(self.fn)

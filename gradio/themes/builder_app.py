@@ -663,11 +663,9 @@ with gr.Blocks(  # noqa: SIM117
                     )
                 ):
                     font_diffs[font_set_name] = [
-                        (
-                            f"gr.themes.GoogleFont('{font_name}')"
-                            if is_google_font
-                            else f"'{font_name}'"
-                        )
+                        f"gr.themes.GoogleFont('{font_name}')"
+                        if is_google_font
+                        else f"'{font_name}'"
                         for font_name, is_google_font in theme_font_set
                     ]
 

@@ -328,7 +328,6 @@
 
 		tick().then(() => {
 			if (full_history) {
-				console.log("full_history", full_history);
 				CommandManager.hydrate(full_history);
 			}
 		});

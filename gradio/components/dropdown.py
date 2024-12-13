@@ -45,19 +45,16 @@ class Dropdown(FormComponent):
 
     def __init__(
         self,
-        choices: (
-            Sequence[str | int | float | tuple[str, str | int | float]] | None
-        ) = None,
+        choices: Sequence[str | int | float | tuple[str, str | int | float]]
+        | None = None,
         *,
-        value: (
-            str
-            | int
-            | float
-            | Sequence[str | int | float]
-            | Callable
-            | DefaultValue
-            | None
-        ) = DEFAULT_VALUE,
+        value: str
+        | int
+        | float
+        | Sequence[str | int | float]
+        | Callable
+        | DefaultValue
+        | None = DEFAULT_VALUE,
         type: Literal["value", "index"] = "value",
         multiselect: bool | None = None,
         allow_custom_value: bool = False,

@@ -36,9 +36,9 @@ if TYPE_CHECKING:
 @document()
 def load(
     name: str,
-    src: (
-        Callable[[str, str | None], Blocks] | Literal["models", "spaces"] | None
-    ) = None,
+    src: Callable[[str, str | None], Blocks]
+    | Literal["models", "spaces"]
+    | None = None,
     token: str | None = None,
     hf_token: str | None = None,
     accept_token: bool = False,

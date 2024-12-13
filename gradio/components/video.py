@@ -63,14 +63,16 @@ class Video(StreamingOutput, Component):
 
     def __init__(
         self,
-        value: (
-            str | Path | tuple[str | Path, str | Path | None] | Callable | None
-        ) = None,
+        value: str
+        | Path
+        | tuple[str | Path, str | Path | None]
+        | Callable
+        | None = None,
         *,
         format: str | None = None,
-        sources: (
-            list[Literal["upload", "webcam"]] | Literal["upload", "webcam"] | None
-        ) = None,
+        sources: list[Literal["upload", "webcam"]]
+        | Literal["upload", "webcam"]
+        | None = None,
         height: int | str | None = None,
         width: int | str | None = None,
         label: str | None = None,
