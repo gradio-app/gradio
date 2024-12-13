@@ -319,8 +319,8 @@ class ChatInterface(Blocks):
                 self.show_progress = show_progress
                 self._setup_events()
 
-    @staticmethod
     def _setup_example_messages(
+        self,
         examples: list[str] | list[MultimodalValue] | list[list] | None,
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
@@ -338,8 +338,21 @@ class ChatInterface(Blocks):
                     example_message["files"] = example.get("files", [])
                 if example_labels:
                     example_message["display_text"] = example_labels[index]
-                if example_icons:
-                    example_message["icon"] = example_icons[index]
+                if self.multimodal:
+                    example_files = example_message.get("files")
+                    if not example_files:
+                        if example_icons:
+                            example_message["icon"] = example_icons[index]
+                        else:
+                            example_message["icon"] = {
+                                "path": "",
+                                "url": None,
+                                "orig_name": None,
+                                "mime_type": "text",  # for internal use, not a valid mime type
+                                "meta": {"_type": "gradio.FileData"},
+                            }
+                    elif example_icons:
+                        example_message["icon"] = example_icons[index]
                 examples_messages.append(example_message)
         return examples_messages
 
