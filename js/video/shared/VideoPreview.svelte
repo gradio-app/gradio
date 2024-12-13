@@ -25,6 +25,7 @@
 	export let loop: boolean;
 	export let i18n: I18nFormatter;
 	export let upload: Client["upload"];
+	export let display_icon_button_wrapper_top_corner = false;
 
 	let old_value: FileData | null = null;
 	let old_subtitle: FileData | null = null;
@@ -86,7 +87,9 @@
 		/>
 	{/key}
 	<div data-testid="download-div">
-		<IconButtonWrapper>
+		<IconButtonWrapper
+			display_top_corner={display_icon_button_wrapper_top_corner}
+		>
 			{#if show_download_button}
 				<DownloadLink
 					href={value.is_stream

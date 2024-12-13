@@ -190,10 +190,6 @@ export function group_messages(
 	let currentRole: MessageRole | null = null;
 
 	for (const message of messages) {
-		if (msg_format === "tuples") {
-			currentRole = null;
-		}
-
 		if (!(message.role === "assistant" || message.role === "user")) {
 			continue;
 		}
