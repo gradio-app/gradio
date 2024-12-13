@@ -320,6 +320,20 @@ class TestAPI:
             result = client.predict({"text": "hello", "files": []}, api_name="/chat")
             assert result == "hello hello"
 
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_multiple_messages(self, type, connect):
+        def multiple_messages(msg, history):
+            return [msg["text"], msg["text"]]
+
+        chatbot = gr.ChatInterface(
+            multiple_messages,
+            type=type,
+            multimodal=True,
+        )
+        with connect(chatbot) as client:
+            result = client.predict({"text": "hello", "files": []}, api_name="/chat")
+            assert result == ["hello", "hello"]
+
 
 class TestExampleMessages:
     def test_setup_example_messages_with_strings(self):
