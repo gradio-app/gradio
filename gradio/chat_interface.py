@@ -625,8 +625,11 @@ class ChatInterface(Blocks):
         else:
             additional_outputs = None
         history = self._append_message_to_history(message, history, "user")
-        response_ = self.response_as_dict(response)
-        history = self._append_message_to_history(response_, history, "assistant")  # type: ignore
+        response_ = [response] if not isinstance(response, list) else response
+        for r in response_:
+            history = self._append_message_to_history(
+                self.response_as_dict(r), history, "assistant"
+            )
         if additional_outputs:
             return response, history, *additional_outputs
         return response, history
