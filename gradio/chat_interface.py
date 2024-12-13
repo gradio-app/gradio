@@ -643,7 +643,7 @@ class ChatInterface(Blocks):
         additional_outputs = None
         try:
             first_response = await utils.async_iteration(generator)
-            if isinstance(first_response, tuple):
+            if self.additional_outputs:
                 first_response, *additional_outputs = first_response
             history_ = self._append_message_to_history(
                 first_response, history, "assistant"
@@ -655,7 +655,7 @@ class ChatInterface(Blocks):
         except StopIteration:
             yield None, history
         async for response in generator:
-            if isinstance(response, tuple):
+            if self.additional_outputs:
                 response, *additional_outputs = response
             history_ = self._append_message_to_history(response, history, "assistant")
             if not additional_outputs:
