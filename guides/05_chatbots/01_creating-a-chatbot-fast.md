@@ -338,6 +338,7 @@ $code_chatinterface_options
 
 You can return multiple assistant messages from your chat function simply by returning a `list` of messages of any of the above types (you can even mix-and-match). This lets you, for example, send a message along with files, as in the following example:
 
+$code_chatinterface_echo_multimodal
 
 ## Using Your Chatbot via API
 
