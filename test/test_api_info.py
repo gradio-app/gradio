@@ -97,7 +97,7 @@ class StatusModel(GradioModel):
 class PointModel(GradioRootModel):
     root: tuple[float, float]
 
-    answer: ClassVar = "Tuple[float, float]"
+    answer: ClassVar = "tuple[float, float]"
 
 
 class UuidModel(GradioModel):
@@ -181,7 +181,7 @@ class CoordinateModel(GradioModel):
 class TupleListModel(GradioModel):
     data: list[tuple[int, str]]
 
-    answer: ClassVar = "dict(data: list[Tuple[int, str]]"
+    answer: ClassVar = "dict(data: list[tuple[int, str]]"
 
 
 class PathListModel(GradioModel):
@@ -205,7 +205,7 @@ Person = namedtuple("Person", ["name", "age"])
 class NamedTupleDictionaryModel(GradioModel):
     people: dict[str, Person]
 
-    answer: ClassVar = "dict(people: dict(str, Tuple[Any, Any]))"
+    answer: ClassVar = "dict(people: dict(str, tuple[Any, Any]))"
 
 
 MODELS = [
