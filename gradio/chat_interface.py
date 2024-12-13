@@ -588,6 +588,7 @@ class ChatInterface(Blocks):
             return {"role": "assistant", "content": response}
         else:
             new_response = response
+            new_response["role"] = "assistant"
         return cast(MessageDict, new_response)
 
     async def _submit_fn(
