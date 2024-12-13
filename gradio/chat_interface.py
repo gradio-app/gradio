@@ -18,6 +18,7 @@ from gradio_client.documentation import document
 from gradio import utils
 from gradio.blocks import Blocks
 from gradio.components import (
+    JSON,
     Button,
     Chatbot,
     Component,
@@ -283,7 +284,7 @@ class ChatInterface(Blocks):
                         self.textbox.stop_btn = False
 
                     self.fake_api_btn = Button("Fake API", visible=False)
-                    self.fake_response_textbox = Textbox(
+                    self.api_response = JSON(
                         label="Response", visible=False
                     )  # Used to store the response from the API call
 
@@ -311,14 +312,15 @@ class ChatInterface(Blocks):
                                 input_component.render()
 
                 self.saved_input = State()  # Stores the most recent user message
+                self.null_component = State()  # Used to discard unneeded values
                 self.chatbot_state = (
                     State(self.chatbot.value) if self.chatbot.value else State([])
                 )
                 self.show_progress = show_progress
                 self._setup_events()
 
-    @staticmethod
     def _setup_example_messages(
+        self,
         examples: list[str] | list[MultimodalValue] | list[list] | None,
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
@@ -336,8 +338,21 @@ class ChatInterface(Blocks):
                     example_message["files"] = example.get("files", [])
                 if example_labels:
                     example_message["display_text"] = example_labels[index]
-                if example_icons:
-                    example_message["icon"] = example_icons[index]
+                if self.multimodal:
+                    example_files = example_message.get("files")
+                    if not example_files:
+                        if example_icons:
+                            example_message["icon"] = example_icons[index]
+                        else:
+                            example_message["icon"] = {
+                                "path": "",
+                                "url": None,
+                                "orig_name": None,
+                                "mime_type": "text",  # for internal use, not a valid mime type
+                                "meta": {"_type": "gradio.FileData"},
+                            }
+                    elif example_icons:
+                        example_message["icon"] = example_icons[index]
                 examples_messages.append(example_message)
         return examples_messages
 
@@ -357,8 +372,7 @@ class ChatInterface(Blocks):
         submit_fn_kwargs = {
             "fn": submit_fn,
             "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
-            "outputs": [self.fake_response_textbox, self.chatbot]
-            + self.additional_outputs,
+            "outputs": [self.null_component, self.chatbot] + self.additional_outputs,
             "show_api": False,
             "concurrency_limit": cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
@@ -395,11 +409,12 @@ class ChatInterface(Blocks):
         self.fake_api_btn.click(
             submit_fn,
             [self.textbox, self.chatbot_state] + self.additional_inputs,
-            [self.fake_response_textbox, self.chatbot_state] + self.additional_outputs,
+            [self.api_response, self.chatbot_state] + self.additional_outputs,
             api_name=cast(Union[str, Literal[False]], self.api_name),
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
             ),
+            postprocess=False,
         )
 
         if (
