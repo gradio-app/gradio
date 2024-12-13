@@ -422,9 +422,7 @@ class Chatbot(Component):
     def preprocess(
         self,
         payload: ChatbotDataTuples | ChatbotDataMessages | None,
-    ) -> (
-        list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict]
-    ):
+    ) -> list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict]:
         """
         Parameters:
             payload: data as a ChatbotData object

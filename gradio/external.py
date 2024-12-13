@@ -64,8 +64,6 @@ def load(
         warnings.warn(
             "The `hf_token` parameter is deprecated. Please use the equivalent `token` parameter instead."
         )
-    if token is None and os.environ.get("HF_TOKEN") is not None:
-        token = os.environ.get("HF_TOKEN")
     if src is None:
         # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
         parts = name.split("/")
@@ -80,6 +78,12 @@ def load(
         raise ValueError(
             "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a function that accepts a model name (and optionally, a token), and returns a Gradio app."
         )
+    if (
+        token is None
+        and src in ["models", "huggingface"]
+        and os.environ.get("HF_TOKEN") is not None
+    ):
+        token = os.environ.get("HF_TOKEN")
 
     if not accept_token:
         if isinstance(src, Callable):
