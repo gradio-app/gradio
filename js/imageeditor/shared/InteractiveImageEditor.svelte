@@ -57,6 +57,7 @@
 	export let dragging: boolean;
 	export let placeholder: string | undefined = undefined;
 	export let height = 450;
+	export let full_history: CommandNode | null = null;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;

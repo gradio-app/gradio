@@ -5,7 +5,7 @@
 		ShareButton,
 		IconButton,
 		IconButtonWrapper,
-		FullscreenButton,
+		FullscreenButton
 	} from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
@@ -22,7 +22,7 @@
 		Maximize,
 		Minimize,
 		Clear,
-		Play,
+		Play
 	} from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
@@ -71,7 +71,7 @@
 					if ("video" in data) {
 						return {
 							video: data.video as FileData,
-							caption: data.caption,
+							caption: data.caption
 						};
 					} else if ("image" in data) {
 						return { image: data.image as FileData, caption: data.caption };
@@ -146,7 +146,7 @@
 			if (selected_index !== null) {
 				dispatch("select", {
 					index: selected_index,
-					value: resolved_value?.[selected_index],
+					value: resolved_value?.[selected_index]
 				});
 			}
 		}
@@ -182,7 +182,7 @@
 		if (container_element && typeof container_element.scrollTo === "function") {
 			container_element.scrollTo({
 				left: pos < 0 ? 0 : pos,
-				behavior: "smooth",
+				behavior: "smooth"
 			});
 		}
 	}

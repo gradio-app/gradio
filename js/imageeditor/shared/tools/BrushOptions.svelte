@@ -32,12 +32,12 @@
 	function handle_color_selection(
 		{
 			index,
-			color,
+			color
 		}: {
 			index: number | null;
 			color: string | null;
 		},
-		type: "core" | "user",
+		type: "core" | "user"
 	): void {
 		if (type === "user" && !color) {
 			editing_index = index;

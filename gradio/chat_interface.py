@@ -208,74 +208,6 @@ class ChatInterface(Blocks):
                     break
 
         with self:
-<<<<<<< HEAD
-            if title:
-                Markdown(
-                    f"<h1 style='text-align: center; margin-bottom: 1rem'>{self.title}</h1>"
-                )
-            if description:
-                Markdown(description)
-
-            examples_messages: list[ExampleMessage] = []
-            if examples:
-                for index, example in enumerate(examples):
-                    if isinstance(example, list):
-                        example = example[0]
-                    example_message: ExampleMessage = {}
-                    if isinstance(example, str):
-                        example_message["text"] = example
-                    elif isinstance(example, dict):
-                        example_message["text"] = example.get("text", "")
-                        example_message["files"] = example.get("files", [])
-                    if example_labels:
-                        example_message["display_text"] = example_labels[index]
-                    if example_icons:
-                        example_message["icon"] = example_icons[index]
-                    examples_messages.append(example_message)
-
-            self.provided_chatbot = chatbot is not None
-            if chatbot:
-                if self.type != chatbot.type:
-                    warnings.warn(
-                        "The type of the chatbot does not match the type of the chat interface. The type of the chat interface will be used."
-                        "Recieved type of chatbot: {chatbot.type}, type of chat interface: {self.type}"
-                    )
-                    chatbot.type = self.type
-                self.chatbot = cast(
-                    Chatbot, get_component_instance(chatbot, render=True)
-                )
-                if self.chatbot.examples and examples_messages:
-                    warnings.warn(
-                        "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
-                    )
-                self.chatbot.examples = (
-                    examples_messages
-                    if not self._additional_inputs_in_examples()
-                    else None
-                )
-            else:
-                self.chatbot = Chatbot(
-                    label="Chatbot",
-                    scale=1,
-                    height=200 if fill_height else None,
-                    type=self.type,
-                    autoscroll=autoscroll,
-                    examples=(
-                        examples_messages
-                        if not self._additional_inputs_in_examples()
-                        else None
-                    ),
-                )
-
-            with Group():
-                with Row():
-                    if textbox:
-                        textbox.show_label = False
-                        textbox_ = get_component_instance(textbox, render=True)
-                        if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
-                            raise TypeError(
-                                f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
-=======
             with Column():
                 if title:
                     Markdown(
@@ -289,7 +221,6 @@ class ChatInterface(Blocks):
                             warnings.warn(
                                 "The type of the gr.Chatbot does not match the type of the gr.ChatInterface."
                                 f"The type of the gr.ChatInterface, '{self.type}', will be used."
->>>>>>> main
                             )
                             chatbot.type = self.type
                             chatbot._setup_data_model()
@@ -319,9 +250,11 @@ class ChatInterface(Blocks):
                         height=200 if fill_height else None,
                         type=self.type,
                         autoscroll=autoscroll,
-                        examples=self.examples_messages
-                        if not self._additional_inputs_in_examples
-                        else None,
+                        examples=(
+                            self.examples_messages
+                            if not self._additional_inputs_in_examples
+                            else None
+                        ),
                     )
                 with Group():
                     with Row():
@@ -361,9 +294,11 @@ class ChatInterface(Blocks):
                         examples=self.examples,
                         inputs=[self.textbox] + self.additional_inputs,
                         outputs=self.chatbot,
-                        fn=self._examples_stream_fn
-                        if self.is_generator
-                        else self._examples_fn,
+                        fn=(
+                            self._examples_stream_fn
+                            if self.is_generator
+                            else self._examples_fn
+                        ),
                         cache_examples=self.cache_examples,
                         cache_mode=self.cache_mode,
                         visible=self._additional_inputs_in_examples,

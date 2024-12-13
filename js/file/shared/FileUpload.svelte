@@ -24,7 +24,7 @@
 	export let uploading = false;
 
 	async function handle_upload({
-		detail,
+		detail
 	}: CustomEvent<FileData | FileData[]>): Promise<void> {
 		if (Array.isArray(value)) {
 			value = [...value, ...(Array.isArray(detail) ? detail : [detail])];

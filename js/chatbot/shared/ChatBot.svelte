@@ -5,7 +5,7 @@
 		is_last_bot_message,
 		group_messages,
 		load_components,
-		get_components_from_messages,
+		get_components_from_messages
 	} from "./utils";
 	import type { NormalisedMessage, Option } from "../types";
 	import { copy } from "@gradio/utils";
@@ -19,7 +19,7 @@
 		type SvelteComponent,
 		type ComponentType,
 		tick,
-		onMount,
+		onMount
 	} from "svelte";
 	import { Image } from "@gradio/image/shared";
 
@@ -51,7 +51,7 @@
 		_components = await load_components(
 			get_components_from_messages(value),
 			_components,
-			load_component,
+			load_component
 		);
 	}
 
@@ -177,14 +177,14 @@
 	function handle_example_select(i: number, example: ExampleMessage): void {
 		dispatch("example_select", {
 			index: i,
-			value: { text: example.text, files: example.files },
+			value: { text: example.text, files: example.files }
 		});
 	}
 
 	function handle_like(
 		i: number,
 		message: NormalisedMessage,
-		selected: string | null,
+		selected: string | null
 	): void {
 		if (selected === "undo" || selected === "retry") {
 			const val_ = value as NormalisedMessage[];
@@ -196,7 +196,7 @@
 			}
 			dispatch(selected, {
 				index: val_[last_index].index,
-				value: val_[last_index].content,
+				value: val_[last_index].content
 			});
 			return;
 		}
@@ -205,7 +205,7 @@
 			dispatch("like", {
 				index: message.index,
 				value: message.content,
-				liked: selected === "like",
+				liked: selected === "like"
 			});
 		} else {
 			if (!groupedMessages) return;
@@ -213,13 +213,13 @@
 			const message_group = groupedMessages[i];
 			const [first, last] = [
 				message_group[0],
-				message_group[message_group.length - 1],
+				message_group[message_group.length - 1]
 			];
 
 			dispatch("like", {
 				index: [first.index, last.index] as [number, number],
 				value: message_group.map((m) => m.content),
-				liked: selected === "like",
+				liked: selected === "like"
 			});
 		}
 	}
@@ -243,7 +243,7 @@
 						// @ts-ignore
 						const formatted = await format_chat_for_sharing(value);
 						dispatch("share", {
-							description: formatted,
+							description: formatted
 						});
 					} catch (e) {
 						console.error(e);
@@ -318,7 +318,7 @@
 							on:click={() =>
 								dispatch("option_select", {
 									index: index,
-									value: option.value,
+									value: option.value
 								})}
 						>
 							{option.label || option.value}

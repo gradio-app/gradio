@@ -18,7 +18,7 @@
 		dimensions,
 		register_context,
 		command_manager,
-		current_history,
+		current_history
 	} = getContext<EditorContext>(EDITOR_KEY);
 
 	const { can_undo } = command_manager;
@@ -35,14 +35,14 @@
 		},
 		reset_fn: () => {
 			LayerManager.reset();
-		},
+		}
 	});
 
 	async function validate_layers(): Promise<void> {
 		let invalid = $layers.some(
 			(layer) =>
 				layer.composite.texture?.width != $dimensions[0] ||
-				layer.composite.texture?.height != $dimensions[1],
+				layer.composite.texture?.height != $dimensions[1]
 		);
 		if (invalid) {
 			LayerManager.reset();
@@ -58,7 +58,7 @@
 		const new_layer = LayerManager.add_layer(
 			$pixi.layer_container,
 			$pixi.renderer,
-			...$dimensions,
+			...$dimensions
 		);
 
 		if ($can_undo || $layers.length > 0) {
@@ -75,7 +75,7 @@
 	}
 
 	async function render_layer_files(
-		_layer_files: typeof layer_files,
+		_layer_files: typeof layer_files
 	): Promise<void> {
 		await tick();
 		if (!_layer_files || _layer_files.length == 0) {
@@ -90,14 +90,14 @@
 				if (!f || !f.url) return null;
 
 				return fetch(f.url);
-			}),
+			})
 		);
 
 		const blobs = await Promise.all(
 			fetch_promises.map((p) => {
 				if (!p) return null;
 				return p.blob();
-			}),
+			})
 		);
 
 		LayerManager.reset();
@@ -107,7 +107,7 @@
 				$pixi.layer_container,
 				$pixi.renderer,
 				blob,
-				$pixi.view,
+				$pixi.view
 			);
 
 			if ($can_undo && $layers.length === 0) {
@@ -136,7 +136,7 @@
 			aria-label="Show Layers"
 			on:click={() => (show_layers = !show_layers)}
 			><span class="icon"><Layers /></span> Layer {$layers.findIndex(
-				(l) => l === $current_layer,
+				(l) => l === $current_layer
 			) + 1}
 		</button>
 		{#if show_layers}

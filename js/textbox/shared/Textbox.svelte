@@ -3,7 +3,7 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick,
+		tick
 	} from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
@@ -106,7 +106,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number,
+			target.selectionEnd as number
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -155,7 +155,7 @@
 	}
 
 	async function resize(
-		event: Event | { target: HTMLTextAreaElement | HTMLInputElement },
+		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
 	): Promise<void> {
 		await tick();
 		if (lines === max_lines) return;
@@ -188,7 +188,7 @@
 
 	function text_area_resize(
 		_el: HTMLTextAreaElement,
-		_value: string,
+		_value: string
 	): any | undefined {
 		if (lines === max_lines) return;
 		_el.style.overflowY = "scroll";
@@ -198,7 +198,7 @@
 		resize({ target: _el });
 
 		return {
-			destroy: () => _el.removeEventListener("input", resize),
+			destroy: () => _el.removeEventListener("input", resize)
 		};
 	}
 </script>

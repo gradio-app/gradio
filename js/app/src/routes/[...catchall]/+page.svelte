@@ -1,6 +1,5 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css } from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
@@ -143,10 +142,6 @@
 
 	let active_theme_mode: ThemeMode;
 
-	}
-
-	// These utilities are exported to be injectable for the Wasm version.
-
 	// export let Client: typeof ClientType;
 
 	export let space: string | null;
@@ -201,7 +196,11 @@
 
 		window.__gradio_space__ = config.space_id;
 		gradio_dev_mode = window?.__GRADIO_DEV__;
+
+		status = {
+			message: "",
 			load_status: "complete",
+			status: "running",
 			detail: "RUNNING"
 		};
 
@@ -226,7 +225,11 @@
 						status_callback: handle_status,
 						with_null_state: true,
 						events: ["data", "log", "status", "render"]
+					});
+
+					if (!app.config) {
 						throw new Error("Could not resolve app config");
+					}
 
 					config = app.config;
 					window.__gradio_space__ = config.space_id;

@@ -22,7 +22,7 @@
 	import type {
 		LogMessage,
 		RenderMessage,
-		StatusMessage,
+		StatusMessage
 	} from "@gradio/client";
 
 	setupi18n();
@@ -108,7 +108,7 @@
 			return {
 				id: outputs[i],
 				prop: "value_is_output",
-				value: true,
+				value: true
 			};
 		});
 
@@ -131,7 +131,7 @@
 						updates.push({
 							id: outputs[i],
 							prop: update_key,
-							value: update_value,
+							value: update_value
 						});
 					}
 				}
@@ -139,7 +139,7 @@
 				updates.push({
 					id: outputs[i],
 					prop: "value",
-					value,
+					value
 				});
 			}
 		});
@@ -157,7 +157,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = true,
+		visible = true
 	): ToastMessage & { fn_index: number } {
 		return {
 			title,
@@ -166,14 +166,14 @@
 			type,
 			id: ++_error_id,
 			duration,
-			visible,
+			visible
 		};
 	}
 
 	export function add_new_message(
 		title: string,
 		message: string,
-		type: ToastMessage["type"],
+		type: ToastMessage["type"]
 	): void {
 		messages = [new_message(title, message, -1, type), ...messages];
 	}
@@ -199,7 +199,7 @@
 	function wait_then_trigger_api_call(
 		dep_index: number,
 		trigger_id: number | null = null,
-		event_data: unknown = null,
+		event_data: unknown = null
 	): void {
 		let _unsub = (): void => {};
 		function unsub(): void {
@@ -238,13 +238,17 @@
 	async function trigger_api_call(
 		dep_index: number,
 		trigger_id: number | null = null,
-		event_data: unknown = null,
+		event_data: unknown = null
 	): Promise<void> {
 		let dep = dependencies.find((dep) => dep.id === dep_index)!;
 		if (inputs_waiting.length > 0) {
 			for (const input of inputs_waiting) {
 				if (dep.inputs.includes(input)) {
 					add_new_message("Warning", WAITING_FOR_INPUTS_MESSAGE, "warning");
+					return;
+				}
+			}
+		}
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
 		if (current_status === "pending" || current_status === "generating") {
@@ -259,15 +263,15 @@
 				)
 			),
 			event_data: dep.collects_event_data ? event_data : null,
-			trigger_id: trigger_id,
+			trigger_id: trigger_id
 		};
 
 		if (dep.frontend_fn) {
 			dep
 				.frontend_fn(
 					payload.data.concat(
-						await Promise.all(dep.outputs.map((id) => get_data(id))),
-					),
+						await Promise.all(dep.outputs.map((id) => get_data(id)))
+					)
 				)
 				.then((v: unknown[]) => {
 					if (dep.backend_fn) {
@@ -283,7 +287,7 @@
 					const submission = submit_map.get(fn_index);
 					submission?.cancel();
 					return submission;
-				}),
+				})
 			);
 		} else {
 			if (dep.backend_fn) {
@@ -341,7 +345,7 @@
 					payload.fn_index,
 					payload.data as unknown[],
 					payload.event_data,
-					payload.trigger_id,
+					payload.trigger_id
 				);
 			} catch (e) {
 				const fn_index = 0; // Mock value for fn_index
@@ -354,7 +358,7 @@
 					fn_index,
 					eta: 0,
 					queue: false,
-					queue_position: null,
+					queue_position: null
 				});
 				set_status($loading_status);
 				return;
@@ -410,7 +414,7 @@
 					layout: render_layout,
 					root: root,
 					dependencies: dependencies,
-					render_id: render_id,
+					render_id: render_id
 				});
 			}
 
@@ -452,7 +456,7 @@
 					time_limit: status.time_limit,
 					status: status.stage,
 					progress: status.progress_data,
-					fn_index,
+					fn_index
 				});
 				set_status($loading_status);
 				if (
@@ -515,7 +519,7 @@
 					if (status.message) {
 						const _message = status.message.replace(
 							MESSAGE_QUOTE_RE,
-							(_, b) => b,
+							(_, b) => b
 						);
 						const _title = status.title ?? "Error";
 						messages = [
@@ -525,9 +529,9 @@
 								fn_index,
 								"error",
 								status.duration,
-								status.visible,
+								status.visible
 							),
-							...messages,
+							...messages
 						];
 					}
 					dependencies.map(async (dep) => {
@@ -549,7 +553,7 @@
 			return;
 		}
 		const discussion_url = new URL(
-			`https://huggingface.co/spaces/${space_id}/discussions/new`,
+			`https://huggingface.co/spaces/${space_id}/discussions/new`
 		);
 		if (title !== undefined && title.length > 0) {
 			discussion_url.searchParams.set("title", title);
@@ -570,7 +574,7 @@
 		if (js) {
 			let blocks_frontend_fn = new AsyncFunction(
 				`let result = await (${js})();
-					return (!Array.isArray(result)) ? [result] : result;`,
+					return (!Array.isArray(result)) ? [result] : result;`
 			);
 			await blocks_frontend_fn();
 		}
@@ -600,7 +604,6 @@
 		target.addEventListener("prop_change", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 			const { id, prop, value } = e.detail;
-			console.log({ id, prop, value });
 			update_value([{ id, prop, value }]);
 			if (prop === "input_ready" && value === false) {
 				inputs_waiting.push(id);
@@ -652,15 +655,15 @@
 	function update_status(
 		id: number,
 		status: "error" | "complete" | "pending",
-		data: LoadingStatus,
+		data: LoadingStatus
 	): void {
 		data.status = status;
 		update_value([
 			{
 				id,
 				prop: "loading_status",
-				value: data,
-			},
+				value: data
+			}
 		]);
 	}
 
@@ -672,7 +675,7 @@
 		}[] = [];
 		Object.entries(statuses).forEach(([id, loading_status]) => {
 			let dependency = dependencies.find(
-				(dep) => dep.id == loading_status.fn_index,
+				(dep) => dep.id == loading_status.fn_index
 			);
 			if (dependency === undefined) {
 				return;
@@ -682,7 +685,7 @@
 			updates.push({
 				id: parseInt(id),
 				prop: "loading_status",
-				value: loading_status,
+				value: loading_status
 			});
 		});
 
@@ -692,9 +695,9 @@
 				return {
 					id,
 					prop: "pending",
-					value: pending_status === "pending",
+					value: pending_status === "pending"
 				};
-			},
+			}
 		);
 
 		update_value([...updates, ...additional_updates]);

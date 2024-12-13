@@ -670,7 +670,7 @@
 							<button
 								on:click={() => {
 									suspend_and_resume_auto_run(() =>
-										generate_code(user_query, selected_demo.name),
+										generate_code(user_query, selected_demo.name)
 									);
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
