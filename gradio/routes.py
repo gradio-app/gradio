@@ -1452,13 +1452,13 @@ class App(FastAPI):
                             "src": "static/img/logo192.svg",
                             "sizes": "192x192",
                             "type": "image/svg+xml",
-                            "purpose": "any"
+                            "purpose": "any",
                         },
                         {
                             "src": "static/img/logo512.svg",
                             "sizes": "512x512",
                             "type": "image/svg+xml",
-                            "purpose": "any"
+                            "purpose": "any",
                         },
                     ],
                     "start_url": "./",
