@@ -14,14 +14,11 @@ from ..guides import guides
 
 DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
-JS_CLIENT_README = os.path.abspath(
-    os.path.join(DIR, "../../../../../client/js/README.md")
-)
+JS_CLIENT_README = os.path.abspath(os.path.join(DIR, "../../../../../client/js/README.md"))
 JS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../js/"))
 TEMPLATES_DIR = os.path.abspath(os.path.join(DIR, "../../../src/lib/templates"))
 
 docs = generate_documentation()
-
 
 def add_component_shortcuts():
     for component in docs["component"]:
@@ -66,22 +63,21 @@ def add_demos():
 
 add_demos()
 
-
 def create_events_matrix():
     events = set({})
     component_events = {}
     for component in docs["component"]:
         component_event_list = []
-        if hasattr(component["class"], "EVENTS"):
+        if hasattr(component["class"], 'EVENTS'):
             for event in component["class"].EVENTS:
                 events.add(event)
                 for fn in component["fns"]:
                     if event == fn["name"]:
                         component_event_list.append(event)
             component_events[component["name"]] = component_event_list
-
+    
+    
     return list(events), component_events
-
 
 events, component_events = create_events_matrix()
 
@@ -124,9 +120,7 @@ def generate_playground_link(demo_name):
 def escape_parameters(parameters):
     new_parameters = []
     for param in parameters:
-        param = (
-            param.copy()
-        )  # Manipulating the list item directly causes issues, so copy it first
+        param = param.copy()  # Manipulating the list item directly causes issues, so copy it first
         param["doc"] = html.escape(param["doc"]) if param["doc"] else param["doc"]
         if param["doc"] and "$demo/" in param["doc"]:
             param["doc"] = re.sub(
@@ -157,9 +151,7 @@ def escape_html_string_fields():
                 fn["description"] = html.escape(fn["description"])
                 fn["parameters"] = escape_parameters(fn["parameters"])
 
-
 escape_html_string_fields()
-
 
 def find_cls(target_cls):
     for mode in docs:
@@ -178,9 +170,9 @@ def organize_docs(d):
             "modals": {},
             "routes": {},
             "events": {},
-            "chatinterface": {},
+            "chatinterface": {}
         },
-        "python-client": {},
+        "python-client": {}
     }
     for mode in d:
         for c in d[mode]:
@@ -204,9 +196,10 @@ def organize_docs(d):
             elif mode == "py-client":
                 organized["python-client"][c["name"].lower()] = c
             elif mode in ["helpers", "routes", "chatinterface", "modals"]:
-                organized["gradio"][mode][c["name"].lower()] = c
+                organized["gradio"][mode][c["name"].lower()] = c                
             else:
                 organized["gradio"]["building"][c["name"].lower()] = c
+    
 
     def format_name(page_name):
         index = None
@@ -216,50 +209,30 @@ def organize_docs(d):
             page_name = page_name[page_name.index("_") + 1 :]
         if page_name.lower().endswith(".svx"):
             page_name = page_name[:-4]
-        pretty_page_name = " ".join(
-            [word[0].upper() + word[1:] for word in page_name.split("-")]
-        )
+        pretty_page_name = " ".join([word[0].upper() + word[1:] for word in page_name.split("-")])
         for library in organized:
             for category in organized[library]:
                 if page_name in organized[library][category]:
-                    return (
-                        index,
-                        page_name,
-                        organized[library][category][page_name]["name"],
-                        page_path,
-                    )
-        if page_name == "chatinterface":
-            pretty_page_name = "ChatInterface"
+                    return index, page_name, organized[library][category][page_name]["name"], page_path
+        if page_name == "chatinterface": 
+            pretty_page_name =  "ChatInterface"              
         return index, page_name, pretty_page_name, page_path
-
-    def organize_pages():
+    
+    
+    def organize_pages(): 
         pages = {"gradio": [], "python-client": [], "third-party-clients": []}
-        absolute_index = -1
+        absolute_index = -1;
         for library in pages:
             library_templates_dir = os.path.join(TEMPLATES_DIR, library)
             page_folders = sorted(os.listdir(library_templates_dir))
             for page_folder in page_folders:
-                page_list = sorted(
-                    os.listdir(os.path.join(library_templates_dir, page_folder))
-                )
-                _, page_category, pretty_page_category, category_path = format_name(
-                    page_folder
-                )
+                page_list = sorted(os.listdir(os.path.join(library_templates_dir, page_folder)))
+                _, page_category, pretty_page_category, category_path = format_name(page_folder)
                 category_path = os.path.join(library, category_path)
                 pages[library].append({"category": pretty_page_category, "pages": []})
                 for page_file in page_list:
-                    page_index, page_name, pretty_page_name, page_path = format_name(
-                        page_file
-                    )
-                    pages[library][-1]["pages"].append(
-                        {
-                            "name": page_name,
-                            "pretty_name": pretty_page_name,
-                            "path": os.path.join(category_path, page_path),
-                            "page_index": page_index,
-                            "abolute_index": absolute_index + 1,
-                        }
-                    )
+                    page_index, page_name, pretty_page_name, page_path = format_name(page_file)
+                    pages[library][-1]["pages"].append({"name": page_name, "pretty_name": pretty_page_name, "path": os.path.join(category_path, page_path), "page_index": page_index, "abolute_index": absolute_index + 1})
         return pages
 
     pages = organize_pages()
@@ -271,15 +244,7 @@ def organize_docs(d):
     js_pages = []
 
     for js_component in os.listdir(JS_DIR):
-        if not js_component.startswith("_") and js_component not in [
-            "app",
-            "highlighted-text",
-            "playground",
-            "preview",
-            "upload-button",
-            "theme",
-            "tootils",
-        ]:
+        if not js_component.startswith("_") and js_component not in ["app", "highlighted-text", "playground", "preview", "upload-button", "theme", "tootils"]:
             if os.path.exists(os.path.join(JS_DIR, js_component, "package.json")):
                 with open(os.path.join(JS_DIR, js_component, "package.json")) as f:
                     package_json = json.load(f)
@@ -289,20 +254,17 @@ def organize_docs(d):
                 with open(os.path.join(JS_DIR, js_component, "README.md")) as f:
                     readme_content = f.read()
 
-                try:
-                    latest_npm = requests.get(
-                        f"https://registry.npmjs.org/@gradio/{js_component}/latest"
-                    ).json()["version"]
+                try: 
+                    latest_npm = requests.get(f"https://registry.npmjs.org/@gradio/{js_component}/latest").json()["version"]
                     latest_npm = f" [v{latest_npm}](https://www.npmjs.com/package/@gradio/{js_component})"
                     readme_content = readme_content.split("\n")
-                    readme_content = "\n".join(
-                        [readme_content[0], latest_npm, *readme_content[1:]]
-                    )
+                    readme_content = "\n".join([readme_content[0], latest_npm, *readme_content[1:]])
                 except TypeError:
                     pass
 
                 js[js_component] = readme_content
                 js_pages.append(js_component)
+
 
     with open(JS_CLIENT_README) as f:
         readme_content = f.read()
@@ -312,13 +274,7 @@ def organize_docs(d):
 
     js_pages.sort()
 
-    return {
-        "docs": organized,
-        "pages": pages,
-        "js": js,
-        "js_pages": js_pages,
-        "js_client": readme_content,
-    }
+    return {"docs": organized, "pages": pages, "js": js, "js_pages": js_pages, "js_client": readme_content}
 
 
 docs = organize_docs(docs)
@@ -373,14 +329,14 @@ for key in gradio_docs:
             for p in o['parameters']])})"""
         SYSTEM_PROMPT += f"{signature}\n"
         SYSTEM_PROMPT += f"{o['description']}\n\n"
-    else:
+    else: 
         for c in gradio_docs[key]:
             o = gradio_docs[key][c]
             signature = f"""{o['name']}({', '.join([
                 p['name'] + 
                 ': ' + p['annotation']
                 + (' = ' + p['default'] if 'default' in p else '')
-                for p in o['parameters']])})"""
+                for p in o['parameters']])})"""          
             SYSTEM_PROMPT += f"{signature}\n"
             SYSTEM_PROMPT += f"{o['description']}\n\n"
             if "fns" in o and key != "components":
@@ -406,9 +362,7 @@ signature = f"""<component_name>.<event_name>({', '.join([
 SYSTEM_PROMPT += signature
 SYSTEM_PROMPT += "\nEach component only supports some specific events. Below is a list of all gradio components and every event that each component supports. If an event is supported by a component, it is a valid method of the component."
 for component in gradio_docs["events_matrix"]:
-    SYSTEM_PROMPT += (
-        f"{component}: {', '.join(gradio_docs['events_matrix'][component])}\n\n"
-    )
+    SYSTEM_PROMPT += f"{component}: {', '.join(gradio_docs['events_matrix'][component])}\n\n"
 
 
 SYSTEM_PROMPT += "Below are examples of full end-to-end Gradio apps:\n\n"
@@ -421,15 +375,12 @@ important_demos = ['custom_css', "annotatedimage_component", "blocks_essay_simpl
 def length(demo):
     if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
         demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
-    else:
+    else: 
         return 0
     with open(demo_file) as run_py:
         demo_code = run_py.read()
-        demo_code = demo_code.replace("# type: ignore", "").replace(
-            'if __name__ == "__main__":\n    ', ""
-        )
+        demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
     return len(demo_code)
-
 
 # important_demos = sorted(important_demos, key=length, reverse=True)
 # print(important_demos)
@@ -437,13 +388,11 @@ def length(demo):
 for demo in important_demos:
     if os.path.exists(os.path.join(DEMOS_DIR, demo, "run.py")):
         demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
-    else:
+    else: 
         continue
     with open(demo_file) as run_py:
         demo_code = run_py.read()
-        demo_code = demo_code.replace("# type: ignore", "").replace(
-            'if __name__ == "__main__":\n    ', ""
-        )
+        demo_code = demo_code.replace("# type: ignore", "").replace('if __name__ == "__main__":\n    ', "")
     SYSTEM_PROMPT += f"Name: {demo.replace('_', ' ')}\n"
     SYSTEM_PROMPT += "Code: \n\n"
     SYSTEM_PROMPT += f"{demo_code}\n\n"
@@ -702,8 +651,7 @@ Only respond with one full Gradio app.
 Add comments explaining the code, but do not include any text that is not formatted as a Python comment.
 """
 
-
 def generate(json_path):
     with open(json_path, "w+") as f:
         json.dump(docs, f)
-    return SYSTEM_PROMPT
+    return  SYSTEM_PROMPT

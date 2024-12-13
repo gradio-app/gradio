@@ -1104,6 +1104,7 @@
 		top: 0;
 		left: 0;
 		z-index: var(--layer-1);
+		box-shadow: var(--shadow-drop);
 	}
 
 	tr {
@@ -1123,6 +1124,7 @@
 		--ring-color: transparent;
 		position: relative;
 		outline: none;
+		box-shadow: inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 	}
 
@@ -1135,9 +1137,8 @@
 	}
 
 	th.focus,
-	td.focus,
-	td.menu-active {
-		z-index: 1;
+	td.focus {
+		--ring-color: var(--color-accent);
 	}
 
 	tr:last-child td:first-child {
@@ -1186,7 +1187,6 @@
 	}
 
 	.cell-wrap {
-		position: relative;
 		display: flex;
 		align-items: center;
 		outline: none;

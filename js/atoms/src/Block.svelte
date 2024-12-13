@@ -75,8 +75,6 @@
 		background: var(--block-background-fill);
 		width: 100%;
 		line-height: var(--line-sm);
-		margin-left: auto;
-		margin-right: auto;
 	}
 
 	.auto-margin {

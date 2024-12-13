@@ -71,9 +71,9 @@ with gr.Blocks() as demo:
     @gr.render(inputs=n_text)
     def render_count(count):
         for i in range(int(count)):
-            gr.Markdown(value=f"Success Box {i} added", key=i)
-
-    class CustomState:
+            gr.Markdown(value = f"Success Box {i} added", key=i)
+    
+    class CustomState():
         def __init__(self, val):
             self.val = val
 
@@ -87,7 +87,6 @@ with gr.Blocks() as demo:
         custom_clicks = gr.Number(0, label="Custom State Clicks")
 
     custom_state.change(increment, custom_changes, custom_changes)
-
     def set_to_10(cs: CustomState):
         cs.val = 10
         return cs

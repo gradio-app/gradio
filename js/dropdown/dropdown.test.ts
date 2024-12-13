@@ -509,6 +509,6 @@ describe("Dropdown", () => {
 		const item: HTMLInputElement = getByLabelText(
 			"Dropdown"
 		) as HTMLInputElement;
-		await expect(item.value).toBe("apple_choice");
+		await expect(item.value).toBe("");
 	});
 });

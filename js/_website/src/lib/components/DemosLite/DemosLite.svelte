@@ -157,6 +157,7 @@
 		generated = true;
 		if (selected_demo.name === demo_name) {
 			highlight_changes(code_to_compare, demos[queried_index].code);
+		}
 		abortController = null;
 	}
 

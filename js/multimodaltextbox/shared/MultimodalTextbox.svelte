@@ -68,7 +68,6 @@
 
 	$: if (value === null) value = { text: "", files: [] };
 	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
-	$: can_submit = value.text !== "" || value.files.length > 0;
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -128,9 +127,7 @@
 		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
-			if (can_submit) {
-				dispatch("submit");
-			}
+			dispatch("submit");
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -138,9 +135,7 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
-			if (can_submit) {
-				dispatch("submit");
-			}
+			dispatch("submit");
 		}
 	}
 
@@ -373,7 +368,6 @@
 					class="submit-button"
 					class:padded-button={submit_btn !== true}
 					on:click={handle_submit}
-					disabled={!can_submit}
 				>
 					{#if submit_btn === true}
 						<Send />
@@ -501,13 +495,6 @@
 	.upload-button:active,
 	.submit-button:active {
 		box-shadow: var(--button-shadow-active);
-	}
-
-	.stop-button:disabled,
-	.upload-button:disabled,
-	.submit-button:disabled {
-		background: var(--button-secondary-background-fill);
-		cursor: initial;
 	}
 
 	.submit-button :global(svg) {

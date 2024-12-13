@@ -41,7 +41,6 @@
 	const show_textbox_border = !submit_btn;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
-	$: can_submit = value !== "";
 
 	$: if (value === null) value = "";
 
@@ -115,9 +114,7 @@
 		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
-			if (can_submit) {
-				dispatch("submit");
-			}
+			dispatch("submit");
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -125,9 +122,7 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
-			if (can_submit) {
-				dispatch("submit");
-			}
+			dispatch("submit");
 		}
 	}
 

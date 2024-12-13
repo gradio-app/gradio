@@ -70,7 +70,6 @@
 		transition: var(--button-transition);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
-		box-shadow: var(--button-shadow);
 	}
 
 	button:hover {
@@ -124,12 +123,6 @@
 		background: var(--button-secondary-background-fill);
 		color: var(--button-secondary-text-color);
 		box-shadow: var(--button-secondary-shadow);
-	}
-
-	.huggingface {
-		border: var(--button-border-width) solid
-			var(--button-secondary-border-color);
-		background: var(--background-fill-primary);
 	}
 
 	.secondary:hover,
