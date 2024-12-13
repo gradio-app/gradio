@@ -25,6 +25,7 @@
 	export let waveform_options: WaveformOptions;
 	export let editable = true;
 	export let loop: boolean;
+	export let display_icon_button_wrapper_top_corner = false;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -45,7 +46,9 @@
 />
 
 {#if value !== null}
-	<IconButtonWrapper>
+	<IconButtonWrapper
+		display_top_corner={display_icon_button_wrapper_top_corner}
+	>
 		{#if show_download_button}
 			<DownloadLink
 				href={value.is_stream
