@@ -27,11 +27,6 @@
 	export let loop: boolean;
 	export let display_icon_button_wrapper_top_border: false;
 
-	$: console.log(
-		"display_icon_button_wrapper_top_border",
-		display_icon_button_wrapper_top_border
-	);
-
 	const dispatch = createEventDispatcher<{
 		change: FileData;
 		play: undefined;

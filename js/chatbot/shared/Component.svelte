@@ -10,8 +10,6 @@
 	export let _fetch;
 	export let allow_file_downloads: boolean;
 	export let display_icon_button_wrapper_top_border = false;
-
-	$: console.log("components", components);
 </script>
 
 {#if type === "gallery"}

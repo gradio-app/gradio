@@ -87,7 +87,9 @@
 		/>
 	{/key}
 	<div data-testid="download-div">
-		<IconButtonWrapper>
+		<IconButtonWrapper
+			display_top_border={display_icon_button_wrapper_top_border}
+		>
 			{#if show_download_button}
 				<DownloadLink
 					href={value.is_stream
