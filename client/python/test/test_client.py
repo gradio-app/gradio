@@ -914,7 +914,7 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "Dict[Any, Any]",
+                                "type": "dict[Any, Any]",
                                 "description": "any valid json",
                             },
                             "component": "Label",
@@ -954,7 +954,7 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "Dict[Any, Any]",
+                                "type": "dict[Any, Any]",
                                 "description": "any valid json",
                             },
                             "component": "Label",
@@ -994,7 +994,7 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "Dict[Any, Any]",
+                                "type": "dict[Any, Any]",
                                 "description": "any valid json",
                             },
                             "component": "Label",
@@ -1130,7 +1130,7 @@ class TestAPIInfo:
             outputs = info["named_endpoints"]["/predict"]["returns"]
 
             assert inputs[0]["type"]["type"] == "array"
-            assert inputs[0]["python_type"]["type"] == "List[filepath]"
+            assert inputs[0]["python_type"]["type"] == "list[filepath]"
 
             assert isinstance(inputs[0]["example_input"], list)
             assert isinstance(inputs[0]["example_input"][0], dict)
@@ -1138,7 +1138,7 @@ class TestAPIInfo:
             assert inputs[1]["python_type"]["type"] == "filepath"
             assert isinstance(inputs[1]["example_input"], dict)
 
-            assert outputs[0]["python_type"]["type"] == "List[filepath]"
+            assert outputs[0]["python_type"]["type"] == "list[filepath]"
             assert outputs[0]["type"]["type"] == "array"
 
             assert outputs[1]["python_type"]["type"] == "filepath"
