@@ -39,7 +39,8 @@ export default defineConfig(({ mode }) => {
 			port: 9876,
 			open: "/",
 			proxy: {
-				"/manifest.json": "http://localhost:7860"
+				"/manifest.json": "http://localhost:7860",
+				"^/static/.*": "http://localhost:7860"
 			}
 		},
 		resolve: {
