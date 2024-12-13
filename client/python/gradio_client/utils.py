@@ -926,7 +926,7 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
     type_ = get_type(schema)
     if type_ == {}:
         if "json" in schema.get("description", {}):
-            return "Dict[Any, Any]"
+            return "list | dict | str"
         else:
             return "Any"
     elif type_ == "$ref":
