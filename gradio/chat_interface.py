@@ -164,7 +164,7 @@ class ChatInterface(Blocks):
         self.provided_chatbot = chatbot is not None
         self.examples = examples
         self.examples_messages = self._setup_example_messages(
-            examples, example_labels, example_icons, multimodal
+            examples, example_labels, example_icons
         )
         self.run_examples_on_click = run_examples_on_click
         self.cache_examples = cache_examples
@@ -319,12 +319,11 @@ class ChatInterface(Blocks):
                 self._setup_events()
                 self._setup_api()
 
-    @staticmethod
     def _setup_example_messages(
+        self,
         examples: list[str] | list[MultimodalValue] | list[list] | None,
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
-        multimodal: bool = False,
     ) -> list[ExampleMessage]:
         examples_messages = []
         if examples:
@@ -339,7 +338,7 @@ class ChatInterface(Blocks):
                     example_message["files"] = example.get("files", [])
                 if example_labels:
                     example_message["display_text"] = example_labels[index]
-                if multimodal:
+                if self.multimodal:
                     example_files = example_message.get("files")
                     if not example_files:
                         if example_icons:
