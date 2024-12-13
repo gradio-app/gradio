@@ -562,8 +562,8 @@ def from_spaces_interface(
             len(config["outputs"]) == 1
         ):  # if the fn is supposed to return a single value, pop it
             output = output[0]
-        if len(config["outputs"]) == 1 and isinstance(
-            output, list
+        if (
+            len(config["outputs"]) == 1 and isinstance(output, list)
         ):  # Needed to support Output.Image() returning bounding boxes as well (TODO: handle different versions of gradio since they have slightly different APIs)
             output = output[0]
         return output

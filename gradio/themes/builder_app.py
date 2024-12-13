@@ -732,56 +732,40 @@ with gr.Blocks(theme=theme) as demo:
                 3 + 3 * len(palette_range) : 6 + 3 * len(palette_range)
             ]
             text_sizes = args[
-                6
-                + 3 * len(palette_range) : 6
+                6 + 3 * len(palette_range) : 6
                 + 3 * len(palette_range)
                 + len(size_range)
             ]
             spacing_sizes = args[
-                6
-                + 3 * len(palette_range)
-                + len(size_range) : 6
+                6 + 3 * len(palette_range) + len(size_range) : 6
                 + 3 * len(palette_range)
                 + 2 * len(size_range)
             ]
             radius_sizes = args[
-                6
-                + 3 * len(palette_range)
-                + 2 * len(size_range) : 6
+                6 + 3 * len(palette_range) + 2 * len(size_range) : 6
                 + 3 * len(palette_range)
                 + 3 * len(size_range)
             ]
             main_fonts = args[
-                6
-                + 3 * len(palette_range)
-                + 3 * len(size_range) : 6
+                6 + 3 * len(palette_range) + 3 * len(size_range) : 6
                 + 3 * len(palette_range)
                 + 3 * len(size_range)
                 + 4
             ]
             main_is_google = args[
-                6
-                + 3 * len(palette_range)
-                + 3 * len(size_range)
-                + 4 : 6
+                6 + 3 * len(palette_range) + 3 * len(size_range) + 4 : 6
                 + 3 * len(palette_range)
                 + 3 * len(size_range)
                 + 8
             ]
             mono_fonts = args[
-                6
-                + 3 * len(palette_range)
-                + 3 * len(size_range)
-                + 8 : 6
+                6 + 3 * len(palette_range) + 3 * len(size_range) + 8 : 6
                 + 3 * len(palette_range)
                 + 3 * len(size_range)
                 + 12
             ]
             mono_is_google = args[
-                6
-                + 3 * len(palette_range)
-                + 3 * len(size_range)
-                + 12 : 6
+                6 + 3 * len(palette_range) + 3 * len(size_range) + 12 : 6
                 + 3 * len(palette_range)
                 + 3 * len(size_range)
                 + 16

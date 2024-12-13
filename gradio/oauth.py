@@ -24,8 +24,6 @@ MAX_REDIRECTS = 2
 
 
 def attach_oauth(app: fastapi.FastAPI):
-    from gradio.route_utils import API_PREFIX
-
     try:
         from starlette.middleware.sessions import SessionMiddleware
     except ImportError as e:
@@ -188,7 +186,6 @@ def _add_mocked_oauth_routes(app: fastapi.APIRouter) -> None:
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
-        from gradio.route_utils import API_PREFIX
 
         request.session.pop("oauth_info", None)
         logout_url = URL("/").include_query_params(**request.query_params)

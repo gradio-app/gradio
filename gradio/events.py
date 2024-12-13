@@ -816,9 +816,7 @@ def on(
             [EventListenerMethod(input, "change") for input in inputs]
             if inputs is not None
             else []
-        ) + [
-            EventListenerMethod(root_block, "load")
-        ]  # type: ignore
+        ) + [EventListenerMethod(root_block, "load")]  # type: ignore
     else:
         methods = [
             EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore

@@ -175,9 +175,7 @@ class Status(Enum):
             ServerMessage.progress: Status.PROGRESS,
             ServerMessage.log: Status.LOG,
             ServerMessage.server_stopped: Status.FINISHED,
-        }[
-            msg
-        ]  # type: ignore
+        }[msg]  # type: ignore
 
 
 @dataclass

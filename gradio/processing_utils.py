@@ -9,8 +9,6 @@ import logging
 import mimetypes
 import os
 import shutil
-import socket
-import ssl
 import subprocess
 import tempfile
 import warnings
