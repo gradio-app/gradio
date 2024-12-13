@@ -412,7 +412,7 @@
 				rerender_layout({
 					components: _components,
 					layout: render_layout,
-					root: root,
+					root: root + api_prefix,
 					dependencies: dependencies,
 					render_id: render_id
 				});
