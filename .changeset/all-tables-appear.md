@@ -3,4 +3,4 @@
 "gradio_client": patch
 ---
 
-feat:Tests for the `/chat` API endpoint in `gr.ChatInterface`
+feat:Use the modern lower-case Python types in the API typing information
