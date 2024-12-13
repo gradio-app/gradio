@@ -199,6 +199,7 @@ class Chatbot(Component):
         examples: list[ExampleMessage] | None = None,
         show_copy_all_button=False,
         allow_file_downloads=True,
+        group_consecutive_messages: bool = True,
     ):
         """
         Parameters:
@@ -235,6 +236,7 @@ class Chatbot(Component):
             examples: A list of example messages to display in the chatbot before any user/assistant messages are shown. Each example should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the example box, and an optional "display_text" key, whose value should be the text to display in the example box. If "display_text" is not provided, the value of "text" will be displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
             allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
+            group_consecutive_messages: If True, will display consecutive messages from the same role in the same bubble. If False, will display each message in a separate bubble. Defaults to True.
         """
         if type is None:
             warnings.warn(
@@ -259,6 +261,7 @@ class Chatbot(Component):
         self.max_height = max_height
         self.min_height = min_height
         self.rtl = rtl
+        self.group_consecutive_messages = group_consecutive_messages
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
