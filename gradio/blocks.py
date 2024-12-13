@@ -792,8 +792,9 @@ class BlocksConfig:
                 f"Invalid value for parameter `trigger_mode`: {trigger_mode}. Please choose from: {['once', 'multiple', 'always_last']}"
             )
 
+        fn_to_analyze = renderable.fn if renderable else fn
         _, progress_index, event_data_index = (
-            special_args(fn) if fn else (None, None, None)
+            special_args(fn_to_analyze) if fn_to_analyze else (None, None, None)
         )
 
         # If api_name is None or empty string, use the function name
@@ -1573,8 +1574,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dict(zip(block_fn.inputs, processed_input, strict=False))
                 ]
 
+            fn_to_analyze = (
+                block_fn.renderable.fn if block_fn.renderable else block_fn.fn
+            )
             processed_input, progress_index, _ = special_args(
-                block_fn.fn, processed_input, request, event_data
+                fn_to_analyze, processed_input, request, event_data
             )
             progress_tracker = (
                 processed_input[progress_index] if progress_index is not None else None
