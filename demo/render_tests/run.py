@@ -34,5 +34,21 @@ with gr.Blocks() as demo:
             chatbot = gr.Chatbot([["Hello", "Hi"], ["How are you?", "I'm good."]])
             chatbot.select(get_select_index, None, selected_chat)
 
+    selectable_chat = gr.Chatbot([["chat1", "chat2"], ["chat3", "chat4"]])
+ 
+    @gr.render(triggers=[selectable_chat.select])
+    def show_selected_chat(selection: gr.SelectData):
+        gr.Textbox(label="Trigger Index", value=selection.index)
+
+    @gr.render()
+    def examples_in_interface():
+        gr.Interface(lambda x:x, gr.Textbox(label="input"), gr.Textbox(), examples=[["test"]])
+
+    @gr.render()
+    def examples_in_blocks():
+        a = gr.Textbox(label="little textbox")
+        gr.Examples([["abc"], ["def"]], [a])
+
+
 if __name__ == '__main__':
     demo.launch()
