@@ -953,15 +953,15 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
             elements = ", ".join(
                 [_json_schema_to_python_type(i, defs) for i in items["prefixItems"]]
             )
-            return f"Tuple[{elements}]"
+            return f"tuple[{elements}]"
         elif "prefixItems" in schema:
             elements = ", ".join(
                 [_json_schema_to_python_type(i, defs) for i in schema["prefixItems"]]
             )
-            return f"Tuple[{elements}]"
+            return f"tuple[{elements}]"
         else:
             elements = _json_schema_to_python_type(items, defs)
-            return f"List[{elements}]"
+            return f"list[{elements}]"
     elif type_ == "object":
 
         def get_desc(v):
@@ -980,7 +980,7 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
                 f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
             ]
         des = ", ".join(des)
-        return f"Dict({des})"
+        return f"dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
         desc = " | ".join([_json_schema_to_python_type(i, defs) for i in schema[type_]])
         return desc
