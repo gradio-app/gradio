@@ -597,7 +597,6 @@ class ChatInterface(Blocks):
         if isinstance(response, Message):
             new_response = response.model_dump()
         elif isinstance(response, (tuple, str, Component)):
-            print("response>>>", response)
             return {"role": "assistant", "content": response}
         else:
             new_response = response
