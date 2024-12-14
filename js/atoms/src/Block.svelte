@@ -24,7 +24,7 @@
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
 	const get_dimension = (
-		dimension_value: string | number | undefined,
+		dimension_value: string | number | undefined
 	): string | undefined => {
 		if (dimension_value === undefined) {
 			return undefined;
