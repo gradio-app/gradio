@@ -46,12 +46,9 @@
 	let processed_colors: string[] = [];
 	let old_colors: string[] = [];
 	if (colors && JSON.stringify(old_colors) !== JSON.stringify(colors)) {
-		console.log("boo");
 		processed_colors = colors.map(process_color).filter((_, i) => i < 4);
 		old_colors = processed_colors;
 	}
-
-	$: console.log({ processed_colors });
 
 	let selected_color = process_color(default_color || "#000000");
 
@@ -69,7 +66,7 @@
 		register_context,
 		editor_box,
 		crop,
-		toolbar_box
+		toolbar_box,
 	} = getContext<EditorContext>(EDITOR_KEY);
 
 	const { active_tool, register_tool, current_color } =
@@ -103,7 +100,7 @@
 			$pixi.renderer!,
 			$pixi.layer_container,
 			$current_layer,
-			mode
+			mode,
 		);
 
 		draw.start({
@@ -111,7 +108,7 @@
 			y: event.screen.y,
 			color: selected_color || undefined,
 			size: selected_size,
-			opacity: 1
+			opacity: 1,
 		});
 	}
 
@@ -134,7 +131,7 @@
 		if (drawing) {
 			draw.continue({
 				x: event.screen.x,
-				y: event.screen.y
+				y: event.screen.y,
 			});
 		}
 
@@ -156,7 +153,7 @@
 		if (brush_cursor) {
 			pos = {
 				x: event.clientX - $editor_box.child_left,
-				y: event.clientY - $editor_box.child_top
+				y: event.clientY - $editor_box.child_top,
 			};
 		}
 	}
@@ -176,11 +173,11 @@
 					brush_cursor = true;
 					document.body.style.cursor = "none";
 				}
-			}
+			},
 		);
 		$pixi?.layer_container[on_off](
 			"pointerleave",
-			() => ((brush_cursor = false), (document.body.style.cursor = "auto"))
+			() => ((brush_cursor = false), (document.body.style.cursor = "auto")),
 		);
 	}
 
@@ -190,12 +187,12 @@
 		},
 		reset_fn: () => {
 			toggle_listeners("off");
-		}
+		},
 	});
 	const toggle_options = debounce_toggle();
 
 	const unregister = register_tool(mode, {
-		cb: toggle_options
+		cb: toggle_options,
 	});
 	onMount(() => {
 		return () => {

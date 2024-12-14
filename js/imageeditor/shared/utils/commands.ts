@@ -153,10 +153,8 @@ export function command_manager(): CommandManager {
 			current_history.set(history);
 		},
 		hydrate: function (full_history: CommandNode) {
-			console.log("hydrating", history);
 			setTimeout(() => {
 				while (full_history.next) {
-					console.log("executing", full_history.next.command);
 					this.execute(full_history.next.command!);
 					full_history = full_history.next;
 				}

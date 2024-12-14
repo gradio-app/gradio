@@ -72,7 +72,7 @@
 		max_file_size,
 		formatter,
 		client,
-		load_component
+		load_component,
 	);
 </script>
 

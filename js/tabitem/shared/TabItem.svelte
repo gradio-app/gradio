@@ -10,6 +10,7 @@
 	export let id: string | number | object = {};
 	export let visible: boolean;
 	export let interactive: boolean;
+	export let order: number;
 
 	const dispatch = createEventDispatcher<{ select: SelectData }>();
 
@@ -18,10 +19,13 @@
 
 	let tab_index: number;
 
-	$: tab_index = register_tab({ label, id, elem_id, visible, interactive });
+	$: tab_index = register_tab(
+		{ label, id, elem_id, visible, interactive },
+		order,
+	);
 
 	onMount(() => {
-		return (): void => unregister_tab({ label, id, elem_id });
+		return (): void => unregister_tab({ label, id, elem_id }, order);
 	});
 
 	$: $selected_tab_index === tab_index &&

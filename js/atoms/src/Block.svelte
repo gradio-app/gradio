@@ -24,7 +24,7 @@
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
 	const get_dimension = (
-		dimension_value: string | number | undefined
+		dimension_value: string | number | undefined,
 	): string | undefined => {
 		if (dimension_value === undefined) {
 			return undefined;
@@ -42,7 +42,7 @@
 	data-testid={test_id}
 	id={elem_id}
 	class:hidden={visible === false}
-	class="block {elem_classes.join(' ')}"
+	class="block {elem_classes?.join(' ') || ''}"
 	class:padded={padding}
 	class:flex
 	class:border_focus={border_mode === "focus"}

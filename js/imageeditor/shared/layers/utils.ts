@@ -217,7 +217,6 @@ export function layer_manager(): LayerManager {
 			return _layers[layer];
 		},
 		reset() {
-			console.log("resetting");
 			_layers.forEach((layer) => {
 				layer.draw_texture.destroy(true);
 				layer.erase_texture.destroy(true);
