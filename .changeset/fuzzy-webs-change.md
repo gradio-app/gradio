@@ -10,4 +10,4 @@
 "gradio": minor
 ---
 
-feat:Render visible
+feat:Only render visible components
