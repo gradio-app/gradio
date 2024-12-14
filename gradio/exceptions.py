@@ -81,6 +81,7 @@ class Error(Exception):
         duration: float | None = 10,
         visible: bool = True,
         title: str = "Error",
+        print_exception: bool = True,
     ):
         """
         Parameters:
@@ -88,11 +89,13 @@ class Error(Exception):
             duration: The duration in seconds to display the error message. If None or 0, the error message will be displayed until the user closes it.
             visible: Whether the error message should be displayed in the UI.
             title: The title to be displayed to the user at the top of the error modal.
+            print_exception: Whether to print traceback of the error to the console when the error is raised.
         """
         self.title = title
         self.message = message
         self.duration = duration
         self.visible = visible
+        self.print_exception = print_exception
         super().__init__(self.message)
 
     def __str__(self):

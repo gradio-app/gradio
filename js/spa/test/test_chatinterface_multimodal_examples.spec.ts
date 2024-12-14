@@ -20,7 +20,7 @@ for (const test_case of cases) {
 
 		// Clear the chat and click on a different example, the input/response are correct
 		await page.getByLabel("Clear").click();
-		await page.getByRole("button", { name: "hola example-image" }).click();
+		await page.getByRole("button", { name: "Select example 2: hola" }).click();
 		await expect(page.locator(".user img")).toBeVisible();
 		await expect(page.locator(".user p")).toContainText("hola");
 		await expect(page.locator(".bot p")).toContainText(

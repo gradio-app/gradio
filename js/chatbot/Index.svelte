@@ -44,6 +44,7 @@
 	export let autoscroll = true;
 	export let _retryable = false;
 	export let _undoable = false;
+	export let group_consecutive_messages = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -75,6 +76,7 @@
 	export let like_user_message = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height: number | string | undefined;
+	export let resizeable: boolean;
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
 	export let placeholder: string | null = null;
@@ -91,6 +93,7 @@
 	{scale}
 	{min_width}
 	{height}
+	{resizeable}
 	{min_height}
 	{max_height}
 	allow_overflow={true}
@@ -125,6 +128,7 @@
 			{show_copy_all_button}
 			value={_value}
 			{latex_delimiters}
+			display_consecutive_in_same_bubble={group_consecutive_messages}
 			{render_markdown}
 			{theme_mode}
 			pending_message={loading_status?.status === "pending"}

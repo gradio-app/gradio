@@ -34,6 +34,8 @@
 	import { ShareError } from "@gradio/utils";
 	import { Gradio } from "@gradio/utils";
 
+	import Examples from "./Examples.svelte";
+
 	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
 
@@ -42,6 +44,7 @@
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
 	export let allow_file_downloads: boolean;
+	export let display_consecutive_in_same_bubble: boolean;
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
@@ -276,6 +279,7 @@
 				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
 				<Message
 					{messages}
+					{display_consecutive_in_same_bubble}
 					{opposite_avatar_img}
 					{avatar_img}
 					{role}
@@ -328,55 +332,13 @@
 			{/if}
 		</div>
 	{:else}
-		<div class="placeholder-content">
-			{#if placeholder !== null}
-				<div class="placeholder">
-					<Markdown message={placeholder} {latex_delimiters} {root} />
-				</div>
-			{/if}
-			{#if examples !== null}
-				<div class="examples">
-					{#each examples as example, i}
-						<button
-							class="example"
-							on:click={() => handle_example_select(i, example)}
-						>
-							{#if example.icon !== undefined}
-								<div class="example-icon-container">
-									<Image
-										class="example-icon"
-										src={example.icon.url}
-										alt="example-icon"
-									/>
-								</div>
-							{/if}
-							{#if example.display_text !== undefined}
-								<span class="example-display-text">{example.display_text}</span>
-							{:else}
-								<span class="example-text">{example.text}</span>
-							{/if}
-							{#if example.files !== undefined && example.files.length > 1}
-								<span class="example-file"
-									><em>{example.files.length} Files</em></span
-								>
-							{:else if example.files !== undefined && example.files[0] !== undefined && example.files[0].mime_type?.includes("image")}
-								<div class="example-image-container">
-									<Image
-										class="example-image"
-										src={example.files[0].url}
-										alt="example-image"
-									/>
-								</div>
-							{:else if example.files !== undefined && example.files[0] !== undefined}
-								<span class="example-file"
-									><em>{example.files[0].orig_name}</em></span
-								>
-							{/if}
-						</button>
-					{/each}
-				</div>
-			{/if}
-		</div>
+		<Examples
+			{examples}
+			{placeholder}
+			{latex_delimiters}
+			{root}
+			on:example_select={(e) => dispatch("example_select", e.detail)}
+		/>
 	{/if}
 </div>
 
@@ -392,93 +354,6 @@
 {/if}
 
 <style>
-	.placeholder-content {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-	}
-
-	.placeholder {
-		align-items: center;
-		display: flex;
-		justify-content: center;
-		height: 100%;
-		flex-grow: 1;
-	}
-
-	.examples :global(img) {
-		pointer-events: none;
-	}
-
-	.examples {
-		margin: auto;
-		padding: var(--spacing-xxl);
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: var(--spacing-xxl);
-		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
-	}
-
-	.example {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: var(--spacing-xl);
-		border: 0.05px solid var(--border-color-primary);
-		border-radius: var(--radius-md);
-		background-color: var(--background-fill-secondary);
-		cursor: pointer;
-		transition: var(--button-transition);
-		max-width: var(--size-56);
-		width: 100%;
-		justify-content: center;
-	}
-
-	.example:hover {
-		background-color: var(--color-accent-soft);
-		border-color: var(--border-color-accent);
-	}
-
-	.example-icon-container {
-		display: flex;
-		align-self: flex-start;
-		margin-left: var(--spacing-md);
-		width: var(--size-6);
-		height: var(--size-6);
-	}
-
-	.example-display-text,
-	.example-text,
-	.example-file {
-		font-size: var(--text-md);
-		width: 100%;
-		text-align: center;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.example-display-text,
-	.example-file {
-		margin-top: var(--spacing-md);
-	}
-
-	.example-image-container {
-		flex-grow: 1;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		margin-top: var(--spacing-xl);
-	}
-
-	.example-image-container :global(img) {
-		max-height: 100%;
-		max-width: 100%;
-		height: var(--size-32);
-		width: 100%;
-		object-fit: cover;
-		border-radius: var(--radius-xl);
-	}
-
 	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;

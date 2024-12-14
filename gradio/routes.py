@@ -56,7 +56,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
-from multipart.multipart import parse_options_header
+from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse
@@ -76,7 +76,7 @@ from gradio.data_classes import (
     SimplePredictBody,
     UserProvidedPath,
 )
-from gradio.exceptions import InvalidPathError
+from gradio.exceptions import Error, InvalidPathError
 from gradio.node_server import (
     start_node_server,
 )
@@ -613,25 +613,23 @@ class App(FastAPI):
                 raise HTTPException(
                     status_code=404, detail="Environment not supported."
                 )
-            config = app.get_blocks().config
-            components = config["components"]
+            components = utils.get_all_components()
             location = next(
-                (item for item in components if item["component_class_id"] == id), None
+                (item for item in components if item.get_component_class_id() == id),
+                None,
             )
             if location is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
-            component_instance = app.get_blocks().get_component(location["id"])
-
-            module_name = component_instance.__class__.__module__
+            module_name = location.__module__
             module_path = sys.modules[module_name].__file__
 
-            if module_path is None or component_instance is None:
+            if module_path is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
             try:
                 requested_path = utils.safe_join(
-                    component_instance.__class__.TEMPLATE_DIR,
+                    location.TEMPLATE_DIR,
                     UserProvidedPath(f"{type}/{file_name}"),
                 )
             except InvalidPathError:
@@ -998,7 +996,8 @@ class App(FastAPI):
                 )
             except BaseException as error:
                 content = utils.error_payload(error, app.get_blocks().show_error)
-                traceback.print_exc()
+                if not isinstance(error, Error) or error.print_exception:
+                    traceback.print_exc()
                 return JSONResponse(
                     content=content,
                     status_code=500,

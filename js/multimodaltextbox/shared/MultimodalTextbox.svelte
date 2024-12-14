@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		onMount,
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
@@ -47,6 +48,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let file_count: "single" | "multiple" | "directory" = "multiple";
+	export let max_plain_text_length = 1000;
 
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
@@ -101,10 +103,13 @@
 		}
 	}
 
-	afterUpdate(() => {
+	onMount(() => {
 		if (autofocus && el !== null) {
 			el.focus();
 		}
+	});
+
+	afterUpdate(() => {
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
@@ -194,9 +199,23 @@
 		dispatch("submit");
 	}
 
-	function handle_paste(event: ClipboardEvent): void {
+	async function handle_paste(event: ClipboardEvent): Promise<void> {
 		if (!event.clipboardData) return;
 		const items = event.clipboardData.items;
+		const text = event.clipboardData.getData("text");
+
+		if (text && text.length > max_plain_text_length) {
+			event.preventDefault();
+			const file = new window.File([text], "pasted_text.txt", {
+				type: "text/plain",
+				lastModified: Date.now()
+			});
+			if (upload_component) {
+				upload_component.load_files([file]);
+			}
+			return;
+		}
+
 		for (let index in items) {
 			const item = items[index];
 			if (item.kind === "file" && item.type.includes("image")) {
