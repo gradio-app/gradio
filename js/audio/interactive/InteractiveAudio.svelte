@@ -41,6 +41,7 @@
 	export let stream_every: number;
 	export let uploading = false;
 	export let recording = false;
+	export let class_name = "";
 
 	let time_limit: number | null = null;
 	let stream_state: "open" | "waiting" | "closed" = "closed";
@@ -246,7 +247,7 @@
 	float={active_source === "upload" && value === null}
 	label={label || i18n("audio.audio")}
 />
-<div class="audio-container">
+<div class="audio-container {class_name}">
 	<StreamingBar {time_limit} />
 	{#if value === null || streaming}
 		{#if active_source === "microphone"}
@@ -329,4 +330,10 @@
 		flex-direction: column;
 		justify-content: space-between;
 	}
+
+	.audio-container.compact-audio {
+		margin-top: -30px;
+        height: auto;
+        min-height: 20px;
+    }
 </style>

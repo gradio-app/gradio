@@ -73,6 +73,7 @@
 	let oldValue = value.text;
 	let recording = false;
 	$: dispatch("drag", dragging);
+	let mic_audio: FileData | null = null;
 
 	let full_container: HTMLDivElement;
 
@@ -158,6 +159,10 @@
 			e.preventDefault();
 			dispatch("submit");
 			active_source = "upload";
+			if (mic_audio) {
+				value.files.push(mic_audio);
+				value = value;
+			}
 		}
 	}
 
@@ -178,7 +183,7 @@
 
 	async function handle_upload({
 		detail
-	}: CustomEvent<FileData | FileData[]>): Promise<void> {
+	}: CustomEvent<FileData>): Promise<void> {
 		handle_change();
 		if (Array.isArray(detail)) {
 			for (let file of detail) {
@@ -215,6 +220,10 @@
 	function handle_submit(): void {
 		dispatch("submit");
 		active_source = "upload";
+		if (mic_audio) {
+			value.files.push(mic_audio);
+			value = value;
+		}
 	}
 
 	async function handle_paste(event: ClipboardEvent): Promise<void> {
@@ -354,12 +363,9 @@
 		{#if active_source === "microphone"}
 			<InteractiveAudio
 				on:change={({ detail }) => {
-					if (Array.isArray(detail)) {
-						value.files = [...value.files, ...detail];
-					} else if (detail) {
-						value.files = [...value.files, detail];
+					if (detail !== null) {
+						mic_audio = detail;
 					}
-					value = value;
 				}}
 				on:clear={() => {
 					active_source = "upload";
@@ -368,6 +374,7 @@
 				on:pause_recording={() => dispatch("pause_recording")}
 				on:stop_recording={() => dispatch("stop_recording")}
 				sources={["microphone"]}
+				class_name="compact-audio"
 				{recording}
 				{waveform_settings}
 				{waveform_options}
@@ -382,7 +389,7 @@
 				loop={false}
 				show_label={false}
 				show_download_button={false}
-				{dragging}
+				dragging={false}
 			/>
 		{/if}
 		<div class="input-container">
