@@ -1716,9 +1716,6 @@ importers:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
-      '@types/sanitize-html':
-        specifier: ^2.13.0
-        version: 2.13.0
 
   js/markdown-code:
     dependencies:
