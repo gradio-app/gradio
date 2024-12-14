@@ -1,4 +1,5 @@
 ---
+"@gradio/audio": minor
 "@gradio/multimodaltextbox": minor
 "gradio": minor
 ---
