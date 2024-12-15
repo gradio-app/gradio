@@ -39,12 +39,15 @@
 	export let show_copy_button: boolean;
 	export let generating: boolean;
 	export let show_like: boolean;
+	export let show_edit: boolean;
 	export let show_retry: boolean;
 	export let show_undo: boolean;
 	export let msg_format: "tuples" | "messages";
 	export let handle_action: (selected: string | null) => void;
 	export let scroll: () => void;
 	export let allow_file_downloads: boolean;
+	export let in_edit_mode: boolean;
+	export let edit_message: string;
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -76,6 +79,8 @@
 		likeable: boolean;
 		show_retry: boolean;
 		show_undo: boolean;
+		show_edit: boolean;
+		in_edit_mode: boolean;
 		generating: boolean;
 		show_copy_button: boolean;
 		message: NormalisedMessage[] | NormalisedMessage;
@@ -91,6 +96,8 @@
 		likeable: show_like,
 		show_retry,
 		show_undo,
+		show_edit,
+		in_edit_mode,
 		generating,
 		show_copy_button,
 		message: msg_format === "tuples" ? messages[0] : messages,
@@ -128,30 +135,46 @@
 					message.content.component === "html"}
 				class:thought={thought_index > 0}
 			>
-				<button
-					data-testid={role}
-					class:latest={i === value.length - 1}
-					class:message-markdown-disabled={!render_markdown}
-					style:user-select="text"
-					class:selectable
-					style:cursor={selectable ? "pointer" : "default"}
-					style:text-align={rtl ? "right" : "left"}
-					on:click={() => handle_select(i, message)}
-					on:keydown={(e) => {
-						if (e.key === "Enter") {
-							handle_select(i, message);
-						}
-					}}
-					dir={rtl ? "rtl" : "ltr"}
-					aria-label={role + "'s message: " + get_message_label_data(message)}
-				>
-					{#if message.type === "text"}
-						<div class="message-content">
-							{#if message.metadata.title}
-								<MessageBox
-									title={message.metadata.title}
-									expanded={is_last_bot_message([message], value)}
-								>
+				{#if in_edit_mode && thought_index === messages.length - 1 && message.type === "text"}
+					<!-- svelte-ignore a11y-autofocus -->
+					<textarea class="edit-textarea" autofocus bind:value={edit_message} />
+				{:else}
+					<!-- svelte-ignore a11y-no-static-element-interactions -->
+					<div
+						data-testid={role}
+						class:latest={i === value.length - 1}
+						class:message-markdown-disabled={!render_markdown}
+						style:user-select="text"
+						class:selectable
+						style:cursor={selectable ? "pointer" : "text"}
+						style:text-align={rtl ? "right" : "left"}
+						on:click={() => handle_select(i, message)}
+						on:keydown={(e) => {
+							if (e.key === "Enter") {
+								handle_select(i, message);
+							}
+						}}
+						dir={rtl ? "rtl" : "ltr"}
+						aria-label={role + "'s message: " + get_message_label_data(message)}
+					>
+						{#if message.type === "text"}
+							<div class="message-content">
+								{#if message.metadata.title}
+									<MessageBox
+										title={message.metadata.title}
+										expanded={is_last_bot_message([message], value)}
+									>
+										<Markdown
+											message={message.content}
+											{latex_delimiters}
+											{sanitize_html}
+											{render_markdown}
+											{line_breaks}
+											on:load={scroll}
+											{root}
+										/>
+									</MessageBox>
+								{:else}
 									<Markdown
 										message={message.content}
 										{latex_delimiters}
@@ -161,70 +184,60 @@
 										on:load={scroll}
 										{root}
 									/>
-								</MessageBox>
-							{:else}
-								<Markdown
-									message={message.content}
-									{latex_delimiters}
-									{sanitize_html}
-									{render_markdown}
-									{line_breaks}
-									on:load={scroll}
-									{root}
-								/>
-							{/if}
-						</div>
-					{:else if message.type === "component" && message.content.component in _components}
-						<Component
-							{target}
-							{theme_mode}
-							props={message.content.props}
-							type={message.content.component}
-							components={_components}
-							value={message.content.value}
-							{i18n}
-							{upload}
-							{_fetch}
-							on:load={() => scroll()}
-							{allow_file_downloads}
-						/>
-					{:else if message.type === "component" && message.content.component === "file"}
-						<div class="file-container">
-							<div class="file-icon">
-								<File />
+								{/if}
 							</div>
-							<div class="file-info">
-								<a
-									data-testid="chatbot-file"
-									class="file-link"
-									href={message.content.value.url}
-									target="_blank"
-									download={window.__is_colab__
-										? null
-										: message.content.value?.orig_name ||
-											message.content.value?.path.split("/").pop() ||
-											"file"}
-								>
-									<span class="file-name"
-										>{message.content.value?.orig_name ||
-											message.content.value?.path.split("/").pop() ||
-											"file"}</span
+						{:else if message.type === "component" && message.content.component in _components}
+							<Component
+								{target}
+								{theme_mode}
+								props={message.content.props}
+								type={message.content.component}
+								components={_components}
+								value={message.content.value}
+								{i18n}
+								{upload}
+								{_fetch}
+								on:load={() => scroll()}
+								{allow_file_downloads}
+							/>
+						{:else if message.type === "component" && message.content.component === "file"}
+							<div class="file-container">
+								<div class="file-icon">
+									<File />
+								</div>
+								<div class="file-info">
+									<a
+										data-testid="chatbot-file"
+										class="file-link"
+										href={message.content.value.url}
+										target="_blank"
+										download={window.__is_colab__
+											? null
+											: message.content.value?.orig_name ||
+												message.content.value?.path.split("/").pop() ||
+												"file"}
 									>
-								</a>
-								<span class="file-type"
-									>{(
-										message.content.value?.orig_name ||
-										message.content.value?.path ||
-										""
-									)
-										.split(".")
-										.pop()
-										.toUpperCase()}</span
-								>
+										<span class="file-name"
+											>{message.content.value?.orig_name ||
+												message.content.value?.path.split("/").pop() ||
+												"file"}</span
+										>
+									</a>
+									<span class="file-type"
+										>{(
+											message.content.value?.orig_name ||
+											message.content.value?.path ||
+											""
+										)
+											.split(".")
+											.pop()
+											.toUpperCase()}</span
+									>
+								</div>
 							</div>
-						</div>
-					{/if}
-				</button>
+						{/if}
+					</div>
+				{/if}
 			</div>
 
 			{#if layout === "panel"}
@@ -543,7 +556,7 @@
 		border-radius: var(--radius-lg);
 	}
 
-	.message > button {
+	.message > div {
 		width: 100%;
 	}
 	.html {
@@ -561,6 +574,25 @@
 		border: none;
 		box-shadow: none;
 		background-color: var(--background-fill-secondary);
+	}
+
+	textarea {
+		background: none;
+		border-radius: var(--radius-lg);
+		border: none;
+		display: block;
+	}
+	.user textarea {
+		border-bottom-right-radius: 0;
+	}
+	.bot textarea {
+		border-bottom-left-radius: 0;
+	}
+	.user textarea:focus {
+		outline: 2px solid var(--border-color-accent);
+	}
+	.bot textarea:focus {
+		outline: 2px solid var(--border-color-primary);
 	}
 
 	.panel.user-row {

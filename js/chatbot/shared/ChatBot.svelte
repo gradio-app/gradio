@@ -2,6 +2,7 @@
 	import {
 		format_chat_for_sharing,
 		type UndoRetryData,
+		type EditData,
 		is_last_bot_message,
 		group_messages,
 		load_components,
@@ -11,7 +12,6 @@
 	import { copy } from "@gradio/utils";
 	import type { CopyData } from "@gradio/utils";
 	import Message from "./Message.svelte";
-	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import { dequal } from "dequal/lite";
 	import {
@@ -21,13 +21,11 @@
 		tick,
 		onMount
 	} from "svelte";
-	import { Image } from "@gradio/image/shared";
 
 	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
-	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 	import type { FileData, Client } from "@gradio/client";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import Pending from "./Pending.svelte";
@@ -68,6 +66,7 @@
 	export let generating = false;
 	export let selectable = false;
 	export let likeable = false;
+	export let editable: boolean | "all" = false;
 	export let show_share_button = false;
 	export let show_copy_all_button = false;
 	export let rtl = false;
@@ -90,6 +89,8 @@
 	export let root: string;
 
 	let target: HTMLElement | null = null;
+	let edit_index: number | null = null;
+	let edit_message: string = "";
 
 	onMount(() => {
 		target = document.querySelector("div.gradio-container");
@@ -103,6 +104,7 @@
 		change: undefined;
 		select: SelectData;
 		like: LikeData;
+		edit: EditData;
 		undo: UndoRetryData;
 		retry: UndoRetryData;
 		clear: undefined;
@@ -124,12 +126,6 @@
 	}
 
 	let scroll_after_component_load = false;
-	function on_child_component_load(): void {
-		if (scroll_after_component_load) {
-			scroll_to_bottom();
-			scroll_after_component_load = false;
-		}
-	}
 
 	async function scroll_on_value_update(): Promise<void> {
 		if (!autoscroll) return;
@@ -169,6 +165,7 @@
 
 	$: {
 		if (!dequal(value, old_value)) {
+			console.log("CHANGE!", JSON.stringify(value));
 			old_value = value;
 			dispatch("change");
 		}
@@ -176,14 +173,7 @@
 	$: groupedMessages = value && group_messages(value, msg_format);
 	$: options = value && get_last_bot_options();
 
-	function handle_example_select(i: number, example: ExampleMessage): void {
-		dispatch("example_select", {
-			index: i,
-			value: { text: example.text, files: example.files }
-		});
-	}
-
-	function handle_like(
+	function handle_action(
 		i: number,
 		message: NormalisedMessage,
 		selected: string | null
@@ -200,29 +190,39 @@
 				index: val_[last_index].index,
 				value: val_[last_index].content
 			});
-			return;
-		}
-
-		if (msg_format === "tuples") {
-			dispatch("like", {
+		} else if (selected == "edit") {
+			edit_index = i;
+			edit_message = message.content as string;
+		} else if (selected == "edit_cancel") {
+			edit_index = null;
+		} else if (selected == "edit_submit") {
+			edit_index = null;
+			dispatch("edit", {
 				index: message.index,
-				value: message.content,
-				liked: selected === "like"
+				value: edit_message
 			});
 		} else {
-			if (!groupedMessages) return;
+			if (msg_format === "tuples") {
+				dispatch("like", {
+					index: message.index,
+					value: message.content,
+					liked: selected === "like"
+				});
+			} else {
+				if (!groupedMessages) return;
 
-			const message_group = groupedMessages[i];
-			const [first, last] = [
-				message_group[0],
-				message_group[message_group.length - 1]
-			];
+				const message_group = groupedMessages[i];
+				const [first, last] = [
+					message_group[0],
+					message_group[message_group.length - 1]
+				];
 
-			dispatch("like", {
-				index: [first.index, last.index] as [number, number],
-				value: message_group.map((m) => m.content),
-				liked: selected === "like"
-			});
+				dispatch("like", {
+					index: [first.index, last.index] as [number, number],
+					value: message_group.map((m) => m.content),
+					liked: selected === "like"
+				});
+			}
 		}
 	}
 
@@ -303,8 +303,15 @@
 					show_like={role === "user" ? likeable && like_user_message : likeable}
 					show_retry={_retryable && is_last_bot_message(messages, value)}
 					show_undo={_undoable && is_last_bot_message(messages, value)}
+					show_edit={editable === "all" ||
+						(editable &&
+							role === "user" &&
+							messages.length > 0 &&
+							messages[messages.length - 1].type == "text")}
+					in_edit_mode={edit_index === i}
+					bind:edit_message
 					{show_copy_button}
-					handle_action={(selected) => handle_like(i, messages[0], selected)}
+					handle_action={(selected) => handle_action(i, messages[0], selected)}
 					scroll={is_browser ? scroll : () => {}}
 					{allow_file_downloads}
 					on:copy={(e) => dispatch("copy", e.detail)}

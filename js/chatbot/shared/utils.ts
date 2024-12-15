@@ -66,6 +66,11 @@ export interface UndoRetryData {
 	value: string | FileData | ComponentData;
 }
 
+export interface EditData {
+	index: number | [number, number];
+	value: string;
+}
+
 const redirect_src_url = (src: string, root: string): string =>
 	src.replace('src="/file', `src="${root}file`);
 
