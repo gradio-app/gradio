@@ -7,5 +7,5 @@ export default defineConfig(({ mode }) => ({
 	plugins: [sveltekit(), inject_component_loader({ mode })],
 	resolve: {
 		conditions: ["gradio"]
-	}
+	  }
 }));

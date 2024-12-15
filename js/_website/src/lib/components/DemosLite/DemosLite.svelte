@@ -13,14 +13,15 @@
 	import { onMount } from "svelte";
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 	import WHEEL from "$lib/json/wheel.json";
+	import { build } from "vite";
 
 	let generated = true;
 
 	let current_code = false;
 	let compare = false;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5173/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:5173/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -241,6 +242,8 @@
 			.filter((r) => r !== "");
 	}
 
+	let lite_element;
+
 	onMount(async () => {
 		try {
 			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
@@ -271,10 +274,34 @@
 			});
 
 			mounted = true;
+
 		} catch (error) {
 			console.error("Error loading Gradio Lite:", error);
 		}
-	});
+
+		const observer = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (
+				(mutation.type === 'childList' && 
+				(mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)) ||
+				mutation.type === 'characterData'
+				) {
+				detect_app_error();
+				}
+			});
+			});
+			
+			observer.observe(lite_element, {
+			childList: true,     // Watch for changes in child elements
+			subtree: true,       // Watch all descendants, not just direct children
+			characterData: true, // Watch for text content changes
+			attributes: true     // Watch for attribute changes
+			});
+			
+			return () => {
+			observer.disconnect(); // Cleanup on component destruction
+			};
+		});
 
 	let copied_link = false;
 	let shared = false;
@@ -509,6 +536,56 @@
 	let generation_error = "";
 
 	$: generation_error;
+
+	let build_error : string | null = "";
+	let runtime_error : string | null = "";
+
+	function detect_app_error() {
+		console.log("detected_change")
+		if (document) {
+			if (document.querySelector("div .error")) {
+				build_error = document.querySelector(".error-name").textContent;
+				console.log("detected_build_error")
+				console.log(build_error)
+			} else {
+				build_error = null;
+			}
+			if (document.querySelector("div .error .toast-title")) {
+				runtime_error = document.querySelector("div .error .toast-text").textContent;
+				console.log("detected_runtime_error")
+				console.log(runtime_error)
+			} else {
+				runtime_error = null;
+			}
+		}
+	}
+
+
+	$: build_error;
+	$: runtime_error;
+	
+	
+	let last_processed_error = false;
+
+	function regenerate_on_error(build_error, runtime_error) {
+		let error_prompt;
+		print("last_processed_error", last_processed_error);
+		if (!last_processed_error) {
+			if (build_error) {
+				console.log("trying again");
+				error_prompt = `There's a build error when I run the existing code: ${build_error}`;
+				generate_code(error_prompt, selected_demo.name);
+			}
+			if (runtime_error) {
+				error_prompt = `There's a runtime error when I run the existing code: ${runtime_error}`;
+				generate_code(error_prompt, selected_demo.name);
+			}
+		}
+		last_processed_error = true;
+	}
+
+	$: regenerate_on_error(build_error, runtime_error);
+	$: last_processed_error;
 </script>
 
 <svelte:head>
@@ -670,8 +747,10 @@
 						{#if generated}
 							<button
 								on:click={() => {
-									suspend_and_resume_auto_run(() =>
-										generate_code(user_query, selected_demo.name)
+									suspend_and_resume_auto_run(() => {
+										generate_code(user_query, selected_demo.name);
+										last_processed_error = false;
+									}
 									);
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
@@ -756,7 +835,9 @@
 					</div>
 				</div>
 
-				<div class="flex-1 pl-3" id="lite-demo" />
+				<div class="flex-1 pl-3" id="lite-demo" 
+				bind:this={lite_element}
+				/>
 			</div>
 		</div>
 	</Slider>
