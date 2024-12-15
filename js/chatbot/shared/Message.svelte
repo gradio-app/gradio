@@ -53,7 +53,7 @@
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
 			index: message.index,
-			value: message.content,
+			value: message.content
 		});
 	}
 
@@ -105,7 +105,7 @@
 		position: role === "user" ? "right" : "left",
 		avatar: avatar_img,
 		layout,
-		dispatch,
+		dispatch
 	};
 </script>
 
