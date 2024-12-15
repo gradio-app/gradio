@@ -1,5 +1,15 @@
 # @gradio/fileexplorer
 
+## 0.5.10
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/file@0.11.3
+- @gradio/checkbox@0.4.9
+
 ## 0.5.9
 
 ### Dependency updates

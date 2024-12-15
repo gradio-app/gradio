@@ -41,6 +41,7 @@ class TestChatbot:
             "elem_classes": [],
             "container": True,
             "min_width": 160,
+            "group_consecutive_messages": True,
             "scale": None,
             "placeholder": None,
             "height": 400,
