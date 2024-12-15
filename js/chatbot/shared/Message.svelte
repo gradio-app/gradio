@@ -48,11 +48,12 @@
 	export let allow_file_downloads: boolean;
 	export let in_edit_mode: boolean;
 	export let edit_message: string;
+	export let display_consecutive_in_same_bubble: boolean;
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
 			index: message.index,
-			value: message.content
+			value: message.content,
 		});
 	}
 
@@ -104,7 +105,7 @@
 		position: role === "user" ? "right" : "left",
 		avatar: avatar_img,
 		layout,
-		dispatch
+		dispatch,
 	};
 </script>
 
@@ -123,47 +124,66 @@
 		class="flex-wrap"
 		class:component-wrap={messages[0].type === "component"}
 	>
-		{#each messages as message, thought_index}
-			<div
-				class="message {role} {is_component_message(message)
-					? message?.content.component
-					: ''}"
-				class:panel-full-width={true}
-				class:message-markdown-disabled={!render_markdown}
-				class:component={message.type === "component"}
-				class:html={is_component_message(message) &&
-					message.content.component === "html"}
-				class:thought={thought_index > 0}
-			>
-				{#if in_edit_mode && thought_index === messages.length - 1 && message.type === "text"}
-					<!-- svelte-ignore a11y-autofocus -->
-					<textarea class="edit-textarea" autofocus bind:value={edit_message} />
-				{:else}
-					<!-- svelte-ignore a11y-no-static-element-interactions -->
-					<div
-						data-testid={role}
-						class:latest={i === value.length - 1}
-						class:message-markdown-disabled={!render_markdown}
-						style:user-select="text"
-						class:selectable
-						style:cursor={selectable ? "pointer" : "text"}
-						style:text-align={rtl ? "right" : "left"}
-						on:click={() => handle_select(i, message)}
-						on:keydown={(e) => {
-							if (e.key === "Enter") {
-								handle_select(i, message);
-							}
-						}}
-						dir={rtl ? "rtl" : "ltr"}
-						aria-label={role + "'s message: " + get_message_label_data(message)}
-					>
-						{#if message.type === "text"}
-							<div class="message-content">
-								{#if message.metadata.title}
-									<MessageBox
-										title={message.metadata.title}
-										expanded={is_last_bot_message([message], value)}
-									>
+		<div
+			class:message={display_consecutive_in_same_bubble}
+			class={display_consecutive_in_same_bubble ? role : ""}
+		>
+			{#each messages as message, thought_index}
+				<div
+					class="message {!display_consecutive_in_same_bubble ? role : ''}"
+					class:panel-full-width={true}
+					class:message-markdown-disabled={!render_markdown}
+					class:component={message.type === "component"}
+					class:html={is_component_message(message) &&
+						message.content.component === "html"}
+					class:thought={thought_index > 0}
+				>
+					{#if in_edit_mode && thought_index === messages.length - 1 && message.type === "text"}
+						<!-- svelte-ignore a11y-autofocus -->
+						<textarea
+							class="edit-textarea"
+							autofocus
+							bind:value={edit_message}
+						/>
+					{:else}
+						<!-- svelte-ignore a11y-no-static-element-interactions -->
+						<div
+							data-testid={role}
+							class:latest={i === value.length - 1}
+							class:message-markdown-disabled={!render_markdown}
+							style:user-select="text"
+							class:selectable
+							style:cursor={selectable ? "pointer" : "text"}
+							style:text-align={rtl ? "right" : "left"}
+							on:click={() => handle_select(i, message)}
+							on:keydown={(e) => {
+								if (e.key === "Enter") {
+									handle_select(i, message);
+								}
+							}}
+							dir={rtl ? "rtl" : "ltr"}
+							aria-label={role +
+								"'s message: " +
+								get_message_label_data(message)}
+						>
+							{#if message.type === "text"}
+								<div class="message-content">
+									{#if message?.metadata?.title}
+										<MessageBox
+											title={message.metadata.title}
+											expanded={is_last_bot_message([message], value)}
+										>
+											<Markdown
+												message={message.content}
+												{latex_delimiters}
+												{sanitize_html}
+												{render_markdown}
+												{line_breaks}
+												on:load={scroll}
+												{root}
+											/>
+										</MessageBox>
+									{:else}
 										<Markdown
 											message={message.content}
 											{latex_delimiters}
@@ -173,80 +193,72 @@
 											on:load={scroll}
 											{root}
 										/>
-									</MessageBox>
-								{:else}
-									<Markdown
-										message={message.content}
-										{latex_delimiters}
-										{sanitize_html}
-										{render_markdown}
-										{line_breaks}
-										on:load={scroll}
-										{root}
-									/>
-								{/if}
-							</div>
-						{:else if message.type === "component" && message.content.component in _components}
-							<Component
-								{target}
-								{theme_mode}
-								props={message.content.props}
-								type={message.content.component}
-								components={_components}
-								value={message.content.value}
-								{i18n}
-								{upload}
-								{_fetch}
-								on:load={() => scroll()}
-								{allow_file_downloads}
-							/>
-						{:else if message.type === "component" && message.content.component === "file"}
-							<div class="file-container">
-								<div class="file-icon">
-									<File />
+									{/if}
 								</div>
-								<div class="file-info">
-									<a
-										data-testid="chatbot-file"
-										class="file-link"
-										href={message.content.value.url}
-										target="_blank"
-										download={window.__is_colab__
-											? null
-											: message.content.value?.orig_name ||
-												message.content.value?.path.split("/").pop() ||
-												"file"}
-									>
-										<span class="file-name"
-											>{message.content.value?.orig_name ||
-												message.content.value?.path.split("/").pop() ||
-												"file"}</span
+							{:else if message.type === "component" && message.content.component in _components}
+								<Component
+									{target}
+									{theme_mode}
+									props={message.content.props}
+									type={message.content.component}
+									components={_components}
+									value={message.content.value}
+									display_icon_button_wrapper_top_corner={thought_index > 0 &&
+										display_consecutive_in_same_bubble}
+									{i18n}
+									{upload}
+									{_fetch}
+									on:load={() => scroll()}
+									{allow_file_downloads}
+								/>
+							{:else if message.type === "component" && message.content.component === "file"}
+								<div class="file-container">
+									<div class="file-icon">
+										<File />
+									</div>
+									<div class="file-info">
+										<a
+											data-testid="chatbot-file"
+											class="file-link"
+											href={message.content.value.url}
+											target="_blank"
+											download={window.__is_colab__
+												? null
+												: message.content.value?.orig_name ||
+													message.content.value?.path.split("/").pop() ||
+													"file"}
 										>
-									</a>
-									<span class="file-type"
-										>{(
-											message.content.value?.orig_name ||
-											message.content.value?.path ||
-											""
-										)
-											.split(".")
-											.pop()
-											.toUpperCase()}</span
-									>
+											<span class="file-name"
+												>{message.content.value?.orig_name ||
+													message.content.value?.path.split("/").pop() ||
+													"file"}</span
+											>
+										</a>
+										<span class="file-type"
+											>{(
+												message.content.value?.orig_name ||
+												message.content.value?.path ||
+												""
+											)
+												.split(".")
+												.pop()
+												.toUpperCase()}</span
+										>
+									</div>
 								</div>
-							</div>
-						{/if}
-					</div>
-				{/if}
-			</div>
+							{/if}
+						</div>
+					{/if}
+				</div>
 
-			{#if layout === "panel"}
-				<ButtonPanel
-					{...button_panel_props}
-					on:copy={(e) => dispatch("copy", e.detail)}
-				/>
-			{/if}
-		{/each}
+				{#if layout === "panel"}
+					<ButtonPanel
+						{...button_panel_props}
+						on:copy={(e) => dispatch("copy", e.detail)}
+					/>
+				{/if}
+			{/each}
+		</div>
 	</div>
 </div>
 

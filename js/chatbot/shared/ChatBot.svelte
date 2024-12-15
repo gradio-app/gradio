@@ -42,6 +42,7 @@
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
 	export let allow_file_downloads: boolean;
+	export let display_consecutive_in_same_bubble: boolean;
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
@@ -278,6 +279,7 @@
 				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
 				<Message
 					{messages}
+					{display_consecutive_in_same_bubble}
 					{opposite_avatar_img}
 					{avatar_img}
 					{role}
