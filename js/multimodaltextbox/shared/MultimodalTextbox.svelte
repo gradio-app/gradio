@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		onMount,
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
@@ -47,6 +48,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let file_count: "single" | "multiple" | "directory" = "multiple";
+	export let max_plain_text_length = 1000;
 
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
@@ -68,7 +70,6 @@
 
 	$: if (value === null) value = { text: "", files: [] };
 	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
-	$: can_submit = value.text !== "" || value.files.length > 0;
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -102,10 +103,13 @@
 		}
 	}
 
-	afterUpdate(() => {
+	onMount(() => {
 		if (autofocus && el !== null) {
 			el.focus();
 		}
+	});
+
+	afterUpdate(() => {
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
@@ -128,9 +132,7 @@
 		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
-			if (can_submit) {
-				dispatch("submit");
-			}
+			dispatch("submit");
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -138,9 +140,7 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
-			if (can_submit) {
-				dispatch("submit");
-			}
+			dispatch("submit");
 		}
 	}
 
@@ -199,9 +199,23 @@
 		dispatch("submit");
 	}
 
-	function handle_paste(event: ClipboardEvent): void {
+	async function handle_paste(event: ClipboardEvent): Promise<void> {
 		if (!event.clipboardData) return;
 		const items = event.clipboardData.items;
+		const text = event.clipboardData.getData("text");
+
+		if (text && text.length > max_plain_text_length) {
+			event.preventDefault();
+			const file = new window.File([text], "pasted_text.txt", {
+				type: "text/plain",
+				lastModified: Date.now()
+			});
+			if (upload_component) {
+				upload_component.load_files([file]);
+			}
+			return;
+		}
+
 		for (let index in items) {
 			const item = items[index];
 			if (item.kind === "file" && item.type.includes("image")) {
@@ -234,7 +248,32 @@
 		event.preventDefault();
 		dragging = false;
 		if (event.dataTransfer && event.dataTransfer.files) {
-			upload_component.load_files(Array.from(event.dataTransfer.files));
+			const files = Array.from(event.dataTransfer.files);
+
+			if (file_types) {
+				const valid_files = files.filter((file) => {
+					return file_types.some((type) => {
+						if (type.startsWith(".")) {
+							return file.name.toLowerCase().endsWith(type.toLowerCase());
+						}
+						return file.type.match(new RegExp(type.replace("*", ".*")));
+					});
+				});
+
+				const invalid_files = files.length - valid_files.length;
+				if (invalid_files > 0) {
+					dispatch(
+						"error",
+						`${invalid_files} file(s) were rejected. Accepted formats: ${file_types.join(", ")}`
+					);
+				}
+
+				if (valid_files.length > 0) {
+					upload_component.load_files(valid_files);
+				}
+			} else {
+				upload_component.load_files(files);
+			}
 		}
 	}
 </script>
@@ -295,28 +334,30 @@
 			</div>
 		{/if}
 		<div class="input-container">
-			<Upload
-				bind:this={upload_component}
-				on:load={handle_upload}
-				{file_count}
-				filetype={file_types}
-				{root}
-				{max_file_size}
-				bind:dragging
-				bind:uploading
-				show_progress={false}
-				disable_click={true}
-				bind:hidden_upload
-				on:error
-				hidden={true}
-				{upload}
-				{stream_handler}
-			></Upload>
-			<button
-				data-testid="upload-button"
-				class="upload-button"
-				on:click={handle_upload_click}><Paperclip /></button
-			>
+			{#if !disabled && !(file_count === "single" && value.files.length > 0)}
+				<Upload
+					bind:this={upload_component}
+					on:load={handle_upload}
+					{file_count}
+					filetype={file_types}
+					{root}
+					{max_file_size}
+					bind:dragging
+					bind:uploading
+					show_progress={false}
+					disable_click={true}
+					bind:hidden_upload
+					on:error
+					hidden={true}
+					{upload}
+					{stream_handler}
+				></Upload>
+				<button
+					data-testid="upload-button"
+					class="upload-button"
+					on:click={handle_upload_click}><Paperclip /></button
+				>
+			{/if}
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={{
@@ -346,7 +387,6 @@
 					class="submit-button"
 					class:padded-button={submit_btn !== true}
 					on:click={handle_submit}
-					disabled={!can_submit}
 				>
 					{#if submit_btn === true}
 						<Send />
@@ -376,6 +416,13 @@
 	.full-container {
 		width: 100%;
 		position: relative;
+		padding: var(--block-padding);
+		border: 1px solid transparent;
+	}
+
+	.full-container.dragging {
+		border: 1px solid var(--color-accent);
+		border-radius: calc(var(--radius-sm) - 1px);
 	}
 
 	.full-container.dragging::after {
@@ -462,6 +509,11 @@
 	.submit-button:disabled {
 		background: var(--button-secondary-background-fill);
 		cursor: initial;
+	}
+	.stop-button:active,
+	.upload-button:active,
+	.submit-button:active {
+		box-shadow: var(--button-shadow-active);
 	}
 
 	.submit-button :global(svg) {

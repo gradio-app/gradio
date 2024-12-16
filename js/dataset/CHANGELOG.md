@@ -1,5 +1,92 @@
 # @gradio/dataset
 
+## 0.3.11
+
+### Dependency updates
+
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/textbox@0.9.1
+
+## 0.3.10
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/upload@0.14.2
+- @gradio/textbox@0.9.0
+
+## 0.3.9
+
+### Dependency updates
+
+- @gradio/atoms@0.11.1
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/upload@0.14.1
+- @gradio/textbox@0.8.6
+
+## 0.3.8
+
+### Dependency updates
+
+- @gradio/atoms@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/textbox@0.8.5
+
+## 0.3.7
+
+### Dependency updates
+
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/upload@0.13.5
+- @gradio/textbox@0.8.4
+
+## 0.3.6
+
+### Dependency updates
+
+- @gradio/atoms@0.10.0
+- @gradio/upload@0.13.4
+- @gradio/textbox@0.8.3
+
+## 0.3.5
+
+### Dependency updates
+
+- @gradio/upload@0.13.3
+- @gradio/atoms@0.9.2
+- @gradio/textbox@0.8.2
+
+## 0.3.4
+
+### Dependency updates
+
+- @gradio/atoms@0.9.1
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/textbox@0.8.1
+
+## 0.3.3
+
+### Dependency updates
+
+- @gradio/textbox@0.8.0
+
+## 0.3.2
+
+### Dependency updates
+
+- @gradio/upload@0.13.1
+
+## 0.3.1
+
+### Dependency updates
+
+- @gradio/textbox@0.7.1
+
 ## 0.2.5-beta.7
 
 ### Dependency updates

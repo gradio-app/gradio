@@ -1,4 +1,5 @@
 import { writable, type Writable, get } from "svelte/store";
+
 import type {
 	ComponentMeta,
 	Dependency,
@@ -27,6 +28,7 @@ const raf = is_browser
  * Create a store with the layout and a map of targets
  * @returns A store with the layout and a map of targets
  */
+let has_run = new Set<number>();
 export function create_components(initial_layout: ComponentMeta | undefined): {
 	layout: Writable<ComponentMeta>;
 	targets: Writable<TargetMap>;
@@ -152,7 +154,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			{} as { [id: number]: ComponentMeta }
 		);
 
-		await walk_layout(layout, root);
+		await walk_layout(layout, root, _components);
 
 		layout_store.set(_rootNode);
 		set_event_specific_args(dependencies);
@@ -228,7 +230,12 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			] = instance_map[layout.id];
 		}
 
-		walk_layout(layout, root, current_element.parent).then(() => {
+		walk_layout(
+			layout,
+			root,
+			_components.concat(components),
+			current_element.parent
+		).then(() => {
 			layout_store.set(_rootNode);
 		});
 
@@ -238,6 +245,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	async function walk_layout(
 		node: LayoutNode,
 		root: string,
+		components: ComponentMeta[],
 		parent?: ComponentMeta
 	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
@@ -252,7 +260,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 				instance.type,
 				instance.component_class_id,
 				root,
-				_components,
+				components,
 				instance.props.components
 			).example_components;
 		}
@@ -286,8 +294,35 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 
 		if (node.children) {
 			instance.children = await Promise.all(
-				node.children.map((v) => walk_layout(v, root, instance))
+				node.children.map((v) => walk_layout(v, root, components, instance))
 			);
+		}
+
+		if (instance.type === "tabs" && !instance.props.initial_tabs) {
+			const tab_items_props =
+				node.children?.map((c) => {
+					const instance = instance_map[c.id];
+					// console.log("tabs", JSON.stringify(instance.props, null, 2));
+					instance.props.id ??= c.id;
+					return {
+						type: instance.type,
+						props: {
+							...(instance.props as any),
+							id: instance.props.id
+						}
+					};
+				}) || [];
+
+			const child_tab_items = tab_items_props.filter(
+				(child) => child.type === "tabitem"
+			);
+
+			instance.props.initial_tabs = child_tab_items?.map((child) => ({
+				label: child.props.label,
+				id: child.props.id,
+				visible: child.props.visible,
+				interactive: child.props.interactive
+			}));
 		}
 
 		return instance;
@@ -317,7 +352,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 					else if (update.value instanceof Set)
 						new_value = new Set(update.value);
 					else if (Array.isArray(update.value)) new_value = [...update.value];
-					else if (update.value === null) new_value = null;
+					else if (update.value == null) new_value = null;
 					else if (typeof update.value === "object")
 						new_value = { ...update.value };
 					else new_value = update.value;

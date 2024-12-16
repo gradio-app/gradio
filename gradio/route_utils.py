@@ -31,9 +31,8 @@ import anyio
 import fastapi
 import gradio_client.utils as client_utils
 import httpx
-import multipart
 from gradio_client.documentation import document
-from multipart.multipart import parse_options_header
+from python_multipart.multipart import MultipartParser, parse_options_header
 from starlette.datastructures import FormData, Headers, MutableHeaders, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
 from starlette.responses import PlainTextResponse, Response
@@ -50,7 +49,7 @@ from gradio.exceptions import Error
 from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
-    from gradio.blocks import BlockFunction, Blocks
+    from gradio.blocks import BlockFunction, Blocks, BlocksConfig
     from gradio.helpers import EventData
     from gradio.routes import App
 
@@ -286,14 +285,14 @@ def restore_session_state(app: App, body: PredictBodyInternal):
 
 
 def prepare_event_data(
-    blocks: Blocks,
+    blocks_config: BlocksConfig,
     body: PredictBodyInternal,
 ) -> EventData:
     from gradio.helpers import EventData
 
     target = body.trigger_id
     event_data = EventData(
-        blocks.blocks.get(target) if target else None,
+        blocks_config.blocks.get(target) if target else None,
         body.event_data,
     )
     return event_data
@@ -308,7 +307,7 @@ async def call_process_api(
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
-    event_data = prepare_event_data(app.get_blocks(), body)
+    event_data = prepare_event_data(session_state.blocks_config, body)
     event_id = body.event_id
 
     session_hash = getattr(body, "session_hash", None)
@@ -632,7 +631,7 @@ class GradioMultiPartParser:
             raise MultiPartException("Missing boundary in multipart.") from e
 
         # Callbacks dictionary.
-        callbacks: multipart.multipart.MultipartCallbacks = {
+        callbacks = {
             "on_part_begin": self.on_part_begin,
             "on_part_data": self.on_part_data,
             "on_part_end": self.on_part_end,
@@ -644,7 +643,7 @@ class GradioMultiPartParser:
         }
 
         # Create the parser.
-        parser = multipart.MultipartParser(boundary, callbacks)
+        parser = MultipartParser(boundary, callbacks)  # type: ignore
         try:
             # Feed the parser with data from the request.
             async for chunk in self.stream:

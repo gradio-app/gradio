@@ -1,5 +1,286 @@
 # @gradio/core
 
+## 0.5.0
+
+### Features
+
+- [#10166](https://github.com/gradio-app/gradio/pull/10166) [`8ac5b13`](https://github.com/gradio-app/gradio/commit/8ac5b13c96f871ac4b0f13c6ebfbb5559a18bcc2) - Add Japanese translations for login UI.  Thanks @kazuhitoyokoi!
+- [#10159](https://github.com/gradio-app/gradio/pull/10159) [`7ca3685`](https://github.com/gradio-app/gradio/commit/7ca36850c9e46a1eb5b7a3866b4b166776b4146f) - Add Japanese message into message catalog.  Thanks @kazuhitoyokoi!
+
+### Fixes
+
+- [#10170](https://github.com/gradio-app/gradio/pull/10170) [`5e6e234`](https://github.com/gradio-app/gradio/commit/5e6e234cba820d29ebe29de2597d36ab3683093b) - Custom component in rerender.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.10.10
+- @gradio/paramviewer@0.6.1
+- @gradio/video@0.12.1
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/button@0.3.9
+- @gradio/atoms@0.12.0
+- @gradio/image@0.19.0
+- @gradio/gallery@0.14.0
+- @gradio/plot@0.9.4
+- @gradio/file@0.11.3
+- @gradio/column@0.2.0
+- @gradio/textbox@0.9.1
+- @gradio/checkbox@0.4.9
+
+## 0.4.1
+
+### Dependency updates
+
+- @gradio/gallery@0.13.10
+- @gradio/paramviewer@0.6.0
+- @gradio/image@0.18.0
+- @gradio/video@0.12.0
+
+## 0.4.1
+
+### Fixes
+
+- [#9822](https://github.com/gradio-app/gradio/pull/9822) [`2e2cdbf`](https://github.com/gradio-app/gradio/commit/2e2cdbfb609ca992ccc31bb38589486aaaa14012) - Fix css preload when serving from proxied subpaths.  Thanks @amol-!
+
+### Dependency updates
+
+- @gradio/video@0.11.9
+- @gradio/atoms@0.11.2
+- @gradio/code@0.10.9
+- @gradio/paramviewer@0.5.8
+- @gradio/tabitem@0.3.5
+- @gradio/tabs@0.3.5
+- @gradio/utils@0.9.0
+- @gradio/button@0.3.8
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/gallery@0.13.9
+- @gradio/plot@0.9.3
+- @gradio/image@0.17.0
+- @gradio/file@0.11.2
+- @gradio/textbox@0.9.0
+- @gradio/column@0.2.0
+- @gradio/checkbox@0.4.8
+
+## 0.4.0
+
+### Features
+
+- [#9950](https://github.com/gradio-app/gradio/pull/9950) [`fc06fe4`](https://github.com/gradio-app/gradio/commit/fc06fe41f015678a0545f4e5c99f6ae2704f0031) - Add ability to read and write from LocalStorage.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/video@0.11.8
+- @gradio/atoms@0.11.1
+- @gradio/code@0.10.8
+- @gradio/paramviewer@0.5.7
+- @gradio/tabitem@0.3.4
+- @gradio/tabs@0.3.4
+- @gradio/client@1.8.0
+- @gradio/utils@0.8.0
+- @gradio/button@0.3.7
+- @gradio/upload@0.14.1
+- @gradio/statustracker@0.9.5
+- @gradio/gallery@0.13.8
+- @gradio/plot@0.9.2
+- @gradio/image@0.16.8
+- @gradio/file@0.11.1
+- @gradio/checkbox@0.4.7
+- @gradio/textbox@0.8.6
+- @gradio/column@0.2.0
+
+## 0.3.0
+
+### Features
+
+- [#9786](https://github.com/gradio-app/gradio/pull/9786) [`f109497`](https://github.com/gradio-app/gradio/commit/f109497e8281b3429b58e3f6a293dd63ebcc08af) - Fix frontend errors on ApiDocs and RecordingSnippet.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/code@0.10.7
+- @gradio/paramviewer@0.5.6
+- @gradio/video@0.11.7
+- @gradio/statustracker@0.9.4
+- @gradio/button@0.3.6
+- @gradio/atoms@0.11.0
+- @gradio/column@0.2.0
+- @gradio/file@0.11.0
+- @gradio/upload@0.14.0
+- @gradio/checkbox@0.4.6
+- @gradio/wasm@0.15.0
+- @gradio/image@0.16.7
+- @gradio/gallery@0.13.7
+- @gradio/plot@0.9.1
+- @gradio/textbox@0.8.5
+
+## 0.2.1
+
+### Dependency updates
+
+- @gradio/video@0.11.6
+- @gradio/statustracker@0.9.3
+- @gradio/atoms@0.10.1
+- @gradio/client@1.7.1
+- @gradio/image@0.16.6
+- @gradio/upload@0.13.5
+- @gradio/plot@0.9.0
+- @gradio/gallery@0.13.6
+- @gradio/tabs@0.3.3
+- @gradio/tabitem@0.3.3
+- @gradio/code@0.10.6
+- @gradio/paramviewer@0.5.5
+- @gradio/button@0.3.5
+- @gradio/textbox@0.8.4
+- @gradio/column@0.2.0
+- @gradio/checkbox@0.4.5
+- @gradio/file@0.10.6
+
+## 0.2.1
+
+### Fixes
+
+- [#9653](https://github.com/gradio-app/gradio/pull/9653) [`61cd768`](https://github.com/gradio-app/gradio/commit/61cd768490a12f5d63101d5434092bcd1cfc43a8) - Ensures tabs with visible set to false are not visible.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/button@0.3.4
+- @gradio/video@0.11.5
+- @gradio/statustracker@0.9.2
+- @gradio/atoms@0.10.0
+- @gradio/icons@0.8.1
+- @gradio/upload@0.13.4
+- @gradio/plot@0.8.0
+- @gradio/gallery@0.13.5
+- @gradio/tabs@0.3.2
+- @gradio/column@0.2.0
+- @gradio/tabitem@0.3.2
+- @gradio/code@0.10.5
+- @gradio/paramviewer@0.5.4
+- @gradio/textbox@0.8.3
+- @gradio/file@0.10.5
+- @gradio/checkbox@0.4.4
+- @gradio/image@0.16.5
+
+## 0.2.0
+
+### Dependency updates
+
+- @gradio/markdown@0.10.3
+- @gradio/code@0.10.4
+- @gradio/paramviewer@0.5.3
+- @gradio/statustracker@0.9.1
+- @gradio/upload@0.13.3
+- @gradio/button@0.3.3
+- @gradio/video@0.11.4
+- @gradio/atoms@0.9.2
+- @gradio/gallery@0.13.4
+- @gradio/plot@0.7.3
+- @gradio/column@0.2.0
+- @gradio/textbox@0.8.2
+- @gradio/checkbox@0.4.3
+- @gradio/file@0.10.4
+- @gradio/image@0.16.4
+
+## 0.2.0
+
+### Features
+
+- [#9681](https://github.com/gradio-app/gradio/pull/9681) [`2ed2361`](https://github.com/gradio-app/gradio/commit/2ed236187a9aab18e17fc4a8079eddef7dd195a5) - Allow setting title in gr.Info/Warning/Error.  Thanks @ABucket!
+
+### Fixes
+
+- [#9728](https://github.com/gradio-app/gradio/pull/9728) [`d0b2ce8`](https://github.com/gradio-app/gradio/commit/d0b2ce8c0f150f0b636ad7d2226f7c8c61401996) - Ensure tabs render in SSR mode and reduce time it takes for them to render.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/video@0.11.3
+- @gradio/markdown@0.10.2
+- @gradio/atoms@0.9.1
+- @gradio/statustracker@0.9.0
+- @gradio/client@1.7.0
+- @gradio/upload@0.13.2
+- @gradio/button@0.3.2
+- @gradio/wasm@0.14.2
+- @gradio/gallery@0.13.3
+- @gradio/plot@0.7.2
+- @gradio/image@0.16.3
+- @gradio/column@0.2.0
+- @gradio/textbox@0.8.1
+- @gradio/file@0.10.3
+- @gradio/checkbox@0.4.2
+- @gradio/tabs@0.3.1
+- @gradio/code@0.10.3
+- @gradio/paramviewer@0.5.2
+- @gradio/tabitem@0.3.1
+
+## 0.1.1
+
+### Dependency updates
+
+- @gradio/textbox@0.8.0
+
+## 0.1.1
+
+### Dependency updates
+
+- @gradio/code@0.10.2
+- @gradio/file@0.10.2
+- @gradio/upload@0.13.1
+- @gradio/image@0.16.2
+- @gradio/video@0.11.2
+- @gradio/button@0.3.1
+- @gradio/wasm@0.14.1
+- @gradio/gallery@0.13.2
+
+## 0.1.1
+
+### Features
+
+- [#9617](https://github.com/gradio-app/gradio/pull/9617) [`c163182`](https://github.com/gradio-app/gradio/commit/c163182d1b752ef91629f9caa13bf3cce0fb0869) - Fix dark mode detection and container height.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/code@0.10.1
+- @gradio/paramviewer@0.5.1
+- @gradio/video@0.11.1
+- @gradio/statustracker@0.8.1
+- @gradio/gallery@0.13.1
+- @gradio/markdown@0.10.1
+- @gradio/plot@0.7.1
+- @gradio/textbox@0.7.1
+- @gradio/column@0.2.0
+- @gradio/checkbox@0.4.1
+- @gradio/file@0.10.1
+- @gradio/image@0.16.1
+
+## 0.1.0
+
+### Features
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - SSR e2e + fixes
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix reload mode and streaming in 5.0 dev
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Disable liking user message in chatbot by default but make it configurable
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Adds ability to block event trigger when file is uploading
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Open audio/image input stream only when queue is ready
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Streaming Guides
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Send Streaming data over Websocket if possible. Also support base64 output format for images.
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Allow `info=` to render markdown
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Remove lite/theme.css from the Git-managed file tree
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Update gr.Dataframe UI with action popover
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Video gallery
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix reload mode
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Streaming inputs for 5.0
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - fix SSR apps on spaces
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix plots
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Ssr part 2
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - prefix api routes
+
+### Fixes
+
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Trigger state change event on iterators
+
 ## 0.1.0-beta.6
 
 ### Features

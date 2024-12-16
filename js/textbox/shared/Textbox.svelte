@@ -8,7 +8,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check, Send, Square } from "@gradio/icons";
 	import { fade } from "svelte/transition";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, CopyData } from "@gradio/utils";
 
 	export let value = "";
 	export let value_is_output = false;
@@ -41,7 +41,6 @@
 	const show_textbox_border = !submit_btn;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
-	$: can_submit = value !== "";
 
 	$: if (value === null) value = "";
 
@@ -53,6 +52,7 @@
 		select: SelectData;
 		input: undefined;
 		focus: undefined;
+		copy: CopyData;
 	}>();
 
 	beforeUpdate(() => {
@@ -85,6 +85,7 @@
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
 			await navigator.clipboard.writeText(value);
+			dispatch("copy", { value: value });
 			copy_feedback();
 		}
 	}
@@ -113,9 +114,7 @@
 		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
-			if (can_submit) {
-				dispatch("submit");
-			}
+			dispatch("submit");
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -123,9 +122,7 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
-			if (can_submit) {
-				dispatch("submit");
-			}
+			dispatch("submit");
 		}
 	}
 
@@ -203,6 +200,23 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container class:show_textbox_border>
+	{#if show_label && show_copy_button}
+		{#if copied}
+			<button
+				in:fade={{ duration: 300 }}
+				class="copy-button"
+				aria-label="Copied"
+				aria-roledescription="Text copied"><Check /></button
+			>
+		{:else}
+			<button
+				on:click={handle_copy}
+				class="copy-button"
+				aria-label="Copy"
+				aria-roledescription="Copy text"><Copy /></button
+			>
+		{/if}
+	{/if}
 	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 
 	<div class="input-container">
@@ -261,29 +275,12 @@
 				/>
 			{/if}
 		{:else}
-			{#if show_label && show_copy_button}
-				{#if copied}
-					<button
-						in:fade={{ duration: 300 }}
-						class="copy-button"
-						aria-label="Copied"
-						aria-roledescription="Text copied"><Check /></button
-					>
-				{:else}
-					<button
-						on:click={handle_copy}
-						class="copy-button"
-						aria-label="Copy"
-						aria-roledescription="Copy text"><Copy /></button
-					>
-				{/if}
-			{/if}
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={value}
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
-				class:no-label={!show_label && submit_btn}
+				class:no-label={!show_label && (submit_btn || stop_btn)}
 				bind:value
 				bind:this={el}
 				{placeholder}
@@ -304,7 +301,6 @@
 				class="submit-button"
 				class:padded-button={submit_btn !== true}
 				on:click={handle_submit}
-				disabled={!can_submit}
 			>
 				{#if submit_btn === true}
 					<Send />
@@ -398,7 +394,7 @@
 		right: var(--block-label-margin);
 		align-items: center;
 		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--border-color-primary);
 		border-top: none;
 		border-right: none;
 		border-radius: var(--block-label-right-radius);
@@ -447,6 +443,10 @@
 	.submit-button:disabled {
 		background: var(--button-secondary-background-fill);
 		cursor: pointer;
+	}
+	.stop-button:active,
+	.submit-button:active {
+		box-shadow: var(--button-shadow-active);
 	}
 	.submit-button :global(svg) {
 		height: 22px;

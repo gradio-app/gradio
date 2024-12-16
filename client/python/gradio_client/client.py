@@ -156,8 +156,9 @@ class Client:
         )
         api_prefix: str = self.config.get("api_prefix", "")
         self.api_prefix = api_prefix.lstrip("/") + "/"
-        self.src_prefixed = urllib.parse.urljoin(self.src, api_prefix).rstrip("/") + "/"
-
+        self.src_prefixed = (
+            urllib.parse.urljoin(self.src, self.api_prefix).rstrip("/") + "/"
+        )
         self.api_url = urllib.parse.urljoin(self.src_prefixed, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
             self.src_prefixed,
@@ -869,9 +870,13 @@ class Client:
             raise AuthenticationError(
                 f"Could not load {self.src} as credentials were not provided. Please login."
             )
+        elif r.status_code == 429:
+            raise utils.TooManyRequestsError(
+                "Too many requests to the API, please try again later."
+            ) from None
         else:  # to support older versions of Gradio
             r = httpx.get(
-                self.src_prefixed,
+                self.src,
                 headers=self.headers,
                 cookies=self.cookies,
                 verify=self.ssl_verify,

@@ -56,8 +56,10 @@
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
 
+	let last_selected: [number, number] | null = null;
+
 	$: {
-		if (selected !== false) {
+		if (selected !== false && !dequal(selected, last_selected)) {
 			const [row, col] = selected;
 			if (!isNaN(row) && !isNaN(col) && data[row]) {
 				dispatch("select", {
@@ -65,6 +67,7 @@
 					value: get_data_at(row, col),
 					row_value: data[row].map((d) => d.value)
 				});
+				last_selected = selected;
 			}
 		}
 	}
@@ -290,6 +293,11 @@
 					selected = [i + 1, j];
 				} else {
 					if (dequal(editing, [i, j])) {
+						const cell_id = data[i][j].id;
+						const input_el = els[cell_id].input;
+						if (input_el) {
+							data[i][j].value = input_el.value;
+						}
 						editing = false;
 						await tick();
 						selected = [i, j];
@@ -353,9 +361,11 @@
 		header_edit = false;
 		selected_header = false;
 		editing = false;
-		selected = [i, j];
-		await tick();
-		parent.focus();
+		if (!dequal(selected, [i, j])) {
+			selected = [i, j];
+			await tick();
+			parent.focus();
+		}
 	}
 
 	type SortDirection = "asc" | "des";
@@ -387,10 +397,10 @@
 		select_on_focus = _select;
 	}
 
-	function end_header_edit(event: KeyboardEvent): void {
+	function end_header_edit(event: CustomEvent<KeyboardEvent>): void {
 		if (!editable) return;
 
-		switch (event.key) {
+		switch (event.detail.key) {
 			case "Escape":
 			case "Enter":
 			case "Tab":
@@ -478,7 +488,7 @@
 		editing = false;
 		header_edit = false;
 		selected_header = false;
-		selected = false;
+		reset_selection();
 		active_cell = null;
 		active_cell_menu = null;
 		active_header_menu = null;
@@ -705,10 +715,18 @@
 		active_header_menu = null;
 	}
 
+	function handle_resize(): void {
+		active_cell_menu = null;
+		active_header_menu = null;
+		set_cell_widths();
+	}
+
 	onMount(() => {
 		document.addEventListener("click", handle_click_outside);
+		window.addEventListener("resize", handle_resize);
 		return () => {
 			document.removeEventListener("click", handle_click_outside);
+			window.removeEventListener("resize", handle_resize);
 		};
 	});
 
@@ -759,6 +777,11 @@
 				};
 			}
 		}
+	}
+
+	function reset_selection(): void {
+		selected = false;
+		last_selected = null;
 	}
 </script>
 
@@ -923,8 +946,6 @@
 								{#if editable}
 									<button
 										class="cell-menu-button"
-										class:visible={active_button?.type === "header" &&
-											active_button.col === i}
 										on:click={(event) => toggle_header_menu(event, i)}
 									>
 										⋮
@@ -969,9 +990,6 @@
 								{#if editable}
 									<button
 										class="cell-menu-button"
-										class:visible={active_button?.type === "cell" &&
-											active_button.row === index &&
-											active_button.col === j}
 										on:click={(event) => toggle_cell_menu(event, index, j)}
 									>
 										⋮
@@ -991,8 +1009,9 @@
 		{i18n}
 		x={active_cell_menu.x}
 		y={active_cell_menu.y}
-		col={active_cell_menu.col}
 		row={active_cell_menu?.row ?? -1}
+		{col_count}
+		{row_count}
 		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
 		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
 		on_add_column_left={() => add_col_at(active_cell_menu?.col ?? -1, "left")}
@@ -1005,8 +1024,11 @@
 		{i18n}
 		x={active_header_menu.x}
 		y={active_header_menu.y}
-		col={active_header_menu.col}
 		row={-1}
+		{col_count}
+		{row_count}
+		on_add_row_above={() => add_row_at(active_cell_menu?.row ?? -1, "above")}
+		on_add_row_below={() => add_row_at(active_cell_menu?.row ?? -1, "below")}
 		on_add_column_left={() => add_col_at(active_header_menu?.col ?? -1, "left")}
 		on_add_column_right={() =>
 			add_col_at(active_header_menu?.col ?? -1, "right")}
@@ -1082,6 +1104,7 @@
 		top: 0;
 		left: 0;
 		z-index: var(--layer-1);
+		box-shadow: var(--shadow-drop);
 	}
 
 	tr {
@@ -1101,6 +1124,7 @@
 		--ring-color: transparent;
 		position: relative;
 		outline: none;
+		box-shadow: inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 	}
 
@@ -1113,9 +1137,8 @@
 	}
 
 	th.focus,
-	td.focus,
-	td.menu-active {
-		z-index: 1;
+	td.focus {
+		--ring-color: var(--color-accent);
 	}
 
 	tr:last-child td:first-child {
@@ -1164,10 +1187,8 @@
 	}
 
 	.cell-wrap {
-		position: relative;
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
 		outline: none;
 		height: var(--size-full);
 		min-height: var(--size-9);
@@ -1182,6 +1203,12 @@
 		min-width: 0;
 	}
 
+	.controls-wrap {
+		display: flex;
+		justify-content: flex-end;
+		padding-top: var(--size-2);
+	}
+
 	.row_odd {
 		background: var(--table-odd-background-fill);
 	}
@@ -1192,13 +1219,6 @@
 
 	table {
 		border-collapse: separate;
-	}
-
-	.select-column {
-		width: var(--size-3);
-		text-align: center;
-		padding: var(--size-1);
-		border-right: none;
 	}
 
 	.cell-menu-button {
@@ -1212,26 +1232,22 @@
 		min-width: var(--size-5);
 		padding: 0;
 		margin-right: var(--spacing-sm);
-		z-index: var(--layer-2);
+		z-index: var(--layer-1);
 	}
 
 	.cell-menu-button:hover {
 		background-color: var(--color-bg-hover);
 	}
 
-	.cell-menu-button.visible {
+	td.focus .cell-menu-button {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
-	th .cell-wrap {
-		padding-right: var(--spacing-sm);
-	}
-
 	th .header-content {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		white-space: normal;
+		overflow-wrap: break-word;
+		word-break: break-word;
 	}
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { MarkdownCode } from "@gradio/markdown";
+	import { MarkdownCode } from "@gradio/markdown-code";
 
 	export let edit: boolean;
 	export let value: string | number = "";
@@ -51,6 +51,14 @@
 		value = currentTarget.value;
 		dispatch("blur");
 	}
+
+	function handle_keydown(event: KeyboardEvent): void {
+		if (event.key === "Enter") {
+			value = _value;
+			dispatch("blur");
+		}
+		dispatch("keydown", event);
+	}
 </script>
 
 {#if edit}
@@ -62,7 +70,7 @@
 		tabindex="-1"
 		on:blur={handle_blur}
 		use:use_focus
-		on:keydown
+		on:keydown={handle_keydown}
 	/>
 {/if}
 

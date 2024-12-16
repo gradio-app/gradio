@@ -2,6 +2,7 @@
 /* eslint-env worker */
 
 import type {
+	PackageData,
 	PyodideInterface,
 	loadPyodide as loadPyodideValue
 } from "pyodide";
@@ -80,15 +81,6 @@ async function initializeEnvironment(
 	updateProgress("Loading Gradio wheels");
 	await pyodide.loadPackage(["ssl", "setuptools"]);
 	await micropip.add_mock_package("ffmpy", "0.3.0");
-	await micropip.install.callKwargs(
-		[
-			"typing-extensions>=4.8.0", // Typing extensions needs to be installed first otherwise the versions from the pyodide lockfile is used which is incompatible with the latest fastapi.
-			"markdown-it-py[linkify]~=2.2.0", // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
-			"anyio==3.*", // `fastapi` depends on `anyio>=3.4.0,<5` so its 4.* can be installed, but it conflicts with the anyio version `httpx` depends on, `==3.*`. Seems like micropip can't resolve it for now, so we explicitly install the compatible version of the library here.
-			"fastapi<0.111.0" // `fastapi==0.111.0` added `ujson` as a dependency, but it's not available on Pyodide yet.
-		],
-		{ keep_going: true }
-	);
 	await micropip.install.callKwargs(gradioWheelUrls, {
 		keep_going: true
 	});
@@ -115,8 +107,6 @@ os.link = lambda src, dst: None
 
 	console.debug("Defining a ASGI wrapper function.");
 	updateProgress("Defining a ASGI wrapper function");
-	// TODO: Unlike Streamlit, user's code is executed in the global scope,
-	//       so we should not define this function in the global scope.
 	await pyodide.runPythonAsync(`
 # Based on Shiny's App.call_pyodide().
 # https://github.com/rstudio/py-shiny/blob/v0.3.3/shiny/_app.py#L224-L258
@@ -186,7 +176,8 @@ anyio.to_thread.run_sync = mocked_anyio_to_thread_run_sync
 async function initializeApp(
 	appId: string,
 	options: InMessageInitApp["data"],
-	updateProgress: (log: string) => void
+	updateProgress: (log: string) => void,
+	onModulesAutoLoaded: (packages: PackageData[]) => void
 ): Promise<void> {
 	const appHomeDir = getAppHomeDir(appId);
 	console.debug("Creating a home directory for the app.", {
@@ -197,6 +188,7 @@ async function initializeApp(
 
 	console.debug("Mounting files.", options.files);
 	updateProgress("Mounting files");
+	const pythonFileContents: string[] = [];
 	await Promise.all(
 		Object.keys(options.files).map(async (path) => {
 			const file = options.files[path];
@@ -215,6 +207,10 @@ async function initializeApp(
 			const appifiedPath = resolveAppHomeBasedPath(appId, path);
 			console.debug(`Write a file "${appifiedPath}"`);
 			writeFileWithParents(pyodide, appifiedPath, data, opts);
+
+			if (typeof data === "string" && path.endsWith(".py")) {
+				pythonFileContents.push(data);
+			}
 		})
 	);
 	console.debug("Files are mounted.");
@@ -224,7 +220,22 @@ async function initializeApp(
 	await micropip.install.callKwargs(options.requirements, { keep_going: true });
 	console.debug("Packages are installed.");
 
-	if (options.requirements.includes("matplotlib")) {
+	console.debug("Auto-loading modules.");
+	const loadedPackagesArr = await Promise.all(
+		pythonFileContents.map((source) => pyodide.loadPackagesFromImports(source))
+	);
+	const loadedPackagesSet = new Set(loadedPackagesArr.flat()); // Remove duplicates
+	const loadedPackages = Array.from(loadedPackagesSet);
+	if (loadedPackages.length > 0) {
+		onModulesAutoLoaded(loadedPackages);
+	}
+	const loadedPackageNames = loadedPackages.map((pkg) => pkg.name);
+	console.debug("Modules are auto-loaded.", loadedPackages);
+
+	if (
+		options.requirements.includes("matplotlib") ||
+		loadedPackageNames.includes("matplotlib")
+	) {
 		console.debug("Setting matplotlib backend.");
 		updateProgress("Setting matplotlib backend");
 		// Ref: https://github.com/pyodide/pyodide/issues/561#issuecomment-1992613717
@@ -285,6 +296,15 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 		};
 		receiver.postMessage(message);
 	};
+	const onModulesAutoLoaded = (packages: PackageData[]) => {
+		const message: OutMessage = {
+			type: "modules-auto-loaded",
+			data: {
+				packages
+			}
+		};
+		receiver.postMessage(message);
+	};
 
 	// App initialization is per app or receiver, so its promise is managed in this scope.
 	let appReadyPromise: Promise<void> | undefined = undefined;
@@ -331,7 +351,12 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 			await envReadyPromise;
 
 			if (msg.type === "init-app") {
-				appReadyPromise = initializeApp(appId, msg.data, updateProgress);
+				appReadyPromise = initializeApp(
+					appId,
+					msg.data,
+					updateProgress,
+					onModulesAutoLoaded
+				);
 
 				const replyMessage: ReplyMessageSuccess = {
 					type: "reply:success",
@@ -357,6 +382,15 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				}
 				case "run-python-code": {
 					unload_local_modules();
+
+					console.debug(`Auto install the requirements`);
+					const loadedPackages = await pyodide.loadPackagesFromImports(
+						msg.data.code
+					);
+					if (loadedPackages.length > 0) {
+						onModulesAutoLoaded(loadedPackages);
+					}
+					console.debug("Modules are auto-loaded.", loadedPackages);
 
 					await run_code(appId, getAppHomeDir(appId), msg.data.code);
 
@@ -390,6 +424,16 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				}
 				case "file:write": {
 					const { path, data: fileData, opts } = msg.data;
+
+					if (typeof fileData === "string" && path.endsWith(".py")) {
+						console.debug(`Auto install the requirements in ${path}`);
+						const loadedPackages =
+							await pyodide.loadPackagesFromImports(fileData);
+						if (loadedPackages.length > 0) {
+							onModulesAutoLoaded(loadedPackages);
+						}
+						console.debug("Modules are auto-loaded.", loadedPackages);
+					}
 
 					const appifiedPath = resolveAppHomeBasedPath(appId, path);
 

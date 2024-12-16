@@ -1,3 +1,4 @@
+# type: ignore
 import spaces
 import gradio as gr
 import cv2
@@ -109,6 +110,11 @@ with gr.Blocks() as demo:
         fn=stream_object_detection,
         inputs=[video, conf_threshold],
         outputs=[output_video],
+    )
+
+    gr.Examples(
+        examples=["3285790-hd_1920_1080_30fps.mp4"],
+        inputs=[video],
     )
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ from gradio import route_utils, routes
 from gradio.data_classes import (
     PredictBodyInternal,
 )
+from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
 from gradio.route_utils import API_PREFIX
 from gradio.server_messages import (
@@ -394,6 +395,7 @@ class Queue:
         self,
         event_id: str,
         log: str,
+        title: str,
         level: Literal["info", "warning"],
         duration: float | None = 10,
         visible: bool = True,
@@ -406,6 +408,7 @@ class Queue:
                     level=level,
                     duration=duration,
                     visible=visible,
+                    title=title,
                 )
                 self.send_message(event, log_message)
 
@@ -635,7 +638,8 @@ class Queue:
                         response["is_generating"] = not event.is_finished
 
             except Exception as e:
-                traceback.print_exc()
+                if not isinstance(e, Error) or e.print_exception:
+                    traceback.print_exc()
                 response = None
                 err = e
                 for event in awake_events:
@@ -644,6 +648,7 @@ class Queue:
                         event,
                         ProcessCompletedMessage(
                             output=content,
+                            title=content.get("title", "Error"),  # type: ignore
                             success=False,
                         ),
                     )
@@ -663,7 +668,9 @@ class Queue:
                                 else ServerMessage.process_streaming,
                                 output=old_response,
                                 success=old_response is not None,
-                                time_limit=cast(int, fn.time_limit) - first_iteration
+                                time_limit=None
+                                if not fn.time_limit
+                                else cast(int, fn.time_limit) - first_iteration
                                 if event.streaming
                                 else None,
                             ),
@@ -676,7 +683,11 @@ class Queue:
                         if awake_events[0].streaming:
                             awake_events, closed_events = await Queue.wait_for_batch(
                                 awake_events,
-                                [cast(float, fn.time_limit) - first_iteration]
+                                # We need to wait for all of the events to have the latest input data
+                                # the max time is the time limit of the function or 30 seconds (arbitrary) but should
+                                # never really take that long to make a request from the client to the server unless
+                                # the client disconnected.
+                                [cast(float, fn.time_limit or 30) - first_iteration]
                                 * len(awake_events),
                             )
                             for closed_event in closed_events:
@@ -713,7 +724,8 @@ class Queue:
                             if event.streaming:
                                 response["is_generating"] = not event.is_finished
                     except Exception as e:
-                        traceback.print_exc()
+                        if not isinstance(e, Error) or e.print_exception:
+                            traceback.print_exc()
                         response = None
                         err = e
 
@@ -755,7 +767,8 @@ class Queue:
                 for event in events:
                     self.event_analytics[event._id]["process_time"] = duration
         except Exception as e:
-            traceback.print_exc()
+            if not isinstance(e, Error) or e.print_exception:
+                traceback.print_exc()
         finally:
             event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
             event_queue.current_concurrency -= 1

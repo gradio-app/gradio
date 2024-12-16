@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 import dataclasses
 import hashlib
@@ -18,12 +19,7 @@ from collections import defaultdict
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence, Set
 from pathlib import Path
 from types import ModuleType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Literal,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Literal, Union, cast
 from urllib.parse import urlparse, urlunparse
 
 import anyio
@@ -39,7 +35,6 @@ from gradio import (
     networking,
     processing_utils,
     queueing,
-    routes,
     strings,
     themes,
     utils,
@@ -74,6 +69,7 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream
+from gradio.routes import VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
@@ -796,8 +792,9 @@ class BlocksConfig:
                 f"Invalid value for parameter `trigger_mode`: {trigger_mode}. Please choose from: {['once', 'multiple', 'always_last']}"
             )
 
+        fn_to_analyze = renderable.fn if renderable else fn
         _, progress_index, event_data_index = (
-            special_args(fn) if fn else (None, None, None)
+            special_args(fn_to_analyze) if fn_to_analyze else (None, None, None)
         )
 
         # If api_name is None or empty string, use the function name
@@ -900,7 +897,10 @@ class BlocksConfig:
         config["layout"] = get_layout(root_block)
 
         config["components"] = []
-        for _id, block in self.blocks.items():
+        blocks_items = list(
+            self.blocks.items()
+        )  # freeze as list to prevent concurrent re-renders from changing the dict during loop, see https://github.com/gradio-app/gradio/issues/9991
+        for _id, block in blocks_items:
             if renderable:
                 if _id not in rendered_ids:
                     continue
@@ -943,6 +943,30 @@ class BlocksConfig:
         new.fns = copy.copy(self.fns)
         new.fn_id = self.fn_id
         return new
+
+    def attach_load_events(self, rendered_in: Renderable | None = None):
+        """Add a load event for every component whose initial value requires a function call to set."""
+        for component in self.blocks.values():
+            if rendered_in is not None and component.rendered_in != rendered_in:
+                continue
+            if (
+                isinstance(component, components.Component)
+                and component.load_event_to_attach
+            ):
+                load_fn, triggers, inputs = component.load_event_to_attach
+                has_target = len(triggers) > 0
+                triggers += [(self.root_block, "load")]
+                # Use set_event_trigger to avoid ambiguity between load class/instance method
+
+                dep = self.set_event_trigger(
+                    [EventListenerMethod(*trigger) for trigger in triggers],
+                    load_fn,
+                    inputs,
+                    component,
+                    no_target=not has_target,
+                    show_progress="hidden" if has_target else "full",
+                )[0]
+                component.load_event = dep.get_config()
 
 
 @document("launch", "queue", "integrate", "load", "unload")
@@ -1433,6 +1457,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             root_context.fn_id = max(root_context.fns.keys(), default=-1) + 1
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
             Context.root_block.proxy_urls.update(self.proxy_urls)
+            Context.root_block.extra_startup_events.extend(self.extra_startup_events)
 
         render_context = get_render_context()
         if render_context is not None:
@@ -1510,7 +1535,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         block_fn: BlockFunction | int,
         processed_input: list[Any],
         iterator: AsyncIterator[Any] | None = None,
-        requests: routes.Request | list[routes.Request] | None = None,
+        requests: Request | list[Request] | None = None,
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = False,
@@ -1549,8 +1574,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dict(zip(block_fn.inputs, processed_input, strict=False))
                 ]
 
+            fn_to_analyze = (
+                block_fn.renderable.fn if block_fn.renderable else block_fn.fn
+            )
             processed_input, progress_index, _ = special_args(
-                block_fn.fn, processed_input, request, event_data
+                fn_to_analyze, processed_input, request, event_data
             )
             progress_tracker = (
                 processed_input[progress_index] if progress_index is not None else None
@@ -1701,10 +1729,12 @@ Received inputs:
                         check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
-                        if issubclass(block.data_model, GradioModel):  # type: ignore
-                            inputs_cached = block.data_model(**inputs_cached)  # type: ignore
-                        elif issubclass(block.data_model, GradioRootModel):  # type: ignore
-                            inputs_cached = block.data_model(root=inputs_cached)  # type: ignore
+                        data_model = cast(
+                            Union[GradioModel, GradioRootModel], block.data_model
+                        )
+                        inputs_cached = data_model.model_validate(
+                            inputs_cached, context={"validate_meta": True}
+                        )
                     processed_input.append(block.preprocess(inputs_cached))
         else:
             processed_input = inputs
@@ -1743,6 +1773,10 @@ Received inputs:
         [{received}]"""
                 )
             else:
+                if len(predictions) == 1 and predictions[0] is None:
+                    # do not throw error if the function did not return anything
+                    # https://github.com/gradio-app/gradio/issues/9742
+                    return
                 warnings.warn(
                     f"""A function{name} returned too many output values (needed: {len(dep_outputs)}, returned: {len(predictions)}). Ignoring extra values.
     Output components:
@@ -1929,7 +1963,7 @@ Received inputs:
         block_fn: BlockFunction | int,
         inputs: list[Any],
         state: SessionState | None = None,
-        request: routes.Request | list[routes.Request] | None = None,
+        request: Request | list[Request] | None = None,
         iterator: AsyncIterator | None = None,
         session_hash: str | None = None,
         event_id: str | None = None,
@@ -2084,7 +2118,8 @@ Received inputs:
         hashed_values = []
         for block in block_fn.outputs:
             if block.stateful and any(
-                (block._id, "change") in fn.targets for fn in self.fns.values()
+                (block._id, "change") in fn.targets
+                for fn in state.blocks_config.fns.values()
             ):
                 value = state[block._id]
                 state_ids_to_track.append(block._id)
@@ -2103,7 +2138,7 @@ Received inputs:
 
     def get_config_file(self) -> BlocksConfigDict:
         config: BlocksConfigDict = {
-            "version": routes.VERSION,
+            "version": VERSION,
             "api_prefix": API_PREFIX,
             "mode": self.mode,
             "app_id": self.app_id,
@@ -2163,13 +2198,13 @@ Received inputs:
         super().fill_expected_parents()
         set_render_context(self.parent)
         # Configure the load events before root_block is reset
-        self.attach_load_events()
+        self.default_config.attach_load_events()
         if self.parent is None:
             Context.root_block = None
         else:
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
-        self.app = routes.App.create_app(self)
+        self.app = App.create_app(self)
         self.progress_tracking = any(
             block_fn.tracks_progress for block_fn in self.fns.values()
         )
@@ -2222,7 +2257,7 @@ Received inputs:
             default_concurrency_limit=default_concurrency_limit,
         )
         self.config = self.get_config_file()
-        self.app = routes.App.create_app(self)
+        self.app = App.create_app(self)
         return self
 
     def validate_queue_settings(self):
@@ -2279,7 +2314,7 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         _frontend: bool = True,
-    ) -> tuple[routes.App, str, str]:
+    ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
         public link used by anyone to access the demo from their browser by setting share=True.
@@ -2315,7 +2350,7 @@ Received inputs:
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
-            ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 18+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+            ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2530,6 +2565,10 @@ Received inputs:
                 # In contrast, in the Wasm env, we can't do that because `threading` is not supported and all async tasks will run in the same event loop, `pyodide.webloop.WebLoop` in the main thread.
                 # So we need to manually cancel them. See `self.close()`..
                 self.run_startup_events()
+                # In the normal mode, self.run_extra_startup_events() is awaited like https://github.com/gradio-app/gradio/blob/2afcad80abd489111e47cf586a2a8221cc3dc9b6/gradio/routes.py#L1442.
+                # But in the Wasm env, we need to call the start up events here as described above, so we can't await it as here is not in an async function.
+                # So we use create_task() instead. This is a best-effort fallback in the Wasm env but it doesn't guarantee that all the tasks are completed before they are needed.
+                asyncio.create_task(self.run_extra_startup_events())
 
         self.is_sagemaker = (
             False  # TODO: fix Gradio's behavior in sagemaker and other hosted notebooks
@@ -2538,7 +2577,7 @@ Received inputs:
             if self.is_colab:
                 if not quiet:
                     print(
-                        "Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                        "Running Gradio in a Colab notebook requires sharing enabled. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 self.share = True
             elif self.is_kaggle:
@@ -2834,30 +2873,6 @@ Received inputs:
                 self.server.close()
             for tunnel in CURRENT_TUNNELS:
                 tunnel.kill()
-
-    def attach_load_events(self):
-        """Add a load event for every component whose initial value should be randomized."""
-        root_context = Context.root_block
-        if root_context:
-            for component in root_context.blocks.values():
-                if (
-                    isinstance(component, components.Component)
-                    and component.load_event_to_attach
-                ):
-                    load_fn, triggers, inputs = component.load_event_to_attach
-                    has_target = len(triggers) > 0
-                    triggers += [(self, "load")]
-                    # Use set_event_trigger to avoid ambiguity between load class/instance method
-
-                    dep = self.default_config.set_event_trigger(
-                        [EventListenerMethod(*trigger) for trigger in triggers],
-                        load_fn,
-                        inputs,
-                        component,
-                        no_target=not has_target,
-                        show_progress="hidden" if has_target else "full",
-                    )[0]
-                    component.load_event = dep.get_config()
 
     def run_startup_events(self):
         """Events that should be run when the app containing this block starts up."""

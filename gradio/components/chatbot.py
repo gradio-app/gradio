@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import inspect
 import warnings
 from collections.abc import Callable, Sequence
@@ -12,7 +13,6 @@ from typing import (
     Any,
     Literal,
     Optional,
-    TypedDict,
     Union,
     cast,
 )
@@ -20,7 +20,7 @@ from typing import (
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from pydantic import Field
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 from gradio import utils
 from gradio.component_meta import ComponentMeta
@@ -37,6 +37,11 @@ class MetadataDict(TypedDict):
     title: Union[str, None]
 
 
+class Option(TypedDict):
+    label: NotRequired[str]
+    value: str
+
+
 class FileDataDict(TypedDict):
     path: str  # server filepath
     url: NotRequired[Optional[str]]  # normalised server url
@@ -51,6 +56,7 @@ class MessageDict(TypedDict):
     content: str | FileDataDict | tuple | Component
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
+    options: NotRequired[list[Option]]
 
 
 class FileMessage(GradioModel):
@@ -82,6 +88,7 @@ class Message(GradioModel):
     role: str
     metadata: Metadata = Field(default_factory=Metadata)
     content: Union[str, FileMessage, ComponentMessage]
+    options: Optional[list[Option]] = None
 
 
 class ExampleMessage(TypedDict):
@@ -102,13 +109,17 @@ class ChatMessage:
     role: Literal["user", "assistant", "system"]
     content: str | FileData | Component | FileDataDict | tuple | list
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
+    options: Optional[list[Option]] = None
 
 
 class ChatbotDataMessages(GradioRootModel):
     root: list[Message]
 
 
-TupleFormat = list[list[Union[str, tuple[str], tuple[str, str], None]]]
+TupleFormat = Sequence[
+    tuple[Union[str, tuple[str], None], Union[str, tuple[str], None]]
+    | list[Union[str, tuple[str], None]]
+]
 
 if TYPE_CHECKING:
     from gradio.components import Timer
@@ -147,6 +158,9 @@ class Chatbot(Component):
         Events.retry,
         Events.undo,
         Events.example_select,
+        Events.option_select,
+        Events.clear,
+        Events.copy,
     ]
 
     def __init__(
@@ -168,6 +182,7 @@ class Chatbot(Component):
         render: bool = True,
         key: int | str | None = None,
         height: int | str | None = 400,
+        resizeable: bool = False,
         max_height: int | str | None = None,
         min_height: int | str | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
@@ -177,12 +192,14 @@ class Chatbot(Component):
         avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
         sanitize_html: bool = True,
         render_markdown: bool = True,
-        bubble_full_width: bool = True,
+        bubble_full_width=None,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
         placeholder: str | None = None,
         examples: list[ExampleMessage] | None = None,
         show_copy_all_button=False,
+        allow_file_downloads=True,
+        group_consecutive_messages: bool = True,
     ):
         """
         Parameters:
@@ -202,6 +219,7 @@ class Chatbot(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll.
+            resizeable: If True, the component will be resizeable by the user.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll. If messages are shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
@@ -211,16 +229,18 @@ class Chatbot(Component):
             avatar_images: Tuple of two avatar image paths or URLs for user and bot (in that order). Pass None for either the user or bot image to skip. Must be within the working directory of the Gradio app or an external URL.
             sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
-            bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
+            bubble_full_width: Deprecated.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
             examples: A list of example messages to display in the chatbot before any user/assistant messages are shown. Each example should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the example box, and an optional "display_text" key, whose value should be the text to display in the example box. If "display_text" is not provided, the value of "text" will be displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
+            allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
+            group_consecutive_messages: If True, will display consecutive messages from the same role in the same bubble. If False, will display each message in a separate bubble. Defaults to True.
         """
         if type is None:
             warnings.warn(
-                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style 'role' and 'content' keys.",
+                "You have not specified a value for the `type` parameter. Defaulting to the 'tuples' format for chatbot messages, but this is deprecated and will be removed in a future version of Gradio. Please set type='messages' instead, which uses openai-style dictionaries with 'role' and 'content' keys.",
                 UserWarning,
             )
             type = "tuples"
@@ -234,15 +254,14 @@ class Chatbot(Component):
                 f"The `type` parameter must be 'messages' or 'tuples', received: {type}"
             )
         self.type: Literal["tuples", "messages"] = type
-        if self.type == "messages":
-            self.data_model = ChatbotDataMessages
-        else:
-            self.data_model = ChatbotDataTuples
+        self._setup_data_model()
         self.autoscroll = autoscroll
         self.height = height
+        self.resizeable = resizeable
         self.max_height = max_height
         self.min_height = min_height
         self.rtl = rtl
+        self.group_consecutive_messages = group_consecutive_messages
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
@@ -254,10 +273,16 @@ class Chatbot(Component):
         self.render_markdown = render_markdown
         self.show_copy_button = show_copy_button
         self.sanitize_html = sanitize_html
-        self.bubble_full_width = bubble_full_width
+        if bubble_full_width is not None:
+            warnings.warn(
+                "The 'bubble_full_width' parameter is deprecated and will be removed in a future version. This parameter no longer has any effect.",
+                DeprecationWarning,
+            )
+        self.bubble_full_width = None
         self.line_breaks = line_breaks
         self.layout = layout
         self.show_copy_all_button = show_copy_all_button
+        self.allow_file_downloads = allow_file_downloads
         super().__init__(
             label=label,
             every=every,
@@ -284,6 +309,15 @@ class Chatbot(Component):
         self.placeholder = placeholder
 
         self.examples = examples
+        self._setup_examples()
+
+    def _setup_data_model(self):
+        if self.type == "messages":
+            self.data_model = ChatbotDataMessages
+        else:
+            self.data_model = ChatbotDataTuples
+
+    def _setup_examples(self):
         if self.examples is not None:
             for i, example in enumerate(self.examples):
                 if "icon" in example and isinstance(example["icon"], str):
@@ -307,7 +341,7 @@ class Chatbot(Component):
                                 file_info[i] = file_data
 
     @staticmethod
-    def _check_format(messages: list[Any], type: Literal["messages", "tuples"]):
+    def _check_format(messages: Any, type: Literal["messages", "tuples"]):
         if type == "messages":
             all_valid = all(
                 isinstance(message, dict)
@@ -391,9 +425,7 @@ class Chatbot(Component):
     def preprocess(
         self,
         payload: ChatbotDataTuples | ChatbotDataMessages | None,
-    ) -> (
-        list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict] | None
-    ):
+    ) -> list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict]:
         """
         Parameters:
             payload: data as a ChatbotData object
@@ -401,7 +433,7 @@ class Chatbot(Component):
             If type is 'tuples', passes the messages in the chatbot as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. Each message can be (1) a string in valid Markdown, (2) a tuple if there are displayed files: (a filepath or URL to a file, [optional string alt text]), or (3) None, if there is no message displayed. If type is 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content` key's value supports everything the `tuples` format supports.
         """
         if payload is None:
-            return payload
+            return []
         if self.type == "tuples":
             if not isinstance(payload, ChatbotDataTuples):
                 raise Error("Data incompatible with the tuples format")
@@ -439,11 +471,12 @@ class Chatbot(Component):
         | FileDataDict
         | FileData
         | GradioComponent
+        | ComponentMessage
         | None,
     ) -> str | FileMessage | ComponentMessage | None:
         if chat_message is None:
             return None
-        elif isinstance(chat_message, FileMessage):
+        if isinstance(chat_message, (FileMessage, ComponentMessage, str)):
             return chat_message
         elif isinstance(chat_message, FileData):
             return FileMessage(file=chat_message)
@@ -467,9 +500,6 @@ class Chatbot(Component):
         elif isinstance(chat_message, (tuple, list)):
             filepath = str(chat_message[0])
             return self._create_file_message(chat_message, filepath)
-        elif isinstance(chat_message, str):
-            chat_message = inspect.cleandoc(chat_message)
-            return chat_message
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
@@ -487,6 +517,7 @@ class Chatbot(Component):
     def _postprocess_message_messages(
         self, message: MessageDict | ChatMessage
     ) -> Message:
+        message = copy.deepcopy(message)
         if isinstance(message, dict):
             message["content"] = self._postprocess_content(message["content"])
             msg = Message(**message)  # type: ignore
@@ -496,6 +527,7 @@ class Chatbot(Component):
                 role=message.role,
                 content=message.content,  # type: ignore
                 metadata=message.metadata,  # type: ignore
+                options=message.options,
             )
         elif isinstance(message, Message):
             return message
@@ -504,6 +536,11 @@ class Chatbot(Component):
                 f"Invalid message for Chatbot component: {message}", visible=False
             )
 
+        msg.content = (
+            inspect.cleandoc(msg.content)
+            if isinstance(msg.content, str)
+            else msg.content
+        )
         return msg
 
     def postprocess(

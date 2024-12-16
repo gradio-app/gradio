@@ -1,5 +1,42 @@
 # gradio_client
 
+## 1.5.2
+
+### Features
+
+- [#10196](https://github.com/gradio-app/gradio/pull/10196) [`c9ba9a4`](https://github.com/gradio-app/gradio/commit/c9ba9a447596a9ccdd21955adb3b34b15cac7ade) - Use the modern lower-case Python types in the API typing information.  Thanks @abidlabs!
+- [#10193](https://github.com/gradio-app/gradio/pull/10193) [`424365b`](https://github.com/gradio-app/gradio/commit/424365bdbd0b805e3b2d0c44ccc0f47201b1d96a) - JSON type fix in Client and and typing fix for `/chat` endpoint in `gr.ChatInterface`.  Thanks @abidlabs!
+
+## 1.5.1
+
+### Fixes
+
+- [#10090](https://github.com/gradio-app/gradio/pull/10090) [`5ea3cb5`](https://github.com/gradio-app/gradio/commit/5ea3cb51a39ba01fda7f65ff31e59955e1d12cea) - Update `requirements.txt` for `gradio` and `gradio_client`.  Thanks @abidlabs!
+
+## 1.5.0
+
+### Features
+
+- [#10017](https://github.com/gradio-app/gradio/pull/10017) [`a95fda1`](https://github.com/gradio-app/gradio/commit/a95fda1f85e80ce8423f4373bb238422b9b7aa32) - fix small bug when join src & api_prefix.  Thanks @Chandler-Bing!
+
+## 1.4.3
+
+### Fixes
+
+- [#9913](https://github.com/gradio-app/gradio/pull/9913) [`d81f430`](https://github.com/gradio-app/gradio/commit/d81f430fd50546001b76c0ae5fded32c6d3093f7) - fix: Fix filename stripping to preserve extensions.  Thanks @TakaSoap!
+
+## 1.4.2
+
+### Fixes
+
+- [#9754](https://github.com/gradio-app/gradio/pull/9754) [`36a5076`](https://github.com/gradio-app/gradio/commit/36a50769095081a0e77f04f513d47a2e9d4531ba) - Update client.py: raise error on 429 get_config.  Thanks @Pendrokar!
+
+## 1.4.1
+
+### Fixes
+
+- [#9678](https://github.com/gradio-app/gradio/pull/9678) [`a25a26e`](https://github.com/gradio-app/gradio/commit/a25a26e208c3f3675ba857a889553c7ccc95e866) - Fix: `file_types` checking bug.  Thanks @jasongzy!
+
 ## 1.4.0-beta.5
 
 ### Features

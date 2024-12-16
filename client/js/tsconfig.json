@@ -14,7 +14,7 @@
 		"skipLibCheck": true,
 
 		/* Bundler */
-		"moduleResolution": "bundler",
+		"moduleResolution": "Bundler",
 		"skipDefaultLibCheck": true,
 		"allowImportingTsExtensions": true,
 		"esModuleInterop": true,

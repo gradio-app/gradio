@@ -1,6 +1,6 @@
 import adapter from "@sveltejs/adapter-node";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
-import sveltePreprocess from "svelte-preprocess";
+import { sveltePreprocess } from "svelte-preprocess";
 import custom_media from "postcss-custom-media";
 import global_data from "@csstools/postcss-global-data";
 import { resolve } from "path";
@@ -13,7 +13,6 @@ const theme_token_path = join(
 	__dirname,
 	"..",
 	"..",
-
 	"theme",
 	"src",
 	"tokens.css"
@@ -22,6 +21,7 @@ const theme_token_path = join(
 const config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
+
 	preprocess: [
 		vitePreprocess(),
 		sveltePreprocess({
@@ -30,6 +30,9 @@ const config = {
 			}
 		})
 	],
+	vitePlugin: {
+		hot: process.env.NODE_ENV === "development"
+	},
 
 	kit: {
 		// adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.

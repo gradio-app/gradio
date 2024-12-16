@@ -8,12 +8,15 @@
 	export let i18n;
 	export let upload;
 	export let _fetch;
+	export let allow_file_downloads: boolean;
+	export let display_icon_button_wrapper_top_corner = false;
 </script>
 
 {#if type === "gallery"}
 	<svelte:component
 		this={components[type]}
 		{value}
+		{display_icon_button_wrapper_top_corner}
 		show_label={false}
 		{i18n}
 		label=""
@@ -43,21 +46,23 @@
 		show_share_button={true}
 		{i18n}
 		label=""
-		waveform_settings={{}}
+		waveform_settings={{ autoplay: props.autoplay }}
 		waveform_options={{}}
-		show_download_button={false}
+		show_download_button={allow_file_downloads}
+		{display_icon_button_wrapper_top_corner}
 		on:load
 	/>
 {:else if type === "video"}
 	<svelte:component
 		this={components[type]}
-		autoplay={true}
+		autoplay={props.autoplay}
 		value={value.video || value}
 		show_label={false}
 		show_share_button={true}
 		{i18n}
 		{upload}
-		show_download_button={false}
+		{display_icon_button_wrapper_top_corner}
+		show_download_button={allow_file_downloads}
 		on:load
 	>
 		<track kind="captions" />
@@ -68,7 +73,8 @@
 		{value}
 		show_label={false}
 		label="chatbot-image"
-		show_download_button={false}
+		show_download_button={allow_file_downloads}
+		{display_icon_button_wrapper_top_corner}
 		on:load
 		{i18n}
 	/>

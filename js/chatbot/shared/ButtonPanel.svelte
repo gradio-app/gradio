@@ -8,19 +8,18 @@
 	import { is_component_message } from "./utils";
 	import { Retry, Undo } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
-
 	export let likeable: boolean;
 	export let show_retry: boolean;
 	export let show_undo: boolean;
 	export let show_copy_button: boolean;
-	export let show: boolean;
 	export let message: NormalisedMessage | NormalisedMessage[];
 	export let position: "right" | "left";
 	export let avatar: FileData | null;
-	export let disable: boolean;
+	export let generating: boolean;
 
 	export let handle_action: (selected: string | null) => void;
 	export let layout: "bubble" | "panel";
+	export let dispatch: any;
 
 	function is_all_text(
 		message: NormalisedMessage[] | NormalisedMessage
@@ -48,35 +47,32 @@
 		message.content.value?.url;
 </script>
 
-{#if show}
+{#if show_copy || show_retry || show_undo || likeable}
 	<div
 		class="message-buttons-{position} {layout} message-buttons {avatar !==
 			null && 'with-avatar'}"
 	>
 		<IconButtonWrapper top_panel={false}>
 			{#if show_copy}
-				<Copy value={message_text} />
-			{/if}
-			{#if show_download && !Array.isArray(message) && is_component_message(message)}
-				<DownloadLink
-					href={message?.content?.value.url}
-					download={message.content.value.orig_name || "image"}
-				>
-					<IconButton Icon={DownloadIcon} />
-				</DownloadLink>
+				<Copy
+					value={message_text}
+					on:copy={(e) => dispatch("copy", e.detail)}
+				/>
 			{/if}
 			{#if show_retry}
 				<IconButton
 					Icon={Retry}
+					label="Retry"
 					on:click={() => handle_action("retry")}
-					disabled={disable}
+					disabled={generating}
 				/>
 			{/if}
 			{#if show_undo}
 				<IconButton
+					label="Undo"
 					Icon={Undo}
 					on:click={() => handle_action("undo")}
-					disabled={disable}
+					disabled={generating}
 				/>
 			{/if}
 			{#if likeable}
@@ -91,6 +87,9 @@
 		margin: 0px calc(var(--spacing-xl) * 2);
 	}
 
+	.message-buttons {
+		z-index: var(--layer-1);
+	}
 	.message-buttons-left {
 		align-self: flex-start;
 	}

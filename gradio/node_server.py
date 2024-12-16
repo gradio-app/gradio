@@ -18,8 +18,10 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 # By default, the local server will try to open on localhost, port 7860.
 # If that is not available, then it will try 7861, 7862, ... 7959.
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
-TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
-LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+TRY_NUM_PORTS = int(os.getenv("GRADIO_NODE_NUM_PORTS", "100"))
+LOCALHOST_NAME = os.getenv(
+    "GRADIO_NODE_SERVER_NAME", os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+)
 
 
 def start_node_server(
@@ -100,10 +102,15 @@ def start_node_process(
             if GRADIO_LOCAL_DEV_MODE:
                 env["GRADIO_LOCAL_DEV_MODE"] = "1"
 
-            register_file = Path(__file__).parent.joinpath("templates", "register.mjs")
+            register_file = str(
+                Path(__file__).parent.joinpath("templates", "register.mjs")
+            )
+
+            if sys.platform == "win32":
+                register_file = "file://" + register_file
 
             node_process = subprocess.Popen(
-                [node_path, "--import", str(register_file), SSR_APP_PATH],
+                [node_path, "--import", register_file, SSR_APP_PATH],
                 stdout=subprocess.DEVNULL,
                 env=env,
             )
@@ -139,7 +146,7 @@ def start_node_process(
         f"Cannot start Node server on any port in the range {server_ports[0]}-{server_ports[-1]}."
     )
     print(
-        "Please install Node 18 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
+        "Please install Node 20 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
     )
     print(
         "You can explicitly specify a port by setting the environment variable GRADIO_NODE_PORT."

@@ -1,5 +1,28 @@
 # @gradio/preview
 
+## 0.13.0
+
+### Features
+
+- [#9794](https://github.com/gradio-app/gradio/pull/9794) [`70bda3b`](https://github.com/gradio-app/gradio/commit/70bda3bb187a7219f4707344cf47edd0a021da19) - fix storybook build.  Thanks @pngwn!
+
+## 0.12.1
+
+### Fixes
+
+- [#9707](https://github.com/gradio-app/gradio/pull/9707) [`8d848dd`](https://github.com/gradio-app/gradio/commit/8d848dd1e46751a9c5bf26245158add47be44834) - Add a port timeout detection feature for gradio/preview.  Thanks @achilou!
+
+## 0.12.0
+
+### Features
+
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix custom component CLI on main/5.0
+
+### Fixes
+
+- [#8843](https://github.com/gradio-app/gradio/pull/8843) [`6f95286`](https://github.com/gradio-app/gradio/commit/6f95286337459efbccb95c9cfac63355669df9ee) - Fix package.json `exports` of @gradio/preview
+
 ## 0.12.0-beta.1
 
 ### Features

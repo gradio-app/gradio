@@ -689,17 +689,15 @@ def get_extension(encoding: str) -> str | None:
 
 def is_valid_file(file_path: str, file_types: list[str]) -> bool:
     mime_type = get_mimetype(file_path)
-    if mime_type is None:
-        return False
     for file_type in file_types:
         if file_type == "file":
             return True
         if file_type.startswith("."):
             file_type = file_type.lstrip(".").lower()
-            mime_type_split = mime_type.lower().split("/")
-            if file_type == mime_type_split[1]:
+            file_ext = Path(file_path).suffix.lstrip(".").lower()
+            if file_type == file_ext:
                 return True
-        elif mime_type.startswith(f"{file_type}/"):
+        elif mime_type is not None and mime_type.startswith(f"{file_type}/"):
             return True
     return False
 
@@ -752,14 +750,21 @@ def decode_base64_to_binary(encoding: str) -> tuple[bytes, str | None]:
 
 
 def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> str:
-    """Strips invalid characters from a filename and ensures that the file_length is less than `max_bytes` bytes."""
-    filename = "".join([char for char in filename if char.isalnum() or char in "._- "])
+    """
+    Strips invalid characters from a filename and ensures it does not exceed the maximum byte length
+    Invalid characters are any characters that are not alphanumeric or one of the following: . _ -
+    The filename may include an extension (in which case it is preserved exactly as is), or could be just a name without an extension.
+    """
+    name, ext = os.path.splitext(filename)
+    name = "".join([char for char in name if char.isalnum() or char in "._- "])
+    filename = name + ext
     filename_len = len(filename.encode())
     if filename_len > max_bytes:
         while filename_len > max_bytes:
-            if len(filename) == 0:
+            if len(name) == 0:
                 break
-            filename = filename[:-1]
+            name = name[:-1]
+            filename = name + ext
             filename_len = len(filename.encode())
     return filename
 
@@ -901,9 +906,11 @@ def get_type(schema: dict):
 
 FILE_DATA_FORMATS = [
     "Dict(path: str | None (Path to a local file), url: str | None (Publicly available url or base64 encoded image), size: int | None (Size of image in bytes), orig_name: str | None (Original filename), mime_type: str | None (mime type of image), is_stream: bool (Can always be set to False), meta: Dict())",
+    "dict(path: str | None (Path to a local file), url: str | None (Publicly available url or base64 encoded image), size: int | None (Size of image in bytes), orig_name: str | None (Original filename), mime_type: str | None (mime type of image), is_stream: bool (Can always be set to False), meta: dict())",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)",
     "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: Dict())",
+    "dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: dict())",
 ]
 
 CURRENT_FILE_DATA_FORMAT = FILE_DATA_FORMATS[-1]
@@ -921,7 +928,7 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
     type_ = get_type(schema)
     if type_ == {}:
         if "json" in schema.get("description", {}):
-            return "Dict[Any, Any]"
+            return "str | float | bool | list | dict"
         else:
             return "Any"
     elif type_ == "$ref":
@@ -948,15 +955,15 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
             elements = ", ".join(
                 [_json_schema_to_python_type(i, defs) for i in items["prefixItems"]]
             )
-            return f"Tuple[{elements}]"
+            return f"tuple[{elements}]"
         elif "prefixItems" in schema:
             elements = ", ".join(
                 [_json_schema_to_python_type(i, defs) for i in schema["prefixItems"]]
             )
-            return f"Tuple[{elements}]"
+            return f"tuple[{elements}]"
         else:
             elements = _json_schema_to_python_type(items, defs)
-            return f"List[{elements}]"
+            return f"list[{elements}]"
     elif type_ == "object":
 
         def get_desc(v):
@@ -975,7 +982,7 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
                 f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
             ]
         des = ", ".join(des)
-        return f"Dict({des})"
+        return f"dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
         desc = " | ".join([_json_schema_to_python_type(i, defs) for i in schema[type_]])
         return desc

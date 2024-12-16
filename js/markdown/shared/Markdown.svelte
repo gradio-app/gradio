@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { copy, css_units } from "@gradio/utils";
+	import type { CopyData } from "@gradio/utils";
 	import { Copy, Check } from "@gradio/icons";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 
-	import MarkdownCode from "./MarkdownCode.svelte";
+	import { MarkdownCode } from "@gradio/markdown-code";
 
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -28,13 +29,17 @@
 	let copied = false;
 	let timer: NodeJS.Timeout;
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+		copy: CopyData;
+	}>();
 
 	$: value, dispatch("change");
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
 			await navigator.clipboard.writeText(value);
+			dispatch("copy", { value: value });
 			copy_feedback();
 		}
 	}
