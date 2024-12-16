@@ -140,16 +140,16 @@ def hi(name):
 			<div class="log-panel">
 				<h4>stdout</h4>
 				<div class="log-box" id="stdout" style="color: black;">
-						{#each stdouts as stdout}
+					{#each stdouts as stdout}
 						<pre class="log-line">{stdout}</pre>
-						{/each}
+					{/each}
 				</div>
 			</div>
 			<div class="log-panel">
 				<h4>stdout</h4>
 				<div class="log-box" id="stderr" style="color: red;">
 					{#each stderrs as stderr}
-					<pre class="log-line">{stderr}</pre>
+						<pre class="log-line">{stderr}</pre>
 					{/each}
 				</div>
 			</div>
@@ -217,7 +217,10 @@ def hi(name):
 	}
 
 	.log-panel-container {
-		height: 300px; position: relative; display: flex; flex-direction: row;
+		height: 300px;
+		position: relative;
+		display: flex;
+		flex-direction: row;
 	}
 	.log-panel {
 		width: 50%;
