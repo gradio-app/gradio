@@ -23,7 +23,7 @@ class HTML(Component):
     Guides: key-features
     """
 
-    EVENTS = [Events.change]
+    EVENTS = [Events.change, Events.click]
 
     def __init__(
         self,
@@ -40,6 +40,8 @@ class HTML(Component):
         key: int | str | None = None,
         min_height: int | None = None,
         max_height: int | None = None,
+        container: bool = False,
+        padding: bool = True,
     ):
         """
         Parameters:
@@ -55,9 +57,12 @@ class HTML(Component):
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If HTML content exceeds the height, the component will expand to fit the content.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If content exceeds the height, the component will scroll.
+            container: If True, the HTML component will be displayed in a container. Default is False.
+            padding: If True, the HTML component will have a certain padding (set by the `--block-padding` CSS variable) in all directions. Default is True.
         """
         self.min_height = min_height
         self.max_height = max_height
+        self.padding = padding
         super().__init__(
             label=label,
             every=every,
@@ -69,6 +74,7 @@ class HTML(Component):
             render=render,
             key=key,
             value=value,
+            container=container,
         )
 
     def example_payload(self) -> Any:

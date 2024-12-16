@@ -1,5 +1,41 @@
 # @gradio/multimodaltextbox
 
+## 0.8.0
+
+### Features
+
+- [#10135](https://github.com/gradio-app/gradio/pull/10135) [`3e93740`](https://github.com/gradio-app/gradio/commit/3e93740f057712278a7c2194a1702f48915683e1) - Improve pasted text behaviour in `Multimodaltextbox`.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10168](https://github.com/gradio-app/gradio/pull/10168) [`7d70596`](https://github.com/gradio-app/gradio/commit/7d70596d0b3343dc4b357758f85420a0afdb65a2) - Multimodal autofocus fix.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/video@0.12.1
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/image@0.19.0
+
+## 0.7.8
+
+### Dependency updates
+
+- @gradio/image@0.18.0
+- @gradio/video@0.12.0
+
+## 0.7.7
+
+### Dependency updates
+
+- @gradio/video@0.11.9
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/image@0.17.0
+
 ## 0.7.6
 
 ### Fixes

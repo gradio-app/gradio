@@ -396,6 +396,31 @@ class DownloadData(EventData):
         """
 
 
+@document()
+class CopyData(EventData):
+    """
+    The gr.CopyData class is a subclass of gr.EventData that specifically carries information about the `.copy()` event. When gr.CopyData
+    is added as a type hint to an argument of an event listener method, a gr.CopyData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+        def on_copy(copy_data: gr.CopyData):
+            return f"Copied text: {copy_data.value}"
+        with gr.Blocks() as demo:
+            textbox = gr.Textbox("Hello World!")
+            copied = gr.Textbox()
+            textbox.copy(on_copy, None, copied)
+        demo.launch()
+    """
+
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.value: Any = data["value"]
+        """
+        The value that was copied.
+        """
+
+
 @dataclasses.dataclass
 class EventListenerMethod:
     block: Block | None
@@ -938,9 +963,11 @@ class Events:
     )
     example_select = EventListener(
         "example_select",
-        config_data=lambda: {"example_selectable": False},
-        callback=lambda block: setattr(block, "example_selectable", True),
         doc="This listener is triggered when the user clicks on an example from within the {{ component }}. This event has SelectData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value. See SelectData documentation on how to use this event data.",
+    )
+    option_select = EventListener(
+        "option_select",
+        doc="This listener is triggered when the user clicks on an option from within the {{ component }}. This event has SelectData of type gradio.SelectData that carries information, accessible through SelectData.index and SelectData.value. See SelectData documentation on how to use this event data.",
     )
     load = EventListener(
         "load",
@@ -986,4 +1013,8 @@ class Events:
     download = EventListener(
         "download",
         doc="This listener is triggered when the user downloads a file from the {{ component }}. Uses event data gradio.DownloadData to carry information about the downloaded file as a FileData object. See EventData documentation on how to use this event data",
+    )
+    copy = EventListener(
+        "copy",
+        doc="This listener is triggered when the user copies content from the {{ component }}. Uses event data gradio.CopyData to carry information about the copied content. See EventData documentation on how to use this event data",
     )

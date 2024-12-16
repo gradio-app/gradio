@@ -1,5 +1,68 @@
 # @gradio/core
 
+## 0.5.0
+
+### Features
+
+- [#10166](https://github.com/gradio-app/gradio/pull/10166) [`8ac5b13`](https://github.com/gradio-app/gradio/commit/8ac5b13c96f871ac4b0f13c6ebfbb5559a18bcc2) - Add Japanese translations for login UI.  Thanks @kazuhitoyokoi!
+- [#10159](https://github.com/gradio-app/gradio/pull/10159) [`7ca3685`](https://github.com/gradio-app/gradio/commit/7ca36850c9e46a1eb5b7a3866b4b166776b4146f) - Add Japanese message into message catalog.  Thanks @kazuhitoyokoi!
+
+### Fixes
+
+- [#10170](https://github.com/gradio-app/gradio/pull/10170) [`5e6e234`](https://github.com/gradio-app/gradio/commit/5e6e234cba820d29ebe29de2597d36ab3683093b) - Custom component in rerender.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.10.10
+- @gradio/paramviewer@0.6.1
+- @gradio/video@0.12.1
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/button@0.3.9
+- @gradio/atoms@0.12.0
+- @gradio/image@0.19.0
+- @gradio/gallery@0.14.0
+- @gradio/plot@0.9.4
+- @gradio/file@0.11.3
+- @gradio/column@0.2.0
+- @gradio/textbox@0.9.1
+- @gradio/checkbox@0.4.9
+
+## 0.4.1
+
+### Dependency updates
+
+- @gradio/gallery@0.13.10
+- @gradio/paramviewer@0.6.0
+- @gradio/image@0.18.0
+- @gradio/video@0.12.0
+
+## 0.4.1
+
+### Fixes
+
+- [#9822](https://github.com/gradio-app/gradio/pull/9822) [`2e2cdbf`](https://github.com/gradio-app/gradio/commit/2e2cdbfb609ca992ccc31bb38589486aaaa14012) - Fix css preload when serving from proxied subpaths.  Thanks @amol-!
+
+### Dependency updates
+
+- @gradio/video@0.11.9
+- @gradio/atoms@0.11.2
+- @gradio/code@0.10.9
+- @gradio/paramviewer@0.5.8
+- @gradio/tabitem@0.3.5
+- @gradio/tabs@0.3.5
+- @gradio/utils@0.9.0
+- @gradio/button@0.3.8
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/gallery@0.13.9
+- @gradio/plot@0.9.3
+- @gradio/image@0.17.0
+- @gradio/file@0.11.2
+- @gradio/textbox@0.9.0
+- @gradio/column@0.2.0
+- @gradio/checkbox@0.4.8
+
 ## 0.4.0
 
 ### Features

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { is_component_message, is_last_bot_message } from "../shared/utils";
+	import { File } from "@gradio/icons";
 	import { Image } from "@gradio/image/shared";
 	import Component from "./Component.svelte";
 	import type { FileData, Client } from "@gradio/client";
@@ -16,7 +17,6 @@
 	export let role = "user";
 	export let messages: NormalisedMessage[] = [];
 	export let layout: "bubble" | "panel";
-	export let bubble_full_width: boolean;
 	export let render_markdown: boolean;
 	export let latex_delimiters: {
 		left: string;
@@ -45,6 +45,7 @@
 	export let handle_action: (selected: string | null) => void;
 	export let scroll: () => void;
 	export let allow_file_downloads: boolean;
+	export let display_consecutive_in_same_bubble: boolean;
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -82,6 +83,7 @@
 		position: "left" | "right";
 		layout: "bubble" | "panel";
 		avatar: FileData | null;
+		dispatch: any;
 	};
 
 	let button_panel_props: ButtonPanelProps;
@@ -95,7 +97,8 @@
 		message: msg_format === "tuples" ? messages[0] : messages,
 		position: role === "user" ? "right" : "left",
 		avatar: avatar_img,
-		layout
+		layout,
+		dispatch
 	};
 </script>
 
@@ -114,44 +117,55 @@
 		class="flex-wrap"
 		class:component-wrap={messages[0].type === "component"}
 	>
-		{#each messages as message, thought_index}
-			<div
-				class="message {role} {is_component_message(message)
-					? message?.content.component
-					: ''}"
-				class:message-fit={layout === "bubble" && !bubble_full_width}
-				class:panel-full-width={true}
-				class:message-markdown-disabled={!render_markdown}
-				style:text-align={rtl && role === "user" ? "left" : "right"}
-				class:component={message.type === "component"}
-				class:html={is_component_message(message) &&
-					message.content.component === "html"}
-				class:thought={thought_index > 0}
-			>
-				<button
-					data-testid={role}
-					class:latest={i === value.length - 1}
+		<div
+			class:message={display_consecutive_in_same_bubble}
+			class={display_consecutive_in_same_bubble ? role : ""}
+		>
+			{#each messages as message, thought_index}
+				<div
+					class="message {!display_consecutive_in_same_bubble ? role : ''}"
+					class:panel-full-width={true}
 					class:message-markdown-disabled={!render_markdown}
-					style:user-select="text"
-					class:selectable
-					style:cursor={selectable ? "pointer" : "default"}
-					style:text-align={rtl ? "right" : "left"}
-					on:click={() => handle_select(i, message)}
-					on:keydown={(e) => {
-						if (e.key === "Enter") {
-							handle_select(i, message);
-						}
-					}}
-					dir={rtl ? "rtl" : "ltr"}
-					aria-label={role + "'s message: " + get_message_label_data(message)}
+					class:component={message.type === "component"}
+					class:html={is_component_message(message) &&
+						message.content.component === "html"}
+					class:thought={thought_index > 0}
 				>
-					{#if message.type === "text"}
-						<div class="message-content">
-							{#if message.metadata.title}
-								<MessageBox
-									title={message.metadata.title}
-									expanded={is_last_bot_message([message], value)}
-								>
+					<button
+						data-testid={role}
+						class:latest={i === value.length - 1}
+						class:message-markdown-disabled={!render_markdown}
+						style:user-select="text"
+						class:selectable
+						style:cursor={selectable ? "pointer" : "default"}
+						style:text-align={rtl ? "right" : "left"}
+						on:click={() => handle_select(i, message)}
+						on:keydown={(e) => {
+							if (e.key === "Enter") {
+								handle_select(i, message);
+							}
+						}}
+						dir={rtl ? "rtl" : "ltr"}
+						aria-label={role + "'s message: " + get_message_label_data(message)}
+					>
+						{#if message.type === "text"}
+							<div class="message-content">
+								{#if message?.metadata?.title}
+									<MessageBox
+										title={message.metadata.title}
+										expanded={is_last_bot_message([message], value)}
+									>
+										<Markdown
+											message={message.content}
+											{latex_delimiters}
+											{sanitize_html}
+											{render_markdown}
+											{line_breaks}
+											on:load={scroll}
+											{root}
+										/>
+									</MessageBox>
+								{:else}
 									<Markdown
 										message={message.content}
 										{latex_delimiters}
@@ -161,57 +175,70 @@
 										on:load={scroll}
 										{root}
 									/>
-								</MessageBox>
-							{:else}
-								<Markdown
-									message={message.content}
-									{latex_delimiters}
-									{sanitize_html}
-									{render_markdown}
-									{line_breaks}
-									on:load={scroll}
-									{root}
-								/>
-							{/if}
-						</div>
-					{:else if message.type === "component" && message.content.component in _components}
-						<Component
-							{target}
-							{theme_mode}
-							props={message.content.props}
-							type={message.content.component}
-							components={_components}
-							value={message.content.value}
-							{i18n}
-							{upload}
-							{_fetch}
-							on:load={() => scroll()}
-							{allow_file_downloads}
-						/>
-					{:else if message.type === "component" && message.content.component === "file"}
-						<a
-							data-testid="chatbot-file"
-							class="file-pil"
-							href={message.content.value.url}
-							target="_blank"
-							download={window.__is_colab__
-								? null
-								: message.content.value?.orig_name ||
-									message.content.value?.path.split("/").pop() ||
-									"file"}
-						>
-							{message.content.value?.orig_name ||
-								message.content.value?.path.split("/").pop() ||
-								"file"}
-						</a>
-					{/if}
-				</button>
-			</div>
-
-			{#if layout === "panel"}
-				<ButtonPanel {...button_panel_props} />
-			{/if}
-		{/each}
+								{/if}
+							</div>
+						{:else if message.type === "component" && message.content.component in _components}
+							<Component
+								{target}
+								{theme_mode}
+								props={message.content.props}
+								type={message.content.component}
+								components={_components}
+								value={message.content.value}
+								display_icon_button_wrapper_top_corner={thought_index > 0 &&
+									display_consecutive_in_same_bubble}
+								{i18n}
+								{upload}
+								{_fetch}
+								on:load={() => scroll()}
+								{allow_file_downloads}
+							/>
+						{:else if message.type === "component" && message.content.component === "file"}
+							<div class="file-container">
+								<div class="file-icon">
+									<File />
+								</div>
+								<div class="file-info">
+									<a
+										data-testid="chatbot-file"
+										class="file-link"
+										href={message.content.value.url}
+										target="_blank"
+										download={window.__is_colab__
+											? null
+											: message.content.value?.orig_name ||
+												message.content.value?.path.split("/").pop() ||
+												"file"}
+									>
+										<span class="file-name"
+											>{message.content.value?.orig_name ||
+												message.content.value?.path.split("/").pop() ||
+												"file"}</span
+										>
+									</a>
+									<span class="file-type"
+										>{(
+											message.content.value?.orig_name ||
+											message.content.value?.path ||
+											""
+										)
+											.split(".")
+											.pop()
+											.toUpperCase()}</span
+									>
+								</div>
+							</div>
+						{/if}
+					</button>
+				</div>
+			{/each}
+		</div>
+		{#if layout === "panel"}
+			<ButtonPanel
+				{...button_panel_props}
+				on:copy={(e) => dispatch("copy", e.detail)}
+			/>
+		{/if}
 	</div>
 </div>
 
@@ -299,10 +326,6 @@
 		border-radius: var(--radius-md);
 	}
 
-	.message-fit {
-		width: fit-content !important;
-	}
-
 	.panel-full-width {
 		width: 100%;
 	}
@@ -313,11 +336,9 @@
 	.user {
 		border-width: 1px;
 		border-radius: var(--radius-md);
-		align-self: flex-start;
+		align-self: flex-end;
 		border-bottom-right-radius: 0;
 		box-shadow: var(--shadow-drop);
-		align-self: flex-start;
-		text-align: right;
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 	}
@@ -378,10 +399,6 @@
 
 	.bubble .with_opposite_avatar.user-row {
 		margin-left: calc(var(--spacing-xxl) + 35px + var(--spacing-xxl));
-	}
-
-	.bubble .message-fit {
-		width: fit-content !important;
 	}
 
 	/* panel mode styles */
@@ -576,5 +593,53 @@
 
 	.panel .message {
 		margin-bottom: var(--spacing-md);
+	}
+
+	.file-container {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-lg);
+		padding: var(--spacing-lg);
+		border-radius: var(--radius-lg);
+		width: fit-content;
+		margin: var(--spacing-sm) 0;
+	}
+
+	.file-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--body-text-color);
+	}
+
+	.file-icon :global(svg) {
+		width: var(--size-7);
+		height: var(--size-7);
+	}
+
+	.file-info {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.file-link {
+		text-decoration: none;
+		color: var(--body-text-color);
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	.file-name {
+		font-family: var(--font);
+		font-size: var(--text-md);
+		font-weight: 500;
+	}
+
+	.file-type {
+		font-family: var(--font);
+		font-size: var(--text-sm);
+		color: var(--body-text-color-subdued);
+		text-transform: uppercase;
 	}
 </style>

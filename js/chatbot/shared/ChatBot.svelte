@@ -7,14 +7,14 @@
 		load_components,
 		get_components_from_messages
 	} from "./utils";
-	import type { NormalisedMessage } from "../types";
+	import type { NormalisedMessage, Option } from "../types";
 	import { copy } from "@gradio/utils";
+	import type { CopyData } from "@gradio/utils";
 	import Message from "./Message.svelte";
 	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import { dequal } from "dequal/lite";
 	import {
-		afterUpdate,
 		createEventDispatcher,
 		type SvelteComponent,
 		type ComponentType,
@@ -23,13 +23,7 @@
 	} from "svelte";
 	import { Image } from "@gradio/image/shared";
 
-	import {
-		Clear,
-		Trash,
-		Community,
-		ScrollDownArrow,
-		Download
-	} from "@gradio/icons";
+	import { Trash, Community, ScrollDownArrow } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import type { ExampleMessage } from "../types";
@@ -40,6 +34,8 @@
 	import { ShareError } from "@gradio/utils";
 	import { Gradio } from "@gradio/utils";
 
+	import Examples from "./Examples.svelte";
+
 	export let value: NormalisedMessage[] | null = [];
 	let old_value: NormalisedMessage[] | null = null;
 
@@ -48,6 +44,7 @@
 	export let _fetch: typeof fetch;
 	export let load_component: Gradio["load_component"];
 	export let allow_file_downloads: boolean;
+	export let display_consecutive_in_same_bubble: boolean;
 
 	let _components: Record<string, ComponentType<SvelteComponent>> = {};
 
@@ -78,7 +75,6 @@
 	export let show_copy_button = false;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
-	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let autoscroll = true;
@@ -114,6 +110,8 @@
 		share: any;
 		error: string;
 		example_select: SelectData;
+		option_select: SelectData;
+		copy: CopyData;
 	}>();
 
 	function is_at_bottom(): boolean {
@@ -170,32 +168,14 @@
 		};
 	});
 
-	let image_preview_source: string;
-	let image_preview_source_alt: string;
-	let is_image_preview_open = false;
-
-	afterUpdate(() => {
-		if (!div) return;
-		div.querySelectorAll("img").forEach((n) => {
-			n.addEventListener("click", (e) => {
-				const target = e.target as HTMLImageElement;
-				if (target) {
-					image_preview_source = target.src;
-					image_preview_source_alt = target.alt;
-					is_image_preview_open = true;
-				}
-			});
-		});
-	});
-
 	$: {
 		if (!dequal(value, old_value)) {
 			old_value = value;
 			dispatch("change");
 		}
 	}
-
 	$: groupedMessages = value && group_messages(value, msg_format);
+	$: options = value && get_last_bot_options();
 
 	function handle_example_select(i: number, example: ExampleMessage): void {
 		dispatch("example_select", {
@@ -246,6 +226,14 @@
 			});
 		}
 	}
+
+	function get_last_bot_options(): Option[] | undefined {
+		if (!value || !groupedMessages || groupedMessages.length === 0)
+			return undefined;
+		const last_group = groupedMessages[groupedMessages.length - 1];
+		if (last_group[0].role !== "assistant") return undefined;
+		return last_group[last_group.length - 1].options;
+	}
 </script>
 
 {#if value !== null && value.length > 0}
@@ -266,9 +254,7 @@
 						dispatch("error", message);
 					}
 				}}
-			>
-				<Community />
-			</IconButton>
+			/>
 		{/if}
 		<IconButton Icon={Trash} on:click={() => dispatch("clear")} label={"Clear"}
 		></IconButton>
@@ -291,28 +277,9 @@
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
 				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
 				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
-				{#if is_image_preview_open}
-					<div class="image-preview">
-						<img src={image_preview_source} alt={image_preview_source_alt} />
-						<IconButtonWrapper>
-							<IconButton
-								Icon={Clear}
-								on:click={() => (is_image_preview_open = false)}
-								label={"Clear"}
-							/>
-							{#if allow_file_downloads}
-								<DownloadLink
-									href={image_preview_source}
-									download={image_preview_source_alt || "image"}
-								>
-									<IconButton Icon={Download} label={"Download"} />
-								</DownloadLink>
-							{/if}
-						</IconButtonWrapper>
-					</div>
-				{/if}
 				<Message
 					{messages}
+					{display_consecutive_in_same_bubble}
 					{opposite_avatar_img}
 					{avatar_img}
 					{role}
@@ -327,7 +294,6 @@
 					{upload}
 					{selectable}
 					{sanitize_html}
-					{bubble_full_width}
 					{render_markdown}
 					{rtl}
 					{i}
@@ -343,62 +309,36 @@
 					handle_action={(selected) => handle_like(i, messages[0], selected)}
 					scroll={is_browser ? scroll : () => {}}
 					{allow_file_downloads}
+					on:copy={(e) => dispatch("copy", e.detail)}
 				/>
 			{/each}
 			{#if pending_message}
-				<Pending {layout} />
-			{/if}
-		</div>
-	{:else}
-		<div class="placeholder-content">
-			{#if placeholder !== null}
-				<div class="placeholder">
-					<Markdown message={placeholder} {latex_delimiters} {root} />
-				</div>
-			{/if}
-			{#if examples !== null}
-				<div class="examples">
-					{#each examples as example, i}
+				<Pending {layout} {avatar_images} />
+			{:else if options}
+				<div class="options">
+					{#each options as option, index}
 						<button
-							class="example"
-							on:click={() => handle_example_select(i, example)}
+							class="option"
+							on:click={() =>
+								dispatch("option_select", {
+									index: index,
+									value: option.value
+								})}
 						>
-							{#if example.icon !== undefined}
-								<div class="example-icon-container">
-									<Image
-										class="example-icon"
-										src={example.icon.url}
-										alt="example-icon"
-									/>
-								</div>
-							{/if}
-							{#if example.display_text !== undefined}
-								<span class="example-display-text">{example.display_text}</span>
-							{:else}
-								<span class="example-text">{example.text}</span>
-							{/if}
-							{#if example.files !== undefined && example.files.length > 1}
-								<span class="example-file"
-									><em>{example.files.length} Files</em></span
-								>
-							{:else if example.files !== undefined && example.files[0] !== undefined && example.files[0].mime_type?.includes("image")}
-								<div class="example-image-container">
-									<Image
-										class="example-image"
-										src={example.files[0].url}
-										alt="example-image"
-									/>
-								</div>
-							{:else if example.files !== undefined && example.files[0] !== undefined}
-								<span class="example-file"
-									><em>{example.files[0].orig_name}</em></span
-								>
-							{/if}
+							{option.label || option.value}
 						</button>
 					{/each}
 				</div>
 			{/if}
 		</div>
+	{:else}
+		<Examples
+			{examples}
+			{placeholder}
+			{latex_delimiters}
+			{root}
+			on:example_select={(e) => dispatch("example_select", e.detail)}
+		/>
 	{/if}
 </div>
 
@@ -414,93 +354,6 @@
 {/if}
 
 <style>
-	.placeholder-content {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-	}
-
-	.placeholder {
-		align-items: center;
-		display: flex;
-		justify-content: center;
-		height: 100%;
-		flex-grow: 1;
-	}
-
-	.examples :global(img) {
-		pointer-events: none;
-	}
-
-	.examples {
-		margin: auto;
-		padding: var(--spacing-xxl);
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: var(--spacing-xxl);
-		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
-	}
-
-	.example {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: var(--spacing-xl);
-		border: 0.05px solid var(--border-color-primary);
-		border-radius: var(--radius-xl);
-		background-color: var(--background-fill-secondary);
-		cursor: pointer;
-		transition: var(--button-transition);
-		max-width: var(--size-56);
-		width: 100%;
-		justify-content: center;
-	}
-
-	.example:hover {
-		background-color: var(--color-accent-soft);
-		border-color: var(--border-color-accent);
-	}
-
-	.example-icon-container {
-		display: flex;
-		align-self: flex-start;
-		margin-left: var(--spacing-md);
-		width: var(--size-6);
-		height: var(--size-6);
-	}
-
-	.example-display-text,
-	.example-text,
-	.example-file {
-		font-size: var(--text-md);
-		width: 100%;
-		text-align: center;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.example-display-text,
-	.example-file {
-		margin-top: var(--spacing-md);
-	}
-
-	.example-image-container {
-		flex-grow: 1;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		margin-top: var(--spacing-xl);
-	}
-
-	.example-image-container :global(img) {
-		max-height: 100%;
-		max-width: 100%;
-		height: var(--size-32);
-		width: 100%;
-		object-fit: cover;
-		border-radius: var(--radius-xl);
-	}
-
 	.panel-wrap {
 		width: 100%;
 		overflow-y: auto;
@@ -616,17 +469,33 @@
 		transform: translateY(-2px);
 	}
 
-	.image-preview {
-		position: absolute;
-		z-index: 999;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		overflow: auto;
-		background-color: var(--background-fill-secondary);
+	.options {
+		margin-left: auto;
+		padding: var(--spacing-xxl);
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--spacing-xxl);
+		max-width: calc(min(4 * 200px + 5 * var(--spacing-xxl), 100%));
+		justify-content: end;
+	}
+
+	.option {
 		display: flex;
-		justify-content: center;
+		flex-direction: column;
 		align-items: center;
+		padding: var(--spacing-xl);
+		border: 1px dashed var(--border-color-primary);
+		border-radius: var(--radius-md);
+		background-color: var(--background-fill-secondary);
+		cursor: pointer;
+		transition: var(--button-transition);
+		max-width: var(--size-56);
+		width: 100%;
+		justify-content: center;
+	}
+
+	.option:hover {
+		background-color: var(--color-accent-soft);
+		border-color: var(--border-color-accent);
 	}
 </style>

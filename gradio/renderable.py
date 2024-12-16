@@ -74,6 +74,7 @@ class Renderable:
             with container_copy:
                 self.fn(*args, **kwargs)
                 blocks_config.blocks[self.container_id] = container_copy
+                blocks_config.attach_load_events(self)
         finally:
             LocalContext.renderable.set(None)
 
@@ -142,6 +143,10 @@ def render(
             (getattr(t, "__self__", None) if t.has_trigger else None, t.event_name)
             for t in new_triggers
         ]
+
+    if new_triggers:
+        for trigger in new_triggers:  # type: ignore
+            trigger.callback(trigger.__self__)  # type: ignore
 
     def wrapper_function(fn):
         Renderable(

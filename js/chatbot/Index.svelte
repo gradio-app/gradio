@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData, LikeData } from "@gradio/utils";
+	import type { Gradio, SelectData, LikeData, CopyData } from "@gradio/utils";
 
 	import ChatBot from "./shared/ChatBot.svelte";
 	import type { UndoRetryData } from "./shared/utils";
@@ -37,7 +37,6 @@
 	export let show_copy_button = true;
 	export let show_copy_all_button = false;
 	export let sanitize_html = true;
-	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let type: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
@@ -45,6 +44,7 @@
 	export let autoscroll = true;
 	export let _retryable = false;
 	export let _undoable = false;
+	export let group_consecutive_messages = true;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -58,9 +58,11 @@
 		like: LikeData;
 		clear_status: LoadingStatus;
 		example_select: SelectData;
+		option_select: SelectData;
 		retry: UndoRetryData;
 		undo: UndoRetryData;
 		clear: null;
+		copy: CopyData;
 	}>;
 
 	let _value: NormalisedMessage[] | null = [];
@@ -74,6 +76,7 @@
 	export let like_user_message = false;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height: number | string | undefined;
+	export let resizeable: boolean;
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
 	export let placeholder: string | null = null;
@@ -90,6 +93,7 @@
 	{scale}
 	{min_width}
 	{height}
+	{resizeable}
 	{min_height}
 	{max_height}
 	allow_overflow={true}
@@ -124,6 +128,7 @@
 			{show_copy_all_button}
 			value={_value}
 			{latex_delimiters}
+			display_consecutive_in_same_bubble={group_consecutive_messages}
 			{render_markdown}
 			{theme_mode}
 			pending_message={loading_status?.status === "pending"}
@@ -137,15 +142,16 @@
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:example_select={(e) => gradio.dispatch("example_select", e.detail)}
+			on:option_select={(e) => gradio.dispatch("option_select", e.detail)}
 			on:retry={(e) => gradio.dispatch("retry", e.detail)}
 			on:undo={(e) => gradio.dispatch("undo", e.detail)}
 			on:clear={() => {
 				value = [];
 				gradio.dispatch("clear");
 			}}
+			on:copy={(e) => gradio.dispatch("copy", e.detail)}
 			{avatar_images}
 			{sanitize_html}
-			{bubble_full_width}
 			{line_breaks}
 			{autoscroll}
 			{layout}
