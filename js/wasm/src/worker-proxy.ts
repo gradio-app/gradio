@@ -51,16 +51,12 @@ export class WorkerProxy extends EventTarget {
 		if (sharedWorkerMode) {
 			this.postMessageTarget = (this.worker as SharedWorker).port;
 			this.postMessageTarget.start();
-			this.postMessageTarget.onmessage = (e) => {
-				this._processWorkerMessage(e.data);
-			};
 		} else {
 			this.postMessageTarget = this.worker as globalThis.Worker;
-
-			(this.worker as globalThis.Worker).onmessage = (e) => {
-				this._processWorkerMessage(e.data);
-			};
 		}
+		this.postMessageTarget.onmessage = (e) => {
+			this._processWorkerMessage(e.data);
+		};
 
 		this.postMessageAsync({
 			type: "init-env",
