@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
+	import { mount_css } from "@gradio/core";
 
 	import type { Client as ClientType } from "@gradio/client";
 
@@ -142,6 +143,12 @@
 
 	let active_theme_mode: ThemeMode;
 
+	if (browser) {
+		active_theme_mode = handle_theme_mode(document.body);
+	}
+
+	// These utilities are exported to be injectable for the Wasm version.
+
 	// export let Client: typeof ClientType;
 
 	export let space: string | null;
@@ -171,6 +178,7 @@
 	let status: SpaceStatus = {
 		message: "",
 		load_status: "pending",
+		status: "sleeping",
 		detail: "SLEEPING"
 	};
 
