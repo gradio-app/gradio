@@ -6,7 +6,6 @@
 "@gradio/markdown-code": minor
 "@gradio/tabitem": minor
 "@gradio/tabs": minor
-"@self/app": minor
 "gradio": minor
 ---
 
