@@ -66,7 +66,7 @@
 
 <div
 	class="file-preview-holder"
-	style="max-height: {typeof height === undefined ? 'auto' : height + 'px'};"
+	style="height: {typeof height === 'undefined' ? 'auto' : height + 'px'};"
 >
 	<table class="file-preview">
 		<tbody>
