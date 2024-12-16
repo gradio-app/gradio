@@ -9,6 +9,7 @@
 <Template let:args>
 	<Tabs {...args}>
 		<TabItem
+			order={0}
 			id="tab-1"
 			label="Image Tab"
 			gradio={undefined}
@@ -23,6 +24,7 @@
 			/>
 		</TabItem>
 		<TabItem
+			order={1}
 			id="tab-2"
 			label="Hidden Tab"
 			gradio={undefined}
@@ -33,6 +35,7 @@
 			Secret Tab
 		</TabItem>
 		<TabItem
+			order={2}
 			id="tab-3"
 			label="Visible Tab"
 			gradio={undefined}

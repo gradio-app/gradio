@@ -36,7 +36,7 @@
 		selected || tabs[0]?.id || false
 	);
 	const selected_tab_index = writable<number>(
-		tabs.findIndex((t) => t.id === selected) || 0
+		tabs.findIndex((t) => t?.id === selected) || 0
 	);
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -73,9 +73,10 @@
 		selected_tab_index
 	});
 
-	function change_tab(id: string | number): void {
+	function change_tab(id: string | number | undefined): void {
 		const tab_to_activate = tabs.find((t) => t?.id === id);
 		if (
+			id !== undefined &&
 			tab_to_activate &&
 			tab_to_activate.interactive &&
 			tab_to_activate.visible &&
@@ -166,7 +167,7 @@
 				{#each tabs as t, i}
 					{#if t?.visible}
 						<button bind:this={tab_els[t.id]}>
-							{t.label}
+							{t?.label}
 						</button>
 					{/if}
 				{/each}
@@ -210,10 +211,10 @@
 				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
 					{#each overflow_tabs as t}
 						<button
-							on:click={() => change_tab(t.id)}
-							class:selected={t.id === $selected_tab}
+							on:click={() => change_tab(t?.id)}
+							class:selected={t?.id === $selected_tab}
 						>
-							{t.label}
+							{t?.label}
 						</button>
 					{/each}
 				</div>
