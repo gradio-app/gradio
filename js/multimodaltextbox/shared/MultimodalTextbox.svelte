@@ -317,7 +317,6 @@
 	aria-label="Multimedia input field"
 >
 	<!-- svelte-ignore a11y-autofocus -->
-	<label class:container>
 		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 		{#if value.files.length > 0 || uploading}
 			<div
@@ -482,7 +481,6 @@
 				</button>
 			{/if}
 		</div>
-	</label>
 </div>
 
 <style>
