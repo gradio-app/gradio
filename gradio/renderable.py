@@ -146,7 +146,8 @@ def render(
 
     if new_triggers:
         for trigger in new_triggers:  # type: ignore
-            trigger.callback(trigger.__self__)  # type: ignore
+            if trigger.callback:
+                trigger.callback(trigger.__self__)  # type: ignore
 
     def wrapper_function(fn):
         Renderable(
