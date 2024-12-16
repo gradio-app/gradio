@@ -145,7 +145,7 @@ def render(
         ]
 
     if new_triggers:
-        for trigger in new_triggers:  # type: ignore
+        for trigger in new_triggers:
             if trigger.callback:
                 trigger.callback(trigger.__self__)  # type: ignore
 
