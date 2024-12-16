@@ -1,6 +1,6 @@
 ---
-"@gradio/chatbot": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"gradio": patch
 ---
 
-feat:Some agent low-hanging issues
+fix:Some agent low-hanging issues
