@@ -26,7 +26,7 @@ with gr.Blocks() as demo:
     @gr.render(inputs=[slider2], triggers=[btn.click])
     def show_log_2(s):
         for i in range(s):
-            gr.Textbox(value=i, label=f"Count {i + 1}")
+            gr.Textbox(value=str(i), label=f"Count {i + 1}")
 
     with gr.Row():
         selected_btn = gr.Textbox(label="Selected Button")
