@@ -422,3 +422,22 @@ This document is a showcase of various Markdown capabilities.`,
 		]
 	}}
 />
+
+<Story
+	name="Displaying Tool Message"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: true,
+		value: [
+			{
+				role: "user",
+				content: "What is the weather like today?"
+			},
+			{
+				role: "assistant",
+				metadata: { title: "☀️ Using Weather Tool" },
+				content: "Weather looks sunny today."
+			}
+		]
+	}}
+/>
