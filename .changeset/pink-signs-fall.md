@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Add stdout and stderr events
+feat:Lite: Capture stdout and stderr from the main thread
