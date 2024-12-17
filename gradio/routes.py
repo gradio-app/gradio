@@ -1445,7 +1445,7 @@ class App(FastAPI):
             return ORJSONResponse(
                 content={
                     # NOTE: Required members: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable#required_manifest_members
-                    "name": app.get_blocks().title,
+                    "name": app.get_blocks().title or "Gradio",
                     "icons": [
                         {
                             "src": "static/img/logo192.svg",
