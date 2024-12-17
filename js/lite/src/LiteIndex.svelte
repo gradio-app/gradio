@@ -166,7 +166,13 @@
 	>
 		{#key index_component_key}
 			{#if error}
-				<ErrorDisplay {error} is_embed />
+				<ErrorDisplay
+					{error}
+					is_embed
+					on:clear_error={() => {
+						error = null;
+					}}
+				/>
 			{:else}
 				<Index
 					space={null}
@@ -191,7 +197,13 @@
 {:else}
 	{#key index_component_key}
 		{#if error}
-			<ErrorDisplay {error} {is_embed} />
+			<ErrorDisplay
+				{error}
+				{is_embed}
+				on:clear_error={() => {
+					error = null;
+				}}
+			/>
 		{:else}
 			<Index
 				space={null}

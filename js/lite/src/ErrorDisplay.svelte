@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { StatusTracker } from "@gradio/statustracker";
 
+	import { createEventDispatcher } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "@gradio/core";
 
 	setupi18n();
+
+	const dispatch = createEventDispatcher();
 
 	export let is_embed: boolean;
 	export let error: Error | undefined = undefined;
@@ -19,6 +22,7 @@
 	queue_size={null}
 	translucent={true}
 	autoscroll={false}
+	on:clear_status={() => dispatch("clear_error")}
 >
 	<div class="error" slot="error">
 		{#if error}
