@@ -45,6 +45,7 @@ class TestFile:
             "key": None,
             "height": None,
             "type": "filepath",
+            "allow_reordering": False,
         }
         assert file_input.preprocess(None) is None
         assert file_input.preprocess(x_file) is not None
