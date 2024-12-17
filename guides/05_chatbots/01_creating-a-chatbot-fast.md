@@ -272,7 +272,7 @@ $code_chatinterface_artifacts
 
 We mentioned earlier that in the simplest case, your chat function should return a `str` response, which will be rendered as text in the chatbot. However, you can also return more complex responses as we discuss below:
 
-**Returning Gradio components**
+**Returning files or Gradio components**
 
 Currently, the following Gradio components can be displayed inside the chat interface:
 * `gr.Image`
@@ -281,8 +281,9 @@ Currently, the following Gradio components can be displayed inside the chat inte
 * `gr.HTML`
 * `gr.Video`
 * `gr.Gallery`
+* `gr.File`
 
-Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example:
+Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example that returns an audio file:
 
 ```py
 import gradio as gr
@@ -300,29 +301,7 @@ gr.ChatInterface(
 ).launch()
 ```
 
-
-**Returning image, audio, video, or other files**:
-
-Sometimes, you don't want to return a complete Gradio component, but rather simply an image/audio/video/other file to be displayed inside the chatbot. You can do this by returning a single-element tuple consisting of the string file path or URL.
-
-Here is an example:
-
-```py
-import gradio as gr
-
-def artist(message, history):
-    if message.strip():
-        return ("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav", )
-    else:
-        return "Please provide the name of an artist"
-
-gr.ChatInterface(
-    artist,
-    type="messages",
-    textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
-    chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
-).launch()
-```
+Similarly, you could return image files with `gr.Image`, video files with `gr.Video`, or arbitrary files with the `gr.File` component.
 
 **Providing preset responses**
 
