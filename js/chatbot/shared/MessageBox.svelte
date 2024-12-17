@@ -3,8 +3,13 @@
 	export let title: string;
 	export let rtl = false;
 
+	import { createEventDispatcher } from "svelte";
+
+	const dispatch = createEventDispatcher();
+
 	function toggleExpanded(): void {
 		expanded = !expanded;
+		dispatch("toggle");
 	}
 </script>
 
