@@ -2,13 +2,13 @@
 
 Tags: NLP, TEXT, CHAT
 
-You can make your Gradio app available as a Discord bot to let users in your Discord server interact with it directly.  
+You can make your Gradio app available as a Discord bot to let users in your Discord server interact with it directly. 
 
 ## How does it work?
 
 The Discord bot will listen to messages mentioning it in channels. When it receives a message (which can include text as well as files), it will send it to your Gradio app via Gradio's built in API. Your bot will reply with the response it receives from the API. 
 
-Because Gradio's API is very flexible, you can create Discord bots that support text, images, audio, streaming, history, and a wide variety of other features very easily. 
+Because Gradio's API is very flexible, you can create Discord bots that support text, images, audio, streaming, chat history, and a wide variety of other features very easily. 
 
 ![]()
 
