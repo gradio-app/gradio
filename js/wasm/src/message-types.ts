@@ -132,8 +132,15 @@ export interface OutMessageStderr extends OutMessageBase {
 		output: string;
 	};
 }
+export interface OutMessagePythonError extends OutMessageBase {
+	type: "python-error";
+	data: {
+		traceback: string;
+	};
+}
 export type OutMessage =
 	| OutMessageProgressUpdate
 	| OutMessageModulesAutoLoaded
 	| OutMessageStdout
-	| OutMessageStderr;
+	| OutMessageStderr
+	| OutMessagePythonError;

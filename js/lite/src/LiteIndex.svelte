@@ -99,6 +99,9 @@
 	worker_proxy.addEventListener("initialization-error", (event) => {
 		error = (event as CustomEvent).detail;
 	});
+	worker_proxy.addEventListener("python-error", (event) => {
+		error = (event as CustomEvent).detail;
+	});
 
 	const dispatch = createEventDispatcher();
 

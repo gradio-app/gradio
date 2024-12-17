@@ -186,6 +186,14 @@ export class WorkerProxy extends EventTarget {
 				);
 				break;
 			}
+			case "python-error": {
+				this.dispatchEvent(
+					new CustomEvent("python-error", {
+						detail: new Error(msg.data.traceback)
+					})
+				);
+				break;
+			}
 		}
 	}
 
