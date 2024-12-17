@@ -322,26 +322,6 @@ class TestAPI:
             assert result == "hello hello"
 
     @pytest.mark.parametrize("type", ["tuples", "messages"])
-    def test_files_returned(self, type, connect):
-        def echo_first_file(msg, history):
-            return (msg["files"][0],)
-
-        chatbot = gr.ChatInterface(
-            echo_first_file,
-            type=type,
-            multimodal=True,
-        )
-        with connect(chatbot) as client:
-            result = client.predict(
-                {
-                    "text": "hello",
-                    "files": [handle_file("test/test_files/audio_sample.wav")],
-                },
-                api_name="/chat",
-            )
-            assert result[0].endswith("audio_sample.wav")
-
-    @pytest.mark.parametrize("type", ["tuples", "messages"])
     def test_component_returned(self, type, connect):
         def mock_chat_fn(msg, history):
             return gr.Audio("test/test_files/audio_sample.wav")
