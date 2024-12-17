@@ -88,6 +88,7 @@
 	{...node.props}
 	{theme_mode}
 	{root}
+	visible={typeof node.props.visible === "boolean" ? node.props.visible : true}
 >
 	{#if node.children && node.children.length}
 		{#each node.children as _node (_node.id)}

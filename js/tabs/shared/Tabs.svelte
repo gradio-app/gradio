@@ -22,9 +22,9 @@
 	export let selected: number | string;
 	export let initial_tabs: Tab[];
 
-	let tabs: Tab[] = [...initial_tabs];
-	let visible_tabs: Tab[] = [...initial_tabs];
-	let overflow_tabs: Tab[] = [];
+	let tabs: (Tab | null)[] = [...initial_tabs];
+	let visible_tabs: (Tab | null)[] = [...initial_tabs];
+	let overflow_tabs: (Tab | null)[] = [];
 	let overflow_menu_open = false;
 	let overflow_menu: HTMLElement;
 
@@ -36,7 +36,7 @@
 		selected || tabs[0]?.id || false
 	);
 	const selected_tab_index = writable<number>(
-		tabs.findIndex((t) => t.id === selected) || 0
+		tabs.findIndex((t) => t?.id === selected) || 0
 	);
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -55,35 +55,28 @@
 	});
 
 	setContext(TABS, {
-		register_tab: (tab: Tab) => {
-			let index = tabs.findIndex((t) => t.id === tab.id);
-			if (index !== -1) {
-				tabs[index] = { ...tabs[index], ...tab };
-			} else {
-				tabs = [...tabs, tab];
-				index = tabs.length - 1;
-			}
+		register_tab: (tab: Tab, order: number) => {
+			tabs[order] = tab;
+
 			if ($selected_tab === false && tab.visible && tab.interactive) {
 				$selected_tab = tab.id;
 			}
-			return index;
+			return order;
 		},
-		unregister_tab: (tab: Tab) => {
-			const index = tabs.findIndex((t) => t.id === tab.id);
-			if (index !== -1) {
-				tabs = tabs.filter((t) => t.id !== tab.id);
-				if ($selected_tab === tab.id) {
-					$selected_tab = tabs[0]?.id || false;
-				}
+		unregister_tab: (tab: Tab, order: number) => {
+			if ($selected_tab === tab.id) {
+				$selected_tab = tabs[0]?.id || false;
 			}
+			tabs[order] = null;
 		},
 		selected_tab,
 		selected_tab_index
 	});
 
-	function change_tab(id: string | number): void {
-		const tab_to_activate = tabs.find((t) => t.id === id);
+	function change_tab(id: string | number | undefined): void {
+		const tab_to_activate = tabs.find((t) => t?.id === id);
 		if (
+			id !== undefined &&
 			tab_to_activate &&
 			tab_to_activate.interactive &&
 			tab_to_activate.visible &&
@@ -91,7 +84,7 @@
 		) {
 			selected = id;
 			$selected_tab = id;
-			$selected_tab_index = tabs.findIndex((t) => t.id === id);
+			$selected_tab_index = tabs.findIndex((t) => t?.id === id);
 			dispatch("change");
 			overflow_menu_open = false;
 		}
@@ -123,6 +116,7 @@
 
 		for (let i = tabs.length - 1; i >= 0; i--) {
 			const tab = tabs[i];
+			if (!tab) continue;
 			const tab_rect = tab_sizes[tab.id];
 			if (!tab_rect) continue;
 			if (tab_rect.right - offset < max_width) {
@@ -145,15 +139,16 @@
 		selected_tab: number | string | false
 	): boolean {
 		if (selected_tab === false) return false;
-		return overflow_tabs.some((t) => t.id === selected_tab);
+		return overflow_tabs.some((t) => t?.id === selected_tab);
 	}
 
 	function get_tab_sizes(
-		tabs: Tab[],
+		tabs: (Tab | null)[],
 		tab_els: Record<string | number, HTMLElement>
 	): Record<string | number, DOMRect> {
 		const tab_sizes: Record<string | number, DOMRect> = {};
 		tabs.forEach((tab) => {
+			if (!tab) return;
 			tab_sizes[tab.id] = tab_els[tab.id]?.getBoundingClientRect();
 		});
 		return tab_sizes;
@@ -169,17 +164,17 @@
 	{#if has_tabs}
 		<div class="tab-wrapper">
 			<div class="tab-container visually-hidden" aria-hidden="true">
-				{#each tabs as t, i (t.id)}
-					{#if t.visible}
+				{#each tabs as t, i}
+					{#if t?.visible}
 						<button bind:this={tab_els[t.id]}>
-							{t.label}
+							{t?.label}
 						</button>
 					{/if}
 				{/each}
 			</div>
 			<div class="tab-container" bind:this={tab_nav_el} role="tablist">
-				{#each visible_tabs as t, i (t.id)}
-					{#if t.visible}
+				{#each visible_tabs as t, i}
+					{#if t?.visible}
 						<button
 							role="tab"
 							class:selected={t.id === $selected_tab}
@@ -216,10 +211,10 @@
 				<div class="overflow-dropdown" class:hide={!overflow_menu_open}>
 					{#each overflow_tabs as t}
 						<button
-							on:click={() => change_tab(t.id)}
-							class:selected={t.id === $selected_tab}
+							on:click={() => change_tab(t?.id)}
+							class:selected={t?.id === $selected_tab}
 						>
-							{t.label}
+							{t?.label}
 						</button>
 					{/each}
 				</div>
