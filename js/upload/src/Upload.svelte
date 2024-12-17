@@ -22,6 +22,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let icon_upload = false;
+	export let height: number | string | undefined = undefined;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -267,7 +268,13 @@
 		class:boundedheight
 		class:flex
 		class:icon-mode={icon_upload}
-		style:height={icon_upload ? "" : "100%"}
+		style:height={icon_upload
+			? ""
+			: height
+				? typeof height === "number"
+					? height + "px"
+					: height
+				: "100%"}
 		tabindex={hidden ? -1 : 0}
 		on:click={paste_clipboard}
 	>
@@ -285,7 +292,13 @@
 		class:flex
 		class:disable_click
 		class:icon-mode={icon_upload}
-		style:height={icon_upload ? "" : "100%"}
+		style:height={icon_upload
+			? ""
+			: height
+				? typeof height === "number"
+					? height + "px"
+					: height
+				: "100%"}
 		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation
