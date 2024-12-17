@@ -223,3 +223,202 @@ This document is a showcase of various Markdown capabilities.`,
 		]
 	}}
 />
+
+<Story
+	name="Consecutive messages grouped in same bubble"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: true,
+		value: [
+			{
+				role: "user",
+				content: "Show me the file."
+			},
+			{
+				role: "user",
+				content: "Second user message"
+			},
+			{
+				role: "assistant",
+				content: "Here is the file you requested"
+			},
+			{
+				role: "assistant",
+				content: {
+					file: {
+						path: "abc/qwerty.txt",
+						url: ""
+					},
+					alt_text: null
+				}
+			}
+		]
+	}}
+/>
+
+<Story
+	name="MultimodalChatbot with examples"
+	args={{
+		value: [],
+		examples: [
+			{
+				text: "What is machine learning?",
+				icon: { mime_type: "text" }
+			},
+			{
+				text: "Analyze this image",
+				files: [
+					{
+						mime_type: "image/jpeg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						orig_name: "bus.png"
+					}
+				]
+			},
+			{
+				text: "Process this document",
+				files: [
+					{
+						mime_type: "application/pdf",
+						url: "/document.pdf",
+						orig_name: "document.pdf"
+					}
+				]
+			},
+			{
+				text: "Compare these images",
+				files: [
+					{
+						mime_type: "image/jpeg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						orig_name: "image1.jpg"
+					},
+					{
+						mime_type: "image/jpeg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						orig_name: "image2.jpg"
+					},
+					{
+						mime_type: "image/jpeg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						orig_name: "image3.jpg"
+					}
+				]
+			},
+			{
+				text: "Process these files",
+				files: [
+					{
+						mime_type: "application/pdf",
+						url: "doc1.pdf",
+						orig_name: "document1.pdf"
+					},
+					{
+						mime_type: "application/pdf",
+						url: "/doc2.pdf",
+						orig_name: "document2.pdf"
+					},
+					{
+						mime_type: "application/pdf",
+						url: "/doc3.pdf",
+						orig_name: "document3.pdf"
+					}
+				]
+			},
+			{
+				text: "Analyze this dataset",
+				files: [
+					{
+						mime_type: "image/jpeg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						orig_name: "visualization.jpg"
+					},
+					{
+						mime_type: "image/jpeg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						orig_name: "visualization.jpg"
+					},
+					{
+						mime_type: "application/pdf",
+						url: "/data.pdf",
+						orig_name: "data.pdf"
+					},
+					{
+						mime_type: "audio/mp3",
+						url: "/audio.mp3",
+						orig_name: "recording.mp3"
+					},
+					{
+						mime_type: "video/mp4",
+						url: "/video.mp4",
+						orig_name: "video.mp4"
+					}
+				]
+			}
+		]
+	}}
+/>
+
+<Story
+	name="Consecutive messages not grouped in same bubble"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: false,
+		value: [
+			{
+				role: "user",
+				content: "Show me the file."
+			},
+			{
+				role: "user",
+				content: "Second user message"
+			},
+			{
+				role: "assistant",
+				content: "Here is the file you requested"
+			},
+			{
+				role: "assistant",
+				content: {
+					file: {
+						path: "abc/qwerty.txt",
+						url: ""
+					},
+					alt_text: null
+				}
+			}
+		]
+	}}
+/>
+
+<Story
+	name="Chatbot with examples (not multimodal)"
+	args={{
+		value: [],
+		examples: [
+			{
+				text: "What is machine learning?"
+			},
+			{
+				text: "Analyze this image",
+				files: [
+					{
+						mime_type: "image/jpeg",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+						orig_name: "bus.png"
+					}
+				]
+			},
+			{
+				text: "Process this document",
+				files: [
+					{
+						mime_type: "application/pdf",
+						url: "/document.pdf",
+						orig_name: "document.pdf"
+					}
+				]
+			}
+		]
+	}}
+/>

@@ -9,7 +9,7 @@ MESSAGING_API_ENDPOINT = "https://api.gradio.app/gradio-messaging/en"
 
 en = {
     "RUNNING_LOCALLY": "* Running on local URL:  {}://{}:{}",
-    "RUNNING_LOCALLY_SSR": "* Running on local URL:  {}://{}:{}, with SSR ⚡",
+    "RUNNING_LOCALLY_SSR": "* Running on local URL:  {}://{}:{}, with SSR ⚡ (experimental, to disable set `ssr=False` in `launch()`)",
     "SHARE_LINK_DISPLAY": "* Running on public URL: {}",
     "COULD_NOT_GET_SHARE_LINK": "\nCould not create share link. Please check your internet connection or our status page: https://status.gradio.app.",
     "COULD_NOT_GET_SHARE_LINK_MISSING_FILE": "\nCould not create share link. Missing file: {}. \n\nPlease check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: \n\n1. Download this file: {}\n2. Rename the downloaded file to: {}\n3. Move the file to this location: {}",
