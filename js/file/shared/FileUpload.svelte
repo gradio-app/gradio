@@ -22,6 +22,7 @@
 	export let upload: Client["upload"];
 	export let stream_handler: Client["stream"];
 	export let uploading = false;
+	export let allow_reordering = false;
 
 	async function handle_upload({
 		detail
@@ -97,6 +98,7 @@
 		{height}
 		on:change
 		on:delete
+		{allow_reordering}
 	/>
 {:else}
 	<Upload
