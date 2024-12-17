@@ -584,7 +584,7 @@ class ChatInterface(Blocks):
         role: Literal["user", "assistant"],
     ) -> list[MessageDict]:
         """
-        Converts a user message, example message, or response from the chat function to a 
+        Converts a user message, example message, or response from the chat function to a
         list of MessageDict objects that can be appended to the chat history.
         """
         message_dicts = []
@@ -595,7 +595,9 @@ class ChatInterface(Blocks):
                 msg = msg.model_dump()
             elif isinstance(msg, (str, Component)):
                 msg = {"role": role, "content": msg}
-            elif isinstance(msg, dict) and "content" in msg:  # in MessageDict format already
+            elif (
+                isinstance(msg, dict) and "content" in msg
+            ):  # in MessageDict format already
                 msg["role"] = role
             else:  # in MultimodalPostprocess format
                 for x in msg.get("files", []):
