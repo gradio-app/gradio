@@ -19,8 +19,8 @@
 	let current_code = false;
 	let compare = false;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5173/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:5173/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -101,7 +101,10 @@
 		}
 	}
 
-	async function generate_code(query: string, demo_name: string) {
+	async function generate_code(query: string, demo_name: string, regeneration_run = false) {
+		if (regeneration_run) {
+			regenerating = true;
+		}
 		generated = false;
 		let out = "";
 
@@ -155,6 +158,9 @@
 		}
 
 		generated = true;
+		if (regenerating) {
+			regenerating = false;
+		};
 		if (selected_demo.name === demo_name) {
 			highlight_changes(code_to_compare, demos[queried_index].code);
 		}
@@ -173,8 +179,10 @@
 	function handle_user_query_key_down(e: KeyboardEvent): void {
 		if (e.key === "Enter") {
 			run_as_update = false;
-			suspend_and_resume_auto_run(() =>
-				generate_code(user_query, selected_demo.name)
+			suspend_and_resume_auto_run(() => {
+				generate_code(user_query, selected_demo.name);
+				regenerated = false;
+			}
 			);
 		}
 	}
@@ -241,6 +249,10 @@
 			.filter((r) => r !== "");
 	}
 
+	let lite_element;
+
+	const debounced_detect_error = debounce(detect_app_error, 1000);
+
 	onMount(async () => {
 		try {
 			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
@@ -274,6 +286,30 @@
 		} catch (error) {
 			console.error("Error loading Gradio Lite:", error);
 		}
+
+		const observer = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (
+				(mutation.type === 'childList' && 
+				(mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)) ||
+				mutation.type === 'characterData'
+				) {
+				debounced_detect_error();
+				}
+			});
+			});
+			
+			observer.observe(lite_element, {
+			childList: true,     // Watch for changes in child elements
+			subtree: true,       // Watch all descendants, not just direct children
+			characterData: false, // Don't watch for text content changes
+			attributes: true     // Don't watch for attribute changes
+			});
+			
+			return () => {
+			observer.disconnect(); // Cleanup on component destruction
+			};
+
 	});
 
 	let copied_link = false;
@@ -509,6 +545,59 @@
 	let generation_error = "";
 
 	$: generation_error;
+
+	let build_error : string | null = "";
+	let runtime_error : string | null = "";
+
+	function detect_app_error() {
+		console.log("detected_change")
+		if (document) {
+			if (document.querySelector("div .error-name")) {
+				build_error = document.querySelector(".error-name").textContent;
+			} else {
+				build_error = null;
+			}
+			if (document.querySelector("div .error .toast-title")) {
+				runtime_error = document.querySelector("div .error .toast-text").textContent;
+			} else {
+				runtime_error = null;
+			}
+		}
+	}
+
+	$: build_error, runtime_error;
+	
+	let regenerated = true;
+
+	$: regenerated; 
+
+	let error_prompt;
+
+	let regenerating = false;
+
+	$: regenerating;
+
+	function regenerate_on_error(build_error, runtime_error) {
+		if (!regenerated) {		
+			if (build_error) {
+				error_prompt = `There's a build error when I run the existing code: ${build_error}`;
+				generate_code(error_prompt, selected_demo.name, true);
+				regenerated = true;
+			} else if (runtime_error) {
+				error_prompt = `There's a runtime error when I run the existing code: ${runtime_error}`;
+				generate_code(error_prompt, selected_demo.name, true);
+				regenerated = true;
+			}
+		}
+	}
+
+	$: regenerate_on_error(build_error, runtime_error);
+
+	$: if (regenerating) {
+		user_query = build_error ? build_error : runtime_error;
+
+	}
+
 </script>
 
 <svelte:head>
@@ -613,6 +702,12 @@
 							>
 								{generation_error}
 							</div>
+						{:else if regenerating}
+						<div
+							class="pl-2 relative z-10 bg-purple-100 border border-purple-200 px-2 my-1 rounded-lg text-purple-800 w-fit text-xs float-right"
+						>
+							Regenerating to fix error
+						</div>
 						{:else if current_code}
 							<div
 								class="pl-2 relative z-10 bg-white flex items-center float-right"
@@ -646,7 +741,9 @@
 					</div>
 
 					<div class="search-bar border-t">
-						{#if !generated}
+						{#if regenerating}
+							<div class="loader-purple"></div>
+						{:else if !generated}
 							<div class="loader"></div>
 						{:else}
 							✨
@@ -670,8 +767,10 @@
 						{#if generated}
 							<button
 								on:click={() => {
-									suspend_and_resume_auto_run(() =>
-										generate_code(user_query, selected_demo.name)
+									suspend_and_resume_auto_run(() => {
+										generate_code(user_query, selected_demo.name);
+										regenerated = false;
+									}
 									);
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
@@ -689,6 +788,10 @@
 									}, 2000);
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-red-100 to-red-50 border border-red-200 px-4 py-0.5 rounded-full text-red-800 hover:shadow"
+								class:from-purple-100={regenerating}
+								class:to-purple-50={regenerating}
+								class:border-purple-200={regenerating}
+								class:text-purple-800={regenerating}
 							>
 								<div class="enter">Cancel</div>
 							</button>
@@ -756,7 +859,7 @@
 					</div>
 				</div>
 
-				<div class="flex-1 pl-3" id="lite-demo" />
+				<div class="flex-1 pl-3" id="lite-demo" bind:this={lite_element} />
 			</div>
 		</div>
 	</Slider>
@@ -838,6 +941,15 @@
 	.loader {
 		border: 1px solid #fcc089;
 		border-top: 2px solid #ff7c00;
+		border-radius: 50%;
+		width: 15px;
+		height: 15px;
+		animation: spin 1.2s linear infinite;
+	}
+
+	.loader-purple {
+		border: 1px solid rgba(208, 35, 208, 0.657);
+		border-top: 2px solid rgb(208, 35, 208);
 		border-radius: 50%;
 		width: 15px;
 		height: 15px;
