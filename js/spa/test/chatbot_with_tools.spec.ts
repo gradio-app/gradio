@@ -5,7 +5,7 @@ test("Chatbot can support agentic demos by displaying messages with metadata", a
 }) => {
 	await page.getByRole("button", { name: "Get San Francisco Weather" }).click();
 	await expect(
-		await page.locator("button").filter({ hasText: "💥 Error" }).nth(1)
+		await page.locator("div").filter({ hasText: "💥 Error" }).nth(1)
 	).toBeVisible();
 	await expect(
 		page.locator("span").filter({ hasText: "🛠️ Used tool" })

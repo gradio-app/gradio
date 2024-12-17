@@ -1,33 +1,41 @@
 <script lang="ts">
 	export let expanded = false;
 	export let title: string;
+	export let rtl = false;
 
 	function toggleExpanded(): void {
 		expanded = !expanded;
 	}
 </script>
 
-<button class="box" on:click={toggleExpanded}>
-	<div class="title">
-		<span class="title-text">{title}</span>
-		<span
-			style:transform={expanded ? "rotate(0)" : "rotate(90deg)"}
-			class="arrow"
+<div style:padding="var(--spacing-sm) var(--spacing-xl)">
+	<div class="box" style:text-align={rtl ? "right" : "left"}>
+		<div
+			class="title"
+			on:click|stopPropagation={toggleExpanded}
+			role="button"
+			tabindex="0"
+			on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
 		>
-			▼
-		</span>
-	</div>
-	{#if expanded}
-		<div class="content">
-			<slot></slot>
+			<span class="title-text">{title}</span>
+			<span
+				style:transform={expanded ? "rotate(0)" : "rotate(90deg)"}
+				class="arrow"
+			>
+				▼
+			</span>
 		</div>
-	{/if}
-</button>
+		{#if expanded}
+			<div class="content">
+				<slot></slot>
+			</div>
+		{/if}
+	</div>
+</div>
 
 <style>
 	.box {
 		border-radius: 4px;
-		cursor: pointer;
 		max-width: max-content;
 		background: var(--color-accent-soft);
 		border: 1px solid var(--border-color-accent-subdued);
@@ -40,6 +48,7 @@
 		padding: 3px 6px;
 		color: var(--body-text-color);
 		opacity: 0.8;
+		cursor: pointer;
 	}
 
 	.content {
