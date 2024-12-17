@@ -311,7 +311,6 @@
 	role="group"
 	aria-label="Multimedia input field"
 >
-	<!-- svelte-ignore a11y-autofocus -->
 	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
 	{#if value.files.length > 0 || uploading}
 		<div
@@ -421,6 +420,7 @@
 				<Microphone />
 			</button>
 		{/if}
+		<!-- svelte-ignore a11y-autofocus -->
 		<textarea
 			data-testid="textbox"
 			use:text_area_resize={{
