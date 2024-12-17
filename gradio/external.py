@@ -8,7 +8,7 @@ import os
 import re
 import tempfile
 import warnings
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
@@ -30,6 +30,7 @@ from gradio.processing_utils import save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
+    from gradio.chat_interface import ChatInterface
     from gradio.interface import Interface
 
 
@@ -581,3 +582,75 @@ def from_spaces_interface(
     kwargs["_api_mode"] = True
     interface = gradio.Interface(**kwargs)
     return interface
+
+
+def load_chat(
+    base_url: str,
+    model: str,
+    token: str | None = None,
+    *,
+    system_message: str | None = None,
+    streaming: bool = True,
+) -> ChatInterface:
+    """
+    Load a chat interface from an OpenAI API chat compatible endpoint.
+    Parameters:
+        base_url: The base URL of the endpoint.
+        model: The model name.
+        token: The API token.
+        system_message: The system message for the conversation, if any.
+        streaming: Whether the response should be streamed.
+    """
+    try:
+        from openai import OpenAI
+    except ImportError as e:
+        raise ImportError(
+            "To use OpenAI API Client, you must install the `openai` package. You can install it with `pip install openai`."
+        ) from e
+    from gradio.chat_interface import ChatInterface
+
+    client = OpenAI(api_key=token, base_url=base_url)
+    start_message = (
+        [{"role": "system", "content": system_message}] if system_message else []
+    )
+
+    def open_api(message: str, history: list | None) -> str:
+        history = history or start_message
+        history = format_tuples_if_needed(history)
+        return (
+            client.chat.completions.create(
+                model=model,
+                messages=history + [{"role": "user", "content": message}],
+            )
+            .choices[0]
+            .message.content
+        )
+
+    def open_api_stream(
+        message: str, history: list | None
+    ) -> Generator[str, None, None]:
+        history = history or start_message
+        history = format_tuples_if_needed(history)
+        stream = client.chat.completions.create(
+            model=model,
+            messages=history + [{"role": "user", "content": message}],
+            stream=True,
+        )
+        response = ""
+        for chunk in stream:
+            response += chunk.choices[0].delta.content
+            yield response
+
+    return ChatInterface(open_api_stream if streaming else open_api, type="messages")
+
+
+def format_tuples_if_needed(history: list) -> list[dict]:
+    if len(history) == 0 or not isinstance(history[0], list):
+        return history
+    messages = []
+    for user, assistant in history:
+        if user:
+            messages.append({"role": "user", "content": user})
+        if assistant:
+            messages.append({"role": "assistant", "content": assistant})
+    return messages
