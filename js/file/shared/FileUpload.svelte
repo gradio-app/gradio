@@ -110,6 +110,7 @@
 		on:error
 		{stream_handler}
 		{upload}
+		{height}
 	>
 		<slot />
 	</Upload>

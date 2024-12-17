@@ -13,7 +13,7 @@
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable = false;
-	export let height: number | undefined = undefined;
+	export let height: number | string | undefined = undefined;
 	export let i18n: I18nFormatter;
 
 	function split_filename(filename: string): [string, string] {
@@ -66,7 +66,11 @@
 
 <div
 	class="file-preview-holder"
-	style="height: {typeof height === 'undefined' ? 'auto' : height + 'px'};"
+	style:max-height={height
+		? typeof height === "number"
+			? height + "px"
+			: height
+		: "auto"}
 >
 	<table class="file-preview">
 		<tbody>
