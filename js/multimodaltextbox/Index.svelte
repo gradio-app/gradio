@@ -28,7 +28,7 @@
 		start_recording: never;
 		pause_recording: never;
 		stop_recording: never;
-		upload: FileData;
+		upload: FileData[] | FileData;
 		clear: undefined;
 	}>;
 	export let elem_id = "";
@@ -45,7 +45,6 @@
 	export let info: string | undefined = undefined;
 	export let show_label: boolean;
 	export let max_lines: number;
-	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let submit_btn: string | boolean | null = null;
@@ -147,7 +146,6 @@
 		{submit_btn}
 		{stop_btn}
 		{autofocus}
-		{container}
 		{autoscroll}
 		{file_count}
 		{sources}
