@@ -54,7 +54,7 @@ class File(Component):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        height: int | float | None = None,
+        height: int | str | float | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
