@@ -33,6 +33,12 @@ export class GradioAppController extends EventTarget {
 				new CustomEvent("modules-auto-loaded", { detail: event.detail })
 			);
 		});
+		this.lite_svelte_app.$on("stdout", (event: CustomEvent) => {
+			this.dispatchEvent(new CustomEvent("stdout", { detail: event.detail }));
+		});
+		this.lite_svelte_app.$on("stderr", (event: CustomEvent) => {
+			this.dispatchEvent(new CustomEvent("stderr", { detail: event.detail }));
+		});
 	}
 
 	run_code = (code: string): Promise<void> => {
