@@ -100,6 +100,16 @@
 		layout,
 		dispatch
 	};
+
+	let expanded_states = new Map<number, boolean>();
+
+	// Add a function to toggle a message's expanded state
+	function toggle_message_expanded(message_id: number): void {
+		expanded_states.set(message_id, !expanded_states.get(message_id));
+		expanded_states = expanded_states; // Trigger reactivity
+	}
+
+	$: console.log("expanded_states", expanded_states);
 </script>
 
 <div
@@ -151,8 +161,10 @@
 						{#if message?.metadata?.title}
 							<MessageBox
 								title={message.metadata.title}
-								expanded={is_last_bot_message([message], value)}
+								expanded={expanded_states.get(thought_index) ??
+									is_last_bot_message([message], value)}
 								{rtl}
+								on:toggle={() => toggle_message_expanded(thought_index)}
 							>
 								<MessageContent
 									{message}
