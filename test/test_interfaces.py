@@ -28,6 +28,10 @@ def captured_output():
 
 
 class TestInterface:
+    def test_default_title(self):
+        io = Interface(lambda x: x, "textbox", "label")
+        assert io.title == "Gradio"
+
     def test_close(self):
         io = Interface(lambda input: None, "textbox", "label")
         _, local_url, _ = io.launch(prevent_thread_lock=True)
