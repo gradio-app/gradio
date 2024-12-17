@@ -564,44 +564,49 @@ class ChatInterface(Blocks):
 
     def _append_message_to_history(
         self,
-        message: MultimodalPostprocess | str | MessageDict,
+        message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
         history: list[MessageDict] | TupleFormat,
         role: Literal["user", "assistant"] = "user",
     ) -> list[MessageDict] | TupleFormat:
-        if isinstance(message, str):
-            message = {"text": message}
+        message_dicts = self._message_as_message_dict(message, role)
         if self.type == "tuples":
             history = self._tuples_to_messages(history)  # type: ignore
         else:
             history = copy.deepcopy(history)
-
-        if "content" in message:  # in MessageDict format already
-            history.append(message)  # type: ignore
-        else:  # in MultimodalPostprocess format
-            for x in message.get("files", []):
-                if isinstance(x, dict):
-                    x = x.get("path")
-                history.append({"role": role, "content": (x,)})  # type: ignore
-            if message["text"] is None or not isinstance(message["text"], str):
-                pass
-            else:
-                history.append({"role": role, "content": message["text"]})  # type: ignore
-
+        history.extend(message_dicts)  # type: ignore
         if self.type == "tuples":
             history = self._messages_to_tuples(history)  # type: ignore
         return history
 
-    def response_as_dict(
-        self, response: MessageDict | Message | str | Component
-    ) -> MessageDict:
-        if isinstance(response, Message):
-            new_response = response.model_dump()
-        elif isinstance(response, (str, Component)):
-            return {"role": "assistant", "content": response}
-        else:
-            new_response = response
-            new_response["role"] = "assistant"
-        return cast(MessageDict, new_response)
+    def _message_as_message_dict(
+        self,
+        message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
+        role: Literal["user", "assistant"],
+    ) -> list[MessageDict]:
+        """
+        Converts a user message, example message, or response from the chat function to a 
+        list of MessageDict objects that can be appended to the chat history.
+        """
+        message_dicts = []
+        if not isinstance(message, list):
+            message = [message]
+        for msg in message:
+            if isinstance(msg, Message):
+                msg = msg.model_dump()
+            elif isinstance(msg, (str, Component)):
+                msg = {"role": role, "content": msg}
+            elif isinstance(msg, dict) and "content" in msg:  # in MessageDict format already
+                msg["role"] = role
+            else:  # in MultimodalPostprocess format
+                for x in msg.get("files", []):
+                    if isinstance(x, dict):
+                        x = x.get("path")
+                    message_dicts.append({"role": role, "content": (x,)})
+                if msg["text"] is None or not isinstance(msg["text"], str):
+                    pass
+                else:
+                    message_dicts.append({"role": role, "content": msg["text"]})
+        return message_dicts
 
     async def _submit_fn(
         self,
@@ -624,11 +629,7 @@ class ChatInterface(Blocks):
         else:
             additional_outputs = None
         history = self._append_message_to_history(message, history, "user")
-        response_ = [response] if not isinstance(response, list) else response
-        for r in response_:
-            history = self._append_message_to_history(
-                self.response_as_dict(r), history, "assistant"
-            )
+        history = self._append_message_to_history(response, history, "assistant")
         if additional_outputs:
             return response, history, *additional_outputs
         return response, history
