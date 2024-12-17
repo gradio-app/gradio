@@ -34,14 +34,23 @@
 	}}
 />
 <Story
-	name="Multiple files, with height set to 150px"
+	name="Multiple files, with height set to 150px and reordering enabled"
 	args={{
-		value: Array(10).fill({
-			path: "cheetah.jpg",
-			orig_name: "cheetah.jpg",
-			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-			size: 10000
-		}),
-		height: 150
+		value: [
+			{
+				path: "cheetah.jpg",
+				orig_name: "cheetah.jpgz",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+				size: 10000
+			},
+			{
+				path: "cheetah.jpgs",
+				orig_name: "cheetah.jpg",
+				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				size: 10000
+			}
+		],
+		height: 150,
+		allow_reordering: true
 	}}
 />
