@@ -22,8 +22,6 @@ pip install --upgrade gradio discord.py~=2
 ```
 
 
-## 🏃‍♀️ Quickstart 🏃‍♀️
-
 ### Step 1: Write a basic Discord app
 
 Let's write a skeleton 
@@ -85,51 +83,5 @@ By default the bot can be called by starting a message with `/chat`, e.g. `/chat
 
 <img src="https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/guide/echo_slash.gif">
 
-### Using the `gradio_client.Client` Class
 
-You can also create a discord bot from a deployed gradio app with python.
 
-```python
-import gradio_client as grc
-grc.Client("freddyaboulton/echo-chatbot").deploy_discord()
-```
-
-## 🦾 Using State of The Art LLMs 🦾
-
-We have created an organization on Hugging Face called [gradio-discord-bots](https://huggingface.co/gradio-discord-bots) containing several template spaces that explain how to deploy state of the art LLMs powered by gradio as discord bots.
-
-The easiest way to get started is by deploying Meta's Llama 2 LLM with 70 billion parameter. Simply go to this [space](https://huggingface.co/spaces/gradio-discord-bots/Llama-2-70b-chat-hf) and follow the instructions.
-
-The deployment can be done in one line! 🤯
-
-```python
-import gradio_client as grc
-grc.Client("ysharma/Explore_llamav2_with_TGI").deploy_discord(to_id="llama2-70b-discord-bot")
-```
-
-## 🦜 Additional LLMs 🦜
-
-In addition to Meta's 70 billion Llama 2 model, we have prepared template spaces for the following LLMs and deployment options:
-
-- [gpt-3.5-turbo](https://huggingface.co/spaces/gradio-discord-bots/gpt-35-turbo), powered by openai. Required OpenAI key.
-- [falcon-7b-instruct](https://huggingface.co/spaces/gradio-discord-bots/falcon-7b-instruct) powered by Hugging Face Inference Endpoints.
-- [Llama-2-13b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/Llama-2-13b-chat-hf) powered by Hugging Face Inference Endpoints.
-- [Llama-2-13b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/llama-2-13b-chat-transformers) powered by Hugging Face transformers.
-
-To deploy any of these models to discord, simply follow the instructions in the linked space for that model.
-
-## Deploying non-chat gradio apps to discord
-
-As mentioned above, you don't need a `gr.ChatInterface` if you want to deploy your gradio app to discord. All that's needed is an api route that takes in a single string and outputs a single string.
-
-The following code will deploy a space that translates english to german as a discord bot.
-
-```python
-import gradio_client as grc
-client = grc.Client("freddyaboulton/english-to-german")
-client.deploy_discord(api_names=['german'])
-```
-
-## Conclusion
-
-That's it for this guide! We're really excited about this feature. Tag [@Gradio](https://twitter.com/Gradio) on twitter and show us how your discord community interacts with your discord bots.
