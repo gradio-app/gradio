@@ -1,34 +1,32 @@
-# 🚀 Creating Discord Bots from Gradio Apps 🚀
+# 🚀 Creating Discord Bots with Gradio 🚀
 
 Tags: NLP, TEXT, CHAT
 
-We're excited to announce that Gradio can now automatically create a discord bot from a deployed app! 🤖
+You can make your Gradio app available as a Discord bot to let users in your Discord server interact with it directly.  
 
-Discord is a popular communication platform that allows users to chat and interact with each other in real-time. By turning your Gradio app into a Discord bot, you can bring cutting edge AI to your discord server and give your community a whole new way to interact.
+## How does it work?
 
-## 💻 How does it work? 💻
+The Discord bot will listen to messages mentioning it in channels. When it receives a message (which can include text as well as files), it will send it to your Gradio app via Gradio's built in API. Your bot will reply with the response it receives from the API. 
 
-With `gradio_client` version `0.3.0`, any gradio `ChatInterface` app on the internet can automatically be deployed as a discord bot via the `deploy_discord` method of the `Client` class.
+Because Gradio's API is very flexible, you can create Discord bots that support text, images, audio, streaming, history, and a wide variety of other features very easily. 
 
-Technically, any gradio app that exposes an api route that takes in a single string and outputs a single string can be deployed to discord. In this guide, we will focus on `gr.ChatInterface` as those apps naturally lend themselves to discord's chat functionality.
+![]()
 
-## 🛠️ Requirements 🛠️
+## Prerequisites
 
-Make sure you have the latest `gradio_client` and `gradio` versions installed.
+* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Studio Space](), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
+* Install the latest version of `gradio` and the `discord.py` libraries:
 
-```bash
-pip install gradio_client>=0.3.0 gradio>=3.38.0
+```
+pip install --upgrade gradio discord.py~=2
 ```
 
-Also, make sure you have a [Hugging Face account](https://huggingface.co/) and a [write access token](https://huggingface.co/docs/hub/security-tokens).
-
-⚠️ Tip ⚠️: Make sure you login to the Hugging Face Hub by running `huggingface-cli login`. This will let you skip passing your token in all subsequent commands in this guide.
 
 ## 🏃‍♀️ Quickstart 🏃‍♀️
 
-### Step 1: Implementing our chatbot
+### Step 1: Write a basic Discord app
 
-Let's build a very simple Chatbot using `ChatInterface` that simply repeats the user message. Write the following code into an `app.py`
+Let's write a skeleton 
 
 ```python
 import gradio as gr
