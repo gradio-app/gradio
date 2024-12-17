@@ -84,4 +84,5 @@ By default the bot can be called by starting a message with `/chat`, e.g. `/chat
 <img src="https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/guide/echo_slash.gif">
 
 
+* Talk about chat history and how to reset it
 
