@@ -332,9 +332,9 @@
 	}
 
 	.audio-container.compact-audio {
-		margin-top: calc(var(--size-10) * -1);
+		margin-top: calc(var(--size-8) * -1);
 		height: auto;
-		padding: var(--size-1);
+		padding: 0px;
 		gap: var(--size-2);
 		min-height: var(--size-5);
 	}

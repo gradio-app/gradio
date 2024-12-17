@@ -39,7 +39,6 @@
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let show_label = true;
-	export let container = true;
 	export let max_lines: number;
 	export let submit_btn: string | boolean | null = null;
 	export let stop_btn: string | boolean | null = null;
@@ -56,12 +55,8 @@
 	export let max_plain_text_length = 1000;
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions = {};
-	export let sources:
-		| ["microphone"]
-		| ["upload"]
-		| ["microphone", "upload"]
-		| ["upload", "microphone"] = ["microphone", "upload"];
-	export let active_source: "microphone" | "upload" = sources[0];
+	export let sources: ["microphone" | "upload"] = ["upload"];
+	export let active_source: "microphone" | null = null;
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
 	let el: HTMLTextAreaElement | HTMLInputElement;
@@ -158,7 +153,7 @@
 		) {
 			e.preventDefault();
 			dispatch("submit");
-			active_source = "upload";
+			active_source = null;
 			if (mic_audio) {
 				value.files.push(mic_audio);
 				value = value;
@@ -219,7 +214,7 @@
 
 	function handle_submit(): void {
 		dispatch("submit");
-		active_source = "upload";
+		active_source = null;
 		if (mic_audio) {
 			value.files.push(mic_audio);
 			value = value;
@@ -359,7 +354,7 @@
 				{/if}
 			</div>
 		{/if}
-		{#if active_source === "microphone"}
+		{#if sources && sources.includes("microphone") && active_source === "microphone"}
 			<InteractiveAudio
 				on:change={({ detail }) => {
 					if (detail !== null) {
@@ -367,7 +362,7 @@
 					}
 				}}
 				on:clear={() => {
-					active_source = "upload";
+					active_source = null;
 				}}
 				on:start_recording={() => dispatch("start_recording")}
 				on:pause_recording={() => dispatch("pause_recording")}
@@ -392,7 +387,7 @@
 			/>
 		{/if}
 		<div class="input-container">
-			{#if !disabled && !(file_count === "single" && value.files.length > 0)}
+			{#if sources && sources.includes("upload") && !disabled && !(file_count === "single" && value.files.length > 0)}
 				<Upload
 					bind:this={upload_component}
 					on:load={handle_upload}
@@ -410,25 +405,23 @@
 					{upload}
 					{stream_handler}
 				/>
-
-				{#if sources && sources.includes("microphone")}
-					<button
-						data-testid="microphone-button"
-						class="microphone-button"
-						class:recording
-						on:click={() => {
-							active_source = "microphone";
-						}}
-					>
-						<Microphone />
-					</button>
-				{/if}
-
 				<button
 					data-testid="upload-button"
 					class="upload-button"
 					on:click={handle_upload_click}><Paperclip /></button
 				>
+			{/if}
+			{#if sources && sources.includes("microphone")}
+				<button
+					data-testid="microphone-button"
+					class="microphone-button"
+					class:recording
+					on:click={() => {
+						active_source = active_source !== "microphone" ? "microphone" : null;
+					}}
+				>
+					<Microphone />
+				</button>
 			{/if}
 			<textarea
 				data-testid="textbox"

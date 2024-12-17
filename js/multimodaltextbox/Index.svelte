@@ -60,21 +60,11 @@
 	export let root: string;
 	export let file_count: "single" | "multiple" | "directory";
 	export let max_plain_text_length: number;
-	export let sources:
-		| ["microphone"]
-		| ["upload"]
-		| ["microphone", "upload"]
-		| ["upload", "microphone"];
-
+	export let sources: ["microphone" | "upload"] = ["upload"];
 	export let waveform_options: WaveformOptions = {};
 
 	let dragging: boolean;
-	let active_source: "microphone" | "upload" = sources[0];
-
-	$: if (!active_source && sources) {
-		active_source = sources[0];
-	}
-
+	let active_source: "microphone" | null = null;
 	let waveform_settings: Record<string, any>;
 	let color_accent = "darkorange";
 
