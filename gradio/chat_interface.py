@@ -592,13 +592,14 @@ class ChatInterface(Blocks):
             message = [message]
         for msg in message:
             if isinstance(msg, Message):
-                msg = msg.model_dump()
+                message_dicts.append(msg.model_dump())
             elif isinstance(msg, (str, Component)):
-                msg = {"role": role, "content": msg}
+                message_dicts.append({"role": role, "content": msg})
             elif (
                 isinstance(msg, dict) and "content" in msg
             ):  # in MessageDict format already
                 msg["role"] = role
+                message_dicts.append(msg)
             else:  # in MultimodalPostprocess format
                 for x in msg.get("files", []):
                     if isinstance(x, dict):
