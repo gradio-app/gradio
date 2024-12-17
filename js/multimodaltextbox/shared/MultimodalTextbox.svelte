@@ -312,168 +312,166 @@
 	aria-label="Multimedia input field"
 >
 	<!-- svelte-ignore a11y-autofocus -->
-		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
-		{#if value.files.length > 0 || uploading}
-			<div
-				class="thumbnails scroll-hide"
-				aria-label="Uploaded files"
-				data-testid="container_el"
-				style="display: {value.files.length > 0 || uploading
-					? 'flex'
-					: 'none'};"
-			>
-				{#each value.files as file, index}
-					<span role="listitem" aria-label="File thumbnail">
-						<button class="thumbnail-item thumbnail-small">
-							<button
-								class:disabled
-								class="delete-button"
-								on:click={(event) => remove_thumbnail(event, index)}
-								><Clear /></button
-							>
-							{#if file.mime_type && file.mime_type.includes("image")}
-								<Image
-									src={file.url}
-									title={null}
-									alt=""
-									loading="lazy"
-									class={"thumbnail-image"}
-								/>
-							{:else if file.mime_type && file.mime_type.includes("audio")}
-								<Music />
-							{:else if file.mime_type && file.mime_type.includes("video")}
-								<Video />
-							{:else}
-								<File />
-							{/if}
-						</button>
-					</span>
-				{/each}
-				{#if uploading}
-					<div class="loader" role="status" aria-label="Uploading"></div>
-				{/if}
-			</div>
-		{/if}
-		{#if sources && sources.includes("microphone") && active_source === "microphone"}
-			<InteractiveAudio
-				on:change={({ detail }) => {
-					if (detail !== null) {
-						mic_audio = detail;
-					}
-				}}
-				on:clear={() => {
-					active_source = null;
-				}}
-				on:start_recording={() => dispatch("start_recording")}
-				on:pause_recording={() => dispatch("pause_recording")}
-				on:stop_recording={() => dispatch("stop_recording")}
-				sources={["microphone"]}
-				class_name="compact-audio"
-				{recording}
-				{waveform_settings}
-				{waveform_options}
-				{i18n}
-				{active_source}
-				{upload}
-				{stream_handler}
-				stream_every={1}
-				editable={true}
-				{label}
-				{root}
-				loop={false}
-				show_label={false}
-				show_download_button={false}
-				dragging={false}
-			/>
-		{/if}
-		<div class="input-container">
-			{#if sources && sources.includes("upload") && !disabled && !(file_count === "single" && value.files.length > 0)}
-				<Upload
-					bind:this={upload_component}
-					on:load={handle_upload}
-					{file_count}
-					filetype={file_types}
-					{root}
-					{max_file_size}
-					bind:dragging
-					bind:uploading
-					show_progress={false}
-					disable_click={true}
-					bind:hidden_upload
-					on:error
-					hidden={true}
-					{upload}
-					{stream_handler}
-				/>
-				<button
-					data-testid="upload-button"
-					class="upload-button"
-					on:click={handle_upload_click}><Paperclip /></button
-				>
-			{/if}
-			{#if sources && sources.includes("microphone")}
-				<button
-					data-testid="microphone-button"
-					class="microphone-button"
-					class:recording
-					on:click={() => {
-						active_source = active_source !== "microphone" ? "microphone" : null;
-					}}
-				>
-					<Microphone />
-				</button>
-			{/if}
-			<textarea
-				data-testid="textbox"
-				use:text_area_resize={{
-					text: value.text,
-					lines: lines,
-					max_lines: max_lines
-				}}
-				class="scroll-hide"
-				class:no-label={!show_label}
-				dir={rtl ? "rtl" : "ltr"}
-				bind:value={value.text}
-				bind:this={el}
-				{placeholder}
-				rows={lines}
-				{disabled}
-				{autofocus}
-				on:keypress={handle_keypress}
-				on:blur
-				on:select={handle_select}
-				on:focus
-				on:scroll={handle_scroll}
-				on:paste={handle_paste}
-				style={text_align ? "text-align: " + text_align : ""}
-			/>
-			{#if submit_btn}
-				<button
-					class="submit-button"
-					class:padded-button={submit_btn !== true}
-					on:click={handle_submit}
-				>
-					{#if submit_btn === true}
-						<Send />
-					{:else}
-						{submit_btn}
-					{/if}
-				</button>
-			{/if}
-			{#if stop_btn}
-				<button
-					class="stop-button"
-					class:padded-button={stop_btn !== true}
-					on:click={handle_stop}
-				>
-					{#if stop_btn === true}
-						<Square fill={"none"} stroke_width={2.5} />
-					{:else}
-						{stop_btn}
-					{/if}
-				</button>
+	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	{#if value.files.length > 0 || uploading}
+		<div
+			class="thumbnails scroll-hide"
+			aria-label="Uploaded files"
+			data-testid="container_el"
+			style="display: {value.files.length > 0 || uploading ? 'flex' : 'none'};"
+		>
+			{#each value.files as file, index}
+				<span role="listitem" aria-label="File thumbnail">
+					<button class="thumbnail-item thumbnail-small">
+						<button
+							class:disabled
+							class="delete-button"
+							on:click={(event) => remove_thumbnail(event, index)}
+							><Clear /></button
+						>
+						{#if file.mime_type && file.mime_type.includes("image")}
+							<Image
+								src={file.url}
+								title={null}
+								alt=""
+								loading="lazy"
+								class={"thumbnail-image"}
+							/>
+						{:else if file.mime_type && file.mime_type.includes("audio")}
+							<Music />
+						{:else if file.mime_type && file.mime_type.includes("video")}
+							<Video />
+						{:else}
+							<File />
+						{/if}
+					</button>
+				</span>
+			{/each}
+			{#if uploading}
+				<div class="loader" role="status" aria-label="Uploading"></div>
 			{/if}
 		</div>
+	{/if}
+	{#if sources && sources.includes("microphone") && active_source === "microphone"}
+		<InteractiveAudio
+			on:change={({ detail }) => {
+				if (detail !== null) {
+					mic_audio = detail;
+				}
+			}}
+			on:clear={() => {
+				active_source = null;
+			}}
+			on:start_recording={() => dispatch("start_recording")}
+			on:pause_recording={() => dispatch("pause_recording")}
+			on:stop_recording={() => dispatch("stop_recording")}
+			sources={["microphone"]}
+			class_name="compact-audio"
+			{recording}
+			{waveform_settings}
+			{waveform_options}
+			{i18n}
+			{active_source}
+			{upload}
+			{stream_handler}
+			stream_every={1}
+			editable={true}
+			{label}
+			{root}
+			loop={false}
+			show_label={false}
+			show_download_button={false}
+			dragging={false}
+		/>
+	{/if}
+	<div class="input-container">
+		{#if sources && sources.includes("upload") && !disabled && !(file_count === "single" && value.files.length > 0)}
+			<Upload
+				bind:this={upload_component}
+				on:load={handle_upload}
+				{file_count}
+				filetype={file_types}
+				{root}
+				{max_file_size}
+				bind:dragging
+				bind:uploading
+				show_progress={false}
+				disable_click={true}
+				bind:hidden_upload
+				on:error
+				hidden={true}
+				{upload}
+				{stream_handler}
+			/>
+			<button
+				data-testid="upload-button"
+				class="upload-button"
+				on:click={handle_upload_click}><Paperclip /></button
+			>
+		{/if}
+		{#if sources && sources.includes("microphone")}
+			<button
+				data-testid="microphone-button"
+				class="microphone-button"
+				class:recording
+				on:click={() => {
+					active_source = active_source !== "microphone" ? "microphone" : null;
+				}}
+			>
+				<Microphone />
+			</button>
+		{/if}
+		<textarea
+			data-testid="textbox"
+			use:text_area_resize={{
+				text: value.text,
+				lines: lines,
+				max_lines: max_lines
+			}}
+			class="scroll-hide"
+			class:no-label={!show_label}
+			dir={rtl ? "rtl" : "ltr"}
+			bind:value={value.text}
+			bind:this={el}
+			{placeholder}
+			rows={lines}
+			{disabled}
+			{autofocus}
+			on:keypress={handle_keypress}
+			on:blur
+			on:select={handle_select}
+			on:focus
+			on:scroll={handle_scroll}
+			on:paste={handle_paste}
+			style={text_align ? "text-align: " + text_align : ""}
+		/>
+		{#if submit_btn}
+			<button
+				class="submit-button"
+				class:padded-button={submit_btn !== true}
+				on:click={handle_submit}
+			>
+				{#if submit_btn === true}
+					<Send />
+				{:else}
+					{submit_btn}
+				{/if}
+			</button>
+		{/if}
+		{#if stop_btn}
+			<button
+				class="stop-button"
+				class:padded-button={stop_btn !== true}
+				on:click={handle_stop}
+			>
+				{#if stop_btn === true}
+					<Square fill={"none"} stroke_width={2.5} />
+				{:else}
+					{stop_btn}
+				{/if}
+			</button>
+		{/if}
+	</div>
 </div>
 
 <style>
