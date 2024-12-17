@@ -1,11 +1,11 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
-	import FilePreview from "./shared/FilePreview.svelte";
+	import File from "./Index.svelte";
 </script>
 
 <Meta
 	title="Components/File"
-	component={FilePreview}
+	component={File}
 	argTypes={{
 		value: {
 			control: "text",
@@ -17,7 +17,7 @@
 />
 
 <Template let:args>
-	<FilePreview {...args} />
+	<File {...args} />
 </Template>
 
 <Story
@@ -52,5 +52,13 @@
 		],
 		height: 150,
 		allow_reordering: true
+	}}
+/>
+<Story
+	name="File upload with height set to 400px"
+	args={{
+		interactive: true,
+		value: null,
+		height: 400
 	}}
 />
