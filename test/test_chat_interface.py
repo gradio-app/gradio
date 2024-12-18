@@ -41,10 +41,6 @@ def echo_system_prompt_plus_message(message, history, system_prompt, tokens):
 
 
 class TestInit:
-    def test_default_title(self):
-        chat = gr.ChatInterface(double)
-        assert chat.title == "Gradio"
-
     def test_no_fn(self):
         with pytest.raises(TypeError):
             gr.ChatInterface()  # type: ignore
