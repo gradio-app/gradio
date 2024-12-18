@@ -15,7 +15,7 @@ Because Gradio's API is very flexible, you can create Slack bots that support te
 * Install the latest version of `gradio` and the `slack-bolt` library:
 
 ```bash
-pip install --upgrade gradio slack-bolt
+pip install --upgrade gradio slack-bolt~=1.0
 ```
 
 * Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Playground Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
@@ -32,84 +32,100 @@ Now, we are ready to get started!
    - `chat:write`
    - `files:read`
    - `files:write`
-5. Install the app to your workspace
-6. Copy your "Bot User OAuth Token" (starts with `xoxb-`) as we'll need it later
+5. In the same "OAuth & Permissions" page, scroll back up and click the button to install the app to your workspace.
+6. Note the "Bot User OAuth Token" (starts with `xoxb-`) that appears as we'll need it later
+7. Click on "Socket Mode" in the menu bar. When the page loads, click the toggle to "Enable Socket Mode"
+8. Give your token a name, such as `socket-token` and copy the token that is generated (starts with `xapp-`) as we'll need it later.
+9. Finally, go to the "Event Subscription" option in the menu bar. Click the toggle to "Enable Events" and subscribe to the `app_mention` bot event.
 
 ### 2. Write a Slack bot
 
-Let's create a simple Slack bot that integrates with your Gradio app. Create a file called `bot.py`:
+Let's start by writing a very simple Slack bot, just to make sure that everything is working. Write the following Python code in a file called `bot.py`, pasting the two tokens from step 6 and step 8 in the previous section.
 
-```python
-# bot.py
-import os
+```py
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-from gradio_client import Client, handle_file
-import httpx
 
-# Initialize the Slack app
-app = App(token=os.environ["SLACK_BOT_TOKEN"])
-gradio_client = Client("abidlabs/gradio-playground-bot")
+SLACK_BOT_TOKEN = # PASTE YOUR SLACK BOT TOKEN HERE
+SLACK_APP_TOKEN = # PASTE YOUR SLACK APP TOKEN HERE
 
-def download_file(file_info, client):
-    response = client.files_info(file=file_info["id"])
-    file_url = response["file"]["url_private"]
-    
-    headers = {"Authorization": f"Bearer {os.environ['SLACK_BOT_TOKEN']}"}
-    response = httpx.get(file_url, headers=headers)
-    
-    file_path = f"./images/{file_info['name']}"
-    os.makedirs("./images", exist_ok=True)
-    with open(file_path, "wb") as f:
-        f.write(response.content)
-    return file_path
+app = App(token=SLACK_BOT_TOKEN)
 
 @app.event("app_mention")
-def handle_mention(event, say, client):
-    # Extract the message without the bot mention
-    text = event["text"]
-    bot_user_id = event["authorizations"][0]["user_id"]
-    clean_message = text.replace(f"<@{bot_user_id}>", "").strip()
-    
-    # Handle attached files (images)
-    files = []
-    if "files" in event:
-        for file_info in event["files"]:
-            if file_info["mimetype"].startswith("image/"):
-                image_path = download_file(file_info, client)
-                files.append(handle_file(image_path))
-                break
-    
-    # Submit to Gradio and send responses
-    for response in gradio_client.submit(
-        message={"text": clean_message, "files": files},
-    ):
-        say(response[-1])
+def handle_app_mention_events(body, say):
+    user_id = body["event"]["user"]
+    say(f"Hi <@{user_id}>! You mentioned me and said: {body['event']['text']}")
 
 if __name__ == "__main__":
-    # Start the app using Socket Mode
-    handler = SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"])
+    handler = SocketModeHandler(app, SLACK_APP_TOKEN)
     handler.start()
 ```
 
-To run this bot, you'll need to set two environment variables:
-- `SLACK_BOT_TOKEN`: The Bot User OAuth Token from step 1 (starts with `xoxb-`)
-- `SLACK_APP_TOKEN`: Generate this in the "Basic Information" section under "App-Level Tokens" (starts with `xapp-`)
+If that is working, we are ready to add Gradio-specific code. We will be using the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) to query the Gradio Playground Space mentioned above. Here's the updated `bot.py` file:
 
-### 3. Enable Socket Mode
+```python
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-1. Go back to your Slack App settings
-2. Enable Socket Mode in the "Socket Mode" section
-3. Generate an App-Level Token with the `connections:write` scope
-4. Save this token as your `SLACK_APP_TOKEN` environment variable
+SLACK_BOT_TOKEN = # PASTE YOUR SLACK BOT TOKEN HERE
+SLACK_APP_TOKEN = # PASTE YOUR SLACK APP TOKEN HERE
+
+app = App(token=SLACK_BOT_TOKEN)
+gradio_client = Client("abidlabs/gradio-playground-bot")
+
+def download_image(url, filename):
+    headers = {"Authorization": f"Bearer {SLACK_BOT_TOKEN}"}
+    response = httpx.get(url, headers=headers)
+    image_path = f"./images/{filename}"
+    os.makedirs("./images", exist_ok=True)
+    with open(image_path, "wb") as f:
+        f.write(response.content)
+    return image_path
+
+def slackify_message(message):   
+    # Replace markdown links with slack format and remove code language specifier after triple backticks
+    pattern = r'\[(.*?)\]\((.*?)\)'
+    cleaned = re.sub(pattern, r'<\2|\1>', message)
+    cleaned = re.sub(r'```\w+\n', '```', cleaned)
+    return cleaned.strip()
+
+@app.event("app_mention")
+def handle_app_mention_events(body, say):
+    # Extract the message content without the bot mention
+    text = body["event"]["text"]
+    bot_user_id = body["authorizations"][0]["user_id"]
+    clean_message = text.replace(f"<@{bot_user_id}>", "").strip()
+    
+    # Handle images if present
+    files = []
+    if "files" in body["event"]:
+        for file in body["event"]["files"]:
+            if file["filetype"] in ["png", "jpg", "jpeg", "gif", "webp"]:
+                image_path = download_image(file["url_private_download"], file["name"])
+                files.append(handle_file(image_path))
+                break
+    
+    # Submit to Gradio and send responses back to Slack
+    for response in gradio_client.submit(
+        message={"text": clean_message, "files": files},
+    ):
+        cleaned_response = slackify_message(response[-1])
+        say(cleaned_response)
+
+if __name__ == "__main__":
+    handler = SocketModeHandler(app, SLACK_APP_TOKEN)
+    handler.start()
+```
+### 3. Add the bot to your Slack Workplace
+
+Now, create a new channel or navigate to an existing channel in your Slack workspace where you want to use the bot. Click the "+" button next to "Channels" in your Slack sidebar and follow the prompts to create a new channel.
+
+Finally, invite your bot to the channel:
+1. In your new channel, type `/invite @YourBotName`
+2. Select your bot from the dropdown
+3. Click "Invite to Channel"
 
 ### 4. That's it!
-
-Run your bot with:
-
-```bash
-python bot.py
-```
 
 Now you can mention your bot in any channel it's in, optionally attach an image, and it will respond with generated Gradio app code!
 
