@@ -1533,7 +1533,7 @@ def mount_gradio_app(
     allowed_paths: list[str] | None = None,
     blocked_paths: list[str] | None = None,
     favicon_path: str | None = None,
-    show_error: bool = True,
+    show_error: bool = False,
     max_file_size: str | int | None = None,
     ssr_mode: bool | None = None,
     node_server_name: str | None = None,
