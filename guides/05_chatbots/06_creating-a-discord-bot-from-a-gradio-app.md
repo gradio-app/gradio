@@ -10,16 +10,22 @@ The Discord bot will listen to messages mentioning it in channels. When it recei
 
 Because Gradio's API is very flexible, you can create Discord bots that support text, images, audio, streaming, chat history, and a wide variety of other features very easily. 
 
+# show screenshot here
 ![]()
 
 ## Prerequisites
 
-* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Studio Space](), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
 * Install the latest version of `gradio` and the `discord.py` libraries:
 
 ```
 pip install --upgrade gradio discord.py~=2
 ```
+* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Studio Space](), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
+
+
+### Step 1: Create a Discord application
+
+
 
 
 ### Step 1: Write a basic Discord app
