@@ -30,13 +30,16 @@ Now, we are ready to get started!
 
 First, go to the [Discord apps dashboard](https://discord.com/developers/applications). Look for the "New Application" button and click it. Give your application a name, and then click "Create".
 
-* image
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-4.png)
 
 On the resulting screen, you will see basic information about your application. Under the Settings section, click on the "Bot" option. You can update your bot's username if you would like.
 
 Then click on the "Reset Token" button. A new token will be generated. Copy it as we will need it for the next step.
 
 Scroll down to the section that says "Privileged Gateway Intents". Your bot will need certain permissions to work correctly. In this tutorial, we will only be using the "Message Content Intent" so click the toggle to enable this intent. Save the changes.
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-3.png)
+
 
 * screenshot
 
@@ -122,13 +125,18 @@ async def on_message(message):
 client.run(TOKEN)
 ```
 
-
-### 3. Install the bot in your Discord Server
+### 3. Add the bot to your Discord Server
 
 Now we are ready to install the bot on our server. Go back to the [Discord apps dashboard](https://discord.com/developers/applications). Under the Settings section, click on the "OAuth2" option. Scroll down to the "OAuth2 URL Generator" box and select the "bot" checkbox:
 
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-2.png)
+
+
 
 Then in "Bot Permissions" box that pops up underneath, enable the following permissions:
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-1.png)
+
 
 Copy the generated URL that appears underneath, which should look something like:
 
@@ -141,7 +149,7 @@ Paste it into your browser, which should allow you to add the Discord bot to any
 
 ### 4. That's it!
 
-Try it out and you should be able to generate code for Gradio apps on demand.
+Try it out and you should be able to generate code for Gradio apps directly in your Discord server!
 
 
 
