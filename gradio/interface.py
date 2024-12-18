@@ -107,7 +107,7 @@ class Interface(Blocks):
         examples_per_page: int = 10,
         example_labels: list[str] | None = None,
         live: bool = False,
-        title: str = "Gradio",
+        title: str | None = None,
         description: str | None = None,
         article: str | None = None,
         theme: Theme | str | None = None,
@@ -190,7 +190,7 @@ class Interface(Blocks):
         super().__init__(
             analytics_enabled=analytics_enabled,
             mode="interface",
-            title=title,
+            title=title or "Gradio",
             theme=theme,
             css=css,
             css_paths=css_paths,

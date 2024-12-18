@@ -81,7 +81,7 @@ class ChatInterface(Blocks):
         run_examples_on_click: bool = True,
         cache_examples: bool | None = None,
         cache_mode: Literal["eager", "lazy"] | None = None,
-        title: str = "Gradio",
+        title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
         css: str | None = None,
