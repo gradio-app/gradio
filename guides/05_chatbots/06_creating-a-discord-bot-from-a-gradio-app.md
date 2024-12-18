@@ -20,7 +20,7 @@ Because Gradio's API is very flexible, you can create Discord bots that support 
 pip install --upgrade gradio discord.py~=2.0
 ```
 
-* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Studio Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
+* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Playground Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
 
 Now, we are ready to get started!
 
