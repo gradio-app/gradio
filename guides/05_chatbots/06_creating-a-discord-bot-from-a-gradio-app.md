@@ -20,7 +20,8 @@ Because Gradio's API is very flexible, you can create Discord bots that support 
 ```
 pip install --upgrade gradio discord.py~=2.0
 ```
-* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Studio Space](), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
+
+* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Studio Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
 
 Now, we are ready to get started!
 
@@ -64,11 +65,63 @@ Now, run this file: `python bot.py`, which should run and print a message like:
 We have logged in as GradioPlaygroundBot#1451
 ```
 
-If that is working, we are ready to add Gradio-specific code. We will 
+If that is working, we are ready to add Gradio-specific code. We will be using the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) to query the Gradio Playground Space mentioned above. Here's the updated `bot.py` file:
 
-Now, we are ready to 
+```python
+import discord
+from gradio_client import Client, handle_file
+import httpx
+import os
 
-* talk about chat history
+TOKEN = #PASTE YOUR DISCORD BOT TOKEN HERE
+
+intents = discord.Intents.default()
+intents.message_content = True
+
+client = discord.Client(intents=intents)
+gradio_client = Client("abidlabs/gradio-playground-bot")
+
+def download_image(attachment):
+    response = httpx.get(attachment.url)
+    image_path = f"./images/{attachment.filename}"
+    os.makedirs("./images", exist_ok=True)
+    with open(image_path, "wb") as f:
+        f.write(response.content)
+    return image_path
+
+@client.event
+async def on_ready():
+    print(f'We have logged in as {client.user}')
+
+@client.event
+async def on_message(message):
+    # Ignore messages from the bot itself
+    if message.author == client.user:
+        return
+
+    # Check if the bot is mentioned in the message and reply
+    if client.user in message.mentions:
+        # Extract the message content without the bot mention
+        clean_message = message.content.replace(f"<@{client.user.id}>", "").strip()
+
+        # Handle images (only the first image is used)
+        files = []
+        if message.attachments:
+            for attachment in message.attachments:
+                if any(attachment.filename.lower().endswith(ext) for ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']):
+                    image_path = download_image(attachment)
+                    files.append(handle_file(image_path))
+                    break
+        
+        # Stream the responses to the channel
+        for response in gradio_client.submit(
+            message={"text": clean_message, "files": files},
+        ):
+            await message.channel.send(response[-1])
+
+client.run(TOKEN)
+```
+
 
 ### 3. Install the bot in your Discord Server
 
@@ -86,7 +139,9 @@ https://discord.com/oauth2/authorize?client_id=1319011745452265575&permissions=3
 Paste it into your browser, which should allow you to add the Discord bot to any Discord server that you manage.
 
 
-### 4. (Optional) Deploy your Discord bot
+### 4. That's it!
+
+Try it out and you should be able to generate code for Gradio apps on demand.
 
 
 
