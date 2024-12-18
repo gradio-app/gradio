@@ -328,9 +328,8 @@ Once you've built your Gradio chat interface and are hosting it on [Hugging Face
 To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client). Or, you can deploy your Chat Interface to other platforms, such as a:
 
 * Discord bot [[tutorial]](../guides/creating-a-discord-bot-from-a-gradio-app)
-* Slack bot
-* Teams bot
-* Website widget
+* Slack bot [[tutorial]](../guides/creating-a-slack-bot-from-a-gradio-app)
+* Website widget [[tutorial]](../guides/creating-a-webiste-widget-from-a-gradio-chatbot)
 
 ## What's Next?
 
