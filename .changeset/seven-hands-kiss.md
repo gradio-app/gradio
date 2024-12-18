@@ -3,4 +3,4 @@
 "gradio_client": minor
 ---
 
-feat:Update the discord bot guide and add a Slack bot guide
+feat:Update Guides related to deploying Gradio chatbots to Discord, Slack, and website widgets
