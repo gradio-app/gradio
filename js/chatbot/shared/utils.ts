@@ -193,7 +193,16 @@ export function group_messages(
 		if (!(message.role === "assistant" || message.role === "user")) {
 			continue;
 		}
-		if (message.role === currentRole) {
+		if (
+			message.metadata?.title ||
+			(currentGroup.length > 0 && currentGroup[0].metadata?.title)
+		) {
+			if (currentGroup.length > 0) {
+				groupedMessages.push(currentGroup);
+			}
+			currentGroup = [message];
+			currentRole = message.role;
+		} else if (message.role === currentRole) {
 			currentGroup.push(message);
 		} else {
 			if (currentGroup.length > 0) {
