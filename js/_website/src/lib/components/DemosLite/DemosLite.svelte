@@ -20,7 +20,7 @@
 	let compare = false;
 
 	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	const workerUrl = "http://localhost:5173/api/generate";
+	const workerUrl = "http://localhost:5174/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -255,7 +255,8 @@
 
 	onMount(async () => {
 		try {
-			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
+			// await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
+			await loadScript("http://localhost:8000/dist/lite.js");
 			controller = createGradioApp({
 				target: document.getElementById("lite-demo"),
 				requirements: cleanupRequirements(requirements),
@@ -601,7 +602,8 @@
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
+	<!-- <link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" /> -->
+	<link rel="stylesheet" href="http://localhost:8000/dist/lite.css" />
 
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>
