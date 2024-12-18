@@ -31,11 +31,13 @@ First, go to the [Discord apps dashboard](https://discord.com/developers/applica
 
 * image
 
-On the resulting screen, you will see basic information about your application. Under the Settings section, click on the Bot option. You can update your Bot's username if you would like.
+On the resulting screen, you will see basic information about your application. Under the Settings section, click on the "Bot" option. You can update your bot's username if you would like.
 
 Then click on the "Reset Token" button. A new token will be generated. Copy it as we will need it for the next step.
 
 Scroll down to the section that says "Privileged Gateway Intents". Your bot will need certain permissions to work correctly. In this tutorial, we will only be using the "Message Content Intent" so click the toggle to enable this intent. Save the changes.
+
+* screenshot
 
 ### 2. Write a Discord bot
 
@@ -62,8 +64,29 @@ Now, run this file: `python bot.py`, which should run and print a message like:
 We have logged in as GradioPlaygroundBot#1451
 ```
 
+If that is working, we are ready to add Gradio-specific code. We will 
 
-
-### 4. Install the bot in your Discord Server
+Now, we are ready to 
 
 * talk about chat history
+
+### 3. Install the bot in your Discord Server
+
+Now we are ready to install the bot on our server. Go back to the [Discord apps dashboard](https://discord.com/developers/applications). Under the Settings section, click on the "OAuth2" option. Scroll down to the "OAuth2 URL Generator" box and select the "bot" checkbox:
+
+
+Then in "Bot Permissions" box that pops up underneath, enable the following permissions:
+
+Copy the generated URL that appears underneath, which should look something like:
+
+```text
+https://discord.com/oauth2/authorize?client_id=1319011745452265575&permissions=377957238784&integration_type=0&scope=bot
+```
+
+Paste it into your browser, which should allow you to add the Discord bot to any Discord server that you manage.
+
+
+### 4. (Optional) Deploy your Discord bot
+
+
+
