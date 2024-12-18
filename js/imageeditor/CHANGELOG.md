@@ -1,5 +1,35 @@
 # @gradio/imageeditor
 
+## 0.11.11
+
+### Dependency updates
+
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/image@0.19.0
+
+## 0.11.10
+
+### Dependency updates
+
+- @gradio/image@0.18.0
+
+## 0.11.9
+
+### Fixes
+
+- [#10037](https://github.com/gradio-app/gradio/pull/10037) [`d0b74ba`](https://github.com/gradio-app/gradio/commit/d0b74ba281b37d8883a4e4fbb98c5922600ca41e) - Ensure toolbar stays visible for large images in ImageEditor.  Thanks @hannahblair!
+- [#10041](https://github.com/gradio-app/gradio/pull/10041) [`c1fa13c`](https://github.com/gradio-app/gradio/commit/c1fa13c9c057ce05a325782e58b409cde79383b8) - Ensure ImageEditor brush colour is updated when changed.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/image@0.17.0
+
 ## 0.11.8
 
 ### Dependency updates

@@ -20,6 +20,8 @@ class TestHTML:
             "key": None,
             "min_height": None,
             "max_height": None,
+            "container": False,
+            "padding": True,
         }
 
     def test_in_interface(self):

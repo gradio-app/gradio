@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import { BlockLabel } from "@gradio/atoms";
-	import { Image as ImageIcon } from "@gradio/icons";
+	import { BlockLabel, IconButtonWrapper, IconButton } from "@gradio/atoms";
+	import { Clear, Image as ImageIcon } from "@gradio/icons";
+	import { FullscreenButton } from "@gradio/atoms";
 	import {
 		type SelectData,
 		type I18nFormatter,
@@ -12,7 +13,6 @@
 
 	import { Upload } from "@gradio/upload";
 	import { FileData, type Client } from "@gradio/client";
-	import ClearImage from "./ClearImage.svelte";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
 	import type { Base64File } from "./types";
@@ -37,10 +37,13 @@
 
 	export let modify_stream: (state: "open" | "closed" | "waiting") => void;
 	export let set_time_limit: (arg0: number) => void;
+	export let show_fullscreen_button = true;
 
 	let upload_input: Upload;
 	export let uploading = false;
 	export let active_source: source_type = null;
+
+	export let webcam_constraints: { [key: string]: any } | undefined = undefined;
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
 		// only trigger streaming event if streaming
@@ -119,19 +122,29 @@
 				break;
 		}
 	}
+
+	let image_container: HTMLElement;
 </script>
 
 <BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} />
 
-<div data-testid="image" class="image-container">
-	{#if value?.url && !active_streaming}
-		<ClearImage
-			on:remove_image={() => {
-				value = null;
-				dispatch("clear");
-			}}
-		/>
-	{/if}
+<div data-testid="image" class="image-container" bind:this={image_container}>
+	<IconButtonWrapper>
+		{#if value?.url && !active_streaming}
+			{#if show_fullscreen_button}
+				<FullscreenButton container={image_container} />
+			{/if}
+			<IconButton
+				Icon={Clear}
+				label="Remove Image"
+				on:click={(event) => {
+					value = null;
+					dispatch("clear");
+					event.stopPropagation();
+				}}
+			/>
+		{/if}
+	</IconButtonWrapper>
 	<div
 		class="upload-container"
 		class:reduced-height={sources.length > 1}
@@ -174,6 +187,7 @@
 				{upload}
 				bind:modify_stream
 				bind:set_time_limit
+				{webcam_constraints}
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->

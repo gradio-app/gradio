@@ -1,5 +1,70 @@
 # @gradio/chatbot
 
+## 0.19.0
+
+### Features
+
+- [#10149](https://github.com/gradio-app/gradio/pull/10149) [`9cd291b`](https://github.com/gradio-app/gradio/commit/9cd291b7f1c37ef0ffd3e8721fb2b648003b50fc) - Resizeable chatbot.  Thanks @aliabid94!
+- [#10098](https://github.com/gradio-app/gradio/pull/10098) [`9a6ce6f`](https://github.com/gradio-app/gradio/commit/9a6ce6f6b089d94c06da0b8620f28967f39f8383) - Refactor full screen logic to be reusable.  Thanks @hannahblair!
+- [#10111](https://github.com/gradio-app/gradio/pull/10111) [`3665e81`](https://github.com/gradio-app/gradio/commit/3665e81b53555e2b499b877208686f3027eaceb4) - Allow Chatbot examples to show more than one image.  Thanks @hannahblair!
+- [#10132](https://github.com/gradio-app/gradio/pull/10132) [`6645518`](https://github.com/gradio-app/gradio/commit/6645518a66e01ebcd2746626a4e2a14239172e76) - Tweak Chatbot `bubble_full_width` behaviour.  Thanks @hannahblair!
+- [#10137](https://github.com/gradio-app/gradio/pull/10137) [`fe7a9db`](https://github.com/gradio-app/gradio/commit/fe7a9db659e009bb5ac0e4e9cb4ac0eab1f2c2f4) - Improve uploaded file UI in Chatbot.  Thanks @hannahblair!
+- [#10169](https://github.com/gradio-app/gradio/pull/10169) [`25484f4`](https://github.com/gradio-app/gradio/commit/25484f4bfbffdb18850cbd85d4468ea8324afe1a) - By default, consecutive messages are displayed in the same bubble. This is controlled by the new `display_consecutive_in_same_bubble` param of Chatbot.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#10129](https://github.com/gradio-app/gradio/pull/10129) [`2b55302`](https://github.com/gradio-app/gradio/commit/2b5530274af3936c82176f09db529168263acc2c) - Quick Fix: Fixes autoplay parameter for Audio/Video in Chatbot.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/video@0.12.1
+- @gradio/statustracker@0.9.7
+- @gradio/upload@0.14.3
+- @gradio/atoms@0.12.0
+- @gradio/image@0.19.0
+- @gradio/gallery@0.14.0
+- @gradio/plot@0.9.4
+
+## 0.18.0
+
+### Features
+
+- [#10099](https://github.com/gradio-app/gradio/pull/10099) [`8530b6e`](https://github.com/gradio-app/gradio/commit/8530b6e2f986421adceda98f972e6b843bc03fbe) - Redesign pending bubble in Chatbot.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10123](https://github.com/gradio-app/gradio/pull/10123) [`36e9597`](https://github.com/gradio-app/gradio/commit/36e95977b068a96661f06b56c5f4e73ba8a94a38) - Fixes options in the streaming chatbot case.  Thanks @abidlabs!
+- [#10125](https://github.com/gradio-app/gradio/pull/10125) [`b02c8b7`](https://github.com/gradio-app/gradio/commit/b02c8b7d4f85dab21a9fbd782e459de7b56558ed) - Fix sharing on chatbot with spaces.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/gallery@0.13.10
+- @gradio/image@0.18.0
+- @gradio/video@0.12.0
+
+## 0.17.0
+
+### Features
+
+- [#9979](https://github.com/gradio-app/gradio/pull/9979) [`e7629f7`](https://github.com/gradio-app/gradio/commit/e7629f7eacdc2a8960fae7472669b60405a4a06c) - Adds copy event to `gr.Markdown`, `gr.Chatbot`, and `gr.Textbox`.  Thanks @abidlabs!
+- [#9989](https://github.com/gradio-app/gradio/pull/9989) [`369a44e`](https://github.com/gradio-app/gradio/commit/369a44e7f8c829b3c0e21830d3c2e92b89b4c243) - Add ability to provide preset response options in `gr.Chatbot` / `gr.ChatInterface`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10055](https://github.com/gradio-app/gradio/pull/10055) [`5da6c1d`](https://github.com/gradio-app/gradio/commit/5da6c1da474cc5cfe2e6abfb242a3b1f3dcdfcb7) - Ensure chatbot messages are aligned correctly.  Thanks @hannahblair!
+- [#10056](https://github.com/gradio-app/gradio/pull/10056) [`e0ed480`](https://github.com/gradio-app/gradio/commit/e0ed480798b237cbf76a711d02a91100e7b6067e) - Remove duplicated share icon in gr.Chatbot.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.11.9
+- @gradio/atoms@0.11.2
+- @gradio/utils@0.9.0
+- @gradio/statustracker@0.9.6
+- @gradio/upload@0.14.2
+- @gradio/gallery@0.13.9
+- @gradio/plot@0.9.3
+- @gradio/image@0.17.0
+
 ## 0.16.3
 
 ### Fixes

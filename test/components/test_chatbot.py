@@ -22,7 +22,7 @@ class TestChatbot:
             [(Path("test/test_files/audio_sample.wav"),), "cool audio"],
             [(Path("test/test_files/bus.png"), "A bus"), "cool pic"],
         ]
-        postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg).model_dump()
+        postprocessed_multimodal_msg = chatbot.postprocess(multimodal_msg).model_dump()  # type: ignore
         for msg in postprocessed_multimodal_msg:
             assert "file" in msg[0]
             assert msg[1] in {"cool video", "cool audio", "cool pic"}
@@ -41,9 +41,11 @@ class TestChatbot:
             "elem_classes": [],
             "container": True,
             "min_width": 160,
+            "group_consecutive_messages": True,
             "scale": None,
             "placeholder": None,
             "height": 400,
+            "resizeable": False,
             "max_height": None,
             "min_height": None,
             "autoscroll": True,
@@ -61,11 +63,10 @@ class TestChatbot:
             "avatar_images": [None, None],
             "sanitize_html": True,
             "render_markdown": True,
-            "bubble_full_width": True,
+            "bubble_full_width": None,
             "line_breaks": True,
             "layout": None,
             "show_copy_all_button": False,
-            "example_selectable": False,
             "examples": None,
         }
 

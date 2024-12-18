@@ -392,6 +392,7 @@ class PlayableVideo(components.Video):
         loop: bool = False,
         streaming: bool = False,
         watermark: str | Path | None = None,
+        webcam_constraints: dict[str, dict[str, int | str]] | None = None,
     ):
         sources = ["upload"]
         super().__init__(
@@ -423,6 +424,7 @@ class PlayableVideo(components.Video):
             loop=loop,
             streaming=streaming,
             watermark=watermark,
+            webcam_constraints=webcam_constraints,
         )
 
 
@@ -532,6 +534,7 @@ class Files(components.File):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
+        allow_reordering: bool = False,
     ):
         super().__init__(
             value,
@@ -552,6 +555,7 @@ class Files(components.File):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            allow_reordering=allow_reordering,
         )
 
 

@@ -56,7 +56,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
-from multipart.multipart import parse_options_header
+from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse
@@ -76,7 +76,7 @@ from gradio.data_classes import (
     SimplePredictBody,
     UserProvidedPath,
 )
-from gradio.exceptions import InvalidPathError
+from gradio.exceptions import Error, InvalidPathError
 from gradio.node_server import (
     start_node_server,
 )
@@ -273,32 +273,13 @@ class App(FastAPI):
         new_request = App.client.build_request(
             request.method, httpx.URL(url), headers=headers
         )
-        node_response = await App.client.send(new_request)
-        content = node_response.content
-        user_agent = request.headers.get("user-agent", "").lower()
-        is_safari = (
-            "safari" in user_agent
-            and "chrome" not in user_agent
-            and "chromium" not in user_agent
-        )
-        response_headers = {}
-        if is_safari:
-            response_headers = {
-                "Access-Control-Allow-Origin": "*",
-                "Cross-Origin-Opener-Policy": "same-origin",
-                "Cross-Origin-Embedder-Policy": "require-corp",
-            }
-            if request.url.path.endswith(".js"):
-                response_headers["Content-Type"] = (
-                    "application/javascript; charset=utf-8"
-                )
-            elif request.url.path.endswith(".css"):
-                response_headers["Content-Type"] = "text/css; charset=utf-8"
+        node_response = await App.client.send(new_request, stream=True)
 
-        return Response(
-            content=content,
+        return StreamingResponse(
+            node_response.aiter_raw(),
             status_code=node_response.status_code,
-            headers=response_headers if is_safari else node_response.headers,
+            headers=node_response.headers,
+            background=BackgroundTask(node_response.aclose),
         )
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -570,9 +551,9 @@ class App(FastAPI):
                 )
                 gradio_api_info = api_info(request)
                 return templates.TemplateResponse(
-                    template,
-                    {
-                        "request": request,
+                    request=request,
+                    name=template,
+                    context={
                         "config": config,
                         "gradio_api_info": gradio_api_info,
                     },
@@ -632,25 +613,23 @@ class App(FastAPI):
                 raise HTTPException(
                     status_code=404, detail="Environment not supported."
                 )
-            config = app.get_blocks().config
-            components = config["components"]
+            components = utils.get_all_components()
             location = next(
-                (item for item in components if item["component_class_id"] == id), None
+                (item for item in components if item.get_component_class_id() == id),
+                None,
             )
             if location is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
-            component_instance = app.get_blocks().get_component(location["id"])
-
-            module_name = component_instance.__class__.__module__
+            module_name = location.__module__
             module_path = sys.modules[module_name].__file__
 
-            if module_path is None or component_instance is None:
+            if module_path is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
             try:
                 requested_path = utils.safe_join(
-                    component_instance.__class__.TEMPLATE_DIR,
+                    location.TEMPLATE_DIR,
                     UserProvidedPath(f"{type}/{file_name}"),
                 )
             except InvalidPathError:
@@ -1017,7 +996,8 @@ class App(FastAPI):
                 )
             except BaseException as error:
                 content = utils.error_payload(error, app.get_blocks().show_error)
-                traceback.print_exc()
+                if not isinstance(error, Error) or error.print_exception:
+                    traceback.print_exc()
                 return JSONResponse(
                     content=content,
                     status_code=500,
@@ -1543,6 +1523,7 @@ def mount_gradio_app(
     path: str,
     server_name: str = "0.0.0.0",
     server_port: int = 7860,
+    show_api: bool | None = None,
     app_kwargs: dict[str, Any] | None = None,
     *,
     auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
@@ -1576,6 +1557,7 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
+        show_api: If False, hides the "Use via API" button on the Gradio interface.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
@@ -1597,6 +1579,8 @@ def mount_gradio_app(
         )
 
     blocks.dev_mode = False
+    if show_api is not None:
+        blocks.show_api = show_api
     blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()

@@ -9,6 +9,7 @@ import copy
 import csv
 import inspect
 import os
+import shutil
 import warnings
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
@@ -19,7 +20,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
-from gradio.context import Context, LocalContext
+from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
@@ -276,6 +277,11 @@ class Examples:
             simplify_file_data=False, verbose=False, dataset_file_name="log.csv"
         )
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
+        if (
+            os.environ.get("GRADIO_RESET_EXAMPLES_CACHE") == "True"
+            and self.cached_folder.exists()
+        ):
+            shutil.rmtree(self.cached_folder)
         self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
@@ -288,12 +294,37 @@ class Examples:
                     self._get_processed_example(example)
                 )
 
+        if self.cache_examples == "lazy":
+            print(
+                f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use.",
+                end="",
+            )
+            if Path(self.cached_file).exists():
+                print(
+                    "If method or examples have changed since last caching, delete this folder to reset cache."
+                )
+            print("\n")
+
     def _get_processed_example(self, example):
+        """
+        This function is used to get the post-processed example values, ready to be used
+        in the frontend for each input component. For example, if the input components are
+        image components, the post-processed example values will be the a list of ImageData dictionaries
+        with the path, url, size, mime_type, orig_name, and is_stream keys. For any input components
+        that should be skipped (b/c they are None for all samples), they will simply be absent
+        from the returned list
+
+        Parameters:
+            example: a list of example values for each input component, excluding those components
+            that have all None values
+        """
         if example in self.non_none_processed_examples:
             return self.non_none_processed_examples[example]
         with utils.set_directory(self.working_directory):
             sub = []
-            for component, sample in zip(self.inputs, example, strict=False):
+            for component, sample in zip(
+                self.inputs_with_examples, example, strict=False
+            ):
                 prediction_value = component.postprocess(sample)
                 if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                     prediction_value = prediction_value.model_dump()
@@ -303,18 +334,19 @@ class Examples:
                     postprocess=True,
                 )
                 sub.append(prediction_value)
-        return [
-            ex for (ex, keep) in zip(sub, self.input_has_examples, strict=False) if keep
-        ]
+        return sub
 
     def create(self) -> None:
         """Creates the Dataset component to hold the examples"""
+        blocks_config = get_blocks_context()
+        self.root_block = Context.root_block or (
+            blocks_config.root_block if blocks_config else None
+        )
+        if blocks_config:
+            if self.root_block:
+                self.root_block.extra_startup_events.append(self._start_caching)
 
-        self.root_block = Context.root_block
-        if self.root_block:
-            self.root_block.extra_startup_events.append(self._start_caching)
-
-            if self.cache_examples == True:  # noqa: E712
+            if self.cache_examples:
 
                 def load_example_with_output(example_tuple):
                     example_id, example_value = example_tuple
@@ -326,7 +358,7 @@ class Examples:
                 self.cache_event = self.load_input_event = self.dataset.click(
                     load_example_with_output,
                     inputs=[self.dataset],
-                    outputs=self.inputs_with_examples + self.outputs,  # type: ignore
+                    outputs=self.inputs + self.outputs,  # type: ignore
                     show_progress="hidden",
                     postprocess=False,
                     queue=False,
@@ -354,7 +386,7 @@ class Examples:
                 self.load_input_event = self.dataset.click(
                     load_example,
                     inputs=[self.dataset],
-                    outputs=self.inputs_with_examples,  # type: ignore
+                    outputs=self.inputs_with_examples,
                     show_progress="hidden",
                     postprocess=False,
                     queue=False,
@@ -362,18 +394,15 @@ class Examples:
                     show_api=False,
                 )
 
-                if self.cache_examples == "lazy":
-                    self.lazy_cache()
-
-                if self.run_on_click and self.cache_examples == False:  # noqa: E712
+                if self.run_on_click:
                     if self.fn is None:
                         raise ValueError(
                             "Cannot run_on_click if no function is provided"
                         )
                     self.load_input_event.then(
                         self.fn,
-                        inputs=self.inputs,  # type: ignore
-                        outputs=self.outputs,  # type: ignore
+                        inputs=self.inputs,
+                        outputs=self.outputs,
                         show_api=False,
                     )
         else:
@@ -430,78 +459,15 @@ class Examples:
             else:
                 await self.cache()
 
-    def lazy_cache(self) -> None:
-        print(
-            f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
-            end="",
-        )
-        if Path(self.cached_file).exists():
-            print(
-                "If method or examples have changed since last caching, delete this folder to reset cache.",
-                end="",
-            )
-        print("\n\n")
-        self.cache_logger.setup(self.outputs, self.cached_folder)
-        if inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(self.fn):
-            lazy_cache_fn = self.async_lazy_cache
-        else:
-            lazy_cache_fn = self.sync_lazy_cache
-        self.cache_event = self.load_input_event.then(
-            lazy_cache_fn,
-            inputs=[self.dataset] + list(self.inputs),
-            outputs=self.outputs,
-            postprocess=False,
-            api_name=self.api_name,
-            show_api=False,
-        )
-
-    async def async_lazy_cache(
-        self, example_value: tuple[int, list[Any]], *input_values
-    ):
-        example_index, _ = example_value
-        cached_index = self._get_cached_index_if_cached(example_index)
-        if cached_index is not None:
-            output = self.load_from_cache(cached_index)
-            yield output[0] if len(self.outputs) == 1 else output
-            return
-        output = [None] * len(self.outputs)
-        if inspect.isasyncgenfunction(self.fn):
-            fn = self.fn
-        else:
-            fn = utils.async_fn_to_generator(self.fn)
-        async for output in fn(*input_values):
-            output = await self._postprocess_output(output)
-            yield output[0] if len(self.outputs) == 1 else output
-        self.cache_logger.flag(output)
-        with open(self.cached_indices_file, "a") as f:
-            f.write(f"{example_index}\n")
-
-    def sync_lazy_cache(self, example_value: tuple[int, list[Any]], *input_values):
-        example_index, _ = example_value
-        cached_index = self._get_cached_index_if_cached(example_index)
-        if cached_index is not None:
-            output = self.load_from_cache(cached_index)
-            yield output[0] if len(self.outputs) == 1 else output
-            return
-        output = [None] * len(self.outputs)
-        if inspect.isgeneratorfunction(self.fn):
-            fn = self.fn
-        else:
-            fn = utils.sync_fn_to_generator(self.fn)
-        for output in fn(*input_values):
-            output = client_utils.synchronize_async(self._postprocess_output, output)
-            yield output[0] if len(self.outputs) == 1 else output
-        self.cache_logger.flag(output)
-        with open(self.cached_indices_file, "a") as f:
-            f.write(f"{example_index}\n")
-
-    async def cache(self) -> None:
+    async def cache(self, example_id: int | None = None) -> None:
         """
         Caches examples so that their predictions can be shown immediately.
+        Parameters:
+            example_id: The id of the example to process (zero-indexed). If None, all examples are cached.
         """
         if self.root_block is None:
             raise Error("Cannot cache examples if not in a Blocks context.")
-        if Path(self.cached_file).exists():
+        if Path(self.cached_file).exists() and example_id is None:
             print(
                 f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
             )
@@ -538,8 +504,8 @@ class Examples:
             _, fn_index = self.root_block.default_config.set_event_trigger(
                 [EventListenerMethod(Context.root_block, "load")],
                 fn=fn,
-                inputs=self.inputs_with_examples,  # type: ignore
-                outputs=self.outputs,  # type: ignore
+                inputs=self.inputs,
+                outputs=self.outputs,
                 preprocess=self.preprocess and not self._api_mode,
                 postprocess=self.postprocess and not self._api_mode,
                 batch=self.batch,
@@ -547,9 +513,13 @@ class Examples:
 
             if self.outputs is None:
                 raise ValueError("self.outputs is missing")
-            for i, example in enumerate(self.examples):
-                print(f"Caching example {i + 1}/{len(self.examples)}")
+            for i, example in enumerate(self.non_none_examples):
+                if example_id is not None and i != example_id:
+                    continue
                 processed_input = self._get_processed_example(example)
+                for index, keep in enumerate(self.input_has_examples):
+                    if not keep:
+                        processed_input.insert(index, None)
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
                 with utils.MatplotlibBackendMananger():
@@ -574,8 +544,19 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
+        if self.cache_examples == "lazy":
+            if (cached_index := self._get_cached_index_if_cached(example_id)) is None:
+                client_utils.synchronize_async(self.cache, example_id)
+                with open(self.cached_indices_file, "a") as f:
+                    f.write(f"{example_id}\n")
+                with open(self.cached_indices_file) as f:
+                    example_id = len(f.readlines()) - 1
+            else:
+                example_id = cached_index
+
         with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
+
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
         if self.outputs is None:
