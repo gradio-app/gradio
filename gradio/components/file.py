@@ -54,13 +54,14 @@ class File(Component):
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
-        height: int | float | None = None,
+        height: int | str | float | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
+        allow_reordering: bool = False,
     ):
         """
         Parameters:
@@ -82,6 +83,7 @@ class File(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
+            allow_reordering: if True, will allow users to reorder uploaded files by dragging and dropping.
         """
         file_count_valid_types = ["single", "multiple", "directory"]
         self.file_count = file_count
@@ -129,6 +131,7 @@ class File(Component):
         )
         self.type = type
         self.height = height
+        self.allow_reordering = allow_reordering
 
     def _process_single_file(self, f: FileData) -> NamedString | bytes:
         file_name = f.path

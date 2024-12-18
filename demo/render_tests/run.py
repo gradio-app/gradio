@@ -21,6 +21,13 @@ with gr.Blocks() as demo:
             for i in range(s):
                 gr.Textbox(value=update_log, every=0.2, label=f"Render {i + 1}")
 
+    slider2 = gr.Slider(1, 10, step=1, label="Box Count")
+    btn = gr.Button("Create Boxes")
+    @gr.render(inputs=[slider2], triggers=[btn.click])
+    def show_log_2(s):
+        for i in range(s):
+            gr.Textbox(value=str(i), label=f"Count {i + 1}")
+
     with gr.Row():
         selected_btn = gr.Textbox(label="Selected Button")
         selected_chat = gr.Textbox(label="Selected Chat")

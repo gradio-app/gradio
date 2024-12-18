@@ -39,19 +39,21 @@
 		on:load
 	/>
 {:else if type === "audio"}
-	<svelte:component
-		this={components[type]}
-		{value}
-		show_label={false}
-		show_share_button={true}
-		{i18n}
-		label=""
-		waveform_settings={{ autoplay: props.autoplay }}
-		waveform_options={{}}
-		show_download_button={allow_file_downloads}
-		{display_icon_button_wrapper_top_corner}
-		on:load
-	/>
+	<div style="position: relative;">
+		<svelte:component
+			this={components[type]}
+			{value}
+			show_label={false}
+			show_share_button={true}
+			{i18n}
+			label=""
+			waveform_settings={{ autoplay: props.autoplay }}
+			waveform_options={{}}
+			show_download_button={allow_file_downloads}
+			{display_icon_button_wrapper_top_corner}
+			on:load
+		/>
+	</div>
 {:else if type === "video"}
 	<svelte:component
 		this={components[type]}

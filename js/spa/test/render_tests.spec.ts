@@ -1,5 +1,12 @@
 import { test, expect } from "@self/tootils";
 
+test("Test button.click listener works in render", async ({ page }) => {
+	const slider = page.getByLabel("number input for Box Count");
+	await slider.fill("6");
+	await page.getByRole("button", { name: "Create Boxes" }).click();
+	await expect(page.getByLabel("Count 4")).toHaveValue("3");
+});
+
 test("Test every= works in render", async ({ page }) => {
 	const timebox = page.getByLabel("Time");
 	const box_1 = page.getByLabel("Render 1");
