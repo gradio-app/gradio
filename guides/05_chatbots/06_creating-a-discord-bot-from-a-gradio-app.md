@@ -18,7 +18,7 @@ Because Gradio's API is very flexible, you can create Discord bots that support 
 * Install the latest version of `gradio` and the `discord.py` libraries:
 
 ```
-pip install --upgrade gradio discord.py~=2
+pip install --upgrade gradio discord.py~=2.0
 ```
 * Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Studio Space](), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
 
@@ -27,26 +27,43 @@ Now, we are ready to get started!
 
 ### 1. Create a Discord application
 
-First, go to the [Discord apps dashboard](https://discord.com/developers/applications). Look for the "New Application" button and click it. Then, choose the option to create your app from scratch.
+First, go to the [Discord apps dashboard](https://discord.com/developers/applications). Look for the "New Application" button and click it. Give your application a name, and then click "Create".
 
+* image
 
+On the resulting screen, you will see basic information about your application. Under the Settings section, click on the Bot option. You can update your Bot's username if you would like.
 
+Then click on the "Reset Token" button. A new token will be generated. Copy it as we will need it for the next step.
 
-### 2. Write a basic Discord bot
+Scroll down to the section that says "Privileged Gateway Intents". Your bot will need certain permissions to work correctly. In this tutorial, we will only be using the "Message Content Intent" so click the toggle to enable this intent. Save the changes.
 
-Let's write a skeleton 
+### 2. Write a Discord bot
+
+Let's start by writing a very simple Discord bot, just to make sure that everything is working. Write the following Python code in a file called `bot.py`, pasting the discord bot token from the previous step:
 
 ```python
+# bot.py
+import discord
 
+TOKEN = #PASTE YOUR DISCORD BOT TOKEN HERE
+
+client = discord.Client()
+
+@client.event
+async def on_ready():
+    print(f'{client.user} has connected to Discord!')
+
+client.run(TOKEN)
 ```
 
-We will update this later with the actual logic we'd like to run.
+Now, run this file: `python bot.py`, which should run and print a message like:
 
-### 3. Deploy your Discord bot
+```text
+We have logged in as GradioPlaygroundBot#1451
+```
+
 
 
 ### 4. Install the bot in your Discord Server
-
-### 5. Update your Discord bot to call Gradio
 
 * talk about chat history
