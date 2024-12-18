@@ -10,8 +10,7 @@ The Discord bot will listen to messages mentioning it in channels. When it recei
 
 Because Gradio's API is very flexible, you can create Discord bots that support text, images, audio, streaming, chat history, and a wide variety of other features very easily. 
 
-* show screenshot here
-![]()
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-18%20at%204.26.55%E2%80%AFPM.gif)
 
 ## Prerequisites
 
@@ -151,5 +150,4 @@ Paste it into your browser, which should allow you to add the Discord bot to any
 
 Try it out and you should be able to generate code for Gradio apps directly in your Discord server!
 
-
-
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-18%20at%204.26.55%E2%80%AFPM.gif)
