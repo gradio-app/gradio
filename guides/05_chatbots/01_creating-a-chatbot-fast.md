@@ -194,7 +194,7 @@ This second parameter of your chat function, `history`, will be in the same open
 
 The return type of your chat function does *not change* when setting `multimodal=True` (i.e. in the simplest case, you should still return a string value). We discuss more complex cases, e.g. returning files [below](#returning-complex-responses).
 
-If you are customizing a multimodal chat interface, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` parameter. Here's an example that illustrates how to set up and customize and multimodal chat interface:
+If you are customizing a multimodal chat interface, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` parameter. You can customize the `MultimodalTextbox` further by passing in the `sources` parameter, which is a list of sources to enable. Here's an example that illustrates how to set up and customize and multimodal chat interface:
  
 
 ```python
@@ -215,7 +215,7 @@ demo = gr.ChatInterface(
         {"text": "No files", "files": []}
     ], 
     multimodal=True,
-    textbox=gr.MultimodalTextbox(file_count="multiple", file_types=["image"])
+    textbox=gr.MultimodalTextbox(file_count="multiple", file_types=["image"], sources=["upload", "microphone"])
 )
 
 demo.launch()
