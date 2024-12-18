@@ -168,7 +168,10 @@
 			{#if error}
 				<ErrorDisplay
 					{error}
-					is_embed
+					{is_embed}
+					height={initial_height}
+					{container}
+					{version}
 					on:clear_error={() => {
 						error = null;
 					}}
@@ -200,6 +203,9 @@
 			<ErrorDisplay
 				{error}
 				{is_embed}
+				height={initial_height}
+				{container}
+				{version}
 				on:clear_error={() => {
 					error = null;
 				}}
