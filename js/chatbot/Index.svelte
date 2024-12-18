@@ -80,7 +80,7 @@
 	export let resizeable: boolean;
 	export let min_height: number | string | undefined;
 	export let max_height: number | string | undefined;
-	export let editable: boolean | "all" = false;
+	export let editable: "user" | "all" | null = null;
 	export let placeholder: string | null = null;
 	export let examples: ExampleMessage[] | null = null;
 	export let theme_mode: "system" | "light" | "dark";

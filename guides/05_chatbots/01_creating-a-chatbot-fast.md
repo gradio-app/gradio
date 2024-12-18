@@ -194,7 +194,7 @@ This second parameter of your chat function, `history`, will be in the same open
 
 The return type of your chat function does *not change* when setting `multimodal=True` (i.e. in the simplest case, you should still return a string value). We discuss more complex cases, e.g. returning files [below](#returning-complex-responses).
 
-If you are customizing a multimodal chat interface, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` parameter. Here's an example that illustrates how to set up and customize and multimodal chat interface:
+If you are customizing a multimodal chat interface, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` parameter. You can customize the `MultimodalTextbox` further by passing in the `sources` parameter, which is a list of sources to enable. Here's an example that illustrates how to set up and customize and multimodal chat interface:
  
 
 ```python
@@ -215,7 +215,7 @@ demo = gr.ChatInterface(
         {"text": "No files", "files": []}
     ], 
     multimodal=True,
-    textbox=gr.MultimodalTextbox(file_count="multiple", file_types=["image"])
+    textbox=gr.MultimodalTextbox(file_count="multiple", file_types=["image"], sources=["upload", "microphone"])
 )
 
 demo.launch()
@@ -272,7 +272,7 @@ $code_chatinterface_artifacts
 
 We mentioned earlier that in the simplest case, your chat function should return a `str` response, which will be rendered as text in the chatbot. However, you can also return more complex responses as we discuss below:
 
-**Returning Gradio components**
+**Returning files or Gradio components**
 
 Currently, the following Gradio components can be displayed inside the chat interface:
 * `gr.Image`
@@ -281,8 +281,9 @@ Currently, the following Gradio components can be displayed inside the chat inte
 * `gr.HTML`
 * `gr.Video`
 * `gr.Gallery`
+* `gr.File`
 
-Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example:
+Simply return one of these components from your function to use it with `gr.ChatInterface`. Here's an example that returns an audio file:
 
 ```py
 import gradio as gr
@@ -300,80 +301,24 @@ gr.ChatInterface(
 ).launch()
 ```
 
-
-**Returning image, audio, video, or other files**:
-
-Sometimes, you don't want to return a complete Gradio component, but rather simply an image/audio/video/other file to be displayed inside the chatbot. You can do this by returning a complete openai-style dictionary from your chat function. The dictionary should consist of the following keys:
-
-* `role`: set to `"assistant"`
-* `content`: set to a dictionary with key `path` and value the filepath or URL you'd like to return
-
-Here is an example:
-
-```py
-import gradio as gr
-
-def fake(message, history):
-    if message.strip():
-        return {
-            "role": "assistant", 
-            "content": {
-                "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
-                }
-            }
-    else:
-        return "Please provide the name of an artist"
-
-gr.ChatInterface(
-    fake,
-    type="messages",
-    textbox=gr.Textbox(placeholder="Which artist's music do you want to listen to?", scale=7),
-    chatbot=gr.Chatbot(placeholder="Play music by any artist!"),
-).launch()
-```
-
+Similarly, you could return image files with `gr.Image`, video files with `gr.Video`, or arbitrary files with the `gr.File` component.
 
 **Providing preset responses**
 
-You may want to provide preset responses that a user can choose between when conversing with your chatbot. You can add the `options` key to the dictionary returned from your chat function to set these responses. The value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
+You may want to provide preset responses that a user can choose between when conversing with your chatbot. To do this, return a complete openai-style message dictionary from your chat function, and add the `options` key to the dictionary returned from your chat function to set these responses. 
+
+The value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
 
 This example illustrates how to use preset responses:
 
-```python
-import gradio as gr
+$code_chatinterface_options
 
-example_code = '''
-Here's the code I generated:
+**Returning Multiple Messages**
 
-def greet(x):
-    return f"Hello, {x}!"
+You can return multiple assistant messages from your chat function simply by returning a `list` of messages of any of the above types (you can even mix-and-match). This lets you, for example, send a message along with files, as in the following example:
 
-Is this correct?
-'''
+$code_chatinterface_echo_multimodal
 
-def chat(message, history):
-    if message == "Yes, that's correct.":
-        return "Great!"
-    else:
-        return {
-            "role": "assistant",
-            "content": example_code,
-            "options": [
-                {"value": "Yes, that's correct.", "label": "Yes"},
-                {"value": "No"}
-                ]
-            }
-
-demo = gr.ChatInterface(
-    chat,
-    type="messages",
-    examples=["Write a Python function that takes a string and returns a greeting."]
-)
-
-if __name__ == "__main__":
-    demo.launch()
-
-```
 ## Using Your Chatbot via API
 
 Once you've built your Gradio chat interface and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message (and potentially additional inputs if you have set any using the `additional_inputs` parameter), and will return the response, internally keeping track of the messages sent so far.

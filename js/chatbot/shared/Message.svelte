@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { is_component_message, is_last_bot_message } from "../shared/utils";
-	import { File } from "@gradio/icons";
+
 	import { Image } from "@gradio/image/shared";
-	import Component from "./Component.svelte";
 	import type { FileData, Client } from "@gradio/client";
 	import type { NormalisedMessage } from "../types";
-	import MessageBox from "./MessageBox.svelte";
-	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
+
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import ButtonPanel from "./ButtonPanel.svelte";
+	import MessageContent from "./MessageContent.svelte";
+	import MessageBox from "./MessageBox.svelte";
 
 	export let value: NormalisedMessage[];
 	export let avatar_img: FileData | null;
@@ -49,6 +49,17 @@
 	export let in_edit_mode: boolean;
 	export let edit_message: string;
 	export let display_consecutive_in_same_bubble: boolean;
+	export let messageElements: HTMLDivElement[] = [];
+	let previous_edit_mode = false;
+	let last_message_width = 0;
+	let last_message_height = 0;
+
+	$: if (in_edit_mode && !previous_edit_mode) {
+		last_message_width =
+			messageElements[messageElements.length - 1]?.clientWidth;
+		last_message_height =
+			messageElements[messageElements.length - 1]?.clientHeight;
+	}
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -142,6 +153,8 @@
 						<!-- svelte-ignore a11y-autofocus -->
 						<textarea
 							class="edit-textarea"
+							style:min-width={last_message_width + "px"}
+							style:min-height={last_message_height + "px"}
 							autofocus
 							bind:value={edit_message}
 						/>
@@ -153,8 +166,9 @@
 							class:message-markdown-disabled={!render_markdown}
 							style:user-select="text"
 							class:selectable
-							style:cursor={selectable ? "pointer" : "text"}
+							style:cursor={selectable ? "pointer" : "auto"}
 							style:text-align={rtl ? "right" : "left"}
+							bind:this={messageElements[thought_index]}
 							on:click={() => handle_select(i, message)}
 							on:keydown={(e) => {
 								if (e.key === "Enter") {
@@ -166,86 +180,50 @@
 								"'s message: " +
 								get_message_label_data(message)}
 						>
-							{#if message.type === "text"}
-								<div class="message-content">
-									{#if message?.metadata?.title}
-										<MessageBox
-											title={message.metadata.title}
-											expanded={is_last_bot_message([message], value)}
-										>
-											<Markdown
-												message={message.content}
-												{latex_delimiters}
-												{sanitize_html}
-												{render_markdown}
-												{line_breaks}
-												on:load={scroll}
-												{root}
-											/>
-										</MessageBox>
-									{:else}
-										<Markdown
-											message={message.content}
-											{latex_delimiters}
-											{sanitize_html}
-											{render_markdown}
-											{line_breaks}
-											on:load={scroll}
-											{root}
-										/>
-									{/if}
-								</div>
-							{:else if message.type === "component" && message.content.component in _components}
-								<Component
-									{target}
-									{theme_mode}
-									props={message.content.props}
-									type={message.content.component}
-									components={_components}
-									value={message.content.value}
-									display_icon_button_wrapper_top_corner={thought_index > 0 &&
-										display_consecutive_in_same_bubble}
-									{i18n}
+							{#if message?.metadata?.title}
+								<MessageBox
+									title={message.metadata.title}
+									expanded={is_last_bot_message([message], value)}
+									{rtl}
+								>
+									<MessageContent
+										{message}
+										{sanitize_html}
+										{latex_delimiters}
+										{render_markdown}
+										{_components}
+										{upload}
+										{thought_index}
+										{target}
+										{root}
+										{theme_mode}
+										{_fetch}
+										{scroll}
+										{allow_file_downloads}
+										{display_consecutive_in_same_bubble}
+										{i18n}
+										{line_breaks}
+									/>
+								</MessageBox>
+							{:else}
+								<MessageContent
+									{message}
+									{sanitize_html}
+									{latex_delimiters}
+									{render_markdown}
+									{_components}
 									{upload}
+									{thought_index}
+									{target}
+									{root}
+									{theme_mode}
 									{_fetch}
-									on:load={() => scroll()}
+									{scroll}
 									{allow_file_downloads}
+									{display_consecutive_in_same_bubble}
+									{i18n}
+									{line_breaks}
 								/>
-							{:else if message.type === "component" && message.content.component === "file"}
-								<div class="file-container">
-									<div class="file-icon">
-										<File />
-									</div>
-									<div class="file-info">
-										<a
-											data-testid="chatbot-file"
-											class="file-link"
-											href={message.content.value.url}
-											target="_blank"
-											download={window.__is_colab__
-												? null
-												: message.content.value?.orig_name ||
-													message.content.value?.path.split("/").pop() ||
-													"file"}
-										>
-											<span class="file-name"
-												>{message.content.value?.orig_name ||
-													message.content.value?.path.split("/").pop() ||
-													"file"}</span
-											>
-										</a>
-										<span class="file-type"
-											>{(
-												message.content.value?.orig_name ||
-												message.content.value?.path ||
-												""
-											)
-												.split(".")
-												.pop()
-												.toUpperCase()}</span
-										>
-									</div>
-								</div>
 							{/if}
 						</div>
 					{/if}
@@ -467,10 +445,6 @@
 		}
 	}
 
-	.message-content {
-		padding: var(--spacing-sm) var(--spacing-xl);
-	}
-
 	.avatar-container {
 		align-self: flex-start;
 		position: relative;
@@ -632,53 +606,5 @@
 
 	.panel .message {
 		margin-bottom: var(--spacing-md);
-	}
-
-	.file-container {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-lg);
-		padding: var(--spacing-lg);
-		border-radius: var(--radius-lg);
-		width: fit-content;
-		margin: var(--spacing-sm) 0;
-	}
-
-	.file-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--body-text-color);
-	}
-
-	.file-icon :global(svg) {
-		width: var(--size-7);
-		height: var(--size-7);
-	}
-
-	.file-info {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.file-link {
-		text-decoration: none;
-		color: var(--body-text-color);
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xs);
-	}
-
-	.file-name {
-		font-family: var(--font);
-		font-size: var(--text-md);
-		font-weight: 500;
-	}
-
-	.file-type {
-		font-family: var(--font);
-		font-size: var(--text-sm);
-		color: var(--body-text-color-subdued);
-		text-transform: uppercase;
 	}
 </style>

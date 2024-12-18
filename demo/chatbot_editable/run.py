@@ -2,8 +2,8 @@ import gradio as gr
 
 with gr.Blocks() as demo:
     with gr.Row():
-        chatbot = gr.Chatbot(value=[], type="messages", editable=True)
-        chatbot2 = gr.Chatbot(value=[], type="tuples", editable=True)
+        chatbot = gr.Chatbot(value=[], type="messages", editable="user")
+        chatbot2 = gr.Chatbot(value=[], type="tuples", editable="user")
     add_message_btn = gr.Button("Add Message")
 
     with gr.Row():

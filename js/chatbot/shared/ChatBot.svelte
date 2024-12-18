@@ -67,7 +67,7 @@
 	export let generating = false;
 	export let selectable = false;
 	export let likeable = false;
-	export let editable: boolean | "all" = false;
+	export let editable: "user" | "all" | null = null;
 	export let show_share_button = false;
 	export let show_copy_all_button = false;
 	export let rtl = false;
@@ -166,7 +166,6 @@
 
 	$: {
 		if (!dequal(value, old_value)) {
-			console.log("CHANGE!", JSON.stringify(value));
 			old_value = value;
 			dispatch("change");
 		}
@@ -306,7 +305,7 @@
 					show_retry={_retryable && is_last_bot_message(messages, value)}
 					show_undo={_undoable && is_last_bot_message(messages, value)}
 					show_edit={editable === "all" ||
-						(editable &&
+						(editable == "user" &&
 							role === "user" &&
 							messages.length > 0 &&
 							messages[messages.length - 1].type == "text")}

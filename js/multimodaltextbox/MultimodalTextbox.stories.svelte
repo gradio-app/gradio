@@ -42,6 +42,12 @@
 			description: "Whether to render right-to-left",
 			control: { type: "boolean" },
 			defaultValue: false
+		},
+		sources: {
+			options: ["upload", "microphone"],
+			description: "The sources to enable",
+			control: { type: "select" },
+			defaultValue: ["upload", "microphone"]
 		}
 	}}
 />
@@ -86,4 +92,8 @@
 			]
 		}
 	}}
+/>
+<Story
+	name="MultimodalTextbox with microphone input"
+	args={{ sources: ["microphone"] }}
 />
