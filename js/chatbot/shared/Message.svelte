@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { is_component_message, is_last_bot_message } from "../shared/utils";
+	import { is_component_message } from "../shared/utils";
 
 	import { Image } from "@gradio/image/shared";
 	import type { FileData, Client } from "@gradio/client";
@@ -9,7 +9,7 @@
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import ButtonPanel from "./ButtonPanel.svelte";
 	import MessageContent from "./MessageContent.svelte";
-	import MessageBox from "./MessageBox.svelte";
+	import Thought from "./Thought.svelte";
 
 	export let value: NormalisedMessage[];
 	export let avatar_img: FileData | null;
@@ -122,58 +122,56 @@
 			class={display_consecutive_in_same_bubble ? role : ""}
 		>
 			{#each messages as message, thought_index}
-				<div
-					class="message {!display_consecutive_in_same_bubble ? role : ''}"
-					class:panel-full-width={true}
-					class:message-markdown-disabled={!render_markdown}
-					class:component={message.type === "component"}
-					class:html={is_component_message(message) &&
-						message.content.component === "html"}
-					class:thought={thought_index > 0}
-				>
-					<button
-						data-testid={role}
-						class:latest={i === value.length - 1}
+				{#if message?.metadata?.title}
+					<Thought
+						{message}
+						{value}
+						{rtl}
+						{sanitize_html}
+						{latex_delimiters}
+						{render_markdown}
+						{_components}
+						{upload}
+						{thought_index}
+						{target}
+						{root}
+						{theme_mode}
+						{_fetch}
+						{scroll}
+						{allow_file_downloads}
+						{display_consecutive_in_same_bubble}
+						{i18n}
+						{line_breaks}
+					/>
+				{:else}
+					<div
+						class="message {!display_consecutive_in_same_bubble ? role : ''}"
+						class:panel-full-width={true}
 						class:message-markdown-disabled={!render_markdown}
-						style:user-select="text"
-						class:selectable
-						style:cursor={selectable ? "pointer" : "default"}
-						style:text-align={rtl ? "right" : "left"}
-						on:click={() => handle_select(i, message)}
-						on:keydown={(e) => {
-							if (e.key === "Enter") {
-								handle_select(i, message);
-							}
-						}}
-						dir={rtl ? "rtl" : "ltr"}
-						aria-label={role + "'s message: " + get_message_label_data(message)}
+						class:component={message.type === "component"}
+						class:html={is_component_message(message) &&
+							message.content.component === "html"}
+						class:thought={thought_index > 0}
 					>
-						{#if message?.metadata?.title}
-							<MessageBox
-								title={message.metadata.title}
-								expanded={is_last_bot_message([message], value)}
-								{rtl}
-							>
-								<MessageContent
-									{message}
-									{sanitize_html}
-									{latex_delimiters}
-									{render_markdown}
-									{_components}
-									{upload}
-									{thought_index}
-									{target}
-									{root}
-									{theme_mode}
-									{_fetch}
-									{scroll}
-									{allow_file_downloads}
-									{display_consecutive_in_same_bubble}
-									{i18n}
-									{line_breaks}
-								/>
-							</MessageBox>
-						{:else}
+						<button
+							data-testid={role}
+							class:latest={i === value.length - 1}
+							class:message-markdown-disabled={!render_markdown}
+							style:user-select="text"
+							class:selectable
+							style:cursor={selectable ? "pointer" : "default"}
+							style:text-align={rtl ? "right" : "left"}
+							on:click={() => handle_select(i, message)}
+							on:keydown={(e) => {
+								if (e.key === "Enter") {
+									handle_select(i, message);
+								}
+							}}
+							dir={rtl ? "rtl" : "ltr"}
+							aria-label={role +
+								"'s message: " +
+								get_message_label_data(message)}
+						>
 							<MessageContent
 								{message}
 								{sanitize_html}
@@ -192,9 +190,9 @@
 								{i18n}
 								{line_breaks}
 							/>
-						{/if}
-					</button>
-				</div>
+						</button>
+					</div>
+				{/if}
 			{/each}
 		</div>
 		{#if layout === "panel"}
@@ -214,6 +212,10 @@
 	.message {
 		position: relative;
 		width: 100%;
+	}
+
+	.message:not(.thought) button {
+		padding: var(--spacing-md);
 	}
 
 	/* avatar styles */
@@ -309,7 +311,7 @@
 
 	.bot {
 		border-width: 1px;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-md);
 		border-bottom-left-radius: 0;
 		border-color: var(--border-color-primary);
 		background-color: var(--background-fill-secondary);
@@ -320,11 +322,6 @@
 
 	.panel .user :global(*) {
 		text-align: right;
-	}
-
-	/* Colors */
-	.bubble .bot {
-		border-color: var(--border-color-primary);
 	}
 
 	.message-row {

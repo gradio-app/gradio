@@ -38,7 +38,7 @@
 	}
 </script>
 
-<div class="thought">
+<button class="thought" on:click={toggleExpanded}>
 	<div class="box" style:text-align={rtl ? "right" : "left"}>
 		<div
 			class="title"
@@ -90,13 +90,15 @@
 			</div>
 		{/if}
 	</div>
-</div>
+</button>
 
 <style>
 	.thought {
 		background: var(--color-accent-soft);
 		border-radius: calc(var(--radius-md) - 1px);
 		border-bottom-left-radius: 0;
+		padding: var(--spacing-sm) var(--spacing-xl) var(--spacing-sm)
+			var(--spacing-xl);
 	}
 
 	.box {
@@ -106,14 +108,9 @@
 
 	.title {
 		display: inline-flex;
-		padding: var(--spacing-md);
 		color: var(--body-text-color);
 		opacity: 0.8;
 		cursor: pointer;
-	}
-
-	.content {
-		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.content :global(*) {
@@ -121,7 +118,7 @@
 	}
 
 	.title-text {
-		padding: 0 var(--spacing-lg);
+		padding-right: var(--spacing-lg);
 	}
 
 	.arrow {
