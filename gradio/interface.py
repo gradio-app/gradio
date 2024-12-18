@@ -337,6 +337,7 @@ class Interface(Blocks):
         self.fn_durations = [0, 0]
         self.__name__ = getattr(fn, "__name__", "fn")
         self.live = live
+        self.title = title
 
         self.simple_description = utils.remove_html_tags(description)
         self.description = description
