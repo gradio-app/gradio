@@ -50,6 +50,7 @@
 		wrap={true}
 		root=""
 		gradio={{ dispatch: () => {} }}
+		datatype={props.datatype}
 		latex_delimiters={props.latex_delimiters}
 		col_count={props.col_count}
 		row_count={props.row_count}
