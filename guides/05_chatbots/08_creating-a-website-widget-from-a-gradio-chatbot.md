@@ -8,6 +8,8 @@ You can make your Gradio Chatbot available as an embedded chat widget on your we
 - Providing interactive help on your portfolio or product website
 - Creating a custom chatbot interface for your Gradio app
 
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-19%20at%203.32.46%E2%80%AFPM.gif)
+
 ## How does it work?
 
 The chat widget appears as a small button in the corner of your website. When clicked, it opens a chat interface that communicates with your Gradio app via the JavaScript Client API. Users can ask questions and receive responses directly within the widget.
@@ -205,3 +207,4 @@ You can customize the appearance of the widget by modifying the CSS. Some ideas:
 - Add animations for opening/closing
 - Modify the message styling
 
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-19%20at%203.32.46%E2%80%AFPM.gif)
