@@ -165,14 +165,6 @@ export class Client {
 	}
 
 	private async init(): Promise<void> {
-		if (
-			(typeof window === "undefined" || !("WebSocket" in window)) &&
-			!global.WebSocket
-		) {
-			const ws = await import("ws");
-			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
-		}
-
 		if (this.options.auth) {
 			await this.resolve_cookies();
 		}
@@ -449,7 +441,12 @@ export class Client {
 		return new Promise((resolve, reject) => {
 			let ws;
 			try {
-				ws = new WebSocket(url);
+				const constructor = this.options.wsConstructor ?? global.WebSocket;
+				if (!constructor) {
+					console.error("WebSocket constructor not found");
+					throw new Error("WebSocket constructor not found");
+				}
+				ws = new constructor(url);
 			} catch (e) {
 				this.ws_map[url] = "failed";
 				return;
