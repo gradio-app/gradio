@@ -115,9 +115,13 @@
 	// (see the await in the `onmessage` callback in the webworker code)
 	// So we don't await this promise because we want to mount the `Index` immediately and start the app initialization asynchronously.
 	if (code != null) {
-		worker_proxy.runPythonCode(code);
+		worker_proxy.runPythonCode(code).catch((err) => {
+			dispatch("init-code-run-error", err);
+		});
 	} else if (entrypoint != null) {
-		worker_proxy.runPythonFile(entrypoint);
+		worker_proxy.runPythonFile(entrypoint).catch((err) => {
+			dispatch("init-file-run-error", err);
+		});
 	} else {
 		throw new Error("Either code or entrypoint must be provided.");
 	}
