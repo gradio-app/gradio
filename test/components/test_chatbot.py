@@ -39,6 +39,7 @@ class TestChatbot:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
+            "editable": None,
             "container": True,
             "min_width": 160,
             "group_consecutive_messages": True,
