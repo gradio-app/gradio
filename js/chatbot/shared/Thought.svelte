@@ -64,11 +64,7 @@
 			</span>
 			<span
 				class="arrow"
-				style:transform={expanded
-					? "rotate(0deg)"
-					: is_nested
-						? "rotate(90deg)"
-						: "rotate(-90deg)"}
+				style:transform={expanded ? "rotate(0deg)" : "rotate(-90deg)"}
 			>
 				<IconButton Icon={DropdownArrow} />
 			</span>
