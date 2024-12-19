@@ -154,7 +154,7 @@
 						<textarea
 							class="edit-textarea"
 							style:width={`max(${last_message_width}px, 160px)`}
-							style:height={`${last_message_height}px`}
+							style:min-height={`${last_message_height}px`}
 							autofocus
 							bind:value={edit_message}
 						/>

@@ -23,7 +23,7 @@ with gr.Blocks() as demo:
     chatbot.change(lambda m: "|".join(m["content"] for m in m), chatbot, concatenated_text1)
     chatbot2.change(lambda m: "|".join("|".join(m) for m in m), chatbot2, concatenated_text2)
 
-    def edit_message(edited_message: gr.SelectData):
+    def edit_message(edited_message: gr.EditData):
         return f"{edited_message.value} at {edited_message.index}"
     
     chatbot.edit(edit_message, None, edited_messages)
