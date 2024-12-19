@@ -11,6 +11,6 @@ test("Chatbot can support agentic demos by displaying messages with metadata", a
 		page.locator("span").filter({ hasText: "🛠️ Used tool" })
 	).toBeVisible();
 	await expect(
-		page.locator("button").filter({ hasText: "It's a sunny day in San" })
+		page.locator("div").filter({ hasText: "It's a sunny day in San" })
 	).toBeVisible();
 });
