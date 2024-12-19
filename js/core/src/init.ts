@@ -385,7 +385,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		if (!comp) {
 			return null;
 		}
-		if (comp.instance.get_value) {
+		if (comp.instance?.get_value) {
 			return comp.instance.get_value() as Promise<any>;
 		}
 		return comp.props.value;
@@ -414,7 +414,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		state: "open" | "closed" | "waiting"
 	): void {
 		const comp = _component_map.get(id);
-		if (comp && comp.instance.modify_stream_state) {
+		if (comp?.instance?.modify_stream_state) {
 			comp.instance.modify_stream_state(state);
 		}
 	}
@@ -423,14 +423,14 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		id: number
 	): "open" | "closed" | "waiting" | "not_set" {
 		const comp = _component_map.get(id);
-		if (comp && comp.instance.get_stream_state)
+		if (comp?.instance?.get_stream_state)
 			return comp.instance.get_stream_state();
 		return "not_set";
 	}
 
 	function set_time_limit(id: number, time_limit: number | undefined): void {
 		const comp = _component_map.get(id);
-		if (comp && comp.instance.set_time_limit) {
+		if (comp?.instance?.set_time_limit) {
 			comp.instance.set_time_limit(time_limit);
 		}
 	}
