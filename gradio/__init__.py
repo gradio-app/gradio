@@ -68,6 +68,7 @@ from gradio.events import (
     CopyData,
     DeletedFileData,
     DownloadData,
+    EditData,
     EventData,
     KeyUpData,
     LikeData,
