@@ -371,6 +371,7 @@ class App(FastAPI):
                     and not path.startswith("/static")
                     and not path.startswith("/login")
                     and not path.startswith("/logout")
+                    and not path.startswith("/manifest.json")
                 ):
                     if App.app_port is None:
                         App.app_port = request.url.port or int(
@@ -1435,6 +1436,35 @@ class App(FastAPI):
                 return "User-agent: *\nDisallow: /"
             else:
                 return "User-agent: *\nDisallow: "
+
+        @app.get("/manifest.json")
+        def manifest_json():
+            if not blocks.pwa:
+                raise HTTPException(status_code=404)
+
+            return ORJSONResponse(
+                content={
+                    # NOTE: Required members: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable#required_manifest_members
+                    "name": app.get_blocks().title or "Gradio",
+                    "icons": [
+                        {
+                            "src": "static/img/logo192.svg",
+                            "sizes": "192x192",
+                            "type": "image/svg+xml",
+                            "purpose": "any",
+                        },
+                        {
+                            "src": "static/img/logo512.svg",
+                            "sizes": "512x512",
+                            "type": "image/svg+xml",
+                            "purpose": "any",
+                        },
+                    ],
+                    "start_url": "./",
+                    "display": "standalone",
+                },
+                media_type="application/manifest+json",
+            )
 
         @router.get("/monitoring", dependencies=[Depends(login_check)])
         async def analytics_login(request: fastapi.Request):

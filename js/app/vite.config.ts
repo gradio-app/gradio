@@ -37,7 +37,11 @@ export default defineConfig(({ mode }) => {
 		// plugins: [],
 		server: {
 			port: 9876,
-			open: "/"
+			open: "/",
+			proxy: {
+				"/manifest.json": "http://localhost:7860",
+				"^/static/.*": "http://localhost:7860"
+			}
 		},
 		resolve: {
 			conditions: ["gradio"]
