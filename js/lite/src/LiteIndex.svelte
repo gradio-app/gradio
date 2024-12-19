@@ -99,6 +99,9 @@
 	worker_proxy.addEventListener("initialization-error", (event) => {
 		error = (event as CustomEvent).detail;
 	});
+	worker_proxy.addEventListener("python-error", (event) => {
+		error = (event as CustomEvent).detail;
+	});
 
 	const dispatch = createEventDispatcher();
 
@@ -163,7 +166,16 @@
 	>
 		{#key index_component_key}
 			{#if error}
-				<ErrorDisplay {error} is_embed />
+				<ErrorDisplay
+					{error}
+					{is_embed}
+					height={initial_height}
+					{container}
+					{version}
+					on:clear_error={() => {
+						error = null;
+					}}
+				/>
 			{:else}
 				<Index
 					space={null}
@@ -188,7 +200,16 @@
 {:else}
 	{#key index_component_key}
 		{#if error}
-			<ErrorDisplay {error} {is_embed} />
+			<ErrorDisplay
+				{error}
+				{is_embed}
+				height={initial_height}
+				{container}
+				{version}
+				on:clear_error={() => {
+					error = null;
+				}}
+			/>
 		{:else}
 			<Index
 				space={null}

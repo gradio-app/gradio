@@ -315,6 +315,15 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 			}
 		} satisfies OutMessage);
 	};
+	const onPythonError = (traceback: string): void => {
+		console.error("Python error:", traceback);
+		receiver.postMessage({
+			type: "python-error",
+			data: {
+				traceback: traceback
+			}
+		} satisfies OutMessage);
+	};
 	const onModulesAutoLoaded = (packages: PackageData[]) => {
 		const message: OutMessage = {
 			type: "modules-auto-loaded",
@@ -373,6 +382,9 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				throw new Error("Pyodide Initialization is not started.");
 			}
 			await envReadyPromise;
+
+			const gradio = pyodide.pyimport("gradio");
+			gradio.wasm_utils.register_error_traceback_callback(appId, onPythonError);
 
 			if (msg.type === "init-app") {
 				appReadyPromise = initializeApp(
