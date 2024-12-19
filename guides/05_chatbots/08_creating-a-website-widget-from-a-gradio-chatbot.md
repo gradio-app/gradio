@@ -18,20 +18,11 @@ The chat widget appears as a small button in the corner of your website. When cl
 
 * A running Gradio app (local or on Hugging Face Spaces). In this example, we'll use the [Gradio Studio Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which helps generate code for Gradio apps based on natural language descriptions.
 
-### 1. Add the Gradio Client Library
+### 1. Create and Style the Chat Widget
 
-First, add the Gradio JavaScript client to your website by including this script tag:
-
-```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
-```
-
-### 2. Create the Chat Widget
-
-Add this HTML and JavaScript to your website:
+First, add this HTML and CSS to your website:
 
 ```html
-<!-- Chat Widget HTML -->
 <div id="chat-widget" class="chat-widget">
     <button id="chat-toggle" class="chat-toggle">💬</button>
     <div id="chat-container" class="chat-container hidden">
@@ -129,10 +120,17 @@ Add this HTML and JavaScript to your website:
     margin-right: 20px;
 }
 </style>
+```
 
+### 2. Add the JavaScript
+
+Then, add the following JavaScript code (which uses the Gradio JavaScript Client to connect to the Space) to your website by including this in the `<head>` section of your website:
+
+```html
 <script type="module">
+import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
 async function initChatWidget() {
-    import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
     const client = await Client.connect("https://abidlabs-gradio-playground-bot.hf.space");
     
     const chatToggle = document.getElementById('chat-toggle');
@@ -158,7 +156,7 @@ async function initChatWidget() {
         chatInput.value = '';
 
         try {
-            const result = await client.predict("/predict", {
+            const result = await client.predict("/chat", {
                 message: message
             });
             appendMessage(result.data[0], 'bot');
@@ -198,8 +196,3 @@ You can customize the appearance of the widget by modifying the CSS. Some ideas:
 - Add animations for opening/closing
 - Modify the message styling
 
-You can also enhance the functionality by:
-- Adding typing indicators
-- Supporting markdown formatting in responses
-- Implementing message history
-- Adding user authentication
