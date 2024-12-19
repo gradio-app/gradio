@@ -10,7 +10,7 @@ test("Chatbot can support agentic demos by displaying messages with metadata", a
 	await expect(
 		page.locator("span").filter({ hasText: "🛠️ Used tool" })
 	).toBeVisible();
-	await expect(
-		page.locator("button").filter({ hasText: "It's a sunny day in San" })
-	).toBeVisible();
+	await expect(page.locator(".bot")).toContainText(
+		"It's a sunny day in San Francisco"
+	);
 });
