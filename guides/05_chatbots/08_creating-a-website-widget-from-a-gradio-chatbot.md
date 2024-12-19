@@ -20,7 +20,7 @@ Because Gradio's API is very flexible, you can create Discord bots that support 
 pip install --upgrade gradio discord.py~=2.0
 ```
 
-* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Playground Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
+* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Studio Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
 
 Now, we are ready to get started!
 
@@ -148,14 +148,6 @@ Paste it into your browser, which should allow you to add the Discord bot to any
 
 ### 4. That's it!
 
-Now you can mention your bot from any channel in your Discord server, optionally attach an image, and it will respond with generated Gradio app code!
-
-The bot will:
-1. Listen for mentions
-2. Process any attached images
-3. Send the text and images to your Gradio app
-4. Stream the responses back to the Discord channel
-
- This is just a basic example - you can extend it to handle more types of files, add error handling, or integrate with different Gradio apps.
+Try it out and you should be able to generate code for Gradio apps directly in your Discord server!
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-18%20at%204.26.55%E2%80%AFPM.gif)
