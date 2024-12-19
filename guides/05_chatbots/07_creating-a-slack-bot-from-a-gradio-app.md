@@ -10,6 +10,8 @@ The Slack bot will listen to messages mentioning it in channels. When it receive
 
 Because Gradio's API is very flexible, you can create Slack bots that support text, images, audio, streaming, chat history, and a wide variety of other features very easily. 
 
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-19%20at%203.30.00%E2%80%AFPM.gif)
+
 ## Prerequisites
 
 * Install the latest version of `gradio` and the `slack-bolt` library:
@@ -136,3 +138,5 @@ The bot will:
 4. Stream the responses back to the Slack channel
 
 This is just a basic example - you can extend it to handle more types of files, add error handling, or integrate with different Gradio apps!
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-19%20at%203.30.00%E2%80%AFPM.gif)

@@ -2,7 +2,7 @@
 
 Tags: CHAT, DEPLOY, WEB
 
-You can make your Gradio app available as an embedded chat widget on your website, similar to popular customer service widgets like Intercom. This is particularly useful for:
+You can make your Gradio Chatbot available as an embedded chat widget on your website, similar to popular customer service widgets like Intercom. This is particularly useful for:
 
 - Adding AI assistance to your documentation pages
 - Providing interactive help on your portfolio or product website
