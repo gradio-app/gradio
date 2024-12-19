@@ -96,10 +96,6 @@
 {/if}
 
 <style>
-	.message-content {
-		padding: var(--spacing-sm) var(--spacing-xl);
-	}
-
 	.file-container {
 		display: flex;
 		align-items: center;
