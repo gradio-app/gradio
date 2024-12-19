@@ -212,7 +212,6 @@ export function group_messages(
 	let currentGroup: NormalisedMessage[] = [];
 	let currentRole: MessageRole | null = null;
 
-	// First pass: Group messages by role and title
 	for (const message of messages) {
 		if (!(message.role === "assistant" || message.role === "user")) continue;
 		if (
@@ -229,7 +228,6 @@ export function group_messages(
 	}
 	if (currentGroup.length > 0) groupedMessages.push(currentGroup);
 
-	// Second pass: Insert child messages after their parents
 	messages.forEach((message) => {
 		if (
 			message.metadata?.parent_id === undefined ||

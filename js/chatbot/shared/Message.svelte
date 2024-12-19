@@ -100,6 +100,8 @@
 		layout,
 		dispatch
 	};
+
+	$: should_show_buttons = !messages.some((m) => m?.metadata?.title);
 </script>
 
 <div
@@ -196,7 +198,7 @@
 				{/if}
 			{/each}
 		</div>
-		{#if layout === "panel"}
+		{#if layout === "panel" && should_show_buttons}
 			<ButtonPanel
 				{...button_panel_props}
 				on:copy={(e) => dispatch("copy", e.detail)}
@@ -205,7 +207,7 @@
 	</div>
 </div>
 
-{#if layout === "bubble"}
+{#if layout === "bubble" && should_show_buttons}
 	<ButtonPanel {...button_panel_props} />
 {/if}
 
