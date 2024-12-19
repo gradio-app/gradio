@@ -1,153 +1,206 @@
-# 🚀 Creating Discord Bots with Gradio 🚀
+# 🚀 Creating a Website Chat Widget with Gradio 🚀
 
-Tags: CHAT, DEPLOY, DISCORD
+Tags: CHAT, DEPLOY, WEB
 
-You can make your Gradio app available as a Discord bot to let users in your Discord server interact with it directly. 
+You can make your Gradio app available as an embedded chat widget on your website, similar to popular customer service widgets like Intercom. This is particularly useful for:
+
+- Adding AI assistance to your documentation pages
+- Providing interactive help on your portfolio or product website
+- Creating a custom chatbot interface for your Gradio app
 
 ## How does it work?
 
-The Discord bot will listen to messages mentioning it in channels. When it receives a message (which can include text as well as files), it will send it to your Gradio app via Gradio's built-in API. Your bot will reply with the response it receives from the API. 
+The chat widget appears as a small button in the corner of your website. When clicked, it opens a chat interface that communicates with your Gradio app via the JavaScript Client API. Users can ask questions and receive responses directly within the widget.
 
-Because Gradio's API is very flexible, you can create Discord bots that support text, images, audio, streaming, chat history, and a wide variety of other features very easily. 
-
-![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-18%20at%204.26.55%E2%80%AFPM.gif)
+![Widget Demo GIF placeholder]
 
 ## Prerequisites
 
-* Install the latest version of `gradio` and the `discord.py` libraries:
+* A running Gradio app (local or on Hugging Face Spaces). In this example, we'll use the [Gradio Studio Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which helps generate code for Gradio apps based on natural language descriptions.
 
-```
-pip install --upgrade gradio discord.py~=2.0
-```
+### 1. Add the Gradio Client Library
 
-* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Studio Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
+First, add the Gradio JavaScript client to your website by including this script tag:
 
-Now, we are ready to get started!
-
-
-### 1. Create a Discord application
-
-First, go to the [Discord apps dashboard](https://discord.com/developers/applications). Look for the "New Application" button and click it. Give your application a name, and then click "Create".
-
-![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-4.png)
-
-On the resulting screen, you will see basic information about your application. Under the Settings section, click on the "Bot" option. You can update your bot's username if you would like.
-
-Then click on the "Reset Token" button. A new token will be generated. Copy it as we will need it for the next step.
-
-Scroll down to the section that says "Privileged Gateway Intents". Your bot will need certain permissions to work correctly. In this tutorial, we will only be using the "Message Content Intent" so click the toggle to enable this intent. Save the changes.
-
-![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-3.png)
-
-
-* screenshot
-
-### 2. Write a Discord bot
-
-Let's start by writing a very simple Discord bot, just to make sure that everything is working. Write the following Python code in a file called `bot.py`, pasting the discord bot token from the previous step:
-
-```python
-# bot.py
-import discord
-
-TOKEN = #PASTE YOUR DISCORD BOT TOKEN HERE
-
-client = discord.Client()
-
-@client.event
-async def on_ready():
-    print(f'{client.user} has connected to Discord!')
-
-client.run(TOKEN)
+```html
+<script src="https://cdn.jsdelivr.net/npm/@gradio/client"></script>
 ```
 
-Now, run this file: `python bot.py`, which should run and print a message like:
+### 2. Create the Chat Widget
 
-```text
-We have logged in as GradioPlaygroundBot#1451
+Add this HTML and JavaScript to your website:
+
+```html
+<!-- Chat Widget HTML -->
+<div id="chat-widget" class="chat-widget">
+    <button id="chat-toggle" class="chat-toggle">💬</button>
+    <div id="chat-container" class="chat-container hidden">
+        <div id="chat-header">
+            <h3>Gradio Assistant</h3>
+            <button id="close-chat">×</button>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Ask a question...">
+            <button id="send-message">Send</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.chat-toggle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #007bff;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.chat-container {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 300px;
+    height: 400px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-container.hidden {
+    display: none;
+}
+
+#chat-header {
+    padding: 10px;
+    background: #007bff;
+    color: white;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+#chat-input-area {
+    padding: 10px;
+    border-top: 1px solid #eee;
+    display: flex;
+}
+
+#chat-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.message {
+    margin: 8px 0;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.user-message {
+    background: #e9ecef;
+    margin-left: 20px;
+}
+
+.bot-message {
+    background: #f8f9fa;
+    margin-right: 20px;
+}
+</style>
+
+<script>
+async function initChatWidget() {
+    const client = new GradioClient("https://abidlabs-gradio-playground-bot.hf.space");
+    
+    const chatToggle = document.getElementById('chat-toggle');
+    const chatContainer = document.getElementById('chat-container');
+    const closeChat = document.getElementById('close-chat');
+    const chatInput = document.getElementById('chat-input');
+    const sendButton = document.getElementById('send-message');
+    const messagesContainer = document.getElementById('chat-messages');
+
+    chatToggle.addEventListener('click', () => {
+        chatContainer.classList.remove('hidden');
+    });
+
+    closeChat.addEventListener('click', () => {
+        chatContainer.classList.add('hidden');
+    });
+
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // Add user message to chat
+        appendMessage(message, 'user');
+        chatInput.value = '';
+
+        try {
+            // Send to Gradio app
+            const result = await client.submit("/chat", [message]);
+            
+            // Add bot response to chat
+            appendMessage(result.data[0], 'bot');
+        } catch (error) {
+            console.error('Error:', error);
+            appendMessage('Sorry, there was an error processing your request.', 'bot');
+        }
+    }
+
+    function appendMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+        messageDiv.textContent = text;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    sendButton.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+}
+
+initChatWidget();
+</script>
 ```
 
-If that is working, we are ready to add Gradio-specific code. We will be using the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) to query the Gradio Playground Space mentioned above. Here's the updated `bot.py` file:
+### 3. That's it!
 
-```python
-import discord
-from gradio_client import Client, handle_file
-import httpx
-import os
+Your website now has a chat widget that connects to your Gradio app! Users can click the chat button to open the widget and start interacting with your app.
 
-TOKEN = #PASTE YOUR DISCORD BOT TOKEN HERE
+### Customization
 
-intents = discord.Intents.default()
-intents.message_content = True
+You can customize the appearance of the widget by modifying the CSS. Some ideas:
+- Change the colors to match your website's theme
+- Adjust the size and position of the widget
+- Add animations for opening/closing
+- Modify the message styling
 
-client = discord.Client(intents=intents)
-gradio_client = Client("abidlabs/gradio-playground-bot")
-
-def download_image(attachment):
-    response = httpx.get(attachment.url)
-    image_path = f"./images/{attachment.filename}"
-    os.makedirs("./images", exist_ok=True)
-    with open(image_path, "wb") as f:
-        f.write(response.content)
-    return image_path
-
-@client.event
-async def on_ready():
-    print(f'We have logged in as {client.user}')
-
-@client.event
-async def on_message(message):
-    # Ignore messages from the bot itself
-    if message.author == client.user:
-        return
-
-    # Check if the bot is mentioned in the message and reply
-    if client.user in message.mentions:
-        # Extract the message content without the bot mention
-        clean_message = message.content.replace(f"<@{client.user.id}>", "").strip()
-
-        # Handle images (only the first image is used)
-        files = []
-        if message.attachments:
-            for attachment in message.attachments:
-                if any(attachment.filename.lower().endswith(ext) for ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']):
-                    image_path = download_image(attachment)
-                    files.append(handle_file(image_path))
-                    break
-        
-        # Stream the responses to the channel
-        for response in gradio_client.submit(
-            message={"text": clean_message, "files": files},
-        ):
-            await message.channel.send(response[-1])
-
-client.run(TOKEN)
-```
-
-### 3. Add the bot to your Discord Server
-
-Now we are ready to install the bot on our server. Go back to the [Discord apps dashboard](https://discord.com/developers/applications). Under the Settings section, click on the "OAuth2" option. Scroll down to the "OAuth2 URL Generator" box and select the "bot" checkbox:
-
-![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-2.png)
-
-
-
-Then in "Bot Permissions" box that pops up underneath, enable the following permissions:
-
-![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-1.png)
-
-
-Copy the generated URL that appears underneath, which should look something like:
-
-```text
-https://discord.com/oauth2/authorize?client_id=1319011745452265575&permissions=377957238784&integration_type=0&scope=bot
-```
-
-Paste it into your browser, which should allow you to add the Discord bot to any Discord server that you manage.
-
-
-### 4. That's it!
-
-Try it out and you should be able to generate code for Gradio apps directly in your Discord server!
-
-![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-18%20at%204.26.55%E2%80%AFPM.gif)
+You can also enhance the functionality by:
+- Adding typing indicators
+- Supporting markdown formatting in responses
+- Implementing message history
+- Adding user authentication
