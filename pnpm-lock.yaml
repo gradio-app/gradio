@@ -404,30 +404,12 @@ importers:
 
   client/js:
     dependencies:
-      '@types/eventsource':
-        specifier: ^1.1.15
-        version: 1.1.15
-      bufferutil:
-        specifier: ^4.0.7
-        version: 4.0.7
-      eventsource:
-        specifier: ^2.0.2
-        version: 2.0.2
       fetch-event-stream:
         specifier: ^0.1.5
         version: 0.1.5
-      msw:
-        specifier: ^2.2.1
-        version: 2.2.8(typescript@5.4.3)
       semiver:
         specifier: ^1.1.0
         version: 1.1.0
-      textlinestream:
-        specifier: ^1.1.1
-        version: 1.1.1
-      typescript:
-        specifier: ^5.0.0
-        version: 5.4.3
       ws:
         specifier: ^8.13.0
         version: 8.13.0(bufferutil@4.0.7)
@@ -438,6 +420,12 @@ importers:
       esbuild:
         specifier: ^0.21.0
         version: 0.21.0
+      msw:
+        specifier: ^2.2.1
+        version: 2.2.8(typescript@5.4.3)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.4.3
 
   client/python/gradio_client: {}
 
@@ -5968,10 +5956,6 @@ packages:
   eventemitter3@4.0.7:
     resolution: {integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==}
 
-  eventsource@2.0.2:
-    resolution: {integrity: sha512-IzUmBGPR3+oUG9dUeXynyNmf91/3zUSJg1lCktzKw47OXuhco54U3r9B7O4XX+Rb1Itm9OZ2b0RkTs10bICOxA==}
-    engines: {node: '>=12.0.0'}
-
   execa@8.0.1:
     resolution: {integrity: sha512-VyhnebXciFV2DESc+p6B+y0LjSm0krU4OgJN44qFAhBY0TJ+1V61tYD2+wHusZ6F9n5K+vl8k0sTy7PEfV4qpg==}
     engines: {node: '>=16.17'}
@@ -8384,9 +8368,6 @@ packages:
 
   text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
-
-  textlinestream@1.1.1:
-    resolution: {integrity: sha512-iBHbi7BQxrFmwZUQJsT0SjNzlLLsXhvW/kg7EyOMVMBIrlnj/qYofwo1LVLZi+3GbUEo96Iu2eqToI2+lZoAEQ==}
 
   thenify-all@1.6.0:
     resolution: {integrity: sha512-RNxQH/qI8/t3thXJDwcstUO4zeqo64+Uy/+sNVRBx4Xn2OX+OZ9oP+iJnNFqplFra2ZUVeKCSa2oVWi3T4uVmA==}
@@ -11828,6 +11809,7 @@ snapshots:
   bufferutil@4.0.7:
     dependencies:
       node-gyp-build: 4.6.1
+    optional: true
 
   builtin-modules@3.3.0: {}
 
@@ -12975,8 +12957,6 @@ snapshots:
       es5-ext: 0.10.62
 
   eventemitter3@4.0.7: {}
-
-  eventsource@2.0.2: {}
 
   execa@8.0.1:
     dependencies:
@@ -15668,8 +15648,6 @@ snapshots:
   term-size@2.2.1: {}
 
   text-table@0.2.0: {}
-
-  textlinestream@1.1.1: {}
 
   thenify-all@1.6.0:
     dependencies:

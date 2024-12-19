@@ -36,7 +36,6 @@ export default defineConfig(({ mode }) => {
 			noExternal: [
 				"ws",
 				"semiver",
-				"bufferutil",
 				"@gradio/upload",
 				"fetch-event-stream"
 			]
