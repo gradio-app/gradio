@@ -645,7 +645,7 @@ def load_chat(
 
 
 def format_tuples_if_needed(history: list) -> list[dict]:
-    if len(history) == 0 or not isinstance(history[0], list):
+    if len(history) == 0 or not isinstance(history[0], (list, tuple)):
         return history
     messages = []
     for user, assistant in history:
