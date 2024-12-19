@@ -105,7 +105,7 @@ def handle_retry(history, retry_data: gr.RetryData):
 
 ...
 
-chatbot.retry(handle_retry, chatbot, [chatbot])
+chatbot.retry(handle_retry, chatbot, chatbot)
 ```
 
 You'll see that the bot messages have a "retry" icon now -
@@ -132,6 +132,22 @@ def handle_like(data: gr.LikeData):
 
 chatbot.like(vote, None, None)
 ```
+
+## The Edit Event
+
+Same idea with the edit listener! with `gr.Chatbot(editable=True)`, you can capture user edits as such:
+
+```python
+def handle_edit(history, edit_data: gr.EditData):
+    new_history = history[:edit_data.index]
+    new_history[-1]['content'] = edit_data.value
+    return new_history
+
+...
+
+chatbot.edit(handle_edit, chatbot, chatbot)
+```
+
 
 
 ## Conclusion
