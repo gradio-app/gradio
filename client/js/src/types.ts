@@ -300,6 +300,7 @@ export interface ClientOptions {
 	with_null_state?: boolean;
 	events?: EventType[];
 	headers?: Record<string, string>;
+	wsConstructor?: typeof WebSocket;
 }
 
 export interface FileData {

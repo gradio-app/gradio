@@ -15,11 +15,9 @@
 	},
 	"dependencies": {
 		"fetch-event-stream": "^0.1.5",
-		"semiver": "^1.1.0",
-		"ws": "^8.13.0"
+		"semiver": "^1.1.0"
 	},
 	"devDependencies": {
-		"@types/ws": "^8.5.10",
 		"esbuild": "^0.21.0",
 		"msw": "^2.2.1",
 		"typescript": "^5.0.0"

@@ -33,12 +33,7 @@ export default defineConfig(({ mode }) => {
 		ssr: {
 			target: "node",
 			format: "esm",
-			noExternal: [
-				"ws",
-				"semiver",
-				"@gradio/upload",
-				"fetch-event-stream"
-			]
+			noExternal: ["semiver", "fetch-event-stream"]
 		}
 	};
 });
