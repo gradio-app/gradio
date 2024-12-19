@@ -54,14 +54,13 @@
 			tabindex="0"
 			on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
 		>
-			{#if message.content === "" || message.content === null}
-				<span class="loading-spinner"></span>
-			{/if}
 			<span class="title-text">
 				{message.metadata?.title}
-				<!-- {#if message?.duration} -->
-				<span class="duration">{message.duration || 0.16}s</span>
-				<!-- {/if} -->
+				{#if message.content === "" || message.content === null}
+					<span class="loading-spinner"></span>
+				{:else if message?.duration}
+					<span class="duration">{message.duration || 0.16}s</span>
+				{/if}
 			</span>
 			<span
 				class="arrow"
