@@ -14,6 +14,16 @@ This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that 
 $ pip install --upgrade gradio
 ```
 
+## Quickly loading from Ollama or any "OpenAI API compatible" endpoint
+
+If you have a chat endpoint serving any OpenAI API compatible endpoint, you can spin up a ChatInterface in a single line. First, also run `pip install openai`. Then, with your own URL, model, and optional token:
+
+```python
+import gradio as gr
+
+gr.load_chat("http://localhost:11434/v1/", "llama3.2").launch()
+```
+
 ## Defining a chat function
 
 When working with `gr.ChatInterface()`, the first thing you should do is define your **chat function**. In the simplest case, your chat function should accept two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).

@@ -584,6 +584,7 @@ def from_spaces_interface(
     return interface
 
 
+@document()
 def load_chat(
     base_url: str,
     model: str,
@@ -616,7 +617,8 @@ def load_chat(
 
     def open_api(message: str, history: list | None) -> str:
         history = history or start_message
-        history = format_tuples_if_needed(history)
+        if len(history) > 0 and isinstance(history[0], (list, tuple)):
+            history = ChatInterface._tuples_to_messages(history)
         return (
             client.chat.completions.create(
                 model=model,
@@ -630,7 +632,8 @@ def load_chat(
         message: str, history: list | None
     ) -> Generator[str, None, None]:
         history = history or start_message
-        history = format_tuples_if_needed(history)
+        if len(history) > 0 and isinstance(history[0], (list, tuple)):
+            history = ChatInterface._tuples_to_messages(history)
         stream = client.chat.completions.create(
             model=model,
             messages=history + [{"role": "user", "content": message}],
@@ -642,15 +645,3 @@ def load_chat(
             yield response
 
     return ChatInterface(open_api_stream if streaming else open_api, type="messages")
-
-
-def format_tuples_if_needed(history: list) -> list[dict]:
-    if len(history) == 0 or not isinstance(history[0], (list, tuple)):
-        return history
-    messages = []
-    for user, assistant in history:
-        if user:
-            messages.append({"role": "user", "content": user})
-        if assistant:
-            messages.append({"role": "assistant", "content": assistant})
-    return messages
