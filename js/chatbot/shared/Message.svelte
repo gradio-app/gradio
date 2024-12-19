@@ -315,7 +315,7 @@
 	.bot {
 		border-width: 1px;
 		border-radius: var(--radius-md);
-		border-bottom-left-radius: 0;
+		/* border-bottom-left-radius: 0; */
 		border-color: var(--border-color-primary);
 		background-color: var(--background-fill-secondary);
 		box-shadow: var(--shadow-drop);

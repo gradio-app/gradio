@@ -64,7 +64,11 @@
 			</span>
 			<span
 				class="arrow"
-				style:transform={expanded ? "rotate(0deg)" : "rotate(-90deg)"}
+				style:transform={expanded
+					? "rotate(0deg)"
+					: is_nested
+						? "rotate(90deg)"
+						: "rotate(-90deg)"}
 			>
 				<IconButton Icon={DropdownArrow} />
 			</span>
@@ -104,6 +108,7 @@
 		margin: 0;
 		padding: 0;
 		display: block;
+		border-radius: var(--radius-sm);
 	}
 
 	.thought.hidden {
@@ -116,6 +121,7 @@
 		background: none;
 		margin: var(--spacing-md);
 		margin-left: var(--spacing-xl);
+		border-radius: 0;
 	}
 
 	.thought:hover {
