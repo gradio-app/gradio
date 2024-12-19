@@ -77,7 +77,7 @@ from gradio.events import (
     on,
 )
 from gradio.exceptions import Error
-from gradio.external import load
+from gradio.external import load, load_chat
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,

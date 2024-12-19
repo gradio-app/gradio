@@ -155,7 +155,10 @@ class ChatInterface(Blocks):
         self.type = type
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
-        self.fn = fn
+        if isinstance(fn, ChatInterface):
+            self.fn = fn.fn
+        else:
+            self.fn = fn
         self.is_async = inspect.iscoroutinefunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
