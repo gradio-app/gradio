@@ -223,13 +223,12 @@ export async function load_components(
 		if (_components[component_name] || component_name === "file") {
 			return;
 		}
-
-		const { name, component } = load_component(component_name, "base");
+		const variant = component_name === "dataframe" ? "component" : "base";
+		const { name, component } = load_component(component_name, variant);
 		names.push(name);
 		components.push(component);
 		component_name;
 	});
-
 	const loaded_components: LoadedComponent[] = await Promise.all(components);
 	loaded_components.forEach((component, i) => {
 		_components[names[i]] = component.default;

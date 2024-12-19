@@ -1,5 +1,12 @@
 <script lang="ts">
-	export let type: "gallery" | "plot" | "audio" | "video" | "image" | "dataframe" | string;
+	export let type:
+		| "gallery"
+		| "plot"
+		| "audio"
+		| "video"
+		| "image"
+		| "dataframe"
+		| string;
 	export let components;
 	export let value;
 	export let target;
@@ -27,7 +34,7 @@
 		fixed_height={1}
 		on:load
 	/>
-<!-- {:else if type === "dataframe"}
+{:else if type === "dataframe"}
 	<svelte:component
 		this={components[type]}
 		{value}
@@ -39,8 +46,15 @@
 		interactive={false}
 		mode="minimal"
 		fixed_height={1}
+		line_breaks={true}
+		wrap={true}
+		root=""
+		gradio={{ dispatch: () => {} }}
+		latex_delimiters={props.latex_delimiters}
+		col_count={props.col_count}
+		row_count={props.row_count}
 		on:load
-	/> -->
+	/>
 {:else if type === "plot"}
 	<svelte:component
 		this={components[type]}
