@@ -374,7 +374,7 @@ class UndoData(EventData):
 @document()
 class EditData(EventData):
     """
-    The gr.UndoData class is a subclass of gr.Event data that specifically carries information about the `.edit()` event. When gr.EditData
+    The gr.EditData class is a subclass of gr.Event data that specifically carries information about the `.edit()` event. When gr.EditData
     is added as a type hint to an argument of an event listener method, a gr.EditData object will automatically be passed as the value of that argument.
     The attributes of this object contains information about the event that triggered the listener.
     Example:
