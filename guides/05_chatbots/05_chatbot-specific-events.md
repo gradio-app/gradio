@@ -135,7 +135,7 @@ chatbot.like(vote, None, None)
 
 ## The Edit Event
 
-Same idea with the edit listener! with `gr.Chatbot(editable=True)`, you can capture user edits as such:
+Same idea with the edit listener! with `gr.Chatbot(editable=True)`, you can capture user edits. The `gr.EditData` object tells us the index of the message edited and the new text of the mssage. Below, we use this object to edit the history, and delete any subsequent messages. 
 
 ```python
 def handle_edit(history, edit_data: gr.EditData):
@@ -147,7 +147,6 @@ def handle_edit(history, edit_data: gr.EditData):
 
 chatbot.edit(handle_edit, chatbot, chatbot)
 ```
-
 
 
 ## Conclusion
