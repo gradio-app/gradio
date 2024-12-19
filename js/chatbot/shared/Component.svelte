@@ -98,7 +98,6 @@
 		<track kind="captions" />
 	</svelte:component>
 {:else if type === "image"}
-	{console.log("components[type]", components[type])}
 	<svelte:component
 		this={components[type]}
 		{value}
