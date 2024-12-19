@@ -21,7 +21,7 @@ If you have a chat server serving an OpenAI API compatible endpoint (skip ahead 
 ```python
 import gradio as gr
 
-gr.load_chat("http://localhost:11434/v1/", "llama3.2").launch()
+gr.load_chat("http://localhost:11434/v1/", model="llama3.2", token=None).launch()
 ```
 
 ## Defining a chat function
