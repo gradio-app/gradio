@@ -1,5 +1,16 @@
 # @gradio/audio
 
+## 0.15.0
+
+### Features
+
+- [#10186](https://github.com/gradio-app/gradio/pull/10186) [`9b17032`](https://github.com/gradio-app/gradio/commit/9b17032a6564c8bda4ab1749989a9797c670919c) - Add Microphone Input to MultimodalTextbox.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/button@0.3.10
+- @gradio/upload@0.14.4
+
 ## 0.14.10
 
 ### Dependency updates

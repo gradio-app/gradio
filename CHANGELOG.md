@@ -1,5 +1,20 @@
 # gradio
 
+## 5.10.0
+
+### Features
+
+- [#10197](https://github.com/gradio-app/gradio/pull/10197) [`a95f8ef`](https://github.com/gradio-app/gradio/commit/a95f8ef3ee2663cf502129e829493a44b2641613) - Add support for returning multiple messages from `gr.ChatInterface` chat function.  Thanks @abidlabs!
+- [#10186](https://github.com/gradio-app/gradio/pull/10186) [`9b17032`](https://github.com/gradio-app/gradio/commit/9b17032a6564c8bda4ab1749989a9797c670919c) - Add Microphone Input to MultimodalTextbox.  Thanks @dawoodkhan82!
+- [#10187](https://github.com/gradio-app/gradio/pull/10187) [`64d1864`](https://github.com/gradio-app/gradio/commit/64d1864f8fb6f2d0b274fcf7bd47bdb1f6a77980) - `manifest json` for PWA.  Thanks @whitphx!
+- [#10210](https://github.com/gradio-app/gradio/pull/10210) [`13a83e5`](https://github.com/gradio-app/gradio/commit/13a83e5001e29594990d61569887cb8562744964) - Allow reordering files in gr.File.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10214](https://github.com/gradio-app/gradio/pull/10214) [`501adef`](https://github.com/gradio-app/gradio/commit/501adefd0c3d5769055ef2156c85e586eb60bf84) - Some agent low-hanging issues.  Thanks @freddyaboulton!
+- [#10209](https://github.com/gradio-app/gradio/pull/10209) [`2700d18`](https://github.com/gradio-app/gradio/commit/2700d1898bc8eeb3fd9f65ce77be17c2614a388f) - Ensure the `height` param in `gr.File` works as expected.  Thanks @hannahblair!
+- [#10207](https://github.com/gradio-app/gradio/pull/10207) [`314a8b5`](https://github.com/gradio-app/gradio/commit/314a8b55f57a30806b37fe077b471df97d04245d) - fix: make sure `comp.instance` exists.  Thanks @Col0ring!
+
 ## 5.9.1
 
 ### Fixes
