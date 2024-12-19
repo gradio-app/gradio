@@ -49,7 +49,7 @@
 	export let in_edit_mode: boolean;
 	export let edit_message: string;
 	export let display_consecutive_in_same_bubble: boolean;
-	export let messageElements: HTMLDivElement[] = [];
+	let messageElements: HTMLDivElement[] = [];
 	let previous_edit_mode = false;
 	let last_message_width = 0;
 	let last_message_height = 0;
@@ -153,8 +153,8 @@
 						<!-- svelte-ignore a11y-autofocus -->
 						<textarea
 							class="edit-textarea"
-							style:min-width={last_message_width + "px"}
-							style:min-height={last_message_height + "px"}
+							style:width={`max(${last_message_width}px, 160px)`}
+							style:height={`${last_message_height}px`}
 							autofocus
 							bind:value={edit_message}
 						/>
@@ -567,6 +567,7 @@
 		border-radius: var(--radius-lg);
 		border: none;
 		display: block;
+		max-width: 100%;
 	}
 	.user textarea {
 		border-bottom-right-radius: 0;
