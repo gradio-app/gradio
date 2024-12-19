@@ -1,5 +1,6 @@
 import type WaveSurfer from "wavesurfer.js";
 import { audioBufferToWav } from "./audioBufferToWav";
+import WaveformWrapper from "./waveform_wrapper";
 
 export interface LoadedParams {
 	autoplay?: boolean;
@@ -63,7 +64,10 @@ export function loaded(
 	}
 }
 
-export const skip_audio = (waveform: WaveSurfer, amount: number): void => {
+export const skip_audio = (
+	waveform: WaveSurfer | WaveformWrapper,
+	amount: number
+): void => {
 	if (!waveform) return;
 	waveform.skip(amount);
 };
