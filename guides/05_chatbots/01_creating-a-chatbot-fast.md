@@ -16,7 +16,7 @@ $ pip install --upgrade gradio
 
 ## Quickly loading from Ollama or any "OpenAI API compatible" endpoint
 
-If you have a chat endpoint serving any OpenAI API compatible endpoint, you can spin up a ChatInterface in a single line. First, also run `pip install openai`. Then, with your own URL, model, and optional token:
+If you have a chat server serving an OpenAI API compatible endpoint (skip ahead if you don't), you can spin up a ChatInterface in a single line. First, also run `pip install openai`. Then, with your own URL, model, and optional token:
 
 ```python
 import gradio as gr
