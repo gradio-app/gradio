@@ -10,8 +10,7 @@
 </script>
 
 <svelte:head>
-	<!-- <link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" /> -->
-	<link rel="stylesheet" href="http://localhost:8000/dist/lite.js" />
+	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
 </svelte:head>
 
 <div class="hidden lg:block py-2 max-h-[750px] overflow-y-scroll">

@@ -20,7 +20,7 @@
 	let compare = false;
 
 	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	const workerUrl = "http://localhost:5174/api/generate";
+	const workerUrl = "http://localhost:5173/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -252,11 +252,12 @@
 	let lite_element;
 
 	const debounced_detect_error = debounce(detect_app_error, 1000);
+	
+	let stderr = "";
 
 	onMount(async () => {
 		try {
-			// await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
-			await loadScript("http://localhost:8000/dist/lite.js");
+			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
 			controller = createGradioApp({
 				target: document.getElementById("lite-demo"),
 				requirements: cleanupRequirements(requirements),
@@ -281,6 +282,10 @@
 				const packageNames = packages.map((pkg) => pkg.name);
 				selected_demo.requirements =
 					selected_demo.requirements.concat(packageNames);
+			});
+
+			controller.addEventListener("stderr", (event) => {
+				stderr = stderr + event.detail;
 			});
 
 			mounted = true;
@@ -551,7 +556,6 @@
 	let runtime_error : string | null = "";
 
 	function detect_app_error() {
-		console.log("detected_change")
 		if (document) {
 			if (document.querySelector("div .error-name")) {
 				build_error = document.querySelector(".error-name").textContent;
@@ -563,10 +567,15 @@
 			} else {
 				runtime_error = null;
 			}
+			if (stderr) {
+				runtime_error = stderr;
+				stderr = ""
+			}
 		}
 	}
 
 	$: build_error, runtime_error;
+	$: console.log("RUNTIME ERROR: ",runtime_error);
 	
 	let regenerated = true;
 
@@ -602,8 +611,7 @@
 </script>
 
 <svelte:head>
-	<!-- <link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" /> -->
-	<link rel="stylesheet" href="http://localhost:8000/dist/lite.css" />
+	<link rel="stylesheet" href="{WHEEL.gradio_lite_url}/dist/lite.css" />
 
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>
