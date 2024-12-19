@@ -50,11 +50,25 @@
 		requirements: requirements ?? [],
 		sharedWorkerMode: sharedWorkerMode ?? false
 	});
+
+	const dispatch = createEventDispatcher();
+
+	worker_proxy.addEventListener("modules-auto-loaded", (event) => {
+		dispatch("modules-auto-loaded", (event as CustomEvent).detail);
+	});
 	worker_proxy.addEventListener("stdout", (event) => {
 		dispatch("stdout", (event as CustomEvent).detail);
 	});
 	worker_proxy.addEventListener("stderr", (event) => {
 		dispatch("stderr", (event as CustomEvent).detail);
+	});
+	worker_proxy.addEventListener("initialization-error", (event) => {
+		error = (event as CustomEvent).detail;
+		dispatch("initialization-error", (event as CustomEvent).detail);
+	});
+	worker_proxy.addEventListener("python-error", (event) => {
+		error = (event as CustomEvent).detail;
+		dispatch("python-error", (event as CustomEvent).detail);
 	});
 	onDestroy(() => {
 		worker_proxy.terminate();
@@ -95,19 +109,6 @@
 	worker_proxy.install = wrapFunctionWithAppLogic(
 		worker_proxy.install.bind(worker_proxy)
 	);
-
-	worker_proxy.addEventListener("initialization-error", (event) => {
-		error = (event as CustomEvent).detail;
-	});
-	worker_proxy.addEventListener("python-error", (event) => {
-		error = (event as CustomEvent).detail;
-	});
-
-	const dispatch = createEventDispatcher();
-
-	worker_proxy.addEventListener("modules-auto-loaded", (event) => {
-		dispatch("modules-auto-loaded", (event as CustomEvent).detail);
-	});
 
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
 	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done
