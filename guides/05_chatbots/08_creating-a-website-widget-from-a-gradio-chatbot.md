@@ -23,7 +23,7 @@ The chat widget appears as a small button in the corner of your website. When cl
 First, add the Gradio JavaScript client to your website by including this script tag:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@gradio/client"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 ```
 
 ### 2. Create the Chat Widget
@@ -130,9 +130,10 @@ Add this HTML and JavaScript to your website:
 }
 </style>
 
-<script>
+<script type="module">
 async function initChatWidget() {
-    const client = new GradioClient("https://abidlabs-gradio-playground-bot.hf.space");
+    import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+    const client = await Client.connect("https://abidlabs-gradio-playground-bot.hf.space");
     
     const chatToggle = document.getElementById('chat-toggle');
     const chatContainer = document.getElementById('chat-container');
@@ -153,15 +154,13 @@ async function initChatWidget() {
         const message = chatInput.value.trim();
         if (!message) return;
 
-        // Add user message to chat
         appendMessage(message, 'user');
         chatInput.value = '';
 
         try {
-            // Send to Gradio app
-            const result = await client.submit("/chat", [message]);
-            
-            // Add bot response to chat
+            const result = await client.predict("/predict", {
+                message: message
+            });
             appendMessage(result.data[0], 'bot');
         } catch (error) {
             console.error('Error:', error);
