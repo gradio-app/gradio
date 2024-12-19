@@ -91,7 +91,7 @@
 
 	let target: HTMLElement | null = null;
 	let edit_index: number | null = null;
-	let edit_message: string = "";
+	let edit_message = "";
 
 	onMount(() => {
 		target = document.querySelector("div.gradio-container");
