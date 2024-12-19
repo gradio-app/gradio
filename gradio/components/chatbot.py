@@ -35,6 +35,8 @@ from gradio.exceptions import Error
 
 class MetadataDict(TypedDict):
     title: Union[str, None]
+    id: NotRequired[int]
+    parent_id: NotRequired[int]
 
 
 class Option(TypedDict):
@@ -82,6 +84,8 @@ class ChatbotDataTuples(GradioRootModel):
 
 class Metadata(GradioModel):
     title: Optional[str] = None
+    id: Optional[int] = None
+    parent_id: Optional[int] = None
 
 
 class Message(GradioModel):

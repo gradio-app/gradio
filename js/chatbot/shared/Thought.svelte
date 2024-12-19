@@ -30,15 +30,22 @@
 	export let display_consecutive_in_same_bubble: boolean;
 	export let i18n: I18nFormatter;
 	export let line_breaks: boolean;
+	export let parent_expanded = true;
 
 	let expanded = is_last_bot_message([message], value);
+	let is_nested = !!message.metadata?.parent_id;
 
 	function toggleExpanded(): void {
 		expanded = !expanded;
 	}
 </script>
 
-<button class="thought" on:click={toggleExpanded}>
+<button
+	class="thought"
+	class:nested={is_nested}
+	class:hidden={is_nested && !parent_expanded}
+	on:click={toggleExpanded}
+>
 	<div class="box" style:text-align={rtl ? "right" : "left"}>
 		<div
 			class="title"
@@ -47,24 +54,24 @@
 			tabindex="0"
 			on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
 		>
-			{#if message.content === ""}
+			{#if message.content === "" || message.content === null}
 				<span class="loading-spinner"></span>
 			{/if}
-			<span class="title-text">{message.metadata?.title}</span>
+			<span class="title-text">
+				{message.metadata?.title}
+				<!-- {#if message?.duration} -->
+				<span class="duration">{message.duration || 0.16}s</span>
+				<!-- {/if} -->
+			</span>
 			<span
-				style:transform={expanded ? "rotate(0deg)" : "rotate(-90deg)"}
 				class="arrow"
+				style:transform={expanded
+					? "rotate(0deg)"
+					: is_nested
+						? "rotate(90deg)"
+						: "rotate(-90deg)"}
 			>
 				<IconButton Icon={DropdownArrow} />
-				<!-- <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-					<path
-						d="M2 4L6 8L10 4"
-						stroke="currentColor"
-						stroke-width="1.5"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-				</svg> -->
 			</span>
 		</div>
 		{#if expanded}
@@ -95,22 +102,50 @@
 <style>
 	.thought {
 		background: var(--color-accent-soft);
-		border-radius: calc(var(--radius-md) - 1px);
-		border-bottom-left-radius: 0;
-		padding: var(--spacing-sm) var(--spacing-xl) var(--spacing-sm)
-			var(--spacing-xl);
+		width: 100%;
+		box-sizing: border-box;
+		border: none;
+		opacity: 0.8;
+		margin: 0;
+		padding: 0;
+		display: block;
+	}
+
+	.thought.hidden {
+		display: none;
+	}
+
+	.thought.nested {
+		width: calc(100% - var(--spacing-xl));
+		border-left: 2px solid var(--border-color-primary);
+		background: none;
+		margin: var(--spacing-md);
+		margin-left: var(--spacing-xl);
+	}
+
+	.thought:hover {
+		opacity: 1;
 	}
 
 	.box {
-		max-width: max-content;
+		max-width: 100%;
 		font-size: 0.8em;
+		padding: var(--spacing-md) var(--spacing-xl);
 	}
 
 	.title {
-		display: inline-flex;
+		display: flex;
+		align-items: center;
 		color: var(--body-text-color);
 		opacity: 0.8;
 		cursor: pointer;
+		width: 100%;
+	}
+
+	.content {
+		margin-top: var(--spacing-md);
+		overflow-wrap: break-word;
+		word-break: break-word;
 	}
 
 	.content :global(*) {
@@ -119,6 +154,12 @@
 
 	.title-text {
 		padding-right: var(--spacing-lg);
+	}
+
+	.duration {
+		color: var(--body-text-color-subdued);
+		margin-left: var(--spacing-sm);
+		font-size: var(--text-sm);
 	}
 
 	.arrow {
@@ -134,6 +175,8 @@
 		border-radius: 50%;
 		border-top-color: transparent;
 		animation: spin 1s linear infinite;
+		margin-top: var(--spacing-xs);
+		margin-right: var(--spacing-md);
 	}
 
 	@keyframes spin {

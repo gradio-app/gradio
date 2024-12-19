@@ -181,6 +181,29 @@ export function is_last_bot_message(
 	return is_last && is_bot;
 }
 
+function add_to_groups(
+	message: NormalisedMessage,
+	currentGroup: NormalisedMessage[],
+	groupedMessages: NormalisedMessage[][],
+	currentRole: MessageRole | null
+): [NormalisedMessage[], MessageRole | null] {
+	if (
+		message.metadata?.title ||
+		(currentGroup.length > 0 && currentGroup[0].metadata?.title)
+	) {
+		if (currentGroup.length > 0) groupedMessages.push(currentGroup);
+		return [[message], message.role];
+	}
+
+	if (message.role === currentRole) {
+		currentGroup.push(message);
+		return [currentGroup, currentRole];
+	}
+
+	if (currentGroup.length > 0) groupedMessages.push(currentGroup);
+	return [[message], message.role];
+}
+
 export function group_messages(
 	messages: NormalisedMessage[],
 	msg_format: "messages" | "tuples"
@@ -189,33 +212,40 @@ export function group_messages(
 	let currentGroup: NormalisedMessage[] = [];
 	let currentRole: MessageRole | null = null;
 
+	// First pass: Group messages by role and title
 	for (const message of messages) {
-		if (!(message.role === "assistant" || message.role === "user")) {
-			continue;
-		}
+		if (!(message.role === "assistant" || message.role === "user")) continue;
 		if (
-			message.metadata?.title ||
-			(currentGroup.length > 0 && currentGroup[0].metadata?.title)
-		) {
-			if (currentGroup.length > 0) {
-				groupedMessages.push(currentGroup);
-			}
-			currentGroup = [message];
-			currentRole = message.role;
-		} else if (message.role === currentRole) {
-			currentGroup.push(message);
-		} else {
-			if (currentGroup.length > 0) {
-				groupedMessages.push(currentGroup);
-			}
-			currentGroup = [message];
-			currentRole = message.role;
-		}
+			message.metadata?.parent_id !== undefined &&
+			message.metadata?.parent_id !== null
+		)
+			continue;
+		[currentGroup, currentRole] = add_to_groups(
+			message,
+			currentGroup,
+			groupedMessages,
+			currentRole
+		);
 	}
+	if (currentGroup.length > 0) groupedMessages.push(currentGroup);
 
-	if (currentGroup.length > 0) {
-		groupedMessages.push(currentGroup);
-	}
+	// Second pass: Insert child messages after their parents
+	messages.forEach((message) => {
+		if (
+			message.metadata?.parent_id === undefined ||
+			message.metadata?.parent_id === null
+		)
+			return;
+		for (const group of groupedMessages) {
+			const parentIndex = group.findIndex(
+				(m) => m.metadata?.id === message.metadata?.parent_id
+			);
+			if (parentIndex !== -1) {
+				group.splice(parentIndex + 1, 0, message);
+				break;
+			}
+		}
+	});
 
 	return groupedMessages;
 }

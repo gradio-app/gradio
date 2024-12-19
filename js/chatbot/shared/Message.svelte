@@ -142,6 +142,7 @@
 						{display_consecutive_in_same_bubble}
 						{i18n}
 						{line_breaks}
+						parent_expanded={true}
 					/>
 				{:else}
 					<div
