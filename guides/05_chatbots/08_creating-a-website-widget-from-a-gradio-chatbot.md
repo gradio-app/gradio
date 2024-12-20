@@ -17,7 +17,7 @@ The chat widget appears as a small button in the corner of your website. When cl
 
 ## Prerequisites
 
-* A running Gradio app (local or on Hugging Face Spaces). In this example, we'll use the [Gradio Studio Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which helps generate code for Gradio apps based on natural language descriptions.
+* A running Gradio app (local or on Hugging Face Spaces). In this example, we'll use the [Gradio Playground Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which helps generate code for Gradio apps based on natural language descriptions.
 
 ### 1. Create and Style the Chat Widget
 
