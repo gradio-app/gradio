@@ -40,7 +40,6 @@ Scroll down to the section that says "Privileged Gateway Intents". Your bot will
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-3.png)
 
 
-* screenshot
 
 ### 2. Write a Discord bot
 
