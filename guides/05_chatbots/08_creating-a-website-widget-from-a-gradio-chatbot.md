@@ -14,7 +14,6 @@ You can make your Gradio Chatbot available as an embedded chat widget on your we
 
 The chat widget appears as a small button in the corner of your website. When clicked, it opens a chat interface that communicates with your Gradio app via the JavaScript Client API. Users can ask questions and receive responses directly within the widget.
 
-![Widget Demo GIF placeholder]
 
 ## Prerequisites
 
