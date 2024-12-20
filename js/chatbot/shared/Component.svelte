@@ -41,11 +41,7 @@
 		show_label={false}
 		{i18n}
 		label=""
-		{_fetch}
-		allow_preview={false}
 		interactive={false}
-		mode="minimal"
-		fixed_height={1}
 		line_breaks={true}
 		wrap={true}
 		root=""
