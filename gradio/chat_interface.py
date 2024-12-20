@@ -730,7 +730,7 @@ class ChatInterface(Blocks):
         list[MessageDict] | TupleFormat,
         str | MultimodalPostprocess,
     ]:
-        if self.type == "tuples":
+        if isinstance(edit_data.index, (list, tuple)):
             history = history[: edit_data.index[0]]
         else:
             history = history[: edit_data.index]
