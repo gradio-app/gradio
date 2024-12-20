@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Allow editing chatbot messages
+feat:Make chatinterface editable
