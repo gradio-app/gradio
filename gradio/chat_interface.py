@@ -75,7 +75,7 @@ class ChatInterface(Blocks):
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
         additional_outputs: Component | list[Component] | None = None,
-        editable: bool = True,
+        editable: bool = False,
         examples: list[str] | list[MultimodalValue] | list[list] | None = None,
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
