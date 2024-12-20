@@ -329,7 +329,7 @@ To use the endpoint, you should use either the [Gradio Python Client](/guides/ge
 
 * Discord bot [[tutorial]](../guides/creating-a-discord-bot-from-a-gradio-app)
 * Slack bot [[tutorial]](../guides/creating-a-slack-bot-from-a-gradio-app)
-* Website widget [[tutorial]](../guides/creating-a-webiste-widget-from-a-gradio-chatbot)
+* Website widget [[tutorial]](../guides/creating-a-website-widget-from-a-gradio-chatbot)
 
 ## What's Next?
 
