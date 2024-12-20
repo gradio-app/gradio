@@ -140,3 +140,5 @@ The bot will:
 This is just a basic example - you can extend it to handle more types of files, add error handling, or integrate with different Gradio apps!
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-19%20at%203.30.00%E2%80%AFPM.gif)
+
+If you build a Slack bot from a Gradio app, feel free to share it on X and tag [the Gradio account](https://x.com/Gradio), and we are happy to help you amplify!

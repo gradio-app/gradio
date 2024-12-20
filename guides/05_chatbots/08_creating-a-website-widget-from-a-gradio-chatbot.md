@@ -207,3 +207,5 @@ You can customize the appearance of the widget by modifying the CSS. Some ideas:
 - Modify the message styling
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-19%20at%203.32.46%E2%80%AFPM.gif)
+
+If you build a website widget from a Gradio app, feel free to share it on X and tag [the Gradio account](https://x.com/Gradio), and we are happy to help you amplify!
