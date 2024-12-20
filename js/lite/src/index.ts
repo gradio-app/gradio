@@ -39,6 +39,26 @@ export class GradioAppController extends EventTarget {
 		this.lite_svelte_app.$on("stderr", (event: CustomEvent) => {
 			this.dispatchEvent(new CustomEvent("stderr", { detail: event.detail }));
 		});
+		this.lite_svelte_app.$on("initialization-error", (event: CustomEvent) => {
+			this.dispatchEvent(
+				new CustomEvent("initialization-error", { detail: event.detail })
+			);
+		});
+		this.lite_svelte_app.$on("python-error", (event: CustomEvent) => {
+			this.dispatchEvent(
+				new CustomEvent("python-error", { detail: event.detail })
+			);
+		});
+		this.lite_svelte_app.$on("init-code-run-error", (event: CustomEvent) => {
+			this.dispatchEvent(
+				new CustomEvent("init-code-run-error", { detail: event.detail })
+			);
+		});
+		this.lite_svelte_app.$on("init-file-run-error", (event: CustomEvent) => {
+			this.dispatchEvent(
+				new CustomEvent("init-file-run-error", { detail: event.detail })
+			);
+		});
 	}
 
 	run_code = (code: string): Promise<void> => {
