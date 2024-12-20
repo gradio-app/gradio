@@ -36,7 +36,7 @@ from gradio.components.chatbot import (
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.context import get_blocks_context
-from gradio.events import Dependency, SelectData
+from gradio.events import Dependency, EditData, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Column, Group, Row
@@ -75,6 +75,7 @@ class ChatInterface(Blocks):
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
         additional_outputs: Component | list[Component] | None = None,
+        editable: bool = True,
         examples: list[str] | list[MultimodalValue] | list[list] | None = None,
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
@@ -108,6 +109,7 @@ class ChatInterface(Blocks):
             type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the history as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component: at the moment gr.Image, gr.Plot, gr.Video, gr.Gallery, gr.Audio, and gr.HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples' (deprecated), passes the chat history as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message.
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
+            editable: if True, users can edit past messages to regenerate responses.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If the components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion. The values of these components will be passed into `fn` as arguments in order after the chat history.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
             additional_outputs: an instance or list of instances of gradio components to use as additional outputs from the chat function. These must be components that are already defined in the same Blocks scope. If provided, the chat function should return additional values for these components. See $demo/chatinterface_artifacts.
@@ -173,6 +175,7 @@ class ChatInterface(Blocks):
         self.run_examples_on_click = run_examples_on_click
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
+        self.editable = editable
         self.additional_inputs = [
             get_component_instance(i)
             for i in utils.none_or_singleton_to_list(additional_inputs)
@@ -490,6 +493,14 @@ class ChatInterface(Blocks):
 
         self.chatbot.clear(**synchronize_chat_state_kwargs)
 
+        if self.editable:
+            self.chatbot.edit(
+                self._edit_message,
+                [self.chatbot],
+                [self.chatbot, self.chatbot_state, self.saved_input],
+                show_api=False,
+            ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs)
+
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
     ) -> None:
@@ -711,6 +722,19 @@ class ChatInterface(Blocks):
             return example.value
         else:
             return example.value["text"]
+
+    def _edit_message(
+        self, history: list[MessageDict] | TupleFormat, edit_data: EditData
+    ) -> tuple[
+        list[MessageDict] | TupleFormat,
+        list[MessageDict] | TupleFormat,
+        str | MultimodalPostprocess,
+    ]:
+        if self.type == "tuples":
+            history = history[: edit_data.index[0]]
+        else:
+            history = history[: edit_data.index]
+        return history, history, edit_data.value
 
     def example_clicked(
         self, example: SelectData
