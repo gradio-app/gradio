@@ -222,18 +222,18 @@ class Interface(Blocks):
                 get_component_instance(i, unrender=True) for i in additional_inputs
             ]
 
-        if not isinstance(inputs, (str, list, Component)):
+        if not isinstance(inputs, (Sequence, Component)):
             raise TypeError(
-                f"inputs must be a string, list, or Component, not {inputs}"
+                f"inputs must be a string, Sequence, or Component, not {inputs}"
             )
-        if not isinstance(outputs, (str, list, Component)):
+        if not isinstance(outputs, (Sequence, Component)):
             raise TypeError(
-                f"outputs must be a string, list, or Component, not {outputs}"
+                f"outputs must be a string, Sequence, or Component, not {outputs}"
             )
 
-        if not isinstance(inputs, list):
+        if isinstance(inputs, (str, Component)):
             inputs = [inputs]
-        if not isinstance(outputs, list):
+        if isinstance(outputs, (str, Component)):
             outputs = [outputs]
 
         self.cache_examples = cache_examples
