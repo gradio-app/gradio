@@ -1,5 +1,11 @@
 # @gradio/code
 
+## 0.10.11
+
+### Dependency updates
+
+- @gradio/upload@0.14.4
+
 ## 0.10.10
 
 ### Dependency updates
