@@ -115,3 +115,28 @@ test("test stopping generation", async ({ page }) => {
 	await expect(current_content).toBe(new_content);
 	await expect(new_content!.length).toBeLessThan(3000);
 });
+
+test("editing messages", async ({ page }) => {
+	const submit_button = page.locator(".submit-button");
+	const textbox = page.locator(".input-container textarea");
+	const chatbot = page.getByLabel("chatbot conversation");
+
+	await textbox.fill("Lets");
+	await submit_button.click();
+	await expect(chatbot).toContainText("You typed: Lets");
+
+	await textbox.fill("Test");
+	await submit_button.click();
+	await expect(chatbot).toContainText("You typed: Test");
+
+	await textbox.fill("This");
+	await submit_button.click();
+	await expect(chatbot).toContainText("You typed: This");
+
+	await page.getByLabel("Edit").nth(1).click();
+	await page.getByLabel("chatbot conversation").getByRole("textbox").fill("Do");
+	await page.getByLabel("Submit").click();
+
+	await expect(chatbot).toContainText("You typed: Do");
+	await expect(chatbot).not.toContainText("You typed: This");
+});
