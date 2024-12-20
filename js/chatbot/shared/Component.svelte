@@ -42,7 +42,7 @@
 		{i18n}
 		label=""
 		interactive={false}
-		line_breaks={true}
+		line_breaks={props.line_breaks}
 		wrap={true}
 		root=""
 		gradio={{ dispatch: () => {} }}
