@@ -8,7 +8,6 @@ export const resolveAppHomeBasedPath = (
 	appId: string,
 	filePath: string
 ): string => {
-	const normalized = path.normalize(filePath);
 	return path.resolve(getAppHomeDir(appId), filePath);
 };
 
