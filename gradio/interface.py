@@ -222,28 +222,43 @@ class Interface(Blocks):
                 get_component_instance(i, unrender=True) for i in additional_inputs
             ]
 
-        if not isinstance(inputs, (str, list, Component)):
+        if not isinstance(inputs, (Sequence, Component)):
             raise TypeError(
                 f"inputs must be a string, list, or Component, not {inputs}"
             )
-        if not isinstance(outputs, (str, list, Component)):
+        if not isinstance(outputs, (Sequence, Component)):
             raise TypeError(
                 f"outputs must be a string, list, or Component, not {outputs}"
             )
 
-        if not isinstance(inputs, list):
+        if isinstance(inputs, (str, Component)):
             inputs = [inputs]
-        if not isinstance(outputs, list):
+        if isinstance(outputs, (str, Component)):
             outputs = [outputs]
 
         self.cache_examples = cache_examples
         self.cache_mode: Literal["eager", "lazy"] | None = cache_mode
 
+        self.main_input_components = [
+            get_component_instance(i, unrender=True) for i in inputs
+        ]
+        self.input_components = (
+            self.main_input_components + self.additional_input_components
+        )
+        self.output_components = [
+            get_component_instance(o, unrender=True)
+            for o in outputs  # type: ignore
+        ]
+
         state_input_indexes = [
-            idx for idx, i in enumerate(inputs) if i == "state" or isinstance(i, State)
+            idx
+            for idx, i in enumerate(self.input_components)
+            if i == "state" or isinstance(i, State)
         ]
         state_output_indexes = [
-            idx for idx, o in enumerate(outputs) if o == "state" or isinstance(o, State)
+            idx
+            for idx, o in enumerate(self.output_components)
+            if o == "state" or isinstance(o, State)
         ]
 
         if len(state_input_indexes) == 0 and len(state_output_indexes) == 0:
@@ -255,14 +270,14 @@ class Interface(Blocks):
         else:
             state_input_index = state_input_indexes[0]
             state_output_index = state_output_indexes[0]
-            if inputs[state_input_index] == "state":
+            if self.input_components[state_input_index] == "state":
                 default = utils.get_default_args(fn)[state_input_index]
                 state_variable = State(value=default)
             else:
-                state_variable = inputs[state_input_index]
+                state_variable = self.input_components[state_input_index]
 
-            inputs[state_input_index] = state_variable
-            outputs[state_output_index] = state_variable
+            self.input_components[state_input_index] = state_variable
+            self.output_components[state_output_index] = state_variable
 
             if cache_examples:
                 warnings.warn(
@@ -270,10 +285,6 @@ class Interface(Blocks):
                     "Setting cache_examples to False."
                 )
             self.cache_examples = False
-
-        self.main_input_components = [
-            get_component_instance(i, unrender=True) for i in inputs
-        ]
 
         if additional_inputs_accordion is None:
             self.additional_inputs_accordion_params = {
@@ -294,13 +305,6 @@ class Interface(Blocks):
             raise ValueError(
                 f"The `additional_inputs_accordion` parameter must be a string or gr.Accordion, not {type(additional_inputs_accordion)}"
             )
-        self.input_components = (
-            self.main_input_components + self.additional_input_components
-        )
-        self.output_components = [
-            get_component_instance(o, unrender=True)
-            for o in outputs  # type: ignore
-        ]
 
         for component in self.input_components + self.output_components:
             if not (isinstance(component, Component)):
