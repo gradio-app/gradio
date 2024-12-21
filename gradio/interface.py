@@ -224,11 +224,11 @@ class Interface(Blocks):
 
         if not isinstance(inputs, (Sequence, Component)):
             raise TypeError(
-                f"inputs must be a string, Sequence, or Component, not {inputs}"
+                f"inputs must be a string, list, or Component, not {inputs}"
             )
         if not isinstance(outputs, (Sequence, Component)):
             raise TypeError(
-                f"outputs must be a string, Sequence, or Component, not {outputs}"
+                f"outputs must be a string, list, or Component, not {outputs}"
             )
 
         if isinstance(inputs, (str, Component)):
