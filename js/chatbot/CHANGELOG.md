@@ -1,5 +1,22 @@
 # @gradio/chatbot
 
+## 0.20.0
+
+### Features
+
+- [#10203](https://github.com/gradio-app/gradio/pull/10203) [`c3a9e64`](https://github.com/gradio-app/gradio/commit/c3a9e647381f787085662828747e6ac61f8a0c01) - Allow editing chatbot messages.  Thanks @aliabid94!
+
+### Fixes
+
+- [#10214](https://github.com/gradio-app/gradio/pull/10214) [`501adef`](https://github.com/gradio-app/gradio/commit/501adefd0c3d5769055ef2156c85e586eb60bf84) - Some agent low-hanging issues.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/video@0.12.2
+- @gradio/upload@0.14.4
+- @gradio/gallery@0.14.1
+- @gradio/image@0.19.1
+
 ## 0.19.0
 
 ### Features
