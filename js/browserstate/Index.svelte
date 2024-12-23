@@ -16,8 +16,6 @@
 		change: never;
 	}>;
 
-	console.log("gradio", gradio);
-
 	function load_value(): void {
 		const stored = localStorage.getItem(storage_key);
 		if (!stored) {
