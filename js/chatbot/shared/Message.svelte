@@ -352,6 +352,12 @@
 		text-align: right;
 	}
 
+	.bot:has(.table-wrap) {
+		border: none;
+		box-shadow: none;
+		background: none;
+	}
+
 	.panel .user :global(*) {
 		text-align: right;
 	}
