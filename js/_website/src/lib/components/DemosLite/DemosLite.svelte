@@ -19,8 +19,8 @@
 	let current_code = false;
 	let compare = false;
 
-	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	const workerUrl = "http://localhost:5173/api/generate";
+	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	// const workerUrl = "http://localhost:5173/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -106,6 +106,7 @@
 			regenerating = true;
 		}
 		generated = false;
+		show_regenerate_button = false;
 		let out = "";
 
 		if (current_code) {
@@ -158,9 +159,11 @@
 		}
 
 		generated = true;
-		if (regenerating) {
-			regenerating = false;
-		};
+		app_error = null;
+		user_query = "";
+		regenerating = false;
+		auto_regenerate = true;
+
 		if (selected_demo.name === demo_name) {
 			highlight_changes(code_to_compare, demos[queried_index].code);
 		}
@@ -172,6 +175,10 @@
 			abortController.abort();
 		}
 		generated = true;
+		auto_regenerate = false;
+		app_error = null;
+		show_regenerate_button = false;
+		regenerating = false;
 	}
 
 	let user_query: string;
@@ -181,8 +188,7 @@
 			run_as_update = false;
 			suspend_and_resume_auto_run(() => {
 				generate_code(user_query, selected_demo.name);
-				regenerated = false;
-			}
+				}
 			);
 		}
 	}
@@ -254,6 +260,7 @@
 	const debounced_detect_error = debounce(detect_app_error, 1000);
 	
 	let stderr = "";
+	let init_code_run_error = "";
 
 	onMount(async () => {
 		try {
@@ -286,6 +293,9 @@
 
 			controller.addEventListener("stderr", (event) => {
 				stderr = stderr + event.detail;
+			});
+			controller.addEventListener("init-code-run-error", (event) => {
+				init_code_run_error = init_code_run_error + event.detail;
 			});
 
 			mounted = true;
@@ -359,6 +369,9 @@
 	let run_as_update = true;
 	$: if (mounted && run_as_update) {
 		debounced_run_code && debounced_run_code(code);
+		stderr = "";
+		init_code_run_error = "";
+		app_error = null;
 	}
 	$: if (mounted && run_as_update) {
 		debounced_install &&
@@ -552,34 +565,43 @@
 
 	$: generation_error;
 
-	let build_error : string | null = "";
-	let runtime_error : string | null = "";
+	let app_error : string | null = "";
 
 	function detect_app_error() {
-		if (document) {
-			if (document.querySelector("div .error-name")) {
-				build_error = document.querySelector(".error-name").textContent;
-			} else {
-				build_error = null;
+		if (generated) {
+			if (document) {
+				if (!document.querySelector(".loading")) {
+					if (document.querySelector("div .error-name")) {
+						app_error = document.querySelector(".error-name").textContent;
+					} else if (document.querySelector("div .error .toast-title")) {
+						app_error = document.querySelector("div .error .toast-text").textContent;
+					} else if (stderr) {
+						app_error = stderr;
+						stderr = ""
+					} else if (init_code_run_error) {
+						app_error = init_code_run_error;
+						init_code_run_error = "";
+					} else {
+						app_error = null;
+					}
+				}
 			}
-			if (document.querySelector("div .error .toast-title")) {
-				runtime_error = document.querySelector("div .error .toast-text").textContent;
-			} else {
-				runtime_error = null;
-			}
-			if (stderr) {
-				runtime_error = stderr;
-				stderr = ""
-			}
+		} else {
+			app_error = null;
+			stderr = "";
+			init_code_run_error = "";
 		}
+		if (app_error && app_error.includes("UserWarning: only soft file lock is available  from filelock import BaseFileLock, FileLock, SoftFileLock, Timeout")) {
+			app_error = null;
+		}	
 	}
 
-	$: build_error, runtime_error;
-	$: console.log("RUNTIME ERROR: ",runtime_error);
+	$: console.log("APP ERROR: ", app_error);
+	$: app_error;
 	
-	let regenerated = true;
+	let auto_regenerate = false;
 
-	$: regenerated; 
+	$: auto_regenerate; 
 
 	let error_prompt;
 
@@ -587,26 +609,39 @@
 
 	$: regenerating;
 
-	function regenerate_on_error(build_error, runtime_error) {
-		if (!regenerated) {		
-			if (build_error) {
-				error_prompt = `There's a build error when I run the existing code: ${build_error}`;
-				generate_code(error_prompt, selected_demo.name, true);
-				regenerated = true;
-			} else if (runtime_error) {
-				error_prompt = `There's a runtime error when I run the existing code: ${runtime_error}`;
-				generate_code(error_prompt, selected_demo.name, true);
-				regenerated = true;
+	$: console.log("AUTO REGENERATE: ", auto_regenerate);
+
+	async function regenerate_on_error(app_error) {
+		if (auto_regenerate) {		
+			if (app_error) {
+				error_prompt = `There's an error when I run the existing code: ${app_error}`;
+				await generate_code(error_prompt, selected_demo.name, true);
+				auto_regenerate = false;
+			}
+		} else {
+			if (app_error) {
+				show_regenerate_button = true;
 			}
 		}
 	}
 
-	$: regenerate_on_error(build_error, runtime_error);
 
-	$: if (regenerating) {
-		user_query = build_error ? build_error : runtime_error;
+	$: regenerate_on_error(app_error);
 
+	let show_regenerate_button = false;
+
+	$: show_regenerate_button;
+
+
+	$: if (app_error) {
+		user_query = app_error;
+		show_regenerate_button = true;
 	}
+	$: if (!app_error && !regenerating) {
+		user_query = "";
+		show_regenerate_button = false;
+	}
+
 
 </script>
 
@@ -675,6 +710,11 @@
 										lines={10}
 										readonly={false}
 										dark_mode={false}
+										on:change={(e) => {
+											if (generated) {
+										auto_regenerate = false;
+											}
+										}}
 									/>
 								</div>
 							</TabItem>
@@ -755,6 +795,8 @@
 							<div class="loader-purple"></div>
 						{:else if !generated}
 							<div class="loader"></div>
+						{:else if show_regenerate_button}
+							<span style="color: transparent; text-shadow: 0 0 0 purple;">✨</span>
 						{:else}
 							✨
 						{/if}
@@ -774,12 +816,23 @@
 							class:grayed={!generated}
 							autofocus={true}
 						/>
-						{#if generated}
+						{#if show_regenerate_button}
+							<button
+								on:click={async() => {
+									auto_regenerate = true;
+									await regenerate_on_error(app_error);
+									show_regenerate_button = false;
+								}}
+								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-purple-100 to-purple-50 border border-purple-200 px-4 py-0.5 rounded-full text-purple-800 hover:shadow"
+							>
+								<div class="enter">Fix Error</div>
+							</button>
+						{:else if generated}
 							<button
 								on:click={() => {
 									suspend_and_resume_auto_run(() => {
 										generate_code(user_query, selected_demo.name);
-										regenerated = false;
+										auto_regenerate = true;
 									}
 									);
 								}}
