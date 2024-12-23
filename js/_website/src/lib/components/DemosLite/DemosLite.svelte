@@ -101,8 +101,16 @@
 		}
 	}
 
-	async function generate_code(query: string, demo_name: string) {
+	async function generate_code(
+		query: string,
+		demo_name: string,
+		regeneration_run = false
+	) {
+		if (regeneration_run) {
+			regenerating = true;
+		}
 		generated = false;
+		show_regenerate_button = false;
 		let out = "";
 
 		if (current_code) {
@@ -155,6 +163,11 @@
 		}
 
 		generated = true;
+		app_error = null;
+		user_query = "";
+		regenerating = false;
+		auto_regenerate = true;
+
 		if (selected_demo.name === demo_name) {
 			highlight_changes(code_to_compare, demos[queried_index].code);
 		}
@@ -166,6 +179,10 @@
 			abortController.abort();
 		}
 		generated = true;
+		auto_regenerate = false;
+		app_error = null;
+		show_regenerate_button = false;
+		regenerating = false;
 	}
 
 	let user_query: string;
@@ -173,9 +190,9 @@
 	function handle_user_query_key_down(e: KeyboardEvent): void {
 		if (e.key === "Enter") {
 			run_as_update = false;
-			suspend_and_resume_auto_run(() =>
-				generate_code(user_query, selected_demo.name)
-			);
+			suspend_and_resume_auto_run(() => {
+				generate_code(user_query, selected_demo.name);
+			});
 		}
 	}
 
@@ -241,6 +258,13 @@
 			.filter((r) => r !== "");
 	}
 
+	let lite_element;
+
+	const debounced_detect_error = debounce(detect_app_error, 1000);
+
+	let stderr = "";
+	let init_code_run_error = "";
+
 	onMount(async () => {
 		try {
 			await loadScript(WHEEL.gradio_lite_url + "/dist/lite.js");
@@ -270,10 +294,41 @@
 					selected_demo.requirements.concat(packageNames);
 			});
 
+			controller.addEventListener("stderr", (event) => {
+				stderr = stderr + event.detail;
+			});
+			controller.addEventListener("init-code-run-error", (event) => {
+				init_code_run_error = init_code_run_error + event.detail;
+			});
+
 			mounted = true;
 		} catch (error) {
 			console.error("Error loading Gradio Lite:", error);
 		}
+
+		const observer = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (
+					(mutation.type === "childList" &&
+						(mutation.addedNodes.length > 0 ||
+							mutation.removedNodes.length > 0)) ||
+					mutation.type === "characterData"
+				) {
+					debounced_detect_error();
+				}
+			});
+		});
+
+		observer.observe(lite_element, {
+			childList: true, // Watch for changes in child elements
+			subtree: true, // Watch all descendants, not just direct children
+			characterData: false, // Don't watch for text content changes
+			attributes: true // Don't watch for attribute changes
+		});
+
+		return () => {
+			observer.disconnect(); // Cleanup on component destruction
+		};
 	});
 
 	let copied_link = false;
@@ -317,6 +372,9 @@
 	let run_as_update = true;
 	$: if (mounted && run_as_update) {
 		debounced_run_code && debounced_run_code(code);
+		stderr = "";
+		init_code_run_error = "";
+		app_error = null;
 	}
 	$: if (mounted && run_as_update) {
 		debounced_install &&
@@ -509,6 +567,85 @@
 	let generation_error = "";
 
 	$: generation_error;
+
+	let app_error: string | null = "";
+
+	function detect_app_error() {
+		if (generated) {
+			if (document) {
+				if (!document.querySelector(".loading")) {
+					if (document.querySelector("div .error-name")) {
+						app_error = document.querySelector(".error-name").textContent;
+					} else if (document.querySelector("div .error .toast-title")) {
+						app_error = document.querySelector(
+							"div .error .toast-text"
+						).textContent;
+					} else if (stderr) {
+						app_error = stderr;
+						stderr = "";
+					} else if (init_code_run_error) {
+						app_error = init_code_run_error;
+						init_code_run_error = "";
+					} else {
+						app_error = null;
+					}
+				}
+			}
+		} else {
+			app_error = null;
+			stderr = "";
+			init_code_run_error = "";
+		}
+		if (
+			app_error &&
+			app_error.includes(
+				"UserWarning: only soft file lock is available  from filelock import BaseFileLock, FileLock, SoftFileLock, Timeout"
+			)
+		) {
+			app_error = null;
+		}
+	}
+
+	$: app_error;
+
+	let auto_regenerate = false;
+
+	$: auto_regenerate;
+
+	let error_prompt;
+
+	let regenerating = false;
+
+	$: regenerating;
+
+	async function regenerate_on_error(app_error) {
+		if (auto_regenerate) {
+			if (app_error) {
+				error_prompt = `There's an error when I run the existing code: ${app_error}`;
+				await generate_code(error_prompt, selected_demo.name, true);
+				auto_regenerate = false;
+			}
+		} else {
+			if (app_error) {
+				show_regenerate_button = true;
+			}
+		}
+	}
+
+	$: regenerate_on_error(app_error);
+
+	let show_regenerate_button = false;
+
+	$: show_regenerate_button;
+
+	$: if (app_error) {
+		user_query = app_error;
+		show_regenerate_button = true;
+	}
+	$: if (!app_error && !regenerating) {
+		user_query = "";
+		show_regenerate_button = false;
+	}
 </script>
 
 <svelte:head>
@@ -576,6 +713,11 @@
 										lines={10}
 										readonly={false}
 										dark_mode={false}
+										on:change={(e) => {
+											if (generated) {
+												auto_regenerate = false;
+											}
+										}}
 									/>
 								</div>
 							</TabItem>
@@ -613,6 +755,12 @@
 							>
 								{generation_error}
 							</div>
+						{:else if regenerating}
+							<div
+								class="pl-2 relative z-10 bg-purple-100 border border-purple-200 px-2 my-1 rounded-lg text-purple-800 w-fit text-xs float-right"
+							>
+								Regenerating to fix error
+							</div>
 						{:else if current_code}
 							<div
 								class="pl-2 relative z-10 bg-white flex items-center float-right"
@@ -646,8 +794,14 @@
 					</div>
 
 					<div class="search-bar border-t">
-						{#if !generated}
+						{#if regenerating}
+							<div class="loader-purple"></div>
+						{:else if !generated}
 							<div class="loader"></div>
+						{:else if show_regenerate_button}
+							<span style="color: transparent; text-shadow: 0 0 0 purple;"
+								>✨</span
+							>
 						{:else}
 							✨
 						{/if}
@@ -667,12 +821,24 @@
 							class:grayed={!generated}
 							autofocus={true}
 						/>
-						{#if generated}
+						{#if show_regenerate_button}
+							<button
+								on:click={async () => {
+									auto_regenerate = true;
+									await regenerate_on_error(app_error);
+									show_regenerate_button = false;
+								}}
+								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-purple-100 to-purple-50 border border-purple-200 px-4 py-0.5 rounded-full text-purple-800 hover:shadow"
+							>
+								<div class="enter">Fix Error</div>
+							</button>
+						{:else if generated}
 							<button
 								on:click={() => {
-									suspend_and_resume_auto_run(() =>
-										generate_code(user_query, selected_demo.name)
-									);
+									suspend_and_resume_auto_run(() => {
+										generate_code(user_query, selected_demo.name);
+										auto_regenerate = true;
+									});
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
 							>
@@ -689,6 +855,10 @@
 									}, 2000);
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-red-100 to-red-50 border border-red-200 px-4 py-0.5 rounded-full text-red-800 hover:shadow"
+								class:from-purple-100={regenerating}
+								class:to-purple-50={regenerating}
+								class:border-purple-200={regenerating}
+								class:text-purple-800={regenerating}
 							>
 								<div class="enter">Cancel</div>
 							</button>
@@ -756,7 +926,7 @@
 					</div>
 				</div>
 
-				<div class="flex-1 pl-3" id="lite-demo" />
+				<div class="flex-1 pl-3" id="lite-demo" bind:this={lite_element} />
 			</div>
 		</div>
 	</Slider>
@@ -838,6 +1008,15 @@
 	.loader {
 		border: 1px solid #fcc089;
 		border-top: 2px solid #ff7c00;
+		border-radius: 50%;
+		width: 15px;
+		height: 15px;
+		animation: spin 1.2s linear infinite;
+	}
+
+	.loader-purple {
+		border: 1px solid rgba(208, 35, 208, 0.657);
+		border-top: 2px solid rgb(208, 35, 208);
 		border-radius: 50%;
 		width: 15px;
 		height: 15px;
