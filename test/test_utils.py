@@ -304,7 +304,7 @@ class TestGetTypeHints:
         for x in test_objs:
             hints = get_type_hints(x)
             assert len(hints) == 1
-            assert hints["s"] == str
+            assert hints["s"] is str
 
         assert len(get_type_hints(GenericObject())) == 0
 
