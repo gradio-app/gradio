@@ -9,6 +9,7 @@ with gr.Blocks() as demo:
     password = gr.Textbox(label="Password", type="password")
     btn = gr.Button("Generate Randomly")
     local_storage = gr.BrowserState(["", ""])
+    saved_message = gr.Markdown("✅ Saved to local storage", visible=False)
 
     @btn.click(outputs=[username, password])
     def generate_randomly():
@@ -24,5 +25,10 @@ with gr.Blocks() as demo:
     @gr.on([username.change, password.change], inputs=[username, password], outputs=[local_storage])
     def save_to_local_storage(username, password):
         return [username, password]
+
+    @gr.on(local_storage.change, outputs=[saved_message])
+    def show_saved_message():
+        print("showing saved message")
+        return gr.Markdown(visible=True)
 
 demo.launch()
