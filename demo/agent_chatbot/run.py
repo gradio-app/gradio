@@ -20,7 +20,7 @@ def interact_with_agent(prompt, history):
     messages = []
     yield messages
     for msg in stream_to_gradio(agent, prompt):
-        messages.append(asdict(msg))
+        messages.append(asdict(msg))  # type: ignore
         yield messages
     yield messages
 
