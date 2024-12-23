@@ -46,12 +46,13 @@
 		}
 	}
 
-	$: value && (() => {
-		if (!dequal(value, old_value)) {
-			save_value();
-			gradio.dispatch("change");
-		}
-	})();
+	$: value &&
+		(() => {
+			if (!dequal(value, old_value)) {
+				save_value();
+				gradio.dispatch("change");
+			}
+		})();
 
 	beforeUpdate(() => {
 		if (!initialized) {
