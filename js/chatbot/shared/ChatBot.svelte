@@ -405,10 +405,10 @@
 	}
 
 	/* table styles */
-	.message-wrap :global(.bot table),
-	.message-wrap :global(.bot tr),
-	.message-wrap :global(.bot td),
-	.message-wrap :global(.bot th) {
+	.message-wrap :global(.bot:not(:has(.table-wrap)) table),
+	.message-wrap :global(.bot:not(:has(.table-wrap)) tr),
+	.message-wrap :global(.bot:not(:has(.table-wrap)) td),
+	.message-wrap :global(.bot:not(:has(.table-wrap)) th) {
 		border: 1px solid var(--border-color-primary);
 	}
 
