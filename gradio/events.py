@@ -372,6 +372,38 @@ class UndoData(EventData):
 
 
 @document()
+class EditData(EventData):
+    """
+    The gr.EditData class is a subclass of gr.Event data that specifically carries information about the `.edit()` event. When gr.EditData
+    is added as a type hint to an argument of an event listener method, a gr.EditData object will automatically be passed as the value of that argument.
+    The attributes of this object contains information about the event that triggered the listener.
+    Example:
+        import gradio as gr
+
+        def edit(edit_data: gr.EditData, history: list[gr.MessageDict]):
+            history_up_to_edit = history[:edit_data.index]
+            history_up_to_edit[-1] = edit_data.value
+            return history_up_to_edit
+
+        with gr.Blocks() as demo:
+            chatbot = gr.Chatbot()
+            chatbot.undo(edit, chatbot, chatbot)
+        demo.launch()
+    """
+
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.index: int | tuple[int, int] = data["index"]
+        """
+        The index of the message that was edited.
+        """
+        self.value: Any = data["value"]
+        """
+        The content of the message that was edited.
+        """
+
+
+@document()
 class DownloadData(EventData):
     """
     The gr.DownloadData class is a subclass of gr.EventData that specifically carries information about the `.download()` event. When gr.DownloadData
@@ -874,6 +906,9 @@ class Events:
     edit = EventListener(
         "edit",
         doc="This listener is triggered when the user edits the {{ component }} (e.g. image) using the built-in editor.",
+        callback=lambda block: setattr(block, "editable", "user")
+        if getattr(block, "editable", None) is None
+        else None,
     )
     clear = EventListener(
         "clear",

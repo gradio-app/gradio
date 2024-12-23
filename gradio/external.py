@@ -8,7 +8,7 @@ import os
 import re
 import tempfile
 import warnings
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
@@ -30,6 +30,7 @@ from gradio.processing_utils import save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
+    from gradio.chat_interface import ChatInterface
     from gradio.interface import Interface
 
 
@@ -49,7 +50,7 @@ def load(
     Parameters:
         name: the name of the model (e.g. "google/vit-base-patch16-224") or Space (e.g. "flax-community/spanish-gpt2"). This is the first parameter passed into the `src` function. Can also be formatted as {src}/{repo name} (e.g. "models/google/vit-base-patch16-224") if `src` is not provided.
         src: function that accepts a string model `name` and a string or None `token` and returns a Gradio app. Alternatively, this parameter takes one of two strings for convenience: "models" (for loading a Hugging Face model through the Inference API) or "spaces" (for loading a Hugging Face Space). If None, uses the prefix of the `name` parameter to determine `src`.
-        token: optional token that is passed as the second parameter to the `src` function. For Hugging Face repos, uses the local HF token when loading models but not Spaces (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find HF tokens here: https://huggingface.co/settings/tokens.
+        token: optional token that is passed as the second parameter to the `src` function. If not explicitly provided, will use the HF_TOKEN environment variable or fallback to the locally-saved HF token when loading models but not Spaces (when loading Spaces, only provide a token if you are loading a trusted private Space as the token can be read by the Space you are loading). Find your HF tokens here: https://huggingface.co/settings/tokens.
         accept_token: if True, a Textbox component is first rendered to allow the user to provide a token, which will be used instead of the `token` parameter when calling the loaded model or Space.
         kwargs: additional keyword parameters to pass into the `src` function. If `src` is "models" or "Spaces", these parameters are passed into the `gr.Interface` or `gr.ChatInterface` constructor.
     Returns:
@@ -78,6 +79,12 @@ def load(
         raise ValueError(
             "The `src` parameter must be one of 'huggingface', 'models', 'spaces', or a function that accepts a model name (and optionally, a token), and returns a Gradio app."
         )
+    if (
+        token is None
+        and src in ["models", "huggingface"]
+        and os.environ.get("HF_TOKEN") is not None
+    ):
+        token = os.environ.get("HF_TOKEN")
 
     if not accept_token:
         if isinstance(src, Callable):
@@ -575,3 +582,66 @@ def from_spaces_interface(
     kwargs["_api_mode"] = True
     interface = gradio.Interface(**kwargs)
     return interface
+
+
+@document()
+def load_chat(
+    base_url: str,
+    model: str,
+    token: str | None = None,
+    *,
+    system_message: str | None = None,
+    streaming: bool = True,
+) -> ChatInterface:
+    """
+    Load a chat interface from an OpenAI API chat compatible endpoint.
+    Parameters:
+        base_url: The base URL of the endpoint.
+        model: The model name.
+        token: The API token.
+        system_message: The system message for the conversation, if any.
+        streaming: Whether the response should be streamed.
+    """
+    try:
+        from openai import OpenAI
+    except ImportError as e:
+        raise ImportError(
+            "To use OpenAI API Client, you must install the `openai` package. You can install it with `pip install openai`."
+        ) from e
+    from gradio.chat_interface import ChatInterface
+
+    client = OpenAI(api_key=token, base_url=base_url)
+    start_message = (
+        [{"role": "system", "content": system_message}] if system_message else []
+    )
+
+    def open_api(message: str, history: list | None) -> str:
+        history = history or start_message
+        if len(history) > 0 and isinstance(history[0], (list, tuple)):
+            history = ChatInterface._tuples_to_messages(history)
+        return (
+            client.chat.completions.create(
+                model=model,
+                messages=history + [{"role": "user", "content": message}],
+            )
+            .choices[0]
+            .message.content
+        )
+
+    def open_api_stream(
+        message: str, history: list | None
+    ) -> Generator[str, None, None]:
+        history = history or start_message
+        if len(history) > 0 and isinstance(history[0], (list, tuple)):
+            history = ChatInterface._tuples_to_messages(history)
+        stream = client.chat.completions.create(
+            model=model,
+            messages=history + [{"role": "user", "content": message}],
+            stream=True,
+        )
+        response = ""
+        for chunk in stream:
+            response += chunk.choices[0].delta.content
+            yield response
+
+    return ChatInterface(open_api_stream if streaming else open_api, type="messages")

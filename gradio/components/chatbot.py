@@ -161,6 +161,7 @@ class Chatbot(Component):
         Events.option_select,
         Events.clear,
         Events.copy,
+        Events.edit,
     ]
 
     def __init__(
@@ -185,6 +186,7 @@ class Chatbot(Component):
         resizeable: bool = False,
         max_height: int | str | None = None,
         min_height: int | str | None = None,
+        editable: Literal["user", "all"] | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         rtl: bool = False,
         show_share_button: bool | None = None,
@@ -199,6 +201,7 @@ class Chatbot(Component):
         examples: list[ExampleMessage] | None = None,
         show_copy_all_button=False,
         allow_file_downloads=True,
+        group_consecutive_messages: bool = True,
     ):
         """
         Parameters:
@@ -221,6 +224,7 @@ class Chatbot(Component):
             resizeable: If True, the component will be resizeable by the user.
             max_height: The maximum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will scroll. If messages are shorter than the height, the component will shrink to fit the content. Will not have any effect if `height` is set and is smaller than `max_height`.
             min_height: The minimum height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed. If messages exceed the height, the component will expand to fit the content. Will not have any effect if `height` is set and is larger than `min_height`.
+            editable: Allows user to edit messages in the chatbot. If set to "user", allows editing of user messages. If set to "all", allows editing of assistant messages as well.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
@@ -235,6 +239,7 @@ class Chatbot(Component):
             examples: A list of example messages to display in the chatbot before any user/assistant messages are shown. Each example should be a dictionary with an optional "text" key representing the message that should be populated in the Chatbot when clicked, an optional "files" key, whose value should be a list of files to populate in the Chatbot, an optional "icon" key, whose value should be a filepath or URL to an image to display in the example box, and an optional "display_text" key, whose value should be the text to display in the example box. If "display_text" is not provided, the value of "text" will be displayed.
             show_copy_all_button: If True, will show a copy all button that copies all chatbot messages to the clipboard.
             allow_file_downloads: If True, will show a download button for chatbot messages that contain media. Defaults to True.
+            group_consecutive_messages: If True, will display consecutive messages from the same role in the same bubble. If False, will display each message in a separate bubble. Defaults to True.
         """
         if type is None:
             warnings.warn(
@@ -258,7 +263,9 @@ class Chatbot(Component):
         self.resizeable = resizeable
         self.max_height = max_height
         self.min_height = min_height
+        self.editable = editable
         self.rtl = rtl
+        self.group_consecutive_messages = group_consecutive_messages
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
@@ -422,9 +429,7 @@ class Chatbot(Component):
     def preprocess(
         self,
         payload: ChatbotDataTuples | ChatbotDataMessages | None,
-    ) -> (
-        list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict] | None
-    ):
+    ) -> list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict]:
         """
         Parameters:
             payload: data as a ChatbotData object
@@ -432,7 +437,7 @@ class Chatbot(Component):
             If type is 'tuples', passes the messages in the chatbot as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. Each message can be (1) a string in valid Markdown, (2) a tuple if there are displayed files: (a filepath or URL to a file, [optional string alt text]), or (3) None, if there is no message displayed. If type is 'messages', passes the value as a list of dictionaries with 'role' and 'content' keys. The `content` key's value supports everything the `tuples` format supports.
         """
         if payload is None:
-            return payload
+            return []
         if self.type == "tuples":
             if not isinstance(payload, ChatbotDataTuples):
                 raise Error("Data incompatible with the tuples format")

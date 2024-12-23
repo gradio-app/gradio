@@ -792,8 +792,9 @@ class BlocksConfig:
                 f"Invalid value for parameter `trigger_mode`: {trigger_mode}. Please choose from: {['once', 'multiple', 'always_last']}"
             )
 
+        fn_to_analyze = renderable.fn if renderable else fn
         _, progress_index, event_data_index = (
-            special_args(fn) if fn else (None, None, None)
+            special_args(fn_to_analyze) if fn_to_analyze else (None, None, None)
         )
 
         # If api_name is None or empty string, use the function name
@@ -1573,8 +1574,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dict(zip(block_fn.inputs, processed_input, strict=False))
                 ]
 
+            fn_to_analyze = (
+                block_fn.renderable.fn if block_fn.renderable else block_fn.fn
+            )
             processed_input, progress_index, _ = special_args(
-                block_fn.fn, processed_input, request, event_data
+                fn_to_analyze, processed_input, request, event_data
             )
             progress_tracker = (
                 processed_input[progress_index] if progress_index is not None else None
@@ -2309,6 +2313,7 @@ Received inputs:
         node_server_name: str | None = None,
         node_port: int | None = None,
         ssr_mode: bool | None = None,
+        pwa: bool | None = None,
         _frontend: bool = True,
     ) -> tuple[App, str, str]:
         """
@@ -2347,6 +2352,7 @@ Received inputs:
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+            pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2529,6 +2535,7 @@ Received inputs:
                 "http" if share_server_address is not None else "https"
             )
             self.has_launched = True
+            self.pwa = utils.get_space() is not None if pwa is None else pwa
 
             self.protocol = (
                 "https"

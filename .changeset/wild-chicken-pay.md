@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:Add Japanese translations for login UI
+fix:fix: make sure `comp.instance` exists

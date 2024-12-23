@@ -154,7 +154,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			{} as { [id: number]: ComponentMeta }
 		);
 
-		await walk_layout(layout, root);
+		await walk_layout(layout, root, _components);
 
 		layout_store.set(_rootNode);
 		set_event_specific_args(dependencies);
@@ -230,7 +230,12 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 			] = instance_map[layout.id];
 		}
 
-		walk_layout(layout, root, current_element.parent).then(() => {
+		walk_layout(
+			layout,
+			root,
+			_components.concat(components),
+			current_element.parent
+		).then(() => {
 			layout_store.set(_rootNode);
 		});
 
@@ -240,6 +245,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 	async function walk_layout(
 		node: LayoutNode,
 		root: string,
+		components: ComponentMeta[],
 		parent?: ComponentMeta
 	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
@@ -254,7 +260,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 				instance.type,
 				instance.component_class_id,
 				root,
-				_components,
+				components,
 				instance.props.components
 			).example_components;
 		}
@@ -288,7 +294,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 
 		if (node.children) {
 			instance.children = await Promise.all(
-				node.children.map((v) => walk_layout(v, root, instance))
+				node.children.map((v) => walk_layout(v, root, components, instance))
 			);
 		}
 
@@ -379,7 +385,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		if (!comp) {
 			return null;
 		}
-		if (comp.instance.get_value) {
+		if (comp.instance?.get_value) {
 			return comp.instance.get_value() as Promise<any>;
 		}
 		return comp.props.value;
@@ -408,7 +414,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		state: "open" | "closed" | "waiting"
 	): void {
 		const comp = _component_map.get(id);
-		if (comp && comp.instance.modify_stream_state) {
+		if (comp?.instance?.modify_stream_state) {
 			comp.instance.modify_stream_state(state);
 		}
 	}
@@ -417,14 +423,14 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		id: number
 	): "open" | "closed" | "waiting" | "not_set" {
 		const comp = _component_map.get(id);
-		if (comp && comp.instance.get_stream_state)
+		if (comp?.instance?.get_stream_state)
 			return comp.instance.get_stream_state();
 		return "not_set";
 	}
 
 	function set_time_limit(id: number, time_limit: number | undefined): void {
 		const comp = _component_map.get(id);
-		if (comp && comp.instance.set_time_limit) {
+		if (comp?.instance?.set_time_limit) {
 			comp.instance.set_time_limit(time_limit);
 		}
 	}

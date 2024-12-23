@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Improve uploaded file UI in Chatbot
+feat:Allow editing chatbot messages

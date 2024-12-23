@@ -33,6 +33,7 @@ with gr.Blocks() as demo:
         file_count="multiple",
         placeholder="Enter message or upload file...",
         show_label=False,
+        sources=["microphone", "upload"],
     )
 
     chat_msg = chat_input.submit(

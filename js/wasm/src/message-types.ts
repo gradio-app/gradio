@@ -120,5 +120,27 @@ export interface OutMessageModulesAutoLoaded extends OutMessageBase {
 		packages: PackageData[];
 	};
 }
-
-export type OutMessage = OutMessageProgressUpdate | OutMessageModulesAutoLoaded;
+export interface OutMessageStdout extends OutMessageBase {
+	type: "stdout";
+	data: {
+		output: string;
+	};
+}
+export interface OutMessageStderr extends OutMessageBase {
+	type: "stderr";
+	data: {
+		output: string;
+	};
+}
+export interface OutMessagePythonError extends OutMessageBase {
+	type: "python-error";
+	data: {
+		traceback: string;
+	};
+}
+export type OutMessage =
+	| OutMessageProgressUpdate
+	| OutMessageModulesAutoLoaded
+	| OutMessageStdout
+	| OutMessageStderr
+	| OutMessagePythonError;
