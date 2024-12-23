@@ -1,5 +1,22 @@
 # @gradio/core
 
+## 0.5.1
+
+### Fixes
+
+- [#10207](https://github.com/gradio-app/gradio/pull/10207) [`314a8b5`](https://github.com/gradio-app/gradio/commit/314a8b55f57a30806b37fe077b471df97d04245d) - fix: make sure `comp.instance` exists.  Thanks @Col0ring!
+
+### Dependency updates
+
+- @gradio/button@0.3.10
+- @gradio/code@0.10.11
+- @gradio/video@0.12.2
+- @gradio/upload@0.14.4
+- @gradio/wasm@0.16.0
+- @gradio/gallery@0.14.1
+- @gradio/image@0.19.1
+- @gradio/file@0.12.0
+
 ## 0.5.0
 
 ### Features
