@@ -1,5 +1,15 @@
 # gradio_client
 
+## 1.5.3
+
+### Features
+
+- [#10221](https://github.com/gradio-app/gradio/pull/10221) [`506bd28`](https://github.com/gradio-app/gradio/commit/506bd2884a9790fb6f8dbf5684576e80d2b8ee64) - Update Guides related to deploying Gradio chatbots to Discord, Slack, and website widgets.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10238](https://github.com/gradio-app/gradio/pull/10238) [`3f19210`](https://github.com/gradio-app/gradio/commit/3f192100d6997751d0246b396a4fd8eaa86a826b) - Declare exports in __all__ for type checking.  Thanks @dustalov!
+
 ## 1.5.2
 
 ### Features
