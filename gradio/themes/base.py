@@ -124,10 +124,7 @@ class ThemeClass:
         schema = {"theme": {}}
         for prop in dir(self):
             if (
-                not prop.startswith("_")
-                or prop.startswith("_font")
-                or prop == "_stylesheets"
-                or prop == "name"
+                not prop.startswith("_") or prop.startswith("_font") or prop in ("_stylesheets", "name")
             ) and isinstance(getattr(self, prop), (list, str)):
                 schema["theme"][prop] = getattr(self, prop)
         return schema
