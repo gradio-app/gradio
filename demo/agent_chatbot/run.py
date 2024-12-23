@@ -4,7 +4,7 @@ from transformers import Tool, ReactCodeAgent  # type: ignore
 from transformers.agents import stream_to_gradio, HfApiEngine  # type: ignore
 
 # Import tool from Hub
-image_generation_tool = Tool.from_space(
+image_generation_tool = Tool.from_space(  # type: ignore
     space_id="black-forest-labs/FLUX.1-schnell",
     name="image_generator",
     description="Generates an image following your prompt. Returns a PIL Image.",
