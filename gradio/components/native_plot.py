@@ -147,10 +147,10 @@ class NativePlot(Component):
             every=every,
             inputs=inputs,
         )
-        for key, val in kwargs.items():
-            if key == "color_legend_title":
+        for key_, val in kwargs.items():
+            if key_ == "color_legend_title":
                 self.color_title = val
-            if key in [
+            if key_ in [
                 "stroke_dash",
                 "overlay_point",
                 "x_label_angle",
@@ -161,7 +161,7 @@ class NativePlot(Component):
                 "width",
             ]:
                 warnings.warn(
-                    f"Argument '{key}' has been deprecated.", DeprecationWarning
+                    f"Argument '{key_}' has been deprecated.", DeprecationWarning
                 )
 
     def get_block_name(self) -> str:

@@ -71,7 +71,7 @@ def get_param_name(param):
 
 def format_none(value):
     """Formats None and NonType values."""
-    if value is None or value is type(None) or value == "None" or value == "NoneType":
+    if value is None or value is type(None) or value in ("None", "NoneType"):
         return "None"
     return value
 

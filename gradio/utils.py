@@ -1244,7 +1244,7 @@ def diff(old, new):
         if obj1 == obj2:
             return edits
 
-        if type(obj1) != type(obj2):
+        if type(obj1) is not type(obj2):
             edits.append(("replace", path, obj2))
             return edits
 
