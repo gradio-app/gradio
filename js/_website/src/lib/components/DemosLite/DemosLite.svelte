@@ -101,7 +101,11 @@
 		}
 	}
 
-	async function generate_code(query: string, demo_name: string, regeneration_run = false) {
+	async function generate_code(
+		query: string,
+		demo_name: string,
+		regeneration_run = false
+	) {
 		if (regeneration_run) {
 			regenerating = true;
 		}
@@ -188,8 +192,7 @@
 			run_as_update = false;
 			suspend_and_resume_auto_run(() => {
 				generate_code(user_query, selected_demo.name);
-				}
-			);
+			});
 		}
 	}
 
@@ -258,7 +261,7 @@
 	let lite_element;
 
 	const debounced_detect_error = debounce(detect_app_error, 1000);
-	
+
 	let stderr = "";
 	let init_code_run_error = "";
 
@@ -306,26 +309,26 @@
 		const observer = new MutationObserver((mutations) => {
 			mutations.forEach((mutation) => {
 				if (
-				(mutation.type === 'childList' && 
-				(mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)) ||
-				mutation.type === 'characterData'
+					(mutation.type === "childList" &&
+						(mutation.addedNodes.length > 0 ||
+							mutation.removedNodes.length > 0)) ||
+					mutation.type === "characterData"
 				) {
-				debounced_detect_error();
+					debounced_detect_error();
 				}
 			});
-			});
-			
-			observer.observe(lite_element, {
-			childList: true,     // Watch for changes in child elements
-			subtree: true,       // Watch all descendants, not just direct children
-			characterData: false, // Don't watch for text content changes
-			attributes: true     // Don't watch for attribute changes
-			});
-			
-			return () => {
-			observer.disconnect(); // Cleanup on component destruction
-			};
+		});
 
+		observer.observe(lite_element, {
+			childList: true, // Watch for changes in child elements
+			subtree: true, // Watch all descendants, not just direct children
+			characterData: false, // Don't watch for text content changes
+			attributes: true // Don't watch for attribute changes
+		});
+
+		return () => {
+			observer.disconnect(); // Cleanup on component destruction
+		};
 	});
 
 	let copied_link = false;
@@ -565,7 +568,7 @@
 
 	$: generation_error;
 
-	let app_error : string | null = "";
+	let app_error: string | null = "";
 
 	function detect_app_error() {
 		if (generated) {
@@ -574,10 +577,12 @@
 					if (document.querySelector("div .error-name")) {
 						app_error = document.querySelector(".error-name").textContent;
 					} else if (document.querySelector("div .error .toast-title")) {
-						app_error = document.querySelector("div .error .toast-text").textContent;
+						app_error = document.querySelector(
+							"div .error .toast-text"
+						).textContent;
 					} else if (stderr) {
 						app_error = stderr;
-						stderr = ""
+						stderr = "";
 					} else if (init_code_run_error) {
 						app_error = init_code_run_error;
 						init_code_run_error = "";
@@ -591,17 +596,22 @@
 			stderr = "";
 			init_code_run_error = "";
 		}
-		if (app_error && app_error.includes("UserWarning: only soft file lock is available  from filelock import BaseFileLock, FileLock, SoftFileLock, Timeout")) {
+		if (
+			app_error &&
+			app_error.includes(
+				"UserWarning: only soft file lock is available  from filelock import BaseFileLock, FileLock, SoftFileLock, Timeout"
+			)
+		) {
 			app_error = null;
-		}	
+		}
 	}
 
 	$: console.log("APP ERROR: ", app_error);
 	$: app_error;
-	
+
 	let auto_regenerate = false;
 
-	$: auto_regenerate; 
+	$: auto_regenerate;
 
 	let error_prompt;
 
@@ -612,7 +622,7 @@
 	$: console.log("AUTO REGENERATE: ", auto_regenerate);
 
 	async function regenerate_on_error(app_error) {
-		if (auto_regenerate) {		
+		if (auto_regenerate) {
 			if (app_error) {
 				error_prompt = `There's an error when I run the existing code: ${app_error}`;
 				await generate_code(error_prompt, selected_demo.name, true);
@@ -625,13 +635,11 @@
 		}
 	}
 
-
 	$: regenerate_on_error(app_error);
 
 	let show_regenerate_button = false;
 
 	$: show_regenerate_button;
-
 
 	$: if (app_error) {
 		user_query = app_error;
@@ -641,8 +649,6 @@
 		user_query = "";
 		show_regenerate_button = false;
 	}
-
-
 </script>
 
 <svelte:head>
@@ -712,7 +718,7 @@
 										dark_mode={false}
 										on:change={(e) => {
 											if (generated) {
-										auto_regenerate = false;
+												auto_regenerate = false;
 											}
 										}}
 									/>
@@ -753,11 +759,11 @@
 								{generation_error}
 							</div>
 						{:else if regenerating}
-						<div
-							class="pl-2 relative z-10 bg-purple-100 border border-purple-200 px-2 my-1 rounded-lg text-purple-800 w-fit text-xs float-right"
-						>
-							Regenerating to fix error
-						</div>
+							<div
+								class="pl-2 relative z-10 bg-purple-100 border border-purple-200 px-2 my-1 rounded-lg text-purple-800 w-fit text-xs float-right"
+							>
+								Regenerating to fix error
+							</div>
 						{:else if current_code}
 							<div
 								class="pl-2 relative z-10 bg-white flex items-center float-right"
@@ -796,7 +802,9 @@
 						{:else if !generated}
 							<div class="loader"></div>
 						{:else if show_regenerate_button}
-							<span style="color: transparent; text-shadow: 0 0 0 purple;">✨</span>
+							<span style="color: transparent; text-shadow: 0 0 0 purple;"
+								>✨</span
+							>
 						{:else}
 							✨
 						{/if}
@@ -818,7 +826,7 @@
 						/>
 						{#if show_regenerate_button}
 							<button
-								on:click={async() => {
+								on:click={async () => {
 									auto_regenerate = true;
 									await regenerate_on_error(app_error);
 									show_regenerate_button = false;
@@ -833,8 +841,7 @@
 									suspend_and_resume_auto_run(() => {
 										generate_code(user_query, selected_demo.name);
 										auto_regenerate = true;
-									}
-									);
+									});
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
 							>
