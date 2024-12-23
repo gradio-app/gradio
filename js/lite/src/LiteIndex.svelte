@@ -50,6 +50,26 @@
 		requirements: requirements ?? [],
 		sharedWorkerMode: sharedWorkerMode ?? false
 	});
+
+	const dispatch = createEventDispatcher();
+
+	worker_proxy.addEventListener("modules-auto-loaded", (event) => {
+		dispatch("modules-auto-loaded", (event as CustomEvent).detail);
+	});
+	worker_proxy.addEventListener("stdout", (event) => {
+		dispatch("stdout", (event as CustomEvent).detail);
+	});
+	worker_proxy.addEventListener("stderr", (event) => {
+		dispatch("stderr", (event as CustomEvent).detail);
+	});
+	worker_proxy.addEventListener("initialization-error", (event) => {
+		error = (event as CustomEvent).detail;
+		dispatch("initialization-error", (event as CustomEvent).detail);
+	});
+	worker_proxy.addEventListener("python-error", (event) => {
+		error = (event as CustomEvent).detail;
+		dispatch("python-error", (event as CustomEvent).detail);
+	});
 	onDestroy(() => {
 		worker_proxy.terminate();
 	});
@@ -90,24 +110,18 @@
 		worker_proxy.install.bind(worker_proxy)
 	);
 
-	worker_proxy.addEventListener("initialization-error", (event) => {
-		error = (event as CustomEvent).detail;
-	});
-
-	const dispatch = createEventDispatcher();
-
-	worker_proxy.addEventListener("modules-auto-loaded", (event) => {
-		dispatch("modules-auto-loaded", (event as CustomEvent).detail);
-	});
-
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
 	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done
 	// (see the await in the `onmessage` callback in the webworker code)
 	// So we don't await this promise because we want to mount the `Index` immediately and start the app initialization asynchronously.
 	if (code != null) {
-		worker_proxy.runPythonCode(code);
+		worker_proxy.runPythonCode(code).catch((err) => {
+			dispatch("init-code-run-error", err);
+		});
 	} else if (entrypoint != null) {
-		worker_proxy.runPythonFile(entrypoint);
+		worker_proxy.runPythonFile(entrypoint).catch((err) => {
+			dispatch("init-file-run-error", err);
+		});
 	} else {
 		throw new Error("Either code or entrypoint must be provided.");
 	}
@@ -157,7 +171,16 @@
 	>
 		{#key index_component_key}
 			{#if error}
-				<ErrorDisplay {error} is_embed />
+				<ErrorDisplay
+					{error}
+					{is_embed}
+					height={initial_height}
+					{container}
+					{version}
+					on:clear_error={() => {
+						error = null;
+					}}
+				/>
 			{:else}
 				<Index
 					space={null}
@@ -182,7 +205,16 @@
 {:else}
 	{#key index_component_key}
 		{#if error}
-			<ErrorDisplay {error} {is_embed} />
+			<ErrorDisplay
+				{error}
+				{is_embed}
+				height={initial_height}
+				{container}
+				{version}
+				on:clear_error={() => {
+					error = null;
+				}}
+			/>
 		{:else}
 			<Index
 				space={null}
