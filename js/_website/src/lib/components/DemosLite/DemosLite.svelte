@@ -606,7 +606,6 @@
 		}
 	}
 
-	$: console.log("APP ERROR: ", app_error);
 	$: app_error;
 
 	let auto_regenerate = false;
@@ -618,8 +617,6 @@
 	let regenerating = false;
 
 	$: regenerating;
-
-	$: console.log("AUTO REGENERATE: ", auto_regenerate);
 
 	async function regenerate_on_error(app_error) {
 		if (auto_regenerate) {
