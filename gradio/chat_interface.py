@@ -36,7 +36,7 @@ from gradio.components.chatbot import (
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.context import get_blocks_context
-from gradio.events import Dependency, SelectData
+from gradio.events import Dependency, EditData, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Column, Group, Row
@@ -75,6 +75,7 @@ class ChatInterface(Blocks):
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
         additional_outputs: Component | list[Component] | None = None,
+        editable: bool = False,
         examples: list[str] | list[MultimodalValue] | list[list] | None = None,
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
@@ -103,11 +104,12 @@ class ChatInterface(Blocks):
     ):
         """
         Parameters:
-            fn: the function to wrap the chat interface around. In the default case (assuming `type` is set to "messages"), the function should accept two parameters: a `str` input message and `list` of openai-style dictionary {"role": "user" | "assistant", "content": `str` | {"path": `str`} | `gr.Component`} representing the chat history, and return/yield a `str` (if a simple message) or `dict` (for a complete openai-style message) response.
+            fn: the function to wrap the chat interface around. In the default case (assuming `type` is set to "messages"), the function should accept two parameters: a `str` input message and `list` of openai-style dictionary {"role": "user" | "assistant", "content": `str` | {"path": `str`} | `gr.Component`} representing the chat history, and the function should return/yield a `str` (if a simple message), a supported Gradio component (to return a file), a `dict` (for a complete openai-style message response), or a `list` of such messages.
             multimodal: if True, the chat interface will use a `gr.MultimodalTextbox` component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input. If this is True, the first argument of `fn` should accept not a `str` message but a `dict` message with keys "text" and "files"
             type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the history as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component: at the moment gr.Image, gr.Plot, gr.Video, gr.Gallery, gr.Audio, and gr.HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples' (deprecated), passes the chat history as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message.
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
+            editable: if True, users can edit past messages to regenerate responses.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If the components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion. The values of these components will be passed into `fn` as arguments in order after the chat history.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
             additional_outputs: an instance or list of instances of gradio components to use as additional outputs from the chat function. These must be components that are already defined in the same Blocks scope. If provided, the chat function should return additional values for these components. See $demo/chatinterface_artifacts.
@@ -155,7 +157,10 @@ class ChatInterface(Blocks):
         self.type = type
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
-        self.fn = fn
+        if isinstance(fn, ChatInterface):
+            self.fn = fn.fn
+        else:
+            self.fn = fn
         self.is_async = inspect.iscoroutinefunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
@@ -170,6 +175,7 @@ class ChatInterface(Blocks):
         self.run_examples_on_click = run_examples_on_click
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
+        self.editable = editable
         self.additional_inputs = [
             get_component_instance(i)
             for i in utils.none_or_singleton_to_list(additional_inputs)
@@ -487,6 +493,14 @@ class ChatInterface(Blocks):
 
         self.chatbot.clear(**synchronize_chat_state_kwargs)
 
+        if self.editable:
+            self.chatbot.edit(
+                self._edit_message,
+                [self.chatbot],
+                [self.chatbot, self.chatbot_state, self.saved_input],
+                show_api=False,
+            ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs)
+
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
     ) -> None:
@@ -564,43 +578,52 @@ class ChatInterface(Blocks):
 
     def _append_message_to_history(
         self,
-        message: MultimodalPostprocess | str | MessageDict,
+        message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
         history: list[MessageDict] | TupleFormat,
         role: Literal["user", "assistant"] = "user",
     ) -> list[MessageDict] | TupleFormat:
-        if isinstance(message, str):
-            message = {"text": message}
+        message_dicts = self._message_as_message_dict(message, role)
         if self.type == "tuples":
             history = self._tuples_to_messages(history)  # type: ignore
         else:
             history = copy.deepcopy(history)
-
-        if "content" in message:  # in MessageDict format already
-            history.append(message)  # type: ignore
-        else:  # in MultimodalPostprocess format
-            for x in message.get("files", []):
-                if isinstance(x, dict):
-                    x = x.get("path")
-                history.append({"role": role, "content": (x,)})  # type: ignore
-            if message["text"] is None or not isinstance(message["text"], str):
-                pass
-            else:
-                history.append({"role": role, "content": message["text"]})  # type: ignore
-
+        history.extend(message_dicts)  # type: ignore
         if self.type == "tuples":
             history = self._messages_to_tuples(history)  # type: ignore
         return history
 
-    def response_as_dict(
-        self, response: MessageDict | Message | str | Component
-    ) -> MessageDict:
-        if isinstance(response, Message):
-            new_response = response.model_dump()
-        elif isinstance(response, (str, Component)):
-            return {"role": "assistant", "content": response}
-        else:
-            new_response = response
-        return cast(MessageDict, new_response)
+    def _message_as_message_dict(
+        self,
+        message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
+        role: Literal["user", "assistant"],
+    ) -> list[MessageDict]:
+        """
+        Converts a user message, example message, or response from the chat function to a
+        list of MessageDict objects that can be appended to the chat history.
+        """
+        message_dicts = []
+        if not isinstance(message, list):
+            message = [message]
+        for msg in message:
+            if isinstance(msg, Message):
+                message_dicts.append(msg.model_dump())
+            elif isinstance(msg, (str, Component)):
+                message_dicts.append({"role": role, "content": msg})
+            elif (
+                isinstance(msg, dict) and "content" in msg
+            ):  # in MessageDict format already
+                msg["role"] = role
+                message_dicts.append(msg)
+            else:  # in MultimodalPostprocess format
+                for x in msg.get("files", []):
+                    if isinstance(x, dict):
+                        x = x.get("path")
+                    message_dicts.append({"role": role, "content": (x,)})
+                if msg["text"] is None or not isinstance(msg["text"], str):
+                    pass
+                else:
+                    message_dicts.append({"role": role, "content": msg["text"]})
+        return message_dicts
 
     async def _submit_fn(
         self,
@@ -618,13 +641,12 @@ class ChatInterface(Blocks):
             response = await anyio.to_thread.run_sync(
                 self.fn, *inputs, limiter=self.limiter
             )
-        if isinstance(response, tuple):
+        if self.additional_outputs:
             response, *additional_outputs = response
         else:
             additional_outputs = None
         history = self._append_message_to_history(message, history, "user")
-        response_ = self.response_as_dict(response)
-        history = self._append_message_to_history(response_, history, "assistant")  # type: ignore
+        history = self._append_message_to_history(response, history, "assistant")
         if additional_outputs:
             return response, history, *additional_outputs
         return response, history
@@ -654,7 +676,7 @@ class ChatInterface(Blocks):
         additional_outputs = None
         try:
             first_response = await utils.async_iteration(generator)
-            if isinstance(first_response, tuple):
+            if self.additional_outputs:
                 first_response, *additional_outputs = first_response
             history_ = self._append_message_to_history(
                 first_response, history, "assistant"
@@ -666,7 +688,7 @@ class ChatInterface(Blocks):
         except StopIteration:
             yield None, history
         async for response in generator:
-            if isinstance(response, tuple):
+            if self.additional_outputs:
                 response, *additional_outputs = response
             history_ = self._append_message_to_history(response, history, "assistant")
             if not additional_outputs:
@@ -700,6 +722,19 @@ class ChatInterface(Blocks):
             return example.value
         else:
             return example.value["text"]
+
+    def _edit_message(
+        self, history: list[MessageDict] | TupleFormat, edit_data: EditData
+    ) -> tuple[
+        list[MessageDict] | TupleFormat,
+        list[MessageDict] | TupleFormat,
+        str | MultimodalPostprocess,
+    ]:
+        if isinstance(edit_data.index, (list, tuple)):
+            history = history[: edit_data.index[0]]
+        else:
+            history = history[: edit_data.index]
+        return history, history, edit_data.value
 
     def example_clicked(
         self, example: SelectData
@@ -784,7 +819,7 @@ class ChatInterface(Blocks):
         history: list[MessageDict] | TupleFormat,
     ) -> tuple[list[MessageDict] | TupleFormat, str | MultimodalPostprocess]:
         """
-        Removes the last user message from the chat history and returns it.
+        Removes the message (or set of messages) that the user last sent from the chat history and returns them.
         If self.multimodal is True, returns a MultimodalPostprocess (dict) object with text and files.
         If self.multimodal is False, returns just the message text as a string.
         """
@@ -793,8 +828,9 @@ class ChatInterface(Blocks):
 
         if self.type == "tuples":
             history = self._tuples_to_messages(history)  # type: ignore
-        # Skip the last message as it's always an assistant message
-        i = len(history) - 2
+        i = len(history) - 1
+        while i >= 0 and history[i]["role"] == "assistant":  # type: ignore
+            i -= 1
         while i >= 0 and history[i]["role"] == "user":  # type: ignore
             i -= 1
         last_messages = history[i + 1 :]
