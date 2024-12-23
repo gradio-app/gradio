@@ -710,6 +710,9 @@ importers:
 
   js/browserstate:
     dependencies:
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
       crypto-js:
         specifier: ^4.1.1
         version: 4.2.0

@@ -4,6 +4,7 @@
 	import { beforeUpdate } from "svelte";
 	import { encrypt, decrypt } from "./crypto";
 	import { dequal } from "dequal/lite";
+	import type { Gradio } from "@gradio/utils";
 
 	export let storage_key: string;
 	export let secret: string;
@@ -11,6 +12,9 @@
 	export let value = default_value;
 	let initialized = false;
 	let old_value = value;
+	export let gradio: Gradio<{
+		change: never;
+	}>;
 
 	function load_value(): void {
 		const stored = localStorage.getItem(storage_key);
@@ -40,7 +44,13 @@
 		}
 	}
 
-	$: value && !dequal(value, old_value) && save_value();
+	$: value &&
+		(() => {
+			if (!dequal(value, old_value)) {
+				save_value();
+				gradio.dispatch("change");
+			}
+		})();
 
 	beforeUpdate(() => {
 		if (!initialized) {
