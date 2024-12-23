@@ -1356,8 +1356,8 @@ class Endpoint:
                     f"File {file_path} exceeds the maximum file size of {max_file_size} bytes "
                     f"set in {component_config.get('label', '') + ''} component."
                 )
-            with open(file_path, "rb") as f:
-                files = [("files", (orig_name.name, f))]
+            with open(file_path, "rb") as f_:
+                files = [("files", (orig_name.name, f_))]
                 r = httpx.post(
                     self.client.upload_url,
                     headers=self.client.headers,

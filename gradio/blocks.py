@@ -1475,10 +1475,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             return False
         if any(block.stateful for block in dependency.inputs):
             return False
-        if any(block.stateful for block in dependency.outputs):
-            return False
-
-        return True
+        return not any(block.stateful for block in dependency.outputs)
 
     def __call__(self, *inputs, fn_index: int = 0, api_name: str | None = None):
         """

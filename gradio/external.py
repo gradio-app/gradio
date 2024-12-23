@@ -615,7 +615,7 @@ def load_chat(
         [{"role": "system", "content": system_message}] if system_message else []
     )
 
-    def open_api(message: str, history: list | None) -> str:
+    def open_api(message: str, history: list | None) -> str | None:
         history = history or start_message
         if len(history) > 0 and isinstance(history[0], (list, tuple)):
             history = ChatInterface._tuples_to_messages(history)
@@ -641,7 +641,8 @@ def load_chat(
         )
         response = ""
         for chunk in stream:
-            response += chunk.choices[0].delta.content
-            yield response
+            if chunk.choices[0].delta.content is not None:
+                response += chunk.choices[0].delta.content
+                yield response
 
     return ChatInterface(open_api_stream if streaming else open_api, type="messages")
