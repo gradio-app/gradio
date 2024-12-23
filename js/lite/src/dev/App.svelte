@@ -59,6 +59,9 @@ def hi(name):
 
 	const requirements = parse_requirements(requirements_txt);
 
+	let stdouts: string[] = [];
+	let stderrs: string[] = [];
+
 	let controller: ReturnType<typeof create>;
 	onMount(() => {
 		controller = create({
@@ -84,6 +87,14 @@ def hi(name):
 			const packageNames = packages.map((pkg) => pkg.name);
 			requirements_txt +=
 				"\n" + packageNames.map((line) => line + "  # auto-loaded").join("\n");
+		});
+		controller.addEventListener("stdout", (event) => {
+			const message = (event as CustomEvent).detail as string;
+			stdouts = stdouts.concat(message);
+		});
+		controller.addEventListener("stderr", (event) => {
+			const message = (event as CustomEvent).detail as string;
+			stderrs = stderrs.concat(message);
 		});
 	});
 	onDestroy(() => {
@@ -124,6 +135,27 @@ def hi(name):
 </script>
 
 <div class="container">
+	<div class="panel">
+		<div class="log-panel-container">
+			<div class="log-panel">
+				<h4>stdout</h4>
+				<div class="log-box" id="stdout" style="color: black;">
+					{#each stdouts as stdout}
+						<pre class="log-line">{stdout}</pre>
+					{/each}
+				</div>
+			</div>
+			<div class="log-panel">
+				<h4>stdout</h4>
+				<div class="log-box" id="stderr" style="color: red;">
+					{#each stderrs as stderr}
+						<pre class="log-line">{stderr}</pre>
+					{/each}
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="panel">
 		When the SharedWorker mode is enabled, access the URL below (for Chrome) and
 		click the "inspect" link of the worker to show the console log emitted from
@@ -182,6 +214,25 @@ def hi(name):
 
 	.panel .file-cell {
 		width: 100%;
+	}
+
+	.log-panel-container {
+		height: 300px;
+		position: relative;
+		display: flex;
+		flex-direction: row;
+	}
+	.log-panel {
+		width: 50%;
+		display: flex;
+		flex-direction: column;
+	}
+	.log-box {
+		flex-grow: 1;
+		overflow: scroll;
+	}
+	.log-line {
+		margin: 0;
 	}
 
 	.cell-header {

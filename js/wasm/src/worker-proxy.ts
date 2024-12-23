@@ -51,16 +51,12 @@ export class WorkerProxy extends EventTarget {
 		if (sharedWorkerMode) {
 			this.postMessageTarget = (this.worker as SharedWorker).port;
 			this.postMessageTarget.start();
-			this.postMessageTarget.onmessage = (e) => {
-				this._processWorkerMessage(e.data);
-			};
 		} else {
 			this.postMessageTarget = this.worker as globalThis.Worker;
-
-			(this.worker as globalThis.Worker).onmessage = (e) => {
-				this._processWorkerMessage(e.data);
-			};
 		}
+		this.postMessageTarget.onmessage = (e) => {
+			this._processWorkerMessage(e.data);
+		};
 
 		this.postMessageAsync({
 			type: "init-env",
@@ -172,6 +168,31 @@ export class WorkerProxy extends EventTarget {
 						detail: msg.data.packages
 					})
 				);
+				break;
+			}
+			case "stdout": {
+				this.dispatchEvent(
+					new CustomEvent("stdout", {
+						detail: msg.data.output
+					})
+				);
+				break;
+			}
+			case "stderr": {
+				this.dispatchEvent(
+					new CustomEvent("stderr", {
+						detail: msg.data.output
+					})
+				);
+				break;
+			}
+			case "python-error": {
+				this.dispatchEvent(
+					new CustomEvent("python-error", {
+						detail: new Error(msg.data.traceback)
+					})
+				);
+				break;
 			}
 		}
 	}
