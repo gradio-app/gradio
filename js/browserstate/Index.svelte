@@ -16,6 +16,8 @@
 		change: never;
 	}>;
 
+	console.log("gradio", gradio);
+
 	function load_value(): void {
 		const stored = localStorage.getItem(storage_key);
 		if (!stored) {
@@ -44,7 +46,12 @@
 		}
 	}
 
-	$: value && !dequal(value, old_value) && save_value() && gradio.dispatch("change");
+	$: value && (() => {
+		if (!dequal(value, old_value)) {
+			save_value();
+			gradio.dispatch("change");
+		}
+	})();
 
 	beforeUpdate(() => {
 		if (!initialized) {
