@@ -718,6 +718,17 @@
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 				navigator.userAgent
 			);
+
+		if (window.top && window.self !== window.top) {
+			// This app is in an iframe
+			fetch("/manifest.json", { method: "GET" }).then((response) => {
+				if (response.ok) {
+					const self_url = new URL(window.self.location.href);
+					const bare_self_url = self_url.origin + self_url.pathname;
+					// TODO: Show a notification like `This app is served as PWA. Visit ${bare_self_url} to install it.`
+				}
+			});
+		}
 	});
 </script>
 
