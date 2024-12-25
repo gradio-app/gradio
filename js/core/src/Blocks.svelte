@@ -844,7 +844,7 @@
 	</div>
 {/if}
 
-{#if settings_visible && $_layout}
+{#if settings_visible && $_layout && app.config}
 	<div class="api-docs">
 		<!-- TODO: fix -->
 		<!-- svelte-ignore a11y-click-events-have-key-events-->
@@ -860,6 +860,7 @@
 				on:close={(event) => {
 					set_settings_visible(false);
 				}}
+				pwa_enabled={app.config.pwa}
 				{root}
 				{space_id}
 			/>

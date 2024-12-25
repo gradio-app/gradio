@@ -53,7 +53,10 @@
 		"share": "Share",
 		"submit": "Submit",
 		"undo": "Undo",
-		"no_devices": "No devices found"
+		"no_devices": "No devices found",
+		"language": "Language",
+		"display_theme": "Display Theme",
+		"pwa": "Progressive Web App"
 	},
 	"dataframe": {
 		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",
