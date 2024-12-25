@@ -1,17 +1,10 @@
 <script lang="ts">
 	/* eslint-disable */
 	import { onMount } from "svelte";
-	import type { ComponentMeta, Dependency } from "../types";
-	import type { Client } from "@gradio/client";
-
 	import SettingsBanner from "./SettingsBanner.svelte";
-
-	export let dependencies: Dependency[];
 	export let root: string;
-	export let app: Awaited<ReturnType<typeof Client.connect>>;
 	export let space_id: string | null;
-	export let root_node: ComponentMeta;
-	export let username: string | null;
+	console.log("space_id", space_id);
 
 	if (root === "") {
 		root = location.protocol + "//" + location.host + location.pathname;
@@ -20,6 +13,20 @@
 		root += "/";
 	}
 
+	function setTheme(theme) {
+  const url = new URL(window.location.href);
+  
+  if (theme === 'system') {
+    // Remove the theme parameter for system theme
+    url.searchParams.delete('__theme');
+  } else {
+    // Set theme parameter for light/dark
+    url.searchParams.set('__theme', theme);
+  }
+  
+  // Update the URL without refreshing the page
+  window.history.replaceState({}, '', url);
+}
 
 	onMount(() => {
 		document.body.style.overflow = "hidden";
@@ -35,12 +42,16 @@
 <div class="banner-wrap">
 	<SettingsBanner on:close {root} />
 </div>
+{#if space_id === null} <!-- on Spaces, the theme is set in HF settings -->
 <div class="banner-wrap">
 	<h2> Theme</h2>
 	<p class="padded">
-		<em>Toggle between light, dark, and system theme</em>
+		<button on:click={() => setTheme('light')}>Light</button>
+		<button on:click={() => setTheme('dark')}>Dark</button>
+		<button on:click={() => setTheme('system')}>System</button>
 	</p>
 </div>
+{/if}
 <div class="banner-wrap">
 	<h2> Language </h2>
 	<p class="padded">

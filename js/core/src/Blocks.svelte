@@ -857,18 +857,11 @@
 		/>
 		<div class="api-docs-wrap">
 			<Settings
-				root_node={$_layout}
 				on:close={(event) => {
 					set_settings_visible(false);
-					api_calls = [];
-					api_recorder_visible = event.detail?.api_recorder_visible;
 				}}
-				{dependencies}
 				{root}
-				{app}
 				{space_id}
-				{api_calls}
-				{username}
 			/>
 		</div>
 	</div>
