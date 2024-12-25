@@ -36,7 +36,7 @@ for (const lang in processed_langs) {
 
 export async function setupi18n(): Promise<void> {
 	const browser_locale = getLocaleFromNavigator();
-	const initial_locale = available_locales.includes(browser_locale) ? browser_locale : "en";
+	const initial_locale = browser_locale && available_locales.includes(browser_locale) ? browser_locale : "en";
 	
 	await init({
 		fallbackLocale: "en",
