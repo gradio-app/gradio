@@ -4,7 +4,7 @@
 	import SettingsBanner from "./SettingsBanner.svelte";
 	export let root: string;
 	export let space_id: string | null;
-	console.log("space_id", space_id);
+	import { BaseDropdown as Dropdown } from "@gradio/dropdown";
 
 	if (root === "") {
 		root = location.protocol + "//" + location.host + location.pathname;
@@ -40,29 +40,39 @@
 {#if space_id === null}
 	<!-- on Spaces, the theme is set in HF settings -->
 	<div class="banner-wrap">
-		<h2>Theme</h2>
-		<p class="padded">
-			<button on:click={() => setTheme("light")}>Light</button>
-			<button on:click={() => setTheme("dark")}>Dark</button>
-			<button on:click={() => setTheme("system")}>System</button>
+		<h2>Display Theme</h2>
+		<p class="padded theme-buttons">
+			<li class="theme-button">
+				<button on:click={() => setTheme("light")}>☀︎ &nbsp;Light</button>
+			</li>
+			<li class="theme-button">
+				<button on:click={() => setTheme("dark")}>⏾ &nbsp; Dark</button>
+			</li>
+			<li class="theme-button">
+				<button on:click={() => setTheme("system")}>🖥︎ &nbsp;System</button>
+			</li>
 		</p>
 	</div>
 {/if}
 <div class="banner-wrap">
 	<h2>Language</h2>
 	<p class="padded">
-		<em
-			>Choose a language to use for the Gradio app. Dropdown of languages...</em
-		>
+		Gradio automatically detects the language of your browser. You can also choose a language manually:
 	</p>
+	<Dropdown
+		label="Language"
+		choices={[["en", "English"], ["es", "Spanish"]]}
+		show_label={false}
+		{root}
+	/>
 </div>
 <div class="banner-wrap">
 	<h2>Progressive Web App</h2>
 	<p class="padded">
 		You can install this app as a Progressive Web App on your device. Visit <a
-			href="https://abidlabs-gradio-playground-bot.hf.space"
-			>https://abidlabs-gradio-playground-bot.hf.space</a
-		> and click the install button in the address bar of your browser.
+			href={root}
+			>{root}</a
+		> and click the install button in the URL bar of your browser.
 	</p>
 </div>
 
@@ -74,10 +84,8 @@
 		font-size: var(--text-md);
 	}
 
-	@media (--screen-md) {
-		.banner-wrap {
-			font-size: var(--text-xl);
-		}
+	.banner-wrap h2 {
+		font-size: var(--text-xl);
 	}
 
 	a {
@@ -86,6 +94,28 @@
 
 	p.padded {
 		padding: 15px 0px;
-		font-size: var(--text-lg);
 	}
+
+	.theme-buttons {
+		display: flex;
+		align-items: center;
+	}
+
+	.theme-buttons > * + * {
+		margin-left: var(--size-2);
+	}
+
+	.theme-button {
+		display: flex;
+		align-items: center;
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-md);
+		padding: var(--size-2) var(--size-2-5);
+		color: var(--body-text-color-subdued);
+		color: var(--body-text-color);
+		line-height: 1;
+		user-select: none;
+		text-transform: capitalize;
+	}
+
 </style>
