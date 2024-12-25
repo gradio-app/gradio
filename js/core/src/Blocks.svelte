@@ -787,11 +787,11 @@
 			</a>
 			<div>·</div>
 			<button
-			on:click={() => {
-				set_settings_visible(!settings_visible);
-			}}
-			class="settings"
-		>
+				on:click={() => {
+					set_settings_visible(!settings_visible);
+				}}
+				class="settings"
+			>
 				{$_("common.settings")}
 				<img src={settings_logo} alt={$_("common.settings")} />
 			</button>
@@ -897,7 +897,8 @@
 		margin-left: var(--size-2);
 	}
 
-	.show-api, .settings {
+	.show-api,
+	.settings {
 		display: flex;
 		align-items: center;
 	}
@@ -922,7 +923,8 @@
 		align-items: center;
 	}
 
-	.built-with:hover, .settings:hover {
+	.built-with:hover,
+	.settings:hover {
 		color: var(--body-text-color);
 	}
 

@@ -13,20 +13,15 @@
 		root += "/";
 	}
 
-	function setTheme(theme) {
-  const url = new URL(window.location.href);
-  
-  if (theme === 'system') {
-    // Remove the theme parameter for system theme
-    url.searchParams.delete('__theme');
-  } else {
-    // Set theme parameter for light/dark
-    url.searchParams.set('__theme', theme);
-  }
-  
-  // Update the URL without refreshing the page
-  window.history.replaceState({}, '', url);
-}
+	function setTheme(theme: "light" | "dark" | "system") {
+		const url = new URL(window.location.href);
+		if (theme === "system") {
+			url.searchParams.delete("__theme");
+		} else {
+			url.searchParams.set("__theme", theme);
+		}
+		window.location.href = url.toString();
+	}
 
 	onMount(() => {
 		document.body.style.overflow = "hidden";
@@ -42,31 +37,34 @@
 <div class="banner-wrap">
 	<SettingsBanner on:close {root} />
 </div>
-{#if space_id === null} <!-- on Spaces, the theme is set in HF settings -->
-<div class="banner-wrap">
-	<h2> Theme</h2>
-	<p class="padded">
-		<button on:click={() => setTheme('light')}>Light</button>
-		<button on:click={() => setTheme('dark')}>Dark</button>
-		<button on:click={() => setTheme('system')}>System</button>
-	</p>
-</div>
+{#if space_id === null}
+	<!-- on Spaces, the theme is set in HF settings -->
+	<div class="banner-wrap">
+		<h2>Theme</h2>
+		<p class="padded">
+			<button on:click={() => setTheme("light")}>Light</button>
+			<button on:click={() => setTheme("dark")}>Dark</button>
+			<button on:click={() => setTheme("system")}>System</button>
+		</p>
+	</div>
 {/if}
 <div class="banner-wrap">
-	<h2> Language </h2>
+	<h2>Language</h2>
 	<p class="padded">
-		<em>Choose a language to use for the Gradio app. Dropdown of languages...</em>
+		<em
+			>Choose a language to use for the Gradio app. Dropdown of languages...</em
+		>
 	</p>
 </div>
 <div class="banner-wrap">
-	<h2> Progressive Web App</h2>
+	<h2>Progressive Web App</h2>
 	<p class="padded">
-		You can install this app as a Progressive Web App on your device.
-		Visit <a href="https://abidlabs-gradio-playground-bot.hf.space">https://abidlabs-gradio-playground-bot.hf.space</a> and click 
-		the install button in the address bar of your browser.
+		You can install this app as a Progressive Web App on your device. Visit <a
+			href="https://abidlabs-gradio-playground-bot.hf.space"
+			>https://abidlabs-gradio-playground-bot.hf.space</a
+		> and click the install button in the address bar of your browser.
 	</p>
 </div>
-
 
 <style>
 	.banner-wrap {
