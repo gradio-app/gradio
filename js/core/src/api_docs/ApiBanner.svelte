@@ -11,12 +11,28 @@
 </script>
 
 <h2>
+	<img src={api_logo} alt="" />
 	<div class="title">
-		⚙️ Settings
+		API documentation
 		<div class="url">
 			{root}
 		</div>
 	</div>
+	<span class="counts">
+		<BaseButton
+			size="sm"
+			variant="secondary"
+			elem_id="start-api-recorder"
+			on:click={() => dispatch("close", { api_recorder_visible: true })}
+		>
+			<div class="loading-dot self-baseline"></div>
+			<p class="self-baseline btn-text">API Recorder</p>
+		</BaseButton>
+		<p>
+			<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br
+			/>
+		</p>
+	</span>
 </h2>
 
 <button on:click={() => dispatch("close")}>
