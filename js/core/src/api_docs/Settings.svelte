@@ -38,8 +38,9 @@
 	let current_locale: string;
 
 	locale.subscribe((value) => {
-		console.log("locale changed", value);
-		current_locale = value;
+		if (value) {
+			current_locale = value;
+		}
 	});
 
 	function handleLanguageChange(e: CustomEvent): void {
