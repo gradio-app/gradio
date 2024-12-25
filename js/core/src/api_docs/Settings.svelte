@@ -5,7 +5,7 @@
 	export let root: string;
 	export let space_id: string | null;
 	import { BaseDropdown as Dropdown } from "@gradio/dropdown";
-	import { language_choices, changeLocale } from "../i18n";
+	import { setupi18n, language_choices, changeLocale } from "../i18n";
 	import { locale } from "svelte-i18n";
 
 	if (root === "") {

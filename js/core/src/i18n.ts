@@ -23,6 +23,7 @@ export function process_langs(): LangsRecord {
 }
 
 const processed_langs = process_langs();
+const available_locales = Object.keys(processed_langs);
 
 export const language_choices = Object.entries(processed_langs).map(([code, data]) => [
 	data._name || code,
@@ -34,9 +35,12 @@ for (const lang in processed_langs) {
 }
 
 export async function setupi18n(): Promise<void> {
+	const browser_locale = getLocaleFromNavigator();
+	const initial_locale = available_locales.includes(browser_locale) ? browser_locale : "en";
+	
 	await init({
 		fallbackLocale: "en",
-		initialLocale: getLocaleFromNavigator()
+		initialLocale: initial_locale
 	});
 }
 
