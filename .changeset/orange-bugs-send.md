@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Add a `settings` link to the footer
+feat:Add a `settings` link to the footer with i18n options & pwa instructions
