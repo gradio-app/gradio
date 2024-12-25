@@ -8,7 +8,7 @@
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
 	import { setupi18n } from "./i18n";
-	import { ApiDocs, ApiRecorder } from "./api_docs/";
+	import { ApiDocs, ApiRecorder, Settings } from "./api_docs/";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
@@ -830,6 +830,36 @@
 				root_node={$_layout}
 				on:close={(event) => {
 					set_api_docs_visible(false);
+					api_calls = [];
+					api_recorder_visible = event.detail?.api_recorder_visible;
+				}}
+				{dependencies}
+				{root}
+				{app}
+				{space_id}
+				{api_calls}
+				{username}
+			/>
+		</div>
+	</div>
+{/if}
+
+{#if settings_visible && $_layout}
+	<div class="api-docs">
+		<!-- TODO: fix -->
+		<!-- svelte-ignore a11y-click-events-have-key-events-->
+		<!-- svelte-ignore a11y-no-static-element-interactions-->
+		<div
+			class="backdrop"
+			on:click={() => {
+				set_settings_visible(false);
+			}}
+		/>
+		<div class="api-docs-wrap">
+			<Settings
+				root_node={$_layout}
+				on:close={(event) => {
+					set_settings_visible(false);
 					api_calls = [];
 					api_recorder_visible = event.detail?.api_recorder_visible;
 				}}
