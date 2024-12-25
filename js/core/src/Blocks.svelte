@@ -18,6 +18,7 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
+	import settings_logo from "./images/settings.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
 		LogMessage,
@@ -85,8 +86,10 @@
 
 	export let search_params: URLSearchParams;
 	let api_docs_visible = search_params.get("view") === "api" && show_api;
+	let settings_visible = search_params.get("view") === "settings";
 	let api_recorder_visible =
 		search_params.get("view") === "api-recorder" && show_api;
+
 	function set_api_docs_visible(visible: boolean): void {
 		api_recorder_visible = false;
 		api_docs_visible = visible;
@@ -98,6 +101,18 @@
 		}
 		history.replaceState(null, "", "?" + params.toString());
 	}
+
+	function set_settings_visible(visible: boolean): void {
+		let params = new URLSearchParams(window.location.search);
+		if (visible) {
+			params.set("view", "settings");
+		} else {
+			params.delete("view");
+		}
+		history.replaceState(null, "", "?" + params.toString());
+		settings_visible = !settings_visible;
+	}
+
 	let api_calls: Payload[] = [];
 
 	export let render_complete = false;
@@ -770,6 +785,16 @@
 				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
+			<div>·</div>
+			<button
+			on:click={() => {
+				set_settings_visible(!settings_visible);
+			}}
+			class="settings"
+		>
+				{$_("common.settings")}
+				<img src={settings_logo} alt={$_("common.settings")} />
+			</button>
 		</footer>
 	{/if}
 </div>
@@ -849,7 +874,7 @@
 		margin-left: var(--size-2);
 	}
 
-	.show-api {
+	.show-api, .settings {
 		display: flex;
 		align-items: center;
 	}
@@ -863,12 +888,18 @@
 		width: var(--size-3);
 	}
 
+	.settings img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-1);
+		width: var(--size-4);
+	}
+
 	.built-with {
 		display: flex;
 		align-items: center;
 	}
 
-	.built-with:hover {
+	.built-with:hover, .settings:hover {
 		color: var(--body-text-color);
 	}
 
