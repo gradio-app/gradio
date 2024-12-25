@@ -101,170 +101,31 @@
 {#if info}
 	{#if api_count}
 		<div class="banner-wrap">
-			<ApiBanner on:close root={space_id || root} {api_count} />
+			<ApiBanner on:close root={"abidlabs/gradio-playground-bot"} {api_count} />
+		</div>
+		<div class="banner-wrap">
+			<h2> Theme</h2>
+			<p class="padded">
+				<em>Toggle between light, dark, and system theme</em>
+			</p>
+		</div>
+		<div class="banner-wrap">
+			<h2> Language </h2>
+			<p class="padded">
+				<em>Choose a language to use for the Gradio app. Dropdown of languages...</em>
+			</p>
+		</div>
+		<div class="banner-wrap">
+			<h2> Progressive Web App</h2>
+			<p class="padded">
+				You can install this app as a Progressive Web App on your device.
+				Visit <a href="https://abidlabs-gradio-playground-bot.hf.space">https://abidlabs-gradio-playground-bot.hf.space</a> and click 
+				the install button in the address bar of your browser.
+			</p>
 		</div>
 
-		<div class="docs-wrap">
-			<div class="client-doc">
-				<p style="font-size: var(--text-lg);">
-					Choose a language to see the code snippets for interacting with the
-					API.
-				</p>
-			</div>
-			<div class="endpoint">
-				<div class="snippets">
-					{#each langs as [language, img]}
-						<li
-							class="snippet
-						{current_language === language ? 'current-lang' : 'inactive-lang'}"
-							on:click={() => (current_language = language)}
-						>
-							<img src={img} alt="" />
-							{language}
-						</li>
-					{/each}
-				</div>
-				{#if api_calls.length}
-					<div>
-						<p
-							id="num-recorded-api-calls"
-							style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
-						>
-							🪄 Recorded API Calls <span class="api-count"
-								>[{api_calls.length}]</span
-							>
-						</p>
-						<p>
-							Here is the code snippet to replay the most recently recorded API
-							calls using the {current_language}
-							client.
-						</p>
 
-						<RecordingSnippet
-							{current_language}
-							{api_calls}
-							{dependencies}
-							{root}
-							api_prefix={app.api_prefix}
-							short_root={space_id || root}
-							{username}
-						/>
-						<p>
-							Note: Some API calls only affect the UI, so when using the
-							clients, the desired result may be achieved with only a subset of
-							the recorded calls.
-						</p>
-					</div>
-					<p
-						style="font-size: var(--text-lg); font-weight:bold; margin: 30px 0px 10px;"
-					>
-						API Documentation
-					</p>
-				{:else}
-					<p class="padded">
-						{#if current_language == "python" || current_language == "javascript"}
-							1. Install the
-							<span style="text-transform:capitalize">{current_language}</span>
-							client (<a
-								href={current_language == "python" ? py_docs : js_docs}
-								target="_blank">docs</a
-							>) if you don't already have it installed.
-						{:else}
-							1. Confirm that you have cURL installed on your system.
-						{/if}
-					</p>
 
-					<InstallSnippet {current_language} />
-
-					<p class="padded">
-						2. Find the API endpoint below corresponding to your desired
-						function in the app. Copy the code snippet, replacing the
-						placeholder values with your own input data.
-						{#if space_id}If this is a private Space, you may need to pass your
-							Hugging Face token as well (<a
-								href={current_language == "python"
-									? py_docs + spaces_docs_suffix
-									: current_language == "javascript"
-										? js_docs + spaces_docs_suffix
-										: bash_docs}
-								class="underline"
-								target="_blank">read more</a
-							>).{/if}
-
-						Or use the
-						<Button
-							size="sm"
-							variant="secondary"
-							on:click={() => dispatch("close", { api_recorder_visible: true })}
-						>
-							<div class="loading-dot"></div>
-							<p class="self-baseline">API Recorder</p>
-						</Button>
-						to automatically generate your API requests.
-						{#if current_language == "bash"}<br />&nbsp;<br />Making a
-							prediction and getting a result requires
-							<strong>2 requests</strong>: a
-							<code>POST</code>
-							and a <code>GET</code> request. The <code>POST</code> request
-							returns an <code>EVENT_ID</code>, which is used in the second
-							<code>GET</code> request to fetch the results. In these snippets,
-							we've used <code>awk</code> and <code>read</code> to parse the
-							results, combining these two requests into one command for ease of
-							use. {#if username !== null}
-								Note: connecting to an authenticated app requires an additional
-								request.{/if} See
-							<a href={bash_docs} target="_blank">curl docs</a>.
-						{/if}
-
-						<!-- <span
-							id="api-recorder"
-							on:click={() => dispatch("close", { api_recorder_visible: true })}
-							>🪄 API Recorder</span
-						> to automatically generate your API requests! -->
-					</p>
-				{/if}
-
-				{#each dependencies as dependency, dependency_index}
-					{#if dependency.show_api && info.named_endpoints["/" + dependency.api_name]}
-						<div class="endpoint-container">
-							<CodeSnippet
-								named={true}
-								endpoint_parameters={info.named_endpoints[
-									"/" + dependency.api_name
-								].parameters}
-								{dependency}
-								{dependency_index}
-								{current_language}
-								{root}
-								{space_id}
-								{username}
-								api_prefix={app.api_prefix}
-							/>
-
-							<ParametersSnippet
-								endpoint_returns={info.named_endpoints[
-									"/" + dependency.api_name
-								].parameters}
-								js_returns={js_info.named_endpoints["/" + dependency.api_name]
-									.parameters}
-								{is_running}
-								{current_language}
-							/>
-
-							<ResponseSnippet
-								endpoint_returns={info.named_endpoints[
-									"/" + dependency.api_name
-								].returns}
-								js_returns={js_info.named_endpoints["/" + dependency.api_name]
-									.returns}
-								{is_running}
-								{current_language}
-							/>
-						</div>
-					{/if}
-				{/each}
-			</div>
-		</div>
 	{:else}
 		<NoApi {root} on:close />
 	{/if}
