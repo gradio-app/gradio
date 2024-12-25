@@ -25,10 +25,9 @@ export function process_langs(): LangsRecord {
 const processed_langs = process_langs();
 const available_locales = Object.keys(processed_langs);
 
-export const language_choices: [string, string][] = Object.entries(processed_langs).map(([code, data]) => [
-	data._name || code,
-	code
-]);
+export const language_choices: [string, string][] = Object.entries(
+	processed_langs
+).map(([code, data]) => [data._name || code, code]);
 
 for (const lang in processed_langs) {
 	addMessages(lang, processed_langs[lang]);
@@ -40,15 +39,18 @@ export async function setupi18n(): Promise<void> {
 	if (i18n_initialized) {
 		return;
 	}
-	
+
 	const browser_locale = getLocaleFromNavigator();
-	const initial_locale = browser_locale && available_locales.includes(browser_locale) ? browser_locale : "en";
-	
+	const initial_locale =
+		browser_locale && available_locales.includes(browser_locale)
+			? browser_locale
+			: "en";
+
 	await init({
 		fallbackLocale: "en",
 		initialLocale: initial_locale
 	});
-	
+
 	i18n_initialized = true;
 }
 

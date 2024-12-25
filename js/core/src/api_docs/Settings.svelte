@@ -36,7 +36,7 @@
 		}
 		const url = new URL(window.location.href);
 		const theme = url.searchParams.get("__theme");
-		current_theme = theme as "light" | "dark" | "system" || "system";
+		current_theme = (theme as "light" | "dark" | "system") || "system";
 		return () => {
 			document.body.style.overflow = "auto";
 		};
@@ -66,20 +66,26 @@
 	<div class="banner-wrap">
 		<h2>{$_("common.display_theme")}</h2>
 		<p class="padded theme-buttons">
-			<li 
-				class="theme-button {current_theme === 'light' ? 'current-theme' : 'inactive-theme'}"
+			<li
+				class="theme-button {current_theme === 'light'
+					? 'current-theme'
+					: 'inactive-theme'}"
 				on:click={() => setTheme("light")}
 			>
 				<button>☀︎ &nbsp;Light</button>
 			</li>
-			<li 
-				class="theme-button {current_theme === 'dark' ? 'current-theme' : 'inactive-theme'}"
+			<li
+				class="theme-button {current_theme === 'dark'
+					? 'current-theme'
+					: 'inactive-theme'}"
 				on:click={() => setTheme("dark")}
 			>
 				<button>⏾ &nbsp; Dark</button>
 			</li>
-			<li 
-				class="theme-button {current_theme === 'system' ? 'current-theme' : 'inactive-theme'}"
+			<li
+				class="theme-button {current_theme === 'system'
+					? 'current-theme'
+					: 'inactive-theme'}"
 				on:click={() => setTheme("system")}
 			>
 				<button>🖥︎ &nbsp;System</button>
@@ -90,7 +96,8 @@
 <div class="banner-wrap">
 	<h2>{$_("common.language")}</h2>
 	<p class="padded">
-		Gradio automatically detects the language of your browser. You can also choose a language manually:
+		Gradio automatically detects the language of your browser. You can also
+		choose a language manually:
 	</p>
 	<Dropdown
 		label="Language"
@@ -101,16 +108,16 @@
 		on:change={handleLanguageChange}
 	/>
 </div>
-	<div class="banner-wrap">
-		<h2>{$_("common.pwa")}</h2>
-		<p class="padded">
+<div class="banner-wrap">
+	<h2>{$_("common.pwa")}</h2>
+	<p class="padded">
 		{#if pwa_enabled}
-		You can install this app as a Progressive Web App on your device. Visit <a
-			href={root}
-			>{root}</a
-		> and click the install button in the URL address bar of your browser.
+			You can install this app as a Progressive Web App on your device. Visit <a
+				href={root}>{root}</a
+			> and click the install button in the URL address bar of your browser.
 		{:else}
-		Progressive Web App is not enabled for this app. To enable it, start your Gradio app with <code>launch(pwa=True)</code>.
+			Progressive Web App is not enabled for this app. To enable it, start your
+			Gradio app with <code>launch(pwa=True)</code>.
 		{/if}
 	</p>
 </div>
@@ -175,5 +182,4 @@
 		all: unset;
 		cursor: pointer;
 	}
-
 </style>
