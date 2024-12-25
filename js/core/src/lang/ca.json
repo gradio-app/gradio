@@ -1,4 +1,5 @@
 {
+	"_name": "Català",
 	"common": {
 		"built_with_gradio": "Construït amb gradio",
 		"clear": "Neteja",
@@ -6,7 +7,8 @@
 		"error": "Error",
 		"loading": "S'està carregant",
 		"or": "o",
-		"submit": "Envia"
+		"submit": "Envia",
+		"settings": "Configuració"
 	},
 	"upload_text": {
 		"click_to_upload": "Feu clic per pujar",

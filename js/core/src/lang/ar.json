@@ -1,9 +1,11 @@
 {
+	"_name": "العربية",
 	"common": {
 		"built_with_gradio": "تم الإنشاء بإستخدام Gradio",
 		"clear": "أمسح",
 		"or": "أو",
-		"submit": "أرسل"
+		"submit": "أرسل",
+		"settings": "الإعدادات"
 	},
 	"upload_text": {
 		"click_to_upload": "إضغط للتحميل",

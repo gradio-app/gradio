@@ -1,17 +1,20 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import { _ } from "svelte-i18n";
 	import settings_logo from "./img/settings-logo.svg";
 	import Clear from "./img/clear.svelte";
+	import { setupi18n } from "../i18n";
 
 	export let root: string;
 
 	const dispatch = createEventDispatcher();
+	setupi18n();
 </script>
 
 <h2>
 	<img src={settings_logo} alt="" />
 	<div class="title">
-		Settings
+		{$_("common.settings")}
 		<div class="url">
 			{root}
 		</div>
@@ -27,6 +30,7 @@
 		display: flex;
 		color: var(--body-text-color);
 		font-weight: var(--weight-semibold);
+		font-size: var(--text-xl);
 		gap: var(--size-3);
 	}
 
@@ -62,40 +66,9 @@
 			width: var(--size-5);
 		}
 	}
-
-	.counts {
-		margin-top: auto;
-		margin-right: var(--size-8);
-		margin-bottom: auto;
-		margin-left: auto;
-		color: var(--body-text-color);
-		font-weight: var(--weight-light);
-		display: flex;
-		flex-direction: row;
-		gap: 0.5rem;
-	}
-
-	.loading-dot {
-		position: relative;
-		left: -9999px;
-		width: 12px;
-		height: 12px;
-		border-radius: 6px;
-		background-color: #fd7b00;
-		color: #fd7b00;
-		box-shadow: 9999px 0 0 -1px;
-		margin-right: 0.3rem;
-	}
-
-	.self-baseline {
-		align-self: baseline;
-	}
 	.title {
 		display: flex;
 		flex-direction: row;
 		gap: 0.5rem;
-	}
-	.btn-text {
-		font-size: var(--text-lg);
 	}
 </style>

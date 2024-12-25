@@ -1,9 +1,11 @@
 {
+	"_name": "فارسی",
 	"common": {
 		"built_with_gradio": "ساخته شده با gradio",
 		"clear": "حذف",
 		"or": "یا",
-		"submit": "ارسال"
+		"submit": "ارسال",
+		"settings": "تنظیمات"
 	},
 	"upload_text": {
 		"click_to_upload": "برای آپلود کلیک کنید",

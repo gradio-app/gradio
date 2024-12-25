@@ -1,9 +1,11 @@
 {
+	"_name": "Polski",
 	"common": {
 		"built_with_gradio": "utworzone z gradio",
 		"clear": "Wyczyść",
 		"or": "lub",
-		"submit": "Zatwierdź"
+		"submit": "Zatwierdź",
+		"settings": "Ustawienia"
 	},
 	"upload_text": {
 		"click_to_upload": "Kliknij, aby przesłać",

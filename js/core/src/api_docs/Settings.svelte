@@ -5,6 +5,8 @@
 	export let root: string;
 	export let space_id: string | null;
 	import { BaseDropdown as Dropdown } from "@gradio/dropdown";
+	import { language_choices, changeLocale } from "../i18n";
+	import { locale } from "svelte-i18n";
 
 	if (root === "") {
 		root = location.protocol + "//" + location.host + location.pathname;
@@ -32,6 +34,17 @@
 			document.body.style.overflow = "auto";
 		};
 	});
+
+	let current_locale: string;
+
+	locale.subscribe((value) => {
+		current_locale = value;
+	});
+
+	function handleLanguageChange(e: CustomEvent): void {
+		const new_locale = e.detail;
+		changeLocale(new_locale);
+	}
 </script>
 
 <div class="banner-wrap">
@@ -61,9 +74,11 @@
 	</p>
 	<Dropdown
 		label="Language"
-		choices={[["en", "English"], ["es", "Spanish"]]}
+		choices={language_choices}
 		show_label={false}
 		{root}
+		value={current_locale}
+		on:change={handleLanguageChange}
 	/>
 </div>
 <div class="banner-wrap">

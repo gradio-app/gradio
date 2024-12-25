@@ -1,9 +1,11 @@
 {
+	"_name": "עברית",
 	"common": {
 		"built_with_gradio": "בנוי עם גרדיו",
 		"clear": "נקה",
 		"or": "או",
-		"submit": "שלח"
+		"submit": "שלח",
+		"settings": "הגדרות"
 	},
 	"upload_text": {
 		"click_to_upload": "לחץ כדי להעלות",

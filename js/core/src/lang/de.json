@@ -1,9 +1,11 @@
 {
+	"_name": "Deutsch",
 	"common": {
 		"built_with_gradio": "Mit Gradio erstellt",
 		"clear": "Löschen",
 		"or": "oder",
-		"submit": "Absenden"
+		"submit": "Absenden",
+		"settings": "Einstellungen"
 	},
 	"upload_text": {
 		"click_to_upload": "Hochladen",

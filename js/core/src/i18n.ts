@@ -1,4 +1,4 @@
-import { addMessages, init, getLocaleFromNavigator } from "svelte-i18n";
+import { addMessages, init, getLocaleFromNavigator, locale } from "svelte-i18n";
 
 const langs = import.meta.glob("./lang/*.json", {
 	eager: true
@@ -24,6 +24,11 @@ export function process_langs(): LangsRecord {
 
 const processed_langs = process_langs();
 
+export const language_choices = Object.entries(processed_langs).map(([code, data]) => [
+	data._name || code,
+	code
+]);
+
 for (const lang in processed_langs) {
 	addMessages(lang, processed_langs[lang]);
 }
@@ -33,4 +38,8 @@ export async function setupi18n(): Promise<void> {
 		fallbackLocale: "en",
 		initialLocale: getLocaleFromNavigator()
 	});
+}
+
+export function changeLocale(new_locale: string): void {
+	locale.set(new_locale);
 }
