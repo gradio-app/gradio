@@ -1,18 +1,17 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import api_logo from "./img/api-logo.svg";
+	import settings_logo from "./img/settings-logo.svg";
 	import Clear from "./img/clear.svelte";
-	import { BaseButton } from "@gradio/button";
 
 	export let root: string;
-	export let api_count: number;
 
 	const dispatch = createEventDispatcher();
 </script>
 
 <h2>
+	<img src={settings_logo} alt="" />
 	<div class="title">
-		⚙️ Settings
+		Settings
 		<div class="url">
 			{root}
 		</div>
@@ -28,13 +27,13 @@
 		display: flex;
 		color: var(--body-text-color);
 		font-weight: var(--weight-semibold);
-		gap: var(--size-4);
+		gap: var(--size-3);
 	}
 
 	h2 img {
-		margin-right: var(--size-2);
 		width: var(--size-4);
 		display: inline-block;
+		margin-top: 0.1rem;
 	}
 
 	.url {

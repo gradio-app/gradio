@@ -18,7 +18,7 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
-	import settings_logo from "./images/settings.svg";
+	import settings_logo from "./api_docs/img/settings-logo.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
 		LogMessage,
