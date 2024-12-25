@@ -5,7 +5,7 @@
 	export let root: string;
 	export let space_id: string | null;
 	import { BaseDropdown as Dropdown } from "@gradio/dropdown";
-	import { setupi18n, language_choices, changeLocale } from "../i18n";
+	import { language_choices, changeLocale } from "../i18n";
 	import { locale } from "svelte-i18n";
 
 	if (root === "") {
@@ -38,6 +38,7 @@
 	let current_locale: string;
 
 	locale.subscribe((value) => {
+		console.log("locale changed", value);
 		current_locale = value;
 	});
 
