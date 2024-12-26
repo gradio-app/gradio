@@ -3,7 +3,7 @@
 Tags: LLM, AGENTS, CHAT
 Related spaces: https://huggingface.co/spaces/gradio/agent_chatbot, https://huggingface.co/spaces/gradio/langchain-agent
 
-The Gradio Chatbot can natively display intermediate thoughts and tool usage. This makes it perfect for creating UIs for LLM agents and Thinking LLMs. This guide will show you how.
+The Gradio Chatbot can natively display intermediate thoughts and tool usage. This makes it perfect for creating UIs for LLM agents and chain-of-thought (CoT) demos. This guide will show you how.
 
 ## The metadata key
 
@@ -167,17 +167,17 @@ demo.launch()
 That's it! See our finished langchain demo [here](https://huggingface.co/spaces/gradio/langchain-agent).
 
 
-## Building with Visible Thinking LLMs
+## Building with Visibly Thinking LLMs
 
 
 The Gradio Chatbot can natively display intermediate thoughts of a _thinking_ LLM. This makes it perfect for creating UIs that show how an AI model "thinks" while generating responses. Below guide will show you how to build a chatbot that displays Gemini AI's thought process in real-time.
 
 
-### A real example using Gemini2.0 Flash Thinking API
+### A real example using Gemini 2.0 Flash Thinking API
 
-Let's create a complete chatbot that shows its thoughts and responses in real-time. We'll use Google's Gemini API for accessing Gemini2.0 Flash Thinking LLM and Gradio for the UI.
+Let's create a complete chatbot that shows its thoughts and responses in real-time. We'll use Google's Gemini API for accessing Gemini 2.0 Flash Thinking LLM and Gradio for the UI.
 
-We'll begin with imports and setting up the gemini client. Note that you'll need to acquire a Google Gemini API key first -
+We'll begin with imports and setting up the gemini client. Note that you'll need to [acquire a Google Gemini API key](https://aistudio.google.com/apikey) first -
 
 ```python
 import gradio as gr
@@ -301,5 +301,5 @@ This creates a chatbot that:
 - Streams the thoughts and final response in real-time
 - Maintains a clean chat history
 
- That's it! You now have a chatbot that not only responds to users but also shows its thinking process, creating a more transparent and engaging interaction. See our finished Gemini2.0 Flash Thinking demo [here](https://huggingface.co/spaces/ysharma/Gemini2-Flash-Thinking).
+ That's it! You now have a chatbot that not only responds to users but also shows its thinking process, creating a more transparent and engaging interaction. See our finished Gemini 2.0 Flash Thinking demo [here](https://huggingface.co/spaces/ysharma/Gemini2-Flash-Thinking).
 
