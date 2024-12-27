@@ -276,7 +276,7 @@ class Video(StreamingOutput, Component):
         """
         if self.streaming:
             return value  # type: ignore
-        if value is None or value == [None, None] or value == (None, None):
+        if value is None or value in ([None, None], (None, None)):
             return None
         if isinstance(value, (str, Path)):
             processed_files = (self._format_video(value), None)

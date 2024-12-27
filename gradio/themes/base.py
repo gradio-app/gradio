@@ -126,8 +126,7 @@ class ThemeClass:
             if (
                 not prop.startswith("_")
                 or prop.startswith("_font")
-                or prop == "_stylesheets"
-                or prop == "name"
+                or prop in ("_stylesheets", "name")
             ) and isinstance(getattr(self, prop), (list, str)):
                 schema["theme"][prop] = getattr(self, prop)
         return schema
