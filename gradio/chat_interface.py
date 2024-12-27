@@ -15,11 +15,12 @@ from typing import Literal, Union, cast
 import anyio
 from gradio_client.documentation import document
 
-from gradio import render, utils
+from gradio import utils
 from gradio.blocks import Blocks
 from gradio.components import (
     HTML,
     JSON,
+    BrowserState,
     Button,
     Chatbot,
     Component,
@@ -41,6 +42,7 @@ from gradio.events import Dependency, EditData, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Column, Group, Row
+from gradio.renderable import render
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 
@@ -173,6 +175,7 @@ class ChatInterface(Blocks):
             fill_height: if True, the chat interface will expand to the height of window.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             api_name: the name of the API endpoint to use for the chat interface. Defaults to "chat". Set to False to disable the API endpoint.
+            save_history: if True, will save the chat history to the browser's local storage. Defaults to False.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -211,6 +214,7 @@ class ChatInterface(Blocks):
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
         self.editable = editable
+        self.save_history = save_history
         self.additional_inputs = [
             get_component_instance(i)
             for i in utils.none_or_singleton_to_list(additional_inputs)
@@ -261,18 +265,14 @@ class ChatInterface(Blocks):
                     if save_history:
                         with Column(scale=1, min_width=100):
                             HTML(save_history_css, container=True, padding=False)
-                            history = [
-                                "Hello how are you?",
-                                "Explain the concept of AI to a 5 year old",
-                                "If a woodchuck could chuck wood how much wood would a woodchuck chuck?",
-                            ]
-                            state = State(history)
+                            if not hasattr(self, 'saved_history'):
+                                self.saved_history = BrowserState([])
                             with Group():
-                                @render(inputs=state)
-                                def create_history(history):
-                                    for message in history:
-                                        h = HTML(message, padding=False, elem_classes=["_gradio-save-history"])
-                                        h.click(lambda x:x, h, self.textbox)
+                                @render(inputs=self.saved_history)
+                                def create_history(conversations):
+                                    for chat_conversation in conversations:
+                                        h = HTML(chat_conversation[0]["content"], padding=False, elem_classes=["_gradio-save-history"])
+                                        h.click(lambda _:chat_conversation, h, self.chatbot)
 
                     with Column(scale=6):
                         if chatbot:
@@ -412,6 +412,8 @@ class ChatInterface(Blocks):
                 self.chatbot_state = (
                     State(self.chatbot.value) if self.chatbot.value else State([])
                 )
+                if self.chatbot.value:
+                    self.saved_history = BrowserState(self.chatbot.value)
                 self.show_progress = show_progress
                 self._setup_events()
 
@@ -458,10 +460,21 @@ class ChatInterface(Blocks):
         if hasattr(self.fn, "zerogpu"):
             submit_fn.__func__.zerogpu = self.fn.zerogpu  # type: ignore
 
+        def test(chatbot, chatbot_state, saved_history):
+            if self.save_history:
+                if isinstance(chatbot_state, list) and len(chatbot_state) == 0:
+                    return chatbot, saved_history + [chatbot]
+                else:
+                    # replace the most recent element in saved history with chatbot_state
+                    saved_history[-1] = chatbot
+                    return chatbot, saved_history
+            else:
+                return chatbot
+
         synchronize_chat_state_kwargs = {
-            "fn": lambda x: x,
-            "inputs": [self.chatbot],
-            "outputs": [self.chatbot_state],
+            "fn": test,
+            "inputs": [self.chatbot, self.chatbot_state] + ([self.saved_history] if hasattr(self, 'saved_history') else []),
+            "outputs": [self.chatbot_state] + ([self.saved_history] if hasattr(self, 'saved_history') else []),
             "show_api": False,
             "queue": False,
         }
