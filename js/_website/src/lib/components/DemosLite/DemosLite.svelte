@@ -19,8 +19,8 @@
 	let current_code = false;
 	let compare = false;
 
-	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	const workerUrl = "http://localhost:5173/api/generate";
+	const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	// const workerUrl = "http://localhost:5173/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -650,6 +650,10 @@
 		user_query = "";
 		show_regenerate_button = false;
 	}
+
+	$: if (regenerating) {
+		show_regenerate_button = false;
+	}
 </script>
 
 <svelte:head>
@@ -845,9 +849,9 @@
 						{#if show_regenerate_button}
 							<button
 								on:click={async () => {
-									auto_regenerate = true;
-									await regenerate_on_error(app_error);
-									show_regenerate_button = false;
+									error_prompt = `There's an error when I run the existing code: ${app_error}`;
+									await generate_code(error_prompt, selected_demo.name, true);
+									auto_regenerate = false;
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-purple-100 to-purple-50 border border-purple-200 px-4 py-0.5 rounded-full text-purple-800 hover:shadow"
 							>
