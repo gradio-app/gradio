@@ -622,7 +622,6 @@
 
 	$: auto_regenerate_user_toggle;
 
-
 	async function regenerate_on_error(app_error) {
 		if (auto_regenerate && auto_regenerate_user_toggle) {
 			if (app_error) {
@@ -755,12 +754,21 @@
 
 					<div class="mr-2 items-center flex flex-row -mt-7">
 						<div class="flex-grow">
-						<label class="my-[1px] pl-2 relative z-10 bg-white float-left flex items-center transition-all duration-200 cursor-pointer font-normal text-sm leading-6">
-							<input
-								bind:checked={auto_regenerate_user_toggle}
-							type="checkbox" name="test" data-testid="checkbox" class=""> <span class="text-gray-600 text-xs">Automatically fix errors from generated code</span>
-						</label>
-						</div>	
+							<label
+								class="my-[1px] pl-2 relative z-10 bg-white float-left flex items-center transition-all duration-200 cursor-pointer font-normal text-sm leading-6"
+							>
+								<input
+									bind:checked={auto_regenerate_user_toggle}
+									type="checkbox"
+									name="test"
+									data-testid="checkbox"
+									class=""
+								/>
+								<span class="text-gray-600 text-xs"
+									>Automatically fix errors from generated code</span
+								>
+							</label>
+						</div>
 
 						{#if generation_error}
 							<div
@@ -1134,7 +1142,7 @@
 		scrollbar-color: #888 transparent;
 	}
 
-    /* for checkbox */
+	/* for checkbox */
 	label {
 		color: #27272a;
 	}
