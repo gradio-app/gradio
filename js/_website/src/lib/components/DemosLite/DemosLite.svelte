@@ -19,8 +19,8 @@
 	let current_code = false;
 	let compare = false;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5173/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:5173/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -618,8 +618,13 @@
 
 	$: regenerating;
 
+	let auto_regenerate_user_toggle = false;
+
+	$: auto_regenerate_user_toggle;
+
+
 	async function regenerate_on_error(app_error) {
-		if (auto_regenerate) {
+		if (auto_regenerate && auto_regenerate_user_toggle) {
 			if (app_error) {
 				error_prompt = `There's an error when I run the existing code: ${app_error}`;
 				await generate_code(error_prompt, selected_demo.name, true);
@@ -748,7 +753,15 @@
 						</Tabs>
 					</div>
 
-					<div class="mr-2 items-center -mt-7">
+					<div class="mr-2 items-center flex flex-row -mt-7">
+						<div class="flex-grow">
+						<label class="my-[1px] pl-2 relative z-10 bg-white float-left flex items-center transition-all duration-200 cursor-pointer font-normal text-sm leading-6">
+							<input
+								bind:checked={auto_regenerate_user_toggle}
+							type="checkbox" name="test" data-testid="checkbox" class=""> <span class="text-gray-600 text-xs">Automatically fix errors from generated code</span>
+						</label>
+						</div>	
+
 						{#if generation_error}
 							<div
 								class="pl-2 relative z-10 bg-red-100 border border-red-200 px-2 my-1 rounded-lg text-red-800 w-fit text-xs float-right"
@@ -1119,5 +1132,57 @@
 	.code-scroll {
 		scrollbar-width: thin;
 		scrollbar-color: #888 transparent;
+	}
+
+    /* for checkbox */
+	label {
+		color: #27272a;
+	}
+
+	label > * + * {
+		margin-left: var(--size-2);
+	}
+
+	input {
+		--ring-color: transparent;
+		position: relative;
+		box-shadow: var(--checkbox-shadow);
+		border: 1px solid var(--checkbox-border-color);
+		border-radius: var(--checkbox-border-radius);
+		background-color: var(--checkbox-background-color);
+		line-height: var(--line-sm);
+	}
+
+	input:checked,
+	input:checked:hover,
+	input:checked:focus {
+		background-image: var(--checkbox-check);
+		background-color: var(--checkbox-background-color-selected);
+		border-color: var(--checkbox-border-color-focus);
+	}
+
+	input:checked:focus {
+		background-image: var(--checkbox-check);
+		background-color: var(--checkbox-background-color-selected);
+		border-color: var(--checkbox-border-color-focus);
+	}
+
+	input:hover {
+		border-color: var(--checkbox-border-color-hover);
+		background-color: var(--checkbox-background-color-hover);
+	}
+
+	input:focus {
+		border-color: var(--checkbox-border-color-focus);
+		background-color: var(--checkbox-background-color-focus);
+	}
+
+	input[disabled],
+	.disabled {
+		cursor: not-allowed;
+	}
+
+	input:hover {
+		cursor: pointer;
 	}
 </style>
