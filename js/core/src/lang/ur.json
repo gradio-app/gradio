@@ -1,9 +1,11 @@
 {
+	"_name": "اردو",
 	"common": {
 		"built_with_gradio": "کے ساتھ بنایا گیا Gradio",
 		"clear": "ہٹا دیں",
 		"or": "یا",
-		"submit": "جمع کریں"
+		"submit": "جمع کریں",
+		"settings": "ترتیبات"
 	},
 	"upload_text": {
 		"click_to_upload": "اپ لوڈ کے لیے کلک کریں",
