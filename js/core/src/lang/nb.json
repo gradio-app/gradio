@@ -1,0 +1,130 @@
+{
+	"_name": "Norsk bokmål",
+	"3D_model": {
+		"3d_model": "3D-modell"
+	},
+	"annotated_image": {
+		"annotated_image": "Annotert bilde"
+	},
+	"audio": {
+		"allow_recording_access": "Vennligst tillat mikrofontilgang for opptak.",
+		"audio": "Lyd",
+		"record_from_microphone": "Ta opp fra mikrofon",
+		"stop_recording": "Stopp opptak",
+		"no_device_support": "Kan ikke få tilgang til medieenheter. Sørg for at du kjører på en sikker kilde (https) eller localhost (eller har gitt et gyldig SSL-sertifikat til ssl_verify), og at du har gitt nettleseren tilgang til enheten din.",
+		"stop": "Stopp",
+		"resume": "Fortsett",
+		"record": "Ta opp",
+		"no_microphone": "Ingen mikrofon funnet",
+		"pause": "Pause",
+		"play": "Spill av",
+		"waiting": "Venter"
+	},
+	"blocks": {
+		"connection_can_break": "På mobil kan tilkoblingen brytes hvis denne fanen mister fokus eller enheten går i dvale, og du mister plassen din i køen.",
+		"long_requests_queue": "Det er en lang kø med ventende forespørsler. Dupliser denne Space for å hoppe over køen.",
+		"lost_connection": "Mistet tilkobling på grunn av at siden ble forlatt. Går tilbake til køen..."
+	},
+	"checkbox": {
+		"checkbox": "Avkrysningsboks",
+		"checkbox_group": "Avkrysningsboksgruppe"
+	},
+	"code": {
+		"code": "Kode"
+	},
+	"color_picker": {
+		"color_picker": "Fargevelger"
+	},
+	"common": {
+		"built_with": "bygget med",
+		"built_with_gradio": "Bygget med Gradio",
+		"clear": "Tøm",
+		"download": "Last ned",
+		"edit": "Rediger",
+		"empty": "Tom",
+		"error": "Feil",
+		"hosted_on": "hostet på",
+		"loading": "Laster",
+		"logo": "logo",
+		"or": "eller",
+		"remove": "Fjern",
+		"settings": "Innstillinger",
+		"share": "Del",
+		"submit": "Send",
+		"undo": "Angre",
+		"no_devices": "Ingen enheter funnet",
+		"language": "Språk",
+		"display_theme": "Visningstema",
+		"pwa": "Progressiv webapplikasjon"
+	},
+	"dataframe": {
+		"incorrect_format": "Feil format, kun CSV- og TSV-filer støttes",
+		"new_column": "Legg til kolonne",
+		"new_row": "Ny rad",
+		"add_row_above": "Legg til rad over",
+		"add_row_below": "Legg til rad under",
+		"add_column_left": "Legg til kolonne til venstre",
+		"add_column_right": "Legg til kolonne til høyre"
+	},
+	"dropdown": {
+		"dropdown": "Nedtrekksmeny"
+	},
+	"errors": {
+		"build_error": "det er en byggefeil",
+		"config_error": "det er en konfigurasjonsfeil",
+		"contact_page_author": "Vennligst kontakt sidens forfatter for å informere dem.",
+		"no_app_file": "det er ingen app-fil",
+		"runtime_error": "det er en kjøretidsfeil",
+		"space_not_working": "\"Space fungerer ikke fordi\" {0}",
+		"space_paused": "space er pauset",
+		"use_via_api": "Bruk via API"
+	},
+	"file": {
+		"uploading": "Laster opp..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "Uthevet tekst"
+	},
+	"image": {
+		"allow_webcam_access": "Vennligst tillat webkameratilgang for opptak.",
+		"brush_color": "Penselfarge",
+		"brush_radius": "Penselstørrelse",
+		"image": "Bilde",
+		"remove_image": "Fjern bilde",
+		"select_brush_color": "Velg penselfarge",
+		"start_drawing": "Start tegning",
+		"use_brush": "Bruk pensel"
+	},
+	"label": {
+		"label": "Etikett"
+	},
+	"login": {
+		"enable_cookies": "Hvis du besøker en HuggingFace Space i inkognitomodus, må du aktivere tredjeparts informasjonskapsler.",
+		"incorrect_credentials": "Feil påloggingsinformasjon",
+		"username": "brukernavn",
+		"password": "passord",
+		"login": "Logg inn"
+	},
+	"number": {
+		"number": "Tall"
+	},
+	"plot": {
+		"plot": "Plott"
+	},
+	"radio": {
+		"radio": "Radio"
+	},
+	"slider": {
+		"slider": "Glidebryter"
+	},
+	"upload_text": {
+		"click_to_upload": "Klikk for å laste opp",
+		"drop_audio": "Slipp lyd her",
+		"drop_csv": "Slipp CSV her",
+		"drop_file": "Slipp fil her",
+		"drop_image": "Slipp bilde her",
+		"drop_video": "Slipp video her",
+		"drop_gallery": "Slipp media her",
+		"paste_clipboard": "Lim inn fra utklippstavle"
+	}
+}
