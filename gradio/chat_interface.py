@@ -255,13 +255,14 @@ class ChatInterface(Blocks):
                     break
 
         with self:
-            self.saved_messages = BrowserState(
+            self.saved_conversations = BrowserState(
                 [
                     [{"role": "user", "content": "Hello!"}],
                     [{"role": "user", "content": "Hi!"}],
                 ],
-                storage_key="saved_messages",
+                storage_key="saved_conversations",
             )
+            self.conversation_id = State(None)
 
             with Column():
                 if title:
@@ -276,30 +277,31 @@ class ChatInterface(Blocks):
                             HTML(save_history_css, container=True, padding=False)
                             with Group():
 
-                                @render(inputs=self.saved_messages)
+                                @render(inputs=self.saved_conversations)
                                 def create_history(conversations):
-                                    for chat_conversation in conversations:
-                                        h = HTML(
-                                            chat_conversation[0]["content"],
-                                            padding=False,
-                                            elem_classes=["_gradio-save-history"],
-                                        )
+                                    for index, conversation in enumerate(conversations):
+                                        if conversation:
+                                            html = HTML(
+                                                conversation[0]["content"],
+                                                padding=False,
+                                                elem_classes=["_gradio-save-history"],
+                                            )
 
-                                        # Using a closure to capture current chat_conversation value instead of a lambda directly
-                                        def create_click_handler(conversation):
-                                            return lambda _: conversation
+                                            # Using a closure to capture current chat_conversation value instead of a lambda directly
+                                            def create_click_handler(index, conversation):
+                                                return lambda _: (index, conversation)
 
-                                        h.click(
-                                            create_click_handler(chat_conversation),
-                                            h,
-                                            self.chatbot,
-                                        ).then(
-                                            lambda x: x,
-                                            [self.chatbot],
-                                            [self.chatbot_state],
-                                            show_api=False,
-                                            queue=False,
-                                        )
+                                            html.click(
+                                                create_click_handler(index, conversation),
+                                                html,
+                                                [self.conversation_id, self.chatbot],
+                                            ).then(
+                                                lambda x: x,
+                                                [self.chatbot],
+                                                [self.chatbot_state],
+                                                show_api=False,
+                                                queue=False,
+                                            )
 
                     with Column(scale=6):
                         if chatbot:
@@ -479,6 +481,15 @@ class ChatInterface(Blocks):
                 examples_messages.append(example_message)
         return examples_messages
 
+    def _save_conversation(self, index: int | None, conversation: list[MessageDict] | TupleFormat, saved_conversations: list[list[MessageDict] | TupleFormat]):
+        if self.save_history:
+            if index is not None:
+                saved_conversations[index] = conversation
+            else:
+                saved_conversations.append(conversation)
+                index = len(saved_conversations) - 1
+        return saved_conversations, index
+
     def _setup_events(self) -> None:
         submit_triggers = [self.textbox.submit, self.chatbot.retry]
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
@@ -504,6 +515,14 @@ class ChatInterface(Blocks):
                 Literal["full", "minimal", "hidden"], self.show_progress
             ),
         }
+        save_fn_kwargs = {
+            "fn": self._save_conversation,
+            "inputs": [self.conversation_id, self.chatbot_state, self.saved_conversations],
+            "outputs": [self.saved_conversations, self.conversation_id],
+            "show_api": False,
+            "queue": False,
+        }
+
         submit_event = (
             self.textbox.submit(
                 self._clear_and_save_textbox,
@@ -526,7 +545,10 @@ class ChatInterface(Blocks):
             None,
             self.textbox,
             show_api=False,
+        ).then(
+            **save_fn_kwargs
         )
+
         # Creates the "/chat" API endpoint
         self.fake_api_btn.click(
             submit_fn,
@@ -588,6 +610,8 @@ class ChatInterface(Blocks):
             lambda: update(interactive=True),
             outputs=[self.textbox],
             show_api=False,
+        ).then(
+            **save_fn_kwargs
         )
 
         self._setup_stop_events(submit_triggers, [submit_event, retry_event])
@@ -598,14 +622,18 @@ class ChatInterface(Blocks):
             [self.chatbot, self.textbox],
             show_api=False,
             queue=False,
-        ).then(**synchronize_chat_state_kwargs)
+        ).then(**synchronize_chat_state_kwargs).then(
+            **save_fn_kwargs
+        )
 
         self.chatbot.option_select(
             self.option_clicked,
             [self.chatbot],
             [self.chatbot, self.saved_input],
             show_api=False,
-        ).then(**submit_fn_kwargs).then(**synchronize_chat_state_kwargs)
+        ).then(**submit_fn_kwargs).then(**synchronize_chat_state_kwargs).then(
+            **save_fn_kwargs
+        )
 
         self.chatbot.clear(**synchronize_chat_state_kwargs)
 
@@ -615,7 +643,9 @@ class ChatInterface(Blocks):
                 [self.chatbot],
                 [self.chatbot, self.chatbot_state, self.saved_input],
                 show_api=False,
-            ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs)
+            ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
+            **save_fn_kwargs
+        )
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
