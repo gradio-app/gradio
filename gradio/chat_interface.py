@@ -305,7 +305,9 @@ class ChatInterface(Blocks):
                                         ):
                                             if conversation:
                                                 html = HTML(
-                                                    self._generate_chat_title(conversation),
+                                                    self._generate_chat_title(
+                                                        conversation
+                                                    ),
                                                     padding=False,
                                                     elem_classes=[
                                                         "_gradio-save-history"
