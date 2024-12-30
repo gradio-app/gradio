@@ -38,7 +38,7 @@ There are a few ways to install and run Gradio.
 - Navigate to the repo directory and run:
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
