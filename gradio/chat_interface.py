@@ -215,6 +215,7 @@ class ChatInterface(Blocks):
         self.cache_mode = cache_mode
         self.editable = editable
         self.save_history = save_history
+        self.saved_messages = BrowserState([], storage_key="saved_messages")
         self.additional_inputs = [
             get_component_instance(i)
             for i in utils.none_or_singleton_to_list(additional_inputs)
@@ -265,10 +266,8 @@ class ChatInterface(Blocks):
                     if save_history:
                         with Column(scale=1, min_width=100):
                             HTML(save_history_css, container=True, padding=False)
-                            if not hasattr(self, 'saved_history'):
-                                self.saved_history = BrowserState([])
                             with Group():
-                                @render(inputs=self.saved_history)
+                                @render(inputs=self.saved_messages)
                                 def create_history(conversations):
                                     for chat_conversation in conversations:
                                         h = HTML(chat_conversation[0]["content"], padding=False, elem_classes=["_gradio-save-history"])
@@ -412,8 +411,6 @@ class ChatInterface(Blocks):
                 self.chatbot_state = (
                     State(self.chatbot.value) if self.chatbot.value else State([])
                 )
-                if self.chatbot.value:
-                    self.saved_history = BrowserState(self.chatbot.value)
                 self.show_progress = show_progress
                 self._setup_events()
 
