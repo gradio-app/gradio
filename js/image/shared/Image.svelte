@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HTMLImgAttributes } from "svelte/elements";
-	import DOMPurify from 'dompurify';
+	import DOMPurify from "dompurify";
 
 	interface Props extends HTMLImgAttributes {
 		"data-testid"?: string;
@@ -11,7 +11,6 @@
 
 	export let src: HTMLImgAttributes["src"] = undefined;
 
-	
 	let resolved_src: typeof src;
 
 	// The `src` prop can be updated before the Promise from `resolve_wasm_src` is resolved.
@@ -23,9 +22,9 @@
 
 	async function handle_src_change(src: string | undefined): Promise<void> {
 		if (!src) return;
-		
-		is_svg = src.endsWith('.svg') || src.startsWith('data:image/svg+xml');
-		
+
+		is_svg = src.endsWith(".svg") || src.startsWith("data:image/svg+xml");
+
 		if (is_svg) {
 			try {
 				const response = await fetch(src);
@@ -34,7 +33,7 @@
 					USE_PROFILES: { svg: true, svgFilters: true }
 				});
 			} catch (error) {
-				console.error('Error loading SVG:', error);
+				console.error("Error loading SVG:", error);
 				is_svg = false;
 			}
 		}
@@ -45,11 +44,11 @@
 		// without waiting for `resolve_wasm_src()` to resolve.
 		// If it waits, a blank image is displayed until the async task finishes
 		// and it leads to undesirable flickering.
-		// So set `src` to `resolved_src` here.		
+		// So set `src` to `resolved_src` here.
 		resolved_src = src;
 		latest_src = src;
 		const resolving_src = src;
-		
+
 		resolve_wasm_src(resolving_src).then((s) => {
 			if (latest_src === resolving_src) {
 				resolved_src = s;
@@ -69,7 +68,8 @@
 {/if}
 
 <style>
-	img, :global(svg) {
+	img,
+	:global(svg) {
 		object-fit: contain;
 		width: 100%;
 		height: 100%;
