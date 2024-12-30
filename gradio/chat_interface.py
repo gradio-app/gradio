@@ -80,6 +80,7 @@ Local chat history
 </div>
 """
 
+
 @document()
 class ChatInterface(Blocks):
     """
@@ -215,7 +216,6 @@ class ChatInterface(Blocks):
         self.cache_mode = cache_mode
         self.editable = editable
         self.save_history = save_history
-        self.saved_messages = BrowserState([], storage_key="saved_messages")
         self.additional_inputs = [
             get_component_instance(i)
             for i in utils.none_or_singleton_to_list(additional_inputs)
@@ -255,6 +255,14 @@ class ChatInterface(Blocks):
                     break
 
         with self:
+            self.saved_messages = BrowserState(
+                [
+                    [{"role": "user", "content": "Hello!"}],
+                    [{"role": "user", "content": "Hi!"}],
+                ],
+                storage_key="saved_messages",
+            )
+
             with Column():
                 if title:
                     Markdown(
@@ -267,11 +275,31 @@ class ChatInterface(Blocks):
                         with Column(scale=1, min_width=100):
                             HTML(save_history_css, container=True, padding=False)
                             with Group():
+
                                 @render(inputs=self.saved_messages)
                                 def create_history(conversations):
                                     for chat_conversation in conversations:
-                                        h = HTML(chat_conversation[0]["content"], padding=False, elem_classes=["_gradio-save-history"])
-                                        h.click(lambda _:chat_conversation, h, self.chatbot)
+                                        h = HTML(
+                                            chat_conversation[0]["content"],
+                                            padding=False,
+                                            elem_classes=["_gradio-save-history"],
+                                        )
+
+                                        # Using a closure to capture current chat_conversation value instead of a lambda directly
+                                        def create_click_handler(conversation):
+                                            return lambda _: conversation
+
+                                        h.click(
+                                            create_click_handler(chat_conversation),
+                                            h,
+                                            self.chatbot,
+                                        ).then(
+                                            lambda x: x,
+                                            [self.chatbot],
+                                            [self.chatbot_state],
+                                            show_api=False,
+                                            queue=False,
+                                        )
 
                     with Column(scale=6):
                         if chatbot:
