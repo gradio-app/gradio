@@ -60,7 +60,7 @@ scripts\install_gradio.bat
 - Run the frontend (only required if you are making changes to the frontend and would like to preview them)
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
@@ -85,7 +85,7 @@ scripts\run_frontend.bat
 
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
@@ -108,7 +108,7 @@ If you have a different Python version and conflicting packages during the insta
 
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
@@ -193,7 +193,7 @@ If you're making frontend changes, start the frontend server:
 
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
@@ -229,7 +229,7 @@ We use Pytest, Playwright and Vitest to test our code.
 
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
@@ -361,7 +361,7 @@ and then from the website directory:
 pnpm dev
 ```
 
-#### Main vs Released 
+#### Main vs. Released 
 
 The website supports documentation for both the latest released version on pypi as well as the main build on github. You can switch between them on the website by using the toggle on any page or by prefixing '/main' before the route in the url. For example: https://www.gradio.app/main/guides/quickstart 
 
@@ -374,7 +374,7 @@ Gradio-Lite is a Pyodide-based library that lets you run Gradio serverless (in o
 You can start the development server by running:
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
@@ -401,7 +401,7 @@ pnpm --filter @gradio/lite pybuild
 To generate the release build, run:
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
@@ -440,7 +440,7 @@ Don't forget to format your code before pushing:
 
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
@@ -464,7 +464,7 @@ And if you made changes to the frontend:
 
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
@@ -513,7 +513,7 @@ and run the install scripts:
 
 <table>
   <tr>
-  <th>Linux</th>
+  <th>MacOS / Linux</th>
   <th>Windows</th>
   </tr>
   <tr>
