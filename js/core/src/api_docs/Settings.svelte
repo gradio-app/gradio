@@ -96,9 +96,6 @@
 <div class="banner-wrap">
 	<h2>{$_("common.language")}</h2>
 	<p class="padded">
-		Gradio automatically detects the language of your browser. You can also
-		choose a language manually:
-	</p>
 	<Dropdown
 		label="Language"
 		choices={language_choices}
@@ -107,6 +104,7 @@
 		value={current_locale}
 		on:change={handleLanguageChange}
 	/>
+	</p>
 </div>
 <div class="banner-wrap">
 	<h2>{$_("common.pwa")}</h2>
