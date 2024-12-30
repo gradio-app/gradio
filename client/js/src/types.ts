@@ -331,7 +331,7 @@ export type GradioEvent = {
 export interface Log {
 	log: string;
 	title: string;
-	level: "warning" | "info";
+	level: "warning" | "info" | "success";
 }
 export interface Render {
 	data: {
