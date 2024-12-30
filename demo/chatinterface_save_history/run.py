@@ -1,11 +1,7 @@
 import gradio as gr
 
 def echo_multimodal(message, history):
-    response = []
-    response.append("You wrote: '" + message["text"] + "' and uploaded:")
-    if message.get("files"):
-        for file in message["files"]:
-            response.append(gr.File(value=file))
+    response = "You wrote: '" + message["text"] + "' and uploaded: " + str(len(message["files"])) + " files"
     return response
 
 demo = gr.ChatInterface(
