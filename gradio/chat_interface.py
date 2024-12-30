@@ -457,21 +457,10 @@ class ChatInterface(Blocks):
         if hasattr(self.fn, "zerogpu"):
             submit_fn.__func__.zerogpu = self.fn.zerogpu  # type: ignore
 
-        def test(chatbot, chatbot_state, saved_history):
-            if self.save_history:
-                if isinstance(chatbot_state, list) and len(chatbot_state) == 0:
-                    return chatbot, saved_history + [chatbot]
-                else:
-                    # replace the most recent element in saved history with chatbot_state
-                    saved_history[-1] = chatbot
-                    return chatbot, saved_history
-            else:
-                return chatbot
-
         synchronize_chat_state_kwargs = {
-            "fn": test,
-            "inputs": [self.chatbot, self.chatbot_state] + ([self.saved_history] if hasattr(self, 'saved_history') else []),
-            "outputs": [self.chatbot_state] + ([self.saved_history] if hasattr(self, 'saved_history') else []),
+            "fn": lambda x: x,
+            "inputs": [self.chatbot],
+            "outputs": [self.chatbot_state],
             "show_api": False,
             "queue": False,
         }
@@ -487,7 +476,6 @@ class ChatInterface(Blocks):
                 Literal["full", "minimal", "hidden"], self.show_progress
             ),
         }
-
         submit_event = (
             self.textbox.submit(
                 self._clear_and_save_textbox,
