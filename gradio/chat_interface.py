@@ -529,10 +529,10 @@ class ChatInterface(Blocks):
         return index, saved_conversations
 
     def _delete_conversation(
-            self,
-            index: int | None,
-            saved_conversations: list[list[MessageDict] | TupleFormat]
-        ):
+        self,
+        index: int | None,
+        saved_conversations: list[list[MessageDict] | TupleFormat],
+    ):
         if index is not None:
             saved_conversations.pop(index)
         return None, saved_conversations
