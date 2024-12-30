@@ -288,11 +288,15 @@ class ChatInterface(Blocks):
                                             )
 
                                             # Using a closure to capture current chat_conversation value instead of a lambda directly
-                                            def create_click_handler(index, conversation):
+                                            def create_click_handler(
+                                                index, conversation
+                                            ):
                                                 return lambda _: (index, conversation)
 
                                             html.click(
-                                                create_click_handler(index, conversation),
+                                                create_click_handler(
+                                                    index, conversation
+                                                ),
                                                 html,
                                                 [self.conversation_id, self.chatbot],
                                             ).then(
@@ -481,7 +485,12 @@ class ChatInterface(Blocks):
                 examples_messages.append(example_message)
         return examples_messages
 
-    def _save_conversation(self, index: int | None, conversation: list[MessageDict] | TupleFormat, saved_conversations: list[list[MessageDict] | TupleFormat]):
+    def _save_conversation(
+        self,
+        index: int | None,
+        conversation: list[MessageDict] | TupleFormat,
+        saved_conversations: list[list[MessageDict] | TupleFormat],
+    ):
         if self.save_history:
             if index is not None:
                 saved_conversations[index] = conversation
@@ -517,7 +526,11 @@ class ChatInterface(Blocks):
         }
         save_fn_kwargs = {
             "fn": self._save_conversation,
-            "inputs": [self.conversation_id, self.chatbot_state, self.saved_conversations],
+            "inputs": [
+                self.conversation_id,
+                self.chatbot_state,
+                self.saved_conversations,
+            ],
             "outputs": [self.saved_conversations, self.conversation_id],
             "show_api": False,
             "queue": False,
@@ -545,9 +558,7 @@ class ChatInterface(Blocks):
             None,
             self.textbox,
             show_api=False,
-        ).then(
-            **save_fn_kwargs
-        )
+        ).then(**save_fn_kwargs)
 
         # Creates the "/chat" API endpoint
         self.fake_api_btn.click(
@@ -610,9 +621,7 @@ class ChatInterface(Blocks):
             lambda: update(interactive=True),
             outputs=[self.textbox],
             show_api=False,
-        ).then(
-            **save_fn_kwargs
-        )
+        ).then(**save_fn_kwargs)
 
         self._setup_stop_events(submit_triggers, [submit_event, retry_event])
 
@@ -622,9 +631,7 @@ class ChatInterface(Blocks):
             [self.chatbot, self.textbox],
             show_api=False,
             queue=False,
-        ).then(**synchronize_chat_state_kwargs).then(
-            **save_fn_kwargs
-        )
+        ).then(**synchronize_chat_state_kwargs).then(**save_fn_kwargs)
 
         self.chatbot.option_select(
             self.option_clicked,
@@ -644,8 +651,8 @@ class ChatInterface(Blocks):
                 [self.chatbot, self.chatbot_state, self.saved_input],
                 show_api=False,
             ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
-            **save_fn_kwargs
-        )
+                **save_fn_kwargs
+            )
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
