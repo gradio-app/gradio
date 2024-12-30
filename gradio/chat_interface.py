@@ -46,7 +46,7 @@ from gradio.renderable import render
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 
-save_history_css = """
+new_chat_html = """
 <style>
 ._gradio-save-history {
     width: 100%;
@@ -75,11 +75,10 @@ save_history_css = """
     padding: 10px 0px;
 }
 </style>
-<div class="_gradio-save-history-header">
-Local chat history
+<div class="_gradio-save-history _gradio-save-history-header">
+✙ &nbsp; New Chat
 </div>
 """
-
 
 @document()
 class ChatInterface(Blocks):
@@ -255,13 +254,7 @@ class ChatInterface(Blocks):
                     break
 
         with self:
-            self.saved_conversations = BrowserState(
-                [
-                    [{"role": "user", "content": "Hello!"}],
-                    [{"role": "user", "content": "Hi!"}],
-                ],
-                storage_key="saved_conversations",
-            )
+            self.saved_conversations = BrowserState([], storage_key="saved_conversations")
             self.conversation_id = State(None)
 
             with Column():
@@ -274,38 +267,49 @@ class ChatInterface(Blocks):
                 with Row():
                     if save_history:
                         with Column(scale=1, min_width=100):
-                            HTML(save_history_css, container=True, padding=False)
-                            with Group():
+                            @render(inputs=self.saved_conversations)
+                            def create_history(conversations):
+                                html_new = HTML(new_chat_html, container=True, padding=False)
+                                html_new.click(
+                                    lambda : (None, []),
+                                    None,
+                                    [self.conversation_id, self.chatbot]
+                                ).then(
+                                    lambda x: x,
+                                    [self.chatbot],
+                                    [self.chatbot_state],
+                                    show_api=False,
+                                    queue=False,
+                                )
+                                if conversations:
+                                    with Group():
+                                        for index, conversation in enumerate(conversations):
+                                            if conversation:
+                                                html = HTML(
+                                                    conversation[0]["content"],
+                                                    padding=False,
+                                                    elem_classes=["_gradio-save-history"],
+                                                )
 
-                                @render(inputs=self.saved_conversations)
-                                def create_history(conversations):
-                                    for index, conversation in enumerate(conversations):
-                                        if conversation:
-                                            html = HTML(
-                                                conversation[0]["content"],
-                                                padding=False,
-                                                elem_classes=["_gradio-save-history"],
-                                            )
-
-                                            # Using a closure to capture current chat_conversation value instead of a lambda directly
-                                            def create_click_handler(
-                                                index, conversation
-                                            ):
-                                                return lambda _: (index, conversation)
-
-                                            html.click(
-                                                create_click_handler(
+                                                # Using a closure to capture current chat_conversation value instead of a lambda directly
+                                                def create_click_handler(
                                                     index, conversation
-                                                ),
-                                                html,
-                                                [self.conversation_id, self.chatbot],
-                                            ).then(
-                                                lambda x: x,
-                                                [self.chatbot],
-                                                [self.chatbot_state],
-                                                show_api=False,
-                                                queue=False,
-                                            )
+                                                ):
+                                                    return lambda _: (index, conversation)
+
+                                                html.click(
+                                                    create_click_handler(
+                                                        index, conversation
+                                                    ),
+                                                    html,
+                                                    [self.conversation_id, self.chatbot],
+                                                ).then(
+                                                    lambda x: x,
+                                                    [self.chatbot],
+                                                    [self.chatbot_state],
+                                                    show_api=False,
+                                                    queue=False,
+                                                )
 
                     with Column(scale=6):
                         if chatbot:
