@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Save chat history WIP 
+feat:Support saving chat history in `gr.ChatInterface`
