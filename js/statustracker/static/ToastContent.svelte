@@ -135,7 +135,7 @@
 			background-color: var(--color-grey-950);
 		}
 
-		 .toast-body.success {
+		.toast-body.success {
 			border: 1px solid var(--color-green-500);
 			background-color: var(--color-grey-950);
 		}
@@ -150,7 +150,7 @@
 		.toast-title.info {
 			color: var(--color-grey-50);
 		}
-		 .toast-title.success {
+		.toast-title.success {
 			color: var(--color-green-50);
 		}
 		.toast-close.error {
@@ -161,8 +161,8 @@
 		}
 		.toast-close.info {
 			color: var(--color-grey-500);
-		 }
-		 .toast-close.success {
+		}
+		.toast-close.success {
 			color: var(--color-green-500);
 		}
 		.toast-text.error {
@@ -173,8 +173,8 @@
 		}
 		.toast-text.info {
 			color: var(--color-grey-50);
-		 }
-		 .toast-text.success {
+		}
+		.toast-text.success {
 			color: var(--color-green-50);
 		}
 		.toast-icon.error {
@@ -185,8 +185,8 @@
 		}
 		.toast-icon.info {
 			color: var(--color-grey-500);
-		 }
-		 .toast-icon.success {
+		}
+		.toast-icon.success {
 			color: var(--color-green-500);
 		}
 		.timer.error {
@@ -197,8 +197,8 @@
 		}
 		.timer.info {
 			background: var(--color-grey-500);
-		 }
-		 .timer.success {
+		}
+		.timer.success {
 			background: var(--color-green-500);
 		}
 	}
