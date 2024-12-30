@@ -227,7 +227,7 @@ class Image(StreamingInput, Component):
         if suffix.lower() == "svg":
             if self.type == "filepath":
                 return str(file_path)
-            raise Error("SVG files are not supported as input images unless `type` is set to 'filepath'.")
+            raise Error("SVG files are not supported as input images for this app.")
 
         im = PIL.Image.open(file_path)
         if self.type == "filepath" and (self.image_mode in [None, im.mode]):
