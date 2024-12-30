@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Svg fixes
+feat:SVG fixes
