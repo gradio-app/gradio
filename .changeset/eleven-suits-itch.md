@@ -1,6 +1,6 @@
 ---
-"@gradio/image": minor
-"gradio": minor
+"@gradio/image": patch
+"gradio": patch
 ---
 
-feat:Allow displaying SVG images securely in `gr.Image` component
+fix:Allow displaying SVG images securely in `gr.Image` component
