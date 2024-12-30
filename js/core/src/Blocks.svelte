@@ -773,8 +773,8 @@
 				>
 					{$_("errors.use_via_api")}
 					<img src={api_logo} alt={$_("common.logo")} />
+					<div>&nbsp;·</div>
 				</button>
-				<div>·</div>
 			{/if}
 			<a
 				href="https://gradio.app"
@@ -785,13 +785,13 @@
 				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
-			<div>·</div>
 			<button
 				on:click={() => {
 					set_settings_visible(!settings_visible);
 				}}
 				class="settings"
 			>
+				<div>· &nbsp;</div>
 				{$_("common.settings")}
 				<img src={settings_logo} alt={$_("common.settings")} />
 			</button>
