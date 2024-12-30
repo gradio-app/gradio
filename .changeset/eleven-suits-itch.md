@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:SVG fixes
+feat:Allow displaying SVG images securely in `gr.Image` component
