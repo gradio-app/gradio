@@ -11,6 +11,11 @@
 
 	export let src: HTMLImgAttributes["src"] = undefined;
 
+	// In normal (non-Wasm) Gradio, the `<img>` element should be rendered with the passed `src` props immediately
+	// without waiting for `resolve_wasm_src()` to resolve.
+	// If it waits, a blank image is displayed until the async task finishes
+	// and it leads to undesirable flickering.
+	// So set `src` to `resolved_src` here.	
 	let resolved_src: typeof src;
 
 	// The `src` prop can be updated before the Promise from `resolve_wasm_src` is resolved.
