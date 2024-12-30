@@ -383,6 +383,7 @@ class BlocksConfigDict(TypedDict):
     root: NotRequired[str | None]
     username: NotRequired[str | None]
     api_prefix: str
+    pwa: NotRequired[bool]
 
 
 class MediaStreamChunk(TypedDict):

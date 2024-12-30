@@ -1,4 +1,5 @@
 {
+	"_name": "Türkçe",
 	"common": {
 		"built_with_gradio": "Gradio ile oluşturulmuştur",
 		"clear": "Temizle",

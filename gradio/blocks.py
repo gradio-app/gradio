@@ -1083,6 +1083,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.renderables: list[Renderable] = []
         self.state_holder: StateHolder
         self.custom_mount_path: str | None = None
+        self.pwa = False
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -2171,6 +2172,7 @@ Received inputs:
             "fill_height": self.fill_height,
             "fill_width": self.fill_width,
             "theme_hash": self.theme_hash,
+            "pwa": self.pwa,
         }
         config.update(self.default_config.get_config())  # type: ignore
         config["connect_heartbeat"] = utils.connect_heartbeat(
@@ -2450,9 +2452,10 @@ Received inputs:
                 if block.key is None:
                     block.key = f"__{block._id}__"
 
-        self.config = self.get_config_file()
+        self.pwa = utils.get_space() is not None if pwa is None else pwa
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+        self.config = self.get_config_file()
 
         self.ssr_mode = (
             False
@@ -2532,7 +2535,6 @@ Received inputs:
                 "http" if share_server_address is not None else "https"
             )
             self.has_launched = True
-            self.pwa = utils.get_space() is not None if pwa is None else pwa
 
             self.protocol = (
                 "https"

@@ -1,9 +1,11 @@
 {
+	"_name": "Lietuvių",
 	"common": {
 		"built_with_gradio": "sukurta su gradio",
 		"clear": "Trinti",
 		"or": "arba",
-		"submit": "Pateikti"
+		"submit": "Pateikti",
+		"settings": "Nustatymai"
 	},
 	"upload_text": {
 		"click_to_upload": "Spustelėkite norėdami įkelti",

@@ -1,25 +1,130 @@
 {
+	"_name": "日本語",
+	"3D_model": {
+		"3d_model": "3Dモデル"
+	},
+	"annotated_image": {
+		"annotated_image": "注釈付き画像"
+	},
+	"audio": {
+		"allow_recording_access": "録音のためにマイクへのアクセスを許可してください。",
+		"audio": "音声",
+		"record_from_microphone": "マイクから録音",
+		"stop_recording": "録音を停止",
+		"no_device_support": "メディアデバイスにアクセスできません。安全なソース（https）またはlocalhostで実行していること（またはssl_verifyに有効なSSL証明書を渡していること）、ブラウザにデバイスへのアクセスを許可していることを確認してください。",
+		"stop": "停止",
+		"resume": "再開",
+		"record": "録音",
+		"no_microphone": "マイクが見つかりません",
+		"pause": "一時停止",
+		"play": "再生",
+		"waiting": "待機中"
+	},
+	"blocks": {
+		"connection_can_break": "モバイルでは、このタブがフォーカスを失うかデバイスがスリープモードになると接続が切断され、キュー内の位置が失われる可能性があります。",
+		"long_requests_queue": "保留中のリクエストの長いキューがあります。このSpaceを複製してスキップしてください。",
+		"lost_connection": "ページを離れたため接続が切断されました。キューに戻ります..."
+	},
+	"checkbox": {
+		"checkbox": "チェックボックス",
+		"checkbox_group": "チェックボックスグループ"
+	},
+	"code": {
+		"code": "コード"
+	},
+	"color_picker": {
+		"color_picker": "カラーピッカー"
+	},
 	"common": {
-		"built_with_gradio": "gradioで作ろう",
+		"built_with": "で作成",
+		"built_with_gradio": "Gradioで作成",
 		"clear": "クリア",
+		"download": "ダウンロード",
+		"edit": "編集",
+		"empty": "空",
+		"error": "エラー",
+		"hosted_on": "でホスト",
+		"loading": "読み込み中",
+		"logo": "ロゴ",
 		"or": "または",
-		"submit": "送信"
+		"remove": "削除",
+		"settings": "設定",
+		"share": "共有",
+		"submit": "送信",
+		"undo": "元に戻す",
+		"no_devices": "デバイスが見つかりません",
+		"language": "言語",
+		"display_theme": "表示テーマ",
+		"pwa": "プログレッシブウェブアプリ"
+	},
+	"dataframe": {
+		"incorrect_format": "不正なフォーマット、CSVとTSVファイルのみサポートされています",
+		"new_column": "列を追加",
+		"new_row": "新しい行",
+		"add_row_above": "上に行を追加",
+		"add_row_below": "下に行を追加",
+		"add_column_left": "左に列を追加",
+		"add_column_right": "右に列を追加"
+	},
+	"dropdown": {
+		"dropdown": "ドロップダウン"
 	},
 	"errors": {
-		"use_via_api": "API経由で使おう"
+		"build_error": "ビルドエラーがあります",
+		"config_error": "設定エラーがあります",
+		"contact_page_author": "ページの作者に連絡して知らせてください。",
+		"no_app_file": "アプリファイルがありません",
+		"runtime_error": "ランタイムエラーがあります",
+		"space_not_working": "\"Spaceが動作していません。理由：\" {0}",
+		"space_paused": "spaceが一時停止されています",
+		"use_via_api": "APIを介して使用"
+	},
+	"file": {
+		"uploading": "アップロード中..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "ハイライトされたテキスト"
+	},
+	"image": {
+		"allow_webcam_access": "録画のためにウェブカメラへのアクセスを許可してください。",
+		"brush_color": "ブラシの色",
+		"brush_radius": "ブラシのサイズ",
+		"image": "画像",
+		"remove_image": "画像を削除",
+		"select_brush_color": "ブラシの色を選択",
+		"start_drawing": "描画を開始",
+		"use_brush": "ブラシを使用"
+	},
+	"label": {
+		"label": "ラベル"
 	},
 	"login": {
+		"enable_cookies": "シークレットモードでHuggingFace Spaceを訪問している場合、サードパーティのCookieを有効にする必要があります。",
 		"incorrect_credentials": "認証情報が正しくありません",
-		"username": "ユーザ名",
+		"username": "ユーザー名",
 		"password": "パスワード",
 		"login": "ログイン"
 	},
+	"number": {
+		"number": "数値"
+	},
+	"plot": {
+		"plot": "プロット"
+	},
+	"radio": {
+		"radio": "ラジオボタン"
+	},
+	"slider": {
+		"slider": "スライダー"
+	},
 	"upload_text": {
 		"click_to_upload": "クリックしてアップロード",
-		"drop_audio": "ここに音声をドロップ",
-		"drop_csv": "ここにCSVをドロップ",
-		"drop_file": "ここにファイルをドロップ",
-		"drop_image": "ここに画像をドロップ",
-		"drop_video": "ここに動画をドロップ"
+		"drop_audio": "音声をここにドロップ",
+		"drop_csv": "CSVをここにドロップ",
+		"drop_file": "ファイルをここにドロップ",
+		"drop_image": "画像をここにドロップ",
+		"drop_video": "動画をここにドロップ",
+		"drop_gallery": "メディアをここにドロップ",
+		"paste_clipboard": "クリップボードから貼り付け"
 	}
 }

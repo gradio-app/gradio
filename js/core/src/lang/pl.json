@@ -1,16 +1,130 @@
 {
+	"_name": "Polski",
+	"3D_model": {
+		"3d_model": "Model 3D"
+	},
+	"annotated_image": {
+		"annotated_image": "Obraz z adnotacjami"
+	},
+	"audio": {
+		"allow_recording_access": "Proszę zezwolić na dostęp do mikrofonu w celu nagrywania.",
+		"audio": "Audio",
+		"record_from_microphone": "Nagraj z mikrofonu",
+		"stop_recording": "Zatrzymaj nagrywanie",
+		"no_device_support": "Nie można uzyskać dostępu do urządzeń multimedialnych. Upewnij się, że działasz na bezpiecznym źródle (https) lub localhost (lub przekazałeś prawidłowy certyfikat SSL do ssl_verify), i że zezwoliłeś przeglądarce na dostęp do twojego urządzenia.",
+		"stop": "Stop",
+		"resume": "Wznów",
+		"record": "Nagrywaj",
+		"no_microphone": "Nie znaleziono mikrofonu",
+		"pause": "Pauza",
+		"play": "Odtwórz",
+		"waiting": "Oczekiwanie"
+	},
+	"blocks": {
+		"connection_can_break": "Na urządzeniu mobilnym połączenie może zostać przerwane, jeśli ta karta straci fokus lub urządzenie przejdzie w tryb uśpienia, tracąc twoje miejsce w kolejce.",
+		"long_requests_queue": "Istnieje długa kolejka oczekujących żądań. Zduplikuj ten Space, aby ją pominąć.",
+		"lost_connection": "Utracono połączenie z powodu opuszczenia strony. Powrót do kolejki..."
+	},
+	"checkbox": {
+		"checkbox": "Pole wyboru",
+		"checkbox_group": "Grupa pól wyboru"
+	},
+	"code": {
+		"code": "Kod"
+	},
+	"color_picker": {
+		"color_picker": "Wybór koloru"
+	},
 	"common": {
-		"built_with_gradio": "utworzone z gradio",
+		"built_with": "zbudowane z",
+		"built_with_gradio": "Zbudowane z Gradio",
 		"clear": "Wyczyść",
+		"download": "Pobierz",
+		"edit": "Edytuj",
+		"empty": "Pusty",
+		"error": "Błąd",
+		"hosted_on": "hostowane na",
+		"loading": "Ładowanie",
+		"logo": "logo",
 		"or": "lub",
-		"submit": "Zatwierdź"
+		"remove": "Usuń",
+		"settings": "Ustawienia",
+		"share": "Udostępnij",
+		"submit": "Wyślij",
+		"undo": "Cofnij",
+		"no_devices": "Nie znaleziono urządzeń",
+		"language": "Język",
+		"display_theme": "Motyw wyświetlania",
+		"pwa": "Progresywna aplikacja webowa"
+	},
+	"dataframe": {
+		"incorrect_format": "Nieprawidłowy format, obsługiwane są tylko pliki CSV i TSV",
+		"new_column": "Dodaj kolumnę",
+		"new_row": "Nowy wiersz",
+		"add_row_above": "Dodaj wiersz powyżej",
+		"add_row_below": "Dodaj wiersz poniżej",
+		"add_column_left": "Dodaj kolumnę po lewej",
+		"add_column_right": "Dodaj kolumnę po prawej"
+	},
+	"dropdown": {
+		"dropdown": "Lista rozwijana"
+	},
+	"errors": {
+		"build_error": "wystąpił błąd kompilacji",
+		"config_error": "wystąpił błąd konfiguracji",
+		"contact_page_author": "Proszę skontaktować się z autorem strony, aby go poinformować.",
+		"no_app_file": "brak pliku aplikacji",
+		"runtime_error": "wystąpił błąd wykonania",
+		"space_not_working": "\"Space nie działa, ponieważ\" {0}",
+		"space_paused": "space jest wstrzymany",
+		"use_via_api": "Użyj przez API"
+	},
+	"file": {
+		"uploading": "Przesyłanie..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "Wyróżniony tekst"
+	},
+	"image": {
+		"allow_webcam_access": "Proszę zezwolić na dostęp do kamery internetowej w celu nagrywania.",
+		"brush_color": "Kolor pędzla",
+		"brush_radius": "Rozmiar pędzla",
+		"image": "Obraz",
+		"remove_image": "Usuń obraz",
+		"select_brush_color": "Wybierz kolor pędzla",
+		"start_drawing": "Rozpocznij rysowanie",
+		"use_brush": "Użyj pędzla"
+	},
+	"label": {
+		"label": "Etykieta"
+	},
+	"login": {
+		"enable_cookies": "Jeśli odwiedzasz HuggingFace Space w trybie incognito, musisz włączyć pliki cookie stron trzecich.",
+		"incorrect_credentials": "Nieprawidłowe dane logowania",
+		"username": "nazwa użytkownika",
+		"password": "hasło",
+		"login": "Zaloguj się"
+	},
+	"number": {
+		"number": "Liczba"
+	},
+	"plot": {
+		"plot": "Wykres"
+	},
+	"radio": {
+		"radio": "Przycisk opcji"
+	},
+	"slider": {
+		"slider": "Suwak"
 	},
 	"upload_text": {
 		"click_to_upload": "Kliknij, aby przesłać",
-		"drop_audio": "Przeciągnij tutaj audio",
-		"drop_csv": "Przeciągnij tutaj CSV",
-		"drop_file": "Przeciągnij tutaj plik",
-		"drop_image": "Przeciągnij tutaj zdjęcie",
-		"drop_video": "Przeciągnij tutaj video"
+		"drop_audio": "Upuść audio tutaj",
+		"drop_csv": "Upuść CSV tutaj",
+		"drop_file": "Upuść plik tutaj",
+		"drop_image": "Upuść obraz tutaj",
+		"drop_video": "Upuść wideo tutaj",
+		"drop_gallery": "Upuść media tutaj",
+		"paste_clipboard": "Wklej ze schowka"
 	}
 }

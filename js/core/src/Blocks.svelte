@@ -8,7 +8,7 @@
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
 	import { setupi18n } from "./i18n";
-	import { ApiDocs, ApiRecorder } from "./api_docs/";
+	import { ApiDocs, ApiRecorder, Settings } from "./api_docs/";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
@@ -18,6 +18,7 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
+	import settings_logo from "./api_docs/img/settings-logo.svg";
 	import { create_components, AsyncFunction } from "./init";
 	import type {
 		LogMessage,
@@ -85,8 +86,10 @@
 
 	export let search_params: URLSearchParams;
 	let api_docs_visible = search_params.get("view") === "api" && show_api;
+	let settings_visible = search_params.get("view") === "settings";
 	let api_recorder_visible =
 		search_params.get("view") === "api-recorder" && show_api;
+
 	function set_api_docs_visible(visible: boolean): void {
 		api_recorder_visible = false;
 		api_docs_visible = visible;
@@ -98,6 +101,18 @@
 		}
 		history.replaceState(null, "", "?" + params.toString());
 	}
+
+	function set_settings_visible(visible: boolean): void {
+		let params = new URLSearchParams(window.location.search);
+		if (visible) {
+			params.set("view", "settings");
+		} else {
+			params.delete("view");
+		}
+		history.replaceState(null, "", "?" + params.toString());
+		settings_visible = !settings_visible;
+	}
+
 	let api_calls: Payload[] = [];
 
 	export let render_complete = false;
@@ -758,8 +773,8 @@
 				>
 					{$_("errors.use_via_api")}
 					<img src={api_logo} alt={$_("common.logo")} />
+					<div>&nbsp;·</div>
 				</button>
-				<div>·</div>
 			{/if}
 			<a
 				href="https://gradio.app"
@@ -770,6 +785,16 @@
 				{$_("common.built_with_gradio")}
 				<img src={logo} alt={$_("common.logo")} />
 			</a>
+			<button
+				on:click={() => {
+					set_settings_visible(!settings_visible);
+				}}
+				class="settings"
+			>
+				<div>· &nbsp;</div>
+				{$_("common.settings")}
+				<img src={settings_logo} alt={$_("common.settings")} />
+			</button>
 		</footer>
 	{/if}
 </div>
@@ -819,6 +844,30 @@
 	</div>
 {/if}
 
+{#if settings_visible && $_layout && app.config}
+	<div class="api-docs">
+		<!-- TODO: fix -->
+		<!-- svelte-ignore a11y-click-events-have-key-events-->
+		<!-- svelte-ignore a11y-no-static-element-interactions-->
+		<div
+			class="backdrop"
+			on:click={() => {
+				set_settings_visible(false);
+			}}
+		/>
+		<div class="api-docs-wrap">
+			<Settings
+				on:close={(event) => {
+					set_settings_visible(false);
+				}}
+				pwa_enabled={app.config.pwa}
+				{root}
+				{space_id}
+			/>
+		</div>
+	</div>
+{/if}
+
 {#if messages}
 	<Toast {messages} on:close={handle_error_close} />
 {/if}
@@ -849,7 +898,8 @@
 		margin-left: var(--size-2);
 	}
 
-	.show-api {
+	.show-api,
+	.settings {
 		display: flex;
 		align-items: center;
 	}
@@ -863,12 +913,19 @@
 		width: var(--size-3);
 	}
 
+	.settings img {
+		margin-right: var(--size-1);
+		margin-left: var(--size-1);
+		width: var(--size-4);
+	}
+
 	.built-with {
 		display: flex;
 		align-items: center;
 	}
 
-	.built-with:hover {
+	.built-with:hover,
+	.settings:hover {
 		color: var(--body-text-color);
 	}
 
@@ -922,5 +979,20 @@
 		left: 10px;
 		bottom: 10px;
 		z-index: 1000;
+	}
+
+	.show-api {
+		display: flex;
+		align-items: center;
+	}
+
+	@media (max-width: 640px) {
+		.show-api {
+			display: none;
+		}
+	}
+
+	.show-api:hover {
+		color: var(--body-text-color);
 	}
 </style>

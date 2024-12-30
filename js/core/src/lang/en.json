@@ -1,4 +1,5 @@
 {
+	"_name": "English",
 	"3D_model": {
 		"3d_model": "3D Model"
 	},
@@ -48,10 +49,14 @@
 		"logo": "logo",
 		"or": "or",
 		"remove": "Remove",
+		"settings": "Settings",
 		"share": "Share",
 		"submit": "Submit",
 		"undo": "Undo",
-		"no_devices": "No devices found"
+		"no_devices": "No devices found",
+		"language": "Language",
+		"display_theme": "Display Theme",
+		"pwa": "Progressive Web App"
 	},
 	"dataframe": {
 		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",
