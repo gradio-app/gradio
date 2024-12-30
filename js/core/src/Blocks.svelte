@@ -980,4 +980,19 @@
 		bottom: 10px;
 		z-index: 1000;
 	}
+
+	.show-api {
+		display: flex;
+		align-items: center;
+	}
+
+	@media (max-width: 640px) {
+		.show-api {
+			display: none;
+		}
+	}
+
+	.show-api:hover {
+		color: var(--body-text-color);
+	}
 </style>
