@@ -23,7 +23,7 @@
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });
 
 	function wrap(
-		component: ComponentType<SvelteComponent>
+		component: ComponentType<SvelteComponent>,
 	): ComponentType<SvelteComponent> {
 		const ProxiedMyClass = new Proxy(component, {
 			construct(_target, args: Record<string, any>[]) {
@@ -43,7 +43,7 @@
 				});
 
 				return instance;
-			}
+			},
 		});
 
 		return ProxiedMyClass;
@@ -52,20 +52,20 @@
 	const _component = wrap(component);
 </script>
 
-{#if visible}
-	<svelte:component
-		this={_component}
-		bind:this={instance}
-		bind:value
-		on:prop_change
-		{elem_id}
-		{elem_classes}
-		{target}
-		{visible}
-		{...$$restProps}
-		{theme_mode}
-		{root}
-	>
-		<slot />
-	</svelte:component>
-{/if}
+<!-- {#if visible} -->
+<svelte:component
+	this={_component}
+	bind:this={instance}
+	bind:value
+	on:prop_change
+	{elem_id}
+	{elem_classes}
+	{target}
+	{visible}
+	{...$$restProps}
+	{theme_mode}
+	{root}
+>
+	<slot />
+</svelte:component>
+<!-- {/if} -->

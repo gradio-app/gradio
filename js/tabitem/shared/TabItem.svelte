@@ -21,7 +21,7 @@
 
 	$: tab_index = register_tab(
 		{ label, id, elem_id, visible, interactive },
-		order
+		order,
 	);
 
 	onMount(() => {
@@ -32,13 +32,19 @@
 		tick().then(() => dispatch("select", { value: label, index: tab_index }));
 </script>
 
-{#if $selected_tab === id && visible}
-	<div id={elem_id} class="tabitem {elem_classes.join(' ')}" role="tabpanel">
-		<Column>
-			<slot />
-		</Column>
-	</div>
-{/if}
+<!-- {#if $selected_tab === id && visible} -->
+<div
+	id={elem_id}
+	class="tabitem {elem_classes.join(' ')}"
+	style:display={$selected_tab === id && visible ? "block" : "none"}
+	role="tabpanel"
+>
+	<Column>
+		<slot />
+	</Column>
+</div>
+
+<!-- {/if} -->
 
 <style>
 	div {
