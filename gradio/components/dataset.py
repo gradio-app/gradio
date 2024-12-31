@@ -34,6 +34,7 @@ class Dataset(Component):
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
         type: Literal["values", "index", "tuple"] = "values",
+        layout: Literal["gallery", "table"] | None = None,
         samples_per_page: int = 10,
         visible: bool = True,
         elem_id: str | None = None,
@@ -53,6 +54,7 @@ class Dataset(Component):
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: "values" if clicking on a sample should pass the value of the sample, "index" if it should pass the index of the sample, or "tuple" if it should pass both the index and the value of the sample.
+            layout: "gallery" if the dataset should be displayed as a gallery with each sample in a clickable card, or "table" if it should be displayed as a table with each sample in a row. By default, "gallery" is used if there is a single component, and "table" is used if there are more than one component. If there are more than one component, the layout can only be "table".
             samples_per_page: how many examples to show per page.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -75,6 +77,7 @@ class Dataset(Component):
         self.container = container
         self.scale = scale
         self.min_width = min_width
+        self.layout = layout
         self._components = [get_component_instance(c) for c in components or []]
         if component_props is None:
             self.component_props = [

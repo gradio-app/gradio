@@ -29,6 +29,7 @@
 		click: number;
 		select: SelectData;
 	}>;
+	export let layout: "gallery" | "table" | null = null;
 
 	// Although the `samples_dir` prop is not used in any of the core Gradio component, it is kept for backward compatibility
 	// with any custom components created with gradio<=4.20.0
@@ -37,7 +38,7 @@
 		: `${root}/file=`;
 	let page = 0;
 
-	$: gallery = components.length < 2 || sample_labels !== null;
+	$: gallery = layout === null ? components.length < 2 || sample_labels !== null : layout === "gallery";
 	let paginate = samples ? samples.length > samples_per_page : false;
 
 	let selected_samples: any[][];
