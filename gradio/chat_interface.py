@@ -235,7 +235,7 @@ class ChatInterface(Blocks):
                 if description:
                     Markdown(description)
                 with Row():
-                    if save_history:
+                    if self.save_history:
                         with Column(scale=1, min_width=100):
                             self.new_chat_button = Button(
                                 "New chat",
@@ -320,40 +320,9 @@ class ChatInterface(Blocks):
                                         stop_btn=stop_btn,
                                     )
 
-                                # Hide the stop button at the beginning, and show it with the given value during the generator execution.
-                                self.original_stop_btn = self.textbox.stop_btn
-                                self.textbox.stop_btn = False
-
-                            self.fake_api_btn = Button("Fake API", visible=False)
-                            self.fake_response_textbox = Textbox(
-                                label="Response", visible=False
-                            )  # Used to store the response from the API call
-
-                        if self.examples:
-                            self.examples_handler = Examples(
-                                examples=self.examples,
-                                inputs=[self.textbox] + self.additional_inputs,
-                                outputs=self.chatbot,
-                                fn=self._examples_stream_fn
-                                if self.is_generator
-                                else self._examples_fn,
-                                cache_examples=self.cache_examples,
-                                cache_mode=self.cache_mode,
-                                visible=self._additional_inputs_in_examples,
-                                preprocess=self._additional_inputs_in_examples,
-                            )
-
-                        any_unrendered_inputs = any(
-                            not inp.is_rendered for inp in self.additional_inputs
-                        )
-                        if self.additional_inputs and any_unrendered_inputs:
-                            with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
-                                for input_component in self.additional_inputs:
-                                    if not input_component.is_rendered:
-                                        input_component.render()
-                        # Hide the stop button at the beginning, and show it with the given value during the generator execution.
-                        self.original_stop_btn = self.textbox.stop_btn
-                        self.textbox.stop_btn = False
+                    # Hide the stop button at the beginning, and show it with the given value during the generator execution.
+                    self.original_stop_btn = self.textbox.stop_btn
+                    self.textbox.stop_btn = False
 
                     self.fake_api_btn = Button("Fake API", visible=False)
                     self.api_response = JSON(
