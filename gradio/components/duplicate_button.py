@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
@@ -31,7 +32,7 @@ class DuplicateButton(Button):
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop", "huggingface"] = "huggingface",
         size: Literal["sm", "md", "lg"] | None = "sm",
-        icon: str | None = None,
+        icon: str | Path | None = None,
         link: str | None = None,
         visible: bool = True,
         interactive: bool = True,
