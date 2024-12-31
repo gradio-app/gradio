@@ -1098,7 +1098,7 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
 
 
 @document()
-def set_static_paths(paths: str | Path |list[str | Path]) -> str | Path | list[str | Path]:
+def set_static_paths(paths: str | Path |list[str | Path]) -> list[str | Path]:
     """
     Set the static paths to be served by the gradio app.
 
@@ -1604,4 +1604,4 @@ def get_icon_path(icon_name: str) -> str:
     icon_path = package_directory / "js" / "icons" / "src" / icon_name
     if not icon_path.exists():
         raise ValueError(f"Icon file not found: {icon_name}")
-    return set_static_paths([icon_path])  # type: ignore
+    return str(set_static_paths(icon_path)[0])

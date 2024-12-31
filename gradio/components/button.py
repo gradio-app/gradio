@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
@@ -29,8 +30,8 @@ class Button(Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop", "huggingface"] = "secondary",
-        size: Literal["sm", "lg"] | None = None,
-        icon: str | None = None,
+        size: Literal["sm", "md", "lg"] | None = None,
+        icon: str | Path | None = None,
         link: str | None = None,
         visible: bool = True,
         interactive: bool = True,
@@ -48,7 +49,7 @@ class Button(Component):
             inputs: components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             variant: sets the background and text color of the button. Use 'primary' for main call-to-action buttons, 'secondary' for a more subdued style, 'stop' for a stop button, 'huggingface' for a black background with white text, consistent with Hugging Face's button styles.
             size: size of the button. Can be "sm" or "lg".
-            icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
+            icon: URL or path to the icon file to display within the button. Or a base64-encoded image. If None, no icon will be displayed.
             link: URL to open when the button is clicked. If None, no link will be used.
             visible: if False, component will be hidden.
             interactive: if False, the Button will be in a disabled state.
