@@ -9,7 +9,6 @@ import copy
 import inspect
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
-from importlib import resources
 from pathlib import Path
 from typing import Literal, Union, cast
 
@@ -43,7 +42,6 @@ from gradio.events import Dependency, EditData, SelectData
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Column, Group, Row
-from gradio.renderable import render
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 
@@ -274,8 +272,18 @@ class ChatInterface(Blocks):
                 with Row():
                     if save_history:
                         with Column(scale=1, min_width=100):
-                            self.new_chat_button = Button("New chat", variant="secondary", size="md", icon=utils.get_icon_path("Plus.svg"))
-                            self.chat_history_dataset = Dataset(components=[Textbox(visible=False)], show_label=False, layout="table", type="index")
+                            self.new_chat_button = Button(
+                                "New chat",
+                                variant="secondary",
+                                size="md",
+                                icon=utils.get_icon_path("Plus.svg"),
+                            )
+                            self.chat_history_dataset = Dataset(
+                                components=[Textbox(visible=False)],
+                                show_label=False,
+                                layout="table",
+                                type="index",
+                            )
 
                     with Column(scale=6):
                         if chatbot:
@@ -665,18 +673,28 @@ class ChatInterface(Blocks):
                 show_api=False,
                 queue=False,
             )
-            @on([self.load, self.saved_conversations.change], inputs=[self.saved_conversations], outputs=[self.chat_history_dataset])
+
+            @on(
+                [self.load, self.saved_conversations.change],
+                inputs=[self.saved_conversations],
+                outputs=[self.chat_history_dataset],
+            )
             def load_chat_history(conversations):
-                return Dataset(samples=[[self._generate_chat_title(conv)] for conv in conversations or [] if conv])
+                return Dataset(
+                    samples=[
+                        [self._generate_chat_title(conv)]
+                        for conv in conversations or []
+                        if conv
+                    ]
+                )
+
             self.chat_history_dataset.click(
                 lambda index, conversations: (index, conversations[index]),
                 [self.chat_history_dataset, self.saved_conversations],
                 [self.conversation_id, self.chatbot],
                 show_api=False,
                 queue=False,
-            ).then(
-                **synchronize_chat_state_kwargs
-            )
+            ).then(**synchronize_chat_state_kwargs)
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]

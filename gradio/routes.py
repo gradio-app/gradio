@@ -750,7 +750,12 @@ class App(FastAPI):
                         stat_result=os.stat(abs_path),
                     )
                     return response
-            print("content_disposition_type", content_disposition_type, "media_type", media_type)
+            print(
+                "content_disposition_type",
+                content_disposition_type,
+                "media_type",
+                media_type,
+            )
             return FileResponse(
                 abs_path,
                 headers={"Accept-Ranges": "bytes"},

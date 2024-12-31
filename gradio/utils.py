@@ -1591,7 +1591,6 @@ def none_or_singleton_to_list(value: Any) -> list:
 
 def get_icon_path(icon_name: str) -> str:
     """Get the path to an icon file in the js/icons/src directory.
-    
     Parameters:
         icon_name: Name of the icon file (e.g. "Plus.svelte")
     Returns:
@@ -1602,5 +1601,4 @@ def get_icon_path(icon_name: str) -> str:
     if not icon_path.exists():
         raise ValueError(f"Icon file not found: {icon_name}")
     set_static_paths([str(icon_path)])
-    return str(icon_path.with_suffix('.svg'))
-
+    return str(icon_path.with_suffix(".svg"))
