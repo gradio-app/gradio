@@ -160,7 +160,7 @@ export function create_marked({
 		},
 		markedHighlight({
 			highlight: (code: string, lang: string) => {
-				if (Prism.languages[lang]) {
+				if (Prism?.languages?.[lang]) {
 					return Prism.highlight(code, Prism.languages[lang], lang);
 				}
 				return code;
