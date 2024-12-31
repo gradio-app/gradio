@@ -221,7 +221,7 @@
 				window.supports_zerogpu_headers = true;
 			}
 		});
-		const hostname = window?.location?.hostname;
+		const hostname = window.location.hostname;
 		const origin = hostname.includes(".dev.")
 			? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
 			: `https://huggingface.co`;
