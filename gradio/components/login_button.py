@@ -6,6 +6,7 @@ import json
 import time
 import warnings
 from collections.abc import Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
@@ -36,7 +37,7 @@ class LoginButton(Button):
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop", "huggingface"] = "huggingface",
         size: Literal["sm", "md", "lg"] | None = None,
-        icon: str | None = utils.get_icon_path("Huggingface-Logo.svg"),
+        icon: str | Path | None = utils.get_icon_path("Huggingface-Logo.svg"),
         link: str | None = None,
         visible: bool = True,
         interactive: bool = True,
