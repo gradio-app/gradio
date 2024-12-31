@@ -700,7 +700,6 @@ class App(FastAPI):
         @router.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         @router.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         async def file(path_or_url: str, request: fastapi.Request):
-            print(">>>>>>>>>")
             blocks = app.get_blocks()
             if client_utils.is_http_url_like(path_or_url):
                 return RedirectResponse(
@@ -750,12 +749,7 @@ class App(FastAPI):
                         stat_result=os.stat(abs_path),
                     )
                     return response
-            print(
-                "content_disposition_type",
-                content_disposition_type,
-                "media_type",
-                media_type,
-            )
+
             return FileResponse(
                 abs_path,
                 headers={"Accept-Ranges": "bytes"},
