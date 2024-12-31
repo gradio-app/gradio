@@ -236,7 +236,7 @@ The `spaces` preview is a little more involved as it is a custom process and req
 
 The process is relatively straightforward, and follows [the steps mentioned above](#spaces) but there a few details to be aware of.
 
-- We use [a custom script](https://github.com/gradio-app/github/blob/main/packages/copy-demos/index.ts) to pull in a select number of spaces and build them into a single FastAPI application. We serve each demo on its own subpath. This is the demo app that gets deployed to spaces.
+- We use [a custom script](https://github.com/gradio-app/gradio/blob/main/scripts/copy_demos.py) to pull in a select number of spaces and build them into a single FastAPI application. We serve each demo on its own subpath. This is the demo app that gets deployed to spaces.
 - We build a new wheel from the pull requests source code and upload it to s3, we then add the url for this wheel to the requirements.txt of the space we are deploying.
   - The wheel name (and subsequently the url) include the commit SHA, every build is unique even for the same pull request
   - It is important the 'version' of the wheel is the same as the latest version of Gradio. This is because spaces _first_ installs the requirements from the `requirements.txt` and _then_ installs whatever it needs to based on the `sdk` field of the spaces `README.md`. Since the `sdk` is set to Gradio in this case, it will attempt to install the latest version of Gradio and see that the version requirement is already satisfied. If we didn't have matching versions then our custom wheel would be overwritten.
