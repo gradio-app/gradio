@@ -11,4 +11,4 @@
 "gradio": minor
 ---
 
-feat:Only render visible components
+feat:Ensure components can be remounted with their previous data
