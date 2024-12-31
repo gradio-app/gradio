@@ -39,7 +39,8 @@
 		: `${root}/file=`;
 	let page = 0;
 
-	$: gallery = (components.length < 2 || sample_labels !== null) && layout !== "table";
+	$: gallery =
+		(components.length < 2 || sample_labels !== null) && layout !== "table";
 	let paginate = samples ? samples.length > samples_per_page : false;
 
 	let selected_samples: any[][];
@@ -132,19 +133,19 @@
 		<div class="label">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
-			xmlns:xlink="http://www.w3.org/1999/xlink"
-			aria-hidden="true"
-			role="img"
-			width="1em"
-			height="1em"
-			preserveAspectRatio="xMidYMid meet"
-			viewBox="0 0 32 32"
-		>
-			<path
-				fill="currentColor"
-				d="M10 6h18v2H10zm0 18h18v2H10zm0-9h18v2H10zm-6 0h2v2H4zm0-9h2v2H4zm0 18h2v2H4z"
-			/>
-		</svg>
+				xmlns:xlink="http://www.w3.org/1999/xlink"
+				aria-hidden="true"
+				role="img"
+				width="1em"
+				height="1em"
+				preserveAspectRatio="xMidYMid meet"
+				viewBox="0 0 32 32"
+			>
+				<path
+					fill="currentColor"
+					d="M10 6h18v2H10zm0 18h18v2H10zm0-9h18v2H10zm-6 0h2v2H4zm0-9h2v2H4zm0 18h2v2H4z"
+				/>
+			</svg>
 			{label}
 		</div>
 	{/if}
