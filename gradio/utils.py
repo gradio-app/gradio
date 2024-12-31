@@ -1601,7 +1601,7 @@ def get_icon_path(icon_name: str) -> str:
         str: Full path to the icon file served as a static file
     """
     try:
-        icon_path = importlib.resources.files("gradio").joinpath("templates/frontend/assets/img", icon_name)
+        icon_path = importlib.resources.files("gradio").joinpath("templates/frontend/static/img", icon_name)
         set_static_paths(str(icon_path))
         return str(icon_path)
     except FileNotFoundError:
