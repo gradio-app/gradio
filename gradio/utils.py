@@ -49,7 +49,6 @@ from typing import (
     Literal,
     Optional,
     TypeVar,
-    cast,
 )
 
 import anyio
@@ -81,12 +80,9 @@ T = TypeVar("T")
 
 def get_package_version() -> str:
     try:
-        package_json_data = (
-            pkgutil.get_data(__name__, "package.json").decode("utf-8").strip()  # type: ignore
-        )
-        package_data = json.loads(package_json_data)
-        version = package_data.get("version", "")
-        return version
+        package_json = importlib.resources.files(__name__).joinpath("package.json")
+        package_data = json.loads(package_json.read_text())
+        return package_data.get("version", "")
     except Exception:
         return ""
 
@@ -1592,7 +1588,7 @@ def none_or_singleton_to_list(value: Any) -> list:
     return [value]
 
 
-def get_icon_path(icon_name: str) -> DeveloperPath:
+def get_icon_path(icon_name: str) -> str:
     """Get the path to an icon file in the gradio/templates/frontend/static/img/
     directory and return it as a static file path so that it can be used by components.
 
@@ -1602,8 +1598,10 @@ def get_icon_path(icon_name: str) -> DeveloperPath:
         str: Full path to the icon file served as a static file
     """
     try:
-        icon_path = importlib.resources.files("gradio").joinpath("templates/frontend/static/img", icon_name)
+        icon_path = importlib.resources.files("gradio").joinpath(
+            "templates/frontend/static/img", icon_name
+        )
         set_static_paths(str(icon_path))
-        return cast(DeveloperPath, icon_path)
-    except FileNotFoundError:
-        raise ValueError(f"Icon file not found: {icon_name}")
+        return str(icon_path)
+    except FileNotFoundError as e:
+        raise ValueError(f"Icon file not found: {icon_name}") from e
