@@ -1599,7 +1599,7 @@ def get_icon_path(icon_name: str) -> str:
     """
     try:
         icon_path = importlib.resources.files("gradio").joinpath(
-            "templates/frontend/static/img", icon_name
+            str(Path("templates") / "frontend" / "static" / "img" / icon_name)
         )
         set_static_paths(str(icon_path))
         return str(icon_path)
