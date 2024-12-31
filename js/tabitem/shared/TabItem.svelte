@@ -21,7 +21,7 @@
 
 	$: tab_index = register_tab(
 		{ label, id, elem_id, visible, interactive },
-		order,
+		order
 	);
 
 	onMount(() => {
