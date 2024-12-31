@@ -234,7 +234,6 @@ class ChatInterface(Blocks):
             self.conversation_id = State(None)
             self.saved_input = State()  # Stores the most recent user message
             self.null_component = State()  # Used to discard unneeded values
-            self.chatbot_state = State(self.chatbot.value if self.chatbot.value else [])
 
             with Column():
                 self._render_header()
@@ -343,6 +342,7 @@ class ChatInterface(Blocks):
         self.original_stop_btn = self.textbox.stop_btn
         self.textbox.stop_btn = False
 
+        self.chatbot_state = State(self.chatbot.value if self.chatbot.value else [])
         self.fake_api_btn = Button("Fake API", visible=False)
         self.api_response = JSON(
             label="Response", visible=False
