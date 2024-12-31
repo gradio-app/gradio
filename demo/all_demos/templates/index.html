@@ -16,58 +16,76 @@
             overflow-y: hidden;
         }
 
+        /* Sidebar styling */
         .sidebar {
             position: absolute;
             top: 0;
             left: 0;
+            width: 300px;
             height: 100vh;
             max-height: calc(100vh - 50px);
-            width: 300px;
             overflow-y: scroll;
             overflow-x: hidden;
-            font-size: 0.875rem; /* 14px */
-            line-height: 1.25rem; /* 20px */
-            transition: width 0.3s ease;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Customize scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
         }
 
         .sidebar.collapsed {
             width: 0;
+            box-shadow: none;
         }
 
         .sidebar a {
             display: block;
-            padding: 8px 16px;
+            margin: 8px 12px;
+            padding: 12px 16px;
             text-decoration: none;
-            color: rgb(107 114 128);
+            color: #424242;
+            background: white;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .sidebar a:hover {
-            color: black;
-            transform: translateX(1px);
+            color: #1a73e8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        /* Apply a different style to the selected item in the sidebar */
         .sidebar a.active {
-            background-color: rgb(251 146 60);
+            background: #1a73e8;
             color: white;
-            border-radius: 0.75rem;
-            font-weight: bold;
+            font-weight: 500;
+            box-shadow: 0 4px 8px rgba(26, 115, 232, 0.2);
         }
 
-        /* Styling for the close button */
-        .close-btn {
-            cursor: pointer;
-            border: none;
-            background-color: white;
-            font-size: xx-large;
-            position: relative;
+        /* Error state for demos that don't work */
+        .sidebar a:has(span) {
+            border-left: 3px solid #dc3545;
         }
 
-        /* Styling for the content */
+        /* Content area styling */
         .content {
             margin-left: 300px;
             padding: 20px;
-            display: block;
             height: 100vh;
             transition: margin-left 0.3s ease;
         }
@@ -76,23 +94,46 @@
             margin-left: 0;
         }
 
-        /* Make the iframe responsive */
         .content iframe {
             width: 100%;
-            border: 0;
             height: 80%;
+            border: 0;
+        }
+
+        /* Toggle button styling */
+        .close-btn {
+            position: fixed;
+            top: 20px;
+            left: 320px; /* Position it just outside the sidebar */
+            z-index: 101;
+            cursor: pointer;
+            border: none;
+            background: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .close-btn.collapsed {
+            left: 20px;
         }
 
         @media only screen and (max-width: 600px) {
-            /* Adjust styles for smaller screens */
-            .sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-
-            .content {
-                margin-left: 0;
+            .close-btn {
+                top: 20px;
+                left: 20px;
+                background: white;
+                z-index: 102; /* Ensure it's above the sidebar */
             }
         }
     </style>
@@ -100,9 +141,11 @@
 </head>
 <body x-data="{ current_demo: '{{ initial_demo }}', is_collapsed: false }">
     <div style="display: flex; flex-direction: column;">
-        <div>
-            <button @click="is_collapsed = !is_collapsed" class="close-btn">
-                <a x-text="is_collapsed ? '➡️' : '⬅️'"></a>
+        <div style="position: relative;">
+            <button @click="is_collapsed = !is_collapsed" 
+                    class="close-btn"
+                    :class="{ 'collapsed': is_collapsed }">
+                <span x-text="is_collapsed ? '➡️' : '⬅️'"></span>
             </button>
         </div>
         <div :class="{ 'sidebar': true, 'collapsed': is_collapsed }" style="margin-top: 50px;">
