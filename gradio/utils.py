@@ -8,12 +8,12 @@ import copy
 import functools
 import hashlib
 import importlib
+import importlib.resources
 import importlib.util
 import inspect
 import json
 import json.decoder
 import os
-import pkgutil
 import posixpath
 import re
 import shutil
@@ -1098,7 +1098,7 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
 
 
 @document()
-def set_static_paths(paths: str | Path | list[str | Path]) -> list[str | Path]:
+def set_static_paths(paths: str | Path | list[str | Path]) -> None:
     """
     Set the static paths to be served by the gradio app.
 
@@ -1131,9 +1131,8 @@ def set_static_paths(paths: str | Path | list[str | Path]) -> list[str | Path]:
     from gradio.data_classes import _StaticFiles
 
     if isinstance(paths, (str, Path)):
-        paths = [paths]
+        paths = [Path(paths)]
     _StaticFiles.all_paths.extend([Path(p).resolve() for p in paths])
-    return paths
 
 
 def is_static_file(file_path: Any):
@@ -1593,16 +1592,17 @@ def none_or_singleton_to_list(value: Any) -> list:
 
 
 def get_icon_path(icon_name: str) -> str:
-    """Get the path to an icon file in the js/icons/src directory
-    and return it as a static file path so that it can be used in the backend.
+    """Get the path to an icon file in the gradio/templates/frontend/static/img/
+    directory and return it as a static file path so that it can be used by components.
 
     Parameters:
         icon_name: Name of the icon file (e.g. "Plus.svg")
     Returns:
         str: Full path to the icon file served as a static file
     """
-    package_directory = Path(__file__).parent.parent
-    icon_path = package_directory / "js" / "icons" / "src" / icon_name
-    if not icon_path.exists():
+    try:
+        icon_path = importlib.resources.files("gradio").joinpath("templates/frontend/assets/img", icon_name)
+        set_static_paths(str(icon_path))
+        return str(icon_path)
+    except FileNotFoundError:
         raise ValueError(f"Icon file not found: {icon_name}")
-    return str(set_static_paths(icon_path)[0])
