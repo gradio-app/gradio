@@ -1098,7 +1098,7 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
 
 
 @document()
-def set_static_paths(paths: list[str | Path]) -> None:
+def set_static_paths(paths: str | Path |list[str | Path]) -> str | Path | list[str | Path]:
     """
     Set the static paths to be served by the gradio app.
 
@@ -1109,7 +1109,7 @@ def set_static_paths(paths: list[str | Path]) -> None:
     Calling this function will set the static paths for all gradio applications defined in the same interpreter session until it is called again or the session ends.
 
     Parameters:
-        paths: List of filepaths or directory names to be served by the gradio app. If it is a directory name, ALL files located within that directory will be considered static and not moved to the gradio cache. This also means that ALL files in that directory will be accessible over the network.
+        paths: filepath or list of filepaths or directory names to be served by the gradio app. If it is a directory name, ALL files located within that directory will be considered static and not moved to the gradio cache. This also means that ALL files in that directory will be accessible over the network.
     Example:
         import gradio as gr
 
@@ -1129,8 +1129,10 @@ def set_static_paths(paths: list[str | Path]) -> None:
         demo.launch()
     """
     from gradio.data_classes import _StaticFiles
-
+    if isinstance(paths, (str, Path)):
+        paths = [paths]
     _StaticFiles.all_paths.extend([Path(p).resolve() for p in paths])
+    return paths
 
 
 def is_static_file(file_path: Any):
@@ -1590,15 +1592,16 @@ def none_or_singleton_to_list(value: Any) -> list:
 
 
 def get_icon_path(icon_name: str) -> str:
-    """Get the path to an icon file in the js/icons/src directory.
+    """Get the path to an icon file in the js/icons/src directory
+    and return it as a static file path so that it can be used in the backend.
+
     Parameters:
-        icon_name: Name of the icon file (e.g. "Plus.svelte")
+        icon_name: Name of the icon file (e.g. "Plus.svg")
     Returns:
-        str: Full path to the icon file but with .svg extension
+        str: Full path to the icon file served as a static file
     """
     package_directory = Path(__file__).parent.parent
     icon_path = package_directory / "js" / "icons" / "src" / icon_name
     if not icon_path.exists():
         raise ValueError(f"Icon file not found: {icon_name}")
-    set_static_paths([str(icon_path)])
-    return str(icon_path.with_suffix(".svg"))
+    return set_static_paths([icon_path])  # type: ignore
