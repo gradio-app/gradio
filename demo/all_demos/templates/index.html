@@ -31,6 +31,7 @@
             transition: all 0.3s ease;
             background: #f8f9fa;
             box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            padding-top: 50px; /* Add padding for the button */
         }
 
         /* Customize scrollbar */
@@ -103,29 +104,25 @@
         /* Toggle button styling */
         .close-btn {
             position: fixed;
-            top: 20px;
-            left: 320px; /* Position it just outside the sidebar */
+            top: 0;
+            left: 0;
             z-index: 101;
             cursor: pointer;
             border: none;
-            background: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: #f8f9fa;
+            width: 300px;
+            height: 50px;
+            border-radius: 0;
             display: flex;
             align-items: center;
-            justify-content: center;
+            padding: 0 20px;
+            justify-content: flex-end;
             transition: all 0.3s ease;
         }
 
-        .close-btn:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            transform: translateY(-1px);
-        }
-
         .close-btn.collapsed {
-            left: 20px;
+            width: 50px;
+            justify-content: center;
         }
 
         @media only screen and (max-width: 600px) {
@@ -141,14 +138,12 @@
 </head>
 <body x-data="{ current_demo: '{{ initial_demo }}', is_collapsed: false }">
     <div style="display: flex; flex-direction: column;">
-        <div style="position: relative;">
-            <button @click="is_collapsed = !is_collapsed" 
-                    class="close-btn"
-                    :class="{ 'collapsed': is_collapsed }">
-                <span x-text="is_collapsed ? '➡️' : '⬅️'"></span>
-            </button>
-        </div>
-        <div :class="{ 'sidebar': true, 'collapsed': is_collapsed }" style="margin-top: 50px;">
+        <button @click="is_collapsed = !is_collapsed" 
+                class="close-btn"
+                :class="{ 'collapsed': is_collapsed }">
+            <span x-text="is_collapsed ? '➡️' : '⬅️'"></span>
+        </button>
+        <div :class="{ 'sidebar': true, 'collapsed': is_collapsed }">
             {% for name in names %}
                 <a @click="current_demo = '{{ name[0] }}'" :class="current_demo == '{{ name[0] }}' ? 'active' : ''">{{ name[0] }} {% if name[1] %}❌{% endif %}</a>
             {% endfor %}
