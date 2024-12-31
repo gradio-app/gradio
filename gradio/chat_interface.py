@@ -241,7 +241,9 @@ class ChatInterface(Blocks):
                 with Row():
                     self._render_history_area()
                     with Column(scale=6):
-                        self._render_chatbot_area(chatbot, textbox, submit_btn, stop_btn)
+                        self._render_chatbot_area(
+                            chatbot, textbox, submit_btn, stop_btn
+                        )
                 self._render_footer()
                 self._setup_events()
 
@@ -269,7 +271,13 @@ class ChatInterface(Blocks):
                     type="index",
                 )
 
-    def _render_chatbot_area(self, chatbot: Chatbot | None, textbox: Textbox | MultimodalTextbox | None, submit_btn: str | bool | None, stop_btn: str | bool | None):
+    def _render_chatbot_area(
+        self,
+        chatbot: Chatbot | None,
+        textbox: Textbox | MultimodalTextbox | None,
+        submit_btn: str | bool | None,
+        stop_btn: str | bool | None,
+    ):
         if chatbot:
             if self.type:
                 if self.type != chatbot.type:
@@ -284,9 +292,7 @@ class ChatInterface(Blocks):
                     f"The gr.ChatInterface was not provided with a type, so the type of the gr.Chatbot, '{chatbot.type}', will be used."
                 )
                 self.type = chatbot.type
-            self.chatbot = cast(
-                Chatbot, get_component_instance(chatbot, render=True)
-            )
+            self.chatbot = cast(Chatbot, get_component_instance(chatbot, render=True))
             if self.chatbot.examples and self.examples_messages:
                 warnings.warn(
                     "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
@@ -313,21 +319,15 @@ class ChatInterface(Blocks):
             with Row():
                 if textbox:
                     textbox.show_label = False
-                    textbox_ = get_component_instance(
-                        textbox, render=True
-                    )
-                    if not isinstance(
-                        textbox_, (Textbox, MultimodalTextbox)
-                    ):
+                    textbox_ = get_component_instance(textbox, render=True)
+                    if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
                         raise TypeError(
                             f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
                         )
                     self.textbox = textbox_
                 else:
                     textbox_component = (
-                        MultimodalTextbox
-                        if self.multimodal
-                        else Textbox
+                        MultimodalTextbox if self.multimodal else Textbox
                     )
                     self.textbox = textbox_component(
                         show_label=False,
@@ -354,9 +354,7 @@ class ChatInterface(Blocks):
                 examples=self.examples,
                 inputs=[self.textbox] + self.additional_inputs,
                 outputs=self.chatbot,
-                fn=self._examples_stream_fn
-                if self.is_generator
-                else self._examples_fn,
+                fn=self._examples_stream_fn if self.is_generator else self._examples_fn,
                 cache_examples=self.cache_examples,
                 cache_mode=cast(Literal["eager", "lazy"], self.cache_mode),
                 visible=self._additional_inputs_in_examples,
@@ -371,7 +369,6 @@ class ChatInterface(Blocks):
                 for input_component in self.additional_inputs:
                     if not input_component.is_rendered:
                         input_component.render()
-
 
     def _setup_example_messages(
         self,
