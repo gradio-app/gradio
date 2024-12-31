@@ -9,6 +9,7 @@ import copy
 import inspect
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
+from importlib import resources
 from pathlib import Path
 from typing import Literal, Union, cast
 
@@ -276,10 +277,7 @@ class ChatInterface(Blocks):
 
                             @render(inputs=self.saved_conversations)
                             def create_history(conversations):
-                                new_chat_button = Button(variant="secondary", size="md")
-                                # html_new = HTML(
-                                #     new_chat_html, container=True, padding=False
-                                # )
+                                new_chat_button = Button("New chat", variant="secondary", size="md", icon=utils.get_icon_path("Plus.svg"))
                                 new_chat_button.click(
                                     lambda: (None, []),
                                     None,

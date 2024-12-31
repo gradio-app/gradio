@@ -193,7 +193,7 @@
 		height: var(--text-xl);
 	}
 	.button-icon.right-padded {
-		margin-right: var(--spacing-xl);
+		margin-right: var(--spacing-md);
 	}
 
 	.huggingface {
