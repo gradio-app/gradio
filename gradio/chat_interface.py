@@ -19,12 +19,12 @@ from gradio_client.documentation import document
 from gradio import utils
 from gradio.blocks import Blocks
 from gradio.components import (
-    HTML,
     JSON,
     BrowserState,
     Button,
     Chatbot,
     Component,
+    Dataset,
     Markdown,
     MultimodalTextbox,
     State,
@@ -274,64 +274,8 @@ class ChatInterface(Blocks):
                 with Row():
                     if save_history:
                         with Column(scale=1, min_width=100):
-
-                            @render(inputs=self.saved_conversations)
-                            def create_history(conversations):
-                                new_chat_button = Button("New chat", variant="secondary", size="md", icon=utils.get_icon_path("Plus.svg"))
-                                new_chat_button.click(
-                                    lambda: (None, []),
-                                    None,
-                                    [self.conversation_id, self.chatbot],
-                                    show_api=False,
-                                    queue=False,
-                                ).then(
-                                    lambda x: x,
-                                    [self.chatbot],
-                                    [self.chatbot_state],
-                                    show_api=False,
-                                    queue=False,
-                                )
-                                if conversations:
-                                    with Group():
-                                        for index, conversation in enumerate(
-                                            conversations
-                                        ):
-                                            if conversation:
-                                                html = HTML(
-                                                    self._generate_chat_title(
-                                                        conversation
-                                                    ),
-                                                    padding=False,
-                                                    elem_classes=[
-                                                        "_gradio-save-history"
-                                                    ],
-                                                )
-
-                                                # Using a closure to capture current chat_conversation value instead of a lambda directly
-                                                def create_click_handler(
-                                                    index, conversation
-                                                ):
-                                                    return lambda _: (
-                                                        index,
-                                                        conversation,
-                                                    )
-
-                                                html.click(
-                                                    create_click_handler(
-                                                        index, conversation
-                                                    ),
-                                                    html,
-                                                    [
-                                                        self.conversation_id,
-                                                        self.chatbot,
-                                                    ],
-                                                ).then(
-                                                    lambda x: x,
-                                                    [self.chatbot],
-                                                    [self.chatbot_state],
-                                                    show_api=False,
-                                                    queue=False,
-                                                )
+                            self.new_chat_button = Button("New chat", variant="secondary", size="md", icon=utils.get_icon_path("Plus.svg"))
+                            self.chat_history_dataset = Dataset(components=[Textbox(visible=False)], show_label=False, layout="table", type="index")
 
                     with Column(scale=6):
                         if chatbot:
@@ -545,6 +489,8 @@ class ChatInterface(Blocks):
         return None, saved_conversations
 
     def _setup_events(self) -> None:
+        from gradio import on
+
         submit_triggers = [self.textbox.submit, self.chatbot.retry]
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
         if hasattr(self.fn, "zerogpu"):
@@ -703,6 +649,33 @@ class ChatInterface(Blocks):
                 show_api=False,
             ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
                 **save_fn_kwargs
+            )
+
+        if self.save_history:
+            self.new_chat_button.click(
+                lambda: (None, []),
+                None,
+                [self.conversation_id, self.chatbot],
+                show_api=False,
+                queue=False,
+            ).then(
+                lambda x: x,
+                [self.chatbot],
+                [self.chatbot_state],
+                show_api=False,
+                queue=False,
+            )
+            @on([self.load, self.saved_conversations.change], inputs=[self.saved_conversations], outputs=[self.chat_history_dataset])
+            def load_chat_history(conversations):
+                return Dataset(samples=[[self._generate_chat_title(conv)] for conv in conversations or [] if conv])
+            self.chat_history_dataset.click(
+                lambda index, conversations: (index, conversations[index]),
+                [self.chat_history_dataset, self.saved_conversations],
+                [self.conversation_id, self.chatbot],
+                show_api=False,
+                queue=False,
+            ).then(
+                **synchronize_chat_state_kwargs
             )
 
     def _setup_stop_events(

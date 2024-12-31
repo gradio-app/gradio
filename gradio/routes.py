@@ -725,8 +725,6 @@ class App(FastAPI):
             if not allowed:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            print("reason", reason, allowed)
-
             mime_type, _ = mimetypes.guess_type(abs_path)
             if mime_type in XSS_SAFE_MIMETYPES or reason == "allowed":
                 media_type = mime_type or "application/octet-stream"

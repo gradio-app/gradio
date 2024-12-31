@@ -12,7 +12,7 @@
 		}>
 	>;
 	export let label = "Examples";
-	export let show_label: boolean = true;
+	export let show_label = true;
 	export let headers: string[];
 	export let samples: any[][] | null = null;
 	let old_samples: any[][] | null = null;

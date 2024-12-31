@@ -80,6 +80,7 @@ class Dataset(Component):
         self.scale = scale
         self.min_width = min_width
         self.layout = layout
+        self.show_label = show_label
         self._components = [get_component_instance(c) for c in components or []]
         if component_props is None:
             self.component_props = [
