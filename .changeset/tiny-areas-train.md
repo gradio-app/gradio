@@ -1,4 +1,5 @@
 ---
+"@gradio/button": minor
 "@gradio/dataset": minor
 "gradio": minor
 ---
