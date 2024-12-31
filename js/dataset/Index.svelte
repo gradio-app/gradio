@@ -38,7 +38,7 @@
 		: `${root}/file=`;
 	let page = 0;
 
-	$: gallery = layout === null ? components.length < 2 || sample_labels !== null : layout === "gallery";
+	$: gallery = (components.length < 2 || sample_labels !== null) && layout !== "table";
 	let paginate = samples ? samples.length > samples_per_page : false;
 
 	let selected_samples: any[][];
