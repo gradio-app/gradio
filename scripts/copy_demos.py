@@ -1,3 +1,9 @@
+"""
+We pull in a select number of spaces and build them into a single FastAPI application to preview them on HF Spaces.
+The script that is run in CI is located at: https://github.com/gradio-app/github/blob/main/packages/copy-demos/index.ts
+This is the Python version of that script for local use.
+"""
+
 import argparse
 import os
 import pathlib
