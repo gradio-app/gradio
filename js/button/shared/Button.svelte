@@ -6,7 +6,7 @@
 	export let visible = true;
 	export let variant: "primary" | "secondary" | "stop" | "huggingface" =
 		"secondary";
-	export let size: "sm" | "lg" = "lg";
+	export let size: "sm" | "md" | "lg" = "lg";
 	export let value: string | null = null;
 	export let link: string | null = null;
 	export let icon: FileData | null = null;
@@ -172,6 +172,13 @@
 		padding: var(--button-small-padding);
 		font-weight: var(--button-small-text-weight);
 		font-size: var(--button-small-text-size);
+	}
+
+	.md {
+		border-radius: var(--button-medium-radius);
+		padding: var(--button-medium-padding);
+		font-weight: var(--button-medium-text-weight);
+		font-size: var(--button-medium-text-size);
 	}
 
 	.lg {

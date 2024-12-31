@@ -29,7 +29,7 @@ class Button(Component):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop", "huggingface"] = "secondary",
-        size: Literal["sm", "lg"] | None = None,
+        size: Literal["sm", "md", "lg"] | None = None,
         icon: str | None = None,
         link: str | None = None,
         visible: bool = True,

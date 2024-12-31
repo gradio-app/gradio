@@ -12,6 +12,7 @@
 		}>
 	>;
 	export let label = "Examples";
+	export let show_label: boolean = true;
 	export let headers: string[];
 	export let samples: any[][] | null = null;
 	let old_samples: any[][] | null = null;
@@ -127,9 +128,10 @@
 	allow_overflow={false}
 	container={false}
 >
-	<div class="label">
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
+	{#if show_label}
+		<div class="label">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
 			xmlns:xlink="http://www.w3.org/1999/xlink"
 			aria-hidden="true"
 			role="img"
@@ -143,8 +145,9 @@
 				d="M10 6h18v2H10zm0 18h18v2H10zm0-9h18v2H10zm-6 0h2v2H4zm0-9h2v2H4zm0 18h2v2H4z"
 			/>
 		</svg>
-		{label}
-	</div>
+			{label}
+		</div>
+	{/if}
 	{#if gallery}
 		<div class="gallery">
 			{#each selected_samples as sample_row, i}
