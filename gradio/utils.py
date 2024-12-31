@@ -49,6 +49,7 @@ from typing import (
     Literal,
     Optional,
     TypeVar,
+    cast,
 )
 
 import anyio
@@ -1591,7 +1592,7 @@ def none_or_singleton_to_list(value: Any) -> list:
     return [value]
 
 
-def get_icon_path(icon_name: str) -> str:
+def get_icon_path(icon_name: str) -> DeveloperPath:
     """Get the path to an icon file in the gradio/templates/frontend/static/img/
     directory and return it as a static file path so that it can be used by components.
 
@@ -1603,6 +1604,6 @@ def get_icon_path(icon_name: str) -> str:
     try:
         icon_path = importlib.resources.files("gradio").joinpath("templates/frontend/static/img", icon_name)
         set_static_paths(str(icon_path))
-        return str(icon_path)
+        return cast(DeveloperPath, icon_path)
     except FileNotFoundError:
         raise ValueError(f"Icon file not found: {icon_name}")
