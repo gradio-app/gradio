@@ -1098,7 +1098,7 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
 
 
 @document()
-def set_static_paths(paths: str | Path |list[str | Path]) -> list[str | Path]:
+def set_static_paths(paths: str | Path | list[str | Path]) -> list[str | Path]:
     """
     Set the static paths to be served by the gradio app.
 
@@ -1129,6 +1129,7 @@ def set_static_paths(paths: str | Path |list[str | Path]) -> list[str | Path]:
         demo.launch()
     """
     from gradio.data_classes import _StaticFiles
+
     if isinstance(paths, (str, Path)):
         paths = [paths]
     _StaticFiles.all_paths.extend([Path(p).resolve() for p in paths])

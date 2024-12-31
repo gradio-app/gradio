@@ -185,58 +185,56 @@
 				{/if}
 			{/each}
 		</div>
-	{:else}
-		{#if selected_samples.length > 0}
-			<div class="table-wrap">
-				<table tabindex="0" role="grid">
-					<thead>
-						<tr class="tr-head">
-							{#each headers as header}
-								<th>
-									{header}
-								</th>
+	{:else if selected_samples.length > 0}
+		<div class="table-wrap">
+			<table tabindex="0" role="grid">
+				<thead>
+					<tr class="tr-head">
+						{#each headers as header}
+							<th>
+								{header}
+							</th>
+						{/each}
+					</tr>
+				</thead>
+				<tbody>
+					{#each component_meta as sample_row, i}
+						<tr
+							class="tr-body"
+							on:click={() => {
+								value = i + page * samples_per_page;
+								gradio.dispatch("click", value);
+							}}
+							on:mouseenter={() => handle_mouseenter(i)}
+							on:mouseleave={() => handle_mouseleave()}
+						>
+							{#each sample_row as { value, component }, j}
+								{@const component_name = components[j]}
+								{#if component_name !== undefined && component_map.get(component_name) !== undefined}
+									<td
+										style="max-width: {component_name === 'textbox'
+											? '35ch'
+											: 'auto'}"
+										class={component_name}
+									>
+										<svelte:component
+											this={component}
+											{...component_props[j]}
+											{value}
+											{samples_dir}
+											type="table"
+											selected={current_hover === i}
+											index={i}
+											{root}
+										/>
+									</td>
+								{/if}
 							{/each}
 						</tr>
-					</thead>
-					<tbody>
-						{#each component_meta as sample_row, i}
-							<tr
-								class="tr-body"
-								on:click={() => {
-									value = i + page * samples_per_page;
-									gradio.dispatch("click", value);
-								}}
-								on:mouseenter={() => handle_mouseenter(i)}
-								on:mouseleave={() => handle_mouseleave()}
-							>
-								{#each sample_row as { value, component }, j}
-									{@const component_name = components[j]}
-									{#if component_name !== undefined && component_map.get(component_name) !== undefined}
-										<td
-											style="max-width: {component_name === 'textbox'
-												? '35ch'
-												: 'auto'}"
-											class={component_name}
-										>
-											<svelte:component
-												this={component}
-												{...component_props[j]}
-												{value}
-												{samples_dir}
-												type="table"
-												selected={current_hover === i}
-												index={i}
-												{root}
-											/>
-										</td>
-									{/if}
-								{/each}
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-		{/if}
+					{/each}
+				</tbody>
+			</table>
+		</div>
 	{/if}
 	{#if paginate}
 		<div class="paginate">
