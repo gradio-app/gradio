@@ -534,6 +534,7 @@ class Files(components.File):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | None = None,
+        allow_reordering: bool = False,
     ):
         super().__init__(
             value,
@@ -554,6 +555,7 @@ class Files(components.File):
             elem_classes=elem_classes,
             render=render,
             key=key,
+            allow_reordering=allow_reordering,
         )
 
 

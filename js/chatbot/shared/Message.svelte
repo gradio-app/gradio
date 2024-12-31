@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { is_component_message, is_last_bot_message } from "../shared/utils";
-	import { File } from "@gradio/icons";
+
 	import { Image } from "@gradio/image/shared";
-	import Component from "./Component.svelte";
 	import type { FileData, Client } from "@gradio/client";
 	import type { NormalisedMessage } from "../types";
-	import MessageBox from "./MessageBox.svelte";
-	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
+
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import ButtonPanel from "./ButtonPanel.svelte";
+	import MessageContent from "./MessageContent.svelte";
+	import MessageBox from "./MessageBox.svelte";
 
 	export let value: NormalisedMessage[];
 	export let avatar_img: FileData | null;
@@ -39,13 +39,27 @@
 	export let show_copy_button: boolean;
 	export let generating: boolean;
 	export let show_like: boolean;
+	export let show_edit: boolean;
 	export let show_retry: boolean;
 	export let show_undo: boolean;
 	export let msg_format: "tuples" | "messages";
 	export let handle_action: (selected: string | null) => void;
 	export let scroll: () => void;
 	export let allow_file_downloads: boolean;
+	export let in_edit_mode: boolean;
+	export let edit_message: string;
 	export let display_consecutive_in_same_bubble: boolean;
+	let messageElements: HTMLDivElement[] = [];
+	let previous_edit_mode = false;
+	let last_message_width = 0;
+	let last_message_height = 0;
+
+	$: if (in_edit_mode && !previous_edit_mode) {
+		last_message_width =
+			messageElements[messageElements.length - 1]?.clientWidth;
+		last_message_height =
+			messageElements[messageElements.length - 1]?.clientHeight;
+	}
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -77,6 +91,8 @@
 		likeable: boolean;
 		show_retry: boolean;
 		show_undo: boolean;
+		show_edit: boolean;
+		in_edit_mode: boolean;
 		generating: boolean;
 		show_copy_button: boolean;
 		message: NormalisedMessage[] | NormalisedMessage;
@@ -92,6 +108,8 @@
 		likeable: show_like,
 		show_retry,
 		show_undo,
+		show_edit,
+		in_edit_mode,
 		generating,
 		show_copy_button,
 		message: msg_format === "tuples" ? messages[0] : messages,
@@ -131,114 +149,94 @@
 						message.content.component === "html"}
 					class:thought={thought_index > 0}
 				>
-					<button
-						data-testid={role}
-						class:latest={i === value.length - 1}
-						class:message-markdown-disabled={!render_markdown}
-						style:user-select="text"
-						class:selectable
-						style:cursor={selectable ? "pointer" : "default"}
-						style:text-align={rtl ? "right" : "left"}
-						on:click={() => handle_select(i, message)}
-						on:keydown={(e) => {
-							if (e.key === "Enter") {
-								handle_select(i, message);
-							}
-						}}
-						dir={rtl ? "rtl" : "ltr"}
-						aria-label={role + "'s message: " + get_message_label_data(message)}
-					>
-						{#if message.type === "text"}
-							<div class="message-content">
-								{#if message?.metadata?.title}
-									<MessageBox
-										title={message.metadata.title}
-										expanded={is_last_bot_message([message], value)}
-									>
-										<Markdown
-											message={message.content}
-											{latex_delimiters}
-											{sanitize_html}
-											{render_markdown}
-											{line_breaks}
-											on:load={scroll}
-											{root}
-										/>
-									</MessageBox>
-								{:else}
-									<Markdown
-										message={message.content}
-										{latex_delimiters}
+					{#if in_edit_mode && thought_index === messages.length - 1 && message.type === "text"}
+						<!-- svelte-ignore a11y-autofocus -->
+						<textarea
+							class="edit-textarea"
+							style:width={`max(${last_message_width}px, 160px)`}
+							style:min-height={`${last_message_height}px`}
+							autofocus
+							bind:value={edit_message}
+						/>
+					{:else}
+						<!-- svelte-ignore a11y-no-static-element-interactions -->
+						<div
+							data-testid={role}
+							class:latest={i === value.length - 1}
+							class:message-markdown-disabled={!render_markdown}
+							style:user-select="text"
+							class:selectable
+							style:cursor={selectable ? "pointer" : "auto"}
+							style:text-align={rtl ? "right" : "left"}
+							bind:this={messageElements[thought_index]}
+							on:click={() => handle_select(i, message)}
+							on:keydown={(e) => {
+								if (e.key === "Enter") {
+									handle_select(i, message);
+								}
+							}}
+							dir={rtl ? "rtl" : "ltr"}
+							aria-label={role +
+								"'s message: " +
+								get_message_label_data(message)}
+						>
+							{#if message?.metadata?.title}
+								<MessageBox
+									title={message.metadata.title}
+									expanded={is_last_bot_message([message], value)}
+									{rtl}
+								>
+									<MessageContent
+										{message}
 										{sanitize_html}
+										{latex_delimiters}
 										{render_markdown}
-										{line_breaks}
-										on:load={scroll}
+										{_components}
+										{upload}
+										{thought_index}
+										{target}
 										{root}
+										{theme_mode}
+										{_fetch}
+										{scroll}
+										{allow_file_downloads}
+										{display_consecutive_in_same_bubble}
+										{i18n}
+										{line_breaks}
 									/>
-								{/if}
-							</div>
-						{:else if message.type === "component" && message.content.component in _components}
-							<Component
-								{target}
-								{theme_mode}
-								props={message.content.props}
-								type={message.content.component}
-								components={_components}
-								value={message.content.value}
-								display_icon_button_wrapper_top_corner={thought_index > 0 &&
-									display_consecutive_in_same_bubble}
-								{i18n}
-								{upload}
-								{_fetch}
-								on:load={() => scroll()}
-								{allow_file_downloads}
-							/>
-						{:else if message.type === "component" && message.content.component === "file"}
-							<div class="file-container">
-								<div class="file-icon">
-									<File />
-								</div>
-								<div class="file-info">
-									<a
-										data-testid="chatbot-file"
-										class="file-link"
-										href={message.content.value.url}
-										target="_blank"
-										download={window.__is_colab__
-											? null
-											: message.content.value?.orig_name ||
-												message.content.value?.path.split("/").pop() ||
-												"file"}
-									>
-										<span class="file-name"
-											>{message.content.value?.orig_name ||
-												message.content.value?.path.split("/").pop() ||
-												"file"}</span
-										>
-									</a>
-									<span class="file-type"
-										>{(
-											message.content.value?.orig_name ||
-											message.content.value?.path ||
-											""
-										)
-											.split(".")
-											.pop()
-											.toUpperCase()}</span
-									>
-								</div>
-							</div>
-						{/if}
-					</button>
+								</MessageBox>
+							{:else}
+								<MessageContent
+									{message}
+									{sanitize_html}
+									{latex_delimiters}
+									{render_markdown}
+									{_components}
+									{upload}
+									{thought_index}
+									{target}
+									{root}
+									{theme_mode}
+									{_fetch}
+									{scroll}
+									{allow_file_downloads}
+									{display_consecutive_in_same_bubble}
+									{i18n}
+									{line_breaks}
+								/>
+							{/if}
+						</div>
+					{/if}
 				</div>
+
+				{#if layout === "panel"}
+					<ButtonPanel
+						{...button_panel_props}
+						on:copy={(e) => dispatch("copy", e.detail)}
+					/>
+				{/if}
 			{/each}
 		</div>
-		{#if layout === "panel"}
-			<ButtonPanel
-				{...button_panel_props}
-				on:copy={(e) => dispatch("copy", e.detail)}
-			/>
-		{/if}
 	</div>
 </div>
 
@@ -354,6 +352,12 @@
 		text-align: right;
 	}
 
+	.bot:has(.table-wrap) {
+		border: none;
+		box-shadow: none;
+		background: none;
+	}
+
 	.panel .user :global(*) {
 		text-align: right;
 	}
@@ -445,10 +449,6 @@
 		.message {
 			width: 100%;
 		}
-	}
-
-	.message-content {
-		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.avatar-container {
@@ -548,7 +548,7 @@
 		border-radius: var(--radius-lg);
 	}
 
-	.message > button {
+	.message > div {
 		width: 100%;
 	}
 	.html {
@@ -566,6 +566,26 @@
 		border: none;
 		box-shadow: none;
 		background-color: var(--background-fill-secondary);
+	}
+
+	textarea {
+		background: none;
+		border-radius: var(--radius-lg);
+		border: none;
+		display: block;
+		max-width: 100%;
+	}
+	.user textarea {
+		border-bottom-right-radius: 0;
+	}
+	.bot textarea {
+		border-bottom-left-radius: 0;
+	}
+	.user textarea:focus {
+		outline: 2px solid var(--border-color-accent);
+	}
+	.bot textarea:focus {
+		outline: 2px solid var(--border-color-primary);
 	}
 
 	.panel.user-row {
@@ -593,53 +613,5 @@
 
 	.panel .message {
 		margin-bottom: var(--spacing-md);
-	}
-
-	.file-container {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-lg);
-		padding: var(--spacing-lg);
-		border-radius: var(--radius-lg);
-		width: fit-content;
-		margin: var(--spacing-sm) 0;
-	}
-
-	.file-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--body-text-color);
-	}
-
-	.file-icon :global(svg) {
-		width: var(--size-7);
-		height: var(--size-7);
-	}
-
-	.file-info {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.file-link {
-		text-decoration: none;
-		color: var(--body-text-color);
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xs);
-	}
-
-	.file-name {
-		font-family: var(--font);
-		font-size: var(--text-md);
-		font-weight: 500;
-	}
-
-	.file-type {
-		font-family: var(--font);
-		font-size: var(--text-sm);
-		color: var(--body-text-color-subdued);
-		text-transform: uppercase;
 	}
 </style>
