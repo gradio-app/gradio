@@ -650,6 +650,8 @@ class ChatInterface(Blocks):
                 [self.load, self.saved_conversations.change],
                 inputs=[self.saved_conversations],
                 outputs=[self.chat_history_dataset],
+                show_api=False,
+                queue=False,
             )
             def load_chat_history(conversations):
                 return Dataset(
