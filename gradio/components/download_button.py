@@ -37,7 +37,7 @@ class DownloadButton(Component):
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
-        size: Literal["sm", "lg"] | None = None,
+        size: Literal["sm", "md", "lg"] | None = None,
         icon: str | None = None,
         scale: int | None = None,
         min_width: int | None = None,
