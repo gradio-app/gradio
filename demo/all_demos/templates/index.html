@@ -18,7 +18,7 @@
 
         /* Sidebar styling */
         .sidebar {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 300px;
@@ -89,6 +89,7 @@
             padding: 20px;
             height: 100vh;
             transition: margin-left 0.3s ease;
+            overflow-y: auto;
         }
 
         .content.collapsed {
@@ -131,6 +132,26 @@
                 left: 20px;
                 background: white;
                 z-index: 102; /* Ensure it's above the sidebar */
+            }
+
+            .sidebar {
+                width: 100%;
+                z-index: 100;
+            }
+
+            .content {
+                margin-left: 0;
+                padding: 10px;
+                height: calc(100vh - 70px);
+                margin-top: 70px;
+            }
+
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+
+            .content.collapsed {
+                margin-top: 70px;
             }
         }
     </style>
