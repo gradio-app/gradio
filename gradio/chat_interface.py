@@ -45,41 +45,6 @@ from gradio.layouts import Accordion, Column, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 
-new_chat_html = """
-<style>
-._gradio-save-history {
-    width: 100%;
-    background-color: var(--background-fill-primary);
-    padding: 3px 6px;
-    user-select: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    font-size: 0.8rem;
-    text-overflow: ellipsis;
-}
-._gradio-save-history:hover {
-    background-color: var(--background-fill-secondary);
-}
-._gradio-save-history:active {
-    background-color: var(--color-accent-soft);
-}
-._gradio-save-history-header {
-    font-weight: bold;
-    font-size: 0.8rem;
-    text-align: center;
-    padding: 10px 0px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-</style>
-"""
-
 
 @document()
 class ChatInterface(Blocks):
@@ -464,14 +429,21 @@ class ChatInterface(Blocks):
         return examples_messages
 
     def _generate_chat_title(self, conversation: list[MessageDict]) -> str:
+        """
+        Generate a title for a conversation by taking the first user message that is a string
+        and truncating it to 40 characters. If files are present, add a 📎 to the title.
+        """
         title = ""
         for message in conversation:
             if message["role"] == "user":
                 if isinstance(message["content"], str):
-                    return title + message["content"]
+                    title += message["content"]
+                    break
                 else:
                     title += "📎 "
-        return "New Chat"
+        if len(title) > 40:
+            title = title[:40] + "..."
+        return title or "Conversation"
 
     def _save_conversation(
         self,
