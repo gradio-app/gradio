@@ -13,7 +13,6 @@
 	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	console.log("icon", icon);
 </script>
 
 {#if link && link.length > 0}
