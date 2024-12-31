@@ -215,6 +215,17 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
+		const supports_zerogpu_headers = "supports-zerogpu-headers";
+		window.addEventListener("message", (event) => {
+			if (event.data === supports_zerogpu_headers) {
+				window.supports_zerogpu_headers = true;
+			}
+		});
+		window.parent.postMessage(
+			supports_zerogpu_headers,
+			"https://huggingface.co",
+		);
+
 		dispatch("loaded");
 
 		if (config.dev_mode) {

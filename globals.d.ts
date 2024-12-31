@@ -12,6 +12,7 @@ declare global {
 		parentIFrame?: {
 			scrollTo: (x: number, y: number) => void;
 		};
+		supports_zerogpu_headers?: boolean;
 	}
 }
 

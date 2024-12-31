@@ -566,14 +566,14 @@ export function submit(
 						? `https://moon-${hostname.split(".")[1]}.${hfhubdev}`
 						: `https://huggingface.co`;
 
-					const is_iframe =
+					const is_zerogpu_iframe =
 						typeof window !== "undefined" &&
 						typeof document !== "undefined" &&
-						window.parent != window;
-					const is_zerogpu_space = dependency.zerogpu && config.space_id;
+						window.parent != window &&
+						window.supports_zerogpu_headers;
 					const zerogpu_auth_promise =
-						is_iframe && is_zerogpu_space
-							? post_message<Headers>("zerogpu-headers", origin)
+						is_zerogpu_iframe
+							? post_message<Map<string, string>>("zerogpu-headers", origin)
 							: Promise.resolve(null);
 					const post_data_promise = zerogpu_auth_promise.then((headers) => {
 						return post_data(
