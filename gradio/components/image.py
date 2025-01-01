@@ -6,6 +6,7 @@ import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Optional, cast
+from urllib.parse import quote
 
 import numpy as np
 import PIL.Image
@@ -267,7 +268,12 @@ class Image(StreamingInput, Component):
         if value is None:
             return None
         if isinstance(value, str) and value.lower().endswith(".svg"):
-            return ImageData(path=value, orig_name=Path(value).name)
+            with open(value) as file:
+                svg_content = file.read()
+            return ImageData(
+                orig_name=Path(value).name,
+                url=f"data:image/svg+xml,{quote(svg_content)}",
+            )
         if self.streaming:
             if isinstance(value, np.ndarray):
                 return Base64ImageData(
