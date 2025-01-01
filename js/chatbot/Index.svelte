@@ -32,6 +32,7 @@
 	export let root: string;
 	export let _selectable = false;
 	export let likeable = false;
+	export let feedback_options: string[] = ["Like", "Dislike"];
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = true;
@@ -126,6 +127,7 @@
 			i18n={gradio.i18n}
 			selectable={_selectable}
 			{likeable}
+			{feedback_options}
 			{show_share_button}
 			{show_copy_all_button}
 			value={_value}
