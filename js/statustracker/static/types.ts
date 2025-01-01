@@ -19,7 +19,7 @@ export interface LoadingStatus {
 }
 
 export interface ToastMessage {
-	type: "error" | "warning" | "info";
+	type: "error" | "warning" | "info" | "success";
 	title: string;
 	message: string;
 	id: number;
