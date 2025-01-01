@@ -71,7 +71,7 @@
 	.extra-feedback-options {
 		display: none;
 		position: absolute;
-		padding-top: var(--spacing-md);
+		padding: var(--spacing-md) 0;
 		flex-direction: column;
 		gap: var(--spacing-sm);
 		top: 100%;
