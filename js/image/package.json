@@ -16,9 +16,7 @@
 		"@gradio/wasm": "workspace:^",
 		"cropperjs": "^1.5.12",
 		"lazy-brush": "^1.0.1",
-		"resize-observer-polyfill": "^1.5.1",
-		"dompurify": "^3.0.3",
-		"@types/dompurify": "^3.0.2"
+		"resize-observer-polyfill": "^1.5.1"
 	},
 	"devDependencies": {
 		"@gradio/preview": "workspace:^"

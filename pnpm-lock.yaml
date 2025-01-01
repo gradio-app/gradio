@@ -1567,15 +1567,9 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
-      '@types/dompurify':
-        specifier: ^3.0.2
-        version: 3.0.5
       cropperjs:
         specifier: ^1.5.12
         version: 1.5.12
-      dompurify:
-        specifier: ^3.0.3
-        version: 3.1.7
       lazy-brush:
         specifier: ^1.0.1
         version: 1.0.1
