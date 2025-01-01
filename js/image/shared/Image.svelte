@@ -61,14 +61,22 @@
 </script>
 
 {#if is_svg && svg_content}
-	{@html svg_content}
+	<div class="svg-container">
+		{@html svg_content}
+	</div>
 {:else}
 	<!-- svelte-ignore a11y-missing-attribute -->
 	<img src={resolved_src} {...$$restProps} on:load />
 {/if}
 
 <style>
-	img, :global(svg) {
+	img,
+	.svg-container :global(svg) {
 		object-fit: cover;
+	}
+
+	.svg-container :global(svg) {
+		width: 100%;
+		height: 100%;
 	}
 </style>
