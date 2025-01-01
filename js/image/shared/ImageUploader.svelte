@@ -124,12 +124,6 @@
 	}
 
 	let image_container: HTMLElement;
-
-	function append_svg_safety_param(url: string): string {
-		if (!url?.toLowerCase().endsWith('.svg')) return url;
-		const separator = url.includes('?') ? '&' : '?';
-		return `${url}${separator}xss_unsafe=true`;
-	}
 </script>
 
 <BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} />
@@ -199,10 +193,7 @@
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
 			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div class:selectable class="image-frame" on:click={handle_click}>
-				<Image 
-					src={append_svg_safety_param(value.url)}
-					alt={value.alt_text} 
-				/>
+				<Image src={value.url} alt={value.alt_text} />
 			</div>
 		{/if}
 	</div>
