@@ -186,6 +186,7 @@ export interface Config {
 	api_prefix?: string;
 	fill_height?: boolean;
 	fill_width?: boolean;
+	pwa?: boolean;
 }
 
 // todo: DRY up types
@@ -331,7 +332,7 @@ export type GradioEvent = {
 export interface Log {
 	log: string;
 	title: string;
-	level: "warning" | "info";
+	level: "warning" | "info" | "success";
 }
 export interface Render {
 	data: {
