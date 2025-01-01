@@ -699,7 +699,9 @@ class App(FastAPI):
 
         @router.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         @router.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
-        async def file(path_or_url: str, request: fastapi.Request):
+        async def file(
+            path_or_url: str, request: fastapi.Request, xss_unsafe: bool = False
+        ):
             blocks = app.get_blocks()
             if client_utils.is_http_url_like(path_or_url):
                 return RedirectResponse(
@@ -725,7 +727,7 @@ class App(FastAPI):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             mime_type, _ = mimetypes.guess_type(abs_path)
-            if mime_type in XSS_SAFE_MIMETYPES or reason == "allowed":
+            if mime_type in XSS_SAFE_MIMETYPES or reason == "allowed" or xss_unsafe:
                 media_type = mime_type or "application/octet-stream"
                 content_disposition_type = "inline"
             else:
