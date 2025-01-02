@@ -229,7 +229,7 @@ class ChatInterface(Blocks):
         else:
             raise ValueError(
                 "Invalid value for `flagging_mode` parameter."
-                "Must be: 'auto', 'manual', or 'never'."
+                "Must be: 'manual' or 'never'."
             )
         self.flagging_options = flagging_options
         self.flagging_dir = flagging_dir
