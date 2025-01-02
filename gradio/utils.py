@@ -1593,7 +1593,7 @@ def none_or_singleton_to_list(value: Any) -> list:
 
 
 def get_icon_path(icon_name: str) -> str:
-    """Get the path to an icon file in the gradio/icons/ directory 
+    """Get the path to an icon file in the gradio/icons/ directory
     and return it as a static file path so that it can be used by components.
 
     Parameters:
