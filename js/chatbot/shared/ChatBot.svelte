@@ -225,7 +225,7 @@
 				];
 
 				dispatch("like", {
-					index: [first.index, last.index] as [number, number],
+					index: first.index as number,
 					value: message_group.map((m) => m.content),
 					liked: feedback
 				});
