@@ -341,6 +341,12 @@ To use the endpoint, you should use either the [Gradio Python Client](/guides/ge
 * Slack bot [[tutorial]](../guides/creating-a-slack-bot-from-a-gradio-app)
 * Website widget [[tutorial]](../guides/creating-a-website-widget-from-a-gradio-chatbot)
 
+## Collecting Feedback
+
+To gather feedback on your generations, set `gr.ChatInterface(flagging_mode="manual")` and users can thumbs-up and down responses. These flagged responses will get saved in a CSV file in the app folder (or wherever `flagging_dir` specifies). You can also specify more feedback options via `flagging_options`:
+
+$code_chatinterface_streaming_echo
+
 ## What's Next?
 
 Now that you've learned about the `gr.ChatInterface` class and how it can be used to create chatbot UIs quickly, we recommend reading one of the following:
