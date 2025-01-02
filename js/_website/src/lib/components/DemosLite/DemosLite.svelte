@@ -636,9 +636,12 @@
 
 	$: show_regenerate_button;
 
-	$: if (app_error && generated) {
+	$: if (app_error && generated && !user_query) {
 		user_query = app_error;
 		show_regenerate_button = true;
+	}
+	$: if (user_query !== app_error) {
+		show_regenerate_button = false;
 	}
 	$: if (!app_error && !regenerating && generated) {
 		user_query = "";
