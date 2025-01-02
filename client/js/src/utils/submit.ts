@@ -571,10 +571,9 @@ export function submit(
 						typeof document !== "undefined" &&
 						window.parent != window &&
 						window.supports_zerogpu_headers;
-					const zerogpu_auth_promise =
-						is_zerogpu_iframe
-							? post_message<Map<string, string>>("zerogpu-headers", origin)
-							: Promise.resolve(null);
+					const zerogpu_auth_promise = is_zerogpu_iframe
+						? post_message<Map<string, string>>("zerogpu-headers", origin)
+						: Promise.resolve(null);
 					const post_data_promise = zerogpu_auth_promise.then((headers) => {
 						return post_data(
 							`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`,
