@@ -25,7 +25,7 @@ class ProgressMessage(BaseMessage):
 class LogMessage(BaseMessage):
     msg: Literal[ServerMessage.log] = ServerMessage.log  # type: ignore
     log: str
-    level: Literal["info", "warning"]
+    level: Literal["info", "warning", "success"]
     duration: Optional[float] = 10
     visible: bool = True
     title: str

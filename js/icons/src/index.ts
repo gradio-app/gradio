@@ -24,6 +24,7 @@ export { default as Maximize } from "./Maximize.svelte";
 export { default as Forward } from "./Forward.svelte";
 export { default as File } from "./File.svelte";
 export { default as Info } from "./Info.svelte";
+export { default as Success } from "./Success.svelte";
 export { default as Image } from "./Image.svelte";
 export { default as ImagePaste } from "./ImagePaste.svelte";
 export { default as JSON } from "./JSON.svelte";
