@@ -88,7 +88,7 @@ class ChatInterface(Blocks):
         description: str | None = None,
         theme: Theme | str | None = None,
         flagging_mode: Literal["never"] | Literal["manual"] | None = None,
-        flagging_options: Sequence[str] | None = ("Like", "Dislike"),
+        flagging_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
         flagging_dir: str = ".gradio/flagged",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
@@ -223,7 +223,7 @@ class ChatInterface(Blocks):
                     break
 
         if flagging_mode is None:
-            flagging_mode = os.getenv("GRADIO_CHAT_FLAGGING_MODE", "never")
+            flagging_mode = os.getenv("GRADIO_CHAT_FLAGGING_MODE", "never")  # type: ignore
         if flagging_mode in ["manual", "never"]:
             self.flagging_mode = flagging_mode
         else:

@@ -346,7 +346,7 @@ class CSVLogger(FlaggingCallback):
         return line_count
 
 
-class ChatCSVLogger(FlaggingCallback):
+class ChatCSVLogger:
     """
     Flagging callback for chat conversations.
     Flagged conversations and like/dislike reactions are logged to a CSV file on the machine running the gradio app.
@@ -355,7 +355,7 @@ class ChatCSVLogger(FlaggingCallback):
     def __init__(self):
         pass
 
-    def setup(self, flagging_dir: str | Path):
+    def setup(self, flagging_dir: str):
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
 
