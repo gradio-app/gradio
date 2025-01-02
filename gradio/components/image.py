@@ -268,8 +268,7 @@ class Image(StreamingInput, Component):
         if value is None:
             return None
         if isinstance(value, str) and value.lower().endswith(".svg"):
-            with open(value) as file:
-                svg_content = file.read()
+            svg_content = image_utils.extract_svg_content(value)
             return ImageData(
                 orig_name=Path(value).name,
                 url=f"data:image/svg+xml,{quote(svg_content)}",
