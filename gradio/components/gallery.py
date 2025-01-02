@@ -12,7 +12,7 @@ from typing import (
     Optional,
     Union,
 )
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import numpy as np
 import PIL.Image
@@ -21,7 +21,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
-from gradio import processing_utils, utils, wasm_utils
+from gradio import image_utils, processing_utils, utils, wasm_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
@@ -238,6 +238,10 @@ class Gallery(Component):
             elif isinstance(img, str):
                 file_path = img
                 mime_type = client_utils.get_mimetype(file_path)
+                if img.lower().endswith(".svg"):
+                    svg_content = image_utils.extract_svg_content(img)
+                    orig_name = (Path(img).name,)
+                    url = (f"data:image/svg+xml,{quote(svg_content)}",)
                 if is_http_url_like(img):
                     url = img
                     orig_name = Path(urlparse(img).path).name
