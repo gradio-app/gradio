@@ -363,7 +363,7 @@ class ChatCSVLogger:
         self,
         like_data: LikeData,
         messages: list,
-    ) -> int:
+    ):
         flagging_dir = self.flagging_dir
         log_filepath = Path(flagging_dir) / "log.csv"
         is_new = not Path(log_filepath).exists()
