@@ -223,7 +223,7 @@ class ChatInterface(Blocks):
                     break
 
         if flagging_mode is None:
-            flagging_mode = os.getenv("GRADIO_FLAGGING_MODE", "never")
+            flagging_mode = os.getenv("GRADIO_CHAT_FLAGGING_MODE", "never")
         if flagging_mode in ["manual", "never"]:
             self.flagging_mode = flagging_mode
         else:
