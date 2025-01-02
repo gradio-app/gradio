@@ -1593,19 +1593,18 @@ def none_or_singleton_to_list(value: Any) -> list:
 
 
 def get_icon_path(icon_name: str) -> str:
-    """Get the path to an icon file in the gradio/icons/
-    directory and return it as a static file path so that it can be used by components.
+    """Get the path to an icon file in the gradio/icons/ directory 
+    and return it as a static file path so that it can be used by components.
 
     Parameters:
-        icon_name: Name of the icon file (e.g. "Plus.svg")
+        icon_name: Name of the icon file (e.g. "plus.svg")
     Returns:
         str: Full path to the icon file served as a static file
     """
-    try:
-        icon_path = importlib.resources.files("gradio").joinpath(
-            str(Path("icons") / icon_name)
-        )
-        set_static_paths(str(icon_path))
-        return str(icon_path)
-    except FileNotFoundError as e:
-        raise ValueError(f"Icon file not found: {icon_name}") from e
+    icon_path = str(
+        importlib.resources.files("gradio").joinpath(str(Path("icons") / icon_name))
+    )
+    if Path(icon_path).exists():
+        set_static_paths(icon_path)
+        return icon_path
+    raise ValueError(f"Icon file not found: {icon_name}")
