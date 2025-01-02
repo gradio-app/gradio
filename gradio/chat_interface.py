@@ -261,7 +261,7 @@ class ChatInterface(Blocks):
                     "New chat",
                     variant="secondary",
                     size="md",
-                    icon=utils.get_icon_path("Plus.svg"),
+                    icon=utils.get_icon_path("plus.svg"),
                 )
                 self.chat_history_dataset = Dataset(
                     components=[Textbox(visible=False)],

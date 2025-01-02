@@ -37,7 +37,7 @@ class LoginButton(Button):
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop", "huggingface"] = "huggingface",
         size: Literal["sm", "md", "lg"] | None = None,
-        icon: str | Path | None = utils.get_icon_path("Huggingface-Logo.svg"),
+        icon: str | Path | None = utils.get_icon_path("huggingface-logo.svg"),
         link: str | None = None,
         visible: bool = True,
         interactive: bool = True,

@@ -1593,7 +1593,7 @@ def none_or_singleton_to_list(value: Any) -> list:
 
 
 def get_icon_path(icon_name: str) -> str:
-    """Get the path to an icon file in the gradio/templates/frontend/static/img/
+    """Get the path to an icon file in the gradio/icons/
     directory and return it as a static file path so that it can be used by components.
 
     Parameters:
@@ -1603,7 +1603,7 @@ def get_icon_path(icon_name: str) -> str:
     """
     try:
         icon_path = importlib.resources.files("gradio").joinpath(
-            str(Path("templates") / "frontend" / "static" / "img" / icon_name)
+            str(Path("icons") / icon_name)
         )
         set_static_paths(str(icon_path))
         return str(icon_path)
