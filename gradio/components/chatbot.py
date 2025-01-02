@@ -194,7 +194,7 @@ class Chatbot(Component):
         avatar_images: tuple[str | Path | None, str | Path | None] | None = None,
         sanitize_html: bool = True,
         render_markdown: bool = True,
-        feedback_options: Sequence[str] | None = ("Like", "Dislike"),
+        feedback_options: list[str] | tuple[str] | None = ("Like", "Dislike"),
         bubble_full_width=None,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
