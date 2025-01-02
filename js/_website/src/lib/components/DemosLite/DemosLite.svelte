@@ -19,8 +19,8 @@
 	let current_code = false;
 	let compare = false;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5173/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:5173/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -125,7 +125,7 @@
 		let queried_index =
 			demos.findIndex((demo) => demo.name === demo_name) ?? demos[0];
 
-		let code_to_compare = demos[queried_index].code;
+		code_to_compare = demos[queried_index].code;
 
 		abortController = new AbortController();
 
@@ -163,8 +163,6 @@
 		}
 
 		generated = true;
-		app_error = null;
-		user_query = "";
 		regenerating = false;
 		auto_regenerate = true;
 
@@ -183,6 +181,7 @@
 		app_error = null;
 		show_regenerate_button = false;
 		regenerating = false;
+		selected_demo.code = code_to_compare;
 	}
 
 	let user_query: string;
@@ -260,7 +259,7 @@
 
 	let lite_element;
 
-	const debounced_detect_error = debounce(detect_app_error, 1000);
+	const debounced_detect_error = debounce(detect_app_error, 100);
 
 	let stderr = "";
 	let init_code_run_error = "";
@@ -315,6 +314,7 @@
 					mutation.type === "characterData"
 				) {
 					debounced_detect_error();
+					// detect_app_error();
 				}
 			});
 		});
@@ -571,30 +571,24 @@
 	let app_error: string | null = "";
 
 	function detect_app_error() {
-		if (generated) {
-			if (document) {
-				if (!document.querySelector(".loading")) {
-					if (document.querySelector("div .error-name")) {
-						app_error = document.querySelector(".error-name").textContent;
-					} else if (document.querySelector("div .error .toast-title")) {
-						app_error = document.querySelector(
-							"div .error .toast-text"
-						).textContent;
-					} else if (stderr) {
-						app_error = stderr;
-						stderr = "";
-					} else if (init_code_run_error) {
-						app_error = init_code_run_error;
-						init_code_run_error = "";
-					} else {
-						app_error = null;
-					}
+		if (document) {
+			if (!document.querySelector(".loading")) {
+				if (document.querySelector("div .error-name")) {
+					app_error = document.querySelector(".error-name").textContent;
+				} else if (document.querySelector("div .error .toast-title")) {
+					app_error = document.querySelector(
+						"div .error .toast-text"
+					).textContent;
+				} else if (stderr) {
+					app_error = stderr;
+					stderr = "";
+				} else if (init_code_run_error) {
+					app_error = init_code_run_error;
+					init_code_run_error = "";
+				} else {
+					app_error = null;
 				}
 			}
-		} else {
-			app_error = null;
-			stderr = "";
-			init_code_run_error = "";
 		}
 		if (
 			app_error &&
@@ -618,19 +612,19 @@
 
 	$: regenerating;
 
-	let auto_regenerate_user_toggle = false;
+	let auto_regenerate_user_toggle = true;
 
 	$: auto_regenerate_user_toggle;
 
 	async function regenerate_on_error(app_error) {
 		if (auto_regenerate && auto_regenerate_user_toggle) {
-			if (app_error) {
+			if (app_error && generated) {
+				user_query = app_error;
 				error_prompt = `There's an error when I run the existing code: ${app_error}`;
 				await generate_code(error_prompt, selected_demo.name, true);
-				auto_regenerate = false;
 			}
 		} else {
-			if (app_error) {
+			if (app_error && generated) {
 				show_regenerate_button = true;
 			}
 		}
@@ -642,11 +636,11 @@
 
 	$: show_regenerate_button;
 
-	$: if (app_error) {
+	$: if (app_error && generated) {
 		user_query = app_error;
 		show_regenerate_button = true;
 	}
-	$: if (!app_error && !regenerating) {
+	$: if (!app_error && !regenerating && generated) {
 		user_query = "";
 		show_regenerate_button = false;
 	}
@@ -654,6 +648,13 @@
 	$: if (regenerating) {
 		show_regenerate_button = false;
 	}
+
+	$: if (!generated) {
+		show_regenerate_button = false;
+	}
+
+	let code_to_compare = code;
+	$: code_to_compare;
 </script>
 
 <svelte:head>
@@ -769,7 +770,7 @@
 									class=""
 								/>
 								<span class="text-gray-600 text-xs"
-									>Automatically fix errors from generated code</span
+									>Auto-fix errors from AI code</span
 								>
 							</label>
 						</div>
@@ -810,9 +811,9 @@
 								class="pl-2 relative z-10 bg-white flex items-center float-right"
 							>
 								<p class="text-gray-600 my-1 text-xs">
-									<span style="font-weight: 500">Note:</span> This is still an
-									<span style="font-weight: 500">experimental</span> feature. The
-									generated code may be incorrect.
+									<span style="font-weight: 500">Note:</span> This is
+									<span style="font-weight: 500">experimental</span>. Generated
+									code may be incorrect.
 								</p>
 							</div>
 						{/if}
@@ -832,7 +833,10 @@
 						{/if}
 						<input
 							bind:value={user_query}
-							on:keydown={handle_user_query_key_down}
+							on:keydown={(e) => {
+								handle_user_query_key_down(e);
+								app_error = null;
+							}}
 							placeholder={current_code
 								? update_placeholders[current_placeholder_index]
 								: generate_placeholders[current_placeholder_index]}
@@ -851,7 +855,6 @@
 								on:click={async () => {
 									error_prompt = `There's an error when I run the existing code: ${app_error}`;
 									await generate_code(error_prompt, selected_demo.name, true);
-									auto_regenerate = false;
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-purple-100 to-purple-50 border border-purple-200 px-4 py-0.5 rounded-full text-purple-800 hover:shadow"
 							>
@@ -877,7 +880,7 @@
 									generation_error = "Cancelled!";
 									setInterval(() => {
 										generation_error = "";
-									}, 2000);
+									}, 3000);
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-red-100 to-red-50 border border-red-200 px-4 py-0.5 rounded-full text-red-800 hover:shadow"
 								class:from-purple-100={regenerating}
