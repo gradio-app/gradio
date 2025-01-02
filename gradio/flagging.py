@@ -370,9 +370,9 @@ class ChatCSVLogger(FlaggingCallback):
 
         feedback = (
             "Like"
-            if like_data.liked == True  # noqa: E712
+            if like_data.liked is True
             else "Dislike"
-            if like_data.liked == False  # noqa: E712
+            if like_data.liked is False
             else like_data.liked
         )
         csv_data = [
