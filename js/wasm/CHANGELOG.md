@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.16.0
+
+### Features
+
+- [#9984](https://github.com/gradio-app/gradio/pull/9984) [`45df1b1`](https://github.com/gradio-app/gradio/commit/45df1b1978e597546a208ecbf5b3aca56137edc5) - Lite: Capture stdout and stderr from the main thread.  Thanks @whitphx!
+
 ## 0.15.0
 
 ### Features

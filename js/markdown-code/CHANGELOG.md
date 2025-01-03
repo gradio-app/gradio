@@ -1,5 +1,11 @@
 # @gradio/markdown-code
 
+## 0.3.0
+
+### Features
+
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+
 ## 0.2.1
 
 ### Dependency updates
