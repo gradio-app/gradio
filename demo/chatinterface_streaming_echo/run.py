@@ -6,7 +6,7 @@ def slow_echo(message, history):
         time.sleep(0.05)
         yield "You typed: " + message[: i + 1]
 
-demo = gr.ChatInterface(slow_echo, type="messages")
+demo = gr.ChatInterface(slow_echo, type="messages", flagging_mode="manual", flagging_options=["Like", "Spam", "Inappropriate", "Other"])
 
 if __name__ == "__main__":
     demo.launch()
