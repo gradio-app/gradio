@@ -37,7 +37,7 @@ class ClearButton(Button):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
-        size: Literal["sm", "md", "lg"] | None = None,
+        size: Literal["sm", "md", "lg"] = "lg",
         icon: str | Path | None = None,
         link: str | None = None,
         visible: bool = True,

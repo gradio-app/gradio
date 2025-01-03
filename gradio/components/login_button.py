@@ -36,7 +36,7 @@ class LoginButton(Button):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop", "huggingface"] = "huggingface",
-        size: Literal["sm", "md", "lg"] | None = None,
+        size: Literal["sm", "md", "lg"] = "lg",
         icon: str | Path | None = utils.get_icon_path("huggingface-logo.svg"),
         link: str | None = None,
         visible: bool = True,
