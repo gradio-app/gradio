@@ -5,6 +5,8 @@
 	import WaveSurfer from "wavesurfer.js";
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
+	import StreamingAudio from "./StreamingAudio.svelte";
+	import WaveformWrapper from "../shared/waveform_wrapper";
 	import { Empty } from "@gradio/atoms";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 	import type { FileData } from "@gradio/client";
@@ -31,7 +33,7 @@
 	export let handle_reset_value: () => void = () => {};
 
 	let container: HTMLDivElement;
-	let waveform: WaveSurfer | undefined;
+	let waveform: WaveSurfer | WaveformWrapper | undefined;
 	let playing = false;
 
 	let timeRef: HTMLTimeElement;
@@ -64,6 +66,7 @@
 				return waveform.load(resolved_src);
 			}
 		});
+		attach_waveform_events(waveform);
 	};
 
 	$: if (!value?.is_stream && container !== undefined && container !== null) {
@@ -73,52 +76,12 @@
 		playing = false;
 	}
 
-	$: waveform?.on("decode", (duration: any) => {
-		audio_duration = duration;
-		durationRef && (durationRef.textContent = format_time(duration));
-	});
-
-	$: waveform?.on(
-		"timeupdate",
-		(currentTime: any) =>
-			timeRef && (timeRef.textContent = format_time(currentTime))
-	);
-
-	$: waveform?.on("ready", () => {
-		if (!waveform_settings.autoplay) {
-			waveform?.stop();
-		} else {
-			waveform?.play();
-		}
-	});
-
-	$: waveform?.on("finish", () => {
-		if (loop) {
-			waveform?.play();
-		} else {
-			playing = false;
-			dispatch("stop");
-		}
-	});
-	$: waveform?.on("pause", () => {
-		playing = false;
-		dispatch("pause");
-	});
-	$: waveform?.on("play", () => {
-		playing = true;
-		dispatch("play");
-	});
-
-	$: waveform?.on("load", () => {
-		dispatch("load");
-	});
-
 	const handle_trim_audio = async (
 		start: number,
 		end: number
 	): Promise<void> => {
 		mode = "";
-		const decodedData = waveform?.getDecodedData();
+		const decodedData = (waveform as undefined | WaveSurfer)?.getDecodedData();
 		if (decodedData)
 			await process_audio(
 				decodedData,
@@ -156,7 +119,9 @@
 			hls.loadSource(value.url);
 			hls.attachMedia(audio_player);
 			hls.on(Hls.Events.MANIFEST_PARSED, function () {
-				if (waveform_settings.autoplay) audio_player.play();
+				if (waveform_settings.autoplay) {
+					audio_player.play();
+				}
 			});
 			hls.on(Hls.Events.ERROR, function (event, data) {
 				console.error("HLS error:", event, data);
@@ -199,18 +164,72 @@
 			}
 		});
 	});
+
+	function attach_waveform_events(
+		waveform: WaveformWrapper | WaveSurfer
+	): void {
+		waveform.on("decode", (duration: any) => {
+			audio_duration = duration;
+			durationRef && (durationRef.textContent = format_time(duration));
+		});
+
+		waveform.on(
+			"timeupdate",
+			(currentTime: any) =>
+				timeRef && (timeRef.textContent = format_time(currentTime))
+		);
+
+		waveform.on("ready", () => {
+			if (!waveform_settings.autoplay) {
+				waveform?.stop();
+			} else {
+				waveform?.play();
+			}
+		});
+
+		waveform.on("finish", () => {
+			if (loop) {
+				waveform?.play();
+			} else {
+				playing = false;
+				dispatch("stop");
+			}
+		});
+		waveform.on("pause", () => {
+			playing = false;
+			dispatch("pause");
+		});
+
+		waveform.on("play", () => {
+			playing = true;
+			dispatch("play");
+		});
+
+		waveform.on("load", () => {
+			dispatch("load");
+		});
+	}
+
+	function make_waveform(stream_active: boolean): void {
+		if (stream_active) {
+			waveform = new WaveformWrapper(audio_player);
+			attach_waveform_events(waveform);
+		}
+	}
+
+	$: make_waveform(stream_active);
 </script>
 
 <audio
 	class="standard-player"
-	class:hidden={!(value && value.is_stream)}
-	controls
+	class:hidden={true}
 	autoplay={waveform_settings.autoplay}
 	on:load
 	bind:this={audio_player}
 	on:ended={() => dispatch("stop")}
 	on:play={() => dispatch("play")}
 />
+
 {#if value === null}
 	<Empty size="small">
 		<Music />
@@ -258,6 +277,25 @@
 		/>
 		<!-- {/if} -->
 	</div>
+{:else if stream_active}
+	<StreamingAudio audio_source={audio_player} />
+	<WaveformControls
+		{container}
+		{waveform}
+		{playing}
+		{audio_duration}
+		{i18n}
+		{interactive}
+		{handle_trim_audio}
+		bind:mode
+		bind:trimDuration
+		bind:show_volume_slider
+		show_redo={interactive}
+		{handle_reset_value}
+		{waveform_options}
+		{trim_region_settings}
+		{editable}
+	/>
 {/if}
 
 <style>
