@@ -17,6 +17,7 @@
 	export let elem_id: string;
 	export let elem_classes: string[];
 	export let _id: number;
+	export let visible: boolean;
 
 	const s = (id: number, p: string, v: any): CustomEvent =>
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });
@@ -51,6 +52,7 @@
 	const _component = wrap(component);
 </script>
 
+<!-- {#if visible} -->
 <svelte:component
 	this={_component}
 	bind:this={instance}
@@ -59,9 +61,11 @@
 	{elem_id}
 	{elem_classes}
 	{target}
+	{visible}
 	{...$$restProps}
 	{theme_mode}
 	{root}
 >
 	<slot />
 </svelte:component>
+<!-- {/if} -->
