@@ -1,5 +1,25 @@
 # @gradio/file
 
+## 0.12.0
+
+### Features
+
+- [#10210](https://github.com/gradio-app/gradio/pull/10210) [`13a83e5`](https://github.com/gradio-app/gradio/commit/13a83e5001e29594990d61569887cb8562744964) - Allow reordering files in gr.File.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10209](https://github.com/gradio-app/gradio/pull/10209) [`2700d18`](https://github.com/gradio-app/gradio/commit/2700d1898bc8eeb3fd9f65ce77be17c2614a388f) - Ensure the `height` param in `gr.File` works as expected.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/upload@0.14.4
+- @gradio/client@1.9.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+- @gradio/wasm@0.16.0
+
 ## 0.11.3
 
 ### Dependency updates
