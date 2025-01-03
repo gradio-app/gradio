@@ -87,7 +87,7 @@ class ChatInterface(Blocks):
         title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
-        flagging_mode: Literal["never"] | Literal["manual"] | None = None,
+        flagging_mode: Literal["never", "manual"] | None = None,
         flagging_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
         flagging_dir: str = ".gradio/flagged",
         css: str | None = None,
