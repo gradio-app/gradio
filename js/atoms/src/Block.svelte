@@ -62,7 +62,7 @@
 	data-testid={test_id}
 	id={elem_id}
 	class:hidden={visible === false}
-	class="block {elem_classes.join(' ')}"
+	class="block {elem_classes?.join(' ') || ''}"
 	class:padded={padding}
 	class:flex
 	class:border_focus={border_mode === "focus"}

@@ -67,12 +67,17 @@ export interface CommandManager {
 	 * Observable store that you can subscribe to for updates
 	 */
 	readonly current_history: Writable<CommandNode>;
+	/**
+	 * Hydrates the command manager with a full history
+	 * @param full_history the full history to hydrate with
+	 */
+	hydrate(full_history: CommandNode): void;
 }
 
 /**
  * Command node interface that is used to create the undo/redo history
  */
-interface CommandNode {
+export interface CommandNode {
 	/**
 	 * Command that the node holds
 	 */
@@ -147,7 +152,14 @@ export function command_manager(): CommandManager {
 			can_redo.set(!!history.next);
 			current_history.set(history);
 		},
-
+		hydrate: function (full_history: CommandNode) {
+			setTimeout(() => {
+				while (full_history.next) {
+					this.execute(full_history.next.command!);
+					full_history = full_history.next;
+				}
+			}, 1000);
+		},
 		can_undo,
 		can_redo,
 		current_history,

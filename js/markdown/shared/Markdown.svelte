@@ -54,7 +54,7 @@
 </script>
 
 <div
-	class="prose {elem_classes.join(' ')}"
+	class="prose {elem_classes?.join(' ') || ''}"
 	class:hide={!visible}
 	data-testid="markdown"
 	dir={rtl ? "rtl" : "ltr"}

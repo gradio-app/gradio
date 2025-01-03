@@ -57,6 +57,7 @@
 	};
 	export let canvas_size: [number, number] | undefined;
 	export let show_fullscreen_button = true;
+	export let full_history: any = null;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -185,6 +186,7 @@
 		/>
 
 		<InteractiveImageEditor
+			on:history={(e) => (full_history = e.detail)}
 			bind:dragging
 			{canvas_size}
 			on:change={() => handle_history_change()}
@@ -221,6 +223,7 @@
 			upload={(...args) => gradio.client.upload(...args)}
 			stream_handler={(...args) => gradio.client.stream(...args)}
 			{placeholder}
+			{full_history}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

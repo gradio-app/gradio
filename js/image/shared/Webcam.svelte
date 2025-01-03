@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from "svelte";
+	import { createEventDispatcher, onDestroy, onMount } from "svelte";
 	import {
 		Camera,
 		Circle,
@@ -198,7 +198,7 @@
 				}
 			};
 			ReaderObj.readAsDataURL(video_blob);
-		} else {
+		} else if (typeof MediaRecorder !== "undefined") {
 			dispatch("start_recording");
 			recorded_blobs = [];
 			let validMimeTypes = ["video/webm", "video/mp4"];
@@ -273,6 +273,12 @@
 		event.stopPropagation();
 		options_open = false;
 	}
+
+	onDestroy(() => {
+		if (typeof window === "undefined") return;
+		record_video_or_photo();
+		stream?.getTracks().forEach((track) => track.stop());
+	});
 </script>
 
 <div class="wrap">

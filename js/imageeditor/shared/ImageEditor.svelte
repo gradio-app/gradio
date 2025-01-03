@@ -2,7 +2,7 @@
 	import type { Writable, Readable } from "svelte/store";
 	import type { Spring } from "svelte/motion";
 	import { type PixiApp } from "./utils/pixi";
-	import { type CommandManager } from "./utils/commands";
+	import { type CommandManager, type CommandNode } from "./utils/commands";
 
 	export const EDITOR_KEY = Symbol("editor");
 	export type context_type = "bg" | "layers" | "crop" | "draw" | "erase";
@@ -71,10 +71,12 @@
 		clear?: never;
 		save: void;
 		change: void;
+		history: CommandManager["current_history"];
 	}>();
 	export let crop_constraint = false;
 	export let canvas_size: [number, number] | undefined;
 	export let parent_height: number;
+	export let full_history: CommandNode | null = null;
 
 	$: orig_canvas_size = canvas_size;
 
@@ -114,7 +116,15 @@
 
 	const { can_redo, can_undo, current_history } = CommandManager;
 
+	function get_start_history(history: any): any {
+		if (history.previous) {
+			return get_start_history(history.previous);
+		}
+		return history;
+	}
+
 	$: $current_history.previous, dispatch("change");
+	$: dispatch("history", get_start_history($current_history));
 
 	$: {
 		history = !!$current_history.previous || $active_tool !== "bg";
@@ -315,6 +325,12 @@
 		}
 
 		resize(...$dimensions);
+
+		tick().then(() => {
+			if (full_history) {
+				CommandManager.hydrate(full_history);
+			}
+		});
 
 		return () => {
 			$pixi?.destroy();

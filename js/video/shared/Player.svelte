@@ -97,6 +97,9 @@
 	function open_full_screen(): void {
 		video.requestFullscreen();
 	}
+
+	$: time = time || 0;
+	$: duration = duration || 0;
 </script>
 
 <div class="wrap">
