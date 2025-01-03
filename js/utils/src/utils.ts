@@ -17,7 +17,7 @@ export interface SelectData {
 export interface LikeData {
 	index: number | [number, number];
 	value: any;
-	liked?: boolean;
+	liked?: boolean | string;
 }
 
 export interface KeyUpData {

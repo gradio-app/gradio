@@ -185,6 +185,18 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_RESET_EXAMPLES_CACHE="True"
   ```
 
+### 20. `GRADIO_CHAT_FLAGGING_MODE`
+
+- **Description**: Controls whether users can flag messages in `gr.ChatInterface` applications. Similar to `GRADIO_FLAGGING_MODE` but specifically for chat interfaces.
+- **Default**: `"never"`
+- **Options**: `"never"`, `"manual"`
+- **Example**:
+  ```sh
+  export GRADIO_CHAT_FLAGGING_MODE="manual"
+  ```
+
+
+
 ## How to Set Environment Variables
 
 To set environment variables in your terminal, use the `export` command followed by the variable name and its value. For example:

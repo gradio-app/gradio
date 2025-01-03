@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { afterUpdate } from "svelte";
+	import { afterUpdate, tick } from "svelte";
 	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
@@ -25,7 +25,7 @@
 	const marked = create_marked({
 		header_links,
 		line_breaks,
-		latex_delimiters
+		latex_delimiters: latex_delimiters || []
 	});
 
 	function escapeRegExp(string: string): string {
@@ -73,7 +73,7 @@
 
 	async function render_html(value: string): Promise<void> {
 		if (latex_delimiters.length > 0 && value) {
-			const containsDelimiter = latex_delimiters.some(
+			const containsDelimiter = latex_delimiters.every(
 				(delimiter) =>
 					value.includes(delimiter.left) && value.includes(delimiter.right)
 			);

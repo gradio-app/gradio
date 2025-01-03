@@ -6,6 +6,7 @@
 	import { Retry, Undo, Edit, Check, Clear } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	export let likeable: boolean;
+	export let feedback_options: string[];
 	export let show_retry: boolean;
 	export let show_undo: boolean;
 	export let show_edit: boolean;
@@ -93,7 +94,7 @@
 					/>
 				{/if}
 				{#if likeable}
-					<LikeDislike {handle_action} />
+					<LikeDislike {handle_action} {feedback_options} />
 				{/if}
 			{/if}
 		</IconButtonWrapper>

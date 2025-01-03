@@ -10,6 +10,7 @@
 	export let id: string | number | object = {};
 	export let visible: boolean;
 	export let interactive: boolean;
+	export let order: number;
 
 	const dispatch = createEventDispatcher<{ select: SelectData }>();
 
@@ -18,16 +19,20 @@
 
 	let tab_index: number;
 
-	$: tab_index = register_tab({ label, id, elem_id, visible, interactive });
+	$: tab_index = register_tab(
+		{ label, id, elem_id, visible, interactive },
+		order
+	);
 
 	onMount(() => {
-		return (): void => unregister_tab({ label, id, elem_id });
+		return (): void => unregister_tab({ label, id, elem_id }, order);
 	});
 
 	$: $selected_tab_index === tab_index &&
 		tick().then(() => dispatch("select", { value: label, index: tab_index }));
 </script>
 
+<!-- {#if $selected_tab === id && visible} -->
 <div
 	id={elem_id}
 	class="tabitem {elem_classes.join(' ')}"
@@ -39,9 +44,11 @@
 	</Column>
 </div>
 
+<!-- {/if} -->
+
 <style>
 	div {
-		display: flex;
+		display: block;
 		position: relative;
 		border: none;
 		border-radius: var(--radius-sm);
