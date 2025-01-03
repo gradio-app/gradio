@@ -67,6 +67,7 @@
 	export let generating = false;
 	export let selectable = false;
 	export let likeable = false;
+	export let feedback_options: string[];
 	export let editable: "user" | "all" | null = null;
 	export let show_share_button = false;
 	export let show_copy_all_button = false;
@@ -202,11 +203,17 @@
 				value: edit_message
 			});
 		} else {
+			let feedback =
+				selected === "like"
+					? true
+					: selected === "dislike"
+						? false
+						: selected?.substring(9); // remove "feedback:" prefix
 			if (msg_format === "tuples") {
 				dispatch("like", {
 					index: message.index,
 					value: message.content,
-					liked: selected === "like"
+					liked: feedback
 				});
 			} else {
 				if (!groupedMessages) return;
@@ -218,9 +225,9 @@
 				];
 
 				dispatch("like", {
-					index: [first.index, last.index] as [number, number],
+					index: first.index as number,
 					value: message_group.map((m) => m.content),
-					liked: selected === "like"
+					liked: feedback
 				});
 			}
 		}
@@ -301,6 +308,7 @@
 					{_components}
 					{generating}
 					{msg_format}
+					{feedback_options}
 					show_like={role === "user" ? likeable && like_user_message : likeable}
 					show_retry={_retryable && is_last_bot_message(messages, value)}
 					show_undo={_undoable && is_last_bot_message(messages, value)}

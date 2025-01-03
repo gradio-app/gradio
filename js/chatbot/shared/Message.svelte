@@ -38,6 +38,7 @@
 	export let i: number;
 	export let show_copy_button: boolean;
 	export let generating: boolean;
+	export let feedback_options: string[];
 	export let show_like: boolean;
 	export let show_edit: boolean;
 	export let show_retry: boolean;
@@ -89,6 +90,7 @@
 	type ButtonPanelProps = {
 		handle_action: (selected: string | null) => void;
 		likeable: boolean;
+		feedback_options: string[];
 		show_retry: boolean;
 		show_undo: boolean;
 		show_edit: boolean;
@@ -106,6 +108,7 @@
 	$: button_panel_props = {
 		handle_action,
 		likeable: show_like,
+		feedback_options,
 		show_retry,
 		show_undo,
 		show_edit,

@@ -300,9 +300,9 @@ class LikeData(EventData):
         """
         The value of the liked/disliked item.
         """
-        self.liked: bool = data.get("liked", True)
+        self.liked: bool | str = data.get("liked", True)
         """
-        True if the item was liked, False if disliked.
+        True if the item was liked, False if disliked, or string value if any other feedback.
         """
 
 

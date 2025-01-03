@@ -7,6 +7,7 @@ from __future__ import annotations
 import builtins
 import copy
 import inspect
+import os
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
 from pathlib import Path
@@ -37,6 +38,7 @@ from gradio.components.chatbot import (
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.context import get_blocks_context
 from gradio.events import Dependency, EditData, SelectData
+from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Column, Group, Row
@@ -85,6 +87,9 @@ class ChatInterface(Blocks):
         title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
+        flagging_mode: Literal["never", "manual"] | None = None,
+        flagging_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
+        flagging_dir: str = ".gradio/flagged",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
         js: str | None = None,
@@ -122,6 +127,9 @@ class ChatInterface(Blocks):
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+            flagging_mode: one of "never", "manual". If "never", users will not see a button to flag an input and output. If "manual", users will see a button to flag.
+            flagging_options: a list of strings representing the options that users can choose from when flagging a message. Defaults to ["Like", "Dislike"]. These two case-sensitive strings will render as "thumbs up" and "thumbs down" icon respectively next to each bot message, but any other strings appear under a separate flag icon.
+            flagging_dir: path to the the directory where flagged data is stored. If the directory does not exist, it will be created.
             css: Custom css as a code string. This css will be included in the demo webpage.
             css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
             js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
@@ -213,6 +221,18 @@ class ChatInterface(Blocks):
                         break
                 if self._additional_inputs_in_examples:
                     break
+
+        if flagging_mode is None:
+            flagging_mode = os.getenv("GRADIO_CHAT_FLAGGING_MODE", "never")  # type: ignore
+        if flagging_mode in ["manual", "never"]:
+            self.flagging_mode = flagging_mode
+        else:
+            raise ValueError(
+                "Invalid value for `flagging_mode` parameter."
+                "Must be: 'manual' or 'never'."
+            )
+        self.flagging_options = flagging_options
+        self.flagging_dir = flagging_dir
 
         with self:
             with Column():
@@ -500,6 +520,12 @@ class ChatInterface(Blocks):
                 [self.chatbot, self.chatbot_state, self.saved_input],
                 show_api=False,
             ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs)
+
+        if self.flagging_mode != "never":
+            flagging_callback = ChatCSVLogger()
+            flagging_callback.setup(self.flagging_dir)
+            self.chatbot.feedback_options = self.flagging_options
+            self.chatbot.like(flagging_callback.flag, self.chatbot)
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]

@@ -341,6 +341,14 @@ To use the endpoint, you should use either the [Gradio Python Client](/guides/ge
 * Slack bot [[tutorial]](../guides/creating-a-slack-bot-from-a-gradio-app)
 * Website widget [[tutorial]](../guides/creating-a-website-widget-from-a-gradio-chatbot)
 
+## Collecting Feedback
+
+To gather feedback on your generations, set `gr.ChatInterface(flagging_mode="manual")` and users can thumbs-up and down assistant responses. Each flagged response, along with the entire chat history, will get saved in a CSV file in the app folder (or wherever `flagging_dir` specifies). 
+
+You can also specify more feedback options via `flagging_options`, which will appear under a dedicated flag button. Here's an example that shows several flagging options. Because the case-sensitive string "Like" is one of the flagging options, the user will see a "thumbs up" icon next to each assistant message. The three other flagging options will appear under a dedicated "flag" icon.
+
+$code_chatinterface_streaming_echo
+
 ## What's Next?
 
 Now that you've learned about the `gr.ChatInterface` class and how it can be used to create chatbot UIs quickly, we recommend reading one of the following:
