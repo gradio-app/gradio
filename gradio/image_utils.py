@@ -5,9 +5,10 @@ from io import BytesIO
 from pathlib import Path
 from typing import Literal, cast
 
+import httpx
 import numpy as np
 import PIL.Image
-from gradio_client.utils import get_mimetype
+from gradio_client.utils import get_mimetype, is_http_url_like
 from PIL import ImageOps
 
 from gradio import processing_utils
@@ -152,3 +153,22 @@ def encode_image_file_to_base64(image_file: str | Path) -> str:
         bytes_data = f.read()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return f"data:{mime_type};base64," + base64_str
+
+
+def extract_svg_content(image_file: str | Path) -> str:
+    """
+    Provided a path or URL to an SVG file, return the SVG content as a string.
+    Parameters:
+        image_file: Local file path or URL to an SVG file
+    Returns:
+        str: The SVG content as a string
+    """
+    image_file = str(image_file)
+    if is_http_url_like(image_file):
+        response = httpx.get(image_file)
+        response.raise_for_status()  # Raise an error for bad status codes
+        return response.text
+    else:
+        with open(image_file) as file:
+            svg_content = file.read()
+        return svg_content

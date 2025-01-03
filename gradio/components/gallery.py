@@ -12,7 +12,7 @@ from typing import (
     Optional,
     Union,
 )
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import numpy as np
 import PIL.Image
@@ -21,9 +21,9 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
-from gradio import processing_utils, utils, wasm_utils
+from gradio import image_utils, processing_utils, utils, wasm_utils
 from gradio.components.base import Component
-from gradio.data_classes import FileData, GradioModel, GradioRootModel
+from gradio.data_classes import FileData, GradioModel, GradioRootModel, ImageData
 from gradio.events import Events
 from gradio.exceptions import Error
 
@@ -35,7 +35,7 @@ CaptionedGalleryMediaType = tuple[GalleryMediaType, str]
 
 
 class GalleryImage(GradioModel):
-    image: FileData
+    image: ImageData
     caption: Optional[str] = None
 
 
@@ -188,7 +188,7 @@ class Gallery(Component):
             if isinstance(gallery_element, GalleryVideo):
                 file_path = gallery_element.video.path
             else:
-                file_path = gallery_element.image.path
+                file_path = gallery_element.image.path or ""
             if self.file_types and not client_utils.is_valid_file(
                 file_path, self.file_types
             ):
@@ -216,6 +216,10 @@ class Gallery(Component):
         """
         if value is None:
             return GalleryData(root=[])
+        if isinstance(value, str):
+            raise ValueError(
+                "The `value` passed into `gr.Gallery` must be a list of images or videos, or list of (media, caption) tuples."
+            )
         output = []
 
         def _save(img):
@@ -236,14 +240,20 @@ class Gallery(Component):
                 )
                 file_path = str(utils.abspath(file))
             elif isinstance(img, str):
-                file_path = img
-                mime_type = client_utils.get_mimetype(file_path)
-                if is_http_url_like(img):
+                mime_type = client_utils.get_mimetype(img)
+                if img.lower().endswith(".svg"):
+                    svg_content = image_utils.extract_svg_content(img)
+                    orig_name = Path(img).name
+                    url = f"data:image/svg+xml,{quote(svg_content)}"
+                    file_path = None
+                elif is_http_url_like(img):
                     url = img
                     orig_name = Path(urlparse(img).path).name
+                    file_path = img
                 else:
                     url = None
                     orig_name = Path(img).name
+                    file_path = img
             elif isinstance(img, Path):
                 file_path = str(img)
                 orig_name = img.name
@@ -253,7 +263,7 @@ class Gallery(Component):
             if mime_type is not None and "video" in mime_type:
                 return GalleryVideo(
                     video=FileData(
-                        path=file_path,
+                        path=file_path,  # type: ignore
                         url=url,
                         orig_name=orig_name,
                         mime_type=mime_type,
@@ -262,7 +272,7 @@ class Gallery(Component):
                 )
             else:
                 return GalleryImage(
-                    image=FileData(
+                    image=ImageData(
                         path=file_path,
                         url=url,
                         orig_name=orig_name,
