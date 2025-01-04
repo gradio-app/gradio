@@ -1,8 +1,9 @@
-"""Predefined buttons with bound events that can be included in a gr.Blocks for convenience."""
+"""gr.DuplicateButton() component"""
 
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
@@ -30,8 +31,8 @@ class DuplicateButton(Button):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop", "huggingface"] = "huggingface",
-        size: Literal["sm", "lg"] | None = "sm",
-        icon: str | None = None,
+        size: Literal["sm", "md", "lg"] = "sm",
+        icon: str | Path | None = None,
         link: str | None = None,
         visible: bool = True,
         interactive: bool = True,
@@ -50,7 +51,7 @@ class DuplicateButton(Button):
             every: continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
             variant: sets the background and text color of the button. Use 'primary' for main call-to-action buttons, 'secondary' for a more subdued style, 'stop' for a stop button, 'huggingface' for a black background with white text, consistent with Hugging Face's button styles.
-            size: size of the button. Can be "sm" or "lg".
+            size: size of the button. Can be "sm", "md", or "lg".
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
             link: URL to open when the button is clicked. If None, no link will be used.
             visible: if False, component will be hidden.

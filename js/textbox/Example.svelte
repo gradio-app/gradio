@@ -38,8 +38,6 @@
 
 	div {
 		overflow: hidden;
-		min-width: var(--local-text-width);
-
 		white-space: nowrap;
 	}
 </style>

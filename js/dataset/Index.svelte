@@ -12,6 +12,7 @@
 		}>
 	>;
 	export let label = "Examples";
+	export let show_label = true;
 	export let headers: string[];
 	export let samples: any[][] | null = null;
 	let old_samples: any[][] | null = null;
@@ -29,6 +30,7 @@
 		click: number;
 		select: SelectData;
 	}>;
+	export let layout: "gallery" | "table" | null = null;
 
 	// Although the `samples_dir` prop is not used in any of the core Gradio component, it is kept for backward compatibility
 	// with any custom components created with gradio<=4.20.0
@@ -37,7 +39,8 @@
 		: `${root}/file=`;
 	let page = 0;
 
-	$: gallery = components.length < 2 || sample_labels !== null;
+	$: gallery =
+		(components.length < 2 || sample_labels !== null) && layout !== "table";
 	let paginate = samples ? samples.length > samples_per_page : false;
 
 	let selected_samples: any[][];
@@ -126,24 +129,26 @@
 	allow_overflow={false}
 	container={false}
 >
-	<div class="label">
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			xmlns:xlink="http://www.w3.org/1999/xlink"
-			aria-hidden="true"
-			role="img"
-			width="1em"
-			height="1em"
-			preserveAspectRatio="xMidYMid meet"
-			viewBox="0 0 32 32"
-		>
-			<path
-				fill="currentColor"
-				d="M10 6h18v2H10zm0 18h18v2H10zm0-9h18v2H10zm-6 0h2v2H4zm0-9h2v2H4zm0 18h2v2H4z"
-			/>
-		</svg>
-		{label}
-	</div>
+	{#if show_label}
+		<div class="label">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				xmlns:xlink="http://www.w3.org/1999/xlink"
+				aria-hidden="true"
+				role="img"
+				width="1em"
+				height="1em"
+				preserveAspectRatio="xMidYMid meet"
+				viewBox="0 0 32 32"
+			>
+				<path
+					fill="currentColor"
+					d="M10 6h18v2H10zm0 18h18v2H10zm0-9h18v2H10zm-6 0h2v2H4zm0-9h2v2H4zm0 18h2v2H4z"
+				/>
+			</svg>
+			{label}
+		</div>
+	{/if}
 	{#if gallery}
 		<div class="gallery">
 			{#each selected_samples as sample_row, i}
@@ -180,7 +185,7 @@
 				{/if}
 			{/each}
 		</div>
-	{:else}
+	{:else if selected_samples.length > 0}
 		<div class="table-wrap">
 			<table tabindex="0" role="grid">
 				<thead>
