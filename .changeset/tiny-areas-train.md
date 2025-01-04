@@ -1,5 +1,6 @@
 ---
 "@gradio/button": minor
+"@gradio/chatbot": minor
 "@gradio/dataset": minor
 "@gradio/downloadbutton": minor
 "@gradio/textbox": minor
