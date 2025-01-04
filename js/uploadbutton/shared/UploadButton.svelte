@@ -11,7 +11,7 @@
 	export let file_count: string;
 	export let file_types: string[] = [];
 	export let root: string;
-	export let size: "sm" | "lg" = "lg";
+	export let size: "sm" | "md" | "lg" = "lg";
 	export let icon: FileData | null = null;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;

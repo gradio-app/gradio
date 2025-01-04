@@ -5,6 +5,7 @@
 	import ThumbUpActive from "./ThumbUpActive.svelte";
 	import ThumbUpDefault from "./ThumbUpDefault.svelte";
 	import Flag from "./Flag.svelte";
+	import FlagActive from "./FlagActive.svelte";
 
 	export let handle_action: (selected: string | null) => void;
 	export let feedback_options: string[];
@@ -46,7 +47,13 @@
 
 {#if extra_feedback.length > 0}
 	<div class="extra-feedback">
-		<IconButton Icon={Flag} label="Feedback" />
+		<IconButton
+			Icon={selected && extra_feedback.includes(selected) ? FlagActive : Flag}
+			label="Feedback"
+			color={selected && extra_feedback.includes(selected)
+				? "var(--color-accent)"
+				: "var(--block-label-text-color)"}
+		/>
 		<div class="extra-feedback-options">
 			{#each extra_feedback as option}
 				<button
