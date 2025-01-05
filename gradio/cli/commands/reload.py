@@ -37,7 +37,7 @@ def _setup_config(
     app_text = original_path.read_text(encoding=encoding)
 
     patterns = [
-        f"with gr\\.Blocks\\(.*\\) as {demo_name}",
+        fr"with (?:gr\.)?Blocks\(.*\) as {demo_name}",
         f"{demo_name} = gr\\.Blocks",
         f"{demo_name} = gr\\.Interface",
         f"{demo_name} = gr\\.ChatInterface",
