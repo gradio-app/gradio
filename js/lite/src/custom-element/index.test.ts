@@ -1,8 +1,9 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { bootstrap_custom_element } from "./index";
 
-const delay = (ms?: number) =>
-	new Promise((resolve) => setTimeout(resolve, ms));
+const awaitAnimationFrame = () =>
+	new Promise((resolve) => window.requestAnimationFrame(resolve));
 
 describe("bootstrap_custom_element", () => {
 	const create = vi.fn();
@@ -20,7 +21,7 @@ describe("bootstrap_custom_element", () => {
   import gradio as gr
 </gradio-lite>
 `;
-		await delay(); // Wait for the requestAnimationFrame to run
+		await awaitAnimationFrame(); // Wait for `create` to be called in the `requestAnimationFrame` callback
 
 		expect(create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -44,7 +45,7 @@ scipy
     </gradio-requirements>
 </gradio-lite>
 `;
-		await delay(); // Wait for the requestAnimationFrame to run
+		await awaitAnimationFrame(); // Wait for `create` to be called in the `requestAnimationFrame` callback
 
 		expect(create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -75,7 +76,7 @@ scipy
     </gradio-requirements>
 </gradio-lite>
 `;
-		await delay(); // Wait for the requestAnimationFrame to run
+		await awaitAnimationFrame(); // Wait for `create` to be called in the `requestAnimationFrame` callback
 
 		expect(create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -100,7 +101,7 @@ scipy
 		import gradio as gr
 </gradio-lite>
 `;
-		await delay(); // Wait for the requestAnimationFrame to run
+		await awaitAnimationFrame(); // Wait for `create` to be called in the `requestAnimationFrame` callback
 
 		expect(create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -119,7 +120,7 @@ scipy
 		</gradio-code>
 </gradio-lite>
 `;
-		await delay(); // Wait for the requestAnimationFrame to run
+		await awaitAnimationFrame(); // Wait for `create` to be called in the `requestAnimationFrame` callback
 
 		expect(create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -149,7 +150,7 @@ scipy
 		</gradio-file>
 </gradio-lite>
 `;
-		await delay(); // Wait for the requestAnimationFrame to run
+		await awaitAnimationFrame(); // Wait for `create` to be called in the `requestAnimationFrame` callback
 
 		expect(create).toHaveBeenCalledWith(
 			expect.objectContaining({
