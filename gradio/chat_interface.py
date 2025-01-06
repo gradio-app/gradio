@@ -39,7 +39,7 @@ from gradio.components.chatbot import (
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.context import get_blocks_context
-from gradio.events import Dependency, EditData, LikeData, SelectData
+from gradio.events import Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
@@ -485,7 +485,7 @@ class ChatInterface(Blocks):
             index,
             Chatbot(
                 value=conversations[index],  # type: ignore
-                feedback_value=[],
+                feedback_value=None,
             ),
         )
 
@@ -691,6 +691,7 @@ class ChatInterface(Blocks):
                 [self.conversation_id, self.chatbot],
                 show_api=False,
                 queue=False,
+                show_progress="hidden",
             ).then(**synchronize_chat_state_kwargs)
 
         if self.flagging_mode != "never":
