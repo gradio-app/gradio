@@ -59,7 +59,7 @@
 					style:font-weight={selected === option ? "bold" : "normal"}
 					on:click={() => {
 						toggleSelection(option);
-						handle_action(selected ? "feedback:" + selected : null);
+						handle_action(selected ? selected : null);
 					}}>{option}</button
 				>
 			{/each}

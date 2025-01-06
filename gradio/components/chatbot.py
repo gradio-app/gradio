@@ -195,7 +195,7 @@ class Chatbot(Component):
         sanitize_html: bool = True,
         render_markdown: bool = True,
         feedback_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
-        feedback_value: list[str | None] | None = None,
+        feedback_value: Sequence[str | None] | None = None,
         bubble_full_width=None,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,

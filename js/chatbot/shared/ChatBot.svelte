@@ -209,7 +209,7 @@
 					? true
 					: selected === "Dislike"
 						? false
-						: selected?.substring(9); // remove "feedback:" prefix
+						: selected || "";
 			if (msg_format === "tuples") {
 				dispatch("like", {
 					index: message.index,

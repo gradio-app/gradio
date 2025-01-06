@@ -9,9 +9,10 @@ import copy
 import inspect
 import os
 import warnings
+from collections import defaultdict
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
 from pathlib import Path
-from typing import Literal, Union, cast
+from typing import TYPE_CHECKING, Literal, Union, cast
 
 import anyio
 from gradio_client.documentation import document
@@ -39,7 +40,7 @@ from gradio.components.chatbot import (
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.context import get_blocks_context
-from gradio.events import Dependency, EditData, SelectData
+from gradio.events import Dependency, EditData, LikeData, SelectData
 from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
@@ -252,7 +253,7 @@ class ChatInterface(Blocks):
                 [], storage_key=f"_saved_conversations_{self._id}"
             )
             self.saved_feedback_values = BrowserState(
-                [], storage_key=f"_saved_feedback_values_{self._id}"
+                {}, storage_key=f"_saved_feedback_values_{self._id}"
             )
             self.conversation_id = State(None)
             self.saved_input = State()  # Stores the most recent user message
@@ -465,10 +466,58 @@ class ChatInterface(Blocks):
         self,
         index: int | None,
         saved_conversations: list[list[MessageDict]],
+        saved_feedback_values: dict[str, list[str | None]],
     ):
         if index is not None:
             saved_conversations.pop(index)
-        return None, saved_conversations
+            saved_feedback_values.pop(str(index), [])
+        return None, saved_conversations, saved_feedback_values
+
+    def _flag_message(
+            self,
+            conversation: list[MessageDict],
+            conversation_id: int,
+            feedback_values: dict[str, list[str | None]],
+            like_data: LikeData
+    ) -> dict[str, list[str | None]]:
+        assistant_indices = [i for i, msg in enumerate(conversation) if msg["role"] == "assistant"]
+        assistant_index = assistant_indices.index(like_data.index)  # type: ignore
+        value = (
+            "Like" if like_data.liked is True else
+            "Dislike" if like_data.liked is False else
+            like_data.liked
+        )
+        feedback_value = feedback_values.get(str(conversation_id), [])
+        if len(feedback_value) <= assistant_index:
+            while len(feedback_value) <= assistant_index:
+                feedback_value.append(None)
+        feedback_value[assistant_index] = value
+        feedback_values[str(conversation_id)] = feedback_value
+        return feedback_values
+
+    def _load_chat_history(self, conversations):
+        return Dataset(
+            samples=[
+                [self._generate_chat_title(conv)]
+                for conv in conversations or []
+                if conv
+            ]
+        )
+
+    def _load_conversation(
+            self,
+            index: int,
+            conversations: list[list[MessageDict]],
+            feedback_values: dict[str, list[str | None]]
+    ):
+        feedback_value = feedback_values.get(str(index), [])
+        return (
+            index,
+            Chatbot(
+                value=conversations[index],  # type: ignore
+                feedback_value=feedback_value
+            )
+        )
 
     def _setup_events(self) -> None:
         from gradio import on
@@ -617,8 +666,16 @@ class ChatInterface(Blocks):
 
         self.chatbot.clear(**synchronize_chat_state_kwargs).then(
             self._delete_conversation,
-            [self.conversation_id, self.saved_conversations],
-            [self.conversation_id, self.saved_conversations],
+            [self.conversation_id, self.saved_conversations, self.saved_feedback_values],
+            [self.conversation_id, self.saved_conversations, self.saved_feedback_values],
+            show_api=False,
+            queue=False,
+        )
+
+        self.chatbot.like(
+            self._flag_message,
+            [self.chatbot, self.conversation_id, self.saved_feedback_values],
+            [self.saved_feedback_values],
             show_api=False,
             queue=False,
         )
@@ -648,25 +705,18 @@ class ChatInterface(Blocks):
                 queue=False,
             )
 
-            @on(
-                [self.load, self.saved_conversations.change],
+            on(
+                triggers=[self.load, self.saved_conversations.change],
+                fn=self._load_chat_history,
                 inputs=[self.saved_conversations],
                 outputs=[self.chat_history_dataset],
                 show_api=False,
                 queue=False,
             )
-            def load_chat_history(conversations):
-                return Dataset(
-                    samples=[
-                        [self._generate_chat_title(conv)]
-                        for conv in conversations or []
-                        if conv
-                    ]
-                )
 
             self.chat_history_dataset.click(
-                lambda index, conversations: (index, Chatbot(value=conversations[index], feedback_value=None)),
-                [self.chat_history_dataset, self.saved_conversations],
+                self._load_conversation,
+                [self.chat_history_dataset, self.saved_conversations, self.saved_feedback_values],
                 [self.conversation_id, self.chatbot],
                 show_api=False,
                 queue=False,
