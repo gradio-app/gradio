@@ -14,6 +14,11 @@
 	);
 
 	let selected: string | null = null;
+
+	function toggleSelection(newSelection: string): void {
+		selected = selected === newSelection ? null : newSelection;
+		handle_action(selected);
+	}
 </script>
 
 {#if feedback_options.includes("Like") || feedback_options.includes("Dislike")}
@@ -24,10 +29,7 @@
 			color={selected === "dislike"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}
-			on:click={() => {
-				selected = "dislike";
-				handle_action(selected);
-			}}
+			on:click={() => toggleSelection("dislike")}
 		/>
 	{/if}
 	{#if feedback_options.includes("Like")}
@@ -37,10 +39,7 @@
 			color={selected === "like"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}
-			on:click={() => {
-				selected = "like";
-				handle_action(selected);
-			}}
+			on:click={() => toggleSelection("like")}
 		/>
 	{/if}
 {/if}
@@ -60,8 +59,8 @@
 					class="extra-feedback-option"
 					style:font-weight={selected === option ? "bold" : "normal"}
 					on:click={() => {
-						selected = option;
-						handle_action("feedback:" + selected);
+						toggleSelection(option);
+						handle_action(selected ? "feedback:" + selected : null);
 					}}>{option}</button
 				>
 			{/each}
