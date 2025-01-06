@@ -44,7 +44,7 @@
 {/if}
 
 {#if extra_feedback.length > 0}
-	<div class="extra-feedback">
+	<div class="extra-feedback no-border">
 		<IconButton
 			Icon={selected && extra_feedback.includes(selected) ? FlagActive : Flag}
 			label="Feedback"

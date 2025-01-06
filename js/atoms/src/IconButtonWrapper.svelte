@@ -60,10 +60,10 @@
 
 	.icon-button-wrapper
 		:global(
-			a.download-link:not(:last-child):not(.extra-feedback-option)::after
+			a.download-link:not(:last-child):not(.no-border *)::after
 		),
 	.icon-button-wrapper
-		:global(button:not(:last-child):not(.extra-feedback-option)::after) {
+		:global(button:not(:last-child):not(.no-border *)::after) {
 		content: "";
 		position: absolute;
 		right: -4.5px;
