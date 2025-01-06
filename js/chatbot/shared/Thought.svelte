@@ -56,12 +56,11 @@
 			tabindex="0"
 			on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
 		>
-			{#if message.content === "" || message.content === null}
-				<span class="loading-spinner"></span>
-			{/if}
-
 			<span class="title-text">
 				{message.metadata?.title}
+				{#if message.content === "" || message.content === null}
+					<span class="loading-spinner"></span>
+				{/if}
 				{#if message?.duration}
 					<span class="duration">{message.duration || 0.16}s</span>
 				{/if}
@@ -230,8 +229,7 @@
 		border-radius: 50%;
 		border-top-color: transparent;
 		animation: spin 1s linear infinite;
-		margin-top: var(--spacing-xxs);
-		margin-right: var(--spacing-md);
+		margin: 0 var(--size-1) -1px var(--size-1);
 	}
 
 	@keyframes spin {
