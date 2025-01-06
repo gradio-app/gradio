@@ -10,7 +10,7 @@ demo = gr.ChatInterface(
     slow_echo,
     type="messages",
     flagging_mode="manual",
-    flagging_options=["Like", "Spam", "Inappropriate", "Other"], 
+    flagging_options=["Like", "Spam", "Inappropriate", "Other"],
     save_history=True,
 )
 

@@ -33,6 +33,7 @@
 	export let _selectable = false;
 	export let likeable = false;
 	export let feedback_options: string[] = ["Like", "Dislike"];
+	export let feedback_value: (string | null)[] | null = null;
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = true;
@@ -128,6 +129,7 @@
 			selectable={_selectable}
 			{likeable}
 			{feedback_options}
+			{feedback_value}
 			{show_share_button}
 			{show_copy_all_button}
 			value={_value}

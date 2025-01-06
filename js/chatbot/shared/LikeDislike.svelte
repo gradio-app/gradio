@@ -9,44 +9,42 @@
 
 	export let handle_action: (selected: string | null) => void;
 	export let feedback_options: string[];
+	export let selected: string | null = null;
 	$: extra_feedback = feedback_options.filter(
 		(option) => option !== "Like" && option !== "Dislike"
 	);
 
-	let selected: string | null = null;
+	function toggleSelection(newSelection: string): void {
+		selected = selected === newSelection ? null : newSelection;
+		handle_action(selected);
+	}
 </script>
 
 {#if feedback_options.includes("Like") || feedback_options.includes("Dislike")}
 	{#if feedback_options.includes("Dislike")}
 		<IconButton
-			Icon={selected === "dislike" ? ThumbDownActive : ThumbDownDefault}
-			label={selected === "dislike" ? "clicked dislike" : "dislike"}
-			color={selected === "dislike"
+			Icon={selected === "Dislike" ? ThumbDownActive : ThumbDownDefault}
+			label={selected === "Dislike" ? "clicked dislike" : "dislike"}
+			color={selected === "Dislike"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}
-			on:click={() => {
-				selected = "dislike";
-				handle_action(selected);
-			}}
+			on:click={() => toggleSelection("Dislike")}
 		/>
 	{/if}
 	{#if feedback_options.includes("Like")}
 		<IconButton
-			Icon={selected === "like" ? ThumbUpActive : ThumbUpDefault}
-			label={selected === "like" ? "clicked like" : "like"}
-			color={selected === "like"
+			Icon={selected === "Like" ? ThumbUpActive : ThumbUpDefault}
+			label={selected === "Like" ? "clicked like" : "like"}
+			color={selected === "Like"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}
-			on:click={() => {
-				selected = "like";
-				handle_action(selected);
-			}}
+			on:click={() => toggleSelection("Like")}
 		/>
 	{/if}
 {/if}
 
 {#if extra_feedback.length > 0}
-	<div class="extra-feedback">
+	<div class="extra-feedback no-border">
 		<IconButton
 			Icon={selected && extra_feedback.includes(selected) ? FlagActive : Flag}
 			label="Feedback"
@@ -60,8 +58,8 @@
 					class="extra-feedback-option"
 					style:font-weight={selected === option ? "bold" : "normal"}
 					on:click={() => {
-						selected = option;
-						handle_action("feedback:" + selected);
+						toggleSelection(option);
+						handle_action(selected ? selected : null);
 					}}>{option}</button
 				>
 			{/each}
