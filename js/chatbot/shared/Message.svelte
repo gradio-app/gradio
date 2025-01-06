@@ -50,6 +50,7 @@
 	export let in_edit_mode: boolean;
 	export let edit_message: string;
 	export let display_consecutive_in_same_bubble: boolean;
+	export let current_feedback: string | null = null;
 	let messageElements: HTMLDivElement[] = [];
 	let previous_edit_mode = false;
 	let last_message_width = 0;
@@ -102,6 +103,7 @@
 		layout: "bubble" | "panel";
 		avatar: FileData | null;
 		dispatch: any;
+		current_feedback: string | null;
 	};
 
 	let button_panel_props: ButtonPanelProps;
@@ -119,7 +121,8 @@
 		position: role === "user" ? "right" : "left",
 		avatar: avatar_img,
 		layout,
-		dispatch
+		dispatch,
+		current_feedback,
 	};
 </script>
 
@@ -235,6 +238,7 @@
 				{#if layout === "panel"}
 					<ButtonPanel
 						{...button_panel_props}
+						{current_feedback}
 						on:copy={(e) => dispatch("copy", e.detail)}
 					/>
 				{/if}

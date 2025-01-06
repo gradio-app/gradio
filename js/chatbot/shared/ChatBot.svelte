@@ -68,6 +68,7 @@
 	export let selectable = false;
 	export let likeable = false;
 	export let feedback_options: string[];
+	export let feedback_value: (string | null)[] | null = null;
 	export let editable: "user" | "all" | null = null;
 	export let show_share_button = false;
 	export let show_copy_all_button = false;
@@ -283,6 +284,8 @@
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
 				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
 				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
+				{@const feedback_index = groupedMessages.slice(0, i).filter(m => m[0].role === "assistant").length}
+				{@const current_feedback = role === "bot" && feedback_value && feedback_value[feedback_index] ? feedback_value[feedback_index] : null}
 				<Message
 					{messages}
 					{display_consecutive_in_same_bubble}
@@ -309,6 +312,7 @@
 					{generating}
 					{msg_format}
 					{feedback_options}
+					{current_feedback}
 					show_like={role === "user" ? likeable && like_user_message : likeable}
 					show_retry={_retryable && is_last_bot_message(messages, value)}
 					show_undo={_undoable && is_last_bot_message(messages, value)}
