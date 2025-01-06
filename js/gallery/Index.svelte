@@ -4,6 +4,7 @@
 
 <script lang="ts">
 	import type { GalleryImage, GalleryVideo } from "./types";
+	import type { FileData } from "@gradio/client";
 	import type { Gradio, ShareData, SelectData } from "@gradio/utils";
 	import { Block, UploadText } from "@gradio/atoms";
 	import Gallery from "./shared/Gallery.svelte";
@@ -52,6 +53,30 @@
 
 	$: no_value = value === null ? true : value.length === 0;
 	$: selected_index, dispatch("prop_change", { selected_index });
+
+	async function process_upload_files(
+		files: FileData[]
+	): Promise<GalleryData[]> {
+		const processed_files = await Promise.all(
+			files.map(async (x) => {
+				if (x.path?.toLowerCase().endsWith(".svg") && x.url) {
+					const response = await fetch(x.url);
+					const svgContent = await response.text();
+					return {
+						...x,
+						url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`
+					};
+				}
+				return x;
+			})
+		);
+
+		return processed_files.map((x) =>
+			x.mime_type?.includes("video")
+				? { video: x, caption: null }
+				: { image: x, caption: null }
+		);
+	}
 </script>
 
 <Block
@@ -83,13 +108,9 @@
 			i18n={gradio.i18n}
 			upload={(...args) => gradio.client.upload(...args)}
 			stream_handler={(...args) => gradio.client.stream(...args)}
-			on:upload={(e) => {
+			on:upload={async (e) => {
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
-				value = files.map((x) =>
-					x.mime_type?.includes("video")
-						? { video: x, caption: null }
-						: { image: x, caption: null }
-				);
+				value = await process_upload_files(files);
 				gradio.dispatch("upload", value);
 			}}
 			on:error={({ detail }) => {

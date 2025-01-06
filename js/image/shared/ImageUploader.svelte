@@ -45,10 +45,20 @@
 
 	export let webcam_constraints: { [key: string]: any } | undefined = undefined;
 
-	function handle_upload({ detail }: CustomEvent<FileData>): void {
-		// only trigger streaming event if streaming
+	async function handle_upload({
+		detail
+	}: CustomEvent<FileData>): Promise<void> {
 		if (!streaming) {
-			value = detail;
+			if (detail.path?.toLowerCase().endsWith(".svg") && detail.url) {
+				const response = await fetch(detail.url);
+				const svgContent = await response.text();
+				value = {
+					...detail,
+					url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`
+				};
+			} else {
+				value = detail;
+			}
 			dispatch("upload");
 		}
 	}
