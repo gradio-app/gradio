@@ -9,10 +9,9 @@ import copy
 import inspect
 import os
 import warnings
-from collections import defaultdict
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Union, cast
+from typing import Literal, Union, cast
 
 import anyio
 from gradio_client.documentation import document
@@ -474,18 +473,22 @@ class ChatInterface(Blocks):
         return None, saved_conversations, saved_feedback_values
 
     def _flag_message(
-            self,
-            conversation: list[MessageDict],
-            conversation_id: int,
-            feedback_values: dict[str, list[str | None]],
-            like_data: LikeData
+        self,
+        conversation: list[MessageDict],
+        conversation_id: int,
+        feedback_values: dict[str, list[str | None]],
+        like_data: LikeData,
     ) -> dict[str, list[str | None]]:
-        assistant_indices = [i for i, msg in enumerate(conversation) if msg["role"] == "assistant"]
+        assistant_indices = [
+            i for i, msg in enumerate(conversation) if msg["role"] == "assistant"
+        ]
         assistant_index = assistant_indices.index(like_data.index)  # type: ignore
         value = (
-            "Like" if like_data.liked is True else
-            "Dislike" if like_data.liked is False else
-            like_data.liked
+            "Like"
+            if like_data.liked is True
+            else "Dislike"
+            if like_data.liked is False
+            else like_data.liked
         )
         feedback_value = feedback_values.get(str(conversation_id), [])
         if len(feedback_value) <= assistant_index:
@@ -505,18 +508,18 @@ class ChatInterface(Blocks):
         )
 
     def _load_conversation(
-            self,
-            index: int,
-            conversations: list[list[MessageDict]],
-            feedback_values: dict[str, list[str | None]]
+        self,
+        index: int,
+        conversations: list[list[MessageDict]],
+        feedback_values: dict[str, list[str | None]],
     ):
         feedback_value = feedback_values.get(str(index), [])
         return (
             index,
             Chatbot(
                 value=conversations[index],  # type: ignore
-                feedback_value=feedback_value
-            )
+                feedback_value=feedback_value,
+            ),
         )
 
     def _setup_events(self) -> None:
@@ -666,8 +669,16 @@ class ChatInterface(Blocks):
 
         self.chatbot.clear(**synchronize_chat_state_kwargs).then(
             self._delete_conversation,
-            [self.conversation_id, self.saved_conversations, self.saved_feedback_values],
-            [self.conversation_id, self.saved_conversations, self.saved_feedback_values],
+            [
+                self.conversation_id,
+                self.saved_conversations,
+                self.saved_feedback_values,
+            ],
+            [
+                self.conversation_id,
+                self.saved_conversations,
+                self.saved_feedback_values,
+            ],
             show_api=False,
             queue=False,
         )
@@ -716,7 +727,11 @@ class ChatInterface(Blocks):
 
             self.chat_history_dataset.click(
                 self._load_conversation,
-                [self.chat_history_dataset, self.saved_conversations, self.saved_feedback_values],
+                [
+                    self.chat_history_dataset,
+                    self.saved_conversations,
+                    self.saved_feedback_values,
+                ],
                 [self.conversation_id, self.chatbot],
                 show_api=False,
                 queue=False,
