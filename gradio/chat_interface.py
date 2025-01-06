@@ -485,7 +485,7 @@ class ChatInterface(Blocks):
             index,
             Chatbot(
                 value=conversations[index],  # type: ignore
-                feedback_value=None,
+                feedback_value=[],
             ),
         )
 
@@ -636,14 +636,8 @@ class ChatInterface(Blocks):
 
         self.chatbot.clear(**synchronize_chat_state_kwargs).then(
             self._delete_conversation,
-            [
-                self.conversation_id,
-                self.saved_conversations,
-            ],
-            [
-                self.conversation_id,
-                self.saved_conversations,
-            ],
+            [self.conversation_id, self.saved_conversations],
+            [self.conversation_id, self.saved_conversations],
             show_api=False,
             queue=False,
         )
@@ -683,11 +677,15 @@ class ChatInterface(Blocks):
             )
 
             self.chat_history_dataset.click(
+                lambda: [],
+                None,
+                [self.chatbot],
+                show_api=False,
+                queue=False,
+                show_progress="hidden",
+            ).then(
                 self._load_conversation,
-                [
-                    self.chat_history_dataset,
-                    self.saved_conversations,
-                ],
+                [self.chat_history_dataset, self.saved_conversations],
                 [self.conversation_id, self.chatbot],
                 show_api=False,
                 queue=False,

@@ -59,9 +59,7 @@
 	}
 
 	.icon-button-wrapper
-		:global(
-			a.download-link:not(:last-child):not(.no-border *)::after
-		),
+		:global(a.download-link:not(:last-child):not(.no-border *)::after),
 	.icon-button-wrapper
 		:global(button:not(:last-child):not(.no-border *)::after) {
 		content: "";
