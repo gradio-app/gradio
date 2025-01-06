@@ -280,7 +280,7 @@ class LikeData(EventData):
                 "chatbot_value": value,
                 "liked_message": like_data.value,
                 "liked_index": like_data.index,
-                "liked_or_disliked_as_bool": like_data.liked
+                "liked_or_disliked": like_data.liked
             }
         with gr.Blocks() as demo:
             c = gr.Chatbot([("abc", "def")])

@@ -16,6 +16,7 @@
 	export let position: "right" | "left";
 	export let avatar: FileData | null;
 	export let generating: boolean;
+	export let current_feedback: string | null;
 
 	export let handle_action: (selected: string | null) => void;
 	export let layout: "bubble" | "panel";
@@ -94,7 +95,11 @@
 					/>
 				{/if}
 				{#if likeable}
-					<LikeDislike {handle_action} {feedback_options} />
+					<LikeDislike
+						{handle_action}
+						{feedback_options}
+						selected={current_feedback}
+					/>
 				{/if}
 			{/if}
 		</IconButtonWrapper>

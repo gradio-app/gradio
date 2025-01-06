@@ -249,7 +249,7 @@ class ChatInterface(Blocks):
 
         with self:
             self.saved_conversations = BrowserState(
-                [], storage_key="_saved_conversations"
+                [], storage_key=f"_saved_conversations_{self._id}"
             )
             self.conversation_id = State(None)
             self.saved_input = State()  # Stores the most recent user message
@@ -279,7 +279,7 @@ class ChatInterface(Blocks):
             with Column(scale=1, min_width=100):
                 self.new_chat_button = Button(
                     "New chat",
-                    variant="secondary",
+                    variant="primary",
                     size="md",
                     icon=utils.get_icon_path("plus.svg"),
                 )
@@ -467,6 +467,28 @@ class ChatInterface(Blocks):
             saved_conversations.pop(index)
         return None, saved_conversations
 
+    def _load_chat_history(self, conversations):
+        return Dataset(
+            samples=[
+                [self._generate_chat_title(conv)]
+                for conv in conversations or []
+                if conv
+            ]
+        )
+
+    def _load_conversation(
+        self,
+        index: int,
+        conversations: list[list[MessageDict]],
+    ):
+        return (
+            index,
+            Chatbot(
+                value=conversations[index],  # type: ignore
+                feedback_value=[],
+            ),
+        )
+
     def _setup_events(self) -> None:
         from gradio import on
 
@@ -645,28 +667,29 @@ class ChatInterface(Blocks):
                 queue=False,
             )
 
-            @on(
-                [self.load, self.saved_conversations.change],
+            on(
+                triggers=[self.load, self.saved_conversations.change],
+                fn=self._load_chat_history,
                 inputs=[self.saved_conversations],
                 outputs=[self.chat_history_dataset],
                 show_api=False,
                 queue=False,
             )
-            def load_chat_history(conversations):
-                return Dataset(
-                    samples=[
-                        [self._generate_chat_title(conv)]
-                        for conv in conversations or []
-                        if conv
-                    ]
-                )
 
             self.chat_history_dataset.click(
-                lambda index, conversations: (index, conversations[index]),
+                lambda: [],
+                None,
+                [self.chatbot],
+                show_api=False,
+                queue=False,
+                show_progress="hidden",
+            ).then(
+                self._load_conversation,
                 [self.chat_history_dataset, self.saved_conversations],
                 [self.conversation_id, self.chatbot],
                 show_api=False,
                 queue=False,
+                show_progress="hidden",
             ).then(**synchronize_chat_state_kwargs)
 
         if self.flagging_mode != "never":
