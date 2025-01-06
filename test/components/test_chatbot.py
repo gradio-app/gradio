@@ -47,6 +47,7 @@ class TestChatbot:
             "placeholder": None,
             "height": 400,
             "feedback_options": ("Like", "Dislike"),
+            "feedback_value": None,
             "resizeable": False,
             "max_height": None,
             "min_height": None,
