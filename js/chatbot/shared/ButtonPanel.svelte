@@ -95,7 +95,7 @@
 					/>
 				{/if}
 				{#if likeable}
-					<LikeDislike {handle_action} {feedback_options} {current_feedback} />
+					<LikeDislike {handle_action} {feedback_options} selected={current_feedback} />
 				{/if}
 			{/if}
 		</IconButtonWrapper>

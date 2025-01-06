@@ -9,14 +9,10 @@
 
 	export let handle_action: (selected: string | null) => void;
 	export let feedback_options: string[];
-	export let current_feedback: string | null;
+	export let selected: string | null = null;
 	$: extra_feedback = feedback_options.filter(
 		(option) => option !== "Like" && option !== "Dislike"
 	);
-
-	let selected: string | null = current_feedback;
-	console.log("current_feedback", current_feedback);
-	console.log("selected", selected);
 
 	function toggleSelection(newSelection: string): void {
 		selected = selected === newSelection ? null : newSelection;
