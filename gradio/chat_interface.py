@@ -249,7 +249,10 @@ class ChatInterface(Blocks):
 
         with self:
             self.saved_conversations = BrowserState(
-                [], storage_key="_saved_conversations"
+                [], storage_key=f"_saved_conversations_{self._id}"
+            )
+            self.saved_feedback_values = BrowserState(
+                [], storage_key=f"_saved_feedback_values_{self._id}"
             )
             self.conversation_id = State(None)
             self.saved_input = State()  # Stores the most recent user message
@@ -662,7 +665,7 @@ class ChatInterface(Blocks):
                 )
 
             self.chat_history_dataset.click(
-                lambda index, conversations: (index, conversations[index]),
+                lambda index, conversations: (index, Chatbot(value=conversations[index], feedback_value=None)),
                 [self.chat_history_dataset, self.saved_conversations],
                 [self.conversation_id, self.chatbot],
                 show_api=False,
