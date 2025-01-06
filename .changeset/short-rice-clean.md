@@ -1,4 +1,5 @@
 ---
+"@gradio/atoms": minor
 "@gradio/chatbot": minor
 "gradio": minor
 ---
