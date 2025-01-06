@@ -123,29 +123,33 @@
 			class:message={display_consecutive_in_same_bubble}
 			class={display_consecutive_in_same_bubble ? role : ""}
 		>
-			{#each messages as message, thought_index}
+			{#each messages.filter((m) => !m.metadata?.parent_id) as message, thought_index}
 				{#if message?.metadata?.title}
-					<Thought
-						{message}
-						{value}
-						{rtl}
-						{sanitize_html}
-						{latex_delimiters}
-						{render_markdown}
-						{_components}
-						{upload}
-						{thought_index}
-						{target}
-						{root}
-						{theme_mode}
-						{_fetch}
-						{scroll}
-						{allow_file_downloads}
-						{display_consecutive_in_same_bubble}
-						{i18n}
-						{line_breaks}
-						parent_expanded={true}
-					/>
+					<div class="thought-group">
+						<Thought
+							{message}
+							{value}
+							{rtl}
+							{sanitize_html}
+							{latex_delimiters}
+							{render_markdown}
+							{_components}
+							{upload}
+							{thought_index}
+							{target}
+							{root}
+							{theme_mode}
+							{_fetch}
+							{scroll}
+							{allow_file_downloads}
+							{display_consecutive_in_same_bubble}
+							{i18n}
+							{line_breaks}
+							nested_messages={messages.filter(
+								(m) => m.metadata?.parent_id === message.metadata?.id
+							)}
+						/>
+					</div>
 				{:else}
 					<div
 						class="message {!display_consecutive_in_same_bubble ? role : ''}"
@@ -215,10 +219,26 @@
 	.message {
 		position: relative;
 		width: 100%;
+		padding: var(--spacing-md);
 	}
 
-	.message:not(.thought) button {
-		padding: var(--spacing-md);
+	.thought-group {
+		margin: var(--spacing-sm) 0;
+		background: var(--background-fill-primary);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		padding: var(--spacing-sm);
+	}
+
+	.thought-group :global(.thought:not(.nested)) {
+		border: none;
+		background: none;
+		margin-top: 0;
+		padding-bottom: 0;
+	}
+
+	.thought-group :global(.thought.nested) {
+		margin-top: var(--spacing-sm);
 	}
 
 	/* avatar styles */
@@ -303,7 +323,6 @@
 	}
 
 	.user {
-		border-width: 1px;
 		border-radius: var(--radius-md);
 		align-self: flex-end;
 		border-bottom-right-radius: 0;
@@ -313,9 +332,7 @@
 	}
 
 	.bot {
-		border-width: 1px;
 		border-radius: var(--radius-md);
-		/* border-bottom-left-radius: 0; */
 		border-color: var(--border-color-primary);
 		background-color: var(--background-fill-secondary);
 		box-shadow: var(--shadow-drop);
@@ -515,10 +532,6 @@
 		padding: 0;
 		border: none;
 		background: none;
-	}
-
-	.thought {
-		margin-top: var(--spacing-xxl);
 	}
 
 	.panel .bot,

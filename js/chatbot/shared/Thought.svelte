@@ -7,6 +7,7 @@
 	import { is_last_bot_message } from "./utils";
 	import { DropdownArrow } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
+	import { slide } from "svelte/transition";
 
 	export let message: NormalisedMessage;
 	export let value: NormalisedMessage[];
@@ -31,6 +32,7 @@
 	export let i18n: I18nFormatter;
 	export let line_breaks: boolean;
 	export let parent_expanded = true;
+	export let nested_messages: NormalisedMessage[] = [];
 
 	let expanded = is_last_bot_message([message], value);
 	let is_nested = !!message.metadata?.parent_id;
@@ -40,41 +42,39 @@
 	}
 </script>
 
-<button
+<div
 	class="thought"
 	class:nested={is_nested}
 	class:hidden={is_nested && !parent_expanded}
-	on:click={toggleExpanded}
 >
 	<div class="box" style:text-align={rtl ? "right" : "left"}>
 		<div
 			class="title"
+			class:expanded
 			on:click|stopPropagation={toggleExpanded}
 			role="button"
 			tabindex="0"
 			on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
 		>
+			{#if message.content === "" || message.content === null}
+				<span class="loading-spinner"></span>
+			{/if}
+
 			<span class="title-text">
 				{message.metadata?.title}
-				{#if message.content === "" || message.content === null}
-					<span class="loading-spinner"></span>
-				{:else if message?.duration}
+				{#if message?.duration}
 					<span class="duration">{message.duration || 0.16}s</span>
 				{/if}
 			</span>
 			<span
 				class="arrow"
-				style:transform={expanded
-					? "rotate(0deg)"
-					: is_nested
-						? "rotate(90deg)"
-						: "rotate(-90deg)"}
+				style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
 			>
 				<IconButton Icon={DropdownArrow} />
 			</span>
 		</div>
 		{#if expanded}
-			<div class="content">
+			<div class="content" transition:slide>
 				<MessageContent
 					{message}
 					{sanitize_html}
@@ -93,14 +93,39 @@
 					{i18n}
 					{line_breaks}
 				/>
+				{#each nested_messages as child_message}
+					<svelte:self
+						message={child_message}
+						{value}
+						{rtl}
+						{sanitize_html}
+						{latex_delimiters}
+						{render_markdown}
+						{_components}
+						{upload}
+						thought_index={thought_index + 1}
+						{target}
+						{root}
+						{theme_mode}
+						{_fetch}
+						{scroll}
+						{allow_file_downloads}
+						{display_consecutive_in_same_bubble}
+						{i18n}
+						{line_breaks}
+						parent_expanded={expanded}
+						nested_messages={value.filter(
+							(m) => m.metadata?.parent_id === child_message.metadata?.id
+						)}
+					/>
+				{/each}
 			</div>
 		{/if}
 	</div>
-</button>
+</div>
 
 <style>
 	.thought {
-		background: var(--color-accent-soft);
 		width: 100%;
 		box-sizing: border-box;
 		border: none;
@@ -108,30 +133,49 @@
 		margin: 0;
 		padding: 0;
 		display: block;
-		border-radius: var(--radius-sm);
+		overflow: hidden;
 	}
 
 	.thought.hidden {
 		display: none;
 	}
 
-	.thought.nested {
-		width: calc(100% - var(--spacing-xl));
-		border-left: 2px solid var(--border-color-primary);
-		background: none;
-		margin: var(--spacing-md);
-		margin-left: var(--spacing-xl);
-		border-radius: 0;
+	.thought:not(.nested) {
+		border: 1px solid var(--border-color-primary);
+		background: var(--background-fill-primary);
+		margin-top: var(--spacing-sm);
+		border-radius: var(--radius-sm);
+		padding-bottom: var(--spacing-sm);
 	}
 
-	.thought:hover {
-		opacity: 1;
+	.thought.nested {
+		width: 100%;
+		margin: 0;
+		margin-left: var(--spacing-lg);
+		opacity: 0.9;
+	}
+
+	.thought.nested .title {
+		position: relative;
+	}
+
+	.thought.nested .title::before {
+		content: "";
+		position: absolute;
+		left: 0;
+		width: 1px;
+		height: 50%;
+		background: var(--border-color-primary);
 	}
 
 	.box {
 		max-width: 100%;
-		font-size: 0.8em;
-		padding: var(--spacing-md) var(--spacing-xl);
+		font-size: var(--text-sm);
+		border-radius: var(--radius-sm);
+	}
+
+	.thought.nested .box {
+		background: none;
 	}
 
 	.title {
@@ -141,20 +185,25 @@
 		opacity: 0.8;
 		cursor: pointer;
 		width: 100%;
+		padding: 0 0 0 var(--spacing-lg);
 	}
 
 	.content {
-		margin-top: var(--spacing-md);
+		margin-top: var(--spacing-sm);
 		overflow-wrap: break-word;
 		word-break: break-word;
+		padding: var(--spacing-sm) var(--spacing-lg);
+		padding-top: 0;
 	}
 
 	.content :global(*) {
-		font-size: 0.8em;
+		font-size: var(--text-sm);
 	}
 
 	.title-text {
-		padding-right: var(--spacing-lg);
+		flex: 1;
+		min-width: 0;
+		padding-right: var(--spacing-sm);
 	}
 
 	.duration {
@@ -166,6 +215,11 @@
 	.arrow {
 		margin-left: auto;
 		opacity: 0.8;
+		width: var(--size-8);
+		height: var(--size-8);
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.loading-spinner {
@@ -176,7 +230,7 @@
 		border-radius: 50%;
 		border-top-color: transparent;
 		animation: spin 1s linear infinite;
-		margin-top: var(--spacing-xs);
+		margin-top: var(--spacing-xxs);
 		margin-right: var(--spacing-md);
 	}
 

@@ -372,13 +372,6 @@
 		}
 	}
 
-	.message-wrap {
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		margin-bottom: var(--spacing-xxl);
-	}
-
 	.message-wrap :global(.prose.chatbot.md) {
 		opacity: 0.8;
 		overflow-wrap: break-word;

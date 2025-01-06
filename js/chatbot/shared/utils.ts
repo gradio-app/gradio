@@ -181,29 +181,6 @@ export function is_last_bot_message(
 	return is_last && is_bot;
 }
 
-function add_to_groups(
-	message: NormalisedMessage,
-	currentGroup: NormalisedMessage[],
-	groupedMessages: NormalisedMessage[][],
-	currentRole: MessageRole | null
-): [NormalisedMessage[], MessageRole | null] {
-	if (
-		message.metadata?.title ||
-		(currentGroup.length > 0 && currentGroup[0].metadata?.title)
-	) {
-		if (currentGroup.length > 0) groupedMessages.push(currentGroup);
-		return [[message], message.role];
-	}
-
-	if (message.role === currentRole) {
-		currentGroup.push(message);
-		return [currentGroup, currentRole];
-	}
-
-	if (currentGroup.length > 0) groupedMessages.push(currentGroup);
-	return [[message], message.role];
-}
-
 export function group_messages(
 	messages: NormalisedMessage[],
 	msg_format: "messages" | "tuples"
@@ -213,37 +190,23 @@ export function group_messages(
 	let currentRole: MessageRole | null = null;
 
 	for (const message of messages) {
-		if (!(message.role === "assistant" || message.role === "user")) continue;
-		if (
-			message.metadata?.parent_id !== undefined &&
-			message.metadata?.parent_id !== null
-		)
+		if (!(message.role === "assistant" || message.role === "user")) {
 			continue;
-		[currentGroup, currentRole] = add_to_groups(
-			message,
-			currentGroup,
-			groupedMessages,
-			currentRole
-		);
-	}
-	if (currentGroup.length > 0) groupedMessages.push(currentGroup);
-
-	messages.forEach((message) => {
-		if (
-			message.metadata?.parent_id === undefined ||
-			message.metadata?.parent_id === null
-		)
-			return;
-		for (const group of groupedMessages) {
-			const parentIndex = group.findIndex(
-				(m) => m.metadata?.id === message.metadata?.parent_id
-			);
-			if (parentIndex !== -1) {
-				group.splice(parentIndex + 1, 0, message);
-				break;
-			}
 		}
-	});
+		if (message.role === currentRole) {
+			currentGroup.push(message);
+		} else {
+			if (currentGroup.length > 0) {
+				groupedMessages.push(currentGroup);
+			}
+			currentGroup = [message];
+			currentRole = message.role;
+		}
+	}
+
+	if (currentGroup.length > 0) {
+		groupedMessages.push(currentGroup);
+	}
 
 	return groupedMessages;
 }
