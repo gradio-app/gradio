@@ -122,7 +122,7 @@
 		avatar: avatar_img,
 		layout,
 		dispatch,
-		current_feedback,
+		current_feedback
 	};
 </script>
 

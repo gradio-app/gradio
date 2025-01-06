@@ -21,7 +21,7 @@ with gr.Blocks() as demo:
         value=[{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi"}, {"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Go away"}],
         type="messages",
         feedback_options=["Like", "Spam", "Inappropriate", "Other"],
-        feedback_value=["Spam", "Other"],
+        feedback_value=["Like", "Other"],
     )
     c.like(lambda x: x, None, None)
 

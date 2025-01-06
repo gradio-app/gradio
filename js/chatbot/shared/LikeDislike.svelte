@@ -27,22 +27,22 @@
 {#if feedback_options.includes("Like") || feedback_options.includes("Dislike")}
 	{#if feedback_options.includes("Dislike")}
 		<IconButton
-			Icon={selected === "dislike" ? ThumbDownActive : ThumbDownDefault}
-			label={selected === "dislike" ? "clicked dislike" : "dislike"}
-			color={selected === "dislike"
+			Icon={selected === "Dislike" ? ThumbDownActive : ThumbDownDefault}
+			label={selected === "Dislike" ? "clicked dislike" : "dislike"}
+			color={selected === "Dislike"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}
-			on:click={() => toggleSelection("dislike")}
+			on:click={() => toggleSelection("Dislike")}
 		/>
 	{/if}
 	{#if feedback_options.includes("Like")}
 		<IconButton
-			Icon={selected === "like" ? ThumbUpActive : ThumbUpDefault}
-			label={selected === "like" ? "clicked like" : "like"}
-			color={selected === "like"
+			Icon={selected === "Like" ? ThumbUpActive : ThumbUpDefault}
+			label={selected === "Like" ? "clicked like" : "like"}
+			color={selected === "Like"
 				? "var(--color-accent)"
 				: "var(--block-label-text-color)"}
-			on:click={() => toggleSelection("like")}
+			on:click={() => toggleSelection("Like")}
 		/>
 	{/if}
 {/if}

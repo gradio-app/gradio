@@ -205,9 +205,9 @@
 			});
 		} else {
 			let feedback =
-				selected === "like"
+				selected === "Like"
 					? true
-					: selected === "dislike"
+					: selected === "Dislike"
 						? false
 						: selected?.substring(9); // remove "feedback:" prefix
 			if (msg_format === "tuples") {
@@ -284,8 +284,13 @@
 				{@const role = messages[0].role === "user" ? "user" : "bot"}
 				{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
 				{@const opposite_avatar_img = avatar_images[role === "user" ? 0 : 1]}
-				{@const feedback_index = groupedMessages.slice(0, i).filter(m => m[0].role === "assistant").length}
-				{@const current_feedback = role === "bot" && feedback_value && feedback_value[feedback_index] ? feedback_value[feedback_index] : null}
+				{@const feedback_index = groupedMessages
+					.slice(0, i)
+					.filter((m) => m[0].role === "assistant").length}
+				{@const current_feedback =
+					role === "bot" && feedback_value && feedback_value[feedback_index]
+						? feedback_value[feedback_index]
+						: null}
 				<Message
 					{messages}
 					{display_consecutive_in_same_bubble}
