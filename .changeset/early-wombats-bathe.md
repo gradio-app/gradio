@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fixed warning about not being able to find the app for some pattern
+fix:Fixed warning about not being able to find the app for some pattern
