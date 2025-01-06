@@ -24,6 +24,8 @@ from gradio_client.documentation import document
 from gradio_client.utils import is_file_obj_with_meta, traverse
 from pydantic import (
     BaseModel,
+    ConfigDict,
+    Field,
     GetCoreSchemaHandler,
     GetJsonSchemaHandler,
     RootModel,
@@ -391,3 +393,25 @@ class MediaStreamChunk(TypedDict):
     duration: float
     extension: str
     id: NotRequired[str]
+
+
+class ImageData(GradioModel):
+    path: Optional[str] = Field(default=None, description="Path to a local file")
+    url: Optional[str] = Field(
+        default=None, description="Publicly available url or base64 encoded image"
+    )
+    size: Optional[int] = Field(default=None, description="Size of image in bytes")
+    orig_name: Optional[str] = Field(default=None, description="Original filename")
+    mime_type: Optional[str] = Field(default=None, description="mime type of image")
+    is_stream: bool = Field(default=False, description="Can always be set to False")
+    meta: dict = {"_type": "gradio.FileData"}
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "For input, either path or url must be provided. For output, path is always provided."
+        }
+    )
+
+
+class Base64ImageData(GradioModel):
+    url: str = Field(description="base64 encoded image")
