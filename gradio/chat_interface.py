@@ -251,9 +251,6 @@ class ChatInterface(Blocks):
             self.saved_conversations = BrowserState(
                 [], storage_key=f"_saved_conversations_{self._id}"
             )
-            self.saved_feedback_values = BrowserState(
-                {}, storage_key=f"_saved_feedback_values_{self._id}"
-            )
             self.conversation_id = State(None)
             self.saved_input = State()  # Stores the most recent user message
             self.null_component = State()  # Used to discard unneeded values
@@ -282,7 +279,7 @@ class ChatInterface(Blocks):
             with Column(scale=1, min_width=100):
                 self.new_chat_button = Button(
                     "New chat",
-                    variant="secondary",
+                    variant="primary",
                     size="md",
                     icon=utils.get_icon_path("plus.svg"),
                 )
@@ -465,38 +462,10 @@ class ChatInterface(Blocks):
         self,
         index: int | None,
         saved_conversations: list[list[MessageDict]],
-        saved_feedback_values: dict[str, list[str | None]],
     ):
         if index is not None:
             saved_conversations.pop(index)
-            saved_feedback_values.pop(str(index), [])
-        return None, saved_conversations, saved_feedback_values
-
-    def _flag_message(
-        self,
-        conversation: list[MessageDict],
-        conversation_id: int,
-        feedback_values: dict[str, list[str | None]],
-        like_data: LikeData,
-    ) -> dict[str, list[str | None]]:
-        assistant_indices = [
-            i for i, msg in enumerate(conversation) if msg["role"] == "assistant"
-        ]
-        assistant_index = assistant_indices.index(like_data.index)  # type: ignore
-        value = (
-            "Like"
-            if like_data.liked is True
-            else "Dislike"
-            if like_data.liked is False
-            else like_data.liked
-        )
-        feedback_value = feedback_values.get(str(conversation_id), [])
-        if len(feedback_value) <= assistant_index:
-            while len(feedback_value) <= assistant_index:
-                feedback_value.append(None)
-        feedback_value[assistant_index] = value
-        feedback_values[str(conversation_id)] = feedback_value
-        return feedback_values
+        return None, saved_conversations
 
     def _load_chat_history(self, conversations):
         return Dataset(
@@ -511,14 +480,12 @@ class ChatInterface(Blocks):
         self,
         index: int,
         conversations: list[list[MessageDict]],
-        feedback_values: dict[str, list[str | None]],
     ):
-        feedback_value = feedback_values.get(str(index), [])
         return (
             index,
             Chatbot(
                 value=conversations[index],  # type: ignore
-                feedback_value=feedback_value,
+                feedback_value=[],
             ),
         )
 
@@ -672,21 +639,11 @@ class ChatInterface(Blocks):
             [
                 self.conversation_id,
                 self.saved_conversations,
-                self.saved_feedback_values,
             ],
             [
                 self.conversation_id,
                 self.saved_conversations,
-                self.saved_feedback_values,
             ],
-            show_api=False,
-            queue=False,
-        )
-
-        self.chatbot.like(
-            self._flag_message,
-            [self.chatbot, self.conversation_id, self.saved_feedback_values],
-            [self.saved_feedback_values],
             show_api=False,
             queue=False,
         )
@@ -730,7 +687,6 @@ class ChatInterface(Blocks):
                 [
                     self.chat_history_dataset,
                     self.saved_conversations,
-                    self.saved_feedback_values,
                 ],
                 [self.conversation_id, self.chatbot],
                 show_api=False,
