@@ -1,19 +1,30 @@
 import gradio as gr
-from gradio import ChatMessage
 import time
+from gradio import ChatMessage
+from gradio.components.chatbot import Metadata
 
 def generate_response(history):
     history.append(
-        ChatMessage(
-            role="user", content="What is the weather in San Francisco right now?"
-        )
+        ChatMessage(role="user", content="What is 27 * 14?")
     )
     yield history
-    time.sleep(0.25)
+    time.sleep(0.5)
+
     history.append(
         ChatMessage(
             role="assistant",
-            content="In order to find the current weather in San Francisco, I will need to use my weather tool.",
+            content="Let me break this down step by step.",
+            metadata=Metadata(id=1, title="Solving multiplication", parent_id=0)
+        )
+    )
+    yield history
+    time.sleep(0.5)
+
+    history.append(
+        ChatMessage(
+            role="assistant",
+            content="First, let's multiply 27 by 10: 27 * 10 = 270",
+            metadata=Metadata(id=2, title="Step 1", parent_id=1)
         )
     )
     yield history
@@ -22,8 +33,8 @@ def generate_response(history):
     history.append(
         ChatMessage(
             role="assistant",
-            content="API Error when connecting to weather service.",
-            metadata={"title": "💥 Error using tool 'Weather'"},
+            content="We can do this quickly because multiplying by 10 just adds a zero",
+            metadata=Metadata(id=6, title="Quick Tip", parent_id=2)
         )
     )
     yield history
@@ -32,7 +43,17 @@ def generate_response(history):
     history.append(
         ChatMessage(
             role="assistant",
-            content="I will try again",
+            content="Then multiply 27 by 4: 27 * 4 = 108",
+            metadata=Metadata(id=3, title="Step 2", parent_id=1)
+        )
+    )
+    yield history
+    time.sleep(0.5)
+
+    history.append(
+        ChatMessage(
+            role="assistant",
+            content="Adding these together: 270 + 108 = 378. Therefore, 27 * 14 = 378"
         )
     )
     yield history
@@ -41,8 +62,8 @@ def generate_response(history):
     history.append(
         ChatMessage(
             role="assistant",
-            content="Weather 72 degrees Fahrenheit with 20% chance of rain.",
-            metadata={"title": "🛠️ Used tool 'Weather'"},
+            content="Let me verify this result using a different method.",
+            metadata=Metadata(id=4, title="Verification")
         )
     )
     yield history
@@ -51,7 +72,8 @@ def generate_response(history):
     history.append(
         ChatMessage(
             role="assistant",
-            content="Now that the API succeeded I can complete my task.",
+            content="Using the standard algorithm: 27 * 14 = (20 + 7) * (10 + 4)",
+            metadata=Metadata(id=5, title="Expanding", parent_id=4)
         )
     )
     yield history
@@ -60,7 +82,7 @@ def generate_response(history):
     history.append(
         ChatMessage(
             role="assistant",
-            content="It's a sunny day in San Francisco with a current temperature of 72 degrees Fahrenheit and a 20% chance of rain. Enjoy the weather!",
+            content="The result is confirmed to be 378."
         )
     )
     yield history
@@ -71,7 +93,7 @@ def like(evt: gr.LikeData):
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(type="messages", height=500, show_copy_button=True)
-    button = gr.Button("Get San Francisco Weather")
+    button = gr.Button("Calculate 27 * 14")
     button.click(generate_response, chatbot, chatbot)
     chatbot.like(like)
 
