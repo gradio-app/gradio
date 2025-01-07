@@ -6,10 +6,12 @@ import json
 import time
 import warnings
 from collections.abc import Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from gradio_client.documentation import document
 
+from gradio import utils
 from gradio.components import Button, Component
 from gradio.context import get_blocks_context
 from gradio.routes import Request
@@ -34,9 +36,8 @@ class LoginButton(Button):
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         variant: Literal["primary", "secondary", "stop", "huggingface"] = "huggingface",
-        size: Literal["sm", "lg"] | None = None,
-        icon: str
-        | None = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+        size: Literal["sm", "md", "lg"] = "lg",
+        icon: str | Path | None = utils.get_icon_path("huggingface-logo.svg"),
         link: str | None = None,
         visible: bool = True,
         interactive: bool = True,

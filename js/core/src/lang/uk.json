@@ -1,9 +1,11 @@
 {
+	"_name": "Українська",
 	"common": {
 		"built_with_gradio": "Зроблено на основі gradio",
 		"clear": "Очистити",
 		"or": "або",
-		"submit": "Надіслати"
+		"submit": "Надіслати",
+		"settings": "Налаштування"
 	},
 	"upload_text": {
 		"click_to_upload": "Натисніть щоб завантажити",

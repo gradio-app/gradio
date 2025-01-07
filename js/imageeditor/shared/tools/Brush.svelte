@@ -43,9 +43,12 @@
 	export let color_mode: Brush["color_mode"] | undefined = undefined;
 	export let mode: "erase" | "draw";
 
-	$: processed_colors = colors
-		? colors.map(process_color).filter((_, i) => i < 4)
-		: [];
+	let processed_colors: string[] = [];
+	let old_colors: string[] = [];
+	if (colors && JSON.stringify(old_colors) !== JSON.stringify(colors)) {
+		processed_colors = colors.map(process_color).filter((_, i) => i < 4);
+		old_colors = processed_colors;
+	}
 
 	let selected_color = process_color(default_color || "#000000");
 

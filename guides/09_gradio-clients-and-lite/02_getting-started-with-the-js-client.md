@@ -43,11 +43,30 @@ This command adds @gradio/client to your project dependencies, allowing you to i
 
 For quick addition to your web project, you can use the jsDelivr CDN to load the latest version of @gradio/client directly into your HTML:
 
-```bash
-<script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
+```html
+<script type="module">
+	import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+	...
+</script>
 ```
 
-Be sure to add this to the `<head>` of your HTML. This will install the latest version but we advise hardcoding the version in production. You can find all available versions [here](https://www.jsdelivr.com/package/npm/@gradio/client). This approach is ideal for experimental or prototying purposes, though has some limitations.
+Be sure to add this to the `<head>` of your HTML. This will install the latest version but we advise hardcoding the version in production. You can find all available versions [here](https://www.jsdelivr.com/package/npm/@gradio/client). This approach is ideal for experimental or prototying purposes, though has some limitations. A complete example would look like this:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="module">
+        import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+        const client = await Client.connect("abidlabs/en2fr");
+        const result = await client.predict("/predict", {
+            text: "My name is Hannah"
+        });
+        console.log(result);
+    </script>
+</head>
+</html>
+```
 
 ## Connecting to a running Gradio App
 

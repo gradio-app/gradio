@@ -1,137 +1,162 @@
-# 🚀 Creating Discord Bots from Gradio Apps 🚀
+# 🚀 Creating Discord Bots with Gradio 🚀
 
-Tags: NLP, TEXT, CHAT
+Tags: CHAT, DEPLOY, DISCORD
 
-We're excited to announce that Gradio can now automatically create a discord bot from a deployed app! 🤖
+You can make your Gradio app available as a Discord bot to let users in your Discord server interact with it directly. 
 
-Discord is a popular communication platform that allows users to chat and interact with each other in real-time. By turning your Gradio app into a Discord bot, you can bring cutting edge AI to your discord server and give your community a whole new way to interact.
+## How does it work?
 
-## 💻 How does it work? 💻
+The Discord bot will listen to messages mentioning it in channels. When it receives a message (which can include text as well as files), it will send it to your Gradio app via Gradio's built-in API. Your bot will reply with the response it receives from the API. 
 
-With `gradio_client` version `0.3.0`, any gradio `ChatInterface` app on the internet can automatically be deployed as a discord bot via the `deploy_discord` method of the `Client` class.
+Because Gradio's API is very flexible, you can create Discord bots that support text, images, audio, streaming, chat history, and a wide variety of other features very easily. 
 
-Technically, any gradio app that exposes an api route that takes in a single string and outputs a single string can be deployed to discord. In this guide, we will focus on `gr.ChatInterface` as those apps naturally lend themselves to discord's chat functionality.
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-18%20at%204.26.55%E2%80%AFPM.gif)
 
-## 🛠️ Requirements 🛠️
+## Prerequisites
 
-Make sure you have the latest `gradio_client` and `gradio` versions installed.
+* Install the latest version of `gradio` and the `discord.py` libraries:
 
-```bash
-pip install gradio_client>=0.3.0 gradio>=3.38.0
+```
+pip install --upgrade gradio discord.py~=2.0
 ```
 
-Also, make sure you have a [Hugging Face account](https://huggingface.co/) and a [write access token](https://huggingface.co/docs/hub/security-tokens).
+* Have a running Gradio app. This app can be running locally or on Hugging Face Spaces. In this example, we will be using the [Gradio Playground Space](https://huggingface.co/spaces/abidlabs/gradio-playground-bot), which takes in an image and/or text and generates the code to generate the corresponding Gradio app.
 
-⚠️ Tip ⚠️: Make sure you login to the Hugging Face Hub by running `huggingface-cli login`. This will let you skip passing your token in all subsequent commands in this guide.
+Now, we are ready to get started!
 
-## 🏃‍♀️ Quickstart 🏃‍♀️
 
-### Step 1: Implementing our chatbot
+### 1. Create a Discord application
 
-Let's build a very simple Chatbot using `ChatInterface` that simply repeats the user message. Write the following code into an `app.py`
+First, go to the [Discord apps dashboard](https://discord.com/developers/applications). Look for the "New Application" button and click it. Give your application a name, and then click "Create".
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-4.png)
+
+On the resulting screen, you will see basic information about your application. Under the Settings section, click on the "Bot" option. You can update your bot's username if you would like.
+
+Then click on the "Reset Token" button. A new token will be generated. Copy it as we will need it for the next step.
+
+Scroll down to the section that says "Privileged Gateway Intents". Your bot will need certain permissions to work correctly. In this tutorial, we will only be using the "Message Content Intent" so click the toggle to enable this intent. Save the changes.
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-3.png)
+
+
+
+### 2. Write a Discord bot
+
+Let's start by writing a very simple Discord bot, just to make sure that everything is working. Write the following Python code in a file called `bot.py`, pasting the discord bot token from the previous step:
 
 ```python
-import gradio as gr
+# bot.py
+import discord
 
-def slow_echo(message, history):
-    return message
+TOKEN = #PASTE YOUR DISCORD BOT TOKEN HERE
 
-demo = gr.ChatInterface(slow_echo).queue().launch()
+client = discord.Client()
+
+@client.event
+async def on_ready():
+    print(f'{client.user} has connected to Discord!')
+
+client.run(TOKEN)
 ```
 
-### Step 2: Deploying our App
+Now, run this file: `python bot.py`, which should run and print a message like:
 
-In order to create a discord bot for our app, it must be accessible over the internet. In this guide, we will use the `gradio deploy` command to deploy our chatbot to Hugging Face spaces from the command line. Run the following command.
-
-```bash
-gradio deploy --title echo-chatbot --app-file app.py
+```text
+We have logged in as GradioPlaygroundBot#1451
 ```
 
-This command will ask you some questions, e.g. requested hardware, requirements, but the default values will suffice for this guide.
-Note the URL of the space that was created. Mine is https://huggingface.co/spaces/freddyaboulton/echo-chatbot
-
-### Step 3: Creating a Discord Bot
-
-Turning our space into a discord bot is also a one-liner thanks to the `gradio deploy-discord`. Run the following command:
-
-```bash
-gradio deploy-discord --src freddyaboulton/echo-chatbot
-```
-
-❗️ Advanced ❗️: If you already have a discord bot token you can pass it to the `deploy-discord` command. Don't worry, if you don't have one yet!
-
-```bash
-gradio deploy-discord --src freddyaboulton/echo-chatbot --discord-bot-token <token>
-```
-
-Note the URL that gets printed out to the console. Mine is https://huggingface.co/spaces/freddyaboulton/echo-chatbot-gradio-discord-bot
-
-### Step 4: Getting a Discord Bot Token
-
-If you didn't have a discord bot token for step 3, go to the URL that got printed in the console and follow the instructions there.
-Once you obtain a token, run the command again but this time pass in the token:
-
-```bash
-gradio deploy-discord --src freddyaboulton/echo-chatbot --discord-bot-token <token>
-```
-
-### Step 5: Add the bot to your server
-
-Visit the space of your discord bot. You should see "Add this bot to your server by clicking this link:" followed by a URL. Go to that URL and add the bot to your server!
-
-### Step 6: Use your bot!
-
-By default the bot can be called by starting a message with `/chat`, e.g. `/chat <your prompt here>`.
-
-⚠️ Tip ⚠️: If either of the deployed spaces goes to sleep, the bot will stop working. By default, spaces go to sleep after 48 hours of inactivity. You can upgrade the hardware of your space to prevent it from going to sleep. See this [guide](https://huggingface.co/docs/hub/spaces-gpus#using-gpu-spaces) for more information.
-
-<img src="https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/guide/echo_slash.gif">
-
-### Using the `gradio_client.Client` Class
-
-You can also create a discord bot from a deployed gradio app with python.
+If that is working, we are ready to add Gradio-specific code. We will be using the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) to query the Gradio Playground Space mentioned above. Here's the updated `bot.py` file:
 
 ```python
-import gradio_client as grc
-grc.Client("freddyaboulton/echo-chatbot").deploy_discord()
+import discord
+from gradio_client import Client, handle_file
+import httpx
+import os
+
+TOKEN = #PASTE YOUR DISCORD BOT TOKEN HERE
+
+intents = discord.Intents.default()
+intents.message_content = True
+
+client = discord.Client(intents=intents)
+gradio_client = Client("abidlabs/gradio-playground-bot")
+
+def download_image(attachment):
+    response = httpx.get(attachment.url)
+    image_path = f"./images/{attachment.filename}"
+    os.makedirs("./images", exist_ok=True)
+    with open(image_path, "wb") as f:
+        f.write(response.content)
+    return image_path
+
+@client.event
+async def on_ready():
+    print(f'We have logged in as {client.user}')
+
+@client.event
+async def on_message(message):
+    # Ignore messages from the bot itself
+    if message.author == client.user:
+        return
+
+    # Check if the bot is mentioned in the message and reply
+    if client.user in message.mentions:
+        # Extract the message content without the bot mention
+        clean_message = message.content.replace(f"<@{client.user.id}>", "").strip()
+
+        # Handle images (only the first image is used)
+        files = []
+        if message.attachments:
+            for attachment in message.attachments:
+                if any(attachment.filename.lower().endswith(ext) for ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']):
+                    image_path = download_image(attachment)
+                    files.append(handle_file(image_path))
+                    break
+        
+        # Stream the responses to the channel
+        for response in gradio_client.submit(
+            message={"text": clean_message, "files": files},
+        ):
+            await message.channel.send(response[-1])
+
+client.run(TOKEN)
 ```
 
-## 🦾 Using State of The Art LLMs 🦾
+### 3. Add the bot to your Discord Server
 
-We have created an organization on Hugging Face called [gradio-discord-bots](https://huggingface.co/gradio-discord-bots) containing several template spaces that explain how to deploy state of the art LLMs powered by gradio as discord bots.
+Now we are ready to install the bot on our server. Go back to the [Discord apps dashboard](https://discord.com/developers/applications). Under the Settings section, click on the "OAuth2" option. Scroll down to the "OAuth2 URL Generator" box and select the "bot" checkbox:
 
-The easiest way to get started is by deploying Meta's Llama 2 LLM with 70 billion parameter. Simply go to this [space](https://huggingface.co/spaces/gradio-discord-bots/Llama-2-70b-chat-hf) and follow the instructions.
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-2.png)
 
-The deployment can be done in one line! 🤯
 
-```python
-import gradio_client as grc
-grc.Client("ysharma/Explore_llamav2_with_TGI").deploy_discord(to_id="llama2-70b-discord-bot")
+
+Then in "Bot Permissions" box that pops up underneath, enable the following permissions:
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/discord-1.png)
+
+
+Copy the generated URL that appears underneath, which should look something like:
+
+```text
+https://discord.com/oauth2/authorize?client_id=1319011745452265575&permissions=377957238784&integration_type=0&scope=bot
 ```
 
-## 🦜 Additional LLMs 🦜
+Paste it into your browser, which should allow you to add the Discord bot to any Discord server that you manage.
 
-In addition to Meta's 70 billion Llama 2 model, we have prepared template spaces for the following LLMs and deployment options:
 
-- [gpt-3.5-turbo](https://huggingface.co/spaces/gradio-discord-bots/gpt-35-turbo), powered by openai. Required OpenAI key.
-- [falcon-7b-instruct](https://huggingface.co/spaces/gradio-discord-bots/falcon-7b-instruct) powered by Hugging Face Inference Endpoints.
-- [Llama-2-13b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/Llama-2-13b-chat-hf) powered by Hugging Face Inference Endpoints.
-- [Llama-2-13b-chat-hf](https://huggingface.co/spaces/gradio-discord-bots/llama-2-13b-chat-transformers) powered by Hugging Face transformers.
+### 4. That's it!
 
-To deploy any of these models to discord, simply follow the instructions in the linked space for that model.
+Now you can mention your bot from any channel in your Discord server, optionally attach an image, and it will respond with generated Gradio app code!
 
-## Deploying non-chat gradio apps to discord
+The bot will:
+1. Listen for mentions
+2. Process any attached images
+3. Send the text and images to your Gradio app
+4. Stream the responses back to the Discord channel
 
-As mentioned above, you don't need a `gr.ChatInterface` if you want to deploy your gradio app to discord. All that's needed is an api route that takes in a single string and outputs a single string.
+ This is just a basic example - you can extend it to handle more types of files, add error handling, or integrate with different Gradio apps.
 
-The following code will deploy a space that translates english to german as a discord bot.
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/Screen%20Recording%202024-12-18%20at%204.26.55%E2%80%AFPM.gif)
 
-```python
-import gradio_client as grc
-client = grc.Client("freddyaboulton/english-to-german")
-client.deploy_discord(api_names=['german'])
-```
-
-## Conclusion
-
-That's it for this guide! We're really excited about this feature. Tag [@Gradio](https://twitter.com/Gradio) on twitter and show us how your discord community interacts with your discord bots.
+If you build a Discord bot from a Gradio app, feel free to share it on X and tag [the Gradio account](https://x.com/Gradio), and we are happy to help you amplify!

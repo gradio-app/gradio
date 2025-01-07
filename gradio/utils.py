@@ -8,6 +8,7 @@ import copy
 import functools
 import hashlib
 import importlib
+import importlib.resources
 import importlib.util
 import inspect
 import json
@@ -1098,7 +1099,7 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path) -> bool:
 
 
 @document()
-def set_static_paths(paths: list[str | Path]) -> None:
+def set_static_paths(paths: str | Path | list[str | Path]) -> None:
     """
     Set the static paths to be served by the gradio app.
 
@@ -1109,7 +1110,7 @@ def set_static_paths(paths: list[str | Path]) -> None:
     Calling this function will set the static paths for all gradio applications defined in the same interpreter session until it is called again or the session ends.
 
     Parameters:
-        paths: List of filepaths or directory names to be served by the gradio app. If it is a directory name, ALL files located within that directory will be considered static and not moved to the gradio cache. This also means that ALL files in that directory will be accessible over the network.
+        paths: filepath or list of filepaths or directory names to be served by the gradio app. If it is a directory name, ALL files located within that directory will be considered static and not moved to the gradio cache. This also means that ALL files in that directory will be accessible over the network.
     Example:
         import gradio as gr
 
@@ -1130,6 +1131,8 @@ def set_static_paths(paths: list[str | Path]) -> None:
     """
     from gradio.data_classes import _StaticFiles
 
+    if isinstance(paths, (str, Path)):
+        paths = [Path(paths)]
     _StaticFiles.all_paths.extend([Path(p).resolve() for p in paths])
 
 
@@ -1244,7 +1247,7 @@ def diff(old, new):
         if obj1 == obj2:
             return edits
 
-        if type(obj1) != type(obj2):
+        if type(obj1) is not type(obj2):
             edits.append(("replace", path, obj2))
             return edits
 
@@ -1587,3 +1590,21 @@ def none_or_singleton_to_list(value: Any) -> list:
     if isinstance(value, (list, tuple)):
         return list(value)
     return [value]
+
+
+def get_icon_path(icon_name: str) -> str:
+    """Get the path to an icon file in the "gradio/icons/" directory
+    and return it as a static file path so that it can be used by components.
+
+    Parameters:
+        icon_name: Name of the icon file (e.g. "plus.svg")
+    Returns:
+        str: Full path to the icon file served as a static file
+    """
+    icon_path = str(
+        importlib.resources.files("gradio").joinpath(str(Path("icons") / icon_name))
+    )
+    if Path(icon_path).exists():
+        set_static_paths(icon_path)
+        return icon_path
+    raise ValueError(f"Icon file not found: {icon_name}")

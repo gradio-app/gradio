@@ -1,30 +1,130 @@
 {
+	"_name": "Français",
+	"3D_model": {
+		"3d_model": "Modèle 3D"
+	},
+	"annotated_image": {
+		"annotated_image": "Image annotée"
+	},
 	"audio": {
-		"allow_recording_access": "Veuillez autoriser l'accès à l'enregistrement",
+		"allow_recording_access": "Veuillez autoriser l'accès au microphone pour l'enregistrement.",
 		"audio": "Audio",
-		"record_from_microphone": "Enregistrer avec le microphone",
-		"stop_recording": "Arrêter l'enregistrement"
+		"record_from_microphone": "Enregistrer depuis le microphone",
+		"stop_recording": "Arrêter l'enregistrement",
+		"no_device_support": "Impossible d'accéder aux périphériques multimédias. Assurez-vous que vous êtes sur une source sécurisée (https) ou localhost (ou avez passé un certificat SSL valide à ssl_verify), et que vous avez autorisé l'accès du navigateur à votre appareil.",
+		"stop": "Arrêter",
+		"resume": "Reprendre",
+		"record": "Enregistrer",
+		"no_microphone": "Aucun microphone trouvé",
+		"pause": "Pause",
+		"play": "Lecture",
+		"waiting": "En attente"
+	},
+	"blocks": {
+		"connection_can_break": "Sur mobile, la connexion peut être interrompue si cet onglet perd le focus ou si l'appareil se met en veille, perdant votre position dans la file d'attente.",
+		"long_requests_queue": "Il y a une longue file d'attente de requêtes en attente. Dupliquez ce Space pour la contourner.",
+		"lost_connection": "Connexion perdue en quittant la page. Retour à la file d'attente..."
+	},
+	"checkbox": {
+		"checkbox": "Case à cocher",
+		"checkbox_group": "Groupe de cases à cocher"
+	},
+	"code": {
+		"code": "Code"
+	},
+	"color_picker": {
+		"color_picker": "Sélecteur de couleur"
 	},
 	"common": {
-		"built_with": "Construit avec",
-		"built_with_gradio": "Construit avec Gradio",
+		"built_with": "créé avec",
+		"built_with_gradio": "Créé avec Gradio",
 		"clear": "Effacer",
 		"download": "Télécharger",
-		"edit": "Éditer",
+		"edit": "Modifier",
+		"empty": "Vide",
 		"error": "Erreur",
+		"hosted_on": "Hébergé sur",
 		"loading": "Chargement",
 		"logo": "logo",
 		"or": "ou",
 		"remove": "Supprimer",
+		"settings": "Paramètres",
 		"share": "Partager",
-		"submit": "Soumettre"
+		"submit": "Envoyer",
+		"undo": "Annuler",
+		"no_devices": "Aucun périphérique trouvé",
+		"language": "Langue",
+		"display_theme": "Thème d'affichage",
+		"pwa": "Application web progressive"
+	},
+	"dataframe": {
+		"incorrect_format": "Format incorrect, seuls les fichiers CSV et TSV sont pris en charge",
+		"new_column": "Ajouter une colonne",
+		"new_row": "Nouvelle ligne",
+		"add_row_above": "Ajouter une ligne au-dessus",
+		"add_row_below": "Ajouter une ligne en dessous",
+		"add_column_left": "Ajouter une colonne à gauche",
+		"add_column_right": "Ajouter une colonne à droite"
+	},
+	"dropdown": {
+		"dropdown": "Menu déroulant"
+	},
+	"errors": {
+		"build_error": "il y a une erreur de construction",
+		"config_error": "il y a une erreur de configuration",
+		"contact_page_author": "Veuillez contacter l'auteur de la page pour l'informer.",
+		"no_app_file": "il n'y a pas de fichier d'application",
+		"runtime_error": "il y a une erreur d'exécution",
+		"space_not_working": "\"Le Space ne fonctionne pas car\" {0}",
+		"space_paused": "le space est en pause",
+		"use_via_api": "Utiliser via l'API"
+	},
+	"file": {
+		"uploading": "Téléchargement..."
+	},
+	"highlighted_text": {
+		"highlighted_text": "Texte surligné"
+	},
+	"image": {
+		"allow_webcam_access": "Veuillez autoriser l'accès à la webcam pour l'enregistrement.",
+		"brush_color": "Couleur du pinceau",
+		"brush_radius": "Taille du pinceau",
+		"image": "Image",
+		"remove_image": "Supprimer l'image",
+		"select_brush_color": "Sélectionner la couleur du pinceau",
+		"start_drawing": "Commencer à dessiner",
+		"use_brush": "Utiliser le pinceau"
+	},
+	"label": {
+		"label": "Étiquette"
+	},
+	"login": {
+		"enable_cookies": "Si vous visitez un Space HuggingFace en mode Incognito, vous devez activer les cookies tiers.",
+		"incorrect_credentials": "Identifiants incorrects",
+		"username": "nom d'utilisateur",
+		"password": "mot de passe",
+		"login": "Connexion"
+	},
+	"number": {
+		"number": "Nombre"
+	},
+	"plot": {
+		"plot": "Graphique"
+	},
+	"radio": {
+		"radio": "Bouton radio"
+	},
+	"slider": {
+		"slider": "Curseur"
 	},
 	"upload_text": {
-		"click_to_upload": "Cliquer pour Télécharger",
-		"drop_audio": "Déposer l'Audio Ici",
-		"drop_csv": "Déposer le CSV Ici",
-		"drop_file": "Déposer le Fichier Ici",
-		"drop_image": "Déposer l'Image Ici",
-		"drop_video": "Déposer la Vidéo Ici"
+		"click_to_upload": "Cliquez pour télécharger",
+		"drop_audio": "Déposez l'audio ici",
+		"drop_csv": "Déposez le CSV ici",
+		"drop_file": "Déposez le fichier ici",
+		"drop_image": "Déposez l'image ici",
+		"drop_video": "Déposez la vidéo ici",
+		"drop_gallery": "Déposez les médias ici",
+		"paste_clipboard": "Coller depuis le presse-papiers"
 	}
 }

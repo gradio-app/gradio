@@ -915,7 +915,9 @@ class Client:
             hf_token: HF api token with write priviledges in order to upload the files to HF space. Can be ommitted if logged in via the HuggingFace CLI, unless the upstream space is private. Obtain from: https://huggingface.co/settings/token
             private: Whether the space hosting the discord bot is private. The visibility of the discord bot itself is set via the discord website. See https://huggingface.co/spaces/freddyaboulton/test-discord-bot-v1
         """
-
+        warnings.warn(
+            "This method is deprecated and may be removed in the future. Please see the documentation on how to create a discord bot with Gradio: https://www.gradio.app/guides/creating-a-discord-bot-from-a-gradio-app"
+        )
         if self.config["mode"] == "chat_interface" and not api_names:
             api_names = [("chat", "chat")]
 
@@ -1354,8 +1356,8 @@ class Endpoint:
                     f"File {file_path} exceeds the maximum file size of {max_file_size} bytes "
                     f"set in {component_config.get('label', '') + ''} component."
                 )
-            with open(file_path, "rb") as f:
-                files = [("files", (orig_name.name, f))]
+            with open(file_path, "rb") as f_:
+                files = [("files", (orig_name.name, f_))]
                 r = httpx.post(
                     self.client.upload_url,
                     headers=self.client.headers,

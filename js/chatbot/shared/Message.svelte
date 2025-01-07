@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { is_component_message } from "../shared/utils";
+	import { is_component_message, is_last_bot_message } from "../shared/utils";
 
 	import { Image } from "@gradio/image/shared";
 	import type { FileData, Client } from "@gradio/client";
@@ -38,14 +38,30 @@
 	export let i: number;
 	export let show_copy_button: boolean;
 	export let generating: boolean;
+	export let feedback_options: string[];
 	export let show_like: boolean;
+	export let show_edit: boolean;
 	export let show_retry: boolean;
 	export let show_undo: boolean;
 	export let msg_format: "tuples" | "messages";
 	export let handle_action: (selected: string | null) => void;
 	export let scroll: () => void;
 	export let allow_file_downloads: boolean;
+	export let in_edit_mode: boolean;
+	export let edit_message: string;
 	export let display_consecutive_in_same_bubble: boolean;
+	export let current_feedback: string | null = null;
+	let messageElements: HTMLDivElement[] = [];
+	let previous_edit_mode = false;
+	let last_message_width = 0;
+	let last_message_height = 0;
+
+	$: if (in_edit_mode && !previous_edit_mode) {
+		last_message_width =
+			messageElements[messageElements.length - 1]?.clientWidth;
+		last_message_height =
+			messageElements[messageElements.length - 1]?.clientHeight;
+	}
 
 	function handle_select(i: number, message: NormalisedMessage): void {
 		dispatch("select", {
@@ -75,8 +91,11 @@
 	type ButtonPanelProps = {
 		handle_action: (selected: string | null) => void;
 		likeable: boolean;
+		feedback_options: string[];
 		show_retry: boolean;
 		show_undo: boolean;
+		show_edit: boolean;
+		in_edit_mode: boolean;
 		generating: boolean;
 		show_copy_button: boolean;
 		message: NormalisedMessage[] | NormalisedMessage;
@@ -84,24 +103,27 @@
 		layout: "bubble" | "panel";
 		avatar: FileData | null;
 		dispatch: any;
+		current_feedback: string | null;
 	};
 
 	let button_panel_props: ButtonPanelProps;
 	$: button_panel_props = {
 		handle_action,
 		likeable: show_like,
+		feedback_options,
 		show_retry,
 		show_undo,
+		show_edit,
+		in_edit_mode,
 		generating,
 		show_copy_button,
 		message: msg_format === "tuples" ? messages[0] : messages,
 		position: role === "user" ? "right" : "left",
 		avatar: avatar_img,
 		layout,
-		dispatch
+		dispatch,
+		current_feedback
 	};
-
-	$: should_show_buttons = !messages.some((m) => m?.metadata?.title);
 </script>
 
 <div
@@ -124,50 +146,35 @@
 			class={display_consecutive_in_same_bubble ? role : ""}
 		>
 			{#each messages.filter((m) => !m.metadata?.parent_id) as message, thought_index}
-				{#if message?.metadata?.title}
-					<div class="thought-group">
-						<Thought
-							{message}
-							{value}
-							{rtl}
-							{sanitize_html}
-							{latex_delimiters}
-							{render_markdown}
-							{_components}
-							{upload}
-							{thought_index}
-							{target}
-							{root}
-							{theme_mode}
-							{_fetch}
-							{scroll}
-							{allow_file_downloads}
-							{display_consecutive_in_same_bubble}
-							{i18n}
-							{line_breaks}
-							nested_messages={messages.filter(
-								(m) => m.metadata?.parent_id === message.metadata?.id
-							)}
+				<div
+					class="message {!display_consecutive_in_same_bubble ? role : ''}"
+					class:panel-full-width={true}
+					class:message-markdown-disabled={!render_markdown}
+					class:component={message.type === "component"}
+					class:html={is_component_message(message) &&
+						message.content.component === "html"}
+					class:thought={thought_index > 0}
+				>
+					{#if in_edit_mode && thought_index === messages.length - 1 && message.type === "text"}
+						<!-- svelte-ignore a11y-autofocus -->
+						<textarea
+							class="edit-textarea"
+							style:width={`max(${last_message_width}px, 160px)`}
+							style:min-height={`${last_message_height}px`}
+							autofocus
+							bind:value={edit_message}
 						/>
-					</div>
-				{:else}
-					<div
-						class="message {!display_consecutive_in_same_bubble ? role : ''}"
-						class:panel-full-width={true}
-						class:message-markdown-disabled={!render_markdown}
-						class:component={message.type === "component"}
-						class:html={is_component_message(message) &&
-							message.content.component === "html"}
-						class:thought={thought_index > 0}
-					>
-						<button
+					{:else}
+						<!-- svelte-ignore a11y-no-static-element-interactions -->
+						<div
 							data-testid={role}
 							class:latest={i === value.length - 1}
 							class:message-markdown-disabled={!render_markdown}
 							style:user-select="text"
 							class:selectable
-							style:cursor={selectable ? "pointer" : "default"}
+							style:cursor={selectable ? "pointer" : "auto"}
 							style:text-align={rtl ? "right" : "left"}
+							bind:this={messageElements[thought_index]}
 							on:click={() => handle_select(i, message)}
 							on:keydown={(e) => {
 								if (e.key === "Enter") {
@@ -179,39 +186,69 @@
 								"'s message: " +
 								get_message_label_data(message)}
 						>
-							<MessageContent
-								{message}
-								{sanitize_html}
-								{latex_delimiters}
-								{render_markdown}
-								{_components}
-								{upload}
-								{thought_index}
-								{target}
-								{root}
-								{theme_mode}
-								{_fetch}
-								{scroll}
-								{allow_file_downloads}
-								{display_consecutive_in_same_bubble}
-								{i18n}
-								{line_breaks}
-							/>
-						</button>
-					</div>
+							{#if message?.metadata?.title}
+								<div class="thought-group">
+									<Thought
+										{message}
+										{value}
+										{rtl}
+										{sanitize_html}
+										{latex_delimiters}
+										{render_markdown}
+										{_components}
+										{upload}
+										{thought_index}
+										{target}
+										{root}
+										{theme_mode}
+										{_fetch}
+										{scroll}
+										{allow_file_downloads}
+										{display_consecutive_in_same_bubble}
+										{i18n}
+										{line_breaks}
+										nested_messages={value.filter(
+											(m) => m.metadata?.parent_id === message.metadata?.id
+										)}
+									/>
+								</div>
+							{:else}
+								<MessageContent
+									{message}
+									{sanitize_html}
+									{latex_delimiters}
+									{render_markdown}
+									{_components}
+									{upload}
+									{thought_index}
+									{target}
+									{root}
+									{theme_mode}
+									{_fetch}
+									{scroll}
+									{allow_file_downloads}
+									{display_consecutive_in_same_bubble}
+									{i18n}
+									{line_breaks}
+								/>
+							{/if}
+						</div>
+					{/if}
+				</div>
+
+				{#if layout === "panel"}
+					<ButtonPanel
+						{...button_panel_props}
+						{current_feedback}
+						on:copy={(e) => dispatch("copy", e.detail)}
+					/>
 				{/if}
 			{/each}
 		</div>
-		{#if layout === "panel" && should_show_buttons}
-			<ButtonPanel
-				{...button_panel_props}
-				on:copy={(e) => dispatch("copy", e.detail)}
-			/>
-		{/if}
 	</div>
 </div>
 
-{#if layout === "bubble" && should_show_buttons}
+{#if layout === "bubble"}
 	<ButtonPanel {...button_panel_props} />
 {/if}
 
@@ -219,26 +256,6 @@
 	.message {
 		position: relative;
 		width: 100%;
-		padding: var(--spacing-md);
-	}
-
-	.thought-group {
-		margin: var(--spacing-sm) 0;
-		background: var(--background-fill-primary);
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--radius-sm);
-		padding: var(--spacing-sm);
-	}
-
-	.thought-group :global(.thought:not(.nested)) {
-		border: none;
-		background: none;
-		margin-top: 0;
-		padding-bottom: 0;
-	}
-
-	.thought-group :global(.thought.nested) {
-		margin-top: var(--spacing-sm);
 	}
 
 	/* avatar styles */
@@ -329,6 +346,7 @@
 		box-shadow: var(--shadow-drop);
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
+		padding: var(--spacing-md);
 	}
 
 	.bot {
@@ -338,11 +356,21 @@
 		box-shadow: var(--shadow-drop);
 		align-self: flex-start;
 		text-align: right;
+		padding: var(--spacing-md);
+		padding-left: 0;
+	}
+
+	.bot:has(.table-wrap) {
+		border: none;
+		box-shadow: none;
+		background: none;
 	}
 
 	.panel .user :global(*) {
 		text-align: right;
 	}
+
+	/* Colors */
 
 	.message-row {
 		display: flex;
@@ -525,7 +553,7 @@
 		border-radius: var(--radius-lg);
 	}
 
-	.message > button {
+	.message > div {
 		width: 100%;
 	}
 	.html {
@@ -534,11 +562,48 @@
 		background: none;
 	}
 
+	.thought-group {
+		margin: var(--spacing-lg) 0;
+		background: var(--background-fill-primary);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-sm);
+		padding: var(--spacing-sm);
+	}
+	.thought-group :global(.thought:not(.nested)) {
+		border: none;
+		background: none;
+		margin-top: 0;
+		padding-bottom: 0;
+	}
+	.thought-group :global(.thought.nested) {
+		margin-top: var(--spacing-sm);
+	}
+
 	.panel .bot,
 	.panel .user {
 		border: none;
 		box-shadow: none;
 		background-color: var(--background-fill-secondary);
+	}
+
+	textarea {
+		background: none;
+		border-radius: var(--radius-lg);
+		border: none;
+		display: block;
+		max-width: 100%;
+	}
+	.user textarea {
+		border-bottom-right-radius: 0;
+	}
+	.bot textarea {
+		border-bottom-left-radius: 0;
+	}
+	.user textarea:focus {
+		outline: 2px solid var(--border-color-accent);
+	}
+	.bot textarea:focus {
+		outline: 2px solid var(--border-color-primary);
 	}
 
 	.panel.user-row {

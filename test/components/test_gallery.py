@@ -126,5 +126,5 @@ class TestGallery:
         output = gallery.postprocess(
             [np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)]
         )
-        if type(output.root[0]) == GalleryImage:
+        if isinstance(output.root[0], GalleryImage):
             assert output.root[0].image.path.endswith(".jpeg")

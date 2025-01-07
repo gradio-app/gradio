@@ -126,8 +126,7 @@ class ThemeClass:
             if (
                 not prop.startswith("_")
                 or prop.startswith("_font")
-                or prop == "_stylesheets"
-                or prop == "name"
+                or prop in ("_stylesheets", "name")
             ) and isinstance(getattr(self, prop), (list, str)):
                 schema["theme"][prop] = getattr(self, prop)
         return schema
@@ -709,6 +708,10 @@ class Base(ThemeClass):
         button_small_radius=None,
         button_small_text_size=None,
         button_small_text_weight=None,
+        button_medium_padding=None,
+        button_medium_radius=None,
+        button_medium_text_size=None,
+        button_medium_text_weight=None,
         button_primary_background_fill=None,
         button_primary_background_fill_dark=None,
         button_primary_background_fill_hover=None,
@@ -1007,6 +1010,10 @@ class Base(ThemeClass):
             button_small_radius: The corner radius of a button set to "small" size.
             button_small_text_size: The text size of a button set to "small" size.
             button_small_text_weight: The text weight of a button set to "small" size.
+            button_medium_padding: The padding of a button set to "medium" size.
+            button_medium_radius: The corner radius of a button set to "medium" size.
+            button_medium_text_size: The text size of a button set to "medium" size.
+            button_medium_text_weight: The text weight of a button set to "medium" size.
             button_transition: The transition animation duration of a button between regular, hover, and focused states.
             button_transform_hover: The transform animation of a button on hover.
             button_transform_active: The transform animation of a button when pressed.
@@ -1956,6 +1963,18 @@ class Base(ThemeClass):
         )
         self.button_small_text_weight = button_small_text_weight or getattr(
             self, "button_small_text_weight", "400"
+        )
+        self.button_medium_padding = button_medium_padding or getattr(
+            self, "button_medium_padding", "*spacing_md calc(2 * *spacing_md)"
+        )
+        self.button_medium_radius = button_medium_radius or getattr(
+            self, "button_medium_radius", "*radius_md"
+        )
+        self.button_medium_text_size = button_medium_text_size or getattr(
+            self, "button_medium_text_size", "*text_md"
+        )
+        self.button_medium_text_weight = button_medium_text_weight or getattr(
+            self, "button_medium_text_weight", "600"
         )
 
         return self

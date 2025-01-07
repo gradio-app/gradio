@@ -66,6 +66,11 @@ export interface UndoRetryData {
 	value: string | FileData | ComponentData;
 }
 
+export interface EditData {
+	index: number | [number, number];
+	value: string;
+}
+
 const redirect_src_url = (src: string, root: string): string =>
 	src.replace('src="/file', `src="${root}file`);
 
@@ -223,13 +228,12 @@ export async function load_components(
 		if (_components[component_name] || component_name === "file") {
 			return;
 		}
-
-		const { name, component } = load_component(component_name, "base");
+		const variant = component_name === "dataframe" ? "component" : "base";
+		const { name, component } = load_component(component_name, variant);
 		names.push(name);
 		components.push(component);
 		component_name;
 	});
-
 	const loaded_components: LoadedComponent[] = await Promise.all(components);
 	loaded_components.forEach((component, i) => {
 		_components[names[i]] = component.default;

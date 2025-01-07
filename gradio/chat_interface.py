@@ -7,6 +7,7 @@ from __future__ import annotations
 import builtins
 import copy
 import inspect
+import os
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
 from pathlib import Path
@@ -19,9 +20,11 @@ from gradio import utils
 from gradio.blocks import Blocks
 from gradio.components import (
     JSON,
+    BrowserState,
     Button,
     Chatbot,
     Component,
+    Dataset,
     Markdown,
     MultimodalTextbox,
     State,
@@ -36,7 +39,8 @@ from gradio.components.chatbot import (
 )
 from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
 from gradio.context import get_blocks_context
-from gradio.events import Dependency, SelectData
+from gradio.events import Dependency, EditData, SelectData
+from gradio.flagging import ChatCSVLogger
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Column, Group, Row
@@ -75,6 +79,7 @@ class ChatInterface(Blocks):
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
         additional_outputs: Component | list[Component] | None = None,
+        editable: bool = False,
         examples: list[str] | list[MultimodalValue] | list[list] | None = None,
         example_labels: list[str] | None = None,
         example_icons: list[str] | None = None,
@@ -84,6 +89,9 @@ class ChatInterface(Blocks):
         title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
+        flagging_mode: Literal["never", "manual"] | None = None,
+        flagging_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
+        flagging_dir: str = ".gradio/flagged",
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
         js: str | None = None,
@@ -100,14 +108,16 @@ class ChatInterface(Blocks):
         fill_height: bool = True,
         fill_width: bool = False,
         api_name: str | Literal[False] = "chat",
+        save_history: bool = False,
     ):
         """
         Parameters:
-            fn: the function to wrap the chat interface around. In the default case (assuming `type` is set to "messages"), the function should accept two parameters: a `str` input message and `list` of openai-style dictionary {"role": "user" | "assistant", "content": `str` | {"path": `str`} | `gr.Component`} representing the chat history, and the function should return/yield a `str` (if a simple message), a supported Gradio component (to return a file), a `dict` (for a complete openai-style message response), or a `list` of such messages.
+            fn: the function to wrap the chat interface around. Normally (assuming `type` is set to "messages"), the function should accept two parameters: a `str` representing the input message and `list` of openai-style dictionaries: {"role": "user" | "assistant", "content": `str` | {"path": `str`} | `gr.Component`} representing the chat history. The function should return/yield a `str` (for a simple message), a supported Gradio component (e.g. gr.Image to return an image), a `dict` (for a complete openai-style message response), or a `list` of such messages.
             multimodal: if True, the chat interface will use a `gr.MultimodalTextbox` component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input. If this is True, the first argument of `fn` should accept not a `str` message but a `dict` message with keys "text" and "files"
             type: The format of the messages passed into the chat history parameter of `fn`. If "messages", passes the history as a list of dictionaries with openai-style "role" and "content" keys. The "content" key's value should be one of the following - (1) strings in valid Markdown (2) a dictionary with a "path" key and value corresponding to the file to display or (3) an instance of a Gradio component: at the moment gr.Image, gr.Plot, gr.Video, gr.Gallery, gr.Audio, and gr.HTML are supported. The "role" key should be one of 'user' or 'assistant'. Any other roles will not be displayed in the output. If this parameter is 'tuples' (deprecated), passes the chat history as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message.
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
+            editable: if True, users can edit past messages to regenerate responses.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If the components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion. The values of these components will be passed into `fn` as arguments in order after the chat history.
             additional_inputs_accordion: if a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
             additional_outputs: an instance or list of instances of gradio components to use as additional outputs from the chat function. These must be components that are already defined in the same Blocks scope. If provided, the chat function should return additional values for these components. See $demo/chatinterface_artifacts.
@@ -120,6 +130,9 @@ class ChatInterface(Blocks):
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+            flagging_mode: one of "never", "manual". If "never", users will not see a button to flag an input and output. If "manual", users will see a button to flag.
+            flagging_options: a list of strings representing the options that users can choose from when flagging a message. Defaults to ["Like", "Dislike"]. These two case-sensitive strings will render as "thumbs up" and "thumbs down" icon respectively next to each bot message, but any other strings appear under a separate flag icon.
+            flagging_dir: path to the the directory where flagged data is stored. If the directory does not exist, it will be created.
             css: Custom css as a code string. This css will be included in the demo webpage.
             css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
             js: Custom js as a code string. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
@@ -136,6 +149,7 @@ class ChatInterface(Blocks):
             fill_height: if True, the chat interface will expand to the height of window.
             fill_width: Whether to horizontally expand to fill container fully. If False, centers and constrains app to a maximum width.
             api_name: the name of the API endpoint to use for the chat interface. Defaults to "chat". Set to False to disable the API endpoint.
+            save_history: if True, will save the chat history to the browser's local storage and display previous conversations in a side panel.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -155,7 +169,10 @@ class ChatInterface(Blocks):
         self.type = type
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
-        self.fn = fn
+        if isinstance(fn, ChatInterface):
+            self.fn = fn.fn
+        else:
+            self.fn = fn
         self.is_async = inspect.iscoroutinefunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
@@ -170,6 +187,16 @@ class ChatInterface(Blocks):
         self.run_examples_on_click = run_examples_on_click
         self.cache_examples = cache_examples
         self.cache_mode = cache_mode
+        self.editable = editable
+        self.fill_height = fill_height
+        self.autoscroll = autoscroll
+        self.autofocus = autofocus
+        self.title = title
+        self.description = description
+        self.show_progress = show_progress
+        if save_history and not type == "messages":
+            raise ValueError("save_history is only supported for type='messages'")
+        self.save_history = save_history
         self.additional_inputs = [
             get_component_instance(i)
             for i in utils.none_or_singleton_to_list(additional_inputs)
@@ -208,116 +235,160 @@ class ChatInterface(Blocks):
                 if self._additional_inputs_in_examples:
                     break
 
+        if flagging_mode is None:
+            flagging_mode = os.getenv("GRADIO_CHAT_FLAGGING_MODE", "never")  # type: ignore
+        if flagging_mode in ["manual", "never"]:
+            self.flagging_mode = flagging_mode
+        else:
+            raise ValueError(
+                "Invalid value for `flagging_mode` parameter."
+                "Must be: 'manual' or 'never'."
+            )
+        self.flagging_options = flagging_options
+        self.flagging_dir = flagging_dir
+
         with self:
+            self.saved_conversations = BrowserState(
+                [], storage_key="_saved_conversations"
+            )
+            self.conversation_id = State(None)
+            self.saved_input = State()  # Stores the most recent user message
+            self.null_component = State()  # Used to discard unneeded values
+
             with Column():
-                if title:
-                    Markdown(
-                        f"<h1 style='text-align: center; margin-bottom: 1rem'>{self.title}</h1>"
-                    )
-                if description:
-                    Markdown(description)
-                if chatbot:
-                    if self.type:
-                        if self.type != chatbot.type:
-                            warnings.warn(
-                                "The type of the gr.Chatbot does not match the type of the gr.ChatInterface."
-                                f"The type of the gr.ChatInterface, '{self.type}', will be used."
-                            )
-                            chatbot.type = self.type
-                            chatbot._setup_data_model()
-                    else:
-                        warnings.warn(
-                            f"The gr.ChatInterface was not provided with a type, so the type of the gr.Chatbot, '{chatbot.type}', will be used."
+                self._render_header()
+                with Row():
+                    self._render_history_area()
+                    with Column(scale=6):
+                        self._render_chatbot_area(
+                            chatbot, textbox, submit_btn, stop_btn
                         )
-                        self.type = chatbot.type
-                    self.chatbot = cast(
-                        Chatbot, get_component_instance(chatbot, render=True)
-                    )
-                    if self.chatbot.examples and self.examples_messages:
-                        warnings.warn(
-                            "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
-                        )
-                    self.chatbot.examples = (
-                        self.examples_messages
-                        if not self._additional_inputs_in_examples
-                        else None
-                    )
-                    self.chatbot._setup_examples()
-                else:
-                    self.type = self.type or "tuples"
-                    self.chatbot = Chatbot(
-                        label="Chatbot",
-                        scale=1,
-                        height=200 if fill_height else None,
-                        type=self.type,
-                        autoscroll=autoscroll,
-                        examples=self.examples_messages
-                        if not self._additional_inputs_in_examples
-                        else None,
-                    )
-                with Group():
-                    with Row():
-                        if textbox:
-                            textbox.show_label = False
-                            textbox_ = get_component_instance(textbox, render=True)
-                            if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
-                                raise TypeError(
-                                    f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
-                                )
-                            self.textbox = textbox_
-                        else:
-                            textbox_component = (
-                                MultimodalTextbox if self.multimodal else Textbox
-                            )
-                            self.textbox = textbox_component(
-                                show_label=False,
-                                label="Message",
-                                placeholder="Type a message...",
-                                scale=7,
-                                autofocus=autofocus,
-                                submit_btn=submit_btn,
-                                stop_btn=stop_btn,
-                            )
-
-                        # Hide the stop button at the beginning, and show it with the given value during the generator execution.
-                        self.original_stop_btn = self.textbox.stop_btn
-                        self.textbox.stop_btn = False
-
-                    self.fake_api_btn = Button("Fake API", visible=False)
-                    self.api_response = JSON(
-                        label="Response", visible=False
-                    )  # Used to store the response from the API call
-
-                if self.examples:
-                    self.examples_handler = Examples(
-                        examples=self.examples,
-                        inputs=[self.textbox] + self.additional_inputs,
-                        outputs=self.chatbot,
-                        fn=self._examples_stream_fn
-                        if self.is_generator
-                        else self._examples_fn,
-                        cache_examples=self.cache_examples,
-                        cache_mode=self.cache_mode,
-                        visible=self._additional_inputs_in_examples,
-                        preprocess=self._additional_inputs_in_examples,
-                    )
-
-                any_unrendered_inputs = any(
-                    not inp.is_rendered for inp in self.additional_inputs
-                )
-                if self.additional_inputs and any_unrendered_inputs:
-                    with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
-                        for input_component in self.additional_inputs:
-                            if not input_component.is_rendered:
-                                input_component.render()
-
-                self.saved_input = State()  # Stores the most recent user message
-                self.null_component = State()  # Used to discard unneeded values
-                self.chatbot_state = (
-                    State(self.chatbot.value) if self.chatbot.value else State([])
-                )
-                self.show_progress = show_progress
+                self._render_footer()
                 self._setup_events()
+
+    def _render_header(self):
+        if self.title:
+            Markdown(
+                f"<h1 style='text-align: center; margin-bottom: 1rem'>{self.title}</h1>"
+            )
+        if self.description:
+            Markdown(self.description)
+
+    def _render_history_area(self):
+        if self.save_history:
+            with Column(scale=1, min_width=100):
+                self.new_chat_button = Button(
+                    "New chat",
+                    variant="secondary",
+                    size="md",
+                    icon=utils.get_icon_path("plus.svg"),
+                )
+                self.chat_history_dataset = Dataset(
+                    components=[Textbox(visible=False)],
+                    show_label=False,
+                    layout="table",
+                    type="index",
+                )
+
+    def _render_chatbot_area(
+        self,
+        chatbot: Chatbot | None,
+        textbox: Textbox | MultimodalTextbox | None,
+        submit_btn: str | bool | None,
+        stop_btn: str | bool | None,
+    ):
+        if chatbot:
+            if self.type:
+                if self.type != chatbot.type:
+                    warnings.warn(
+                        "The type of the gr.Chatbot does not match the type of the gr.ChatInterface."
+                        f"The type of the gr.ChatInterface, '{self.type}', will be used."
+                    )
+                    chatbot.type = cast(Literal["messages", "tuples"], self.type)
+                    chatbot._setup_data_model()
+            else:
+                warnings.warn(
+                    f"The gr.ChatInterface was not provided with a type, so the type of the gr.Chatbot, '{chatbot.type}', will be used."
+                )
+                self.type = chatbot.type
+            self.chatbot = cast(Chatbot, get_component_instance(chatbot, render=True))
+            if self.chatbot.examples and self.examples_messages:
+                warnings.warn(
+                    "The ChatInterface already has examples set. The examples provided in the chatbot will be ignored."
+                )
+            self.chatbot.examples = (
+                self.examples_messages
+                if not self._additional_inputs_in_examples
+                else None
+            )
+            self.chatbot._setup_examples()
+        else:
+            self.type = self.type or "tuples"
+            self.chatbot = Chatbot(
+                label="Chatbot",
+                scale=1,
+                height=400 if self.fill_height else None,
+                type=cast(Literal["messages", "tuples"], self.type),
+                autoscroll=self.autoscroll,
+                examples=self.examples_messages
+                if not self._additional_inputs_in_examples
+                else None,
+            )
+        with Group():
+            with Row():
+                if textbox:
+                    textbox.show_label = False
+                    textbox_ = get_component_instance(textbox, render=True)
+                    if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
+                        raise TypeError(
+                            f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {builtins.type(textbox_)}"
+                        )
+                    self.textbox = textbox_
+                else:
+                    textbox_component = (
+                        MultimodalTextbox if self.multimodal else Textbox
+                    )
+                    self.textbox = textbox_component(
+                        show_label=False,
+                        label="Message",
+                        placeholder="Type a message...",
+                        scale=7,
+                        autofocus=self.autofocus,
+                        submit_btn=submit_btn,
+                        stop_btn=stop_btn,
+                    )
+
+        # Hide the stop button at the beginning, and show it with the given value during the generator execution.
+        self.original_stop_btn = self.textbox.stop_btn
+        self.textbox.stop_btn = False
+
+        self.chatbot_state = State(self.chatbot.value if self.chatbot.value else [])
+        self.fake_api_btn = Button("Fake API", visible=False)
+        self.api_response = JSON(
+            label="Response", visible=False
+        )  # Used to store the response from the API call
+
+    def _render_footer(self):
+        if self.examples:
+            self.examples_handler = Examples(
+                examples=self.examples,
+                inputs=[self.textbox] + self.additional_inputs,
+                outputs=self.chatbot,
+                fn=self._examples_stream_fn if self.is_generator else self._examples_fn,
+                cache_examples=self.cache_examples,
+                cache_mode=cast(Literal["eager", "lazy"], self.cache_mode),
+                visible=self._additional_inputs_in_examples,
+                preprocess=self._additional_inputs_in_examples,
+            )
+
+        any_unrendered_inputs = any(
+            not inp.is_rendered for inp in self.additional_inputs
+        )
+        if self.additional_inputs and any_unrendered_inputs:
+            with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
+                for input_component in self.additional_inputs:
+                    if not input_component.is_rendered:
+                        input_component.render()
 
     def _setup_example_messages(
         self,
@@ -356,7 +427,49 @@ class ChatInterface(Blocks):
                 examples_messages.append(example_message)
         return examples_messages
 
+    def _generate_chat_title(self, conversation: list[MessageDict]) -> str:
+        """
+        Generate a title for a conversation by taking the first user message that is a string
+        and truncating it to 40 characters. If files are present, add a 📎 to the title.
+        """
+        title = ""
+        for message in conversation:
+            if message["role"] == "user":
+                if isinstance(message["content"], str):
+                    title += message["content"]
+                    break
+                else:
+                    title += "📎 "
+        if len(title) > 40:
+            title = title[:40] + "..."
+        return title or "Conversation"
+
+    def _save_conversation(
+        self,
+        index: int | None,
+        conversation: list[MessageDict],
+        saved_conversations: list[list[MessageDict]],
+    ):
+        if self.save_history:
+            if index is not None:
+                saved_conversations[index] = conversation
+            else:
+                saved_conversations.append(conversation)
+                index = len(saved_conversations) - 1
+        return index, saved_conversations
+
+    def _delete_conversation(
+        self,
+        index: int | None,
+        saved_conversations: list[list[MessageDict]],
+    ):
+        if index is not None:
+            saved_conversations.pop(index)
+        return None, saved_conversations
+
     def _setup_events(self) -> None:
+        from gradio import on
+
         submit_triggers = [self.textbox.submit, self.chatbot.retry]
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
         if hasattr(self.fn, "zerogpu"):
@@ -381,6 +494,17 @@ class ChatInterface(Blocks):
                 Literal["full", "minimal", "hidden"], self.show_progress
             ),
         }
+        save_fn_kwargs = {
+            "fn": self._save_conversation,
+            "inputs": [
+                self.conversation_id,
+                self.chatbot_state,
+                self.saved_conversations,
+            ],
+            "outputs": [self.conversation_id, self.saved_conversations],
+            "show_api": False,
+            "queue": False,
+        }
 
         submit_event = (
             self.textbox.submit(
@@ -404,7 +528,8 @@ class ChatInterface(Blocks):
             None,
             self.textbox,
             show_api=False,
-        )
+        ).then(**save_fn_kwargs)
+
         # Creates the "/chat" API endpoint
         self.fake_api_btn.click(
             submit_fn,
@@ -466,7 +591,7 @@ class ChatInterface(Blocks):
             lambda: update(interactive=True),
             outputs=[self.textbox],
             show_api=False,
-        )
+        ).then(**save_fn_kwargs)
 
         self._setup_stop_events(submit_triggers, [submit_event, retry_event])
 
@@ -476,16 +601,79 @@ class ChatInterface(Blocks):
             [self.chatbot, self.textbox],
             show_api=False,
             queue=False,
-        ).then(**synchronize_chat_state_kwargs)
+        ).then(**synchronize_chat_state_kwargs).then(**save_fn_kwargs)
 
         self.chatbot.option_select(
             self.option_clicked,
             [self.chatbot],
             [self.chatbot, self.saved_input],
             show_api=False,
-        ).then(**submit_fn_kwargs).then(**synchronize_chat_state_kwargs)
+        ).then(**submit_fn_kwargs).then(**synchronize_chat_state_kwargs).then(
+            **save_fn_kwargs
+        )
 
-        self.chatbot.clear(**synchronize_chat_state_kwargs)
+        self.chatbot.clear(**synchronize_chat_state_kwargs).then(
+            self._delete_conversation,
+            [self.conversation_id, self.saved_conversations],
+            [self.conversation_id, self.saved_conversations],
+            show_api=False,
+            queue=False,
+        )
+
+        if self.editable:
+            self.chatbot.edit(
+                self._edit_message,
+                [self.chatbot],
+                [self.chatbot, self.chatbot_state, self.saved_input],
+                show_api=False,
+            ).success(**submit_fn_kwargs).success(**synchronize_chat_state_kwargs).then(
+                **save_fn_kwargs
+            )
+
+        if self.save_history:
+            self.new_chat_button.click(
+                lambda: (None, []),
+                None,
+                [self.conversation_id, self.chatbot],
+                show_api=False,
+                queue=False,
+            ).then(
+                lambda x: x,
+                [self.chatbot],
+                [self.chatbot_state],
+                show_api=False,
+                queue=False,
+            )
+
+            @on(
+                [self.load, self.saved_conversations.change],
+                inputs=[self.saved_conversations],
+                outputs=[self.chat_history_dataset],
+                show_api=False,
+                queue=False,
+            )
+            def load_chat_history(conversations):
+                return Dataset(
+                    samples=[
+                        [self._generate_chat_title(conv)]
+                        for conv in conversations or []
+                        if conv
+                    ]
+                )
+
+            self.chat_history_dataset.click(
+                lambda index, conversations: (index, conversations[index]),
+                [self.chat_history_dataset, self.saved_conversations],
+                [self.conversation_id, self.chatbot],
+                show_api=False,
+                queue=False,
+            ).then(**synchronize_chat_state_kwargs)
+
+        if self.flagging_mode != "never":
+            flagging_callback = ChatCSVLogger()
+            flagging_callback.setup(self.flagging_dir)
+            self.chatbot.feedback_options = self.flagging_options
+            self.chatbot.like(flagging_callback.flag, self.chatbot)
 
     def _setup_stop_events(
         self, event_triggers: list[Callable], events_to_cancel: list[Dependency]
@@ -708,6 +896,19 @@ class ChatInterface(Blocks):
             return example.value
         else:
             return example.value["text"]
+
+    def _edit_message(
+        self, history: list[MessageDict] | TupleFormat, edit_data: EditData
+    ) -> tuple[
+        list[MessageDict] | TupleFormat,
+        list[MessageDict] | TupleFormat,
+        str | MultimodalPostprocess,
+    ]:
+        if isinstance(edit_data.index, (list, tuple)):
+            history = history[: edit_data.index[0]]
+        else:
+            history = history[: edit_data.index]
+        return history, history, edit_data.value
 
     def example_clicked(
         self, example: SelectData

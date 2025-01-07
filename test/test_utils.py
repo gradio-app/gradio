@@ -30,6 +30,7 @@ from gradio.utils import (
     download_if_url,
     get_extension_from_file_path_or_url,
     get_function_params,
+    get_icon_path,
     get_type_hints,
     ipython_check,
     is_allowed_file,
@@ -304,7 +305,7 @@ class TestGetTypeHints:
         for x in test_objs:
             hints = get_type_hints(x)
             assert len(hints) == 1
-            assert hints["s"] == str
+            assert hints["s"] is str
 
         assert len(get_type_hints(GenericObject())) == 0
 
@@ -716,3 +717,8 @@ class TestSafeDeepCopy:
         result = safe_deepcopy(original)
         assert result is not original
         assert type(result) is type(original)
+
+
+def test_get_icon_path():
+    assert get_icon_path("plus.svg").endswith("plus.svg")
+    assert get_icon_path("huggingface-logo.svg").endswith("huggingface-logo.svg")
