@@ -258,6 +258,7 @@
 	.message {
 		position: relative;
 		width: 100%;
+		padding: var(--spacing-md);
 	}
 
 	/* avatar styles */
@@ -352,14 +353,14 @@
 	}
 
 	.bot {
+		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-md);
 		border-color: var(--border-color-primary);
 		background-color: var(--background-fill-secondary);
 		box-shadow: var(--shadow-drop);
 		align-self: flex-start;
 		text-align: right;
-		padding: var(--spacing-md);
-		padding-left: 0;
+		border-bottom-left-radius: 0;
 	}
 
 	.bot:has(.table-wrap) {
@@ -565,7 +566,6 @@
 	}
 
 	.thought-group {
-		margin: var(--spacing-lg) 0;
 		background: var(--background-fill-primary);
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);

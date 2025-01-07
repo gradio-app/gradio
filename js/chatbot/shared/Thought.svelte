@@ -62,7 +62,7 @@
 					<span class="loading-spinner"></span>
 				{/if}
 				{#if message?.duration}
-					<span class="duration">{message.duration || 0.16}s</span>
+					<span class="duration">{message.duration}s</span>
 				{/if}
 			</span>
 			<span
