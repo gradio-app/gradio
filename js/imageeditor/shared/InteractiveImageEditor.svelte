@@ -174,9 +174,7 @@
 				new File([blobs.composite], "composite.png"),
 				null
 			]);
-		console.log("blobs", blobs);
 		blobs.layers.forEach((layer, i) => {
-			console.log("layer", layer);
 			if (layer)
 				images.push([
 					id as string,
