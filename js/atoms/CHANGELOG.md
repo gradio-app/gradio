@@ -1,5 +1,19 @@
 # @gradio/atoms
 
+## 0.13.0
+
+### Features
+
+- [#10272](https://github.com/gradio-app/gradio/pull/10272) [`a1f2649`](https://github.com/gradio-app/gradio/commit/a1f2649586752a013fb4d36b83d5fea2e137bb81) - Chat Interface flagging and chatbot feedback.  Thanks @aliabid94!
+- [#10292](https://github.com/gradio-app/gradio/pull/10292) [`f2bd72f`](https://github.com/gradio-app/gradio/commit/f2bd72f9ef23552f0c6018396320eca9baef04f5) - Reset flagged values when switching conversations in chat history.  Thanks @abidlabs!
+- [#10192](https://github.com/gradio-app/gradio/pull/10192) [`4fc7fb7`](https://github.com/gradio-app/gradio/commit/4fc7fb777c42af537e4af612423fa44029657d41) - Ensure components can be remounted with their previous data.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.10.0
+- @gradio/markdown-code@0.3.0
+- @gradio/icons@0.9.0
+
 ## 0.12.0
 
 ### Features

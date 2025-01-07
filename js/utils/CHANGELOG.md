@@ -1,5 +1,11 @@
 # @gradio/utils
 
+## 0.10.0
+
+### Features
+
+- [#10272](https://github.com/gradio-app/gradio/pull/10272) [`a1f2649`](https://github.com/gradio-app/gradio/commit/a1f2649586752a013fb4d36b83d5fea2e137bb81) - Chat Interface flagging and chatbot feedback.  Thanks @aliabid94!
+
 ## 0.9.0
 
 ### Features
