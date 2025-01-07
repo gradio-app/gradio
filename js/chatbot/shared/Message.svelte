@@ -145,7 +145,7 @@
 			class:message={display_consecutive_in_same_bubble}
 			class={display_consecutive_in_same_bubble ? role : ""}
 		>
-			{#each messages.filter((m) => !m.metadata?.parent_id) as message, thought_index}
+			{#each messages.filter((m) => !m.metadata?.parent_id || !messages.some((parent) => parent.metadata?.id === m.metadata?.parent_id)) as message, thought_index}
 				<div
 					class="message {!display_consecutive_in_same_bubble ? role : ''}"
 					class:panel-full-width={true}
@@ -208,9 +208,7 @@
 										{i18n}
 										{line_breaks}
 										nested_messages={value.filter(
-											(m) =>
-												m.metadata?.parent_id === message.metadata?.id &&
-												m.metadata?.id !== message.metadata?.id
+											(m) => m.metadata?.parent_id === message.metadata?.id
 										)}
 									/>
 								</div>
@@ -360,7 +358,7 @@
 		align-self: flex-start;
 		text-align: right;
 		border-bottom-left-radius: 0;
-		padding: var(--spacing-sm) var(--spacing-xl);
+		padding: var(--spacing-xl);
 	}
 
 	.bot:has(.table-wrap) {
@@ -570,7 +568,7 @@
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
 		padding: var(--spacing-sm);
-		margin: var(--spacing-xxl) 0;
+		margin-bottom: var(--spacing-lg);
 	}
 	.thought-group :global(.thought:not(.nested)) {
 		border: none;

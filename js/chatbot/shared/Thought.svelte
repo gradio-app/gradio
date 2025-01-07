@@ -36,6 +36,21 @@
 
 	let expanded = is_last_bot_message([message], value);
 	let is_nested = !!message.metadata?.parent_id;
+	let has_content = message.content !== "" && message.content !== null;
+
+	// Filter out null messages and duplicates
+	$: filtered_nested_messages = nested_messages.filter(
+		(m) =>
+			// Must have content and title
+			m.content !== null &&
+			m.content !== "" &&
+			m.metadata?.title &&
+			// Must be a direct child of this thought
+			m.metadata?.parent_id === message.metadata?.id &&
+			// Prevent duplicates and circular references
+			m.metadata?.id !== message.metadata?.id &&
+			m.metadata?.id !== message.metadata?.parent_id
+	);
 
 	function toggleExpanded(): void {
 		expanded = !expanded;
@@ -46,63 +61,46 @@
 	class="thought"
 	class:nested={is_nested}
 	class:hidden={is_nested && !parent_expanded}
+	class:orphaned={is_nested &&
+		!value.some((m) => m.metadata?.id === message.metadata?.parent_id)}
 >
-	<div class="box" style:text-align={rtl ? "right" : "left"}>
-		<div
-			class="title"
-			class:expanded
-			on:click|stopPropagation={toggleExpanded}
-			role="button"
-			tabindex="0"
-			on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
-		>
-			<span class="title-text">
-				{message.metadata?.title}
-				{#if message.content === "" || message.content === null}
-					<span class="loading-spinner"></span>
-				{/if}
-				{#if message?.duration}
-					<span class="duration">{message.duration}s</span>
-				{/if}
-			</span>
-			<span
-				class="arrow"
-				style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
+	{#if message.metadata?.title}
+		<div class="box" style:text-align={rtl ? "right" : "left"}>
+			<div
+				class="title"
+				class:expanded
+				class:loading={!has_content}
+				on:click|stopPropagation={toggleExpanded}
+				role="button"
+				tabindex="0"
+				on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
 			>
-				<IconButton Icon={DropdownArrow} />
-			</span>
-		</div>
-		{#if expanded}
-			<div class="content" transition:slide>
-				<MessageContent
-					{message}
-					{sanitize_html}
-					{latex_delimiters}
-					{render_markdown}
-					{_components}
-					{upload}
-					{thought_index}
-					{target}
-					{root}
-					{theme_mode}
-					{_fetch}
-					{scroll}
-					{allow_file_downloads}
-					{display_consecutive_in_same_bubble}
-					{i18n}
-					{line_breaks}
-				/>
-				{#each nested_messages as child_message}
-					<svelte:self
-						message={child_message}
-						{value}
-						{rtl}
+				<span
+					class="arrow"
+					style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
+				>
+					<IconButton Icon={DropdownArrow} />
+				</span>
+				<span class="title-text">
+					{message.metadata?.title}
+					{#if message.content === "" || message.content === null}
+						<span class="loading-spinner"></span>
+					{/if}
+					{#if message?.duration}
+						<span class="duration">{message.duration}s</span>
+					{/if}
+				</span>
+			</div>
+			{#if expanded}
+				<div class="content" transition:slide>
+					<MessageContent
+						{message}
 						{sanitize_html}
 						{latex_delimiters}
 						{render_markdown}
 						{_components}
 						{upload}
-						thought_index={thought_index + 1}
+						{thought_index}
 						{target}
 						{root}
 						{theme_mode}
@@ -112,15 +110,37 @@
 						{display_consecutive_in_same_bubble}
 						{i18n}
 						{line_breaks}
-						parent_expanded={expanded}
-						nested_messages={value.filter(
-							(m) => m.metadata?.parent_id === child_message.metadata?.id
-						)}
 					/>
-				{/each}
-			</div>
-		{/if}
-	</div>
+					{#each filtered_nested_messages as child_message}
+						<svelte:self
+							message={child_message}
+							{value}
+							{rtl}
+							{sanitize_html}
+							{latex_delimiters}
+							{render_markdown}
+							{_components}
+							{upload}
+							thought_index={thought_index + 1}
+							{target}
+							{root}
+							{theme_mode}
+							{_fetch}
+							{scroll}
+							{allow_file_downloads}
+							{display_consecutive_in_same_bubble}
+							{i18n}
+							{line_breaks}
+							parent_expanded={expanded}
+							nested_messages={value.filter(
+								(m) => m.metadata?.parent_id === child_message.metadata?.id
+							)}
+						/>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -184,7 +204,6 @@
 		opacity: 0.8;
 		cursor: pointer;
 		width: 100%;
-		padding: 0 0 0 var(--spacing-lg);
 	}
 
 	.content {
@@ -212,7 +231,7 @@
 	}
 
 	.arrow {
-		margin-left: auto;
+		margin-right: var(--spacing-sm);
 		opacity: 0.8;
 		width: var(--size-8);
 		height: var(--size-8);
@@ -236,5 +255,9 @@
 		to {
 			transform: rotate(360deg);
 		}
+	}
+
+	.title.loading {
+		opacity: 0.5;
 	}
 </style>
