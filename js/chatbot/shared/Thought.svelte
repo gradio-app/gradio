@@ -148,7 +148,6 @@
 		width: 100%;
 		box-sizing: border-box;
 		border: none;
-		opacity: 0.8;
 		margin: 0;
 		padding: 0;
 		display: block;
@@ -170,17 +169,15 @@
 	.thought.nested {
 		width: 100%;
 		margin: 0;
-		opacity: 0.9;
+		margin-left: var(--spacing-lg);
 	}
 
 	.thought.nested .title {
 		position: relative;
 	}
 
-
 	.box {
 		max-width: 100%;
-		font-size: var(--text-sm);
 		border-radius: var(--radius-sm);
 	}
 
@@ -202,27 +199,25 @@
 		word-break: break-word;
 		padding: var(--spacing-sm) var(--spacing-lg);
 		padding-top: 0;
-		margin-left: var(--spacing-lg);
 	}
 
 	.content :global(*) {
-		font-size: var(--text-sm);
+		font-size: var(--text-md);
 	}
 
 	.title-text {
 		flex: 1;
 		min-width: 0;
 		padding-right: var(--spacing-sm);
+		font-size: var(--text-lg);
 	}
 
 	.duration {
 		color: var(--body-text-color-subdued);
 		margin-left: var(--spacing-sm);
-		font-size: var(--text-sm);
 	}
 
 	.arrow {
-		opacity: 0.8;
 		width: var(--size-8);
 		height: var(--size-8);
 		display: flex;

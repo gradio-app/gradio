@@ -13,7 +13,7 @@
 	.dropdown-arrow {
 		fill: currentColor;
 	}
-	
+
 	.circle {
 		fill: currentColor;
 		opacity: 0.1;
