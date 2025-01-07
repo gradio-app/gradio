@@ -69,7 +69,6 @@
 			<div
 				class="title"
 				class:expanded
-				class:loading={!has_content}
 				on:click|stopPropagation={toggleExpanded}
 				role="button"
 				tabindex="0"
@@ -235,15 +234,12 @@
 		border-top-color: transparent;
 		animation: spin 1s linear infinite;
 		margin: 0 var(--size-1) -1px var(--size-1);
+		opacity: 0.8;
 	}
 
 	@keyframes spin {
 		to {
 			transform: rotate(360deg);
 		}
-	}
-
-	.title.loading {
-		opacity: 0.5;
 	}
 </style>

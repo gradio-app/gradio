@@ -3,6 +3,7 @@ from gradio import ChatMessage
 import time
 
 sleep_time = 0.1
+long_sleep_time = 1
 
 def generate_response(history):
     history.append(
@@ -20,14 +21,16 @@ def generate_response(history):
     )
     yield history
     time.sleep(sleep_time)
-
     history.append(
         ChatMessage(
             role="assistant",
-            content="Will check: weather.com and sunny.org",
+            content="",
             metadata={"title": "Gathering Weather Websites", "id": 1},
         )
     )
+    yield history
+    time.sleep(long_sleep_time)
+    history[-1].content = "Will check: weather.com and sunny.org"
     yield history
     time.sleep(sleep_time)
     history.append(
