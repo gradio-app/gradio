@@ -346,7 +346,7 @@
 		align-self: flex-end;
 		border-bottom-right-radius: 0;
 		box-shadow: var(--shadow-drop);
-		border-color: var(--border-color-accent-subdued);
+		border: 1px solid var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
 		padding: var(--spacing-sm) var(--spacing-xl);
 	}
