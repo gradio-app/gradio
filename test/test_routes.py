@@ -325,6 +325,19 @@ class TestRoutes:
         io.close()
         os.remove(tmp_file.name)
 
+    def test_blocked_path_case_insensitive(self):
+        with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as tmp_file:
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(
+                prevent_thread_lock=True,
+                blocked_paths=[tmp_file.name],
+            )
+            client = TestClient(app)
+            file_response = client.get(f"{API_PREFIX}/file={tmp_file.name.upper()}")
+            assert file_response.status_code == 403
+        io.close()
+        os.remove(tmp_file.name)
+
     def test_get_file_created_by_app(self, test_client):
         app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
             prevent_thread_lock=True
