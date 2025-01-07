@@ -208,7 +208,9 @@
 										{i18n}
 										{line_breaks}
 										nested_messages={value.filter(
-											(m) => m.metadata?.parent_id === message.metadata?.id
+											(m) =>
+												m.metadata?.parent_id === message.metadata?.id &&
+												m.metadata?.id !== message.metadata?.id
 										)}
 									/>
 								</div>
