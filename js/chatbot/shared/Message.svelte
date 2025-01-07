@@ -572,8 +572,13 @@
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
 		padding: var(--spacing-sm);
-		margin-bottom: var(--spacing-lg);
+		margin: var(--spacing-lg) 0;
 	}
+
+	.bot > *:first-child .thought-group {
+		margin-top: 0;
+	}
+
 	.thought-group :global(.thought:not(.nested)) {
 		border: none;
 		background: none;
