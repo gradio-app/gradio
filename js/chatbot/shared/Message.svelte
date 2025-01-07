@@ -573,6 +573,7 @@
 		border-radius: var(--radius-sm);
 		padding: var(--spacing-sm);
 		margin: var(--spacing-lg) 0;
+		position: relative;
 	}
 
 	.bot > *:first-child .thought-group {
@@ -584,9 +585,6 @@
 		background: none;
 		margin-top: 0;
 		padding-bottom: 0;
-	}
-	.thought-group :global(.thought.nested) {
-		margin-top: var(--spacing-sm);
 	}
 
 	.panel .bot,

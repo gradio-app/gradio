@@ -5,7 +5,7 @@
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import MessageContent from "./MessageContent.svelte";
 	import { is_last_bot_message } from "./utils";
-	import { DropdownArrow } from "@gradio/icons";
+	import { DropdownCircularArrow } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import { slide } from "svelte/transition";
 
@@ -79,7 +79,7 @@
 					class="arrow"
 					style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
 				>
-					<IconButton Icon={DropdownArrow} />
+					<IconButton Icon={DropdownCircularArrow} />
 				</span>
 				<span class="title-text">
 					{message.metadata?.title}
@@ -170,7 +170,6 @@
 	.thought.nested {
 		width: 100%;
 		margin: 0;
-		margin-left: var(--spacing-lg);
 		opacity: 0.9;
 	}
 
@@ -178,14 +177,6 @@
 		position: relative;
 	}
 
-	.thought.nested .title::before {
-		content: "";
-		position: absolute;
-		left: 0;
-		width: 1px;
-		height: 50%;
-		background: var(--border-color-primary);
-	}
 
 	.box {
 		max-width: 100%;
@@ -201,7 +192,6 @@
 		display: flex;
 		align-items: center;
 		color: var(--body-text-color);
-		opacity: 0.8;
 		cursor: pointer;
 		width: 100%;
 	}
@@ -212,6 +202,7 @@
 		word-break: break-word;
 		padding: var(--spacing-sm) var(--spacing-lg);
 		padding-top: 0;
+		margin-left: var(--spacing-lg);
 	}
 
 	.content :global(*) {
@@ -231,7 +222,6 @@
 	}
 
 	.arrow {
-		margin-right: var(--spacing-sm);
 		opacity: 0.8;
 		width: var(--size-8);
 		height: var(--size-8);
