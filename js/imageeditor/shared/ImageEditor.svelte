@@ -263,6 +263,8 @@
 			return { background: null, layers: [], composite: null };
 		const [l, t, w, h] = $crop;
 
+		console.log("$pixi.get_layers()", $pixi.get_layers());
+
 		return $pixi?.get_blobs(
 			$pixi.get_layers(),
 			new Rectangle(
