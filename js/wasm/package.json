@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/wasm",
-	"version": "0.15.0",
+	"version": "0.16.0",
 	"description": "Gradio Wasm package",
 	"type": "module",
 	"main": "./dist/src/index.js",

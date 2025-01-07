@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.9.0
+
+### Features
+
+- [#10262](https://github.com/gradio-app/gradio/pull/10262) [`f3bedd4`](https://github.com/gradio-app/gradio/commit/f3bedd4011bdfdecc952eb1275a9dd96af3e8d71) - add gr.Success and update windows contributing.  Thanks @not-lain!
+
 ## 0.8.1
 
 ### Fixes

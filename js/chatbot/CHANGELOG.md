@@ -1,5 +1,34 @@
 # @gradio/chatbot
 
+## 0.20.0
+
+### Features
+
+- [#10203](https://github.com/gradio-app/gradio/pull/10203) [`c3a9e64`](https://github.com/gradio-app/gradio/commit/c3a9e647381f787085662828747e6ac61f8a0c01) - Allow editing chatbot messages.  Thanks @aliabid94!
+- [#10272](https://github.com/gradio-app/gradio/pull/10272) [`a1f2649`](https://github.com/gradio-app/gradio/commit/a1f2649586752a013fb4d36b83d5fea2e137bb81) - Chat Interface flagging and chatbot feedback.  Thanks @aliabid94!
+- [#10225](https://github.com/gradio-app/gradio/pull/10225) [`f0cf3b7`](https://github.com/gradio-app/gradio/commit/f0cf3b789a4ebb5ac2e33243fea80c6c6f080d42) - Dataframe support in Chatbot.  Thanks @dawoodkhan82!
+- [#10292](https://github.com/gradio-app/gradio/pull/10292) [`f2bd72f`](https://github.com/gradio-app/gradio/commit/f2bd72f9ef23552f0c6018396320eca9baef04f5) - Reset flagged values when switching conversations in chat history.  Thanks @abidlabs!
+- [#10191](https://github.com/gradio-app/gradio/pull/10191) [`5ce2832`](https://github.com/gradio-app/gradio/commit/5ce28324971e974ae24dc9a229b2160793140fb2) - Support saving chat history in `gr.ChatInterface`.  Thanks @abidlabs!
+
+### Fixes
+
+- [#10214](https://github.com/gradio-app/gradio/pull/10214) [`501adef`](https://github.com/gradio-app/gradio/commit/501adefd0c3d5769055ef2156c85e586eb60bf84) - Some agent low-hanging issues.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/gallery@0.14.1
+- @gradio/markdown-code@0.3.0
+- @gradio/upload@0.14.4
+- @gradio/client@1.9.0
+- @gradio/icons@0.9.0
+- @gradio/statustracker@0.10.0
+- @gradio/wasm@0.16.0
+- @gradio/plot@0.9.5
+- @gradio/image@0.20.0
+- @gradio/video@0.13.0
+
 ## 0.19.0
 
 ### Features
