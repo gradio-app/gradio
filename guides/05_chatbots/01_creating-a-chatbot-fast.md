@@ -313,6 +313,10 @@ gr.ChatInterface(
 
 Similarly, you could return image files with `gr.Image`, video files with `gr.Video`, or arbitrary files with the `gr.File` component.
 
+**Displaying thoughts or tool usage**
+
+The Gradio 
+
 **Providing preset responses**
 
 You may want to provide preset responses that a user can choose between when conversing with your chatbot. To do this, return a complete openai-style message dictionary from your chat function, and add the `options` key to the dictionary returned from your chat function to set these responses. 
