@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { is_component_message } from "../shared/utils";
-
 	import { Image } from "@gradio/image/shared";
 	import type { FileData, Client } from "@gradio/client";
 	import type { NormalisedMessage } from "../types";
@@ -145,7 +144,7 @@
 			class:message={display_consecutive_in_same_bubble}
 			class={display_consecutive_in_same_bubble ? role : ""}
 		>
-			{#each messages.filter((m) => !m.metadata?.parent_id || (m.metadata?.parent_id && !messages.some((parent) => parent.metadata?.id === m.metadata?.parent_id))) as message, thought_index}
+			{#each messages as message, thought_index}
 				<div
 					class="message {!display_consecutive_in_same_bubble ? role : ''}"
 					class:panel-full-width={true}
@@ -187,35 +186,25 @@
 								get_message_label_data(message)}
 						>
 							{#if message?.metadata?.title}
-								<div class="thought-group">
-									<Thought
-										{message}
-										{value}
-										{rtl}
-										{sanitize_html}
-										{latex_delimiters}
-										{render_markdown}
-										{_components}
-										{upload}
-										{thought_index}
-										{target}
-										{root}
-										{theme_mode}
-										{_fetch}
-										{scroll}
-										{allow_file_downloads}
-										{display_consecutive_in_same_bubble}
-										{i18n}
-										{line_breaks}
-										nested_messages={messages.filter(
-											(m) =>
-												m.metadata?.parent_id === message.metadata?.id &&
-												!messages
-													.slice(0, messages.indexOf(message))
-													.some((prev) => prev.metadata?.id === m.metadata?.id)
-										)}
-									/>
-								</div>
+								<Thought
+									thought={message}
+									{rtl}
+									{sanitize_html}
+									{latex_delimiters}
+									{render_markdown}
+									{_components}
+									{upload}
+									{thought_index}
+									{target}
+									{root}
+									{theme_mode}
+									{_fetch}
+									{scroll}
+									{allow_file_downloads}
+									{display_consecutive_in_same_bubble}
+									{i18n}
+									{line_breaks}
+								/>
 							{:else}
 								<MessageContent
 									{message}
@@ -260,6 +249,7 @@
 	.message {
 		position: relative;
 		width: 100%;
+		margin: var(--spacing-md) 0;
 	}
 
 	/* avatar styles */
@@ -565,28 +555,6 @@
 		padding: 0;
 		border: none;
 		background: none;
-	}
-
-	.thought-group {
-		background: var(--background-fill-primary);
-		border: 1px solid var(--border-color-primary);
-		border-radius: var(--radius-sm);
-		padding: var(--spacing-sm);
-		margin: var(--spacing-lg) 0;
-	}
-
-	.bot > *:first-child .thought-group {
-		margin-top: 0;
-	}
-
-	.thought-group :global(.thought:not(.nested)) {
-		border: none;
-		background: none;
-		margin-top: 0;
-		padding-bottom: 0;
-	}
-	.thought-group :global(.thought.nested) {
-		margin-top: var(--spacing-sm);
 	}
 
 	.panel .bot,

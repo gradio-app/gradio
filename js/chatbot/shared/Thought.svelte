@@ -1,16 +1,14 @@
 <script lang="ts">
-	import type { FileData, Client } from "@gradio/client";
-	import type { NormalisedMessage } from "../types";
+	import type { Client } from "@gradio/client";
+	import type { NormalisedMessage, ThoughtNode } from "../types";
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import MessageContent from "./MessageContent.svelte";
-	import { is_last_bot_message } from "./utils";
 	import { DropdownArrow } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import { slide } from "svelte/transition";
 
-	export let message: NormalisedMessage;
-	export let value: NormalisedMessage[];
+	export let thought: NormalisedMessage;
 	export let rtl = false;
 	export let sanitize_html: boolean;
 	export let latex_delimiters: {
@@ -31,90 +29,77 @@
 	export let display_consecutive_in_same_bubble: boolean;
 	export let i18n: I18nFormatter;
 	export let line_breaks: boolean;
-	export let parent_expanded = true;
-	export let nested_messages: NormalisedMessage[] = [];
 
-	let expanded = is_last_bot_message([message], value);
-	let is_nested = !!message.metadata?.parent_id;
-	let has_content = message.content !== "" && message.content !== null;
+	let expanded = true;
 
-	// Filter out null messages and duplicates
-	$: filtered_nested_messages = nested_messages.filter(
-		(m) =>
-			// Must have content and title
-			m.content !== null &&
-			m.content !== "" &&
-			m.metadata?.title &&
-			// Must be a direct child of this thought
-			m.metadata?.parent_id === message.metadata?.id &&
-			// Prevent duplicates and circular references
-			m.metadata?.id !== message.metadata?.id &&
-			m.metadata?.id !== message.metadata?.parent_id
-	);
+	function is_thought_node(msg: NormalisedMessage): msg is ThoughtNode {
+		return "children" in msg;
+	}
+
+	let thought_node: ThoughtNode;
+	$: thought_node = {
+		...thought,
+		children: is_thought_node(thought) ? thought.children : []
+	} as ThoughtNode;
 
 	function toggleExpanded(): void {
 		expanded = !expanded;
 	}
 </script>
 
-<div
-	class="thought"
-	class:nested={is_nested}
-	class:hidden={is_nested && !parent_expanded}
-	class:orphaned={is_nested &&
-		!value.some((m) => m.metadata?.id === message.metadata?.parent_id)}
->
-	{#if message.metadata?.title}
-		<div class="box" style:text-align={rtl ? "right" : "left"}>
-			<div
-				class="title"
-				class:expanded
-				class:loading={!has_content}
-				on:click|stopPropagation={toggleExpanded}
-				role="button"
-				tabindex="0"
-				on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
-			>
-				<span
-					class="arrow"
-					style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
-				>
-					<IconButton Icon={DropdownArrow} />
-				</span>
-				<span class="title-text">
-					{message.metadata?.title}
-					{#if message.content === "" || message.content === null}
-						<span class="loading-spinner"></span>
-					{/if}
-					{#if message?.duration}
-						<span class="duration">{message.duration}s</span>
-					{/if}
-				</span>
-			</div>
-			{#if expanded}
-				<div class="content" transition:slide>
-					<MessageContent
-						{message}
-						{sanitize_html}
-						{latex_delimiters}
-						{render_markdown}
-						{_components}
-						{upload}
-						{thought_index}
-						{target}
-						{root}
-						{theme_mode}
-						{_fetch}
-						{scroll}
-						{allow_file_downloads}
-						{display_consecutive_in_same_bubble}
-						{i18n}
-						{line_breaks}
-					/>
-					{#each filtered_nested_messages as child_message}
+<div class="thought-group">
+	<div
+		class="title"
+		class:expanded
+		on:click|stopPropagation={toggleExpanded}
+		aria-busy={thought_node.content === "" || thought_node.content === null}
+		role="button"
+		tabindex="0"
+		on:keydown={(e) => e.key === "Enter" && toggleExpanded()}
+	>
+		<span
+			class="arrow"
+			style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
+		>
+			<IconButton Icon={DropdownArrow} />
+		</span>
+		<span class="title-text">
+			{thought_node.metadata?.title}
+			{#if thought_node.content === "" || thought_node.content === null}
+				<span class="loading-spinner"></span>
+			{/if}
+			{#if thought_node?.duration}
+				<span class="duration">{thought_node.duration}s</span>
+			{/if}
+		</span>
+	</div>
+
+	{#if expanded}
+		<div class="content" transition:slide>
+			<MessageContent
+				message={thought_node}
+				{sanitize_html}
+				{latex_delimiters}
+				{render_markdown}
+				{_components}
+				{upload}
+				{thought_index}
+				{target}
+				{root}
+				{theme_mode}
+				{_fetch}
+				{scroll}
+				{allow_file_downloads}
+				{display_consecutive_in_same_bubble}
+				{i18n}
+				{line_breaks}
+			/>
+
+			{#if thought_node.children?.length > 0}
+				<div class="children">
+					{#each thought_node.children as child, index}
 						<svelte:self
-							message={child_message}
-							{value}
+							thought={child}
 							{rtl}
 							{sanitize_html}
 							{latex_delimiters}
@@ -131,10 +116,6 @@
 							{display_consecutive_in_same_bubble}
 							{i18n}
 							{line_breaks}
-							parent_expanded={expanded}
-							nested_messages={value.filter(
-								(m) => m.metadata?.parent_id === child_message.metadata?.id
-							)}
 						/>
 					{/each}
 				</div>
@@ -144,57 +125,22 @@
 </div>
 
 <style>
-	.thought {
-		width: 100%;
-		box-sizing: border-box;
-		border: none;
-		opacity: 0.8;
-		margin: 0;
-		padding: 0;
-		display: block;
-		overflow: hidden;
-	}
-
-	.thought.hidden {
-		display: none;
-	}
-
-	.thought:not(.nested) {
-		border: 1px solid var(--border-color-primary);
+	.thought-group {
 		background: var(--background-fill-primary);
-		margin-top: var(--spacing-sm);
+		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
-		padding-bottom: var(--spacing-sm);
-	}
-
-	.thought.nested {
-		width: 100%;
-		margin: 0;
-		margin-left: var(--spacing-lg);
-		opacity: 0.9;
-	}
-
-	.thought.nested .title {
-		position: relative;
-	}
-
-	.thought.nested .title::before {
-		content: "";
-		position: absolute;
-		left: 0;
-		width: 1px;
-		height: 50%;
-		background: var(--border-color-primary);
-	}
-
-	.box {
-		max-width: 100%;
+		padding: var(--spacing-md);
 		font-size: var(--text-sm);
-		border-radius: var(--radius-sm);
 	}
 
-	.thought.nested .box {
-		background: none;
+	.children :global(.thought-group) {
+		border: none;
+		margin: 0;
+		padding-bottom: 0;
+	}
+
+	.children {
+		padding-left: var(--spacing-md);
 	}
 
 	.title {
@@ -207,31 +153,25 @@
 	}
 
 	.content {
-		margin-top: var(--spacing-sm);
 		overflow-wrap: break-word;
 		word-break: break-word;
-		padding: var(--spacing-sm) var(--spacing-lg);
-		padding-top: 0;
+		margin-left: var(--spacing-lg);
 	}
-
 	.content :global(*) {
 		font-size: var(--text-sm);
 	}
 
-	.title-text {
-		flex: 1;
-		min-width: 0;
-		padding-right: var(--spacing-sm);
+	.thought-group :global(.thought:not(.nested)) {
+		border: none;
+		background: none;
 	}
 
 	.duration {
 		color: var(--body-text-color-subdued);
-		margin-left: var(--spacing-sm);
 		font-size: var(--text-sm);
 	}
 
 	.arrow {
-		margin-right: var(--spacing-sm);
 		opacity: 0.8;
 		width: var(--size-8);
 		height: var(--size-8);
@@ -249,15 +189,12 @@
 		border-top-color: transparent;
 		animation: spin 1s linear infinite;
 		margin: 0 var(--size-1) -1px var(--size-1);
+		opacity: 0.8;
 	}
 
 	@keyframes spin {
 		to {
 			transform: rotate(360deg);
 		}
-	}
-
-	.title.loading {
-		opacity: 0.5;
 	}
 </style>
