@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { is_component_message, is_last_bot_message } from "../shared/utils";
+	import { is_component_message } from "../shared/utils";
 
 	import { Image } from "@gradio/image/shared";
 	import type { FileData, Client } from "@gradio/client";
@@ -258,7 +258,6 @@
 	.message {
 		position: relative;
 		width: 100%;
-		padding: var(--spacing-md);
 	}
 
 	/* avatar styles */
@@ -349,7 +348,7 @@
 		box-shadow: var(--shadow-drop);
 		border-color: var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
-		padding: var(--spacing-md);
+		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.bot {
@@ -361,6 +360,7 @@
 		align-self: flex-start;
 		text-align: right;
 		border-bottom-left-radius: 0;
+		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.bot:has(.table-wrap) {
@@ -570,6 +570,7 @@
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
 		padding: var(--spacing-sm);
+		margin: var(--spacing-xxl) 0;
 	}
 	.thought-group :global(.thought:not(.nested)) {
 		border: none;
