@@ -199,6 +199,7 @@ class Chatbot(Component):
         sanitize_html: bool = True,
         render_markdown: bool = True,
         feedback_options: list[str] | tuple[str, ...] | None = ("Like", "Dislike"),
+        feedback_value: Sequence[str | None] | None = None,
         bubble_full_width=None,
         line_breaks: bool = True,
         layout: Literal["panel", "bubble"] | None = None,
@@ -238,6 +239,7 @@ class Chatbot(Component):
             sanitize_html: If False, will disable HTML sanitization for chatbot messages. This is not recommended, as it can lead to security vulnerabilities.
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
             feedback_options: A list of strings representing the feedback options that will be displayed to the user. The exact case-sensitive strings "Like" and "Dislike" will render as thumb icons, but any other choices will appear under a separate flag icon.
+            feedback_value: A list of strings representing the feedback state for entire chat. Only works when type="messages". Each entry in the list corresponds to that assistant message, in order, and the value is the feedback given (e.g. "Like", "Dislike", or any custom feedback option) or None if no feedback was given for that message.
             bubble_full_width: Deprecated.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
@@ -294,6 +296,7 @@ class Chatbot(Component):
         self.show_copy_all_button = show_copy_all_button
         self.allow_file_downloads = allow_file_downloads
         self.feedback_options = feedback_options
+        self.feedback_value = feedback_value
         super().__init__(
             label=label,
             every=every,

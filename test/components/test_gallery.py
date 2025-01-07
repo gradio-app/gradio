@@ -5,7 +5,7 @@ import PIL
 
 import gradio as gr
 from gradio.components.gallery import GalleryImage
-from gradio.data_classes import FileData
+from gradio.data_classes import ImageData
 
 
 class TestGallery:
@@ -96,7 +96,7 @@ class TestGallery:
         from gradio.components.gallery import GalleryData, GalleryImage
 
         gallery = gr.Gallery()
-        img = GalleryImage(image=FileData(path="test/test_files/bus.png"))
+        img = GalleryImage(image=ImageData(path="test/test_files/bus.png"))
         data = GalleryData(root=[img])
 
         assert (preprocessed := gallery.preprocess(data))
@@ -115,7 +115,7 @@ class TestGallery:
         )
 
         img_captions = GalleryImage(
-            image=FileData(path="test/test_files/bus.png"), caption="bus"
+            image=ImageData(path="test/test_files/bus.png"), caption="bus"
         )
         data = GalleryData(root=[img_captions])
         assert (preprocess := gr.Gallery().preprocess(data))
@@ -127,4 +127,6 @@ class TestGallery:
             [np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)]
         )
         if isinstance(output.root[0], GalleryImage):
-            assert output.root[0].image.path.endswith(".jpeg")
+            assert output.root[0].image.path and output.root[0].image.path.endswith(
+                ".jpeg"
+            )
