@@ -145,7 +145,7 @@
 			class:message={display_consecutive_in_same_bubble}
 			class={display_consecutive_in_same_bubble ? role : ""}
 		>
-			{#each messages.filter((m) => !m.metadata?.parent_id || !messages.some((parent) => parent.metadata?.id === m.metadata?.parent_id)) as message, thought_index}
+			{#each messages.filter((m) => !m.metadata?.parent_id || (m.metadata?.parent_id && !messages.some((parent) => parent.metadata?.id === m.metadata?.parent_id))) as message, thought_index}
 				<div
 					class="message {!display_consecutive_in_same_bubble ? role : ''}"
 					class:panel-full-width={true}
@@ -207,8 +207,12 @@
 										{display_consecutive_in_same_bubble}
 										{i18n}
 										{line_breaks}
-										nested_messages={value.filter(
-											(m) => m.metadata?.parent_id === message.metadata?.id
+										nested_messages={messages.filter(
+											(m) =>
+												m.metadata?.parent_id === message.metadata?.id &&
+												!messages
+													.slice(0, messages.indexOf(message))
+													.some((prev) => prev.metadata?.id === m.metadata?.id)
 										)}
 									/>
 								</div>
