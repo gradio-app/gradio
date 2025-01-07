@@ -170,6 +170,7 @@
 		width: 100%;
 		margin: 0;
 		margin-left: var(--spacing-lg);
+		margin-top: var(--spacing-md);
 	}
 
 	.thought.nested .title {
