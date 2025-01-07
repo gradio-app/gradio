@@ -199,6 +199,7 @@
 		word-break: break-word;
 		padding: var(--spacing-sm) var(--spacing-lg);
 		padding-top: 0;
+		margin-left: var(--spacing-xs);
 	}
 
 	.content :global(*) {
