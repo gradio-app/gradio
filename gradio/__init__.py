@@ -89,6 +89,7 @@ from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.layouts import Accordion, Column, Group, Row, Tab, TabItem, Tabs
 from gradio.oauth import OAuthProfile, OAuthToken
+from gradio.page import Page
 from gradio.renderable import render
 from gradio.routes import Request, mount_gradio_app
 from gradio.templates import (
