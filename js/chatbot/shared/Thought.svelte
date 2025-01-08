@@ -71,11 +71,19 @@
 			{sanitize_html}
 			{root}
 		/>
-		{#if thought_node.content === "" || thought_node.content === null}
+		{#if thought_node.content === "" || thought_node.content === null || thought_node.metadata?.status === "pending"}
 			<span class="loading-spinner"></span>
 		{/if}
-		{#if thought_node?.duration}
-			<span class="duration">{thought_node.duration || 0.16}s</span>
+		{#if thought_node?.metadata?.duration}
+			<span class="duration">
+				{#if Number.isInteger(thought_node.metadata.duration)}
+					{thought_node.metadata.duration}s
+				{:else if thought_node.metadata.duration >= 0.1}
+					{thought_node.metadata.duration.toFixed(1)}s
+				{:else}
+					{(thought_node.metadata.duration * 1000).toFixed(1)}ms
+				{/if}
+			</span>
 		{/if}
 	</div>
 

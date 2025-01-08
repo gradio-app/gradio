@@ -38,6 +38,7 @@ class MetadataDict(TypedDict):
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
     duration: NotRequired[int]
+    status: NotRequired[Literal["pending", "done"]]
 
 
 class Option(TypedDict):
@@ -60,7 +61,6 @@ class MessageDict(TypedDict):
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
     options: NotRequired[list[Option]]
-    duration: NotRequired[int]
 
 
 class FileMessage(GradioModel):
@@ -88,7 +88,8 @@ class Metadata(GradioModel):
     title: Optional[str] = None
     id: Optional[int | str] = None
     parent_id: Optional[int | str] = None
-    duration: Optional[int] = None
+    duration: Optional[float] = None
+    status: Optional[Literal["pending", "done"]] = None
 
 
 class Message(GradioModel):
