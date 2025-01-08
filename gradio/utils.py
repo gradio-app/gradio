@@ -1616,7 +1616,7 @@ def dict_factory(items):
     """
     d = {}
     for key, value in items:
-        if hasattr(value, 'model_dump'):
+        if hasattr(value, "model_dump"):
             d[key] = value.model_dump()
         else:
             d[key] = value

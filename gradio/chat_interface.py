@@ -9,10 +9,11 @@ import copy
 import dataclasses
 import inspect
 import os
+import time
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
 from pathlib import Path
-from typing import Literal, Union, cast
+from typing import Literal, Optional, TypedDict, Union, cast
 
 import anyio
 from gradio_client.documentation import document
@@ -48,6 +49,16 @@ from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Column, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
+
+
+class ThoughtDuration(TypedDict):
+    """Type for tracking the start time and duration of assistant responses"""
+
+    start_time: float
+    duration: Optional[float]
+
+
+ThoughtDurations = dict[int | str, ThoughtDuration]
 
 
 @document()
@@ -256,6 +267,7 @@ class ChatInterface(Blocks):
             self.conversation_id = State(None)
             self.saved_input = State()  # Stores the most recent user message
             self.null_component = State()  # Used to discard unneeded values
+            self.thought_durations = State({})
 
             with Column():
                 self._render_header()
@@ -508,8 +520,10 @@ class ChatInterface(Blocks):
         }
         submit_fn_kwargs = {
             "fn": submit_fn,
-            "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
-            "outputs": [self.null_component, self.chatbot] + self.additional_outputs,
+            "inputs": [self.saved_input, self.chatbot_state, self.thought_durations]
+            + self.additional_inputs,
+            "outputs": [self.null_component, self.chatbot, self.thought_durations]
+            + self.additional_outputs,
             "show_api": False,
             "concurrency_limit": cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
@@ -775,12 +789,40 @@ class ChatInterface(Blocks):
                 )
         return history_messages
 
+    @staticmethod
+    def _set_thought_durations(
+        message_dicts: list[MessageDict], thought_durations: ThoughtDurations
+    ) -> ThoughtDurations:
+        for message in message_dicts:
+            if (
+                message["role"] == "assistant"
+                and "metadata" in message
+                and "id" in message["metadata"]
+            ):
+                id = message["metadata"]["id"]
+                if id not in thought_durations:
+                    thought_durations[id] = {
+                        "start_time": time.time(),
+                        "duration": None,
+                    }
+                elif (
+                    "status" in message["metadata"]
+                    and message["metadata"]["status"] == "done"
+                    and "duration" not in message["metadata"]
+                    and thought_durations[id]["duration"] is None
+                ):
+                    thought_durations[id]["duration"] = (
+                        time.time() - thought_durations[id]["start_time"]
+                    )
+        return thought_durations
+
     def _append_message_to_history(
         self,
         message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
         history: list[MessageDict] | TupleFormat,
+        thought_durations: ThoughtDurations,
         role: Literal["user", "assistant"] = "user",
-    ) -> list[MessageDict] | TupleFormat:
+    ) -> tuple[list[MessageDict] | TupleFormat, ThoughtDurations]:
         message_dicts = self._message_as_message_dict(message, role)
         if self.type == "tuples":
             history = self._tuples_to_messages(history)  # type: ignore
@@ -789,7 +831,11 @@ class ChatInterface(Blocks):
         history.extend(message_dicts)  # type: ignore
         if self.type == "tuples":
             history = self._messages_to_tuples(history)  # type: ignore
-        return history
+
+        thought_durations = self._calculate_thought_durations(
+            message_dicts, thought_durations
+        )
+        return history, thought_durations
 
     def _message_as_message_dict(
         self,
@@ -808,7 +854,9 @@ class ChatInterface(Blocks):
                 message_dicts.append(msg.model_dump())
             elif isinstance(msg, ChatMessage):
                 msg.role = role
-                message_dicts.append(dataclasses.asdict(msg, dict_factory=utils.dict_factory))
+                message_dicts.append(
+                    dataclasses.asdict(msg, dict_factory=utils.dict_factory)
+                )
             elif isinstance(msg, (str, Component)):
                 message_dicts.append({"role": role, "content": msg})
             elif (
@@ -831,6 +879,7 @@ class ChatInterface(Blocks):
         self,
         message: str | MultimodalPostprocess,
         history: TupleFormat | list[MessageDict],
+        thought_durations: ThoughtDurations,
         request: Request,
         *args,
     ) -> tuple:
@@ -847,8 +896,8 @@ class ChatInterface(Blocks):
             response, *additional_outputs = response
         else:
             additional_outputs = None
-        history = self._append_message_to_history(message, history, "user")
-        history = self._append_message_to_history(response, history, "assistant")
+        history, thought_durations = self._append_message_to_history(message, history, thought_durations, "user")
+        history, thought_durations = self._append_message_to_history(response, history, thought_durations, "assistant")
         if additional_outputs:
             return response, history, *additional_outputs
         return response, history
