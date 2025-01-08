@@ -192,6 +192,32 @@ example, when examples are cached, or when the Gradio app is called via API), th
 You should handle this case explicitly to ensure that your app does not throw any errors. That is why
 we have the explicit check `if request`.
 
+## Adding Custom API Endpoints
+
+If you need to add some extra GET and POST request endpoints to you app, you can do so as such:
+
+```python
+with gr.Blocks() as demo:
+    textbox = ...
+
+    @gr.api.get("/sum")
+    def some_function(a: int, b: int):
+        return {"sum": a + b}
+```
+
+This would expose a GET endpoint at "http://localhost:7860/get/sum" that would take two arguments via query parameters. e.g. "http://localhost:7860/get/sum?a=4&b=3". Note the type-hinting of `a` and `b` so the underlying FastAPI app can cast the inputs to int. Also note the "/get" URL prefix in the request!
+
+POST requests work similarly, with URL's prefixed with `/post`. 
+
+```python
+with gr.Blocks() as demo:
+    @gr.api.post("/sum")
+    def some_function(data: dict):
+        return {"sum": data.get("a") + data.get("b")}
+```
+
+Under the hood, Gradio is simply attaching your function directly to the FastAPI app underneath, so all FastAPI features are supported.
+
 ## Mounting Within Another FastAPI App
 
 In some cases, you might have an existing FastAPI app, and you'd like to add a path for a Gradio demo.

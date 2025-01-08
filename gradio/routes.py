@@ -1504,6 +1504,16 @@ class App(FastAPI):
             else:
                 raise HTTPException(status_code=403, detail="Invalid key.")
 
+        for route in blocks.extra_api_routes:
+            if route.mode == "GET":
+                app.get("/get" + route.path, *route.route_args, **route.route_kwargs)(
+                    route.func
+                )
+            elif route.mode == "POST":
+                app.post("/post" + route.path, *route.route_args, **route.route_kwargs)(
+                    route.func
+                )
+
         app.include_router(router)
 
         return app
