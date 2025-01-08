@@ -5,11 +5,13 @@ import time
 sleep_time = 0.5
 
 def simulate_thinking_chat(message: str, history: list):
-    response = ChatMessage(
-        content="",
-        metadata={"title": "Thinking... "}
+    history.append(
+        ChatMessage(
+            role="assistant",
+            content="",
+            metadata={"title": "Thinking... "}
+        )
     )
-
     time.sleep(sleep_time)
     yield history
     

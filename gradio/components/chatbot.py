@@ -112,8 +112,8 @@ class ExampleMessage(TypedDict):
 
 @dataclass
 class ChatMessage:
-    role: Literal["user", "assistant", "system"]
     content: str | FileData | Component | FileDataDict | tuple | list
+    role: Literal["user", "assistant", "system"] = "assistant"
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
     options: Optional[list[Option]] = None
     duration: Optional[int] = None
