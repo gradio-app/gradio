@@ -10,7 +10,7 @@ def simulate_thinking_chat(message: str, history: list):
         ChatMessage(  # Creates a new chat message
             role="assistant",  # Specifies this is from the assistant
             content="",  # Initially empty content
-            metadata={"title": "Thinking Process 💭"}  # Setting a thinking header here
+            metadata={"title": "Thinking... "}  # Setting a thinking header here
         )
     )
     time.sleep(0.5)
@@ -38,7 +38,7 @@ def simulate_thinking_chat(message: str, history: list):
         history[-1] = ChatMessage(  # Updates last message in history
             role="assistant",
             content=accumulated_thoughts.strip(),  # Remove extra whitespace
-            metadata={"title": "💭 Thinking Process"}  # Shows thinking header
+            metadata={"title": "Thinking..."}  # Shows thinking header
         )
         yield history  # Returns updated chat history
     
