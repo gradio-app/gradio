@@ -351,7 +351,7 @@
 		align-self: flex-start;
 		text-align: right;
 		border-bottom-left-radius: 0;
-		padding: var(--spacing-xl);
+		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.bot:has(.table-wrap) {
