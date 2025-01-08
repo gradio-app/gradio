@@ -43,8 +43,8 @@ describe("Chatbot", () => {
 
 		const chatbot = getByRole("log");
 
-		const userButton = container.querySelector(".user button");
-		const botButton = container.querySelector(".bot button");
+		const userButton = container.querySelector(".user > div");
+		const botButton = container.querySelector(".bot > div");
 
 		assert.notExists(userButton);
 		assert.notExists(botButton);
@@ -60,8 +60,8 @@ describe("Chatbot", () => {
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
-		const userButton = container.querySelector(".user button");
-		const botButton = container.querySelector(".bot button");
+		const userButton = container.querySelector(".user > div");
+		const botButton = container.querySelector(".bot > div");
 
 		assert.exists(userButton);
 		assert.exists(botButton);

@@ -1,5 +1,24 @@
 # @gradio/lite
 
+## 5.10.0
+
+### Features
+
+- [#9984](https://github.com/gradio-app/gradio/pull/9984) [`45df1b1`](https://github.com/gradio-app/gradio/commit/45df1b1978e597546a208ecbf5b3aca56137edc5) - Lite: Capture stdout and stderr from the main thread.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/wasm@0.16.0
+- @gradio/core@0.6.0
+
+## 5.9.0
+
+### Dependency updates
+
+- @gradio/atoms@0.12.0
+- @gradio/core@0.5.0
+
 ## 5.8.0
 
 ### Features

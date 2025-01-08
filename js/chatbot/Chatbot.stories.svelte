@@ -225,6 +225,38 @@ This document is a showcase of various Markdown capabilities.`,
 />
 
 <Story
+	name="Consecutive messages grouped in same bubble"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: true,
+		value: [
+			{
+				role: "user",
+				content: "Show me the file."
+			},
+			{
+				role: "user",
+				content: "Second user message"
+			},
+			{
+				role: "assistant",
+				content: "Here is the file you requested"
+			},
+			{
+				role: "assistant",
+				content: {
+					file: {
+						path: "abc/qwerty.txt",
+						url: ""
+					},
+					alt_text: null
+				}
+			}
+		]
+	}}
+/>
+
+<Story
 	name="MultimodalChatbot with examples"
 	args={{
 		value: [],
@@ -328,6 +360,38 @@ This document is a showcase of various Markdown capabilities.`,
 />
 
 <Story
+	name="Consecutive messages not grouped in same bubble"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: false,
+		value: [
+			{
+				role: "user",
+				content: "Show me the file."
+			},
+			{
+				role: "user",
+				content: "Second user message"
+			},
+			{
+				role: "assistant",
+				content: "Here is the file you requested"
+			},
+			{
+				role: "assistant",
+				content: {
+					file: {
+						path: "abc/qwerty.txt",
+						url: ""
+					},
+					alt_text: null
+				}
+			}
+		]
+	}}
+/>
+
+<Story
 	name="Chatbot with examples (not multimodal)"
 	args={{
 		value: [],
@@ -354,6 +418,25 @@ This document is a showcase of various Markdown capabilities.`,
 						orig_name: "document.pdf"
 					}
 				]
+			}
+		]
+	}}
+/>
+
+<Story
+	name="Displaying Tool Message"
+	args={{
+		type: "messages",
+		display_consecutive_in_same_bubble: true,
+		value: [
+			{
+				role: "user",
+				content: "What is the weather like today?"
+			},
+			{
+				role: "assistant",
+				metadata: { title: "☀️ Using Weather Tool" },
+				content: "Weather looks sunny today."
 			}
 		]
 	}}

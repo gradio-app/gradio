@@ -1,5 +1,30 @@
 # website
 
+## 0.45.0
+
+### Features
+
+- [`6edf038`](https://github.com/gradio-app/gradio/commit/6edf0380b9c407e052e29a7fb23511c41ed3e6d9) - AI Playground Auto Fix Errors.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/tabs@0.4.0
+- @gradio/tabitem@0.4.0
+- @gradio/code@0.10.11
+- @gradio/paramviewer@0.6.2
+
+## 0.44.0
+
+### Features
+
+- [#10109](https://github.com/gradio-app/gradio/pull/10109) [`48e4aa9`](https://github.com/gradio-app/gradio/commit/48e4aa9d627b6958a0b215d6312de508845f669c) - adds a `run_examples_on_click` parameter to `gr.ChatInterface` mirroring the the `run_on_click` parameter in `gr.Examples`.  Thanks @abidlabs!
+- [#10126](https://github.com/gradio-app/gradio/pull/10126) [`a623faf`](https://github.com/gradio-app/gradio/commit/a623fafbcfef820243359fe942b356cbbaf09d9a) - Move requirements generation in playground to playground worker.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.10.10
+- @gradio/paramviewer@0.6.1
+
 ## 0.43.0
 
 ### Features

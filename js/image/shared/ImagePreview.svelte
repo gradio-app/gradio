@@ -26,6 +26,7 @@
 	export let show_share_button = false;
 	export let i18n: I18nFormatter;
 	export let show_fullscreen_button = true;
+	export let display_icon_button_wrapper_top_corner = false;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -51,7 +52,9 @@
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
-		<IconButtonWrapper>
+		<IconButtonWrapper
+			display_top_corner={display_icon_button_wrapper_top_corner}
+		>
 			{#if show_fullscreen_button}
 				<FullscreenButton container={image_container} />
 			{/if}

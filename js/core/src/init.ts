@@ -300,15 +300,15 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 
 		if (instance.type === "tabs" && !instance.props.initial_tabs) {
 			const tab_items_props =
-				node.children?.map((c) => {
+				node.children?.map((c, i) => {
 					const instance = instance_map[c.id];
-					// console.log("tabs", JSON.stringify(instance.props, null, 2));
 					instance.props.id ??= c.id;
 					return {
 						type: instance.type,
 						props: {
 							...(instance.props as any),
-							id: instance.props.id
+							id: instance.props.id,
+							order: i
 						}
 					};
 				}) || [];
@@ -321,8 +321,16 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 				label: child.props.label,
 				id: child.props.id,
 				visible: child.props.visible,
-				interactive: child.props.interactive
+				interactive: child.props.interactive,
+				order: child.props.order
 			}));
+		}
+
+		if (instance.type === "tabs") {
+			node.children?.forEach((c, i) => {
+				const child = instance_map[c.id];
+				child.props.order = i;
+			});
 		}
 
 		return instance;
@@ -385,7 +393,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		if (!comp) {
 			return null;
 		}
-		if (comp.instance.get_value) {
+		if (comp.instance?.get_value) {
 			return comp.instance.get_value() as Promise<any>;
 		}
 		return comp.props.value;
@@ -414,7 +422,7 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		state: "open" | "closed" | "waiting"
 	): void {
 		const comp = _component_map.get(id);
-		if (comp && comp.instance.modify_stream_state) {
+		if (comp && comp.instance?.modify_stream_state) {
 			comp.instance.modify_stream_state(state);
 		}
 	}
@@ -423,14 +431,14 @@ export function create_components(initial_layout: ComponentMeta | undefined): {
 		id: number
 	): "open" | "closed" | "waiting" | "not_set" {
 		const comp = _component_map.get(id);
-		if (comp && comp.instance.get_stream_state)
+		if (comp?.instance?.get_stream_state)
 			return comp.instance.get_stream_state();
 		return "not_set";
 	}
 
 	function set_time_limit(id: number, time_limit: number | undefined): void {
 		const comp = _component_map.get(id);
-		if (comp && comp.instance.set_time_limit) {
+		if (comp?.instance?.set_time_limit) {
 			comp.instance.set_time_limit(time_limit);
 		}
 	}

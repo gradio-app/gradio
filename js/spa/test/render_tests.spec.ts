@@ -1,5 +1,12 @@
 import { test, expect } from "@self/tootils";
 
+test("Test button.click listener works in render", async ({ page }) => {
+	const slider = page.getByLabel("number input for Box Count");
+	await slider.fill("6");
+	await page.getByRole("button", { name: "Create Boxes" }).click();
+	await expect(page.getByLabel("Count 4")).toHaveValue("3");
+});
+
 test("Test every= works in render", async ({ page }) => {
 	const timebox = page.getByLabel("Time");
 	const box_1 = page.getByLabel("Render 1");
@@ -33,6 +40,12 @@ test("Test event/selection data works in render", async ({ page }) => {
 	const selected_chat = page.getByLabel("Selected Chat");
 	await page.getByText("Hi").click();
 	await expect(selected_chat).toHaveValue("[0, 1]");
+});
+
+test("Test event/selection data can trigger render", async ({ page }) => {
+	await page.getByText("chat3").click();
+	const selected_chat = page.getByLabel("Trigger Index");
+	await expect(selected_chat).toHaveValue("[1, 0]");
 });
 
 test("Test examples work in render", async ({ page }) => {

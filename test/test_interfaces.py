@@ -69,7 +69,7 @@ class TestInterface:
 
         t = Textbox()
         i = Image()
-        Interface(test, [t, i], "text")
+        Interface(test, (t, i), "text")
         assert t.label == "parameter_name1"
         assert i.label == "parameter_name2"
 

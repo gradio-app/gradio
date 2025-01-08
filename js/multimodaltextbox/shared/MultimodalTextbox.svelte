@@ -10,7 +10,9 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
+	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { FileData, Client } from "@gradio/client";
+	import type { WaveformOptions } from "../../audio/shared/types";
 	import {
 		Clear,
 		File,
@@ -18,9 +20,11 @@
 		Paperclip,
 		Video,
 		Send,
-		Square
+		Square,
+		Microphone
 	} from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
+	import InteractiveAudio from "../../audio/interactive/InteractiveAudio.svelte";
 
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
@@ -29,12 +33,12 @@
 
 	export let value_is_output = false;
 	export let lines = 1;
+	export let i18n: I18nFormatter;
 	export let placeholder = "Type here...";
 	export let disabled = false;
 	export let label: string;
 	export let info: string | undefined = undefined;
 	export let show_label = true;
-	export let container = true;
 	export let max_lines: number;
 	export let submit_btn: string | boolean | null = null;
 	export let stop_btn: string | boolean | null = null;
@@ -49,7 +53,10 @@
 	export let stream_handler: Client["stream"];
 	export let file_count: "single" | "multiple" | "directory" = "multiple";
 	export let max_plain_text_length = 1000;
-
+	export let waveform_settings: Record<string, any>;
+	export let waveform_options: WaveformOptions = {};
+	export let sources: ["microphone" | "upload"] = ["upload"];
+	export let active_source: "microphone" | null = null;
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
 	let el: HTMLTextAreaElement | HTMLInputElement;
@@ -59,7 +66,9 @@
 	export let dragging = false;
 	let uploading = false;
 	let oldValue = value.text;
+	let recording = false;
 	$: dispatch("drag", dragging);
+	let mic_audio: FileData | null = null;
 
 	let full_container: HTMLDivElement;
 
@@ -84,6 +93,9 @@
 		clear: undefined;
 		load: FileData[] | FileData;
 		error: string;
+		start_recording: undefined;
+		pause_recording: undefined;
+		stop_recording: undefined;
 	}>();
 
 	beforeUpdate(() => {
@@ -141,6 +153,11 @@
 		) {
 			e.preventDefault();
 			dispatch("submit");
+			active_source = null;
+			if (mic_audio) {
+				value.files.push(mic_audio);
+				value = value;
+			}
 		}
 	}
 
@@ -161,7 +178,7 @@
 
 	async function handle_upload({
 		detail
-	}: CustomEvent<FileData | FileData[]>): Promise<void> {
+	}: CustomEvent<FileData>): Promise<void> {
 		handle_change();
 		if (Array.isArray(detail)) {
 			for (let file of detail) {
@@ -197,6 +214,11 @@
 
 	function handle_submit(): void {
 		dispatch("submit");
+		active_source = null;
+		if (mic_audio) {
+			value.files.push(mic_audio);
+			value = value;
+		}
 	}
 
 	async function handle_paste(event: ClipboardEvent): Promise<void> {
@@ -289,127 +311,167 @@
 	role="group"
 	aria-label="Multimedia input field"
 >
-	<!-- svelte-ignore a11y-autofocus -->
-	<label class:container>
-		<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
-		{#if value.files.length > 0 || uploading}
-			<div
-				class="thumbnails scroll-hide"
-				aria-label="Uploaded files"
-				data-testid="container_el"
-				style="display: {value.files.length > 0 || uploading
-					? 'flex'
-					: 'none'};"
-			>
-				{#each value.files as file, index}
-					<span role="listitem" aria-label="File thumbnail">
-						<button class="thumbnail-item thumbnail-small">
-							<button
-								class:disabled
-								class="delete-button"
-								on:click={(event) => remove_thumbnail(event, index)}
-								><Clear /></button
-							>
-							{#if file.mime_type && file.mime_type.includes("image")}
-								<Image
-									src={file.url}
-									title={null}
-									alt=""
-									loading="lazy"
-									class={"thumbnail-image"}
-								/>
-							{:else if file.mime_type && file.mime_type.includes("audio")}
-								<Music />
-							{:else if file.mime_type && file.mime_type.includes("video")}
-								<Video />
-							{:else}
-								<File />
-							{/if}
-						</button>
-					</span>
-				{/each}
-				{#if uploading}
-					<div class="loader" role="status" aria-label="Uploading"></div>
-				{/if}
-			</div>
-		{/if}
-		<div class="input-container">
-			{#if !disabled && !(file_count === "single" && value.files.length > 0)}
-				<Upload
-					bind:this={upload_component}
-					on:load={handle_upload}
-					{file_count}
-					filetype={file_types}
-					{root}
-					{max_file_size}
-					bind:dragging
-					bind:uploading
-					show_progress={false}
-					disable_click={true}
-					bind:hidden_upload
-					on:error
-					hidden={true}
-					{upload}
-					{stream_handler}
-				></Upload>
-				<button
-					data-testid="upload-button"
-					class="upload-button"
-					on:click={handle_upload_click}><Paperclip /></button
-				>
-			{/if}
-			<textarea
-				data-testid="textbox"
-				use:text_area_resize={{
-					text: value.text,
-					lines: lines,
-					max_lines: max_lines
-				}}
-				class="scroll-hide"
-				class:no-label={!show_label}
-				dir={rtl ? "rtl" : "ltr"}
-				bind:value={value.text}
-				bind:this={el}
-				{placeholder}
-				rows={lines}
-				{disabled}
-				{autofocus}
-				on:keypress={handle_keypress}
-				on:blur
-				on:select={handle_select}
-				on:focus
-				on:scroll={handle_scroll}
-				on:paste={handle_paste}
-				style={text_align ? "text-align: " + text_align : ""}
-			/>
-			{#if submit_btn}
-				<button
-					class="submit-button"
-					class:padded-button={submit_btn !== true}
-					on:click={handle_submit}
-				>
-					{#if submit_btn === true}
-						<Send />
-					{:else}
-						{submit_btn}
-					{/if}
-				</button>
-			{/if}
-			{#if stop_btn}
-				<button
-					class="stop-button"
-					class:padded-button={stop_btn !== true}
-					on:click={handle_stop}
-				>
-					{#if stop_btn === true}
-						<Square fill={"none"} stroke_width={2.5} />
-					{:else}
-						{stop_btn}
-					{/if}
-				</button>
+	<BlockTitle {root} {show_label} {info}>{label}</BlockTitle>
+	{#if value.files.length > 0 || uploading}
+		<div
+			class="thumbnails scroll-hide"
+			aria-label="Uploaded files"
+			data-testid="container_el"
+			style="display: {value.files.length > 0 || uploading ? 'flex' : 'none'};"
+		>
+			{#each value.files as file, index}
+				<span role="listitem" aria-label="File thumbnail">
+					<button class="thumbnail-item thumbnail-small">
+						<button
+							class:disabled
+							class="delete-button"
+							on:click={(event) => remove_thumbnail(event, index)}
+							><Clear /></button
+						>
+						{#if file.mime_type && file.mime_type.includes("image")}
+							<Image
+								src={file.url}
+								title={null}
+								alt=""
+								loading="lazy"
+								class={"thumbnail-image"}
+							/>
+						{:else if file.mime_type && file.mime_type.includes("audio")}
+							<Music />
+						{:else if file.mime_type && file.mime_type.includes("video")}
+							<Video />
+						{:else}
+							<File />
+						{/if}
+					</button>
+				</span>
+			{/each}
+			{#if uploading}
+				<div class="loader" role="status" aria-label="Uploading"></div>
 			{/if}
 		</div>
-	</label>
+	{/if}
+	{#if sources && sources.includes("microphone") && active_source === "microphone"}
+		<InteractiveAudio
+			on:change={({ detail }) => {
+				if (detail !== null) {
+					mic_audio = detail;
+				}
+			}}
+			on:clear={() => {
+				active_source = null;
+			}}
+			on:start_recording={() => dispatch("start_recording")}
+			on:pause_recording={() => dispatch("pause_recording")}
+			on:stop_recording={() => dispatch("stop_recording")}
+			sources={["microphone"]}
+			class_name="compact-audio"
+			{recording}
+			{waveform_settings}
+			{waveform_options}
+			{i18n}
+			{active_source}
+			{upload}
+			{stream_handler}
+			stream_every={1}
+			editable={true}
+			{label}
+			{root}
+			loop={false}
+			show_label={false}
+			show_download_button={false}
+			dragging={false}
+		/>
+	{/if}
+	<div class="input-container">
+		{#if sources && sources.includes("upload") && !disabled && !(file_count === "single" && value.files.length > 0)}
+			<Upload
+				bind:this={upload_component}
+				on:load={handle_upload}
+				{file_count}
+				filetype={file_types}
+				{root}
+				{max_file_size}
+				bind:dragging
+				bind:uploading
+				show_progress={false}
+				disable_click={true}
+				bind:hidden_upload
+				on:error
+				hidden={true}
+				{upload}
+				{stream_handler}
+			/>
+			<button
+				data-testid="upload-button"
+				class="upload-button"
+				on:click={handle_upload_click}><Paperclip /></button
+			>
+		{/if}
+		{#if sources && sources.includes("microphone")}
+			<button
+				data-testid="microphone-button"
+				class="microphone-button"
+				class:recording
+				on:click={() => {
+					active_source = active_source !== "microphone" ? "microphone" : null;
+				}}
+			>
+				<Microphone />
+			</button>
+		{/if}
+		<!-- svelte-ignore a11y-autofocus -->
+		<textarea
+			data-testid="textbox"
+			use:text_area_resize={{
+				text: value.text,
+				lines: lines,
+				max_lines: max_lines
+			}}
+			class="scroll-hide"
+			class:no-label={!show_label}
+			dir={rtl ? "rtl" : "ltr"}
+			bind:value={value.text}
+			bind:this={el}
+			{placeholder}
+			rows={lines}
+			{disabled}
+			{autofocus}
+			on:keypress={handle_keypress}
+			on:blur
+			on:select={handle_select}
+			on:focus
+			on:scroll={handle_scroll}
+			on:paste={handle_paste}
+			style={text_align ? "text-align: " + text_align : ""}
+		/>
+		{#if submit_btn}
+			<button
+				class="submit-button"
+				class:padded-button={submit_btn !== true}
+				on:click={handle_submit}
+			>
+				{#if submit_btn === true}
+					<Send />
+				{:else}
+					{submit_btn}
+				{/if}
+			</button>
+		{/if}
+		{#if stop_btn}
+			<button
+				class="stop-button"
+				class:padded-button={stop_btn !== true}
+				on:click={handle_stop}
+			>
+				{#if stop_btn === true}
+					<Square fill={"none"} stroke_width={2.5} />
+				{:else}
+					{stop_btn}
+				{/if}
+			</button>
+		{/if}
+	</div>
 </div>
 
 <style>
@@ -471,6 +533,7 @@
 		color: var(--input-placeholder-color);
 	}
 
+	.microphone-button,
 	.upload-button,
 	.submit-button,
 	.stop-button {
@@ -487,29 +550,34 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-1);
+		margin-left: var(--spacing-sm);
 	}
 	.padded-button {
 		padding: 0 10px;
 	}
 
+	.microphone-button,
 	.stop-button,
 	.upload-button,
 	.submit-button {
 		background: var(--button-secondary-background-fill);
 	}
 
+	.microphone-button:hover,
 	.stop-button:hover,
 	.upload-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
+	.microphone-button:disabled,
 	.stop-button:disabled,
 	.upload-button:disabled,
 	.submit-button:disabled {
 		background: var(--button-secondary-background-fill);
 		cursor: initial;
 	}
+	.microphone-button:active,
 	.stop-button:active,
 	.upload-button:active,
 	.submit-button:active {
@@ -520,6 +588,7 @@
 		height: 22px;
 		width: 22px;
 	}
+	.microphone-button :global(svg),
 	.upload-button :global(svg) {
 		height: 17px;
 		width: 17px;

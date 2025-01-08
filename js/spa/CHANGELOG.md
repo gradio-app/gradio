@@ -1,5 +1,23 @@
 # @self/spa
 
+## 0.4.0
+
+### Features
+
+- [#10187](https://github.com/gradio-app/gradio/pull/10187) [`64d1864`](https://github.com/gradio-app/gradio/commit/64d1864f8fb6f2d0b274fcf7bd47bdb1f6a77980) - `manifest json` for PWA.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/client@1.9.0
+- @gradio/wasm@0.16.0
+- @gradio/core@0.6.0
+
+## 0.3.0
+
+### Dependency updates
+
+- @gradio/core@0.5.0
+
 ## 0.3.0
 
 ### Dependency updates

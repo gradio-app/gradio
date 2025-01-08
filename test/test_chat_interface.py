@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from gradio_client import handle_file
 
 import gradio as gr
 
@@ -319,6 +320,40 @@ class TestAPI:
         with connect(chatbot) as client:
             result = client.predict({"text": "hello", "files": []}, api_name="/chat")
             assert result == "hello hello"
+
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_component_returned(self, type, connect):
+        def mock_chat_fn(msg, history):
+            return gr.Audio("test/test_files/audio_sample.wav")
+
+        chatbot = gr.ChatInterface(
+            mock_chat_fn,
+            type=type,
+            multimodal=True,
+        )
+        with connect(chatbot) as client:
+            result = client.predict(
+                {
+                    "text": "hello",
+                    "files": [handle_file("test/test_files/audio_sample.wav")],
+                },
+                api_name="/chat",
+            )
+            assert result["value"] == "test/test_files/audio_sample.wav"
+
+    @pytest.mark.parametrize("type", ["tuples", "messages"])
+    def test_multiple_messages(self, type, connect):
+        def multiple_messages(msg, history):
+            return [msg["text"], msg["text"]]
+
+        chatbot = gr.ChatInterface(
+            multiple_messages,
+            type=type,
+            multimodal=True,
+        )
+        with connect(chatbot) as client:
+            result = client.predict({"text": "hello", "files": []}, api_name="/chat")
+            assert result == ["hello", "hello"]
 
 
 class TestExampleMessages:

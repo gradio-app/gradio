@@ -160,7 +160,7 @@ def test_json_schema_to_python_type(schema):
     elif schema == "StringSerializable":
         answer = "str"
     elif schema == "ListStringSerializable":
-        answer = "List[str]"
+        answer = "list[str]"
     elif schema == "BooleanSerializable":
         answer = "bool"
     elif schema == "NumberSerializable":
@@ -168,19 +168,19 @@ def test_json_schema_to_python_type(schema):
     elif schema == "ImgSerializable":
         answer = "str"
     elif schema == "FileSerializable":
-        answer = "str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file)) | List[str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))]"
+        answer = "str | dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file)) | list[str | dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))]"
     elif schema == "JSONSerializable":
         answer = "str | float | bool | list | dict"
     elif schema == "GallerySerializable":
-        answer = "Tuple[Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file)), str | None]"
+        answer = "tuple[dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file)), str | None]"
     elif schema == "SingleFileSerializable":
-        answer = "str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))"
+        answer = "str | dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))"
     elif schema == "MultipleFileSerializable":
-        answer = "List[str | Dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))]"
+        answer = "list[str | dict(name: str (name of file), data: str (base64 representation of file), size: int (size of image in bytes), is_file: bool (true if the file has been uploaded to the server), orig_name: str (original name of the file))]"
     elif schema == "SingleFile":
         answer = "str"
     elif schema == "MultipleFile":
-        answer = "List[str]"
+        answer = "list[str]"
     else:
         raise ValueError(f"This test has not been modified to check {schema}")
     assert utils.json_schema_to_python_type(types[schema]) == answer

@@ -1,5 +1,21 @@
 # @self/component-test
 
+## 0.5.1
+
+### Dependency updates
+
+- @gradio/video@0.13.0
+
+## 0.5.0
+
+### Features
+
+- [#10132](https://github.com/gradio-app/gradio/pull/10132) [`6645518`](https://github.com/gradio-app/gradio/commit/6645518a66e01ebcd2746626a4e2a14239172e76) - Tweak Chatbot `bubble_full_width` behaviour.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.12.1
+
 ## 0.4.2
 
 ### Dependency updates

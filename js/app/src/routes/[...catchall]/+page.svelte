@@ -348,6 +348,7 @@
 
 <svelte:head>
 	<link rel="stylesheet" href={"./theme.css?v=" + config?.theme_hash} />
+	<link rel="manifest" href="/manifest.json" />
 
 	{#if config.head}
 		{@html config.head}

@@ -2,20 +2,21 @@
 	import LikeDislike from "./LikeDislike.svelte";
 	import Copy from "./Copy.svelte";
 	import type { FileData } from "@gradio/client";
-	import DownloadIcon from "./Download.svelte";
-	import { DownloadLink } from "@gradio/wasm/svelte";
 	import type { NormalisedMessage, TextMessage } from "../types";
-	import { is_component_message } from "./utils";
-	import { Retry, Undo } from "@gradio/icons";
+	import { Retry, Undo, Edit, Check, Clear } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
 	export let likeable: boolean;
+	export let feedback_options: string[];
 	export let show_retry: boolean;
 	export let show_undo: boolean;
+	export let show_edit: boolean;
+	export let in_edit_mode: boolean;
 	export let show_copy_button: boolean;
 	export let message: NormalisedMessage | NormalisedMessage[];
 	export let position: "right" | "left";
 	export let avatar: FileData | null;
 	export let generating: boolean;
+	export let current_feedback: string | null;
 
 	export let handle_action: (selected: string | null) => void;
 	export let layout: "bubble" | "panel";
@@ -41,42 +42,65 @@
 	$: message_text = is_all_text(message) ? all_text(message) : "";
 
 	$: show_copy = show_copy_button && message && is_all_text(message);
-	$: show_download =
-		!Array.isArray(message) &&
-		is_component_message(message) &&
-		message.content.value?.url;
 </script>
 
-{#if show_copy || show_retry || show_undo || likeable}
+{#if show_copy || show_retry || show_undo || show_edit || likeable}
 	<div
 		class="message-buttons-{position} {layout} message-buttons {avatar !==
 			null && 'with-avatar'}"
 	>
 		<IconButtonWrapper top_panel={false}>
-			{#if show_copy}
-				<Copy
-					value={message_text}
-					on:copy={(e) => dispatch("copy", e.detail)}
-				/>
-			{/if}
-			{#if show_retry}
+			{#if in_edit_mode}
 				<IconButton
-					Icon={Retry}
-					label="Retry"
-					on:click={() => handle_action("retry")}
+					label="Submit"
+					Icon={Check}
+					on:click={() => handle_action("edit_submit")}
 					disabled={generating}
 				/>
-			{/if}
-			{#if show_undo}
 				<IconButton
-					label="Undo"
-					Icon={Undo}
-					on:click={() => handle_action("undo")}
+					label="Cancel"
+					Icon={Clear}
+					on:click={() => handle_action("edit_cancel")}
 					disabled={generating}
 				/>
-			{/if}
-			{#if likeable}
-				<LikeDislike {handle_action} />
+			{:else}
+				{#if show_copy}
+					<Copy
+						value={message_text}
+						on:copy={(e) => dispatch("copy", e.detail)}
+					/>
+				{/if}
+				{#if show_retry}
+					<IconButton
+						Icon={Retry}
+						label="Retry"
+						on:click={() => handle_action("retry")}
+						disabled={generating}
+					/>
+				{/if}
+				{#if show_undo}
+					<IconButton
+						label="Undo"
+						Icon={Undo}
+						on:click={() => handle_action("undo")}
+						disabled={generating}
+					/>
+				{/if}
+				{#if show_edit}
+					<IconButton
+						label="Edit"
+						Icon={Edit}
+						on:click={() => handle_action("edit")}
+						disabled={generating}
+					/>
+				{/if}
+				{#if likeable}
+					<LikeDislike
+						{handle_action}
+						{feedback_options}
+						selected={current_feedback}
+					/>
+				{/if}
 			{/if}
 		</IconButtonWrapper>
 	</div>

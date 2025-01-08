@@ -7,7 +7,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let size: "sm" | "lg" = "lg";
+	export let size: "sm" | "md" | "lg" = "lg";
 	export let value: null | FileData;
 	export let icon: null | FileData;
 	export let disabled = false;

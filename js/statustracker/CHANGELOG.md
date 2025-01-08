@@ -1,5 +1,23 @@
 # @gradio/statustracker
 
+## 0.10.0
+
+### Features
+
+- [#10262](https://github.com/gradio-app/gradio/pull/10262) [`f3bedd4`](https://github.com/gradio-app/gradio/commit/f3bedd4011bdfdecc952eb1275a9dd96af3e8d71) - add gr.Success and update windows contributing.  Thanks @not-lain!
+
+### Dependency updates
+
+- @gradio/atoms@0.13.0
+- @gradio/utils@0.10.0
+- @gradio/icons@0.9.0
+
+## 0.9.7
+
+### Dependency updates
+
+- @gradio/atoms@0.12.0
+
 ## 0.9.6
 
 ### Dependency updates

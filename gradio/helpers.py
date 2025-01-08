@@ -1018,7 +1018,7 @@ def skip() -> dict:
 def log_message(
     message: str,
     title: str,
-    level: Literal["info", "warning"] = "info",
+    level: Literal["info", "warning", "success"] = "info",
     duration: float | None = 10,
     visible: bool = True,
 ):
@@ -1029,7 +1029,7 @@ def log_message(
     if blocks is None or event_id is None:
         # Function called outside of Gradio if blocks is None
         # Or from /api/predict if event_id is None
-        if level == "info":
+        if level in ("info", "success"):
             print(message)
         elif level == "warning":
             warnings.warn(message)
@@ -1067,7 +1067,7 @@ def Warning(  # noqa: N802
         with gr.Blocks() as demo:
             md = gr.Markdown()
             demo.load(hello_world, inputs=None, outputs=[md])
-        demo.queue().launch()
+        demo.launch()
     """
     log_message(
         message, title=title, level="warning", duration=duration, visible=visible
@@ -1097,6 +1097,34 @@ def Info(  # noqa: N802
         with gr.Blocks() as demo:
             md = gr.Markdown()
             demo.load(hello_world, inputs=None, outputs=[md])
-        demo.queue().launch()
+        demo.launch()
     """
     log_message(message, title=title, level="info", duration=duration, visible=visible)
+
+
+@document(documentation_group="modals")
+def Success(  # noqa: N802
+    message: str = "Success.",
+    duration: float | None = 10,
+    visible: bool = True,
+    title: str = "Success",
+):
+    """
+    This function allows you to pass custom success messages to the user. You can do so simply by writing `gr.Success('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is green by default and has the heading: "Success." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.
+    Parameters:
+        message: The success message to be displayed to the user. Can be HTML, which will be rendered in the modal.
+        duration: The duration in seconds that the success message should be displayed for. If None or 0, the message will be displayed indefinitely until the user closes it.
+        visible: Whether the error message should be displayed in the UI.
+        title: The title to be displayed to the user at the top of the modal.
+    Example:
+        def hello_world():
+            gr.Success('Operation completed successfully!')
+            return "hello world"
+        with gr.Blocks() as demo:
+            md = gr.Markdown()
+            demo.load(hello_world, inputs=None, outputs=[md])
+        demo.launch()
+    """
+    log_message(
+        message, title=title, level="success", duration=duration, visible=visible
+    )

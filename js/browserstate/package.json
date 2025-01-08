@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/browserstate",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -17,7 +17,8 @@
 	},
 	"dependencies": {
 		"dequal": "^2.0.2",
-		"crypto-js": "^4.1.1"
+		"crypto-js": "^4.1.1",
+		"@gradio/utils": "workspace:^"
 	},
 	"peerDependencies": {
 		"svelte": "^4.0.0"

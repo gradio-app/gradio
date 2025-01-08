@@ -1,8 +1,11 @@
 <script>
 	export let top_panel = true;
+	export let display_top_corner = false;
 </script>
 
-<div class={`icon-button-wrapper ${top_panel ? "top-panel" : ""}`}>
+<div
+	class={`icon-button-wrapper ${top_panel ? "top-panel" : ""} ${display_top_corner ? "display-top-corner" : "hide-top-corner"}`}
+>
 	<slot></slot>
 </div>
 
@@ -16,11 +19,20 @@
 		gap: var(--spacing-sm);
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
+		background: var(--block-background-fill);
+		padding: var(--spacing-xxs);
+	}
+
+	.icon-button-wrapper.hide-top-corner {
 		border-top: none;
 		border-right: none;
 		border-radius: var(--block-label-right-radius);
-		background: var(--block-background-fill);
-		padding: var(--spacing-xxs);
+	}
+
+	.icon-button-wrapper.display-top-corner {
+		border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+		top: var(--spacing-sm);
+		right: -1px;
 	}
 
 	.icon-button-wrapper:not(.top-panel) {
@@ -46,8 +58,10 @@
 		margin-right: var(--spacing-xxs);
 	}
 
-	.icon-button-wrapper :global(a.download-link:not(:last-child)::after),
-	.icon-button-wrapper :global(button:not(:last-child)::after) {
+	.icon-button-wrapper
+		:global(a.download-link:not(:last-child):not(.no-border *)::after),
+	.icon-button-wrapper
+		:global(button:not(:last-child):not(.no-border *)::after) {
 		content: "";
 		position: absolute;
 		right: -4.5px;

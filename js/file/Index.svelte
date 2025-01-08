@@ -46,6 +46,7 @@
 	export let file_count: "single" | "multiple" | "directory";
 	export let file_types: string[] = ["file"];
 	export let input_ready: boolean;
+	export let allow_reordering = false;
 	let uploading = false;
 	$: input_ready = !uploading;
 
@@ -103,6 +104,7 @@
 			selectable={_selectable}
 			{root}
 			{height}
+			{allow_reordering}
 			bind:uploading
 			max_file_size={gradio.max_file_size}
 			on:change={({ detail }) => {

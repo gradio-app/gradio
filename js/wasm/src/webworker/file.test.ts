@@ -1,8 +1,8 @@
 // @vitest-environment node
 
-import path from "path";
+import path from "node:path";
 import { loadPyodide, PyodideInterface } from "pyodide";
-import { describe, it, expect, beforeEach, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { writeFileWithParents, renameWithParents } from "./file";
 
 describe("writeFileWithParents()", () => {

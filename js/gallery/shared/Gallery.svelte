@@ -48,6 +48,7 @@
 	export let _fetch: typeof fetch;
 	export let mode: "normal" | "minimal" = "normal";
 	export let show_fullscreen_button = true;
+	export let display_icon_button_wrapper_top_corner = false;
 
 	let is_full_screen = false;
 	let image_container: HTMLElement;
@@ -244,7 +245,9 @@
 				class="preview"
 				class:minimal={mode === "minimal"}
 			>
-				<IconButtonWrapper>
+				<IconButtonWrapper
+					display_top_corner={display_icon_button_wrapper_top_corner}
+				>
 					{#if show_download_button}
 						<IconButton
 							Icon={Download}

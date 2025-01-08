@@ -166,6 +166,15 @@ def bot(history, response_type):
         content = gr.Gallery(
             [os.path.join("files", "avatar.png"), os.path.join("files", "avatar.png")]
         )
+    elif response_type == "dataframe":
+        content = gr.Dataframe(
+            interactive=True,
+            headers=["One", "Two", "Three"],
+            col_count=(3, "fixed"),
+            row_count=(3, "fixed"),
+            value=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+            label="Dataframe",
+        )
     elif response_type == "image":
        content = gr.Image(os.path.join("files", "avatar.png"))
     elif response_type == "video":
@@ -216,6 +225,7 @@ with gr.Blocks(fill_height=True) as demo:
             "image",
             "text",
             "gallery",
+            "dataframe",
             "video",
             "audio",
             "html",
