@@ -161,15 +161,6 @@
 		font-size: var(--text-sm) !important;
 	}
 
-	/* .title-text {
-		flex: 1;
-		margin-right: var(--spacing-sm);
-	} */
-
-	/* .title-text :global(.md) {
-		display: inline;
-	} */
-
 	.content {
 		overflow-wrap: break-word;
 		word-break: break-word;
