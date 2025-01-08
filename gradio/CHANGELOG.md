@@ -1,5 +1,18 @@
 # gradio
 
+## 5.11.0
+
+### Features
+
+- [#10304](https://github.com/gradio-app/gradio/pull/10304) [`6b63fde`](https://github.com/gradio-app/gradio/commit/6b63fdec441b5c9bf910f910a2505d8defbb6bf8) - Blocked Paths Fix.  Thanks @freddyaboulton!
+- [#10303](https://github.com/gradio-app/gradio/pull/10303) [`f19ca89`](https://github.com/gradio-app/gradio/commit/f19ca89cdd4040dbaa41bbc3b9915edc032603a0) - Add preview_open and preview_close events to Gallery.  Thanks @freddyaboulton!
+- [#10314](https://github.com/gradio-app/gradio/pull/10314) [`84e72e4`](https://github.com/gradio-app/gradio/commit/84e72e401cdc97a91086301d2b25164e7d15623a) - Restore chat interface full height.  Thanks @aliabid94!
+
+### Fixes
+
+- [#10306](https://github.com/gradio-app/gradio/pull/10306) [`9fc988e`](https://github.com/gradio-app/gradio/commit/9fc988ebaf4bea24b71308922bb1889f1d3f4f6e) - Fix bug where ImageEditor always sends empty layers list to the backend.  Thanks @freddyaboulton!
+- [#10297](https://github.com/gradio-app/gradio/pull/10297) [`1e253ff`](https://github.com/gradio-app/gradio/commit/1e253ff127e97c18852a32cbc1269494c6cee017) - Fix test_subclass_conversion with numpy==2.x.  Thanks @abidlabs!
+
 ## 5.10.0
 
 ### Features
