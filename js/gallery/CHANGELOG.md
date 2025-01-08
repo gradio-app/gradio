@@ -1,5 +1,11 @@
 # @gradio/gallery
 
+## 0.15.0
+
+### Features
+
+- [#10303](https://github.com/gradio-app/gradio/pull/10303) [`f19ca89`](https://github.com/gradio-app/gradio/commit/f19ca89cdd4040dbaa41bbc3b9915edc032603a0) - Add preview_open and preview_close events to Gallery.  Thanks @freddyaboulton!
+
 ## 0.14.1
 
 ### Fixes

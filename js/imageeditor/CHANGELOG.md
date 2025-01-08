@@ -1,5 +1,11 @@
 # @gradio/imageeditor
 
+## 0.12.1
+
+### Fixes
+
+- [#10306](https://github.com/gradio-app/gradio/pull/10306) [`9fc988e`](https://github.com/gradio-app/gradio/commit/9fc988ebaf4bea24b71308922bb1889f1d3f4f6e) - Fix bug where ImageEditor always sends empty layers list to the backend.  Thanks @freddyaboulton!
+
 ## 0.12.0
 
 ### Features
