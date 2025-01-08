@@ -133,17 +133,20 @@ export function normalise_messages(
 
 			// handle thoughts
 			const { id, title, parent_id } = message.metadata || {};
+			if (parent_id) {
+				const parent = thought_map.get(String(parent_id));
+				if (parent) {
+					const thought = { ...normalized, children: [] } as ThoughtNode;
+					parent.children.push(thought);
+					if (id && title) {
+						thought_map.set(String(id), thought);
+					}
+					return null;
+				}
+			}
 			if (id && title) {
 				const thought = { ...normalized, children: [] } as ThoughtNode;
 				thought_map.set(String(id), thought);
-
-				if (parent_id) {
-					const parent = thought_map.get(String(parent_id));
-					if (parent) {
-						parent.children.push(thought);
-						return null;
-					}
-				}
 				return thought;
 			}
 
