@@ -24,7 +24,7 @@ from gradio_client.utils import is_http_url_like
 from gradio import image_utils, processing_utils, utils, wasm_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel, ImageData
-from gradio.events import Events
+from gradio.events import EventListener, Events
 from gradio.exceptions import Error
 
 if TYPE_CHECKING:
@@ -57,7 +57,19 @@ class Gallery(Component):
     Demos: fake_gan
     """
 
-    EVENTS = [Events.select, Events.upload, Events.change]
+    EVENTS = [
+        Events.select,
+        Events.upload,
+        Events.change,
+        EventListener(
+            "preview_close",
+            doc="This event is triggered when the Gallery preview is closed by the user",
+        ),
+        EventListener(
+            "preview_open",
+            doc="This event is triggered when the Gallery preview is opened by the user",
+        ),
+    ]
 
     data_model = GalleryData
 

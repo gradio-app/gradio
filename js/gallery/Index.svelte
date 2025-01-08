@@ -46,6 +46,8 @@
 		error: string;
 		prop_change: Record<string, any>;
 		clear_status: LoadingStatus;
+		preview_open: never;
+		preview_close: never;
 	}>;
 	export let show_fullscreen_button = true;
 
@@ -112,6 +114,7 @@
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				value = await process_upload_files(files);
 				gradio.dispatch("upload", value);
+				gradio.dispatch("change", value);
 			}}
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
@@ -127,6 +130,8 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
+			on:preview_open={() => gradio.dispatch("preview_open")}
+			on:preview_close={() => gradio.dispatch("preview_close")}
 			{label}
 			{show_label}
 			{columns}

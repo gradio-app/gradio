@@ -16,14 +16,7 @@
 	import { tick } from "svelte";
 	import type { GalleryImage, GalleryVideo } from "../types";
 
-	import {
-		Download,
-		Image as ImageIcon,
-		Maximize,
-		Minimize,
-		Clear,
-		Play
-	} from "@gradio/icons";
+	import { Download, Image as ImageIcon, Clear, Play } from "@gradio/icons";
 	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -56,6 +49,8 @@
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
+		preview_open: undefined;
+		preview_close: undefined;
 	}>();
 
 	// tracks whether the value of the gallery was reset
@@ -287,7 +282,10 @@
 						<IconButton
 							Icon={Clear}
 							label="Close"
-							on:click={() => (selected_index = null)}
+							on:click={() => {
+								selected_index = null;
+								dispatch("preview_close");
+							}}
 						/>
 					{/if}
 				</IconButtonWrapper>
@@ -388,7 +386,12 @@
 					<button
 						class="thumbnail-item thumbnail-lg"
 						class:selected={selected_index === i}
-						on:click={() => (selected_index = i)}
+						on:click={() => {
+							if (selected_index === null && allow_preview) {
+								dispatch("preview_open");
+							}
+							selected_index = i;
+						}}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
 						{#if "image" in entry}
