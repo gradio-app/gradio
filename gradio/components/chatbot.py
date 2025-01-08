@@ -35,8 +35,8 @@ from gradio.exceptions import Error
 
 class MetadataDict(TypedDict):
     title: Union[str, None]
-    id: NotRequired[int]
-    parent_id: NotRequired[int]
+    id: NotRequired[int | str]
+    parent_id: NotRequired[int | str]
 
 
 class Option(TypedDict):
@@ -59,6 +59,7 @@ class MessageDict(TypedDict):
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
     options: NotRequired[list[Option]]
+    duration: NotRequired[int]
 
 
 class FileMessage(GradioModel):
@@ -84,8 +85,8 @@ class ChatbotDataTuples(GradioRootModel):
 
 class Metadata(GradioModel):
     title: Optional[str] = None
-    id: Optional[int] = None
-    parent_id: Optional[int] = None
+    id: Optional[int | str] = None
+    parent_id: Optional[int | str] = None
 
 
 class Message(GradioModel):
@@ -93,6 +94,7 @@ class Message(GradioModel):
     metadata: Metadata = Field(default_factory=Metadata)
     content: Union[str, FileMessage, ComponentMessage]
     options: Optional[list[Option]] = None
+    duration: Optional[int] = None
 
 
 class ExampleMessage(TypedDict):
@@ -114,6 +116,7 @@ class ChatMessage:
     content: str | FileData | Component | FileDataDict | tuple | list
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
     options: Optional[list[Option]] = None
+    duration: Optional[int] = None
 
 
 class ChatbotDataMessages(GradioRootModel):
@@ -542,6 +545,7 @@ class Chatbot(Component):
                 content=message.content,  # type: ignore
                 metadata=message.metadata,  # type: ignore
                 options=message.options,
+                duration=message.duration,
             )
         elif isinstance(message, Message):
             return message

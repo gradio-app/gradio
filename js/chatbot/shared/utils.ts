@@ -8,7 +8,8 @@ import type {
 	TextMessage,
 	NormalisedMessage,
 	Message,
-	MessageRole
+	MessageRole,
+	ThoughtNode
 } from "../types";
 import type { LoadedComponent } from "../../core/src/types";
 import { Gradio } from "@gradio/utils";
@@ -102,28 +103,53 @@ export function normalise_messages(
 	root: string
 ): NormalisedMessage[] | null {
 	if (messages === null) return messages;
-	return messages.map((message, i) => {
-		if (typeof message.content === "string") {
-			return {
-				role: message.role,
-				metadata: message.metadata,
-				content: redirect_src_url(message.content, root),
-				type: "text",
-				index: i,
-				options: message.options
-			};
-		} else if ("file" in message.content) {
-			return {
-				content: convert_file_message_to_component_message(message.content),
-				metadata: message.metadata,
-				role: message.role,
-				type: "component",
-				index: i,
-				options: message.options
-			};
-		}
-		return { type: "component", ...message } as ComponentMessage;
-	});
+
+	const thought_map = new Map<string, ThoughtNode>();
+
+	return messages
+		.map((message, i) => {
+			let normalized: NormalisedMessage =
+				typeof message.content === "string"
+					? {
+							role: message.role,
+							metadata: message.metadata,
+							content: redirect_src_url(message.content, root),
+							type: "text",
+							index: i,
+							options: message.options
+						}
+					: "file" in message.content
+						? {
+								content: convert_file_message_to_component_message(
+									message.content
+								),
+								metadata: message.metadata,
+								role: message.role,
+								type: "component",
+								index: i,
+								options: message.options
+							}
+						: ({ type: "component", ...message } as ComponentMessage);
+
+			// handle thoughts
+			const { id, title, parent_id } = message.metadata || {};
+			if (id && title) {
+				const thought = { ...normalized, children: [] } as ThoughtNode;
+				thought_map.set(String(id), thought);
+
+				if (parent_id) {
+					const parent = thought_map.get(String(parent_id));
+					if (parent) {
+						parent.children.push(thought);
+						return null;
+					}
+				}
+				return thought;
+			}
+
+			return normalized;
+		})
+		.filter((msg): msg is NormalisedMessage => msg !== null);
 }
 
 export function normalise_tuples(

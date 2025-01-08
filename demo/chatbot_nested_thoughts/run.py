@@ -55,7 +55,18 @@ def generate_response(history):
     history.append(
         ChatMessage(
             role="assistant",
-            content="I will try again",
+            content="I will try yet again",
+            metadata={"title": "I will try again", "id": 4, "parent_id": 3},
+        )
+    )
+    yield history
+
+    time.sleep(sleep_time)
+    history.append(
+        ChatMessage(
+            role="assistant",
+            content="Failed again",
+            metadata={"title": "Failed again", "id": 6, "parent_id": 4},
         )
     )
     yield history
