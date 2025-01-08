@@ -1513,7 +1513,8 @@ def is_allowed_file(
     bool, Literal["in_blocklist", "allowed", "created", "not_created_or_allowed"]
 ]:
     in_blocklist = any(
-        is_in_or_equal(path, blocked_path) for blocked_path in blocked_paths
+        is_in_or_equal(str(path).lower(), str(blocked_path).lower())
+        for blocked_path in blocked_paths
     )
     if in_blocklist:
         return False, "in_blocklist"
