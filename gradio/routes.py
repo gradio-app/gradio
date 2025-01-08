@@ -530,6 +530,16 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request, route_path="/", root_path=app.root_path
             )
+            async def endpoint(self):
+                return {"message": "Dynamic endpoint!!!"}
+
+            for page in app.get_blocks().pages:
+                print("Adding route..........", page["route"])
+                app.router.add_api_route(
+                    path=page["route"],
+                    endpoint=endpoint,
+                    methods=["GET"]
+                )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
