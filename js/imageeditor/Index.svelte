@@ -214,7 +214,8 @@
 			{brush}
 			{eraser}
 			changeable={attached_events.includes("apply")}
-			realtime={attached_events.includes("change") || attached_events.includes("input")}
+			realtime={attached_events.includes("change") ||
+				attached_events.includes("input")}
 			i18n={gradio.i18n}
 			{transforms}
 			accept_blobs={server.accept_blobs}
