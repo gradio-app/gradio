@@ -176,7 +176,7 @@ export function layer_manager(): LayerManager {
 					composite.filters = [erase_filter];
 
 					container.addChild(layer_container);
-
+					_layers.push(layer_scene);
 					that.layers.update((s) => [...s, layer_scene]);
 					that.active_layer.set(layer_scene);
 
@@ -191,8 +191,9 @@ export function layer_manager(): LayerManager {
 				undo: function () {
 					container.removeChild(layer_container);
 
-					const _layers = get(that.layers);
-					that.layers.set(_layers.filter((_, i) => i !== layer_number));
+					_layers = get(that.layers);
+					_layers = _layers.filter((_, i) => i !== layer_number);
+					that.layers.set(_layers);
 					const new_layer = _layers[layer_number - 1] || _layers[0] || null;
 					that.active_layer.set(new_layer);
 				}
