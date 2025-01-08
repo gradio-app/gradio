@@ -5,7 +5,7 @@
 	import type { NormalisedMessage, TextMessage, ThoughtNode } from "../types";
 	import { Retry, Undo, Edit, Check, Clear } from "@gradio/icons";
 	import { IconButtonWrapper, IconButton } from "@gradio/atoms";
-	import { all_text } from "./utils";
+	import { all_text, is_all_text } from "./utils";
 
 	export let likeable: boolean;
 	export let feedback_options: string[];
@@ -24,18 +24,7 @@
 	export let layout: "bubble" | "panel";
 	export let dispatch: any;
 
-	function is_all_text(
-		message: NormalisedMessage[] | NormalisedMessage
-	): message is TextMessage[] | TextMessage {
-		return (
-			(Array.isArray(message) &&
-				message.every((m) => typeof m.content === "string")) ||
-			(!Array.isArray(message) && typeof message.content === "string")
-		);
-	}
-
 	$: message_text = is_all_text(message) ? all_text(message) : "";
-
 	$: show_copy = show_copy_button && message && is_all_text(message);
 </script>
 

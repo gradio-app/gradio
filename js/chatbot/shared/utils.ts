@@ -319,3 +319,13 @@ export function all_text(message: TextMessage[] | TextMessage): string {
 	}
 	return message.content;
 }
+
+export function is_all_text(
+	message: NormalisedMessage[] | NormalisedMessage
+): message is TextMessage[] | TextMessage {
+	return (
+		(Array.isArray(message) &&
+			message.every((m) => typeof m.content === "string")) ||
+		(!Array.isArray(message) && typeof message.content === "string")
+	);
+}
