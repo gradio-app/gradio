@@ -7,6 +7,7 @@
 	import { DropdownCircularArrow } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import { slide } from "svelte/transition";
+	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 
 	export let thought: NormalisedMessage;
 	export let rtl = false;
@@ -63,12 +64,18 @@
 		>
 			<IconButton Icon={DropdownCircularArrow} />
 		</span>
-		{thought_node.metadata?.title}
+		<Markdown
+			message={thought_node.metadata?.title || ""}
+			{render_markdown}
+			{latex_delimiters}
+			{sanitize_html}
+			{root}
+		/>
 		{#if thought_node.content === "" || thought_node.content === null}
 			<span class="loading-spinner"></span>
 		{/if}
 		{#if thought_node?.duration}
-			<span class="duration">{thought_node.duration}s</span>
+			<span class="duration">{thought_node.duration || 0.16}s</span>
 		{/if}
 	</div>
 
@@ -150,6 +157,19 @@
 		width: 100%;
 	}
 
+	.title :global(.md) {
+		font-size: var(--text-sm) !important;
+	}
+
+	/* .title-text {
+		flex: 1;
+		margin-right: var(--spacing-sm);
+	} */
+
+	/* .title-text :global(.md) {
+		display: inline;
+	} */
+
 	.content {
 		overflow-wrap: break-word;
 		word-break: break-word;
@@ -158,6 +178,7 @@
 	}
 	.content :global(*) {
 		font-size: var(--text-sm);
+		color: var(--body-text-color);
 	}
 
 	.thought-group :global(.thought:not(.nested)) {
@@ -168,6 +189,7 @@
 	.duration {
 		color: var(--body-text-color-subdued);
 		font-size: var(--text-sm);
+		margin-left: var(--size-1);
 	}
 
 	.arrow {
@@ -191,7 +213,7 @@
 		border-radius: 50%;
 		border-top-color: transparent;
 		animation: spin 1s linear infinite;
-		margin: 0 var(--size-1) -1px var(--size-1);
+		margin: 0 var(--size-1) -1px var(--size-2);
 		opacity: 0.8;
 	}
 
