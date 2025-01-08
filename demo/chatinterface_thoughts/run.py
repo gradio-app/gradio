@@ -7,7 +7,7 @@ sleep_time = 0.5
 def simulate_thinking_chat(message, history):
     response = ChatMessage(
         content="",
-        metadata={"title": "Thinking... ", "id": 0, "status": "pending"}
+        metadata={"title": "Thinking step-by-step", "id": 0, "status": "pending"}
     )
     yield response
 

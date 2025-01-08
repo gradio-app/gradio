@@ -792,7 +792,7 @@ class ChatInterface(Blocks):
     @staticmethod
     def _set_thought_durations(
         message_dicts: list[MessageDict], thought_durations: ThoughtDurations
-    ) -> ThoughtDurations:
+    ) -> tuple[list[MessageDict], ThoughtDurations]:
         for message in message_dicts:
             if (
                 message["role"] == "assistant"
@@ -808,13 +808,13 @@ class ChatInterface(Blocks):
                 elif (
                     "status" in message["metadata"]
                     and message["metadata"]["status"] == "done"
-                    and "duration" not in message["metadata"]
-                    and thought_durations[id]["duration"] is None
                 ):
                     thought_durations[id]["duration"] = (
                         time.time() - thought_durations[id]["start_time"]
                     )
-        return thought_durations
+                    if "duration" not in message["metadata"] or message["metadata"]["duration"] is None:
+                        message["metadata"]["duration"] = thought_durations[id]["duration"]
+        return message_dicts, thought_durations
 
     def _append_message_to_history(
         self,
@@ -824,6 +824,10 @@ class ChatInterface(Blocks):
         role: Literal["user", "assistant"] = "user",
     ) -> tuple[list[MessageDict] | TupleFormat, ThoughtDurations]:
         message_dicts = self._message_as_message_dict(message, role)
+        message_dicts, thought_durations = self._set_thought_durations(
+            message_dicts, thought_durations
+        )
+
         if self.type == "tuples":
             history = self._tuples_to_messages(history)  # type: ignore
         else:
@@ -832,9 +836,6 @@ class ChatInterface(Blocks):
         if self.type == "tuples":
             history = self._messages_to_tuples(history)  # type: ignore
 
-        thought_durations = self._calculate_thought_durations(
-            message_dicts, thought_durations
-        )
         return history, thought_durations
 
     def _message_as_message_dict(
@@ -906,6 +907,7 @@ class ChatInterface(Blocks):
         self,
         message: str | MultimodalPostprocess,
         history: TupleFormat | list[MessageDict],
+        thought_durations: ThoughtDurations,
         request: Request,
         *args,
     ) -> AsyncGenerator[
@@ -923,29 +925,29 @@ class ChatInterface(Blocks):
             )
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
 
-        history = self._append_message_to_history(message, history, "user")
+        history, thought_durations = self._append_message_to_history(message, history, thought_durations, "user")
         additional_outputs = None
         try:
             first_response = await utils.async_iteration(generator)
             if self.additional_outputs:
                 first_response, *additional_outputs = first_response
-            history_ = self._append_message_to_history(
-                first_response, history, "assistant"
+            history_, thought_durations = self._append_message_to_history(
+                first_response, history, thought_durations, "assistant"
             )
             if not additional_outputs:
-                yield first_response, history_
+                yield first_response, history_, thought_durations
             else:
-                yield first_response, history_, *additional_outputs
+                yield first_response, history_, thought_durations, *additional_outputs
         except StopIteration:
-            yield None, history
+            yield None, history, thought_durations
         async for response in generator:
             if self.additional_outputs:
                 response, *additional_outputs = response
-            history_ = self._append_message_to_history(response, history, "assistant")
+            history_, thought_durations = self._append_message_to_history(response, history, thought_durations, "assistant")
             if not additional_outputs:
-                yield response, history_
+                yield response, history_, thought_durations
             else:
-                yield response, history_, *additional_outputs
+                yield response, history_, thought_durations, *additional_outputs
 
     def option_clicked(
         self, history: list[MessageDict], option: SelectData
