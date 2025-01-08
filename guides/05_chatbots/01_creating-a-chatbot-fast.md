@@ -321,7 +321,10 @@ The `gr.ChatInterface` class supports displaying intermediate thoughts or tool u
 
 The `gr.ChatMessage` class is similar to the openai-style message format, e.g. it has a "content" key that refers to the chat message content. But it also includes a "metadata" key that can take in the "title" key. If this key is included, the resulting message is displayed as an intermediate thought with the title being displayed on top of the thought. Here's an example:
 
-You can even show nested thoughts, which is useful for agent demos in which one tool may call other tools. To display nested thoughts, 
+
+
+You can even show nested thoughts, which is useful for agent demos in which one tool may call other tools. To display nested thoughts, include "id" and "parent_id" keys in the "metadata" key. Here's a simplified example:
+
 
 
 **Providing preset responses**
