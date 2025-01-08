@@ -118,7 +118,6 @@
 	.panel {
 		display: flex;
 		align-self: flex-start;
-		padding: 0 var(--spacing-xl);
 		z-index: var(--layer-1);
 	}
 </style>
