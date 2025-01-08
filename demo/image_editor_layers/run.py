@@ -4,7 +4,7 @@ from pathlib import Path
 dir_ = Path(__file__).parent
 
 def predict(im):
-    return im
+    return im, len(im['layers'])
 
 with gr.Blocks() as demo:
     with gr.Row():
@@ -15,6 +15,8 @@ with gr.Blocks() as demo:
         im_preview = gr.ImageEditor(
             interactive=True,
         )
+    
+    num_layers = gr.Number(value=0, label="Num Layers")
 
     set_background = gr.Button("Set Background")
     set_background.click(
@@ -52,7 +54,7 @@ with gr.Blocks() as demo:
 
     im.change(
         predict,
-        outputs=im_preview,
+        outputs=[im_preview, num_layers],
         inputs=im,
     )
 
