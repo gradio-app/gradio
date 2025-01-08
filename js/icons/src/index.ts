@@ -16,6 +16,7 @@ export { default as Copy } from "./Copy.svelte";
 export { default as Crop } from "./Crop.svelte";
 export { default as Download } from "./Download.svelte";
 export { default as DropdownArrow } from "./DropdownArrow.svelte";
+export { default as DropdownCircularArrow } from "./DropdownCircularArrow.svelte";
 export { default as Edit } from "./Edit.svelte";
 export { default as Erase } from "./Erase.svelte";
 export { default as Error } from "./Error.svelte";
