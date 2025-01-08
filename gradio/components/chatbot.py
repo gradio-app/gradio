@@ -61,6 +61,7 @@ class MessageDict(TypedDict):
     options: NotRequired[list[Option]]
     duration: NotRequired[int]
 
+
 class FileMessage(GradioModel):
     file: FileData
     alt_text: Optional[str] = None
@@ -95,6 +96,7 @@ class Message(GradioModel):
     options: Optional[list[Option]] = None
     duration: Optional[int] = None
 
+
 class ExampleMessage(TypedDict):
     icon: NotRequired[
         str | FileDataDict
@@ -115,6 +117,7 @@ class ChatMessage:
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
     options: Optional[list[Option]] = None
     duration: Optional[int] = None
+
 
 class ChatbotDataMessages(GradioRootModel):
     root: list[Message]
