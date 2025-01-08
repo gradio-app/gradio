@@ -264,10 +264,12 @@ class ChatInterface(Blocks):
                             self._render_chatbot_area(
                                 chatbot, textbox, submit_btn, stop_btn
                             )
+                            self._render_footer()
                 else:
                     self._render_chatbot_area(chatbot, textbox, submit_btn, stop_btn)
-                self._render_footer()
-                self._setup_events()
+                    self._render_footer()
+
+            self._setup_events()
 
     def _render_header(self):
         if self.title:
