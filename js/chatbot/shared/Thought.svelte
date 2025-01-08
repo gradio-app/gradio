@@ -4,7 +4,7 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import MessageContent from "./MessageContent.svelte";
-	import { DropdownArrow } from "@gradio/icons";
+	import { DropdownCircularArrow } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import { slide } from "svelte/transition";
 
@@ -61,17 +61,15 @@
 			class="arrow"
 			style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
 		>
-			<IconButton Icon={DropdownArrow} />
+			<IconButton Icon={DropdownCircularArrow} />
 		</span>
-		<span class="title-text">
-			{thought_node.metadata?.title}
-			{#if thought_node.content === "" || thought_node.content === null}
-				<span class="loading-spinner"></span>
-			{/if}
-			{#if thought_node?.duration}
-				<span class="duration">{thought_node.duration}s</span>
-			{/if}
-		</span>
+		{thought_node.metadata?.title}
+		{#if thought_node.content === "" || thought_node.content === null}
+			<span class="loading-spinner"></span>
+		{/if}
+		{#if thought_node?.duration}
+			<span class="duration">{thought_node.duration}s</span>
+		{/if}
 	</div>
 
 	{#if expanded}
@@ -159,7 +157,7 @@
 		margin-bottom: var(--spacing-sm);
 	}
 	.content :global(*) {
-		font-size: var(--text-md);
+		font-size: var(--text-sm);
 	}
 
 	.thought-group :global(.thought:not(.nested)) {
@@ -179,6 +177,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	.arrow :global(button) {
+		background-color: transparent;
 	}
 
 	.loading-spinner {
