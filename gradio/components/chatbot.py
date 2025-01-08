@@ -59,7 +59,7 @@ class MessageDict(TypedDict):
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
     options: NotRequired[list[Option]]
-
+    duration: NotRequired[int]
 
 class FileMessage(GradioModel):
     file: FileData
@@ -93,7 +93,7 @@ class Message(GradioModel):
     metadata: Metadata = Field(default_factory=Metadata)
     content: Union[str, FileMessage, ComponentMessage]
     options: Optional[list[Option]] = None
-
+    duration: Optional[int] = None
 
 class ExampleMessage(TypedDict):
     icon: NotRequired[
@@ -114,7 +114,7 @@ class ChatMessage:
     content: str | FileData | Component | FileDataDict | tuple | list
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
     options: Optional[list[Option]] = None
-
+    duration: Optional[int] = None
 
 class ChatbotDataMessages(GradioRootModel):
     root: list[Message]
@@ -542,6 +542,7 @@ class Chatbot(Component):
                 content=message.content,  # type: ignore
                 metadata=message.metadata,  # type: ignore
                 options=message.options,
+                duration=message.duration,
             )
         elif isinstance(message, Message):
             return message
