@@ -193,6 +193,13 @@ client = httpx.AsyncClient(
 
 file_upload_statuses = FileUploadProgress()
 
+dynamic_endpoints = {}
+def create_endpoint(route: str):
+    async def dynamic_endpoint(request: fastapi.Request):
+        return HTMLResponse(f"This is the dynamic page for {route}")
+    dynamic_endpoint.__name__ = f"dynamic_endpoint_{route.replace('/', '_')}"
+    dynamic_endpoint.__qualname__ = dynamic_endpoint.__name__
+    return dynamic_endpoint
 
 class App(FastAPI):
     """
@@ -239,7 +246,6 @@ class App(FastAPI):
     # We're not overriding any defaults here
 
     client = httpx.AsyncClient()
-
     @staticmethod
     async def proxy_to_node(
         request: fastapi.Request,
@@ -325,6 +331,34 @@ class App(FastAPI):
         for task in self._asyncio_tasks:
             task.cancel()
         self._asyncio_tasks = []
+
+    def add_dynamic_route(self, route_path: str):
+        try:
+            existing_route = any(
+                route.path == route_path
+                for route in self.routes
+            )
+
+            if not existing_route:
+                if route_path not in dynamic_endpoints:
+                    print(f"Creating new endpoint for route: {route_path}")
+                    dynamic_endpoints[route_path] = create_endpoint(route_path)
+
+                print(f"Adding route to FastAPI: {route_path}")
+                self.router.add_api_route(
+                    path=route_path,
+                    endpoint=dynamic_endpoints[route_path],
+                    response_class=HTMLResponse,
+                    methods=["GET"]
+                )
+                if any(route.path == route_path for route in self.routes):
+                    print(f"Successfully added route: {route_path}")
+                else:
+                    print(f"Failed to add route: {route_path}")
+
+        except Exception as e:
+            print(f"Error adding route {route_path}: {str(e)}")
+            raise
 
     @staticmethod
     def create_app(
@@ -530,16 +564,10 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request, route_path="/", root_path=app.root_path
             )
-            async def endpoint(self):
-                return {"message": "Dynamic endpoint!!!"}
+            for page in blocks.pages:
+                route_path = page["route"]
+                app.add_dynamic_route(route_path)
 
-            for page in app.get_blocks().pages:
-                print("Adding route..........", page["route"])
-                app.router.add_api_route(
-                    path=page["route"],
-                    endpoint=endpoint,
-                    methods=["GET"]
-                )
             if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = utils.safe_deepcopy(blocks.config)
                 config = route_utils.update_root_in_config(config, root)
