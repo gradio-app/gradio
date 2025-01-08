@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import builtins
 import copy
+import dataclasses
 import inspect
 import os
 import warnings
@@ -32,6 +33,7 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.components.chatbot import (
+    ChatMessage,
     ExampleMessage,
     Message,
     MessageDict,
@@ -787,6 +789,7 @@ class ChatInterface(Blocks):
         history.extend(message_dicts)  # type: ignore
         if self.type == "tuples":
             history = self._messages_to_tuples(history)  # type: ignore
+        print("history", history)
         return history
 
     def _message_as_message_dict(
@@ -804,6 +807,9 @@ class ChatInterface(Blocks):
         for msg in message:
             if isinstance(msg, Message):
                 message_dicts.append(msg.model_dump())
+            elif isinstance(msg, ChatMessage):
+                msg.role = role
+                message_dicts.append(dataclasses.asdict(msg, dict_factory=utils.dict_factory))
             elif isinstance(msg, (str, Component)):
                 message_dicts.append({"role": role, "content": msg})
             elif (

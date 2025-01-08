@@ -37,6 +37,7 @@ class MetadataDict(TypedDict):
     title: Union[str, None]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
+    duration: NotRequired[int]
 
 
 class Option(TypedDict):
@@ -87,6 +88,7 @@ class Metadata(GradioModel):
     title: Optional[str] = None
     id: Optional[int | str] = None
     parent_id: Optional[int | str] = None
+    duration: Optional[int] = None
 
 
 class Message(GradioModel):
@@ -116,7 +118,7 @@ class ChatMessage:
     role: Literal["user", "assistant", "system"] = "assistant"
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
     options: Optional[list[Option]] = None
-    duration: Optional[int] = None
+
 
 
 class ChatbotDataMessages(GradioRootModel):
