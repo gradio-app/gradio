@@ -4,6 +4,8 @@ export type MessageRole = "system" | "user" | "assistant";
 
 export interface Metadata {
 	title: string | null;
+	id?: number | string | null;
+	parent_id?: number | string | null;
 }
 
 export interface ComponentData {
@@ -24,6 +26,7 @@ export interface Message {
 	content: string | FileData | ComponentData;
 	index: number | [number, number];
 	options?: Option[];
+	duration?: number;
 }
 
 export interface TextMessage extends Message {
@@ -52,3 +55,5 @@ export type message_data =
 export type TupleFormat = [message_data, message_data][] | null;
 
 export type NormalisedMessage = TextMessage | ComponentMessage;
+
+export type ThoughtNode = NormalisedMessage & { children: ThoughtNode[] };

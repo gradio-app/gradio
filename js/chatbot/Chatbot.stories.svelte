@@ -431,12 +431,73 @@ This document is a showcase of various Markdown capabilities.`,
 		value: [
 			{
 				role: "user",
-				content: "What is the weather like today?"
+				content: "What is 27 * 14?",
+				duration: 0.1
 			},
 			{
 				role: "assistant",
-				metadata: { title: "☀️ Using Weather Tool" },
-				content: "Weather looks sunny today."
+				duration: 10,
+				content: "Let me break this down step by step.",
+				metadata: {
+					id: 1,
+					title: "Solving multiplication",
+					parent_id: 0
+				}
+			},
+			{
+				role: "assistant",
+				content: "First, let's multiply 27 by 10: 27 * 10 = 270",
+				metadata: {
+					id: 2,
+					title: "Step 1",
+					parent_id: 1
+				}
+			},
+			{
+				role: "assistant",
+				content:
+					"We can do this quickly because multiplying by 10 just adds a zero",
+				metadata: {
+					id: 6,
+					title: "Quick Tip",
+					parent_id: 2
+				}
+			},
+			{
+				role: "assistant",
+				content: "Then multiply 27 by 4: 27 * 4 = 108",
+				metadata: {
+					id: 3,
+					title: "Step 2",
+					parent_id: 1
+				}
+			},
+			{
+				role: "assistant",
+				content:
+					"Adding these together: 270 + 108 = 378. Therefore, 27 * 14 = 378"
+			},
+			{
+				role: "assistant",
+				content: "Let me verify this result using a different method.",
+				metadata: {
+					id: 4,
+					title: "Verification",
+					parent_id: 0
+				}
+			},
+			{
+				role: "assistant",
+				content: "Using the standard algorithm: 27 * 14 = (20 + 7) * (10 + 4)",
+				metadata: {
+					id: 5,
+					title: "Expanding",
+					parent_id: 4
+				}
+			},
+			{
+				role: "assistant",
+				content: "The result is confirmed to be 378."
 			}
 		]
 	}}
