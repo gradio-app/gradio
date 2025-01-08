@@ -4,9 +4,10 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import MessageContent from "./MessageContent.svelte";
-	import { DropdownArrow } from "@gradio/icons";
+	import { DropdownCircularArrow } from "@gradio/icons";
 	import { IconButton } from "@gradio/atoms";
 	import { slide } from "svelte/transition";
+	import { MarkdownCode as Markdown } from "@gradio/markdown-code";
 
 	export let thought: NormalisedMessage;
 	export let rtl = false;
@@ -61,17 +62,21 @@
 			class="arrow"
 			style:transform={expanded ? "rotate(180deg)" : "rotate(0deg)"}
 		>
-			<IconButton Icon={DropdownArrow} />
+			<IconButton Icon={DropdownCircularArrow} />
 		</span>
-		<span class="title-text">
-			{thought_node.metadata?.title}
-			{#if thought_node.content === "" || thought_node.content === null}
-				<span class="loading-spinner"></span>
-			{/if}
-			{#if thought_node?.duration}
-				<span class="duration">{thought_node.duration}s</span>
-			{/if}
-		</span>
+		<Markdown
+			message={thought_node.metadata?.title || ""}
+			{render_markdown}
+			{latex_delimiters}
+			{sanitize_html}
+			{root}
+		/>
+		{#if thought_node.content === "" || thought_node.content === null}
+			<span class="loading-spinner"></span>
+		{/if}
+		{#if thought_node?.duration}
+			<span class="duration">{thought_node.duration || 0.16}s</span>
+		{/if}
 	</div>
 
 	{#if expanded}
@@ -152,6 +157,10 @@
 		width: 100%;
 	}
 
+	.title :global(.md) {
+		font-size: var(--text-sm) !important;
+	}
+
 	.content {
 		overflow-wrap: break-word;
 		word-break: break-word;
@@ -159,7 +168,8 @@
 		margin-bottom: var(--spacing-sm);
 	}
 	.content :global(*) {
-		font-size: var(--text-md);
+		font-size: var(--text-sm);
+		color: var(--body-text-color);
 	}
 
 	.thought-group :global(.thought:not(.nested)) {
@@ -170,6 +180,7 @@
 	.duration {
 		color: var(--body-text-color-subdued);
 		font-size: var(--text-sm);
+		margin-left: var(--size-1);
 	}
 
 	.arrow {
@@ -181,6 +192,10 @@
 		justify-content: center;
 	}
 
+	.arrow :global(button) {
+		background-color: transparent;
+	}
+
 	.loading-spinner {
 		display: inline-block;
 		width: 12px;
@@ -189,7 +204,7 @@
 		border-radius: 50%;
 		border-top-color: transparent;
 		animation: spin 1s linear infinite;
-		margin: 0 var(--size-1) -1px var(--size-1);
+		margin: 0 var(--size-1) -1px var(--size-2);
 		opacity: 0.8;
 	}
 
