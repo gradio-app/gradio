@@ -97,6 +97,7 @@ except Exception:
 
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from gradio.api import Route
     from gradio.components.base import Component
     from gradio.renderable import Renderable
 
@@ -1070,6 +1071,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.delete_cache = delete_cache
         self.extra_startup_events: list[Callable[..., Coroutine[Any, Any, Any]]] = []
         self.css = css or ""
+        self.extra_api_routes: list[Route] = []
         css_paths = utils.none_or_singleton_to_list(css_paths)
         for css_path in css_paths or []:
             with open(css_path, encoding="utf-8") as css_file:

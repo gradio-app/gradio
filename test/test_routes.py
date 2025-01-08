@@ -813,6 +813,29 @@ class TestDevMode:
         assert not gradio_fast_api.app.blocks.dev_mode  # type: ignore
 
 
+class TestCustomRestApi:
+    def test_custom_rest_api(self, connect):
+        with gr.Blocks() as demo:
+
+            @gr.api.get("/add")
+            def add(a: int, b: int):
+                return {"sum": a + b}
+
+            @gr.api.post("/subtract")
+            def subtract(data: dict):
+                return {"difference": data["a"] - data["b"]}
+
+        with connect(demo) as client:
+            response = requests.get(f"{client.src}/get/add?a=1&b=2")
+            assert response.json() == {"sum": 3}
+
+            response = requests.post(
+                f"{client.src}/post/subtract", json={"a": 2, "b": 1}
+            )
+            print(response.json())
+            assert response.json() == {"difference": 1}
+
+
 class TestPassingRequest:
     def test_request_included_with_interface(self):
         def identity(name, request: gr.Request):
