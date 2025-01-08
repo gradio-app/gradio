@@ -283,3 +283,39 @@ export function get_components_from_messages(
 	});
 	return Array.from(components);
 }
+
+export function get_thought_content(msg: NormalisedMessage, depth = 0): string {
+	let content = "";
+	const indent = "  ".repeat(depth);
+
+	if (msg.metadata?.title) {
+		content += `${indent}${depth > 0 ? "- " : ""}${msg.metadata.title}\n`;
+	}
+	if (typeof msg.content === "string") {
+		content += `${indent}  ${msg.content}\n`;
+	}
+	const thought = msg as ThoughtNode;
+	if (thought.children?.length > 0) {
+		content += thought.children
+			.map((child) => get_thought_content(child, depth + 1))
+			.join("");
+	}
+	return content;
+}
+
+export function all_text(message: TextMessage[] | TextMessage): string {
+	if (Array.isArray(message)) {
+		return message
+			.map((m) => {
+				if (m.metadata?.title) {
+					return get_thought_content(m);
+				}
+				return m.content;
+			})
+			.join("\n");
+	}
+	if (message.metadata?.title) {
+		return get_thought_content(message);
+	}
+	return message.content;
+}
