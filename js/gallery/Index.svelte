@@ -114,6 +114,7 @@
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				value = await process_upload_files(files);
 				gradio.dispatch("upload", value);
+				gradio.dispatch("change", value);
 			}}
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
