@@ -547,7 +547,6 @@ class Chatbot(Component):
                 content=message.content,  # type: ignore
                 metadata=message.metadata,  # type: ignore
                 options=message.options,
-                duration=message.duration,
             )
         elif isinstance(message, Message):
             return message
