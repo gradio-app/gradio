@@ -130,6 +130,7 @@
 		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-sm);
 		padding: var(--spacing-md);
+		margin: var(--spacing-md) 0;
 		font-size: var(--text-sm);
 	}
 
@@ -147,7 +148,6 @@
 		display: flex;
 		align-items: center;
 		color: var(--body-text-color);
-		opacity: 0.8;
 		cursor: pointer;
 		width: 100%;
 	}
@@ -156,9 +156,10 @@
 		overflow-wrap: break-word;
 		word-break: break-word;
 		margin-left: var(--spacing-lg);
+		margin-bottom: var(--spacing-sm);
 	}
 	.content :global(*) {
-		font-size: var(--text-sm);
+		font-size: var(--text-md);
 	}
 
 	.thought-group :global(.thought:not(.nested)) {

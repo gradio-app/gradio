@@ -249,7 +249,6 @@
 	.message {
 		position: relative;
 		width: 100%;
-		margin: var(--spacing-md) 0;
 	}
 
 	/* avatar styles */
