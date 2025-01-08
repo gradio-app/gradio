@@ -789,7 +789,6 @@ class ChatInterface(Blocks):
         history.extend(message_dicts)  # type: ignore
         if self.type == "tuples":
             history = self._messages_to_tuples(history)  # type: ignore
-        print("history", history)
         return history
 
     def _message_as_message_dict(
