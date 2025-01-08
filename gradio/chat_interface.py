@@ -271,14 +271,19 @@ class ChatInterface(Blocks):
 
             with Column():
                 self._render_header()
-                with Row():
-                    self._render_history_area()
-                    with Column(scale=6):
-                        self._render_chatbot_area(
-                            chatbot, textbox, submit_btn, stop_btn
-                        )
-                self._render_footer()
-                self._setup_events()
+                if self.save_history:
+                    with Row():
+                        self._render_history_area()
+                        with Column(scale=6):
+                            self._render_chatbot_area(
+                                chatbot, textbox, submit_btn, stop_btn
+                            )
+                            self._render_footer()
+                else:
+                    self._render_chatbot_area(chatbot, textbox, submit_btn, stop_btn)
+                    self._render_footer()
+
+            self._setup_events()
 
     def _render_header(self):
         if self.title:
@@ -289,20 +294,19 @@ class ChatInterface(Blocks):
             Markdown(self.description)
 
     def _render_history_area(self):
-        if self.save_history:
-            with Column(scale=1, min_width=100):
-                self.new_chat_button = Button(
-                    "New chat",
-                    variant="primary",
-                    size="md",
-                    icon=utils.get_icon_path("plus.svg"),
-                )
-                self.chat_history_dataset = Dataset(
-                    components=[Textbox(visible=False)],
-                    show_label=False,
-                    layout="table",
-                    type="index",
-                )
+        with Column(scale=1, min_width=100):
+            self.new_chat_button = Button(
+                "New chat",
+                variant="primary",
+                size="md",
+                icon=utils.get_icon_path("plus.svg"),
+            )
+            self.chat_history_dataset = Dataset(
+                components=[Textbox(visible=False)],
+                show_label=False,
+                layout="table",
+                type="index",
+            )
 
     def _render_chatbot_area(
         self,

@@ -221,4 +221,8 @@
 			transform: rotate(360deg);
 		}
 	}
+
+	.thought-group :global(.message-content) {
+		opacity: 0.8;
+	}
 </style>
