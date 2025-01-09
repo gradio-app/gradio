@@ -558,8 +558,8 @@ class ChatInterface(Blocks):
             )
             .then(  # The reason we do this outside of the submit_fn is that we want to update the chatbot UI with the user message immediately, before the submit_fn is called
                 self._append_message_to_history,
-                [self.saved_input, self.chatbot],
-                [self.chatbot],
+                [self.saved_input, self.chatbot, self.thought_durations],
+                [self.chatbot, self.thought_durations],
                 show_api=False,
                 queue=False,
             )
@@ -575,8 +575,8 @@ class ChatInterface(Blocks):
         # Creates the "/chat" API endpoint
         self.fake_api_btn.click(
             submit_fn,
-            [self.textbox, self.chatbot_state] + self.additional_inputs,
-            [self.api_response, self.chatbot_state] + self.additional_outputs,
+            [self.textbox, self.chatbot_state, self.thought_durations] + self.additional_inputs,
+            [self.api_response, self.chatbot_state, self.thought_durations] + self.additional_outputs,
             api_name=cast(Union[str, Literal[False]], self.api_name),
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
@@ -617,8 +617,8 @@ class ChatInterface(Blocks):
             )
             .then(
                 self._append_message_to_history,
-                [self.saved_input, self.chatbot_state],
-                [self.chatbot],
+                [self.saved_input, self.chatbot, self.thought_durations],
+                [self.chatbot, self.thought_durations],
                 show_api=False,
                 queue=False,
             )
@@ -1003,7 +1003,7 @@ class ChatInterface(Blocks):
         to the example message. Then, if example caching is enabled, the cached response is loaded
         and added to the chat history as well.
         """
-        history = self._append_message_to_history(example.value, [], "user")
+        history, _ = self._append_message_to_history(example.value, [], {}, "user")
         example = self._flatten_example_files(example)
         message = example.value if self.multimodal else example.value["text"]
         yield history, message
