@@ -603,7 +603,7 @@ class ChatInterface(Blocks):
             )
             .then(
                 self._append_message_to_history,
-                [self.saved_input, self.chatbot],
+                [self.saved_input, self.chatbot_state],
                 [self.chatbot],
                 show_api=False,
                 queue=False,
