@@ -368,7 +368,7 @@ You can even show nested thoughts, which is useful for agent demos in which one 
 
 **Providing preset responses**
 
-You may want to provide preset responses that a user can choose between when conversing with your chatbot. To do this, again, you will return a `gr.ChatMessage` instance from your chat function. This time, make sure to set the `options` key specifying the preset responses.
+When returning an assistant message, you may want to provide preset options that a user can choose in response. To do this, again, you will again return a `gr.ChatMessage` instance from your chat function. This time, make sure to set the `options` key specifying the preset responses.
 
 As shown in the schema for `gr.ChatMessage` above, the value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
 
