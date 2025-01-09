@@ -9,11 +9,10 @@ import copy
 import dataclasses
 import inspect
 import os
-import time
 import warnings
 from collections.abc import AsyncGenerator, Callable, Generator, Sequence
 from pathlib import Path
-from typing import Literal, Optional, TypedDict, Union, cast
+from typing import Literal, Union, cast
 
 import anyio
 from gradio_client.documentation import document
@@ -49,16 +48,6 @@ from gradio.helpers import special_args, update
 from gradio.layouts import Accordion, Column, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
-
-
-class ThoughtDuration(TypedDict):
-    """Type for tracking the start time and duration of assistant responses"""
-
-    start_time: float
-    duration: Optional[float]
-
-
-ThoughtDurations = dict[int | str, ThoughtDuration]
 
 
 @document()
@@ -267,7 +256,6 @@ class ChatInterface(Blocks):
             self.conversation_id = State(None)
             self.saved_input = State()  # Stores the most recent user message
             self.null_component = State()  # Used to discard unneeded values
-            self.thought_durations = State({})
 
             with Column():
                 self._render_header()
@@ -524,10 +512,8 @@ class ChatInterface(Blocks):
         }
         submit_fn_kwargs = {
             "fn": submit_fn,
-            "inputs": [self.saved_input, self.chatbot_state, self.thought_durations]
-            + self.additional_inputs,
-            "outputs": [self.null_component, self.chatbot, self.thought_durations]
-            + self.additional_outputs,
+            "inputs": [self.saved_input, self.chatbot_state] + self.additional_inputs,
+            "outputs": [self.null_component, self.chatbot] + self.additional_outputs,
             "show_api": False,
             "concurrency_limit": cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
@@ -558,8 +544,8 @@ class ChatInterface(Blocks):
             )
             .then(  # The reason we do this outside of the submit_fn is that we want to update the chatbot UI with the user message immediately, before the submit_fn is called
                 self._append_message_to_history,
-                [self.saved_input, self.chatbot, self.thought_durations],
-                [self.chatbot, self.thought_durations],
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
                 show_api=False,
                 queue=False,
             )
@@ -575,8 +561,8 @@ class ChatInterface(Blocks):
         # Creates the "/chat" API endpoint
         self.fake_api_btn.click(
             submit_fn,
-            [self.textbox, self.chatbot_state, self.thought_durations] + self.additional_inputs,
-            [self.api_response, self.chatbot_state, self.thought_durations] + self.additional_outputs,
+            [self.textbox, self.chatbot_state] + self.additional_inputs,
+            [self.api_response, self.chatbot_state] + self.additional_outputs,
             api_name=cast(Union[str, Literal[False]], self.api_name),
             concurrency_limit=cast(
                 Union[int, Literal["default"], None], self.concurrency_limit
@@ -617,8 +603,8 @@ class ChatInterface(Blocks):
             )
             .then(
                 self._append_message_to_history,
-                [self.saved_input, self.chatbot, self.thought_durations],
-                [self.chatbot, self.thought_durations],
+                [self.saved_input, self.chatbot],
+                [self.chatbot],
                 show_api=False,
                 queue=False,
             )
@@ -824,14 +810,9 @@ class ChatInterface(Blocks):
         self,
         message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
         history: list[MessageDict] | TupleFormat,
-        thought_durations: ThoughtDurations,
         role: Literal["user", "assistant"] = "user",
-    ) -> tuple[list[MessageDict] | TupleFormat, ThoughtDurations]:
+    ) -> list[MessageDict] | TupleFormat:
         message_dicts = self._message_as_message_dict(message, role)
-        message_dicts, thought_durations = self._set_thought_durations(
-            message_dicts, thought_durations
-        )
-
         if self.type == "tuples":
             history = self._tuples_to_messages(history)  # type: ignore
         else:
@@ -839,8 +820,7 @@ class ChatInterface(Blocks):
         history.extend(message_dicts)  # type: ignore
         if self.type == "tuples":
             history = self._messages_to_tuples(history)  # type: ignore
-
-        return history, thought_durations
+        return history
 
     def _message_as_message_dict(
         self,
@@ -884,7 +864,6 @@ class ChatInterface(Blocks):
         self,
         message: str | MultimodalPostprocess,
         history: TupleFormat | list[MessageDict],
-        thought_durations: ThoughtDurations,
         request: Request,
         *args,
     ) -> tuple:
@@ -901,8 +880,8 @@ class ChatInterface(Blocks):
             response, *additional_outputs = response
         else:
             additional_outputs = None
-        history, thought_durations = self._append_message_to_history(message, history, thought_durations, "user")
-        history, thought_durations = self._append_message_to_history(response, history, thought_durations, "assistant")
+        history = self._append_message_to_history(message, history, "user")
+        history = self._append_message_to_history(response, history, "assistant")
         if additional_outputs:
             return response, history, *additional_outputs
         return response, history
@@ -911,7 +890,6 @@ class ChatInterface(Blocks):
         self,
         message: str | MultimodalPostprocess,
         history: TupleFormat | list[MessageDict],
-        thought_durations: ThoughtDurations,
         request: Request,
         *args,
     ) -> AsyncGenerator[
@@ -929,29 +907,29 @@ class ChatInterface(Blocks):
             )
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
 
-        history, thought_durations = self._append_message_to_history(message, history, thought_durations, "user")
+        history = self._append_message_to_history(message, history, "user")
         additional_outputs = None
         try:
             first_response = await utils.async_iteration(generator)
             if self.additional_outputs:
                 first_response, *additional_outputs = first_response
-            history_, thought_durations = self._append_message_to_history(
-                first_response, history, thought_durations, "assistant"
+            history = self._append_message_to_history(
+                first_response, history, "assistant"
             )
             if not additional_outputs:
-                yield first_response, history_, thought_durations
+                yield first_response, history_
             else:
-                yield first_response, history_, thought_durations, *additional_outputs
+                yield first_response, history_, *additional_outputs
         except StopIteration:
-            yield None, history, thought_durations
+            yield None, history
         async for response in generator:
             if self.additional_outputs:
                 response, *additional_outputs = response
             history_, thought_durations = self._append_message_to_history(response, history, thought_durations, "assistant")
             if not additional_outputs:
-                yield response, history_, thought_durations
+                yield response, history_
             else:
-                yield response, history_, thought_durations, *additional_outputs
+                yield response, history_, *additional_outputs
 
     def option_clicked(
         self, history: list[MessageDict], option: SelectData
