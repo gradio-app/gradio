@@ -118,7 +118,7 @@ class ChatMessage:
     role: Literal["user", "assistant", "system"] = "assistant"
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
     options: Optional[list[Option]] = None
-    duration: Optional[int] = None
+
 
 
 class ChatbotDataMessages(GradioRootModel):
