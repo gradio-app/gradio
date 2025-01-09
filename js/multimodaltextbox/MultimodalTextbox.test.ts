@@ -65,4 +65,23 @@ describe("MultimodalTextbox", () => {
 		assert.equal(mock.calls[8][0].detail.data.text, "hi some text");
 		assert.equal(mock.calls[8][0].detail.data.files.length, 0);
 	});
+
+	test("submitting should clear mic_audio", async () => {
+		const { component } = await render(MultimodalTextbox, {
+			show_label: true,
+			max_lines: 10,
+			loading_status,
+			lines: 1,
+			value: { text: "", files: [] },
+			label: "MultimodalTextbox",
+			interactive: true,
+			root: "",
+			sources: ["microphone"]
+		});
+
+		component.$set({ mic_audio: { url: "test.mp3", mime_type: "audio/mp3" } });
+		component.$set({ active_source: "microphone" });
+		await component.$$.ctx[component.$$.props["handle_submit"]];
+		assert.equal(component.mic_audio, null);
+	});
 });
