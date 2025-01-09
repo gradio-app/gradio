@@ -37,6 +37,8 @@ class MetadataDict(TypedDict):
     title: Union[str, None]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
+    duration: NotRequired[float]
+    status: NotRequired[Literal["pending", "done"]]
 
 
 class Option(TypedDict):
@@ -59,7 +61,6 @@ class MessageDict(TypedDict):
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
     options: NotRequired[list[Option]]
-    duration: NotRequired[int]
 
 
 class FileMessage(GradioModel):
@@ -87,6 +88,14 @@ class Metadata(GradioModel):
     title: Optional[str] = None
     id: Optional[int | str] = None
     parent_id: Optional[int | str] = None
+    duration: Optional[float] = None
+    status: Optional[Literal["pending", "done"]] = None
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        setattr(self, key, value)
+
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
 
 
 class Message(GradioModel):
@@ -94,7 +103,6 @@ class Message(GradioModel):
     metadata: Metadata = Field(default_factory=Metadata)
     content: Union[str, FileMessage, ComponentMessage]
     options: Optional[list[Option]] = None
-    duration: Optional[int] = None
 
 
 class ExampleMessage(TypedDict):
@@ -110,13 +118,21 @@ class ExampleMessage(TypedDict):
     ]  # list of file paths or URLs to be added to chatbot when example is clicked
 
 
+@document()
 @dataclass
 class ChatMessage:
-    role: Literal["user", "assistant", "system"]
+    """
+    A dataclass for the messages format in the Chatbot component. 
+    Parameters:
+        content: The content of the message. Can be a string, a FileData object, a Component object, a FileDataDict object, a tuple, or a list.
+        role: The role of the message. Can be "user", "assistant", or "system". Defaults to "assistant".
+        metadata: The metadata of the message. Can be a MetadataDict object or a Metadata object. Defaults to a Metadata object with default values.
+        options: The options of the message. Can be a list of Option objects. Defaults to None.
+    """
     content: str | FileData | Component | FileDataDict | tuple | list
+    role: Literal["user", "assistant", "system"] = "assistant"
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
     options: Optional[list[Option]] = None
-    duration: Optional[int] = None
 
 
 class ChatbotDataMessages(GradioRootModel):
@@ -545,7 +561,6 @@ class Chatbot(Component):
                 content=message.content,  # type: ignore
                 metadata=message.metadata,  # type: ignore
                 options=message.options,
-                duration=message.duration,
             )
         elif isinstance(message, Message):
             return message
