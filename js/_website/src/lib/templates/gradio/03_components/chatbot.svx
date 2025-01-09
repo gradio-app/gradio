@@ -54,53 +54,41 @@ The `'tuples'` type is deprecated and will be removed in a future version of Gra
 
 If the `type` is `'messages'`, then the data sent to/from the chatbot will be a list of dictionaries
 with `role` and `content` keys. This format is compliant with the format expected by most LLM APIs (HuggingChat, OpenAI, Claude).
-The `role` key is either `'user'` or `'assistant'` and the `content` key can be one of the following:
+The `role` key is either `'user'` or `'assistant'` and the `content` key can be one of the following should be a  string (rendered as markdown/html) or a Gradio component (useful for displaying files).
 
-1. A string (markdown/html is also supported).
-2. A dictionary with `path` and `alt_text` keys. In this case, the file at `path` will be displayed in the chat history. Image, audio, and video files are fully embedded and visualized in the chat bubble. 
-The `path` key can point to a valid publicly available URL. The `alt_text` key is optional but it's good practice to provide [alt text](https://en.wikipedia.org/wiki/Alt_attribute).
-3. An instance of another Gradio component. 
-
-<br>
-We will show examples for all three cases below -
+As an example:
 
 ```python
-def generate_response(history):
-    # A plain text response
-    history.append(
-        {"role": "assistant", content="I am happy to provide you that report and plot."}
-    )
-    # Embed the quaterly sales report in the chat
-    history.append(
-        {"role": "assistant", content={"path": "quaterly_sales.txt", "alt_text": "Sales Report for Q2 2024"}}
-    )
-    # Make a plot of sales data
-    history.append(
-        {"role": "assistant", content=gr.Plot(value=make_plot_from_file('quaterly_sales.txt'))}
-    )
-    return history
+import gradio as gr
+
+history = [
+    {"role": "assistant", content="I am happy to provide you that report and plot."}
+    {"role": "assistant", content=gr.Plot(value=make_plot_from_file('quaterly_sales.txt'))}
+]
+
+with gr.Blocks() as demo:
+    gr.Chatbot(history)
+
+demo.launch()
 ```
 
 For convenience, you can use the `ChatMessage` dataclass so that your text editor can give you autocomplete hints and typechecks.
 
 ```python
-from gradio import ChatMessage
+import gradio as gr
 
-def generate_response(history):
-    history.append(
-        ChatMessage(role="assistant",
-                    content="How can I help you?")
-        )
-    return history
+history = [
+    gr.ChatMessage(role="assistant", content="How can I help you?"),
+    gr.ChatMessage(role="user", content="Can you make me a plot of quarterly sales?"},
+    gr.ChatMessage(role="assistant", content="I am happy to provide you that report and plot."}
+]
+
+with gr.Blocks() as demo:
+    gr.Chatbot(history)
+
+demo.launch()
 ```
 
-### Tuples format
-
-If `type` is `'tuples'`, then the data sent to/from the chatbot will be a list of tuples.
-The first element of each tuple is the user message and the second element is the bot's response.
-Each element can be a string (markdown/html is supported),
-a tuple (in which case the first element is a filepath that will be displayed in the chatbot),
-or a gradio component (see the Examples section for more details).
 
 <!--- Initialization -->
 ### Initialization
