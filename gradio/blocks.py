@@ -1317,6 +1317,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
                     dependency["no_target"] = True
                 else:
+                    print("targets", _targets)
                     targets = [
                         getattr(
                             original_mapping[
@@ -1435,6 +1436,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             ]
             for dependency in self.fns.values():
                 dependency._id += dependency_offset
+                # # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
+                # # should now be triggered by the root Blocks instead.
+                # for target in dependency.targets:
+                #     print("target", target, "self._id", self._id)
+                #     if target[0] == self._id:
+                #         target = (Context.root_block._id, target[1])
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
