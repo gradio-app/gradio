@@ -201,7 +201,8 @@
 			edit_index = null;
 			dispatch("edit", {
 				index: message.index,
-				value: edit_message
+				value: edit_message,
+				previous_value: message.content as string
 			});
 		} else {
 			let feedback =
