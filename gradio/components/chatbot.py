@@ -120,7 +120,6 @@ class ChatMessage:
     options: Optional[list[Option]] = None
 
 
-
 class ChatbotDataMessages(GradioRootModel):
     root: list[Message]
 
