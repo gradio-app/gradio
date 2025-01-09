@@ -880,13 +880,13 @@ class ChatInterface(Blocks):
             )
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
 
-        history_ = self._append_message_to_history(message, history, "user")
+        history = self._append_message_to_history(message, history, "user")
         additional_outputs = None
         try:
             first_response = await utils.async_iteration(generator)
             if self.additional_outputs:
                 first_response, *additional_outputs = first_response
-            history = self._append_message_to_history(
+            history_ = self._append_message_to_history(
                 first_response, history, "assistant"
             )
             if not additional_outputs:
