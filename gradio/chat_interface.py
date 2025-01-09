@@ -880,7 +880,7 @@ class ChatInterface(Blocks):
             )
             generator = utils.SyncToAsyncIterator(generator, self.limiter)
 
-        history = self._append_message_to_history(message, history, "user")
+        history_ = self._append_message_to_history(message, history, "user")
         additional_outputs = None
         try:
             first_response = await utils.async_iteration(generator)
@@ -898,7 +898,7 @@ class ChatInterface(Blocks):
         async for response in generator:
             if self.additional_outputs:
                 response, *additional_outputs = response
-            history_, thought_durations = self._append_message_to_history(response, history, thought_durations, "assistant")
+            history_ = self._append_message_to_history(response, history, "assistant")
             if not additional_outputs:
                 yield response, history_
             else:
@@ -954,7 +954,7 @@ class ChatInterface(Blocks):
         to the example message. Then, if example caching is enabled, the cached response is loaded
         and added to the chat history as well.
         """
-        history, _ = self._append_message_to_history(example.value, [], {}, "user")
+        history = self._append_message_to_history(example.value, [], "user")
         example = self._flatten_example_files(example)
         message = example.value if self.multimodal else example.value["text"]
         yield history, message
