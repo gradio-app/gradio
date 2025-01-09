@@ -5,6 +5,7 @@ import time
 sleep_time = 0.5
 
 def simulate_thinking_chat(message, history):
+    start_time = time.time()
     response = ChatMessage(
         content="",
         metadata={"title": "_Thinking_ step-by-step", "id": 0, "status": "pending"}
@@ -26,6 +27,7 @@ def simulate_thinking_chat(message, history):
         yield response
 
     response.metadata["status"] = "done"
+    response.metadata["duration"] = time.time() - start_time
     yield response
 
     response = [

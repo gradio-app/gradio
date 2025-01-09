@@ -362,7 +362,6 @@ class Chatbot(Component):
     @staticmethod
     def _check_format(messages: Any, type: Literal["messages", "tuples"]):
         if type == "messages":
-            print("messages", messages)
             all_valid = all(
                 isinstance(message, dict)
                 and "role" in message
