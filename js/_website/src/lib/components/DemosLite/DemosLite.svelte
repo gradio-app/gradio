@@ -19,8 +19,8 @@
 	let current_code = false;
 	let compare = false;
 
-	const workerUrl = "https://playground-worker.pages.dev/api/generate";
-	// const workerUrl = "http://localhost:5173/api/generate";
+	// const workerUrl = "https://playground-worker.pages.dev/api/generate";
+	const workerUrl = "http://localhost:5173/api/generate";
 	let model_info = "";
 
 	let abortController: AbortController | null = null;
@@ -763,7 +763,7 @@
 					<div class="mr-2 items-center flex flex-row -mt-7">
 						<div class="flex-grow">
 							<label
-								class="my-[1px] pl-2 relative z-10 bg-white float-left flex items-center transition-all duration-200 cursor-pointer font-normal text-sm leading-6"
+								class="my-1 pl-2 relative z-10 bg-white float-left flex items-center transition-all duration-200 cursor-pointer font-normal text-sm leading-6"
 							>
 								<input
 									bind:checked={auto_regenerate_user_toggle}
@@ -773,7 +773,7 @@
 									class=""
 								/>
 								<span class="text-gray-600 text-xs"
-									>Auto-fix errors from AI code</span
+									><span class="font-semibold">Agent Mode</span>: Auto-fix errors in generated code</span
 								>
 							</label>
 						</div>
@@ -814,9 +814,9 @@
 								class="pl-2 relative z-10 bg-white flex items-center float-right"
 							>
 								<p class="text-gray-600 my-1 text-xs">
-									<span style="font-weight: 500">Note:</span> This is
+									<!-- This is
 									<span style="font-weight: 500">experimental</span>. Generated
-									code may be incorrect.
+									code may be incorrect. -->
 								</p>
 							</div>
 						{/if}
