@@ -10,6 +10,7 @@
     import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("chatbot");
+    let chatmessage_obj = get_object("chatmessage");
 
     let embedded_demo_obj = `[
         {"role": "user", "content": "Hello World"},
@@ -177,6 +178,29 @@ demo.launch()
 ### Event Listeners 
 <FunctionsSection fns={obj.fns} event_listeners={true} />
 {/if}
+
+<!-- Helper Classes -->
+### Helper Classes 
+<div style="margin-left: 3rem">
+
+<!--- Title -->
+### ChatMessage
+
+
+<!--- Usage -->
+```python
+gradio.ChatMessage(···)
+```
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(chatmessage_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={chatmessage_obj.parameters} />
+
+</div>
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->

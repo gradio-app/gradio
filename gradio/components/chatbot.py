@@ -118,8 +118,17 @@ class ExampleMessage(TypedDict):
     ]  # list of file paths or URLs to be added to chatbot when example is clicked
 
 
+@document()
 @dataclass
 class ChatMessage:
+    """
+    A dataclass for the messages format in the Chatbot component. 
+    Parameters:
+        content: The content of the message. Can be a string, a FileData object, a Component object, a FileDataDict object, a tuple, or a list.
+        role: The role of the message. Can be "user", "assistant", or "system". Defaults to "assistant".
+        metadata: The metadata of the message. Can be a MetadataDict object or a Metadata object. Defaults to a Metadata object with default values.
+        options: The options of the message. Can be a list of Option objects. Defaults to None.
+    """
     content: str | FileData | Component | FileDataDict | tuple | list
     role: Literal["user", "assistant", "system"] = "assistant"
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
