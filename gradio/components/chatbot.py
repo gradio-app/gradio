@@ -91,6 +91,12 @@ class Metadata(GradioModel):
     duration: Optional[float] = None
     status: Optional[Literal["pending", "done"]] = None
 
+    def __setitem__(self, key: str, value: Any) -> None:
+        setattr(self, key, value)
+
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
+
 
 class Message(GradioModel):
     role: str
@@ -546,7 +552,6 @@ class Chatbot(Component):
                 content=message.content,  # type: ignore
                 metadata=message.metadata,  # type: ignore
                 options=message.options,
-                duration=message.duration,
             )
         elif isinstance(message, Message):
             return message

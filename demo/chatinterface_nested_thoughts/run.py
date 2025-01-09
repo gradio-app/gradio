@@ -21,7 +21,7 @@ def generate_response(message, history):
         )
 
     responses.append(main_thought)
-    
+
     yield responses
     time.sleep(long_sleep_time)
     responses[-1].content = "Will check: weather.com and sunny.org"
