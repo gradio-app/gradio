@@ -779,33 +779,6 @@ class ChatInterface(Blocks):
                 )
         return history_messages
 
-    @staticmethod
-    def _set_thought_durations(
-        message_dicts: list[MessageDict], thought_durations: ThoughtDurations
-    ) -> tuple[list[MessageDict], ThoughtDurations]:
-        for message in message_dicts:
-            if (
-                message["role"] == "assistant"
-                and "metadata" in message
-                and "id" in message["metadata"]
-            ):
-                id = message["metadata"]["id"]
-                if id not in thought_durations:
-                    thought_durations[id] = {
-                        "start_time": time.time(),
-                        "duration": None,
-                    }
-                elif (
-                    "status" in message["metadata"]
-                    and message["metadata"]["status"] == "done"
-                ):
-                    thought_durations[id]["duration"] = (
-                        time.time() - thought_durations[id]["start_time"]
-                    )
-                    if "duration" not in message["metadata"] or message["metadata"]["duration"] is None:
-                        message["metadata"]["duration"] = thought_durations[id]["duration"]
-        return message_dicts, thought_durations
-
     def _append_message_to_history(
         self,
         message: MessageDict | Message | str | Component | MultimodalPostprocess | list,
