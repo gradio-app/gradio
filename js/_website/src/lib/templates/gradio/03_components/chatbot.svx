@@ -11,6 +11,7 @@
 
     let obj = get_object("chatbot");
     let chatmessage_obj = get_object("chatmessage");
+    let chatmessage_obj = get_object("chatmessage");
 
     let embedded_demo_obj = `[
         {"role": "user", "content": "Hello World"},
