@@ -376,7 +376,6 @@ This example illustrates how to use preset responses:
 
 $code_chatinterface_options
 
-
 ## Using Your Chatbot via API
 
 Once you've built your Gradio chat interface and are hosting it on [Hugging Face Spaces](https://hf.space) or somewhere else, then you can query it with a simple API at the `/chat` endpoint. The endpoint just expects the user's message and will return the response, internally keeping track of the message history.
