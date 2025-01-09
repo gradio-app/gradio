@@ -129,6 +129,7 @@ class ChatMessage:
         metadata: The metadata of the message, which is used to display intermediate thoughts / tool usage. Should be a dictionary with the following keys: "title" (required to display the thought), and optionally: "id" and "parent_id" (to nest thoughts), "duration" (to display the duration of the thought), "status" (to display the status of the thought).
         options: The options of the message. A list of Option objects, which are dictionaries with the following keys: "label" (the text to display in the option), and optionally "value" (the value to return when the option is selected if different from the label).
     """
+
     content: str | FileData | Component | FileDataDict | tuple | list
     role: Literal["user", "assistant", "system"] = "assistant"
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
