@@ -37,7 +37,7 @@ class MetadataDict(TypedDict):
     title: Union[str, None]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
-    duration: NotRequired[int]
+    duration: NotRequired[float]
     status: NotRequired[Literal["pending", "done"]]
 
 
