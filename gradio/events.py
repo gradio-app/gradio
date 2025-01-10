@@ -967,13 +967,17 @@ def api(
     def ordinal(n):
         return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
 
+    if any(param[3] == None for param in fn_params):
+        raise ValueError(
+            "API endpoints must have type hints. Please specify a type hint for all parameters."
+        )
     inputs = [
         Api(
             default_value if has_default else None,
             python_type_to_json_schema(_type),
             ordinal(i + 1),
         )
-        for i, (name, has_default, default_value, _type) in enumerate(fn_params)
+        for i, (_, has_default, default_value, _type) in enumerate(fn_params)
     ]
     outputs = [
         Api(None, python_type_to_json_schema(type), ordinal(i + 1))
