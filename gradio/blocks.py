@@ -40,7 +40,7 @@ from gradio import (
     utils,
     wasm_utils,
 )
-from gradio.blocks_events import BlocksEvents, BlocksMeta
+from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
 from gradio.context import (
     Context,
     LocalContext,
@@ -1322,7 +1322,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                             t.__self__ if t.has_trigger else None,
                             t.event_name,  # type: ignore
                         )
-                        for t in Blocks.get_target_events(original_mapping, _targets, trigger)
+                        for t in Blocks.get_target_events(
+                            original_mapping, _targets, trigger
+                        )
                     ]
                 dependency = root_block.default_config.set_event_trigger(
                     targets=targets, fn=fn, **dependency
@@ -3007,23 +3009,27 @@ Received inputs:
         return api_info
 
     @staticmethod
-    def get_target_events(original_mapping: dict[int, Block], _targets: list, trigger: str) -> list:
-        """Get event trigger methods for the given targets.
-        
-        Args:
-            original_mapping: Mapping of block IDs to Block instances
-            _targets: List of targets (either ints or tuples)
-            trigger: Name of trigger event
-        
-        Returns:
-            List of event trigger methods
-        """
-        return [
-            getattr(
-                original_mapping[
-                    target if isinstance(target, int) else target[0]
-                ],
-                trigger if isinstance(target, int) else target[1], 
-            )
-            for target in _targets
-        ]
+    def get_target_events(
+        original_mapping: dict[int, Block], _targets: list, trigger: str
+    ) -> list:
+        target_events = []
+        for target in _targets:
+            # If target is just an integer (old format), use it directly with the trigger
+            # Otherwise target is a tuple and we use its components
+            target_id = target if isinstance(target, int) else target[0]
+            event_name = trigger if isinstance(target, int) else target[1]
+            block = original_mapping.get(target_id)
+            # Blocks events are a special case because they are not stored in the blocks list in the config
+            if block is None:
+                if event_name in [
+                    event.event_name if isinstance(event, EventListener) else event
+                    for event in BLOCKS_EVENTS
+                ]:
+                    block = Context.root_block
+                else:
+                    raise ValueError(
+                        f"Cannot find Block with id: {target_id} but is present as a target in the config"
+                    )
+            event = getattr(block, event_name)
+            target_events.append(event)
+        return target_events

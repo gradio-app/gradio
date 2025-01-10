@@ -92,7 +92,20 @@ class TestBlocksMethods:
         for component in config1["components"]:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
-        assert assert_configs_are_equivalent_besides_ids(config1, config2)  # type: ignore
+        assert assert_configs_are_equivalent_besides_ids(config1, config2)
+
+    def test_load_from_config_with_blocks_events(self):
+        fake_url = "https://fake.hf.space"
+
+        def fn():
+            return "Hello"
+
+        with gr.Blocks() as demo:
+            t = gr.Textbox()
+            demo.load(fn, None, t)
+
+        config = demo.get_config_file()
+        gr.Blocks.from_config(config, [fn], fake_url)  # Should not raise
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
