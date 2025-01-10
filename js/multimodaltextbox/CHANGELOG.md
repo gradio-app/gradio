@@ -1,5 +1,21 @@
 # @gradio/multimodaltextbox
 
+## 0.9.1
+
+### Fixes
+
+- [#10322](https://github.com/gradio-app/gradio/pull/10322) [`d2691e7`](https://github.com/gradio-app/gradio/commit/d2691e7436f722781ee61db43ce3f2d5ccc3e253) - Quick Fix: Multimodal microphone audio not clearing.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/video@0.13.1
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+- @gradio/upload@0.14.5
+- @gradio/image@0.20.1
+
 ## 0.9.0
 
 ### Features

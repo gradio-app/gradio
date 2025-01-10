@@ -1,5 +1,16 @@
 # @self/app
 
+## 1.46.0
+
+### Features
+
+- [#10270](https://github.com/gradio-app/gradio/pull/10270) [`bb11a2a`](https://github.com/gradio-app/gradio/commit/bb11a2a702ca04fde245e7d54d155cbcbde7791e) - [ZeroGPU] Handshake-based postMessage.  Thanks @cbensimon!
+
+### Dependency updates
+
+- @gradio/client@1.10.0
+- @gradio/core@0.6.1
+
 ## 1.45.0
 
 ### Features
