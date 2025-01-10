@@ -201,7 +201,8 @@
 			edit_index = null;
 			dispatch("edit", {
 				index: message.index,
-				value: edit_message
+				value: edit_message,
+				previous_value: message.content as string
 			});
 		} else {
 			let feedback =
@@ -393,13 +394,6 @@
 		.bubble-wrap {
 			background: var(--background-fill-secondary);
 		}
-	}
-
-	.message-wrap {
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		margin-bottom: var(--spacing-xxl);
 	}
 
 	.message-wrap :global(.prose.chatbot.md) {

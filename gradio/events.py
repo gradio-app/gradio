@@ -399,9 +399,13 @@ class EditData(EventData):
         """
         The index of the message that was edited.
         """
+        self.previous_value: Any = data["previous_value"]
+        """
+        The previous content of the message that was edited.
+        """
         self.value: Any = data["value"]
         """
-        The content of the message that was edited.
+        The new content of the message that was edited.
         """
 
 
