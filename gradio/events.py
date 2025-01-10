@@ -890,7 +890,7 @@ def on(
 
 @document()
 def api(
-    fn: Callable | None | Literal["decorator"] = "decorator",
+    fn: Callable | Literal["decorator"] = "decorator",
     *,
     api_name: str | None | Literal[False] = None,
     queue: bool = True,
@@ -992,7 +992,7 @@ def api(
         preprocess=False,
         postprocess=False,
         scroll_to_output=False,
-        show_progress=False,
+        show_progress="hidden",
         api_name=api_name,
         js=None,
         concurrency_limit=concurrency_limit,

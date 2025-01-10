@@ -1290,7 +1290,7 @@ def get_upload_folder() -> str:
     )
 
 
-def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
+def get_function_params(func: Callable) -> list[tuple[str, bool, Any, Any]]:
     """
     Gets the parameters of a function as a list of tuples of the form (name, has_default, default_value, type_hint).
     Excludes *args and **kwargs, as well as args that are Gradio-specific, such as gr.Request, gr.EventData, gr.OAuthProfile, and gr.OAuthToken.
