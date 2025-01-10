@@ -518,7 +518,7 @@ def safe_deepcopy(obj: Any) -> Any:
 
 
 def assert_configs_are_equivalent_besides_ids(
-    config1: dict, config2: dict, root_keys: tuple = ("mode",)
+    config1: BlocksConfigDict, config2: BlocksConfigDict, root_keys: tuple = ("mode",)
 ):
     """Allows you to test if two different Blocks configs produce the same demo.
 
@@ -563,20 +563,31 @@ def assert_configs_are_equivalent_besides_ids(
             if "children" in child1 or "children" in child2:
                 same_children_recursive(child1["children"], child2["children"])
 
-    children1 = config1["layout"]["children"]
-    children2 = config2["layout"]["children"]
-    same_children_recursive(children1, children2)
+    if "layout" in config1:
+        if "layout" not in config2:
+            raise ValueError(
+                "The first config has a layout key, but the second does not"
+            )
+        children1 = config1["layout"]["children"]
+        children2 = config2["layout"]["children"]
+        same_children_recursive(children1, children2)
 
-    for d1, d2 in zip(config1["dependencies"], config2["dependencies"], strict=False):
-        for t1, t2 in zip(d1.pop("targets"), d2.pop("targets"), strict=False):
-            assert_same_components(t1[0], t2[0])
-        for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs"), strict=False):
-            assert_same_components(i1, i2)
-        for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs"), strict=False):
-            assert_same_components(o1, o2)
-
-        if d1 != d2:
-            raise ValueError(f"{d1} does not match {d2}")
+    if "dependencies" in config1:
+        if "dependencies" not in config2:
+            raise ValueError(
+                "The first config has a dependencies key, but the second does not"
+            )
+        for d1, d2 in zip(
+            config1["dependencies"], config2["dependencies"], strict=False
+        ):
+            for t1, t2 in zip(d1.pop("targets"), d2.pop("targets"), strict=False):
+                assert_same_components(t1[0], t2[0])
+            for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs"), strict=False):
+                assert_same_components(i1, i2)
+            for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs"), strict=False):
+                assert_same_components(o1, o2)
+            if d1 != d2:
+                raise ValueError(f"{d1} does not match {d2}")
 
     return True
 
