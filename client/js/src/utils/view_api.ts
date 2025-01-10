@@ -63,7 +63,6 @@ export async function view_api(this: Client): Promise<any> {
 		) {
 			api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
 		}
-		console.log("1 api_info", api_info);
 
 		return transform_api_info(api_info, config, this.api_map);
 	} catch (e) {
