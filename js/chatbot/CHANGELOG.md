@@ -1,5 +1,25 @@
 # @gradio/chatbot
 
+## 0.21.0
+
+### Features
+
+- [#10323](https://github.com/gradio-app/gradio/pull/10323) [`391a4d0`](https://github.com/gradio-app/gradio/commit/391a4d09a90406b768eee30e1c12a0bc84fc27a2) - Add `.previous_value` to `gr.EditData`.  Thanks @abidlabs!
+- [#10305](https://github.com/gradio-app/gradio/pull/10305) [`be40307`](https://github.com/gradio-app/gradio/commit/be40307d1d11421e01bf91fa5e05ec4ab97b09d8) - Add support for thinking LLMs directly in `gr.ChatInterface`.  Thanks @abidlabs!
+- [#10226](https://github.com/gradio-app/gradio/pull/10226) [`58b8391`](https://github.com/gradio-app/gradio/commit/58b839196e17776cbd0d48997905496f7746d31f) - Improve tool UI and support nested thoughts.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/video@0.13.1
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+- @gradio/upload@0.14.5
+- @gradio/gallery@0.15.1
+- @gradio/plot@0.9.6
+- @gradio/image@0.20.1
+
 ## 0.20.1
 
 ### Dependency updates
