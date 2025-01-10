@@ -225,15 +225,21 @@
 
 	let webcam_accessed = false;
 
-	function record_video_or_photo(): void {
+	function record_video_or_photo({
+		destroy
+	}: { destroy?: boolean } = {}): void {
 		if (mode === "image" && streaming) {
 			recording = !recording;
 		}
-		if (mode === "image") {
-			take_picture();
-		} else {
-			take_recording();
+
+		if (!destroy) {
+			if (mode === "image") {
+				take_picture();
+			} else {
+				take_recording();
+			}
 		}
+
 		if (!recording && stream) {
 			dispatch("close_stream");
 			stream.getTracks().forEach((track) => track.stop());
@@ -276,7 +282,7 @@
 
 	onDestroy(() => {
 		if (typeof window === "undefined") return;
-		record_video_or_photo();
+		record_video_or_photo({ destroy: true });
 		stream?.getTracks().forEach((track) => track.stop());
 	});
 </script>
@@ -306,7 +312,7 @@
 	{:else}
 		<div class="button-wrap">
 			<button
-				on:click={record_video_or_photo}
+				on:click={() => record_video_or_photo()}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
 				{#if mode === "video" || streaming}
