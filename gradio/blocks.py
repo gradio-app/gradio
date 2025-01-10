@@ -1322,7 +1322,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                             t.__self__ if t.has_trigger else None,
                             t.event_name,  # type: ignore
                         )
-                        for t in Blocks.get_target_events(
+                        for t in Blocks.get_event_targets(
                             original_mapping, _targets, trigger
                         )
                     ]
@@ -1431,7 +1431,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
                 # should now be triggered by the root Blocks instead.
                 for target in dependency.targets:
-                    print("target", target, "self._id", self._id)
                     if target[0] == self._id:
                         target = (Context.root_block._id, target[1])
                 api_name = dependency.api_name
@@ -3009,7 +3008,7 @@ Received inputs:
         return api_info
 
     @staticmethod
-    def get_target_events(
+    def get_event_targets(
         original_mapping: dict[int, Block], _targets: list, trigger: str
     ) -> list:
         target_events = []
