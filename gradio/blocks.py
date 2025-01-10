@@ -1317,22 +1317,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
                     dependency["no_target"] = True
                 else:
-                    print("targets", _targets)
-                    targets = [
-                        getattr(
-                            original_mapping[
-                                target if isinstance(target, int) else target[0]
-                            ],
-                            trigger if isinstance(target, int) else target[1],
-                        )
-                        for target in _targets
-                    ]
                     targets = [
                         EventListenerMethod(
                             t.__self__ if t.has_trigger else None,
                             t.event_name,  # type: ignore
                         )
-                        for t in targets
+                        for t in Blocks.get_target_events(original_mapping, _targets, trigger)
                     ]
                 dependency = root_block.default_config.set_event_trigger(
                     targets=targets, fn=fn, **dependency
@@ -1436,12 +1426,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             ]
             for dependency in self.fns.values():
                 dependency._id += dependency_offset
-                # # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
-                # # should now be triggered by the root Blocks instead.
-                # for target in dependency.targets:
-                #     print("target", target, "self._id", self._id)
-                #     if target[0] == self._id:
-                #         target = (Context.root_block._id, target[1])
+                # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
+                # should now be triggered by the root Blocks instead.
+                for target in dependency.targets:
+                    print("target", target, "self._id", self._id)
+                    if target[0] == self._id:
+                        target = (Context.root_block._id, target[1])
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -3015,3 +3005,25 @@ Received inputs:
                 api_info["named_endpoints"][f"/{fn.api_name}"] = dependency_info
 
         return api_info
+
+    @staticmethod
+    def get_target_events(original_mapping: dict[int, Block], _targets: list, trigger: str) -> list:
+        """Get event trigger methods for the given targets.
+        
+        Args:
+            original_mapping: Mapping of block IDs to Block instances
+            _targets: List of targets (either ints or tuples)
+            trigger: Name of trigger event
+        
+        Returns:
+            List of event trigger methods
+        """
+        return [
+            getattr(
+                original_mapping[
+                    target if isinstance(target, int) else target[0]
+                ],
+                trigger if isinstance(target, int) else target[1], 
+            )
+            for target in _targets
+        ]
