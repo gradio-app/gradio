@@ -21,10 +21,10 @@ If you have a chat server serving an OpenAI-API compatible endpoint (e.g. Ollama
 ```python
 import gradio as gr
 
-gr.load_chat("http://localhost:11434/v1/", model="llama3.2", token=None).launch()
+gr.load_chat("http://localhost:11434/v1/", model="llama3.2", token="ollama").launch()
 ```
 
-If not, don't worry, keep reading to see how to create an application around any chat model!
+If you have your own model, keep reading to see how to create an application around any chat model in Python!
 
 ## Defining a chat function
 
