@@ -215,6 +215,18 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
+		const supports_zerogpu_headers = "supports-zerogpu-headers";
+		window.addEventListener("message", (event) => {
+			if (event.data === supports_zerogpu_headers) {
+				window.supports_zerogpu_headers = true;
+			}
+		});
+		const hostname = window.location.hostname;
+		const origin = hostname.includes(".dev.")
+			? `https://moon-${hostname.split(".")[1]}.dev.spaces.huggingface.tech`
+			: `https://huggingface.co`;
+		window.parent.postMessage(supports_zerogpu_headers, origin);
+
 		dispatch("loaded");
 
 		if (config.dev_mode) {

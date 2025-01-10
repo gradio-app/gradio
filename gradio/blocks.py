@@ -547,7 +547,6 @@ class BlockFunction:
         self.queue = False if fn is None else queue
         self.scroll_to_output = False if utils.get_space() else scroll_to_output
         self.show_api = show_api
-        self.zero_gpu = hasattr(self.fn, "zerogpu")
         self.types_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
@@ -608,7 +607,6 @@ class BlockFunction:
             "trigger_only_on_success": self.trigger_only_on_success,
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
-            "zerogpu": self.zero_gpu,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
             "connection": self.connection,
             "time_limit": self.time_limit,
