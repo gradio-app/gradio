@@ -35,6 +35,10 @@ from gradio.exceptions import Error
 
 class MetadataDict(TypedDict):
     title: Union[str, None]
+    id: NotRequired[int | str]
+    parent_id: NotRequired[int | str]
+    duration: NotRequired[float]
+    status: NotRequired[Literal["pending", "done"]]
 
 
 class Option(TypedDict):
@@ -82,6 +86,16 @@ class ChatbotDataTuples(GradioRootModel):
 
 class Metadata(GradioModel):
     title: Optional[str] = None
+    id: Optional[int | str] = None
+    parent_id: Optional[int | str] = None
+    duration: Optional[float] = None
+    status: Optional[Literal["pending", "done"]] = None
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        setattr(self, key, value)
+
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
 
 
 class Message(GradioModel):
@@ -104,10 +118,20 @@ class ExampleMessage(TypedDict):
     ]  # list of file paths or URLs to be added to chatbot when example is clicked
 
 
+@document()
 @dataclass
 class ChatMessage:
-    role: Literal["user", "assistant", "system"]
+    """
+    A dataclass to represent a message in the Chatbot component (type="messages").
+    Parameters:
+        content: The content of the message. Can be a string or a Gradio component.
+        role: The role of the message, which determines the alignment of the message in the chatbot. Can be "user", "assistant", or "system". Defaults to "assistant".
+        metadata: The metadata of the message, which is used to display intermediate thoughts / tool usage. Should be a dictionary with the following keys: "title" (required to display the thought), and optionally: "id" and "parent_id" (to nest thoughts), "duration" (to display the duration of the thought), "status" (to display the status of the thought).
+        options: The options of the message. A list of Option objects, which are dictionaries with the following keys: "label" (the text to display in the option), and optionally "value" (the value to return when the option is selected if different from the label).
+    """
+
     content: str | FileData | Component | FileDataDict | tuple | list
+    role: Literal["user", "assistant", "system"] = "assistant"
     metadata: MetadataDict | Metadata = field(default_factory=Metadata)
     options: Optional[list[Option]] = None
 
