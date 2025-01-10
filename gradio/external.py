@@ -602,7 +602,7 @@ def load_chat(
         token: The API token or a placeholder string if you are using a local model, e.g. "ollama"
         system_message: The system message to use for the conversation, if any.
         streaming: Whether the response should be streamed.
-        **kwargs: Additional keyword arguments to pass into ChatInterface for customization.
+        kwargs: Additional keyword arguments to pass into ChatInterface for customization.
     """
     try:
         from openai import OpenAI
