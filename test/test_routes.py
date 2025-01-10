@@ -696,9 +696,10 @@ class TestRoutes:
 
 def test_api_listener(connect):
     with gr.Blocks() as demo:
+
         def fn(a: int, b: int, c: list[str]) -> tuple[int, str]:
             return a + b, c[a:b]
-        
+
         gr.api(fn, api_name="addition")
 
     with connect(demo) as client:

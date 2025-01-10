@@ -967,7 +967,7 @@ def api(
     def ordinal(n):
         return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
 
-    if any(param[3] == None for param in fn_params):
+    if any(param[3] is None for param in fn_params):
         raise ValueError(
             "API endpoints must have type hints. Please specify a type hint for all parameters."
         )
