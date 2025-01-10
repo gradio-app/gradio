@@ -75,6 +75,7 @@ from gradio.events import (
     RetryData,
     SelectData,
     UndoData,
+    api,
     on,
 )
 from gradio.exceptions import Error

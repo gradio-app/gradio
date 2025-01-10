@@ -42,7 +42,7 @@ from contextlib import contextmanager
 from functools import wraps
 from io import BytesIO
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, NoneType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -50,6 +50,8 @@ from typing import (
     Literal,
     Optional,
     TypeVar,
+    get_args,
+    get_origin,
 )
 
 import anyio
@@ -1290,7 +1292,7 @@ def get_upload_folder() -> str:
 
 def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
     """
-    Gets the parameters of a function as a list of tuples of the form (name, has_default, default_value).
+    Gets the parameters of a function as a list of tuples of the form (name, has_default, default_value, type_hint).
     Excludes *args and **kwargs, as well as args that are Gradio-specific, such as gr.Request, gr.EventData, gr.OAuthProfile, and gr.OAuthToken.
     """
     params_info = []
@@ -1305,10 +1307,24 @@ def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
         if is_special_typed_parameter(name, type_hints):
             continue
         if parameter.default is inspect.Parameter.empty:
-            params_info.append((name, False, None))
+            params_info.append((name, False, None, type_hints.get(name, None)))
         else:
-            params_info.append((name, True, parameter.default))
+            params_info.append(
+                (name, True, parameter.default, type_hints.get(name, None))
+            )
     return params_info
+
+
+def get_return_types(func: Callable) -> list:
+    return_hint = inspect.signature(func).return_annotation
+
+    if return_hint in {inspect.Signature.empty, None, NoneType}:
+        return []
+
+    if get_origin(return_hint) == tuple:
+        return list(get_args(return_hint))
+
+    return [return_hint]
 
 
 def simplify_file_data_in_str(s):

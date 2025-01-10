@@ -23,8 +23,10 @@ if TYPE_CHECKING:
     from gradio.blocks import Block, BlockContext, Component
     from gradio.components import Timer
 
+from gradio_client.utils import python_type_to_json_schema
+
 from gradio.context import get_blocks_context
-from gradio.utils import get_cancelled_fn_indices
+from gradio.utils import get_cancelled_fn_indices, get_function_params, get_return_types
 
 
 def set_cancel_events(
@@ -756,7 +758,7 @@ def on(
         fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
         inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
         outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
-        api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+        api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, will use the functions name as the endpoint route. If set to a string, the endpoint will be exposed in the api docs with the given name.
         scroll_to_output: If True, will scroll to output component on completion
         show_progress: how to show the progress animation while event is running: "full" shows a spinner which covers the output component area as well as a runtime display in the upper right corner, "minimal" only shows the runtime display, "hidden" shows no progress animation at all
         queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
@@ -879,6 +881,122 @@ def on(
         stream_every=stream_every,
     )
     set_cancel_events(methods, cancels)
+    return Dependency(None, dep.get_config(), dep_index, fn)
+
+
+@document()
+def api(
+    fn: Callable | None | Literal["decorator"] = "decorator",
+    *,
+    api_name: str | None | Literal[False] = None,
+    queue: bool = True,
+    batch: bool = False,
+    max_batch_size: int = 4,
+    concurrency_limit: int | None | Literal["default"] = "default",
+    concurrency_id: str | None = None,
+    show_api: bool = True,
+    time_limit: int | None = None,
+    stream_every: float = 0.5,
+) -> Dependency:
+    """
+    Sets up an API endpoint for a generic function that can be called via the gradio client. Derives its type from type-hints in the function signature.
+
+    Parameters:
+        fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
+        api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, will use the functions name as the endpoint route. If set to a string, the endpoint will be exposed in the api docs with the given name.
+        queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
+        batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
+        max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
+        concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
+        concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
+        show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+        time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
+        stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            with gr.Row():
+                input = gr.Textbox()
+                button = gr.Button("Submit")
+            output = gr.Textbox()
+            gr.on(
+                triggers=[button.click, input.submit],
+                fn=lambda x: x,
+                inputs=[input],
+                outputs=[output]
+            )
+        demo.launch()
+    """
+    if fn == "decorator":
+
+        def wrapper(func):
+            api(
+                fn=func,
+                api_name=api_name,
+                queue=queue,
+                batch=batch,
+                max_batch_size=max_batch_size,
+                concurrency_limit=concurrency_limit,
+                concurrency_id=concurrency_id,
+                show_api=show_api,
+                time_limit=time_limit,
+                stream_every=stream_every,
+            )
+
+            @wraps(func)
+            def inner(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            return inner
+
+        return Dependency(None, {}, None, wrapper)
+
+    root_block = get_blocks_context()
+    if root_block is None:
+        raise Exception("Cannot call api() outside of a gradio.Blocks context.")
+
+    from gradio.components.api_component import Api
+
+    fn_params = get_function_params(fn)
+    return_types = get_return_types(fn)
+
+    def ordinal(n):
+        return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+    inputs = [
+        Api(
+            default_value if has_default else None,
+            python_type_to_json_schema(_type),
+            ordinal(i + 1),
+        )
+        for i, (name, has_default, default_value, _type) in enumerate(fn_params)
+    ]
+    outputs = [
+        Api(None, python_type_to_json_schema(type), ordinal(i + 1))
+        for i, type in enumerate(return_types)
+    ]
+
+    dep, dep_index = root_block.set_event_trigger(
+        [],
+        fn,
+        inputs,
+        outputs,
+        preprocess=False,
+        postprocess=False,
+        scroll_to_output=False,
+        show_progress=False,
+        api_name=api_name,
+        js=None,
+        concurrency_limit=concurrency_limit,
+        concurrency_id=concurrency_id,
+        queue=queue,
+        batch=batch,
+        max_batch_size=max_batch_size,
+        show_api=show_api,
+        trigger_mode=None,
+        time_limit=time_limit,
+        stream_every=stream_every,
+    )
     return Dependency(None, dep.get_config(), dep_index, fn)
 
 

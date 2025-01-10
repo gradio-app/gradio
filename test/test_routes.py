@@ -694,6 +694,17 @@ class TestRoutes:
         assert response.status_code == 403
 
 
+def test_api_listener(connect):
+    with gr.Blocks() as demo:
+        def fn(a: int, b: int, c: list[str]) -> tuple[int, str]:
+            return a + b, c[a:b]
+        
+        gr.api(fn, api_name="addition")
+
+    with connect(demo) as client:
+        assert client.predict(a=1, b=3, c="testing", api_name="/addition") == (4, "es")
+
+
 class TestApp:
     def test_create_app(self):
         app = routes.App.create_app(Interface(lambda x: x, "text", "text"))
