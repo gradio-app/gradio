@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.10.0
+
+### Features
+
+- [#10226](https://github.com/gradio-app/gradio/pull/10226) [`58b8391`](https://github.com/gradio-app/gradio/commit/58b839196e17776cbd0d48997905496f7746d31f) - Improve tool UI and support nested thoughts.  Thanks @hannahblair!
+
 ## 0.9.0
 
 ### Features
