@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Update guide for `gr.load_chat` and allow `**kwargs`
+fix:Update guide for `gr.load_chat` and allow `**kwargs`
