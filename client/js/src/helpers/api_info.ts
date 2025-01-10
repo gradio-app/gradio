@@ -181,6 +181,7 @@ export function get_type(
 	serializer: string,
 	signature_type: "return" | "parameter"
 ): string | undefined {
+	if (component === "Api") return type.type;
 	switch (type?.type) {
 		case "string":
 			return "string";

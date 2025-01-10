@@ -779,11 +779,12 @@ class BlocksConfig:
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
 
-        if _targets[0][1] in ["change", "key_up"] and trigger_mode is None:
-            trigger_mode = "always_last"
-        elif _targets[0][1] in ["stream"] and trigger_mode is None:
-            trigger_mode = "multiple"
-        elif trigger_mode is None:
+        if len(_targets) and trigger_mode is None:
+            if _targets[0][1] in ["change", "key_up"]:
+                trigger_mode = "always_last"
+            elif _targets[0][1] in ["stream"]:
+                trigger_mode = "multiple"
+        if trigger_mode is None:
             trigger_mode = "once"
         elif trigger_mode not in ["once", "multiple", "always_last"]:
             raise ValueError(
