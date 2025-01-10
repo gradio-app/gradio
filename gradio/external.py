@@ -647,4 +647,6 @@ def load_chat(
                 response += chunk.choices[0].delta.content
                 yield response
 
-    return ChatInterface(open_api_stream if streaming else open_api, type="messages", **kwargs)
+    return ChatInterface(
+        open_api_stream if streaming else open_api, type="messages", **kwargs
+    )
