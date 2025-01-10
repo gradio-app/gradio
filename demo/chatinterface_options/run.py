@@ -13,14 +13,13 @@ def chat(message, history):
     if message == "Yes, that's correct.":
         return "Great!"
     else:
-        return {
-            "role": "assistant",
-            "content": example_code.format(random.randint(1, 100)),
-            "options": [
+        return gr.ChatMessage(
+            content=example_code.format(random.randint(1, 100)),
+            options=[
                 {"value": "Yes, that's correct.", "label": "Yes"},
                 {"value": "No"}
-                ]
-            }
+            ]
+        )
 
 demo = gr.ChatInterface(
     chat,

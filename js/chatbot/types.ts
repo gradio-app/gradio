@@ -6,6 +6,8 @@ export interface Metadata {
 	title: string | null;
 	id?: number | string | null;
 	parent_id?: number | string | null;
+	duration?: number;
+	status?: "pending" | "done" | null;
 }
 
 export interface ComponentData {
@@ -26,7 +28,6 @@ export interface Message {
 	content: string | FileData | ComponentData;
 	index: number | [number, number];
 	options?: Option[];
-	duration?: number;
 }
 
 export interface TextMessage extends Message {

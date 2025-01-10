@@ -6,6 +6,7 @@
     delete components_no_dataclasses["brush"];
     delete components_no_dataclasses["eraser"];
     delete components_no_dataclasses["waveformoptions"];
+    delete components_no_dataclasses["chatmessage"];
 
     let events = get_object("events");
     let events_matrix = get_object("events_matrix");

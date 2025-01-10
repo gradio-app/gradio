@@ -1609,3 +1609,16 @@ def get_icon_path(icon_name: str) -> str:
         set_static_paths(icon_path)
         return icon_path
     raise ValueError(f"Icon file not found: {icon_name}")
+
+
+def dict_factory(items):
+    """
+    A utility function to convert a dataclass that includes pydantic fields to a dictionary.
+    """
+    d = {}
+    for key, value in items:
+        if hasattr(value, "model_dump"):
+            d[key] = value.model_dump()
+        else:
+            d[key] = value
+    return d
