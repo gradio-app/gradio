@@ -1,5 +1,16 @@
 # website
 
+## 0.46.0
+
+### Features
+
+- [#10305](https://github.com/gradio-app/gradio/pull/10305) [`be40307`](https://github.com/gradio-app/gradio/commit/be40307d1d11421e01bf91fa5e05ec4ab97b09d8) - Add support for thinking LLMs directly in `gr.ChatInterface`.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.10.12
+- @gradio/paramviewer@0.6.3
+
 ## 0.45.0
 
 ### Features
