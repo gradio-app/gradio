@@ -1,5 +1,36 @@
 # gradio
 
+## 5.12.0
+
+### Features
+
+- [#10323](https://github.com/gradio-app/gradio/pull/10323) [`391a4d0`](https://github.com/gradio-app/gradio/commit/391a4d09a90406b768eee30e1c12a0bc84fc27a2) - Add `.previous_value` to `gr.EditData`.  Thanks @abidlabs!
+- [#10270](https://github.com/gradio-app/gradio/pull/10270) [`bb11a2a`](https://github.com/gradio-app/gradio/commit/bb11a2a702ca04fde245e7d54d155cbcbde7791e) - [ZeroGPU] Handshake-based postMessage.  Thanks @cbensimon!
+- [#10305](https://github.com/gradio-app/gradio/pull/10305) [`be40307`](https://github.com/gradio-app/gradio/commit/be40307d1d11421e01bf91fa5e05ec4ab97b09d8) - Add support for thinking LLMs directly in `gr.ChatInterface`.  Thanks @abidlabs!
+- [#10226](https://github.com/gradio-app/gradio/pull/10226) [`58b8391`](https://github.com/gradio-app/gradio/commit/58b839196e17776cbd0d48997905496f7746d31f) - Improve tool UI and support nested thoughts.  Thanks @hannahblair!
+
+### Fixes
+
+- [#10327](https://github.com/gradio-app/gradio/pull/10327) [`e0cb47f`](https://github.com/gradio-app/gradio/commit/e0cb47f0c5040049fb942a381c0335de4bf77d67) - Fix webcam.  Thanks @Col0ring!
+- [#10308](https://github.com/gradio-app/gradio/pull/10308) [`3543418`](https://github.com/gradio-app/gradio/commit/354341826a629d06640ce3ec5e5881bcccd6e339) - ImageEditor: Trigger input event even if change event not defined.  Thanks @freddyaboulton!
+- [#10322](https://github.com/gradio-app/gradio/pull/10322) [`d2691e7`](https://github.com/gradio-app/gradio/commit/d2691e7436f722781ee61db43ce3f2d5ccc3e253) - Quick Fix: Multimodal microphone audio not clearing.  Thanks @dawoodkhan82!
+- [#10331](https://github.com/gradio-app/gradio/pull/10331) [`decb594`](https://github.com/gradio-app/gradio/commit/decb5944552e951525c283e069e116c1ff6b6807) - Update guide for `gr.load_chat` and allow `**kwargs`.  Thanks @abidlabs!
+- [#10332](https://github.com/gradio-app/gradio/pull/10332) [`e742dcc`](https://github.com/gradio-app/gradio/commit/e742dcccb376692c9ddd5a6c251080e7c5936574) - Allow users to add a custom API route.  Thanks @aliabid94!
+- [#10324](https://github.com/gradio-app/gradio/pull/10324) [`343503d`](https://github.com/gradio-app/gradio/commit/343503d62eabab7af1a8a524d16a8e076a75dd67) - Support `gr.load()`-ing Gradio apps with `Blocks.load()` events.  Thanks @abidlabs!
+
+## 5.11.0
+
+### Features
+
+- [#10304](https://github.com/gradio-app/gradio/pull/10304) [`6b63fde`](https://github.com/gradio-app/gradio/commit/6b63fdec441b5c9bf910f910a2505d8defbb6bf8) - Blocked Paths Fix.  Thanks @freddyaboulton!
+- [#10303](https://github.com/gradio-app/gradio/pull/10303) [`f19ca89`](https://github.com/gradio-app/gradio/commit/f19ca89cdd4040dbaa41bbc3b9915edc032603a0) - Add preview_open and preview_close events to Gallery.  Thanks @freddyaboulton!
+- [#10314](https://github.com/gradio-app/gradio/pull/10314) [`84e72e4`](https://github.com/gradio-app/gradio/commit/84e72e401cdc97a91086301d2b25164e7d15623a) - Restore chat interface full height.  Thanks @aliabid94!
+
+### Fixes
+
+- [#10306](https://github.com/gradio-app/gradio/pull/10306) [`9fc988e`](https://github.com/gradio-app/gradio/commit/9fc988ebaf4bea24b71308922bb1889f1d3f4f6e) - Fix bug where ImageEditor always sends empty layers list to the backend.  Thanks @freddyaboulton!
+- [#10297](https://github.com/gradio-app/gradio/pull/10297) [`1e253ff`](https://github.com/gradio-app/gradio/commit/1e253ff127e97c18852a32cbc1269494c6cee017) - Fix test_subclass_conversion with numpy==2.x.  Thanks @abidlabs!
+
 ## 5.10.0
 
 ### Features

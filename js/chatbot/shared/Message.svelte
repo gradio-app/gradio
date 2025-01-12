@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { is_component_message, is_last_bot_message } from "../shared/utils";
-
+	import { is_component_message } from "../shared/utils";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData, Client } from "@gradio/client";
 	import type { NormalisedMessage } from "../types";
@@ -9,7 +8,7 @@
 	import type { ComponentType, SvelteComponent } from "svelte";
 	import ButtonPanel from "./ButtonPanel.svelte";
 	import MessageContent from "./MessageContent.svelte";
-	import MessageBox from "./MessageBox.svelte";
+	import Thought from "./Thought.svelte";
 
 	export let value: NormalisedMessage[];
 	export let avatar_img: FileData | null;
@@ -187,30 +186,25 @@
 								get_message_label_data(message)}
 						>
 							{#if message?.metadata?.title}
-								<MessageBox
-									title={message.metadata.title}
-									expanded={is_last_bot_message([message], value)}
+								<Thought
+									thought={message}
 									{rtl}
-								>
-									<MessageContent
-										{message}
-										{sanitize_html}
-										{latex_delimiters}
-										{render_markdown}
-										{_components}
-										{upload}
-										{thought_index}
-										{target}
-										{root}
-										{theme_mode}
-										{_fetch}
-										{scroll}
-										{allow_file_downloads}
-										{display_consecutive_in_same_bubble}
-										{i18n}
-										{line_breaks}
-									/>
-								</MessageBox>
+									{sanitize_html}
+									{latex_delimiters}
+									{render_markdown}
+									{_components}
+									{upload}
+									{thought_index}
+									{target}
+									{root}
+									{theme_mode}
+									{_fetch}
+									{scroll}
+									{allow_file_downloads}
+									{display_consecutive_in_same_bubble}
+									{i18n}
+									{line_breaks}
+								/>
 							{:else}
 								<MessageContent
 									{message}
@@ -339,24 +333,25 @@
 	}
 
 	.user {
-		border-width: 1px;
 		border-radius: var(--radius-md);
 		align-self: flex-end;
 		border-bottom-right-radius: 0;
 		box-shadow: var(--shadow-drop);
-		border-color: var(--border-color-accent-subdued);
+		border: 1px solid var(--border-color-accent-subdued);
 		background-color: var(--color-accent-soft);
+		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.bot {
-		border-width: 1px;
-		border-radius: var(--radius-lg);
-		border-bottom-left-radius: 0;
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-md);
 		border-color: var(--border-color-primary);
 		background-color: var(--background-fill-secondary);
 		box-shadow: var(--shadow-drop);
 		align-self: flex-start;
 		text-align: right;
+		border-bottom-left-radius: 0;
+		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
 	.bot:has(.table-wrap) {
@@ -370,9 +365,6 @@
 	}
 
 	/* Colors */
-	.bubble .bot {
-		border-color: var(--border-color-primary);
-	}
 
 	.message-row {
 		display: flex;
@@ -562,10 +554,6 @@
 		padding: 0;
 		border: none;
 		background: none;
-	}
-
-	.thought {
-		margin-top: var(--spacing-xxl);
 	}
 
 	.panel .bot,

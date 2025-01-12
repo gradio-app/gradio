@@ -325,6 +325,24 @@ class TestRoutes:
         io.close()
         os.remove(tmp_file.name)
 
+    def test_blocked_path_case_insensitive(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            tmp_file = Path(temp_dir) / "blocked" / "test.txt"
+            tmp_file.parent.mkdir(parents=True, exist_ok=True)
+            tmp_file.touch()
+            io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+            app, _, _ = io.launch(
+                prevent_thread_lock=True,
+                allowed_paths=[temp_dir],
+                blocked_paths=[str(tmp_file.parent)],
+            )
+            client = TestClient(app)
+            file_response = client.get(
+                f"{API_PREFIX}/file={str(Path(temp_dir) / 'BLOCKED' / 'test.txt')}"
+            )
+            assert file_response.status_code == 403
+            io.close()
+
     def test_get_file_created_by_app(self, test_client):
         app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
             prevent_thread_lock=True
@@ -674,6 +692,18 @@ class TestRoutes:
         client = TestClient(app)
         response = client.get(f"{API_PREFIX}/monitoring")
         assert response.status_code == 403
+
+
+def test_api_listener(connect):
+    with gr.Blocks() as demo:
+
+        def fn(a: int, b: int, c: str) -> tuple[int, str]:
+            return a + b, c[a:b]
+
+        gr.api(fn, api_name="addition")
+
+    with connect(demo) as client:
+        assert client.predict(a=1, b=3, c="testing", api_name="/addition") == (4, "es")
 
 
 class TestApp:

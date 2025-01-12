@@ -1,5 +1,36 @@
 # @gradio/core
 
+## 0.6.1
+
+### Fixes
+
+- [#10332](https://github.com/gradio-app/gradio/pull/10332) [`e742dcc`](https://github.com/gradio-app/gradio/commit/e742dcccb376692c9ddd5a6c251080e7c5936574) - Allow users to add a custom API route.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.10.12
+- @gradio/paramviewer@0.6.3
+- @gradio/video@0.13.1
+- @gradio/atoms@0.13.1
+- @gradio/statustracker@0.10.1
+- @gradio/column@0.2.0
+- @gradio/client@1.10.0
+- @gradio/icons@0.10.0
+- @gradio/upload@0.14.5
+- @gradio/gallery@0.15.1
+- @gradio/plot@0.9.6
+- @gradio/image@0.20.1
+- @gradio/file@0.12.1
+- @gradio/button@0.4.1
+- @gradio/textbox@0.10.1
+- @gradio/checkbox@0.4.11
+
+## 0.6.0
+
+### Dependency updates
+
+- @gradio/gallery@0.15.0
+
 ## 0.6.0
 
 ### Features
