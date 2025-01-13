@@ -46,6 +46,7 @@ class MetadataDict(TypedDict):
         duration: The duration of the message. Appears next to the title in the thought bubble in a subdued font.
         status: The status of the message. If "pending", the status is displayed as a spinner icon.
     """
+
     title: Union[str, None]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
@@ -62,6 +63,7 @@ class Option(TypedDict):
         value: The value to return when the option is selected.
         label: The text to display in the option, if different from the value.
     """
+
     value: str
     label: NotRequired[str]
 
