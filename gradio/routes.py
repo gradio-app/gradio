@@ -8,6 +8,7 @@ import contextlib
 import hashlib
 import importlib.resources
 import inspect
+import io
 import json
 import math
 import mimetypes
@@ -1452,8 +1453,6 @@ class App(FastAPI):
 
             img = PIL.Image.open(pwa_icon)
             img = img.resize((size, size))
-
-            import io
 
             img_byte_array = io.BytesIO()
             img.save(img_byte_array, format="PNG")
