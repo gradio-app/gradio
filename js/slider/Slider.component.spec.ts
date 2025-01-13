@@ -60,6 +60,25 @@ test("Slider respects show_label", async ({ mount, page }) => {
 	await expect(component.getByTestId("block-title")).toBeHidden();
 });
 
+test("Slider respects show_reset_button", async ({ mount, page }) => {
+	const component = await mount(Slider, {
+		props: {
+			value: 3,
+			minimum: 0,
+			maximum: 10,
+			label: "My Slider",
+			show_reset_button: true,
+			step: 1,
+			interactive: true,
+			loading_status: loading_status,
+			gradio: {
+				dispatch() {}
+			}
+		}
+	});
+	await expect(component.getByTestId("reset-button")).toBeVisible();
+});
+
 test("Slider Maximum/Minimum values", async ({ mount, page }) => {
 	const component = await mount(Slider, {
 		props: {
