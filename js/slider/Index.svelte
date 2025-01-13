@@ -34,6 +34,7 @@
 	export let loading_status: LoadingStatus;
 	export let value_is_output = false;
 	export let root: string;
+	export let show_reset_button: boolean;
 
 	let range_input: HTMLInputElement;
 	let number_input: HTMLInputElement;
@@ -124,14 +125,17 @@
 					{disabled}
 					on:pointerup={handle_release}
 				/>
-				<button
-					class="reset-button"
-					on:click={reset_value}
-					{disabled}
-					aria-label="Reset to default value"
-				>
-					↺
-				</button>
+				{#if show_reset_button}
+					<button
+						class="reset-button"
+						on:click={reset_value}
+						{disabled}
+						aria-label="Reset to default value"
+						data-testid="reset-button"
+					>
+						↺
+					</button>
+				{/if}
 			</div>
 		</div>
 
