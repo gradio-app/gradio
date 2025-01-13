@@ -7,6 +7,8 @@
     delete components_no_dataclasses["eraser"];
     delete components_no_dataclasses["waveformoptions"];
     delete components_no_dataclasses["chatmessage"];
+    delete components_no_dataclasses["option"];
+    delete components_no_dataclasses["metadatadict"];    
 
     let events = get_object("events");
     let events_matrix = get_object("events_matrix");

@@ -11,7 +11,7 @@
 
     let obj = get_object("chatbot");
     let chatmessage_obj = get_object("chatmessage");
-    let chatmessage_options = get_message("option");
+    let chatmessage_options = get_object("option");
     let chatmessage_metadatadict = get_object("metadatadict");
 
     let embedded_demo_obj = `[
