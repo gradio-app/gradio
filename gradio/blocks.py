@@ -2310,6 +2310,7 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
+        pwa_icon: str | None = None,
         _frontend: bool = True,
     ) -> tuple[App, str, str]:
         """
@@ -2450,6 +2451,7 @@ Received inputs:
                     block.key = f"__{block._id}__"
 
         self.pwa = utils.get_space() is not None if pwa is None else pwa
+        self.pwa_icon = pwa_icon
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
         self.config = self.get_config_file()

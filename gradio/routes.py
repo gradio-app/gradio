@@ -1437,23 +1437,77 @@ class App(FastAPI):
             else:
                 return "User-agent: *\nDisallow: "
 
+        @app.get("/pwa_icon")
+        @app.get("/pwa_icon/{size}")
+        async def pwa_icon(size: int | None = None):
+            blocks = app.get_blocks()
+            pwa_icon = blocks.pwa_icon
+            if pwa_icon is None:
+                raise HTTPException(status_code=404)
+
+            if size is None:
+                return FileResponse(pwa_icon)
+
+            import PIL.Image
+
+            img = PIL.Image.open(pwa_icon)
+            img = img.resize((size, size))
+
+            import io
+
+            img_byte_array = io.BytesIO()
+            img.save(img_byte_array, format="PNG")
+            img_byte_array.seek(0)
+
+            return StreamingResponse(
+                io.BytesIO(img_byte_array.read()), media_type="image/png"
+            )
+
         @app.get("/manifest.json")
         def manifest_json():
             if not blocks.pwa:
                 raise HTTPException(status_code=404)
 
+            pwa_icon = blocks.pwa_icon
+            if pwa_icon is None:
+                icons = [
+                    {
+                        "src": "static/img/logo_nosize.svg",
+                        "sizes": "any",
+                        "type": "image/svg+xml",
+                        "purpose": "any",
+                    },
+                ]
+            elif pwa_icon.endswith(".svg"):
+                icons = [
+                    {
+                        "src": app.url_path_for("pwa_icon"),
+                        "sizes": "any",
+                        "type": "image/svg+xml",
+                        "purpose": "any",
+                    },
+                ]
+            else:
+                icons = [
+                    {
+                        "src": app.url_path_for("pwa_icon", size=192),
+                        "sizes": "192x192",
+                        "type": "image/png",
+                        "purpose": "any",
+                    },
+                    {
+                        "src": app.url_path_for("pwa_icon", size=512),
+                        "sizes": "512x512",
+                        "type": "image/png",
+                        "purpose": "any",
+                    },
+                ]
+
             return ORJSONResponse(
                 content={
                     # NOTE: Required members: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable#required_manifest_members
                     "name": app.get_blocks().title or "Gradio",
-                    "icons": [
-                        {
-                            "src": "static/img/logo_nosize.svg",
-                            "sizes": "any",
-                            "type": "image/svg+xml",
-                            "purpose": "any",
-                        },
-                    ],
+                    "icons": icons,
                     "start_url": "./",
                     "display": "standalone",
                 },
