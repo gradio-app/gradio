@@ -52,11 +52,11 @@
 />
 
 <Story
-	name="Slider with reset button"
+	name="Slider with reset button hidden"
 	args={{
 		value: 50,
 		minimum: 10,
 		maximum: 100,
-		show_reset_button: true
+		show_reset_button: false
 	}}
 />
