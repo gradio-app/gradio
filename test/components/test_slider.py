@@ -22,7 +22,7 @@ class TestSlider:
             "value": 15,
             "name": "slider",
             "show_label": True,
-            "show_reset_button": False,
+            "show_reset_button": True,
             "label": "Slide Your Input",
             "container": True,
             "min_width": 160,
