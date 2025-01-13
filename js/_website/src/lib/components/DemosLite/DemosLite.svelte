@@ -14,7 +14,21 @@
 	import SYSTEM_PROMPT from "$lib/json/system_prompt.json";
 	import WHEEL from "$lib/json/wheel.json";
 
-	let generated = true;
+
+	interface CodeState {
+		status: 'idle' | 'editing' | 'generating' | 'error' | 'regenerating';
+		user_edited: boolean;
+	}
+
+	let code_state: CodeState = {
+		status: 'idle',
+		user_edited: true,
+	};
+
+	$: code_state;
+
+	$: console.log(code_state);
+
 
 	let current_code = false;
 	let compare = false;
@@ -106,11 +120,12 @@
 		demo_name: string,
 		regeneration_run = false
 	) {
+
 		if (regeneration_run) {
-			regenerating = true;
+			code_state.status = 'regenerating';
+		} else {
+			code_state.status = 'generating';
 		}
-		generated = false;
-		show_regenerate_button = false;
 		let out = "";
 
 		if (current_code) {
@@ -162,10 +177,9 @@
 			}
 		}
 
-		generated = true;
-		regenerating = false;
-		auto_regenerate = true;
-
+		code_state.status = 'idle';
+		code_state.user_edited = false;
+		
 		if (selected_demo.name === demo_name) {
 			highlight_changes(code_to_compare, demos[queried_index].code);
 		}
@@ -176,11 +190,8 @@
 		if (abortController) {
 			abortController.abort();
 		}
-		generated = true;
-		auto_regenerate = false;
+		code_state.status = 'editing';
 		app_error = null;
-		show_regenerate_button = false;
-		regenerating = false;
 		selected_demo.code = code_to_compare;
 	}
 
@@ -598,63 +609,42 @@
 		) {
 			app_error = null;
 		}
+		if (app_error) {
+			code_state.status = 'error';
+		}
 	}
 
 	$: app_error;
 
-	let auto_regenerate = false;
-
-	$: auto_regenerate;
-
 	let error_prompt;
-
-	let regenerating = false;
-
-	$: regenerating;
 
 	let auto_regenerate_user_toggle = true;
 
 	$: auto_regenerate_user_toggle;
 
 	async function regenerate_on_error(app_error) {
-		if (auto_regenerate && auto_regenerate_user_toggle) {
-			if (app_error && generated) {
+		if (code_state.status === 'error' && auto_regenerate_user_toggle && app_error && !code_state.user_edited) {
 				user_query = app_error;
 				error_prompt = `There's an error when I run the existing code: ${app_error}`;
 				await generate_code(error_prompt, selected_demo.name, true);
-			}
-		} else {
-			if (app_error && generated) {
-				show_regenerate_button = true;
-			}
-		}
+		} 
 	}
 
 	$: regenerate_on_error(app_error);
 
-	let show_regenerate_button = false;
-
-	$: show_regenerate_button;
-
-	$: if (app_error && generated && !user_query) {
+	$: if (app_error && !user_query) {
 		user_query = app_error;
-		show_regenerate_button = true;
 	}
+
 	$: if (user_query !== app_error) {
-		show_regenerate_button = false;
-	}
-	$: if (!app_error && !regenerating && generated) {
-		user_query = "";
-		show_regenerate_button = false;
+		code_state.status = 'idle';
 	}
 
-	$: if (regenerating) {
-		show_regenerate_button = false;
-	}
+	// $: if (!app_error && (code_state.status === 'idle' || code_state.status === 'editing')) {
+	// 	user_query = "";
+	// 	show_regenerate_button = false;
+	// }
 
-	$: if (!generated) {
-		show_regenerate_button = false;
-	}
 
 	let code_to_compare = code;
 	$: code_to_compare;
@@ -726,9 +716,7 @@
 										readonly={false}
 										dark_mode={false}
 										on:change={(e) => {
-											if (generated) {
-												auto_regenerate = false;
-											}
+											code_state.user_edited = true;
 										}}
 									/>
 								</div>
@@ -784,7 +772,7 @@
 							>
 								{generation_error}
 							</div>
-						{:else if regenerating}
+						{:else if code_state.status === 'regenerating'}
 							<div
 								class="pl-2 relative z-10 bg-purple-100 border border-purple-200 px-2 my-1 rounded-lg text-purple-800 w-fit text-xs float-right"
 							>
@@ -814,20 +802,17 @@
 								class="pl-2 relative z-10 bg-white flex items-center float-right"
 							>
 								<p class="text-gray-600 my-1 text-xs">
-									<!-- This is
-									<span style="font-weight: 500">experimental</span>. Generated
-									code may be incorrect. -->
 								</p>
 							</div>
 						{/if}
 					</div>
 
 					<div class="search-bar border-t">
-						{#if regenerating}
+						{#if code_state.status === 'regenerating'}
 							<div class="loader-purple"></div>
-						{:else if !generated}
+						{:else if code_state.status === 'generating'}
 							<div class="loader"></div>
-						{:else if show_regenerate_button}
+						{:else if code_state.status === 'error'}
 							<span style="color: transparent; text-shadow: 0 0 0 purple;"
 								>✨</span
 							>
@@ -850,10 +835,10 @@
 							spellcheck="false"
 							type="search"
 							id="user-query"
-							class:grayed={!generated}
+							class:grayed={code_state.status === 'generating'}
 							autofocus={true}
 						/>
-						{#if show_regenerate_button}
+						{#if code_state.status === 'error'}
 							<button
 								on:click={async () => {
 									error_prompt = `There's an error when I run the existing code: ${app_error}`;
@@ -863,12 +848,11 @@
 							>
 								<div class="enter">Fix Error</div>
 							</button>
-						{:else if generated}
+						{:else if code_state.status === 'idle' || code_state.status === 'editing'}
 							<button
 								on:click={() => {
 									suspend_and_resume_auto_run(() => {
 										generate_code(user_query, selected_demo.name);
-										auto_regenerate = true;
 									});
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 rounded-full text-orange-800 hover:shadow"
@@ -876,7 +860,7 @@
 								<div class="enter">Ask AI</div>
 							</button>
 							<sup class="text-orange-800 text-xs ml-0.5">BETA</sup>
-						{:else}
+						{:else if code_state.status === 'generating' || code_state.status === 'regenerating'}
 							<button
 								on:click={() => {
 									cancelGeneration();
@@ -886,10 +870,10 @@
 									}, 3000);
 								}}
 								class="flex items-center w-fit min-w-fit bg-gradient-to-r from-red-100 to-red-50 border border-red-200 px-4 py-0.5 rounded-full text-red-800 hover:shadow"
-								class:from-purple-100={regenerating}
-								class:to-purple-50={regenerating}
-								class:border-purple-200={regenerating}
-								class:text-purple-800={regenerating}
+								class:from-purple-100={code_state.status === 'regenerating'}
+								class:to-purple-50={code_state.status === 'regenerating'}
+								class:border-purple-200={code_state.status === 'regenerating'}
+								class:text-purple-800={code_state.status === 'regenerating'}
 							>
 								<div class="enter">Cancel</div>
 							</button>
