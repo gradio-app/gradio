@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Add `show_reset_button` to Slider component initialization
+feat:Add `show_reset_button` to `gr.slider` initialization
