@@ -76,34 +76,35 @@
 	);
 </script>
 
-<RenderComponent
-	_id={node?.id}
-	component={node.component}
-	bind:instance={node.instance}
-	bind:value={node.props.value}
-	elem_id={("elem_id" in node.props && node.props.elem_id) ||
-		`component-${node.id}`}
-	elem_classes={("elem_classes" in node.props && node.props.elem_classes) || []}
-	{target}
-	{...node.props}
-	{theme_mode}
-	{root}
-	visible={typeof node.props.visible === "boolean" ? node.props.visible : true}
->
-	{#if node.children && node.children.length}
-		{#each node.children as _node (_node.id)}
-			<svelte:self
-				node={_node}
-				component={_node.component}
-				{target}
-				id={_node.id}
-				{root}
-				{theme_mode}
-				on:destroy
-				on:mount
-				{max_file_size}
-				{client}
-			/>
-		{/each}
-	{/if}
-</RenderComponent>
+<div class="page-wrapper">
+    <RenderComponent
+        _id={node?.id}
+        component={node.component}
+        bind:instance={node.instance}
+        bind:value={node.props.value}
+        elem_id={("elem_id" in node.props && node.props.elem_id) || `component-${node.id}`}
+        elem_classes={("elem_classes" in node.props && node.props.elem_classes) || []}
+        {target}
+        {theme_mode}
+        {root}
+        visible={typeof node.props.visible === "boolean" ? node.props.visible : true}
+        {...node.props}
+    />
+    
+    {#if node.children && node.children.length}
+        {#each node.children as _node (_node.id)}
+            <svelte:self
+                node={_node}
+                component={_node.component}
+                {target}
+                id={_node.id}
+                {root}
+                {theme_mode}
+                on:destroy
+                on:mount
+                {max_file_size}
+                {client}
+            />
+        {/each}
+    {/if}
+</div>

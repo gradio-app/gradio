@@ -87,9 +87,8 @@ from gradio.flagging import (
 from gradio.helpers import Info, Progress, Success, Warning, skip, update
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.interface import Interface, TabbedInterface, close_all
-from gradio.layouts import Accordion, Column, Group, Row, Tab, TabItem, Tabs
+from gradio.layouts import Accordion, Column, Group, Page, Row, Tab, TabItem, Tabs
 from gradio.oauth import OAuthProfile, OAuthToken
-from gradio.page import Page
 from gradio.renderable import render
 from gradio.routes import Request, mount_gradio_app
 from gradio.templates import (
@@ -189,6 +188,7 @@ __all__ = [
     "Numpy",
     "OAuthProfile",
     "OAuthToken",
+    "Page",
     "Paint",
     "ParamViewer",
     "PlayableVideo",
