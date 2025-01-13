@@ -17,10 +17,12 @@ import huggingface_hub
 from gradio_client import Client
 from gradio_client.client import Endpoint
 from gradio_client.documentation import document
+from gradio_client.utils import encode_url_or_file_to_base64
 from packaging import version
 
 import gradio
 from gradio import components, external_utils, utils
+from gradio.components.multimodal_textbox import MultimodalValue
 from gradio.context import Context
 from gradio.exceptions import (
     GradioVersionIncompatibleError,
@@ -590,6 +592,7 @@ def load_chat(
     model: str,
     token: str | None = None,
     *,
+    api_media: Literal["text", "image_upload"] = "text",
     system_message: str | None = None,
     streaming: bool = True,
     **kwargs,
@@ -600,6 +603,7 @@ def load_chat(
         base_url: The base URL of the endpoint, e.g. "http://localhost:11434/v1/"
         model: The name of the model you are loading, e.g. "llama3.2"
         token: The API token or a placeholder string if you are using a local model, e.g. "ollama"
+        api_media: The media type of the API. By default, it is "text", but you can also use "image_upload" for multimodal models.
         system_message: The system message to use for the conversation, if any.
         streaming: Whether the response should be streamed.
         kwargs: Additional keyword arguments to pass into ChatInterface for customization.
@@ -617,36 +621,106 @@ def load_chat(
         [{"role": "system", "content": system_message}] if system_message else []
     )
 
-    def open_api(message: str, history: list | None) -> str | None:
-        history = history or start_message
-        if len(history) > 0 and isinstance(history[0], (list, tuple)):
-            history = ChatInterface._tuples_to_messages(history)
-        return (
-            client.chat.completions.create(
+    if api_media == "text":
+
+        def open_api(message: str, history: list | None) -> str | None:
+            history = history or start_message
+            if len(history) > 0 and isinstance(history[0], (list, tuple)):
+                history = ChatInterface._tuples_to_messages(history)
+            return (
+                client.chat.completions.create(
+                    model=model,
+                    messages=history + [{"role": "user", "content": message}],
+                )
+                .choices[0]
+                .message.content
+            )
+
+        def open_api_stream(
+            message: str, history: list | None
+        ) -> Generator[str, None, None]:
+            history = history or start_message
+            if len(history) > 0 and isinstance(history[0], (list, tuple)):
+                history = ChatInterface._tuples_to_messages(history)
+            stream = client.chat.completions.create(
                 model=model,
                 messages=history + [{"role": "user", "content": message}],
+                stream=True,
             )
-            .choices[0]
-            .message.content
-        )
+            response = ""
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    response += chunk.choices[0].delta.content
+                    yield response
 
-    def open_api_stream(
-        message: str, history: list | None
-    ) -> Generator[str, None, None]:
-        history = history or start_message
-        if len(history) > 0 and isinstance(history[0], (list, tuple)):
-            history = ChatInterface._tuples_to_messages(history)
-        stream = client.chat.completions.create(
-            model=model,
-            messages=history + [{"role": "user", "content": message}],
-            stream=True,
-        )
-        response = ""
-        for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                response += chunk.choices[0].delta.content
-                yield response
+    elif api_media == "image_upload":
+
+        def open_api(message: MultimodalValue, history: list | None) -> str | None:
+            history = history or start_message
+            if len(history) > 0 and isinstance(history[0], (list, tuple)):
+                history = ChatInterface._tuples_to_messages(history)
+            text = message["text"]
+            images = message["files"]
+            content = []
+            if text:
+                content.append({"type": "text", "text": text})
+            if images:
+                content.extend(
+                    [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": encode_url_or_file_to_base64(image)},
+                        }
+                        for image in images
+                    ]
+                )
+            return (
+                client.chat.completions.create(
+                    model=model,
+                    messages=history + [{"role": "user", "content": content}],
+                )
+                .choices[0]
+                .message.content
+            )
+
+        def open_api_stream(
+            message: MultimodalValue, history: list | None
+        ) -> Generator[str, None, None]:
+            history = history or start_message
+            if len(history) > 0 and isinstance(history[0], (list, tuple)):
+                history = ChatInterface._tuples_to_messages(history)
+            text = message["text"]
+            images = message["files"]
+            content = []
+            if text:
+                content.append({"type": "text", "text": text})
+            if images:
+                content.extend(
+                    [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": encode_url_or_file_to_base64(image)},
+                        }
+                        for image in images
+                    ]
+                )
+            stream = client.chat.completions.create(
+                model=model,
+                messages=history + [{"role": "user", "content": content}],
+                stream=True,
+            )
+            response = ""
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    response += chunk.choices[0].delta.content
+                    yield response
 
     return ChatInterface(
-        open_api_stream if streaming else open_api, type="messages", **kwargs
+        open_api_stream if streaming else open_api,
+        type="messages",
+        multimodal=api_media == "image_upload",
+        textbox=gradio.MultimodalTextbox(file_types=["image"])
+        if api_media == "image_upload"
+        else None,
+        **kwargs,
     )
