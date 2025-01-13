@@ -2,6 +2,7 @@ from .accordion import Accordion
 from .column import Column
 from .form import Form
 from .group import Group
+from .page import Page
 from .row import Row
 from .tabs import Tab, TabItem, Tabs
 
@@ -14,4 +15,5 @@ __all__ = [
     "Tabs",
     "Tab",
     "TabItem",
+    "Page",
 ]

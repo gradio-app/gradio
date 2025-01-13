@@ -22,10 +22,12 @@ class Page(BlockContext, metaclass=ComponentMeta):
     def __init__(
         self,
         title: str,
-        *,
         route: str = "/",
+        *,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        visible: bool = True,
+        render: bool = True,
     ):
         """
         Parameters:
@@ -34,10 +36,13 @@ class Page(BlockContext, metaclass=ComponentMeta):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM.
         """
+        self.title = title
+        self.route = route
         BlockContext.__init__(
             self,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            visible=visible,
+            render=render,
         )
-        self.title = title
-        self.route = route
+
