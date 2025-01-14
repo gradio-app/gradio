@@ -629,23 +629,23 @@ class TestClientPredictions:
     def test_add_zero_gpu_headers_no_gradio_context(self):
         client = Client("gradio/calculator")
         headers = {"existing": "header"}
-        new_headers = client._add_zero_gpu_headers(headers)
+        new_headers = client.add_zero_gpu_headers(headers)
         assert new_headers == headers  # No changes when not in Gradio context
 
     def test_add_zero_gpu_headers_with_ip_token(self, monkeypatch):
         client = Client("gradio/calculator")
         headers = {"existing": "header"}
+
         class MockRequest:
             headers = {"x-ip-token": "test-token"}
+
         class MockContext:
             request = MagicMock()
             request.get.return_value = MockRequest()
+
         monkeypatch.setattr("gradio.context.LocalContext", MockContext)
-        new_headers = client._add_zero_gpu_headers(headers)
-        assert new_headers == {
-            "existing": "header",
-            "x-ip-token": "test-token"
-        }
+        new_headers = client.add_zero_gpu_headers(headers)
+        assert new_headers == {"existing": "header", "x-ip-token": "test-token"}
 
 
 class TestClientPredictionsWithKwargs:

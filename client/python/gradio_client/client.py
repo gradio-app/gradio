@@ -295,7 +295,7 @@ class Client:
             raise e
 
     def send_data(self, data, hash_data, protocol):
-        headers = self._add_zero_gpu_headers(self.headers)
+        headers = self.add_zero_gpu_headers(self.headers)
         req = httpx.post(
             self.sse_data_url,
             json={**data, **hash_data},
@@ -705,7 +705,7 @@ class Client:
         self.session_hash = str(uuid.uuid4())
         self._refresh_heartbeat.set()
 
-    def _add_zero_gpu_headers(self, headers: dict[str, str]) -> dict[str, str]:
+    def add_zero_gpu_headers(self, headers: dict[str, str]) -> dict[str, str]:
         """
         Adds the x-ip-token header to the headers dictionary to pass it to a Zero-GPU Space. This allows a user's
         ZeroGPU quota to be tracked and used by the underlying Space. For the x-ip-token header to be present,
@@ -723,7 +723,7 @@ class Client:
             return headers
         request = LocalContext.request.get()
         if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
-                headers["x-ip-token"] = request.headers["x-ip-token"]
+            headers["x-ip-token"] = request.headers["x-ip-token"]
         return headers
 
     def _render_endpoints_info(
