@@ -22,55 +22,51 @@ interface BgImageCommand extends Command {
 
 /**
  * Calculates new dimensions and position for an image to fit within a canvas while maintaining aspect ratio
- * @param imageWidth Original width of the image
- * @param imageHeight Original height of the image
- * @param canvasWidth Width of the canvas
- * @param canvasHeight Height of the canvas
+ * @param image_width Original width of the image
+ * @param image_height Original height of the image
+ * @param canvas_width Width of the canvas
+ * @param canvas_height Height of the canvas
  * @returns Object containing new dimensions and position
  */
-export function fitImageToCanvas(
-	imageWidth: number,
-	imageHeight: number,
-	canvasWidth: number,
-	canvasHeight: number
+export function fit_image_to_canvas(
+	image_width: number,
+	image_height: number,
+	canvas_width: number,
+	canvas_height: number
 ): {
 	width: number;
 	height: number;
 	x: number;
 	y: number;
 } {
-	// Calculate aspect ratios
-	const imageAspectRatio = imageWidth / imageHeight;
-	const canvasAspectRatio = canvasWidth / canvasHeight;
+	const image_aspect_ratio = image_width / image_height;
+	const canvas_aspect_ratio = canvas_width / canvas_height;
 
-	let newWidth: number;
-	let newHeight: number;
+	let new_width: number;
+	let new_height: number;
 
-	// If image is smaller than canvas in both dimensions
-	if (imageWidth <= canvasWidth && imageHeight <= canvasHeight) {
-		newWidth = imageWidth;
-		newHeight = imageHeight;
-	}
-	// If image needs to be scaled down
-	else {
-		if (imageAspectRatio > canvasAspectRatio) {
+	if (image_width <= canvas_width && image_height <= canvas_height) {
+		new_width = image_width;
+		new_height = image_height;
+	} else {
+		if (image_aspect_ratio > canvas_aspect_ratio) {
 			// Width is the limiting factor
-			newWidth = canvasWidth;
-			newHeight = canvasWidth / imageAspectRatio;
+			new_width = canvas_width;
+			new_height = canvas_width / image_aspect_ratio;
 		} else {
 			// Height is the limiting factor
-			newHeight = canvasHeight;
-			newWidth = canvasHeight * imageAspectRatio;
+			new_height = canvas_height;
+			new_width = canvas_height * image_aspect_ratio;
 		}
 	}
 
 	// Calculate position to center the image
-	const x = Math.round((canvasWidth - newWidth) / 2);
-	const y = Math.round((canvasHeight - newHeight) / 2);
+	const x = Math.round((canvas_width - new_width) / 2);
+	const y = Math.round((canvas_height - new_height) / 2);
 
 	return {
-		width: Math.round(newWidth),
-		height: Math.round(newHeight),
+		width: Math.round(new_width),
+		height: Math.round(new_height),
 		x,
 		y
 	};
@@ -96,7 +92,7 @@ export function add_bg_image(
 			if (fixed_canvas) {
 				// If canvas_size is provided, fit the image within those dimensions
 				const [canvasWidth, canvasHeight] = canvas_size;
-				const { width, height, x, y } = fitImageToCanvas(
+				const { width, height, x, y } = fit_image_to_canvas(
 					sprite.width,
 					sprite.height,
 					canvasWidth,
@@ -111,7 +107,7 @@ export function add_bg_image(
 				return canvas_size;
 			}
 			// Use existing max_height based scaling if no canvas_size
-			const x = fitImageToCanvas(
+			const x = fit_image_to_canvas(
 				sprite.width,
 				sprite.height,
 				canvas_size[0],
