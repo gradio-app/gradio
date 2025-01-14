@@ -42,7 +42,7 @@ from contextlib import contextmanager
 from functools import wraps
 from io import BytesIO
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, NoneType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -50,6 +50,8 @@ from typing import (
     Literal,
     Optional,
     TypeVar,
+    get_args,
+    get_origin,
 )
 
 import anyio
@@ -518,7 +520,7 @@ def safe_deepcopy(obj: Any) -> Any:
 
 
 def assert_configs_are_equivalent_besides_ids(
-    config1: dict, config2: dict, root_keys: tuple = ("mode",)
+    config1: BlocksConfigDict, config2: BlocksConfigDict, root_keys: tuple = ("mode",)
 ):
     """Allows you to test if two different Blocks configs produce the same demo.
 
@@ -563,20 +565,31 @@ def assert_configs_are_equivalent_besides_ids(
             if "children" in child1 or "children" in child2:
                 same_children_recursive(child1["children"], child2["children"])
 
-    children1 = config1["layout"]["children"]
-    children2 = config2["layout"]["children"]
-    same_children_recursive(children1, children2)
+    if "layout" in config1:
+        if "layout" not in config2:
+            raise ValueError(
+                "The first config has a layout key, but the second does not"
+            )
+        children1 = config1["layout"]["children"]
+        children2 = config2["layout"]["children"]
+        same_children_recursive(children1, children2)
 
-    for d1, d2 in zip(config1["dependencies"], config2["dependencies"], strict=False):
-        for t1, t2 in zip(d1.pop("targets"), d2.pop("targets"), strict=False):
-            assert_same_components(t1[0], t2[0])
-        for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs"), strict=False):
-            assert_same_components(i1, i2)
-        for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs"), strict=False):
-            assert_same_components(o1, o2)
-
-        if d1 != d2:
-            raise ValueError(f"{d1} does not match {d2}")
+    if "dependencies" in config1:
+        if "dependencies" not in config2:
+            raise ValueError(
+                "The first config has a dependencies key, but the second does not"
+            )
+        for d1, d2 in zip(
+            config1["dependencies"], config2["dependencies"], strict=False
+        ):
+            for t1, t2 in zip(d1.pop("targets"), d2.pop("targets"), strict=False):
+                assert_same_components(t1[0], t2[0])
+            for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs"), strict=False):
+                assert_same_components(i1, i2)
+            for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs"), strict=False):
+                assert_same_components(o1, o2)
+            if d1 != d2:
+                raise ValueError(f"{d1} does not match {d2}")
 
     return True
 
@@ -1288,9 +1301,9 @@ def get_upload_folder() -> str:
     )
 
 
-def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
+def get_function_params(func: Callable) -> list[tuple[str, bool, Any, Any]]:
     """
-    Gets the parameters of a function as a list of tuples of the form (name, has_default, default_value).
+    Gets the parameters of a function as a list of tuples of the form (name, has_default, default_value, type_hint).
     Excludes *args and **kwargs, as well as args that are Gradio-specific, such as gr.Request, gr.EventData, gr.OAuthProfile, and gr.OAuthToken.
     """
     params_info = []
@@ -1305,10 +1318,24 @@ def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
         if is_special_typed_parameter(name, type_hints):
             continue
         if parameter.default is inspect.Parameter.empty:
-            params_info.append((name, False, None))
+            params_info.append((name, False, None, type_hints.get(name, None)))
         else:
-            params_info.append((name, True, parameter.default))
+            params_info.append(
+                (name, True, parameter.default, type_hints.get(name, None))
+            )
     return params_info
+
+
+def get_return_types(func: Callable) -> list:
+    return_hint = inspect.signature(func).return_annotation
+
+    if return_hint in {inspect.Signature.empty, None, NoneType}:
+        return []
+
+    if get_origin(return_hint) == tuple:
+        return list(get_args(return_hint))
+
+    return [return_hint]
 
 
 def simplify_file_data_in_str(s):
@@ -1609,3 +1636,16 @@ def get_icon_path(icon_name: str) -> str:
         set_static_paths(icon_path)
         return icon_path
     raise ValueError(f"Icon file not found: {icon_name}")
+
+
+def dict_factory(items):
+    """
+    A utility function to convert a dataclass that includes pydantic fields to a dictionary.
+    """
+    d = {}
+    for key, value in items:
+        if hasattr(value, "model_dump"):
+            d[key] = value.model_dump()
+        else:
+            d[key] = value
+    return d

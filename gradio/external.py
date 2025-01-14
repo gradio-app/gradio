@@ -592,15 +592,17 @@ def load_chat(
     *,
     system_message: str | None = None,
     streaming: bool = True,
+    **kwargs,
 ) -> ChatInterface:
     """
     Load a chat interface from an OpenAI API chat compatible endpoint.
     Parameters:
-        base_url: The base URL of the endpoint.
-        model: The model name.
-        token: The API token.
-        system_message: The system message for the conversation, if any.
+        base_url: The base URL of the endpoint, e.g. "http://localhost:11434/v1/"
+        model: The name of the model you are loading, e.g. "llama3.2"
+        token: The API token or a placeholder string if you are using a local model, e.g. "ollama"
+        system_message: The system message to use for the conversation, if any.
         streaming: Whether the response should be streamed.
+        kwargs: Additional keyword arguments to pass into ChatInterface for customization.
     """
     try:
         from openai import OpenAI
@@ -645,4 +647,6 @@ def load_chat(
                 response += chunk.choices[0].delta.content
                 yield response
 
-    return ChatInterface(open_api_stream if streaming else open_api, type="messages")
+    return ChatInterface(
+        open_api_stream if streaming else open_api, type="messages", **kwargs
+    )

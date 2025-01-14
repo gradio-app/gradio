@@ -1,5 +1,15 @@
 # @gradio/client
 
+## 1.10.0
+
+### Features
+
+- [#10270](https://github.com/gradio-app/gradio/pull/10270) [`bb11a2a`](https://github.com/gradio-app/gradio/commit/bb11a2a702ca04fde245e7d54d155cbcbde7791e) - [ZeroGPU] Handshake-based postMessage.  Thanks @cbensimon!
+
+### Fixes
+
+- [#10332](https://github.com/gradio-app/gradio/pull/10332) [`e742dcc`](https://github.com/gradio-app/gradio/commit/e742dcccb376692c9ddd5a6c251080e7c5936574) - Allow users to add a custom API route.  Thanks @aliabid94!
+
 ## 1.9.0
 
 ### Features

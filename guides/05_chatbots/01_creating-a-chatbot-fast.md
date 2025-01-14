@@ -4,9 +4,9 @@ Tags: LLM, CHATBOT, NLP
 
 ## Introduction
 
-Chatbots are a popular application of large language models (LLMs). Using Gradio, you can easily build a demo of your LLM and share that with your users, or try it yourself using an intuitive chatbot UI.
+Chatbots are a popular application of large language models (LLMs). Using Gradio, you can easily build a chat application and share that with your users, or try it yourself using an intuitive UI.
 
-This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that allows you to create your chatbot UI fast, often with a _single line of Python_. It can be easily adapted to support multimodal chatbots, or chatbots that require further customization.
+This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that allows you to create your chatbot UI fast, often with a _few lines of Python_. It can be easily adapted to support multimodal chatbots, or chatbots that require further customization.
 
 **Prerequisites**: please make sure you are using the latest version of Gradio:
 
@@ -14,19 +14,21 @@ This tutorial uses `gr.ChatInterface()`, which is a high-level abstraction that 
 $ pip install --upgrade gradio
 ```
 
-## Quickly loading from Ollama or any OpenAI-API compatible endpoint
+## OpenAI-API compatible endpoints
 
-If you have a chat server serving an OpenAI API compatible endpoint (skip ahead if you don't), you can spin up a ChatInterface in a single line. First, also run `pip install openai`. Then, with your own URL, model, and optional token:
+If you have a chat server serving an OpenAI-API compatible endpoint (e.g. Ollama), you can spin up a ChatInterface in a single line of Python. First, also run `pip install openai`. Then, with your own URL, model, and optional token:
 
 ```python
 import gradio as gr
 
-gr.load_chat("http://localhost:11434/v1/", model="llama3.2", token=None).launch()
+gr.load_chat("http://localhost:11434/v1/", model="llama3.2", token="ollama").launch()
 ```
+
+If you have your own model, keep reading to see how to create an application around any chat model in Python!
 
 ## Defining a chat function
 
-When working with `gr.ChatInterface()`, the first thing you should do is define your **chat function**. In the simplest case, your chat function should accept two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
+To create a chat application with `gr.ChatInterface()`, the first thing you should do is define your **chat function**. In the simplest case, your chat function should accept two arguments: `message` and `history` (the arguments can be named anything, but must be in this order).
 
 - `message`: a `str` representing the user's most recent message.
 - `history`: a list of openai-style dictionaries with `role` and `content` keys, representing the previous conversation history. May also include additional keys representing message metadata.
@@ -40,9 +42,19 @@ For example, the `history` could look like this:
 ]
 ```
 
+while the next `message` would be:
+
+```py
+"And what is its largest city?"
+```
+
 Your chat function simply needs to return: 
 
-* a `str` value, which is the chatbot's response based on the chat `history` and most recent `message`.
+* a `str` value, which is the chatbot's response based on the chat `history` and most recent `message`, for example, in this case:
+
+```
+Paris is also the largest city.
+```
 
 Let's take a look at a few example chat functions:
 
@@ -280,7 +292,8 @@ $code_chatinterface_artifacts
 
 ## Returning Complex Responses
 
-We mentioned earlier that in the simplest case, your chat function should return a `str` response, which will be rendered as text in the chatbot. However, you can also return more complex responses as we discuss below:
+We mentioned earlier that in the simplest case, your chat function should return a `str` response, which will be rendered as Markdown in the chatbot. However, you can also return more complex responses as we discuss below:
+
 
 **Returning files or Gradio components**
 
@@ -313,21 +326,55 @@ gr.ChatInterface(
 
 Similarly, you could return image files with `gr.Image`, video files with `gr.Video`, or arbitrary files with the `gr.File` component.
 
+**Returning Multiple Messages**
+
+You can return multiple assistant messages from your chat function simply by returning a `list` of messages, each of which is a valid chat type. This lets you, for example, send a message along with files, as in the following example:
+
+$code_chatinterface_echo_multimodal
+
+
+**Displaying intermediate thoughts or tool usage**
+
+The `gr.ChatInterface` class supports displaying intermediate thoughts or tool usage direct in the chatbot.
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/nested-thought.png)
+
+ To do this, you will need to return a `gr.ChatMessage` object from your chat function. Here is the schema of the `gr.ChatMessage` data class as well as two internal typed dictionaries:
+ 
+ ```py
+@dataclass
+class ChatMessage:
+    content: str | Component
+    metadata: MetadataDict = None
+    options: list[Option] = None
+
+class MetadataDict(TypedDict):
+    title: Union[str, None]
+    id: NotRequired[int | str]
+    parent_id: NotRequired[int | str]
+    duration: NotRequired[int]
+    status: NotRequired[Literal["pending", "done"]]
+
+class Option(TypedDict):
+    label: NotRequired[str]
+    value: str
+ ```
+ 
+As you can see, the `gr.ChatMessage` dataclass is similar to the openai-style message format, e.g. it has a "content" key that refers to the chat message content. But it also includes a "metadata" key whose value is a dictionary. If this dictionary includes a "title" key, the resulting message is displayed as an intermediate thought with the title being displayed on top of the thought. Here's an example showing the usage:
+
+$code_chatinterface_thoughts
+
+You can even show nested thoughts, which is useful for agent demos in which one tool may call other tools. To display nested thoughts, include "id" and "parent_id" keys in the "metadata" dictionary. See [this example for a complete demonstration](https://github.com/gradio-app/gradio/blob/main/demo/chatinterface_nested_thoughts/run.py).
+
 **Providing preset responses**
 
-You may want to provide preset responses that a user can choose between when conversing with your chatbot. To do this, return a complete openai-style message dictionary from your chat function, and add the `options` key to the dictionary returned from your chat function to set these responses. 
+When returning an assistant message, you may want to provide preset options that a user can choose in response. To do this, again, you will again return a `gr.ChatMessage` instance from your chat function. This time, make sure to set the `options` key specifying the preset responses.
 
-The value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
+As shown in the schema for `gr.ChatMessage` above, the value corresponding to the `options` key should be a list of dictionaries, each with a `value` (a string that is the value that should be sent to the chat function when this response is clicked) and an optional `label` (if provided, is the text displayed as the preset response instead of the `value`). 
 
 This example illustrates how to use preset responses:
 
 $code_chatinterface_options
-
-**Returning Multiple Messages**
-
-You can return multiple assistant messages from your chat function simply by returning a `list` of messages of any of the above types (you can even mix-and-match). This lets you, for example, send a message along with files, as in the following example:
-
-$code_chatinterface_echo_multimodal
 
 ## Using Your Chatbot via API
 

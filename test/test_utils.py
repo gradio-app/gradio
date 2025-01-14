@@ -533,14 +533,14 @@ def test_diff(old, new, expected_diff):
 
 class TestFunctionParams:
     def test_regular_function(self):
-        def func(a, b=10, c="default", d=None):
+        def func(a: int, b: int = 10, c: str = "default", d=None):
             pass
 
         assert get_function_params(func) == [
-            ("a", False, None),
-            ("b", True, 10),
-            ("c", True, "default"),
-            ("d", True, None),
+            ("a", False, None, int),
+            ("b", True, 10, int),
+            ("c", True, "default", str),
+            ("d", True, None, None),
         ]
 
     def test_function_no_params(self):
@@ -551,32 +551,38 @@ class TestFunctionParams:
 
     def test_lambda_function(self):
         assert get_function_params(lambda x, y: x + y) == [
-            ("x", False, None),
-            ("y", False, None),
+            ("x", False, None, None),
+            ("y", False, None, None),
         ]
 
     def test_function_with_args(self):
         def func(a, *args):
             pass
 
-        assert get_function_params(func) == [("a", False, None)]
+        assert get_function_params(func) == [("a", False, None, None)]
 
     def test_function_with_kwargs(self):
         def func(a, **kwargs):
             pass
 
-        assert get_function_params(func) == [("a", False, None)]
+        assert get_function_params(func) == [("a", False, None, None)]
 
     def test_function_with_special_args(self):
         def func(a, r: Request, b=10):
             pass
 
-        assert get_function_params(func) == [("a", False, None), ("b", True, 10)]
+        assert get_function_params(func) == [
+            ("a", False, None, None),
+            ("b", True, 10, None),
+        ]
 
         def func2(a, r: Request | None = None, b="abc"):
             pass
 
-        assert get_function_params(func2) == [("a", False, None), ("b", True, "abc")]
+        assert get_function_params(func2) == [
+            ("a", False, None, None),
+            ("b", True, "abc", None),
+        ]
 
     def test_class_method_skip_first_param(self):
         class MyClass:
@@ -584,8 +590,8 @@ class TestFunctionParams:
                 pass
 
         assert get_function_params(MyClass().method) == [
-            ("arg1", False, None),
-            ("arg2", True, 42),
+            ("arg1", False, None, None),
+            ("arg2", True, 42, None),
         ]
 
     def test_static_method_no_skip(self):
@@ -595,8 +601,8 @@ class TestFunctionParams:
                 pass
 
         assert get_function_params(MyClass.method) == [
-            ("arg1", False, None),
-            ("arg2", True, 42),
+            ("arg1", False, None, None),
+            ("arg2", True, 42, None),
         ]
 
     def test_class_method_with_args(self):
@@ -604,13 +610,13 @@ class TestFunctionParams:
             def method(self, a, *args, b=42):
                 pass
 
-        assert get_function_params(MyClass().method) == [("a", False, None)]
+        assert get_function_params(MyClass().method) == [("a", False, None, None)]
 
     def test_lambda_with_args(self):
-        assert get_function_params(lambda x, *args: x) == [("x", False, None)]
+        assert get_function_params(lambda x, *args: x) == [("x", False, None, None)]
 
     def test_lambda_with_kwargs(self):
-        assert get_function_params(lambda x, **kwargs: x) == [("x", False, None)]
+        assert get_function_params(lambda x, **kwargs: x) == [("x", False, None, None)]
 
 
 def test_parse_file_size():

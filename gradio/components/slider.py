@@ -49,6 +49,7 @@ class Slider(FormComponent):
         render: bool = True,
         key: int | str | None = None,
         randomize: bool = False,
+        show_reset_button: bool = True,
     ):
         """
         Parameters:
@@ -71,6 +72,7 @@ class Slider(FormComponent):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
+            show_reset_button: if False, will hide button to reset slider to default value.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -80,6 +82,7 @@ class Slider(FormComponent):
             self.step = 10**power
         else:
             self.step = step
+        self.show_reset_button = show_reset_button
         if randomize:
             value = self.get_random_value
         super().__init__(

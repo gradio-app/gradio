@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import builtins
 import copy
+import dataclasses
 import inspect
 import os
 import warnings
@@ -32,6 +33,7 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.components.chatbot import (
+    ChatMessage,
     ExampleMessage,
     Message,
     MessageDict,
@@ -498,8 +500,6 @@ class ChatInterface(Blocks):
 
         submit_triggers = [self.textbox.submit, self.chatbot.retry]
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
-        if hasattr(self.fn, "zerogpu"):
-            submit_fn.__func__.zerogpu = self.fn.zerogpu  # type: ignore
 
         synchronize_chat_state_kwargs = {
             "fn": lambda x: x,
@@ -808,6 +808,11 @@ class ChatInterface(Blocks):
         for msg in message:
             if isinstance(msg, Message):
                 message_dicts.append(msg.model_dump())
+            elif isinstance(msg, ChatMessage):
+                msg.role = role
+                message_dicts.append(
+                    dataclasses.asdict(msg, dict_factory=utils.dict_factory)
+                )
             elif isinstance(msg, (str, Component)):
                 message_dicts.append({"role": role, "content": msg})
             elif (

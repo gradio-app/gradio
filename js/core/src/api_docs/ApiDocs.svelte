@@ -368,7 +368,7 @@
 	.endpoint-container {
 		margin-top: var(--size-3);
 		margin-bottom: var(--size-3);
-		border: 1px solid var(--body-text-color);
+		border: 1px solid var(--block-border-color);
 		border-radius: var(--radius-xl);
 		padding: var(--size-3);
 		padding-top: 0;

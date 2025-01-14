@@ -638,6 +638,7 @@ export function get_component(
 } {
 	let example_component_map: Map<ComponentMeta["type"], LoadingComponent> =
 		new Map();
+	if (type === "api") type = "state";
 	if (type === "dataset" && example_components) {
 		(example_components as string[]).forEach((name: string) => {
 			if (example_component_map.has(name)) {
