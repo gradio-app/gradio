@@ -296,7 +296,6 @@ class Client:
 
     def send_data(self, data, hash_data, protocol):
         headers = self._add_zero_gpu_headers(self.headers)
-        print("headers", headers)
         req = httpx.post(
             self.sse_data_url,
             json={**data, **hash_data},
@@ -714,8 +713,6 @@ class Client:
         cannot be called when the Gradio Client is instantiated, but must be called from inside a Gradio app's
         prediction function.
         """
-        print("headers--original", headers)
-        print("self.space_id", self.space_id)
         if not self.space_id:
             return headers
         try:
@@ -725,12 +722,8 @@ class Client:
         ):  # this is not running within a Gradio app as Gradio is not installed
             return headers
         request = LocalContext.request.get()
-        print("request", request)
-        if request and hasattr(request, "headers"):
-            print("request.headers", request.headers)
-            if "x-ip-token" in request.headers:
+        if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
                 headers["x-ip-token"] = request.headers["x-ip-token"]
-        print("headers--updated", headers)
         return headers
 
     def _render_endpoints_info(
