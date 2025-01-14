@@ -36,7 +36,7 @@ from gradio.exceptions import Error
 @document()
 class MetadataDict(TypedDict):
     """
-    A dictionary to represent metadata for a message in the Chatbot component. An
+    A typed dictionary to represent metadata for a message in the Chatbot component. An
     instance of this dictionary is used as the `metadata` field in a ChatMessage when
     the chat message should be displayed as a thought.
     Parameters:
@@ -57,7 +57,7 @@ class MetadataDict(TypedDict):
 @document()
 class OptionDict(TypedDict):
     """
-    A dictionary to represent an option in a ChatMessage. An instance of this
+    A typed dictionary to represent an option in a ChatMessage. An instance of this
     dictionary is used as the `options` field in a ChatMessage.
     Parameters:
         value: The value to return when the option is selected.

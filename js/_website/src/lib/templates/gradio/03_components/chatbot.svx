@@ -11,7 +11,7 @@
 
     let obj = get_object("chatbot");
     let chatmessage_obj = get_object("chatmessage");
-    let chatmessage_options = get_object("option");
+    let chatmessage_optiondict = get_object("optiondict");
     let chatmessage_metadatadict = get_object("metadatadict");
 
 
@@ -236,34 +236,24 @@ gradio.ChatMessage(···)
 <!--- Title -->
 ### MetadataDict
 
-<!--- Usage -->
-```python
-gradio.MetadataDict(···)
-```
-
 <!--- Description -->
 #### Description
 ## {@html style_formatted_text(chatmessage_metadatadict.description)}
 
 <!--- Initialization -->
 #### Initialization
-<ParamTable parameters={chatmessage_metadatadict.parameters} />
+<ParamTable parameters={chatmessage_metadatadict.parameters} header="Keys"/>
 
 <!--- Title -->
-### Option
-
-<!--- Usage -->
-```python
-gradio.Option(···)
-```
+### OptionDict
 
 <!--- Description -->
 #### Description
-## {@html style_formatted_text(chatmessage_options.description)}
+## {@html style_formatted_text(chatmessage_optiondict.description) header="Keys"}
 
 <!--- Initialization -->
 #### Initialization
-<ParamTable parameters={chatmessage_options.parameters} />
+<ParamTable parameters={chatmessage_optiondict.parameters} />
 
 </div>
 
