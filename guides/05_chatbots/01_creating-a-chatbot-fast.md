@@ -346,16 +346,16 @@ The `gr.ChatInterface` class supports displaying intermediate thoughts or tool u
 class ChatMessage:
     content: str | Component
     metadata: MetadataDict = None
-    options: list[Option] = None
+    options: list[OptionDict] = None
 
 class MetadataDict(TypedDict):
-    title: Union[str, None]
+    title: NotRequired[str]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
     duration: NotRequired[int]
     status: NotRequired[Literal["pending", "done"]]
 
-class Option(TypedDict):
+class OptionDict(TypedDict):
     label: NotRequired[str]
     value: str
  ```
