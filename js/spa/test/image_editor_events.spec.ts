@@ -28,7 +28,6 @@ test("Image editor user can draw after upload", async ({ page }) => {
 	await expect(page.locator("#upload h2")).toContainText("1");
 	await page.getByLabel("Draw button").click();
 	const canvas = page.locator("canvas");
-	await page.pause();
 	await canvas.click({ position: { x: 100, y: 100 } });
 	const change_text = page.locator("#change h2");
 	await expect(change_text).toContainText("2");

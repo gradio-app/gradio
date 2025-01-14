@@ -353,8 +353,6 @@
 	export function set_tool(tool: tool): void {
 		$active_tool = tool;
 	}
-
-	$: console.log("$editor_box", $editor_box);
 </script>
 
 <svelte:window on:scroll={() => get_dimensions(canvas_wrap, pixi_target)} />
@@ -410,6 +408,9 @@
 	.container {
 		position: relative;
 		margin: var(--spacing-md);
+		/* in case the canvas_size is really small */
+		/* set min-height so that upload text does not cover the toolbar */
+		min-height: 100px;
 	}
 
 	.no-border {

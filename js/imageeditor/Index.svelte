@@ -29,7 +29,7 @@
 	export let root: string;
 	export let value_is_output = false;
 
-	export let height: number | undefined = 450;
+	export let height: number | undefined;
 	export let width: number | undefined;
 
 	export let _selectable = false;
@@ -55,7 +55,8 @@
 	export let server: {
 		accept_blobs: (a: any) => void;
 	};
-	export let canvas_size: [number, number] | undefined;
+	export let canvas_size: [number, number] = [800, 600];
+	export let fixed_canvas = false;
 	export let show_fullscreen_button = true;
 	export let full_history: any = null;
 
@@ -125,6 +126,13 @@
 		}
 	}
 
+	// In case no height given, pick a height large enough for the entire canvas
+	// in pixi.ts, the max-height of the canvas is canvas height / pixel ratio
+	$: safe_height = Math.max(
+		canvas_size[1] / (is_browser ? window.devicePixelRatio : 1) + 100,
+		250
+	);
+
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
 </script>
 
@@ -136,7 +144,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || undefined}
+		{height}
 		{width}
 		allow_overflow={false}
 		{container}
@@ -171,7 +179,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={undefined}
+		height={height || safe_height}
 		{width}
 		allow_overflow={false}
 		{container}
@@ -199,6 +207,7 @@
 			{label}
 			{show_label}
 			{height}
+			{fixed_canvas}
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
