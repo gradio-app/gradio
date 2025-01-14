@@ -229,31 +229,21 @@ gradio.ChatMessage(···)
 #### Description
 ## {@html style_formatted_text(chatmessage_obj.description)}
 
-<!--- Initialization -->
-#### Initialization
 <ParamTable parameters={chatmessage_obj.parameters} />
 
 <!--- Title -->
 ### MetadataDict
 
-<!--- Description -->
-#### Description
 ## {@html style_formatted_text(chatmessage_metadatadict.description)}
 
-<!--- Initialization -->
-#### Initialization
 <ParamTable parameters={chatmessage_metadatadict.parameters} header="Keys"/>
 
 <!--- Title -->
 ### OptionDict
 
-<!--- Description -->
-#### Description
-## {@html style_formatted_text(chatmessage_optiondict.description) header="Keys"}
+## {@html style_formatted_text(chatmessage_optiondict.description)}
 
-<!--- Initialization -->
-#### Initialization
-<ParamTable parameters={chatmessage_optiondict.parameters} />
+<ParamTable parameters={chatmessage_optiondict.parameters} header="Keys"/>
 
 </div>
 
