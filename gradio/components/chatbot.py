@@ -107,7 +107,7 @@ class ChatbotDataTuples(GradioRootModel):
 
 class Message(GradioModel):
     role: str
-    metadata: MetadataDict = {}
+    metadata: Optional[MetadataDict] = None
     content: Union[str, FileMessage, ComponentMessage]
     options: Optional[list[OptionDict]] = None
 
