@@ -139,7 +139,7 @@ class ChatMessage:
 
     content: str | FileData | Component | FileDataDict | tuple | list
     role: Literal["user", "assistant", "system"] = "assistant"
-    metadata: MetadataDict = {}
+    metadata: Optional[MetadataDict] = None
     options: Optional[list[OptionDict]] = None
 
 
