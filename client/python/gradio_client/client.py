@@ -724,8 +724,10 @@ class Client:
             return headers
         request = LocalContext.request.get()
         print("request", request)
-        if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
-            headers["x-ip-token"] = request.headers["x-ip-token"]
+        if request and hasattr(request, "headers"):
+            print("request.headers", request.headers)
+            if "x-ip-token" in request.headers:
+                headers["x-ip-token"] = request.headers["x-ip-token"]
         print("headers--updated", headers)
         return headers
 
