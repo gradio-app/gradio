@@ -28,7 +28,6 @@ export interface Message {
 	content: string | FileData | ComponentData;
 	index: number | [number, number];
 	options?: Option[];
-	duration?: number;
 }
 
 export interface TextMessage extends Message {

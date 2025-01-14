@@ -1133,6 +1133,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.blocked_paths = []
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
         self.proxy_urls = set()
+
         if self.analytics_enabled:
             is_custom_theme = not any(
                 self.theme.to_dict() == built_in_theme.to_dict()
@@ -3004,21 +3005,6 @@ Received inputs:
                 api_info["named_endpoints"][f"/{fn.api_name}"] = dependency_info
 
         return api_info
-
-    @property
-    def pages(self) -> list[dict[str, str]]:
-        """
-        Gets a list of pages from the current blocks context.
-        Returns a list of dictionaries containing page information with 'name' and 'route' keys.
-        """
-        pages = []
-        for block in self.blocks.values():
-            if block.get_block_name() == "page":
-                pages.append({
-                    "name": block.constructor_args.get("title", ""),
-                    "route": block.constructor_args.get("route", "/")
-                })
-        return pages
 
     @staticmethod
     def get_event_targets(

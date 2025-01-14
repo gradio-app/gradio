@@ -302,9 +302,6 @@ importers:
       '@gradio/number':
         specifier: workspace:^
         version: link:js/number
-      '@gradio/page':
-        specifier: workspace:^
-        version: link:js/page
       '@gradio/paramviewer':
         specifier: workspace:^
         version: link:js/paramviewer
@@ -1131,9 +1128,6 @@ importers:
       '@gradio/number':
         specifier: workspace:^
         version: link:../number
-      '@gradio/page':
-        specifier: workspace:^
-        version: link:../page
       '@gradio/paramviewer':
         specifier: workspace:^
         version: link:../paramviewer
@@ -1894,37 +1888,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      svelte:
-        specifier: ^4.0.0
-        version: 4.2.15
-    devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../preview
-
-  js/page:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/client':
-        specifier: workspace:^
-        version: link:../../client/js
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../icons
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../statustracker
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../upload
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      '@gradio/wasm':
-        specifier: workspace:^
-        version: link:../wasm
       svelte:
         specifier: ^4.0.0
         version: 4.2.15

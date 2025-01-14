@@ -52,6 +52,7 @@
 	const _component = wrap(component);
 </script>
 
+<!-- {#if visible} -->
 <svelte:component
 	this={_component}
 	bind:this={instance}
@@ -67,3 +68,4 @@
 >
 	<slot />
 </svelte:component>
+<!-- {/if} -->
