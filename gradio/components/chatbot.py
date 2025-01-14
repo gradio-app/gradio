@@ -46,7 +46,7 @@ class MetadataDict(TypedDict):
         status: The status of the message. If "pending", the status is displayed as a spinner icon.
     """
 
-    title: NotRequired[Union[str, None]]
+    title: NotRequired[str]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
     duration: NotRequired[float]
