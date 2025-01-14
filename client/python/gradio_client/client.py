@@ -295,10 +295,11 @@ class Client:
             raise e
 
     def send_data(self, data, hash_data, protocol):
+        headers = self._add_zero_gpu_headers(self.headers)
         req = httpx.post(
             self.sse_data_url,
             json={**data, **hash_data},
-            headers=self.headers,
+            headers=headers,
             cookies=self.cookies,
             verify=self.ssl_verify,
             **self.httpx_kwargs,
@@ -703,6 +704,25 @@ class Client:
     def reset_session(self) -> None:
         self.session_hash = str(uuid.uuid4())
         self._refresh_heartbeat.set()
+
+    def _add_zero_gpu_headers(self, headers: dict[str, str]) -> dict[str, str]:
+        """
+        Adds the x-ip-token header to the headers dictionary to pass it to a Zero-GPU Space. This allows a user's
+        ZeroGPU quota to be tracked and used by the underlying Space. For the x-ip-token header to be present,
+        this method needs to be called when a Gradio app's LocalContext is defined. i.e. this method
+        cannot be called when the Gradio Client is instantiated, but must be called from inside a Gradio app's
+        prediction function.
+        """
+        if not self.space_id:
+            return headers
+        try:
+            from gradio.context import LocalContext
+        except ImportError:
+            return headers
+        request = LocalContext.request
+        if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
+            headers["x-ip-token"] = request.headers["x-ip-token"]
+        return headers
 
     def _render_endpoints_info(
         self,
