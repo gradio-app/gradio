@@ -40,14 +40,14 @@ class MetadataDict(TypedDict):
     instance of this dictionary is used as the `metadata` field in a ChatMessage when
     the chat message should be displayed as a thought.
     Parameters:
-        title: The title of the "thought" message. Only required field.
+        title: The title of the "thought" message. Required if the message is to be displayed as a thought.
         id: The ID of the message. Only used for nested thoughts. Nested thoughts can be nested by setting the parent_id to the id of the parent thought.
         parent_id: The ID of the parent message. Only used for nested thoughts.
         duration: The duration of the message. Appears next to the title in the thought bubble in a subdued font.
         status: The status of the message. If "pending", the status is displayed as a spinner icon.
     """
 
-    title: Union[str, None]
+    title: NotRequired[Union[str, None]]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
     duration: NotRequired[float]
@@ -55,7 +55,7 @@ class MetadataDict(TypedDict):
 
 
 @document()
-class Option(TypedDict):
+class OptionDict(TypedDict):
     """
     A dictionary to represent an option in a ChatMessage. An instance of this
     dictionary is used as the `options` field in a ChatMessage.
@@ -66,7 +66,6 @@ class Option(TypedDict):
 
     value: str
     label: NotRequired[str]
-
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
@@ -82,7 +81,7 @@ class MessageDict(TypedDict):
     content: str | FileDataDict | tuple | Component
     role: Literal["user", "assistant", "system"]
     metadata: NotRequired[MetadataDict]
-    options: NotRequired[list[Option]]
+    options: NotRequired[list[OptionDict]]
 
 
 class FileMessage(GradioModel):
@@ -106,25 +105,11 @@ class ChatbotDataTuples(GradioRootModel):
     ]
 
 
-class Metadata(GradioModel):
-    title: Optional[str] = None
-    id: Optional[int | str] = None
-    parent_id: Optional[int | str] = None
-    duration: Optional[float] = None
-    status: Optional[Literal["pending", "done"]] = None
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        setattr(self, key, value)
-
-    def __getitem__(self, key: str) -> Any:
-        return getattr(self, key)
-
-
 class Message(GradioModel):
     role: str
-    metadata: Metadata = Field(default_factory=Metadata)
+    metadata: MetadataDict = {}
     content: Union[str, FileMessage, ComponentMessage]
-    options: Optional[list[Option]] = None
+    options: Optional[list[OptionDict]] = None
 
 
 class ExampleMessage(TypedDict):
@@ -144,7 +129,7 @@ class ExampleMessage(TypedDict):
 @dataclass
 class ChatMessage:
     """
-    A dataclass to represent a message in the Chatbot component (type="messages").
+    A dataclass that represents a message in the Chatbot component (with type="messages"). The only required field is `content`. The value of `gr.Chatbot` is a list of these dataclasses.
     Parameters:
         content: The content of the message. Can be a string or a Gradio component.
         role: The role of the message, which determines the alignment of the message in the chatbot. Can be "user", "assistant", or "system". Defaults to "assistant".
@@ -154,8 +139,8 @@ class ChatMessage:
 
     content: str | FileData | Component | FileDataDict | tuple | list
     role: Literal["user", "assistant", "system"] = "assistant"
-    metadata: MetadataDict | Metadata = field(default_factory=Metadata)
-    options: Optional[list[Option]] = None
+    metadata: MetadataDict = {}
+    options: Optional[list[OptionDict]] = None
 
 
 class ChatbotDataMessages(GradioRootModel):
