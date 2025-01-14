@@ -171,7 +171,7 @@
 		padding={false}
 		{elem_id}
 		{elem_classes}
-		height={height || undefined}
+		height={undefined}
 		{width}
 		allow_overflow={false}
 		{container}
