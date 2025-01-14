@@ -1,6 +1,6 @@
 ---
-"gradio": patch
-"gradio_client": patch
+"gradio": minor
+"gradio_client": minor
 ---
 
-fix:Allow `gr.DataFrame` to update more than once
+feat:Compatibility between Client and ZeroGPU
