@@ -259,11 +259,11 @@ class Dataframe(Component):
                 value = pd.read_csv(value)  # type: ignore
             if len(value) == 0:
                 return DataframeData(
-                    headers=list(value.columns),  # type: ignore
+                    headers=[str(col) for col in value.columns],  # Convert to strings
                     data=[[]],  # type: ignore
                 )
             return DataframeData(
-                headers=list(value.columns),  # type: ignore
+                headers=[str(col) for col in value.columns],  # Convert to strings
                 data=value.to_dict(orient="split")["data"],  # type: ignore
             )
         elif isinstance(value, Styler):
