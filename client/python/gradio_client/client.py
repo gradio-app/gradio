@@ -714,6 +714,8 @@ class Client:
         cannot be called when the Gradio Client is instantiated, but must be called from inside a Gradio app's
         prediction function.
         """
+        print("headers--original", headers)
+        print("self.space_id", self.space_id)
         if not self.space_id:
             return headers
         try:
@@ -721,8 +723,10 @@ class Client:
         except ImportError:  # this is not running within a Gradio app as Gradio is not installed
             return headers
         request = LocalContext.request
+        print("request", request)
         if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
             headers["x-ip-token"] = request.headers["x-ip-token"]
+        print("headers--updated", headers)
         return headers
 
     def _render_endpoints_info(
