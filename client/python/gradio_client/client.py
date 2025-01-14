@@ -296,6 +296,7 @@ class Client:
 
     def send_data(self, data, hash_data, protocol):
         headers = self._add_zero_gpu_headers(self.headers)
+        print("headers", headers)
         req = httpx.post(
             self.sse_data_url,
             json={**data, **hash_data},
