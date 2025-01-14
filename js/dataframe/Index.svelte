@@ -87,6 +87,8 @@
 	$: {
 		if (old_value && JSON.stringify(value) !== old_value) {
 			old_value = JSON.stringify(value);
+			console.log("old_value", old_value);
+			console.log("value", value);
 			handle_change();
 		}
 	}
