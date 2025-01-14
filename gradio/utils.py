@@ -1332,7 +1332,7 @@ def get_return_types(func: Callable) -> list:
     if return_hint in {inspect.Signature.empty, None, NoneType}:
         return []
 
-    if get_origin(return_hint) == tuple:
+    if get_origin(return_hint) is tuple:
         return list(get_args(return_hint))
 
     return [return_hint]
