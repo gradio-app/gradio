@@ -254,7 +254,6 @@ export interface Dependency {
 	trigger_mode: "once" | "multiple" | "always_last";
 	final_event: Payload | null;
 	show_api: boolean;
-	zerogpu?: boolean;
 	rendered_in: number | null;
 	connection: "stream" | "sse";
 	time_limit: number;

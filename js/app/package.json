@@ -1,6 +1,6 @@
 {
 	"name": "@self/app",
-	"version": "1.45.0",
+	"version": "1.46.0",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",

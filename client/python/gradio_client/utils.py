@@ -4,6 +4,7 @@ import asyncio
 import base64
 import concurrent.futures
 import copy
+import inspect
 import json
 import mimetypes
 import os
@@ -19,7 +20,17 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Literal, Optional, TypedDict
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    Optional,
+    TypedDict,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 import fsspec.asyn
 import httpx
@@ -992,6 +1003,93 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         return desc
     else:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
+
+
+def python_type_to_json_schema(type_hint: Any) -> dict:
+    try:
+        return _python_type_to_json_schema(type_hint)
+    except Exception:
+        return {}
+
+
+def _python_type_to_json_schema(type_hint: Any) -> dict:
+    """Convert a Python type hint to a JSON schema."""
+    if type_hint is type(None):
+        return {"type": "null"}
+    if type_hint is str:
+        return {"type": "string"}
+    if type_hint is int:
+        return {"type": "integer"}
+    if type_hint is float:
+        return {"type": "number"}
+    if type_hint is bool:
+        return {"type": "boolean"}
+
+    origin = get_origin(type_hint)
+
+    if origin is Literal:
+        literal_values = get_args(type_hint)
+        if len(literal_values) == 1:
+            return {"const": literal_values[0]}
+        return {"enum": list(literal_values)}
+
+    if origin is Union or str(origin) == "|":
+        types = get_args(type_hint)
+        if len(types) == 2 and type(None) in types:
+            other_type = next(t for t in types if t is not type(None))
+            schema = _python_type_to_json_schema(other_type)
+            if "type" in schema:
+                schema["type"] = [schema["type"], "null"]
+            else:
+                schema["oneOf"] = [{"type": "null"}, schema]
+            return schema
+        return {"anyOf": [_python_type_to_json_schema(t) for t in types]}
+
+    if origin is list:
+        item_type = get_args(type_hint)[0]
+        return {"type": "array", "items": _python_type_to_json_schema(item_type)}
+    if origin is tuple:
+        types = get_args(type_hint)
+        return {
+            "type": "array",
+            "prefixItems": [_python_type_to_json_schema(t) for t in types],
+            "minItems": len(types),
+            "maxItems": len(types),
+        }
+
+    if origin is dict:
+        key_type, value_type = get_args(type_hint)
+        if key_type is not str:
+            raise ValueError("JSON Schema only supports string keys in objects")
+        schema = {
+            "type": "object",
+            "additionalProperties": _python_type_to_json_schema(value_type),
+        }
+        return schema
+
+    if inspect.isclass(type_hint) and hasattr(type_hint, "__annotations__"):
+        properties = {}
+        required = []
+
+        hints = get_type_hints(type_hint)
+        for field_name, field_type in hints.items():
+            properties[field_name] = _python_type_to_json_schema(field_type)
+            if hasattr(type_hint, "__total__"):
+                if type_hint.__total__:
+                    required.append(field_name)
+            elif (
+                not hasattr(type_hint, "__dataclass_fields__")
+                or not type_hint.__dataclass_fields__[field_name].default
+            ):
+                required.append(field_name)
+
+        schema = {"type": "object", "properties": properties}
+        if required:
+            schema["required"] = required
+        return schema
+
+    if type_hint is Any:
+        return {}
 
 
 def traverse(json_obj: Any, func: Callable, is_root: Callable[..., bool]) -> Any:

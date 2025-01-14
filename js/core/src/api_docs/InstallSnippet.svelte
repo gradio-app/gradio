@@ -9,7 +9,7 @@
 	let bash_install = "curl --version";
 </script>
 
-<Block border_mode="contrast">
+<Block>
 	<code>
 		{#if current_language === "python"}
 			<div class="copy">

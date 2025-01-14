@@ -40,7 +40,7 @@ from gradio import (
     utils,
     wasm_utils,
 )
-from gradio.blocks_events import BlocksEvents, BlocksMeta
+from gradio.blocks_events import BLOCKS_EVENTS, BlocksEvents, BlocksMeta
 from gradio.context import (
     Context,
     LocalContext,
@@ -547,7 +547,6 @@ class BlockFunction:
         self.queue = False if fn is None else queue
         self.scroll_to_output = False if utils.get_space() else scroll_to_output
         self.show_api = show_api
-        self.zero_gpu = hasattr(self.fn, "zerogpu")
         self.types_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
@@ -608,7 +607,6 @@ class BlockFunction:
             "trigger_only_on_success": self.trigger_only_on_success,
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
-            "zerogpu": self.zero_gpu,
             "rendered_in": self.rendered_in._id if self.rendered_in else None,
             "connection": self.connection,
             "time_limit": self.time_limit,
@@ -781,11 +779,12 @@ class BlocksConfig:
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
 
-        if _targets[0][1] in ["change", "key_up"] and trigger_mode is None:
-            trigger_mode = "always_last"
-        elif _targets[0][1] in ["stream"] and trigger_mode is None:
-            trigger_mode = "multiple"
-        elif trigger_mode is None:
+        if len(_targets) and trigger_mode is None:
+            if _targets[0][1] in ["change", "key_up"]:
+                trigger_mode = "always_last"
+            elif _targets[0][1] in ["stream"]:
+                trigger_mode = "multiple"
+        if trigger_mode is None:
             trigger_mode = "once"
         elif trigger_mode not in ["once", "multiple", "always_last"]:
             raise ValueError(
@@ -1317,20 +1316,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     dependency["no_target"] = True
                 else:
                     targets = [
-                        getattr(
-                            original_mapping[
-                                target if isinstance(target, int) else target[0]
-                            ],
-                            trigger if isinstance(target, int) else target[1],
-                        )
-                        for target in _targets
-                    ]
-                    targets = [
                         EventListenerMethod(
                             t.__self__ if t.has_trigger else None,
                             t.event_name,  # type: ignore
                         )
-                        for t in targets
+                        for t in Blocks.get_event_targets(
+                            original_mapping, _targets, trigger
+                        )
                     ]
                 dependency = root_block.default_config.set_event_trigger(
                     targets=targets, fn=fn, **dependency
@@ -1434,6 +1426,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             ]
             for dependency in self.fns.values():
                 dependency._id += dependency_offset
+                # Any event -- e.g. Blocks.load() -- that is triggered by this Blocks
+                # should now be triggered by the root Blocks instead.
+                for target in dependency.targets:
+                    if target[0] == self._id:
+                        target = (Context.root_block._id, target[1])
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -3022,3 +3019,29 @@ Received inputs:
                     "route": block.constructor_args.get("route", "/")
                 })
         return pages
+
+    @staticmethod
+    def get_event_targets(
+        original_mapping: dict[int, Block], _targets: list, trigger: str
+    ) -> list:
+        target_events = []
+        for target in _targets:
+            # If target is just an integer (old format), use it directly with the trigger
+            # Otherwise target is a tuple and we use its components
+            target_id = target if isinstance(target, int) else target[0]
+            event_name = trigger if isinstance(target, int) else target[1]
+            block = original_mapping.get(target_id)
+            # Blocks events are a special case because they are not stored in the blocks list in the config
+            if block is None:
+                if event_name in [
+                    event.event_name if isinstance(event, EventListener) else event
+                    for event in BLOCKS_EVENTS
+                ]:
+                    block = Context.root_block
+                else:
+                    raise ValueError(
+                        f"Cannot find Block with id: {target_id} but is present as a target in the config"
+                    )
+            event = getattr(block, event_name)
+            target_events.append(event)
+        return target_events

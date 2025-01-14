@@ -157,6 +157,7 @@
 			if (mic_audio) {
 				value.files.push(mic_audio);
 				value = value;
+				mic_audio = null;
 			}
 		}
 	}
@@ -218,6 +219,7 @@
 		if (mic_audio) {
 			value.files.push(mic_audio);
 			value = value;
+			mic_audio = null;
 		}
 	}
 
