@@ -33,19 +33,7 @@ from gradio.events import Events
 from gradio.exceptions import Error
 
 
-@document()
 class MetadataDict(TypedDict):
-    """
-    A dictionary to represent metadata for a message in the Chatbot component. An
-    instance of this dictionary is used as the `metadata` field in a ChatMessage when
-    the chat message should be displayed as a thought.
-    Parameters:
-        title: The title of the "thought" message. Only required field.
-        id: The ID of the message. Only used for nested thoughts. Nested thoughts can be nested by setting the parent_id to the id of the parent thought.
-        parent_id: The ID of the parent message. Only used for nested thoughts.
-        duration: The duration of the message. Appears next to the title in the thought bubble in a subdued font.
-        status: The status of the message. If "pending", the status is displayed as a spinner icon.
-    """
     title: Union[str, None]
     id: NotRequired[int | str]
     parent_id: NotRequired[int | str]
@@ -53,17 +41,9 @@ class MetadataDict(TypedDict):
     status: NotRequired[Literal["pending", "done"]]
 
 
-@document()
 class Option(TypedDict):
-    """
-    A dictionary to represent an option in a ChatMessage. An instance of this
-    dictionary is used as the `options` field in a ChatMessage.
-    Parameters:
-        value: The value to return when the option is selected.
-        label: The text to display in the option, if different from the value.
-    """
-    value: str
     label: NotRequired[str]
+    value: str
 
 
 class FileDataDict(TypedDict):

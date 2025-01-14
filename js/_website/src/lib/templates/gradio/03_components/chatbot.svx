@@ -11,8 +11,6 @@
 
     let obj = get_object("chatbot");
     let chatmessage_obj = get_object("chatmessage");
-    let chatmessage_options = get_message("option");
-    let chatmessage_metadatadict = get_object("metadatadict");
 
     let embedded_demo_obj = `[
         {"role": "user", "content": "Hello World"},
@@ -189,33 +187,6 @@ gradio.ChatMessage(···)
 <!--- Initialization -->
 #### Initialization
 <ParamTable parameters={chatmessage_obj.parameters} />
-
-</div>
-
-<!--- Title -->
-### Option
-
-<!--- Description -->
-#### Description
-## {@html style_formatted_text(chatmessage_options.description)}
-
-<!--- Initialization -->
-#### Initialization
-<ParamTable parameters={chatmessage_options.parameters} />
-
-</div>
-
-<!--- Title -->
-### MetadataDict
-
-
-<!--- Description -->
-#### Description
-## {@html style_formatted_text(chatmessage_metadatadict.description)}
-
-<!--- Initialization -->
-#### Initialization
-<ParamTable parameters={chatmessage_metadatadict.parameters} />
 
 </div>
 
