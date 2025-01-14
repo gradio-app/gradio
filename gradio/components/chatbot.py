@@ -6,7 +6,7 @@ import copy
 import inspect
 import warnings
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -139,8 +139,8 @@ class ChatMessage:
 
     content: str | FileData | Component | FileDataDict | tuple | list
     role: Literal["user", "assistant", "system"] = "assistant"
-    metadata: Optional[MetadataDict] = None
-    options: Optional[list[OptionDict]] = None
+    metadata: MetadataDict = field(default_factory=MetadataDict)
+    options: list[OptionDict] = field(default_factory=list)
 
 
 class ChatbotDataMessages(GradioRootModel):
