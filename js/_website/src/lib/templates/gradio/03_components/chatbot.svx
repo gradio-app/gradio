@@ -15,7 +15,7 @@
     let chatmessage_metadatadict = get_object("metadatadict");
 
 
-    chatmessage_options.parameters = [
+    chatmessage_optiondict.parameters = [
         {
             "name": "value",
             "annotation": "str",
