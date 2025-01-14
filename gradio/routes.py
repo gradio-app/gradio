@@ -1442,16 +1442,16 @@ class App(FastAPI):
         @app.get("/pwa_icon/{size}")
         async def pwa_icon(size: int | None = None):
             blocks = app.get_blocks()
-            pwa_icon = blocks.pwa_icon
-            if pwa_icon is None:
+            favicon_path = blocks.favicon_path
+            if favicon_path is None:
                 raise HTTPException(status_code=404)
 
             if size is None:
-                return FileResponse(pwa_icon)
+                return FileResponse(favicon_path)
 
             import PIL.Image
 
-            img = PIL.Image.open(pwa_icon)
+            img = PIL.Image.open(favicon_path)
             img = img.resize((size, size))
 
             img_byte_array = io.BytesIO()
@@ -1467,8 +1467,8 @@ class App(FastAPI):
             if not blocks.pwa:
                 raise HTTPException(status_code=404)
 
-            pwa_icon = blocks.pwa_icon
-            if pwa_icon is None:
+            favicon_path = blocks.favicon_path
+            if favicon_path is None:
                 icons = [
                     {
                         "src": "static/img/logo_nosize.svg",
@@ -1477,7 +1477,7 @@ class App(FastAPI):
                         "purpose": "any",
                     },
                 ]
-            elif pwa_icon.endswith(".svg"):
+            elif favicon_path.endswith(".svg"):
                 icons = [
                     {
                         "src": app.url_path_for("pwa_icon"),

@@ -2310,7 +2310,6 @@ Received inputs:
         node_port: int | None = None,
         ssr_mode: bool | None = None,
         pwa: bool | None = None,
-        pwa_icon: str | None = None,
         _frontend: bool = True,
     ) -> tuple[App, str, str]:
         """
@@ -2350,7 +2349,6 @@ Received inputs:
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
             ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
-            pwa_icon: If a path to a file (.png, .jpeg, .gif, or .svg) is provided, it will be used as the icon for the PWA.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2452,7 +2450,6 @@ Received inputs:
                     block.key = f"__{block._id}__"
 
         self.pwa = utils.get_space() is not None if pwa is None else pwa
-        self.pwa_icon = pwa_icon
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
         self.config = self.get_config_file()
