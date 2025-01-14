@@ -6,7 +6,7 @@ import copy
 import inspect
 import warnings
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -19,7 +19,6 @@ from typing import (
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from pydantic import Field
 from typing_extensions import NotRequired, TypedDict
 
 from gradio import utils
@@ -66,6 +65,7 @@ class OptionDict(TypedDict):
 
     value: str
     label: NotRequired[str]
+
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
