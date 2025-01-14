@@ -55,7 +55,11 @@
 	export let server: {
 		accept_blobs: (a: any) => void;
 	};
+<<<<<<< HEAD
 	export let canvas_size: [number, number];
+=======
+	export let canvas_size: [number, number] = [800, 600];
+>>>>>>> 835b79a8e (Fix)
 	export let fixed_canvas = false;
 	export let show_fullscreen_button = true;
 	export let full_history: any = null;
