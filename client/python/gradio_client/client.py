@@ -722,7 +722,7 @@ class Client:
             from gradio.context import LocalContext
         except ImportError:  # this is not running within a Gradio app as Gradio is not installed
             return headers
-        request = LocalContext.request
+        request = LocalContext.request.get()
         print("request", request)
         if request and hasattr(request, "headers") and "x-ip-token" in request.headers:
             headers["x-ip-token"] = request.headers["x-ip-token"]
