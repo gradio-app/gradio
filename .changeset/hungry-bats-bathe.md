@@ -3,4 +3,4 @@
 "gradio_client": minor
 ---
 
-feat:Compatibility between Client and ZeroGPU
+feat:Dataframe update
