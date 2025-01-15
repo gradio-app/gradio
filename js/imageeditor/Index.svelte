@@ -134,8 +134,6 @@
 	);
 
 	$: has_value = value?.background || value?.layers?.length || value?.composite;
-
-	$: console.log("value in index", value);
 </script>
 
 {#if !interactive}

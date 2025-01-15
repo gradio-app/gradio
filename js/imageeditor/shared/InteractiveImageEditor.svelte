@@ -131,9 +131,6 @@
 	}
 
 	$: handle_value(value);
-
-	$: console.log("value in interactive", value);
-
 	$: crop_constraint = crop_size;
 	let bg = false;
 	let history = false;
