@@ -38,6 +38,7 @@
 	export let stream_handler: Client["stream"];
 
 	let selected: false | [number, number] = false;
+	let clicked_cell: { row: number; col: number } | undefined = undefined;
 	export let display_value: string[][] | null = null;
 	export let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
@@ -454,13 +455,14 @@
 			active_header_menu = null;
 		}
 
-		event.stopImmediatePropagation();
 		const [trigger] = event.composedPath() as HTMLElement[];
 		if (parent.contains(trigger)) {
 			return;
 		}
 
+		clicked_cell = undefined;
 		editing = false;
+		selected = false;
 		header_edit = false;
 		selected_header = false;
 		active_cell_menu = null;
@@ -929,8 +931,14 @@
 								event.preventDefault();
 								event.stopPropagation();
 								clear_on_focus = false;
-								selected = [index, j];
-								editing = [index, j];
+								clicked_cell = { row: index, col: j };
+								if (dequal(selected, [index, j])) {
+									editing = [index, j];
+								} else {
+									selected = [index, j];
+									editing = [index, j];
+								}
+								toggle_cell_button(index, j);
 							}}
 							on:mousedown={(event) => {
 								event.preventDefault();
@@ -940,6 +948,7 @@
 								event.preventDefault();
 								event.stopPropagation();
 								clear_on_focus = false;
+								clicked_cell = { row: index, col: j };
 								if (dequal(selected, [index, j])) {
 									editing = [index, j];
 								} else {
