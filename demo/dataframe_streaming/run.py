@@ -5,7 +5,7 @@ import time
 def update_dataframe(df):
     df.iloc[:, :] = 1
     yield df, 1
-    time.sleep(1)
+    time.sleep(3)
     df.iloc[:, :] = 2
     yield df, 2
 

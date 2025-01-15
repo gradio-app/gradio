@@ -4,6 +4,14 @@
 
 	export let items: any[][] = [];
 
+	$: {
+		console.log('Items changed:', {
+			itemsLength: items.length,
+			timestamp: new Date().toISOString(),
+			firstItem: items[0],
+		});
+	}
+
 	export let max_height: number;
 	export let actual_height: number;
 	export let table_scrollbar_width: number;
