@@ -509,9 +509,9 @@ class ChatInterface(Blocks):
         submit_fn = self._stream_fn if self.is_generator else self._submit_fn
 
         synchronize_chat_state_kwargs = {
-            "fn": lambda x: x,
+            "fn": lambda x: (x, x),
             "inputs": [self.chatbot],
-            "outputs": [self.chatbot_state],
+            "outputs": [self.chatbot_state, self.chatbot_value],
             "show_api": False,
             "queue": False,
         }
