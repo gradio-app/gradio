@@ -192,8 +192,8 @@
 			JSONold_val: JSON.stringify(old_val),
 			dequal: dequal(values, old_val),
 		});
-		data = process_data(values as (string | number)[][]);
-		old_val = values as (string | number)[][];
+		data = process_data(values);
+		old_val = values;
 	}
 
 	let data: { id: string; value: string | number }[][] = [[]];
