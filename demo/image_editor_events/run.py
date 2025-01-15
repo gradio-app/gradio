@@ -5,7 +5,7 @@ def predict(im):
     return im["composite"]
 
 def verify_clear(im):
-    return int(not np.any(im['composite']))
+    return int(not np.any(im['composite'])), im["composite"]
 
 with gr.Blocks() as demo:
     with gr.Group():
@@ -40,7 +40,7 @@ with gr.Blocks() as demo:
                 elem_id="apply",
             )
             cleared_properly = gr.Number(label="cleared properly")
-    clear_btn = gr.Button("Clear", elem_id="clear")
+    clear_btn = gr.Button("Clear Button", elem_id="clear")
 
     im.upload(
         lambda x: int(x) + 1, outputs=n_upload, inputs=n_upload, show_progress="hidden"
@@ -61,7 +61,7 @@ with gr.Blocks() as demo:
         im,
     ).then(verify_clear,
            inputs=im,
-           outputs=cleared_properly)
+           outputs=[cleared_properly, im])
 
 if __name__ == "__main__":
     demo.launch()

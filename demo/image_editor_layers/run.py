@@ -17,6 +17,7 @@ with gr.Blocks() as demo:
         )
     
     num_layers = gr.Number(value=0, label="Num Layers")
+    example_ran = gr.Number(value=0, label="Example Ran")
 
     set_background = gr.Button("Set Background")
     set_background.click(
@@ -68,6 +69,9 @@ with gr.Blocks() as demo:
             },
         ],
         inputs=im,
+        outputs=[example_ran],
+        fn=lambda x: 1,
+        run_on_click=True,
     )
 
 if __name__ == "__main__":

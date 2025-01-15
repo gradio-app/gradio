@@ -126,7 +126,7 @@
 		if (!editor) return;
 		if (value == null) {
 			editor.handle_remove();
-			dispatch("receive_null")
+			dispatch("receive_null");
 		}
 	}
 
