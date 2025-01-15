@@ -18,6 +18,9 @@
 	export let show_label = true;
 	export let headers: Headers = [];
 	export let values: (string | number)[][] = [];
+	let old_values: (string | number)[][] = [];
+	let data: { id: string; value: string | number }[][] = [[]];
+
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -172,33 +175,16 @@
 
 	function trigger_headers(): void {
 		_headers = make_headers(headers);
-
 		old_headers = headers.slice();
 		trigger_change();
 	}
 
-	$: {
-		console.log('Values changed in Table.svelte:', {
-			valuesLength: values.length,
-			timestamp: new Date().toISOString(),
-			firstItem: values[0],
-		});
-		console.log("dequal(values, old_val):", dequal(values, old_val));
-	}
-
-	$: if (!dequal(values, old_val)) {
-		console.log("Dequal in Table.svelte:", {
-			JSONvalues: JSON.stringify(values),
-			JSONold_val: JSON.stringify(old_val),
-			dequal: dequal(values, old_val),
-		});
+	function handle_values_change(): void {
 		data = process_data(values);
-		old_val = values;
+		old_values = values;
 	}
 
-	let data: { id: string; value: string | number }[][] = [[]];
-
-	let old_val: undefined | (string | number)[][] = undefined;
+	$: values && handle_values_change();
 
 	async function trigger_change(): Promise<void> {
 		dispatch("change", {
