@@ -18,4 +18,5 @@ with gr.Blocks() as demo:
     dataframe = gr.Dataframe(value=initial_df, label="Dataframe")
     button.click(fn=update_dataframe, inputs=dataframe, outputs=[dataframe, number])
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
